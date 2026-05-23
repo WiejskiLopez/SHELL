@@ -1,0 +1,12 @@
+# Default configuration for tasker-worker.
+# Values here are merged with node-level overrides defined in task.yaml.
+# Node-level values take priority over these defaults.
+
+# Number of retries on failure (0 = no retry)
+retries: 0
+
+# If true, do not ask user for input (non-interactive mode)
+no_ask_user: true
+
+# If true, run in autopilot mode (no confirmation prompts)
+autopilot: true
