@@ -51,9 +51,12 @@ class SqliteDriver(SqlDriver):
         parent = self._db_path.parent
         if not Path.exists(parent):
             Path.mkdir(parent)
-        self._connection = sqlite3.connect(str(self._db_path))
+        self._connection = sqlite3.connect(str(self._db_path), timeout=30.0)
         self._connection.row_factory = sqlite3.Row
         self._connection.execute("PRAGMA foreign_keys = ON")
+        self._connection.execute("PRAGMA journal_mode = WAL")
+        self._connection.execute("PRAGMA synchronous = NORMAL")
+        self._connection.execute("PRAGMA busy_timeout = 5000")
 
     def close(self) -> None:
         if self._connection is not None:

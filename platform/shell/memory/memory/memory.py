@@ -36,6 +36,10 @@ class Memory:
     def rag_(self) -> RagIndex:
         return self._rag
 
+    @property
+    def driver_(self):
+        return self._backend.driver_
+
     def init_memory(self, backend: MemoryBackend, embedder: Embedder | None = None) -> None:
         _init_memory(self, backend, embedder)
 
