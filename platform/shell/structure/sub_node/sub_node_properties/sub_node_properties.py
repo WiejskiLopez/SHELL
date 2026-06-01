@@ -9,7 +9,6 @@ Slots:
     _sub_node_name            — node name (str | None)
     _sub_node_runner_root_dir — path to the runner root directory (str | None)
     _sub_node_node_config     — lazy NodeConfig instance
-    _sub_node_node_stage      — lazy NodeStage instance
     _name        — node name identifier
     _mode        — node mode (agent | router | worker | tool | tasker)
     _role        — logical role of the node
@@ -32,7 +31,6 @@ from __future__ import annotations
 from shell.utils.path.path import Path, PathType
 
 from shell.structure.node.node_config.node_config import NodeConfig
-from shell.structure.node.node_stage.node_stage import NodeStage
 from shell.structure.sub_node.sub_node_properties.internal._assert_sub_node_properties_loaded import _assert_sub_node_properties_loaded
 from shell.structure.sub_node.sub_node_properties.internal._init_sub_node_properties import _init_sub_node_properties
 
@@ -45,7 +43,6 @@ class SubNodeProperties:
         "_sub_node_name",
         "_sub_node_runner_root_dir",
         "_sub_node_node_config",
-        "_sub_node_node_stage",
         "_name",
         "_mode",
         "_role",
@@ -70,7 +67,6 @@ class SubNodeProperties:
         self._sub_node_name: str | None = None
         self._sub_node_runner_root_dir: str | None = None
         self._sub_node_node_config = None
-        self._sub_node_node_stage = None
         self._name: str | None = None
         self._mode: str | None = None
         self._role: str | None = None
@@ -123,12 +119,6 @@ class SubNodeProperties:
         if self._sub_node_node_config is None:
             self._sub_node_node_config = NodeConfig(self._app)
         return self._sub_node_node_config
-
-    @property
-    def sub_node_node_stage_(self) -> NodeStage:
-        if self._sub_node_node_stage is None:
-            self._sub_node_node_stage = NodeStage(self._app)
-        return self._sub_node_node_stage
 
     @property
     def name_(self) -> str:

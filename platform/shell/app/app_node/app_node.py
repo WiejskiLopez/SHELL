@@ -7,7 +7,6 @@ AppNode represents the single node that this App instance is executing.
 Slots:
     _app  — parent App (DOM back-reference)
     _node — Optional; Node instance, set during init_app_node()
-    _lock — Optional; Locker instance, lazy
 
 Validated properties:
     node_dir_        — resolved Path to the node directory
@@ -20,7 +19,6 @@ Methods:
 
 from __future__ import annotations
 
-from shell.component.locker.locker import Locker
 from shell.structure.node.node.node import Node
 from shell.app.app_node.internal._init_app_node import _init_app_node
 
@@ -28,12 +26,11 @@ from shell.app.app_node.internal._init_app_node import _init_app_node
 class AppNode:
     """Structured value object for the current node in the context of App."""
 
-    __slots__ = ("_app", "_node", "_lock")
+    __slots__ = ("_app", "_node")
 
     def __init__(self, app) -> None:
         self._app = app
         self._node: Node | None = None
-        self._lock: Locker | None = None
 
     # -----------------------------------------------------------------------
     # Node facade
@@ -46,17 +43,6 @@ class AppNode:
         return self._node
 
     # -----------------------------------------------------------------------
-    # Lock facade
-    # -----------------------------------------------------------------------
-
-    @property
-    def lock_(self) -> Locker:
-        """Return the cached Locker instance for this node."""
-        if self._lock is None:
-            self._lock = Locker(self._app)
-        return self._lock
-
-    # -----------------------------------------------------------------------
     # Phase method
     # -----------------------------------------------------------------------
 
@@ -64,7 +50,5 @@ class AppNode:
         _init_app_node(self._app)
 
     def release_node(self, rmtree=None, unlink=None) -> None:
-        """Release the lock and clean up node directories."""
-        self.lock_.unlock()
         if self._app.runner_.mode_ != 'router':
             self._node.clean_node(rmtree=rmtree, unlink=unlink)

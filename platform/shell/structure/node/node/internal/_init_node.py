@@ -20,8 +20,6 @@ def _init_node(node, node_dir: str, node_config=None) -> None:
     _assert_source_dir_set(source_dir)
     if node._app.cli_.cli_properties_.mode_ == 'agent':
         node.node_prompt_.init_node_prompt()
-    if node._app.cli_.cli_properties_.mode_ == 'router':
-        node.node_stage_.init_node_stage()
     if node._app.cli_.cli_properties_.mode_ == 'tasker':
         node.node_task_.init_node_task()
     _validate_node(node_dir)

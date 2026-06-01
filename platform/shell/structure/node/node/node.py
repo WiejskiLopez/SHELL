@@ -31,7 +31,6 @@ from shell.structure.node.node_logs.node_logs import NodeLogs
 from shell.structure.node.node_scripts.node_scripts import NodeScripts
 from shell.structure.node.node_task.node_task import NodeTask
 from shell.structure.node.node_status.node_status import NodeStatus
-from shell.structure.node.node_stage.node_stage import NodeStage
 from shell.structure.node.node_temp.node_temp import NodeTemp
 from shell.status.status import Status
 
@@ -42,7 +41,7 @@ class Node:
     _app is kept for operations that need logging and runner_root_dir fallback.
     """
 
-    __slots__ = ("_node_dir", "_node_name", "_node_config", "_app", "_node_status", "_node_output", "_node_input", "_node_archive", "_node_prompt", "_node_task", "_node_stage", "_node_logs", "_node_temp", "_node_scripts")
+    __slots__ = ("_node_dir", "_node_name", "_node_config", "_app", "_node_status", "_node_output", "_node_input", "_node_archive", "_node_prompt", "_node_task", "_node_logs", "_node_temp", "_node_scripts")
 
     def __init__(self, app, node_name: str | None = None,
                  role: str | None = None, type: str | None = None, status: Status | None = None) -> None:
@@ -56,7 +55,6 @@ class Node:
         self._node_status = NodeStatus(status)
         self._node_prompt: NodePrompt | None = None
         self._node_task: NodeTask | None = None
-        self._node_stage: NodeStage | None = None
         self._node_logs: NodeLogs | None = None
         self._node_temp: NodeTemp | None = None
         self._node_scripts: NodeScripts | None = None
@@ -122,12 +120,6 @@ class Node:
         if self._node_task is None:
             self._node_task = NodeTask(self._app)
         return self._node_task
-
-    @property
-    def node_stage_(self) -> NodeStage:
-        if self._node_stage is None:
-            self._node_stage = NodeStage(self._app)
-        return self._node_stage
 
     @property
     def node_logs_(self) -> NodeLogs:
