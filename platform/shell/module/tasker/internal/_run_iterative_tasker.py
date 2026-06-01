@@ -45,7 +45,12 @@ def _run_iterative_tasker(tasker: 'Tasker') -> Status:
         return Status.SUCCESS
 
     workflow_id = _resolve_workflow_id(tasker)
-    state.open_workflow(workflow_id, root_task_id=workflow_id)
+    state.open_workflow(
+        workflow_id,
+        root_task_id=workflow_id,
+        task_id=app.task_record_.task_id_,
+        session_id=tasker.session_id_,
+    )
     app.app_trace_.record_info('tasker._run_iterative_tasker', f'workflow opened: {workflow_id}')
 
     sub_nodes = tasker.graph_.sub_nodes_

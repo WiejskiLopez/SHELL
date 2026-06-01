@@ -172,6 +172,15 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Name of the task to execute (folder name in task repository).",
     )
 
+    parser.add_argument(
+        "--task-id",
+        metavar="ID",
+        type=int,
+        default=None,
+        dest="task_id",
+        help="Task DB id; passed by parent tasker to subprocesses to load body from DB.",
+    )
+
     # --- router-specific ---
 
     parser.add_argument(

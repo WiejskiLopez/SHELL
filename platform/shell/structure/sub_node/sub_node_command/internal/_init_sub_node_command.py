@@ -40,6 +40,11 @@ def _init_sub_node_command(sub_node_command, sub_node_properties, task_dir, pyth
     sub_node_command.command_.extend_command_args(['--work-dir', str(work_dir)])
     sub_node_command.command_.extend_command_args(['--task-name', task_name])
     sub_node_command.command_.extend_command_args(['--task-dir', str(task_dir)])
+    try:
+        task_id = app.task_record_.task_id_
+        sub_node_command.command_.extend_command_args(['--task-id', str(task_id)])
+    except RuntimeError:
+        pass
 
     if parent_node_dir is not None:
         sub_node_command.command_.extend_command_args(['--parent-node-dir', str(parent_node_dir)])

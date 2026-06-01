@@ -33,3 +33,14 @@ def _init_memory_and_bus(app: 'App') -> None:
     app.bus_.init_message_bus(app.memory_.driver_)
     app.workflow_state_.init_workflow_state(app.memory_.driver_)
     app.task_repo_.init_task_repo(app.memory_.driver_)
+
+    task_id = app.cli_.cli_properties_.task_id_
+    if task_id is not None:
+        record = app.task_repo_.get_task_by_id(task_id)
+        if record is None:
+            raise RuntimeError(f"--task-id {task_id} not found in task DB at {db_path}")
+        app.set_task_record(record)
+        app.app_trace_.record_info(
+            'app._init_memory_and_bus',
+            f'loaded task_record from DB by --task-id={task_id} (name={record.name_} ver={record.version_})',
+        )

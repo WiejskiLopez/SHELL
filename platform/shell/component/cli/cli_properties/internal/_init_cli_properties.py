@@ -44,6 +44,8 @@ def _init_cli_properties(cli_properties, args) -> None:
         config.append_config_value('source_dir', args.source_dir, 'cli')
     if args.task_name is not None:
         config.append_config_value('task_name', args.task_name, 'cli')
+    if args.task_id is not None:
+        config.append_config_value('task_id', args.task_id, 'cli')
     if args.task_dir is not None:
         config.append_config_value('task_dir', args.task_dir, 'cli')
     if args.model is not None:

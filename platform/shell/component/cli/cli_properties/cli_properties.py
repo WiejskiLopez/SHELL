@@ -97,6 +97,13 @@ class CliProperties:
         return self._cli.cli_config_.config_dict_.get('task_name')
 
     @property
+    def task_id_(self) -> int | None:
+        value = self._cli.cli_config_.config_dict_.get('task_id')
+        if value is None:
+            return None
+        return int(value)
+
+    @property
     def task_dir_(self) -> PathType | None:
         value = self._cli.cli_config_.config_dict_.get('task_dir')
         if value is None:

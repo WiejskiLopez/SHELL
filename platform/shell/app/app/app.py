@@ -23,6 +23,7 @@ from shell.memory.memory.memory import Memory
 from shell.bus.message_bus.message_bus import MessageBus
 from shell.bus.workflow_state.workflow_state import WorkflowState
 from shell.task.task_repo.task_repo import TaskRepo
+from shell.task.task_record import TaskRecord
 from shell.app.app.internal._init_app import _init_app
 from shell.app.app.internal._init_memory_and_bus import _init_memory_and_bus
 from shell.app.app.internal._run_app import _run_app
@@ -44,7 +45,7 @@ class App:
         '_placeholders',
         '_app_properties',
         '_runtime',
-        '_memory', '_bus', '_workflow_state', '_task_repo',
+        '_memory', '_bus', '_workflow_state', '_task_repo', '_task_record',
     )
 
     def __init__(self) -> None:
@@ -61,6 +62,7 @@ class App:
         self._bus: MessageBus | None = None
         self._workflow_state: WorkflowState | None = None
         self._task_repo: TaskRepo | None = None
+        self._task_record: TaskRecord | None = None
 
     # -----------------------------------------------------------------------
     # Repr
@@ -178,6 +180,15 @@ class App:
         if self._task_repo is None:
             self._task_repo = TaskRepo()
         return self._task_repo
+
+    @property
+    def task_record_(self) -> TaskRecord:
+        if self._task_record is None:
+            raise RuntimeError("task_record not loaded — call init_tasker() (root) or load via --task-id (subprocess)")
+        return self._task_record
+
+    def set_task_record(self, record: TaskRecord) -> None:
+        self._task_record = record
 
     def init_memory_and_bus(self) -> None:
         _init_memory_and_bus(self)

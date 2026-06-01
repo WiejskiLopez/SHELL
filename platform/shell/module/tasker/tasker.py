@@ -27,13 +27,12 @@ class Tasker:
     Constructed lazily and held as app.runner_.tasker_.
     """
 
-    __slots__ = ("_app", "_graph", "_session_id", "_task_record")
+    __slots__ = ("_app", "_graph", "_session_id")
 
     def __init__(self, app) -> None:
         self._app = app
         self._graph: Graph | None = None
         self._session_id: str | None = None
-        self._task_record: TaskRecord | None = None
 
     @property
     def graph_(self) -> Graph:
@@ -54,9 +53,7 @@ class Tasker:
 
     @property
     def task_record_(self) -> TaskRecord:
-        if self._task_record is None:
-            raise RuntimeError("task_record not loaded — call init_tasker() first")
-        return self._task_record
+        return self._app.task_record_
 
     def init_tasker(self, reader=None) -> None:
         _init_tasker(self, reader=reader)

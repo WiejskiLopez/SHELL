@@ -16,7 +16,7 @@ def _init_graph(graph, reader=None, writer=None) -> None:
         writer = default_write_utf8
 
     app = graph._app
-    task_record = app.runner_.tasker_.task_record_
+    task_record = app.task_record_
     records = app.task_repo_.get_graph_nodes(task_record.task_id_)
 
     sub_nodes = []
