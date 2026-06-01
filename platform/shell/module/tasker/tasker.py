@@ -2,9 +2,10 @@
 Tasker: structured runtime state for a single task.
 
 Slots:
-    _app         — parent App (DOM back-reference)
-    _graph              — Graph instance (built by init_tasker)
-    _session_id            — Optional; session timestamp string (YYYYmmdd_HHMMSS)
+    _app          — parent App (DOM back-reference)
+    _graph        — Graph instance (built by init_tasker)
+    _session_id   — Optional; session timestamp string (YYYYmmdd_HHMMSS)
+    _task_record  — Optional; TaskRecord loaded from DB after init_tasker
 
 Validated properties:
     task_dir_              — resolved Path to node directory (task lives there)
@@ -14,6 +15,7 @@ Validated properties:
 from __future__ import annotations
 from shell.structure.graph.graph.graph import Graph
 from shell.status.status import Status
+from shell.task.task_record import TaskRecord
 from shell.module.tasker.internal._assert_session_id_set import _assert_session_id_set
 from shell.module.tasker.internal._init_tasker import _init_tasker
 from shell.module.tasker.internal._run_tasker import _run_tasker
@@ -25,12 +27,13 @@ class Tasker:
     Constructed lazily and held as app.runner_.tasker_.
     """
 
-    __slots__ = ("_app", "_graph", "_session_id")
+    __slots__ = ("_app", "_graph", "_session_id", "_task_record")
 
     def __init__(self, app) -> None:
         self._app = app
         self._graph: Graph | None = None
         self._session_id: str | None = None
+        self._task_record: TaskRecord | None = None
 
     @property
     def graph_(self) -> Graph:
@@ -48,6 +51,12 @@ class Tasker:
     def session_id_(self) -> str:
         _assert_session_id_set(self._session_id)
         return self._session_id
+
+    @property
+    def task_record_(self) -> TaskRecord:
+        if self._task_record is None:
+            raise RuntimeError("task_record not loaded — call init_tasker() first")
+        return self._task_record
 
     def init_tasker(self, reader=None) -> None:
         _init_tasker(self, reader=reader)

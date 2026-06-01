@@ -1155,12 +1155,12 @@ except Exception:
 
 ### platform/shell/app/__init__.py
 ```
-﻿from shell.app.app.app import App
+from shell.app.app.app import App
 ```
 
 ### platform/shell/app/app/__init__.py
 ```
-﻿from shell.app.app.app import App
+from shell.app.app.app import App
 
 __all__ = ["App"]
 ```
@@ -1199,7 +1199,7 @@ Wywołana przez `App.init_app(argv, mode, runner_root_dir)` → `_init_app(cls, 
 
 ### platform/shell/app/app/app.py
 ```
-﻿"""app.py
+"""app.py
 App — central runtime state for a shell graph run.
 
 Holds typed references to all module objects and flat configuration values.
@@ -1218,7 +1218,7 @@ from shell.component.placeholders.placeholders import Placeholders
 from shell.app.app_trace.app_trace import AppTrace
 from shell.app.app_properties.app_properties import AppProperties
 from shell.component.result.result import Result
-from shell.component.runner.runner.runner import Runner
+from shell.app.app_runner.app_runner import AppRunner
 from shell.component.runtime.runtime.runtime import Runtime
 from shell.app.app.internal._init_app import _init_app
 from shell.app.app.internal._run_app import _run_app
@@ -1242,26 +1242,16 @@ class App:
         '_runtime',
     )
 
-    def __init__(
-        self,
-        mode: str | None = None,
-        logger: Any = None,
-        status: str | None = None,
-    ) -> None:
-        # Module backing slots
+    def __init__(self) -> None:
         self._app_node: AppNode | None = None
-        self._runner: Runner | None = None
+        self._runner: AppRunner | None = None
         self._cli: Cli | None = None
         self._app_config: Config | None = None
-        self._result: Result | None = Result(self)
+        self._result: Result | None = None
         self._app_trace: AppTrace | None = None
         self._placeholders: Placeholders | None = None
         self._app_properties: AppProperties | None = None
         self._runtime: Runtime | None = None
-        if status is not None:
-            self._result._status = status
-        if mode is not None:
-            self.runner_._mode = mode
 
     # -----------------------------------------------------------------------
     # Repr
@@ -1298,10 +1288,10 @@ class App:
     # -----------------------------------------------------------------------
 
     @property
-    def runner_(self) -> Runner:
+    def runner_(self) -> AppRunner:
         """Return the cached Runner for this app."""
         if self._runner is None:
-            self._runner = Runner(self)
+            self._runner = AppRunner(self)
         return self._runner
 
     # AppNode facade
@@ -1331,8 +1321,7 @@ class App:
     @property
     def runtime_(self) -> Runtime:
         if self._runtime is None:
-            self._runtime = Runtime()
-            self._runtime._app = self
+            self._runtime = Runtime(self)
         return self._runtime
 
     @property
@@ -1393,7 +1382,7 @@ class App:
 
 ### platform/shell/app/app/internal/_append_app_config.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
@@ -1408,7 +1397,7 @@ def _append_app_config(app: App, config_dict: dict, source: Literal['cli', 'sub_
 
 ### platform/shell/app/app/internal/_archive_app.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -1446,7 +1435,7 @@ def _assert_model_resolved(model: str | None) -> None:
 
 ### platform/shell/app/app/internal/_finalize_app.py
 ```
-﻿"""_finalize_app.py
+"""_finalize_app.py
 Phase — release the lock and clean up after execution.
 """
 
@@ -1464,7 +1453,7 @@ def _finalize_app(app: 'App', rmtree=None, unlink=None) -> None:
 
 ### platform/shell/app/app/internal/_init_app.py
 ```
-﻿"""_init_app.py
+"""_init_app.py
 Phase 1 — build and return a App from CLI args.
 """
 
@@ -1503,7 +1492,7 @@ def _init_app(
 
 ### platform/shell/app/app/internal/_init_app_config.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -1519,7 +1508,7 @@ def _init_app_config(app: App) -> None:
 
 ### platform/shell/app/app/internal/_init_app_modules.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -1537,7 +1526,7 @@ def _init_app_modules(app: App, mode: str | None, locker) -> None:
 
 ### platform/shell/app/app/internal/_print_app.py
 ```
-﻿"""_print_app.py
+"""_print_app.py
 Responsible for one thing: printing stdout, stderr and result summary to the output callable.
 """
 
@@ -1569,7 +1558,7 @@ def _print_app(app: 'App', out: Callable[[str], None]) -> None:
 
 ### platform/shell/app/app/internal/_result_app.py
 ```
-﻿"""_result_app.py
+"""_result_app.py
 Phase — resolve final status and return the OS exit code.
 """
 
@@ -1594,7 +1583,7 @@ def _result_app(app: 'App', out=None) -> int:
 
 ### platform/shell/app/app/internal/_run_app.py
 ```
-﻿"""_run_app.py
+"""_run_app.py
 Phase — execute the runner, archive, finalize and return the exit code.
 """
 
@@ -1621,7 +1610,7 @@ def _run_app(app: 'App') -> int:
 
 ### platform/shell/app/app/internal/_save_archive.py
 ```
-﻿"""_save_archive.py
+"""_save_archive.py
 Phase — archive the node execution state.
 """
 
@@ -1676,7 +1665,7 @@ Główny moduł aplikacji. Zawiera węzeł korzenny `App` oraz submoduły odpowi
 
 ### platform/shell/app/app_node/app_node.py
 ```
-﻿"""app_node.py
+"""app_node.py
 AppNode: structured value object for the current node in the context of App.
 
 Analogous to SubNode (which represents a single node in a graph),
@@ -1774,7 +1763,7 @@ def _init_app_node(app) -> None:
 
 ### platform/shell/app/app_properties/__init__.py
 ```
-﻿from shell.app.app_properties.app_properties import AppProperties
+from shell.app.app_properties.app_properties import AppProperties
 ```
 
 ### platform/shell/app/app_properties/app_properties.md
@@ -1805,7 +1794,7 @@ Inne moduły odczytują konfigurację przez `app_.app_properties_.<property>_`. 
 
 ### platform/shell/app/app_properties/app_properties.py
 ```
-﻿"""app_properties.py
+"""app_properties.py
 AppProperties — typed accessors for app's config.yaml values.
 
 Slots:
@@ -1898,6 +1887,312 @@ def _assert_app_properties_loaded(name: str | None) -> None:
         raise ValueError("[AppProperties] not loaded — call init_app_properties() first")
 ```
 
+### platform/shell/app/app_runner/__init__.py
+```
+```
+
+### platform/shell/app/app_runner/app_runner.py
+```
+"""runner.py
+Runner — domain methods shared by all runner types.
+
+Owns _app, _agent, _mode and _runner_properties slots.
+
+Domain methods (per spec):
+    run_runner(timer)    — dispatch CLI flags to the appropriate domain method
+"""
+
+from __future__ import annotations
+
+from shell.module.agent.agent.agent import Agent
+from shell.module.router.router.router import Router
+from shell.app.app_runner.internal._init_runner import _init_runner
+from shell.app.app_runner.internal._run_runner import _run_runner
+from shell.app.app_runner.internal._assert_mode_valid import _assert_mode_valid
+from shell.module.tasker.tasker import Tasker
+from shell.module.tool.tool import Tool
+from shell.module.worker.worker.worker import Worker
+
+
+class AppRunner:
+    """Domain methods for a single node run.
+
+    Cached via app.runner_.
+    """
+
+    __slots__ = ("_app", "_agent", "_mode", "_tasker", "_router", "_tool", "_worker")
+
+    def __init__(self, app=None) -> None:
+        self._app = app
+        self._agent: Agent | None = None
+        self._mode: str | None = None
+        self._tasker: Tasker | None = None
+        self._router: Router | None = None
+        self._tool: Tool | None = None
+        self._worker: Worker | None = None
+    # -----------------------------------------------------------------------
+    # Slot properties
+    # -----------------------------------------------------------------------
+
+    @property
+    def agent_(self) -> Agent:
+        """Return the cached Agent instance for this runner."""
+        if self._agent is None:
+            self._agent = Agent(self._app)
+        return self._agent
+
+    @property
+
+    def tasker_(self) -> Tasker:
+        """Return the cached Tasker instance for this runner."""
+        if self._tasker is None:
+            self._tasker = Tasker(self._app)
+        return self._tasker
+
+    @property
+    def router_(self) -> Router:
+        """Return the cached Router instance for this runner."""
+        if self._router is None:
+            self._router = Router(self._app)
+        return self._router
+
+    @property
+    def tool_(self) -> Tool:
+        """Return the cached Tool instance for this runner."""
+        if self._tool is None:
+            self._tool = Tool(self._app)
+        return self._tool
+
+    @property
+    def worker_(self) -> Worker:
+        """Return the cached Worker instance for this runner."""
+        if self._worker is None:
+            self._worker = Worker(self._app)
+        return self._worker
+
+    def __repr__(self) -> str:
+        return f"AppRunner(mode={self._mode!r})"
+
+    @property
+    def mode_(self) -> str | None:
+        return self._mode
+
+    # -----------------------------------------------------------------------
+    # Mode predicates
+    # -----------------------------------------------------------------------
+
+    @property
+    def is_agent_(self) -> bool:
+        return self.mode_ == 'agent'
+
+    @property
+    def is_router_(self) -> bool:
+        return self.mode_ == 'router'
+
+    @property
+    def is_tasker_(self) -> bool:
+        return self.mode_ == 'tasker'
+
+    @property
+    def is_tool_(self) -> bool:
+        return self.mode_ == 'tool'
+
+    @property
+    def is_worker_(self) -> bool:
+        return self.mode_ == 'worker'
+
+    # -----------------------------------------------------------------------
+    # Init
+    # -----------------------------------------------------------------------
+
+    def init_runner(self, mode: str | None = None) -> None:
+        if mode is not None:
+            _assert_mode_valid(mode)
+            self._mode = mode
+        _init_runner(self)
+
+    # -----------------------------------------------------------------------
+    # Dispatch (spec: Runner.run_runner)
+    # -----------------------------------------------------------------------
+
+    def run_runner(self, timer=None) -> None:
+        """Dispatch CLI flags to the appropriate domain method."""
+        _run_runner(self, timer=timer)
+
+```
+
+### platform/shell/app/app_runner/internal/__init__.py
+```
+```
+
+### platform/shell/app/app_runner/internal/_assert_mode_valid.py
+```
+from __future__ import annotations
+
+
+_MODES: frozenset[str] = frozenset({"agent", "tasker", "router", "tool", "worker"})
+
+
+def _assert_mode_valid(mode: str | None) -> None:
+    if mode is None:
+        return
+    if mode not in _MODES:
+        raise ValueError(f"mode must be one of {sorted(_MODES)!r}, got {mode!r}")
+```
+
+### platform/shell/app/app_runner/internal/_clean_node.py
+```
+"""_clean_node.py
+Clean node output directories and write result to app.result_.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app_runner.app_runner import AppRunner
+
+
+def _clean_node(runner: 'AppRunner', timer=None) -> None:
+    """Clean node output directories and write result to app.result_."""
+    if timer is None:
+        timer = time.monotonic
+    timer()
+    try:
+        runner._app.app_node_.node_.clean_node()
+        runner._app.app_trace_.record_info('runner._clean_node._clean_node', 'Node output cleaned.')
+    except Exception as exc:
+        runner._app.app_trace_.record_error_and_raise('runner._clean_node._clean_node', exc)
+```
+
+### platform/shell/app/app_runner/internal/_init_runner.py
+```
+"""_init_runner.py
+Initialise the appropriate runner type based on the current mode.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app_runner.app_runner import AppRunner
+
+
+def _init_runner(runner: 'AppRunner') -> None:
+    if runner.is_agent_:
+        runner.agent_.init_agent()
+    if runner.is_tasker_:
+        runner.tasker_.init_tasker()
+    if runner.is_router_:
+        runner.router_.init_router()
+    if runner.is_tool_:
+        runner.tool_.init_tool()
+    if runner.is_worker_:
+        runner.worker_.init_worker()
+```
+
+### platform/shell/app/app_runner/internal/_print_help.py
+```
+"""_print_help.py
+Print manifest yaml raw content and write result to app.result_.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app_runner.app_runner import AppRunner
+
+
+def _print_help(runner: 'AppRunner', timer=None) -> None:
+    """Print manifest yaml raw content and write result to app.result_."""
+    if timer is None:
+        timer = time.monotonic
+    timer()
+    try:
+        output = runner._app.manifest_._manifest_file_body
+        runner._app.app_trace_.record_info('runner._print_help._print_help', output)
+        runner._app.app_trace_.record_info('runner._print_help._print_help', 'OK')
+    except Exception as exc:
+        runner._app.app_trace_.record_error_and_raise('runner._print_help._print_help', exc)
+```
+
+### platform/shell/app/app_runner/internal/_print_version.py
+```
+"""_print_version.py
+Print agent version and write result to app.result_.
+"""
+
+from __future__ import annotations
+
+import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app_runner.app_runner import AppRunner
+
+
+def _print_version(runner: 'AppRunner', timer=None) -> None:
+    if timer is None:
+        timer = time.monotonic
+    timer()
+    try:
+        manifest = runner._app.manifest_
+        output = f"{manifest._manifest_name_} {manifest._manifest_version_}"
+        runner._app.app_trace_.record_info('runner._print_version._print_version', output)
+        runner._app.app_trace_.record_info('runner._print_version._print_version', 'OK')
+    except Exception as exc:
+        runner._app.app_trace_.record_error_and_raise('runner._print_version._print_version', exc)
+```
+
+### platform/shell/app/app_runner/internal/_run_runner.py
+```
+"""_run_runner.py
+Dispatch CLI flags to the appropriate runner domain method.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.app.app_runner.internal._clean_node import _clean_node
+from shell.app.app_runner.internal._print_help import _print_help
+from shell.app.app_runner.internal._print_version import _print_version
+
+if TYPE_CHECKING:
+    from shell.app.app_runner.app_runner import AppRunner
+
+
+def _run_runner(runner: 'AppRunner', timer=None) -> None:
+    try:
+        if runner._app.cli_.cli_properties_.is_help_:
+            _print_help(runner, timer=timer)
+        elif runner._app.cli_.cli_properties_.is_version_:
+            _print_version(runner, timer=timer)
+        elif runner._app.cli_.cli_properties_.is_clean_:
+            _clean_node(runner, timer=timer)
+        elif runner.is_agent_:
+            runner.agent_.run_agent()
+        elif runner.is_tasker_:
+            runner.tasker_.run_tasker()
+        elif runner.is_router_:
+            runner.router_.run_router()
+        elif runner.is_tool_:
+            runner.tool_.run_tool()
+        elif runner.is_worker_:
+            runner.worker_.run_worker()
+        else:
+            raise ValueError("Invalid mode: no valid CLI flags found and no valid mode set.")
+        runner._app.app_trace_.record_info('runner._run_runner._run_runner', 'successfully executed')
+    except Exception as exc:  # noqa: BLE001
+        runner._app.app_trace_.record_error('runner._run_runner._run_runner', exc)
+```
+
 ### platform/shell/app/app_trace/__init__.py
 ```
 ```
@@ -1931,7 +2226,7 @@ Zbiera zdarzenia wykonania (error, warning, success, info) w trakcie pojedynczeg
 
 ### platform/shell/app/app_trace/app_trace.py
 ```
-﻿"""app_trace.py
+"""app_trace.py
 AppTrace — collects execution events during a single shell graph run.
 
 Accumulates events (error, warning, success, info) from all phases.
@@ -2170,7 +2465,7 @@ class AppTrace:
 
 ### platform/shell/app/app_trace/event/event.py
 ```
-﻿"""event.py
+"""event.py
 Event — single execution event collected by AppTrace.
 
 Slots:
@@ -2256,14 +2551,14 @@ class Event:
 
 ### platform/shell/component/cli/__init__.py
 ```
-﻿from shell.component.cli.cli.cli import Cli
+from shell.component.cli.cli.cli import Cli
 
 __all__ = ["Cli"]
 ```
 
 ### platform/shell/component/cli/cli/__init__.py
 ```
-﻿from shell.component.cli.cli.cli import Cli
+from shell.component.cli.cli.cli import Cli
 
 __all__ = ["Cli"]
 
@@ -2293,7 +2588,7 @@ Błędy inicjalizacji przechwytywane i przekazywane do `app_trace_`.
 
 ### platform/shell/component/cli/cli/cli.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.cli.cli.internal._init_cli import _init_cli
 from shell.component.cli.cli_properties.cli_properties import CliProperties
@@ -2324,23 +2619,17 @@ class Cli:
     def cli_config_(self) -> Config:
         if self._cli_config is None:
             self._cli_config = Config()
-            self._cli_config.append_config_value('step_number', '1', 'cli')
-            self._cli_config.append_config_value('allow_all_paths', True, 'cli')
-            self._cli_config.append_config_value('allow_all_tools', True, 'cli')
-            self._cli_config.append_config_value('output_format', 'json', 'cli')
         return self._cli_config
 
     @property
     def cli_properties_(self) -> CliProperties:
         if self._cli_properties is None:
-            self._cli_properties = CliProperties()
-            self._cli_properties._cli = self
+            self._cli_properties = CliProperties(self)
         return self._cli_properties
 
     def init_cli(self, argv=None, runner_root_dir=None, mode: str | None = None) -> None:
         try:
-            self.cli_config_.append_config_value('runner_root_dir', runner_root_dir, 'cli')
-            _init_cli(self, argv=argv)
+            _init_cli(self, argv=argv, runner_root_dir=runner_root_dir)
         except Exception as exc:
             self._app.app_trace_.record_error_and_raise('cli.Cli.init_cli', exc)
 ```
@@ -2439,10 +2728,16 @@ def _assert_work_dir_set(work_dir: str | None) -> None:
 
 ### platform/shell/component/cli/cli/internal/_init_cli.py
 ```
-﻿from shell.component.cli.cli.internal._parse_args import _parse_args
+from shell.component.cli.cli.internal._parse_args import _parse_args
 
 
-def _init_cli(cli, argv=None) -> None:
+def _init_cli(cli, argv=None, runner_root_dir=None) -> None:
+    config = cli.cli_config_
+    config.append_config_value('step_number', '1', 'cli')
+    config.append_config_value('allow_all_paths', True, 'cli')
+    config.append_config_value('allow_all_tools', True, 'cli')
+    config.append_config_value('output_format', 'json', 'cli')
+    config.append_config_value('runner_root_dir', runner_root_dir, 'cli')
     args = _parse_args(argv)
     cli.cli_properties_.init_cli_properties(args)
 ```
@@ -2705,7 +3000,7 @@ Odpowiada za parsowanie argumentów wiersza poleceń i udostępnianie ich reszci
 
 ### platform/shell/component/cli/cli_properties/__init__.py
 ```
-﻿from shell.component.cli.cli_properties.cli_properties import CliProperties
+from shell.component.cli.cli_properties.cli_properties import CliProperties
 
 __all__ = ["CliProperties"]
 ```
@@ -2738,7 +3033,7 @@ Inne moduły odczytują parametry CLI wyłącznie przez `cli_.cli_properties_.<p
 
 ### platform/shell/component/cli/cli_properties/cli_properties.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.utils.path.path import Path, PathType
 from datetime import datetime
@@ -2756,8 +3051,8 @@ class CliProperties:
 
     __slots__ = ("_cli",)
 
-    def __init__(self) -> None:
-        self._cli = None
+    def __init__(self, cli=None) -> None:
+        self._cli = cli
 
     @property
     def is_version_(self) -> bool:
@@ -2897,7 +3192,7 @@ class CliProperties:
 
 ### platform/shell/component/cli/cli_properties/internal/_init_cli_properties.py
 ```
-﻿from shell.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
+from shell.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
 from shell.component.cli.cli.internal._assert_source_dir_set import _assert_source_dir_set
 from shell.component.cli.cli.internal._assert_task_name_set import _assert_task_name_set
 from shell.component.cli.cli.internal._assert_task_dir_set import _assert_task_dir_set
@@ -2967,6 +3262,216 @@ def _init_cli_properties(cli_properties, args) -> None:
 ```
 ```
 
+### platform/shell/component/command/command/internal/_assert_add_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_add_dir_exists(add_dir: PathType) -> None:
+    if not Path.is_dir(add_dir):
+        raise FileNotFoundError(f"Add directory does not exist: {add_dir}")
+```
+
+### platform/shell/component/command/command/internal/_assert_copilot_cmd_found.py
+```
+def _assert_copilot_cmd_found(command) -> None:
+    if not command:
+        raise FileNotFoundError(
+            "Agent CLI not found. Set command in app/app.yaml "
+            "or ensure the binary is on PATH."
+        )
+```
+
+### platform/shell/component/command/command/internal/_assert_log_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_log_dir_exists(log_dir: PathType) -> None:
+    if not Path.is_dir(log_dir):
+        raise FileNotFoundError(f"Log directory does not exist: {log_dir}")
+```
+
+### platform/shell/component/command/command/internal/_assert_model_set.py
+```
+def _assert_model_set(model: str) -> None:
+    if not model:
+        raise ValueError("[Command] Required field missing: 'model'")
+```
+
+### platform/shell/component/command/command/internal/_assert_output_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_output_dir_exists(output_dir: PathType) -> None:
+    if not Path.is_dir(output_dir):
+        raise FileNotFoundError(f"Output directory does not exist: {output_dir}")
+```
+
+### platform/shell/component/command/command/internal/_assert_source_dir_set.py
+```
+def _assert_source_dir_set(source_dir) -> None:
+    if not source_dir:
+        raise RuntimeError("[Command] source_dir is not set — pass --source-dir to the CLI")
+```
+
+### platform/shell/component/command/command/internal/_assert_task_dir_set.py
+```
+def _assert_task_dir_set(task_dir) -> None:
+    if not task_dir:
+        raise RuntimeError("[Command] task_dir is not set — pass --task-dir to the CLI")
+```
+
+### platform/shell/component/command/command/internal/_assert_task_name_set.py
+```
+def _assert_task_name_set(task_name) -> None:
+    if not task_name:
+        raise RuntimeError("[Command] task_name is not set — pass --task-name to the CLI")
+```
+
+### platform/shell/component/command/command/internal/_assert_work_dir_set.py
+```
+def _assert_work_dir_set(work_dir) -> None:
+    if not work_dir:
+        raise RuntimeError("[Command] work_dir is not set — pass --work-dir to the CLI")
+```
+
+### platform/shell/component/command/command/internal/_init_command_agent.py
+```
+from __future__ import annotations
+
+import os
+import shutil
+
+from shell.component.command.command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
+from shell.component.command.command.internal._assert_model_set import _assert_model_set
+from shell.component.command.command.internal._assert_output_dir_exists import _assert_output_dir_exists
+from shell.component.command.command.internal._assert_log_dir_exists import _assert_log_dir_exists
+from shell.component.command.command.internal._assert_add_dir_exists import _assert_add_dir_exists
+from shell.constants.constants import DOT_NODE, DIR_OUTPUT
+
+
+def _init_command_agent(command, app, which=None, os_name=None) -> None:
+    which = which or shutil.which
+    os_name = os_name or os.name
+
+    binary = which("copilot")
+    _assert_copilot_cmd_found(binary)
+
+    if os_name == "nt" and str(binary).lower().endswith((".cmd", ".bat")):
+        command.extend_command_args(["cmd", "/c", binary])
+    else:
+        command.add_command_arg(binary)
+
+    model = (app.runner_.agent_.agent_properties_.model_ or "").strip()
+    _assert_model_set(model)
+    command.extend_command_args(["--model", model])
+
+    if app.cli_.cli_properties_.is_allow_all_paths_:
+        command.add_command_arg("--allow-all-paths")
+
+    if app.cli_.cli_properties_.is_allow_all_tools_:
+        command.add_command_arg("--allow-all-tools")
+
+    command.extend_command_args(["--output-format", app.cli_.cli_properties_.output_format_])
+
+    if app.cli_.cli_properties_.is_no_ask_user_:
+        command.add_command_arg("--no-ask-user")
+
+    if app.cli_.cli_properties_.is_autopilot_:
+        command.add_command_arg("--autopilot")
+
+    output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
+    _assert_output_dir_exists(output_dir)
+    command.extend_command_args(["--add-dir", str(output_dir)])
+    app.app_trace_.record_info('command._init_command_agent', f'--add-dir {output_dir}')
+
+    logs_dir = app.app_node_.node_.node_logs_.logs_dir_
+    _assert_log_dir_exists(logs_dir)
+
+    for add_dir in app.cli_.cli_properties_.add_dirs_:
+        _assert_add_dir_exists(add_dir)
+        command.extend_command_args(["--add-dir", str(add_dir)])
+        app.app_trace_.record_info('command._init_command_agent', f'--add-dir {add_dir}')
+
+    node_dir = app.app_node_.node_.node_dir_
+    _assert_add_dir_exists(node_dir)
+    command.extend_command_args(["--add-dir", str(node_dir)])
+    app.app_trace_.record_info('command._init_command_agent', f'--add-dir {node_dir}')
+
+    command.extend_command_args(["--log-dir", str(logs_dir)])
+    app.app_trace_.record_info('command._init_command_agent', f'--log-dir {logs_dir}')
+```
+
+### platform/shell/component/command/command/internal/_init_command_sub_node.py
+```
+from __future__ import annotations
+
+import sys
+
+from shell.utils.path.path import Path
+from shell.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
+from shell.component.command.command.internal._assert_source_dir_set import _assert_source_dir_set
+from shell.component.command.command.internal._assert_task_dir_set import _assert_task_dir_set
+from shell.component.command.command.internal._assert_task_name_set import _assert_task_name_set
+from shell.component.command.command.internal._assert_work_dir_set import _assert_work_dir_set
+from shell.component.command.command.internal._assert_model_set import _assert_model_set
+
+
+def _init_command_sub_node(command, sub_node_properties, task_dir, app, python_exe=None) -> None:
+    if python_exe is None:
+        python_exe = sys.executable
+
+    sub_node_name = sub_node_properties.sub_node_name_
+    parent_node_dir = sub_node_properties.parent_node_dir_
+    runner_root_dir = sub_node_properties.sub_node_runner_root_dir_
+    mode = sub_node_properties.mode_
+    model = sub_node_properties.model_
+    cli = app.cli_
+    task_name = sub_node_properties.task_name_ or cli.task_name_
+    source_dir = sub_node_properties.source_dir_ or cli.source_dir_
+    work_dir = sub_node_properties.work_dir_ or cli.work_dir_
+    thread_id = cli.thread_id_
+
+    _assert_source_dir_set(source_dir)
+    _assert_work_dir_set(work_dir)
+    _assert_task_name_set(task_name)
+    _assert_task_dir_set(task_dir)
+
+    node_dir = Path.new(parent_node_dir) / sub_node_name
+    entrypoint_path = Path.new(runner_root_dir).resolve() / 'entrypoint.py'
+    _assert_entrypoint_exists(entrypoint_path)
+
+    command.extend_command_args([python_exe, str(entrypoint_path)])
+    command.extend_command_args(['--node-dir', str(node_dir)])
+    command.extend_command_args(['--source-dir', str(source_dir)])
+    command.extend_command_args(['--work-dir', str(work_dir)])
+    command.extend_command_args(['--task-name', task_name])
+    command.extend_command_args(['--task-dir', str(task_dir)])
+
+    if parent_node_dir is not None:
+        command.extend_command_args(['--parent-node-dir', str(parent_node_dir)])
+        app.app_trace_.record_info('command._init_command_sub_node', f'parent_node_dir set: {parent_node_dir}')
+    else:
+        app.app_trace_.record_info('command._init_command_sub_node', 'parent_node_dir not set')
+
+    if thread_id is not None:
+        command.extend_command_args(['--parent-thread-id', thread_id])
+
+    if mode == 'agent':
+        _assert_model_set(model)
+        command.extend_command_args(['--model', model])
+
+    role = sub_node_properties.role_
+    if role is not None:
+        command.extend_command_args(['--role', role])
+
+    timeout = sub_node_properties.timeout_
+    if timeout is not None:
+        command.extend_command_args(['--timeout', str(timeout)])
+```
+
 ### platform/shell/component/command/command.py
 ```
 """command.py
@@ -3009,7 +3514,7 @@ class Command:
 
 ### platform/shell/component/config/config/config.py
 ```
-﻿"""config.py
+"""config.py
 Config: holder for the default config.yaml loaded from runner_root_dir.
 
 Slots:
@@ -3079,7 +3584,7 @@ class Config:
 
 ### platform/shell/component/config/config/internal/_append_config_dict.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.config.config.internal._append_config_value import _append_config_value
 
@@ -3092,7 +3597,7 @@ def _append_config_dict(config: object, config_dict: dict, source: str) -> None:
 
 ### platform/shell/component/config/config/internal/_append_config_from_path.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import yaml
 
@@ -3110,7 +3615,7 @@ def _append_config_from_path(config: object, config_path: PathType | str, source
 
 ### platform/shell/component/config/config/internal/_append_config_value.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import yaml
 
@@ -3159,7 +3664,7 @@ def _assert_model_set(config_dict: dict | None) -> None:
 
 ### platform/shell/component/config/config/internal/_init_config.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import yaml
 
@@ -3189,9 +3694,40 @@ def _init_config(config: 'Config', config_path: PathType | str, source: str) -> 
 ```
 ```
 
+### platform/shell/component/locker/internal/_acquire_locker.py
+```
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+from shell.utils.path.path import PathType
+from shell.component.locker.internal._acquire_node_dir_lock import acquire_node_dir_lock
+from shell.component.locker.internal._lock_error import LockError
+from shell.component.result.result import Result
+
+if TYPE_CHECKING:
+    from shell.component.locker.locker import Locker
+
+
+def _acquire_locker(locker: 'Locker', acquirer: Callable[[PathType], PathType] | None = None) -> None:
+    if acquirer is None:
+        acquirer = acquire_node_dir_lock
+    app = locker._app
+    node_dir = app.app_node_.node_.node_dir_
+    app.app_trace_.record_info('locker.acquire.begin', f'node_dir={node_dir}')
+    try:
+        lock_path = acquirer(node_dir)
+        locker._lock_path = str(lock_path)
+        app.app_trace_.record_info('locker.acquire.ok', f'lock_path={lock_path}')
+    except LockError as exc:
+        app.result_.set_status(Result.Status.LOCKED)
+        app.app_trace_.record_error('locker.acquire.fail', exc)
+        raise
+```
+
 ### platform/shell/component/locker/internal/_acquire_node_dir_lock.py
 ```
-﻿from shell.utils.path.path import PathType
 """acquire_lock.py
 Responsible for one thing: atomically acquiring an exclusive file lock
 on a node directory.  Raises LockError when the node is already locked.
@@ -3205,6 +3741,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timezone
 
+from shell.utils.path.path import PathType
 from shell.component.locker.internal._is_stale import _is_stale
 from shell.component.locker.internal._lock_error import LockError
 
@@ -3283,7 +3820,7 @@ def _assert_lock_path_set(lock_path) -> None:
 
 ### platform/shell/component/locker/internal/_is_stale.py
 ```
-﻿"""_is_stale.py
+"""_is_stale.py
 Private. Responsible for one thing: determining whether a lock file is stale
 (i.e. the owning process no longer exists).
 """
@@ -3350,13 +3887,15 @@ def _pid_alive(pid: int) -> bool:
 
 ### platform/shell/component/locker/internal/_release_node_dir_lock.py
 ```
-﻿from shell.utils.path.path import PathType
 """release_lock.py
 Responsible for one thing: releasing (deleting) the node lock file.
 Safe to call even when the file has already been removed.
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 from collections.abc import Callable
 
@@ -3381,23 +3920,14 @@ def release_node_dir_lock(
 
 ### platform/shell/component/locker/locker.py
 ```
-﻿"""locker.py
-Locker: single entry point for acquiring and releasing the node directory lock.
-
-    lock(locker=None)   — acquire exclusive lock, store path in app
-    unlock()            — release lock stored in app (no-op if never acquired)
-"""
-
 from __future__ import annotations
 
 from shell.utils.path.path import Path, PathType
 from collections.abc import Callable
 
-from shell.component.locker.internal._acquire_node_dir_lock import acquire_node_dir_lock
+from shell.component.locker.internal._acquire_locker import _acquire_locker
 from shell.component.locker.internal._release_node_dir_lock import release_node_dir_lock
-from shell.component.locker.internal._lock_error import LockError
 from shell.component.locker.internal._assert_lock_path_set import _assert_lock_path_set
-from shell.component.result.result import Result
 
 
 class Locker:
@@ -3409,10 +3939,6 @@ class Locker:
         self._app = app
         self._lock_path: str | None = None
 
-    # -----------------------------------------------------------------------
-    # Validated property
-    # -----------------------------------------------------------------------
-
     @property
     def lock_path_(self) -> PathType:
         """Return the resolved lock path. Raises if not set."""
@@ -3420,22 +3946,7 @@ class Locker:
         return Path.new(self._lock_path).resolve()
 
     def lock_(self, locker: Callable[[PathType], PathType] | None = None) -> None:
-        """Acquire exclusive file lock on the node directory.
-
-        Stores lock path in app lock_path.
-        On LockError sets status to 'locked', logs the error, and re-raises.
-        locker: optional callable (node: PathType) -> PathType for testability.
-        """
-        if locker is None:
-            locker = acquire_node_dir_lock
-        node_dir = self._app.app_node_.node_.node_dir_
-        try:
-            lock_path = locker(node_dir)
-            self._lock_path = str(lock_path)
-        except LockError as exc:
-            self._app.result_.set_status(Result.Status.LOCKED)
-            self._app.app_trace_.logger_.error(str(exc), exc_info=True)
-            raise
+        _acquire_locker(self, acquirer=locker)
 
     def unlock(self) -> None:
         """Release the node lock stored in lock_path.
@@ -3457,7 +3968,7 @@ class Locker:
 
 ### platform/shell/component/manifest/internal/_assert_manifest_body_loaded.py
 ```
-﻿"""_assert_manifest_body_loaded.py
+"""_assert_manifest_body_loaded.py
 Responsible for one thing: raising ValueError when manifest_file_body is empty.
 """
 
@@ -3496,7 +4007,7 @@ def _assert_manifest_path_set(path) -> None:
 
 ### platform/shell/component/manifest/internal/_load_manifest.py
 ```
-﻿
+
 from shell.component.manifest.manifest import Manifest
 from shell.utils.path.path import Path, PathType
 from shell.constants.constants import MANIFEST_YAML
@@ -3578,7 +4089,7 @@ ten moul i ta klasa to kontener na plik manifest
 
 ### platform/shell/component/manifest/manifest.py
 ```
-﻿"""manifest.py
+"""manifest.py
 Manifest: structured representation of a loaded manifest.yaml file.
 
 Fields:
@@ -3673,7 +4184,7 @@ class Manifest:
 
 ### platform/shell/component/message/__init__.py
 ```
-﻿from shell.component.message.message.message import Message
+from shell.component.message.message.message import Message
 from shell.component.message.message_envelope.message_envelope import MessageEnvelope
 from shell.component.message.message_formatter.message_formatter import MessageFormatter
 from shell.component.message.message_list.message_list import MessageList
@@ -3689,12 +4200,12 @@ from shell.component.message.source_type.source_type import SourceType
 
 ### platform/shell/component/message/message/__init__.py
 ```
-﻿from shell.component.message.message.message import Message
+from shell.component.message.message.message import Message
 ```
 
 ### platform/shell/component/message/message/internal/_from_envelope.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 def _from_envelope(envelope: object, source_name: str, source_type: object) -> object:
@@ -3711,7 +4222,7 @@ def _from_envelope(envelope: object, source_name: str, source_type: object) -> o
 
 ### platform/shell/component/message/message/message.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.internal._from_envelope import _from_envelope
 from shell.component.message.message_envelope.message_envelope import MessageEnvelope
@@ -3757,9 +4268,15 @@ class Message:
         return _from_envelope(envelope, source_name, source_type)
 ```
 
+### platform/shell/component/message/message.md
+```
+Realizuje element bezposredniej komunikacji miedzy elementami grafu.
+Przesyla komendy zapytania itp
+```
+
 ### platform/shell/component/message/message_envelope/__init__.py
 ```
-﻿from shell.component.message.message_envelope.message_envelope import MessageEnvelope
+from shell.component.message.message_envelope.message_envelope import MessageEnvelope
 ```
 
 ### platform/shell/component/message/message_envelope/internal/_assert_envelope_fields.py
@@ -3776,7 +4293,7 @@ def _assert_envelope_fields(data: dict) -> None:
 
 ### platform/shell/component/message/message_envelope/internal/_from_meta_and_payload.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 def _from_meta_and_payload(message_meta: object, payload: str) -> object:
@@ -3790,7 +4307,7 @@ def _from_meta_and_payload(message_meta: object, payload: str) -> object:
 
 ### platform/shell/component/message/message_envelope/internal/_init_envelope_data.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_envelope.internal._assert_envelope_fields import _assert_envelope_fields
 from shell.component.message.message_meta.message_meta import MessageMeta
@@ -3819,7 +4336,7 @@ def _to_dict(envelope: object) -> dict:
 
 ### platform/shell/component/message/message_envelope/message_envelope.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_envelope.internal._from_meta_and_payload import _from_meta_and_payload
 from shell.component.message.message_envelope.internal._init_envelope_data import _init_envelope_data
@@ -3861,7 +4378,7 @@ class MessageEnvelope:
 
 ### platform/shell/component/message/message_formatter/__init__.py
 ```
-﻿from shell.component.message.message_formatter.message_formatter import MessageFormatter
+from shell.component.message.message_formatter.message_formatter import MessageFormatter
 ```
 
 ### platform/shell/component/message/message_formatter/internal/_assert_message_meta_set.py
@@ -3876,7 +4393,7 @@ def _assert_message_meta_set(message_meta) -> None:
 
 ### platform/shell/component/message/message_formatter/internal/_format_message_file.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import yaml
 
@@ -3915,7 +4432,7 @@ def _format_message_file(formatter: object, message_meta: MessageMeta | None) ->
 
 ### platform/shell/component/message/message_formatter/message_formatter.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.message import Message
 from shell.component.message.message_formatter.internal._format_message_file import _format_message_file
@@ -3944,12 +4461,12 @@ class MessageFormatter:
 
 ### platform/shell/component/message/message_list/__init__.py
 ```
-﻿from shell.component.message.message_list.message_list import MessageList
+from shell.component.message.message_list.message_list import MessageList
 ```
 
 ### platform/shell/component/message/message_list/internal/_assert_single_message_by_status.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_status.message_status import MessageStatus
 
@@ -3961,7 +4478,7 @@ def _assert_single_message_by_status(matches: list, status: MessageStatus) -> No
 
 ### platform/shell/component/message/message_list/message_list.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.message import Message
 from shell.component.message.message_list.internal._assert_single_message_by_status import _assert_single_message_by_status
@@ -3996,7 +4513,7 @@ class MessageList:
 
 ### platform/shell/component/message/message_meta/__init__.py
 ```
-﻿from shell.component.message.message_meta.message_meta import MessageMeta
+from shell.component.message.message_meta.message_meta import MessageMeta
 ```
 
 ### platform/shell/component/message/message_meta/internal/_assert_meta_data_fields.py
@@ -4035,7 +4552,7 @@ def _assert_response_type_mapped(response_type, message_type) -> None:
 
 ### platform/shell/component/message/message_meta/internal/_init_meta_data.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.internal._assert_meta_data_fields import _assert_meta_data_fields
 from shell.component.message.message_status.message_status import MessageStatus
@@ -4061,7 +4578,7 @@ def _init_meta_data(meta: object, data: dict) -> None:
 
 ### platform/shell/component/message/message_meta/internal/_reverse_message_meta.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from datetime import datetime, timezone
 
@@ -4127,7 +4644,7 @@ def _to_dict(meta: object) -> dict:
 
 ### platform/shell/component/message/message_meta/message_meta.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.internal._init_meta_data import _init_meta_data
 from shell.component.message.message_meta.internal._reverse_message_meta import _reverse_message_meta
@@ -4243,12 +4760,12 @@ class MessageMeta:
 
 ### platform/shell/component/message/message_name/__init__.py
 ```
-﻿from shell.component.message.message_name.message_name import MessageName
+from shell.component.message.message_name.message_name import MessageName
 ```
 
 ### platform/shell/component/message/message_name/internal/_format_name.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.message_meta import MessageMeta
 
@@ -4269,7 +4786,7 @@ def _format_name(message_meta: MessageMeta) -> str:
 
 ### platform/shell/component/message/message_name/internal/_rename_message.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.message_meta import MessageMeta
 from shell.component.message.message_name.internal._format_name import _format_name
@@ -4285,7 +4802,7 @@ def _rename_message(path: PathType, meta: MessageMeta) -> PathType:
 
 ### platform/shell/component/message/message_name/internal/_validate_name.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.message_meta import MessageMeta
 from shell.component.message.message_name.internal._format_name import _format_name
@@ -4297,7 +4814,7 @@ def _validate_name(name: str, meta: MessageMeta) -> bool:
 
 ### platform/shell/component/message/message_name/message_name.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.message_meta import MessageMeta
 from shell.component.message.message_name.internal._format_name import _format_name
@@ -4323,12 +4840,12 @@ class MessageName:
 
 ### platform/shell/component/message/message_reader/__init__.py
 ```
-﻿from shell.component.message.message_reader.message_reader import MessageReader
+from shell.component.message.message_reader.message_reader import MessageReader
 ```
 
 ### platform/shell/component/message/message_reader/internal/_read_message_file.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import yaml
 
@@ -4354,7 +4871,7 @@ def _read_message_file(reader: object) -> Message:
 
 ### platform/shell/component/message/message_reader/message_reader.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.message import Message
 from shell.component.message.message_reader.internal._read_message_file import _read_message_file
@@ -4388,7 +4905,7 @@ class MessageReader:
 
 ### platform/shell/component/message/message_status/__init__.py
 ```
-﻿from shell.component.message.message_status.message_status import MessageStatus
+from shell.component.message.message_status.message_status import MessageStatus
 ```
 
 ### platform/shell/component/message/message_status/message_status.py
@@ -4408,7 +4925,7 @@ class MessageStatus(str, Enum):
 
 ### platform/shell/component/message/message_type/__init__.py
 ```
-﻿from shell.component.message.message_type.message_type import MessageType
+from shell.component.message.message_type.message_type import MessageType
 ```
 
 ### platform/shell/component/message/message_type/message_type.py
@@ -4478,443 +4995,4 @@ def _assert_message_body_valid(body: str) -> None:
     for field in _REQUIRED_META_FIELDS:
         if field not in meta:
             raise ValueError(f"[MessageValidator] meta is missing required field '{field}'")
-```
-
-### platform/shell/component/message/message_validator/internal/_is_valid_message.py
-```
-﻿from __future__ import annotations
-
-from shell.component.message.message_validator.internal._assert_message_body_valid import _assert_message_body_valid
-
-
-def _is_valid_message(body: str) -> bool:
-    try:
-        _assert_message_body_valid(body)
-        return True
-    except (ValueError, Exception):
-        return False
-```
-
-### platform/shell/component/message/message_validator/internal/_validate_message_body.py
-```
-﻿from __future__ import annotations
-
-from shell.component.message.message_validator.internal._assert_message_body_valid import _assert_message_body_valid
-
-
-def _validate_message_body(body: str) -> None:
-    _assert_message_body_valid(body)
-```
-
-### platform/shell/component/message/message_validator/message_validator.py
-```
-﻿from __future__ import annotations
-
-from shell.component.message.message_validator.internal._is_valid_message import _is_valid_message
-from shell.component.message.message_validator.internal._validate_message_body import _validate_message_body
-
-
-class MessageValidator:
-
-    @staticmethod
-    def validate_message_body(body: str) -> None:
-        _validate_message_body(body)
-
-    @staticmethod
-    def is_valid_message(body: str) -> bool:
-        return _is_valid_message(body)
-```
-
-### platform/shell/component/message/message_writer/__init__.py
-```
-﻿from shell.component.message.message_writer.message_writer import MessageWriter
-```
-
-### platform/shell/component/message/message_writer/internal/_write_message_file.py
-```
-from __future__ import annotations
-
-import yaml
-
-
-def _write_message_file(writer: object) -> None:
-    data = writer.message_.message_envelope_.to_dict()
-    writer.path_.write_text(yaml.dump(data, allow_unicode=True, default_flow_style=False), encoding="utf-8")
-```
-
-### platform/shell/component/message/message_writer/message_writer.py
-```
-﻿from __future__ import annotations
-
-from shell.component.message.message.message import Message
-from shell.component.message.message_writer.internal._write_message_file import _write_message_file
-from shell.utils.path.path import Path, PathType
-
-
-class MessageWriter:
-    """
-    Slots:
-        _path    — path to the output file
-        _message — message to write
-    """
-
-    __slots__ = ("_path", "_message")
-
-    def __init__(self) -> None:
-        self._path: PathType | None = None
-        self._message: Message | None = None
-
-    @property
-    def path_(self) -> PathType:
-        return self._path
-
-    @property
-    def message_(self) -> Message:
-        return self._message
-
-    def write_message_file(self) -> None:
-        _write_message_file(self)
-
-    @staticmethod
-    def write(path: PathType, message: Message) -> None:
-        writer = MessageWriter()
-        writer._path = path
-        writer._message = message
-        writer.write_message_file()
-```
-
-### platform/shell/component/message/source_type/__init__.py
-```
-﻿from shell.component.message.source_type.source_type import SourceType
-```
-
-### platform/shell/component/message/source_type/source_type.py
-```
-from __future__ import annotations
-
-from enum import Enum
-
-
-class SourceType(str, Enum):
-    FILE = "file"
-```
-
-### platform/shell/component/placeholders/__init__.py
-```
-﻿from shell.component.placeholders.placeholders import Placeholders
-```
-
-### platform/shell/component/placeholders/internal/__init__.py
-```
-```
-
-### platform/shell/component/placeholders/internal/_add_placeholder.py
-```
-﻿from shell.constants.constants import DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP
-
-_NODE_SUBDIRS = (DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP)
-
-
-def _add_placeholder(placeholders, name: str, value: str) -> None:
-    token = f'$${name}$$'
-    if '_dir' in name or '_path' in name:
-        value = value.replace('\\', '/')
-    placeholders._placeholder_list.append((token, value))
-    if name == 'node_dir':
-        for subdir in _NODE_SUBDIRS:
-            subdir_name = f'{subdir}_node_dir'
-            subdir_value = f'{value}/.node/{subdir}'
-            placeholders._placeholder_list.append((f'$${subdir_name}$$', subdir_value))
-```
-
-### platform/shell/component/placeholders/internal/_apply.py
-```
-def _apply(placeholders, text: str) -> str:
-    result = text
-    for placeholder, value in placeholders._placeholder_list:
-        result = result.replace(placeholder, value)
-    return result
-```
-
-### platform/shell/component/placeholders/internal/_assert_no_unresolved_placeholders.py
-```
-import re
-
-
-def _assert_no_unresolved_placeholders(text: str) -> None:
-    unresolved = re.findall(r'\$\$[^$]+\$\$', text)
-    if unresolved:
-        raise ValueError(f"Unresolved placeholders in prompt text: {unresolved}")
-```
-
-### platform/shell/component/placeholders/internal/_bind_dict.py
-```
-﻿from shell.component.placeholders.internal._add_placeholder import _add_placeholder
-from shell.component.placeholders.internal._set_placeholder import _set_placeholder
-
-
-def _bind_dict(placeholders, config_dict: dict) -> None:
-    existing_tokens = {token for token, _ in placeholders._placeholder_list}
-    for key, value in config_dict.items():
-        if isinstance(value, str):
-            token = f'$${key}$$'
-            if token in existing_tokens:
-                _set_placeholder(placeholders, key, value)
-            else:
-                _add_placeholder(placeholders, key, value)
-```
-
-### platform/shell/component/placeholders/internal/_bind_slots.py
-```
-def _bind_slots(placeholders, obj) -> None:
-    for slot in getattr(obj, '__slots__', []):
-        value = getattr(obj, slot, None)
-        if isinstance(value, str):
-            name = slot.lstrip('_')
-            placeholders.add_placeholder(name, value)
-```
-
-### platform/shell/component/placeholders/internal/_set_placeholder.py
-```
-def _set_placeholder(placeholders, name: str, value: str) -> None:
-    token = f'$${name}$$'
-    for index, (placeholder, _) in enumerate(placeholders._placeholder_list):
-        if placeholder == token:
-            placeholders._placeholder_list[index] = (token, value)
-            return
-```
-
-### platform/shell/component/placeholders/internal/_wrap.py
-```
-def _wrap(placeholders, text: str) -> str:
-    result = text
-    for placeholder, value in placeholders._placeholder_list:
-        result = result.replace(value, placeholder)
-    return result
-```
-
-### platform/shell/component/placeholders/placeholders.py
-```
-﻿"""placeholders.py
-Placeholders — utility class for replacing $$name$$ tokens in prompt text.
-
-Slots:
-    _app              — parent App
-    _placeholder_list — list of (placeholder, value) tuples
-"""
-
-from __future__ import annotations
-
-from shell.component.placeholders.internal._add_placeholder import _add_placeholder
-from shell.component.placeholders.internal._apply import _apply
-from shell.component.placeholders.internal._assert_no_unresolved_placeholders import _assert_no_unresolved_placeholders
-from shell.component.placeholders.internal._bind_dict import _bind_dict
-from shell.component.placeholders.internal._bind_slots import _bind_slots
-from shell.component.placeholders.internal._set_placeholder import _set_placeholder
-from shell.component.placeholders.internal._wrap import _wrap
-
-
-class Placeholders:
-    """Holds a list of placeholder→value pairs and applies them to prompt text."""
-
-    __slots__ = ("_app", "_placeholder_list")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._placeholder_list: list[tuple[str, str]] = []
-
-    @property
-    def placeholder_list_(self) -> list[tuple[str, str]]:
-        return self._placeholder_list
-
-    def add_placeholder(self, name: str, value: str) -> None:
-        _add_placeholder(self, name, value)
-
-    def bind_slots(self, obj) -> None:
-        _bind_slots(self, obj)
-
-    def bind_dict(self, config_dict: dict) -> None:
-        _bind_dict(self, config_dict)
-
-    def set_placeholder(self, name: str, value: str) -> None:
-        _set_placeholder(self, name, value)
-
-    def apply(self, text: str) -> str:
-        return _apply(self, text)
-
-    def assert_no_unresolved(self, text: str) -> None:
-        _assert_no_unresolved_placeholders(text)
-
-    def wrap(self, text: str) -> str:
-        return _wrap(self, text)
-```
-
-### platform/shell/component/process/__init__.py
-```
-﻿from shell.component.process.process.process import Process
-```
-
-### platform/shell/component/process/process/internal/_init_process.py
-```
-from __future__ import annotations
-
-
-def _init_process(process: 'Process') -> None:
-    process.process_command_.init_process_command()
-```
-
-### platform/shell/component/process/process/internal/_init_process_command.py
-```
-﻿from __future__ import annotations
-
-from shell.component.process.process_command.process_command import ProcessCommand
-
-
-def _init_process_command(process: 'Process') -> None:
-    process._process_command = ProcessCommand()
-```
-
-### platform/shell/component/process/process/internal/_run_process.py
-```
-from __future__ import annotations
-
-import os
-
-
-def _run_process(process: 'Process', cwd: str) -> None:
-    command = process.process_command_.command_
-    try:
-        completed = process._runner(
-            command,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            errors='replace',
-            env={**os.environ, 'PYTHONUTF8': '1'},
-            cwd=cwd,
-        )
-        process._returncode = completed.returncode
-        process._stdout = completed.stdout
-        process._stderr = completed.stderr
-    except Exception as exc:
-        raise RuntimeError(f"[Process] failed to run command {cmd}: {exc}") from exc
-```
-
-### platform/shell/component/process/process/process.py
-```
-﻿"""process.py
-Process: wrapper for a single subprocess invocation.
-
-Slots:
-    _process_command — ProcessCommand; the command to execute
-    _runner          — Callable; subprocess runner (default: subprocess.run)
-    _returncode      — int; exit code of the process
-    _stdout          — str; captured stdout
-    _stderr          — str; captured stderr
-"""
-
-from __future__ import annotations
-
-import subprocess
-from collections.abc import Callable
-
-from shell.component.process.process_command.process_command import ProcessCommand
-from shell.component.process.process.internal._init_process import _init_process
-from shell.component.process.process.internal._run_process import _run_process
-
-
-class Process:
-    """Represents a single subprocess invocation and its result."""
-
-    __slots__ = ("_process_command", "_runner", "_returncode", "_stdout", "_stderr")
-
-    def __init__(self) -> None:
-        self._process_command: ProcessCommand | None = None
-        self._runner: Callable[..., subprocess.CompletedProcess] = subprocess.run
-        self._returncode: int | None = None
-        self._stdout: str | None = None
-        self._stderr: str | None = None
-
-    @property
-    def process_command_(self) -> ProcessCommand:
-        if self._process_command is None:
-            self._process_command = ProcessCommand()
-        return self._process_command
-
-    def init_process(self) -> None:
-        _init_process(self)
-
-    def run_process(self, cwd: str) -> None:
-        _run_process(self, cwd)
-```
-
-### platform/shell/component/process/process_command/internal/_init_process_command.py
-```
-from __future__ import annotations
-
-
-def _init_process_command(process_command: 'ProcessCommand') -> None:
-    pass
-```
-
-### platform/shell/component/process/process_command/process_command.py
-```
-﻿"""process_command.py
-ProcessCommand: holds the Command for a single subprocess invocation.
-
-Slots:
-    _command — Command; the CLI command to execute
-"""
-
-from __future__ import annotations
-
-from shell.component.command.command import Command
-from shell.component.process.process_command.internal._init_process_command import _init_process_command
-
-
-class ProcessCommand:
-    """Holds the assembled CLI command for a Process."""
-
-    __slots__ = ("_command",)
-
-    def __init__(self) -> None:
-        self._command: Command | None = None
-
-    @property
-    def command_(self) -> Command:
-        return self._command
-
-    def init_process_command(self) -> None:
-        _init_process_command(self)
-```
-
-### platform/shell/component/prompt/__init__.py
-```
-﻿from shell.component.prompt.prompt.prompt import Prompt
-```
-
-### platform/shell/component/prompt/prompt/__init__.py
-```
-﻿from shell.component.prompt.prompt.prompt import Prompt
-```
-
-### platform/shell/component/prompt/prompt/internal/_init_prompt.py
-```
-﻿from __future__ import annotations
-from shell.constants.constants import DOT_NODE, DIR_PROMPT
-
-
-def _init_prompt(prompt) -> None:
-    app = prompt._app
-    prompt._prompt_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_PROMPT
-
-    cli_prompt = app.cli_.cli_properties_.prompt_
-    if cli_prompt is not None:
-        prompt.prompt_cli_.init_prompt_cli()
-
-    prompt.prompt_role_.init_prompt_role()
-    prompt.prompt_skill_.init_prompt_skill()
-    prompt.prompt_system_.init_prompt_system()
-    prompt.prompt_task_.init_prompt_task()
-    prompt.prompt_input_.init_prompt_input()
 ```

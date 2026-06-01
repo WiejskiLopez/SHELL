@@ -1,7 +1,799 @@
+### platform/shell/component/message/message_validator/internal/_is_valid_message.py
+```
+from __future__ import annotations
+
+from shell.component.message.message_validator.internal._assert_message_body_valid import _assert_message_body_valid
+
+
+def _is_valid_message(body: str) -> bool:
+    try:
+        _assert_message_body_valid(body)
+        return True
+    except (ValueError, Exception):
+        return False
+```
+
+### platform/shell/component/message/message_validator/internal/_validate_message_body.py
+```
+from __future__ import annotations
+
+from shell.component.message.message_validator.internal._assert_message_body_valid import _assert_message_body_valid
+
+
+def _validate_message_body(body: str) -> None:
+    _assert_message_body_valid(body)
+```
+
+### platform/shell/component/message/message_validator/message_validator.py
+```
+from __future__ import annotations
+
+from shell.component.message.message_validator.internal._is_valid_message import _is_valid_message
+from shell.component.message.message_validator.internal._validate_message_body import _validate_message_body
+
+
+class MessageValidator:
+
+    @staticmethod
+    def validate_message_body(body: str) -> None:
+        _validate_message_body(body)
+
+    @staticmethod
+    def is_valid_message(body: str) -> bool:
+        return _is_valid_message(body)
+```
+
+### platform/shell/component/message/message_writer/__init__.py
+```
+from shell.component.message.message_writer.message_writer import MessageWriter
+```
+
+### platform/shell/component/message/message_writer/internal/_write_message_file.py
+```
+from __future__ import annotations
+
+import yaml
+
+
+def _write_message_file(writer: object) -> None:
+    data = writer.message_.message_envelope_.to_dict()
+    writer.path_.write_text(yaml.dump(data, allow_unicode=True, default_flow_style=False), encoding="utf-8")
+```
+
+### platform/shell/component/message/message_writer/message_writer.py
+```
+from __future__ import annotations
+
+from shell.component.message.message.message import Message
+from shell.component.message.message_writer.internal._write_message_file import _write_message_file
+from shell.utils.path.path import Path, PathType
+
+
+class MessageWriter:
+    """
+    Slots:
+        _path    — path to the output file
+        _message — message to write
+    """
+
+    __slots__ = ("_path", "_message")
+
+    def __init__(self) -> None:
+        self._path: PathType | None = None
+        self._message: Message | None = None
+
+    @property
+    def path_(self) -> PathType:
+        return self._path
+
+    @property
+    def message_(self) -> Message:
+        return self._message
+
+    def write_message_file(self) -> None:
+        _write_message_file(self)
+
+    @staticmethod
+    def write(path: PathType, message: Message) -> None:
+        writer = MessageWriter()
+        writer._path = path
+        writer._message = message
+        writer.write_message_file()
+```
+
+### platform/shell/component/message/source_type/__init__.py
+```
+from shell.component.message.source_type.source_type import SourceType
+```
+
+### platform/shell/component/message/source_type/source_type.py
+```
+from __future__ import annotations
+
+from enum import Enum
+
+
+class SourceType(str, Enum):
+    FILE = "file"
+```
+
+### platform/shell/component/placeholders/__init__.py
+```
+from shell.component.placeholders.placeholders import Placeholders
+```
+
+### platform/shell/component/placeholders/internal/__init__.py
+```
+```
+
+### platform/shell/component/placeholders/internal/_add_placeholder.py
+```
+from shell.constants.constants import DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP
+
+_NODE_SUBDIRS = (DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP)
+
+
+def _add_placeholder(placeholders, name: str, value: str) -> None:
+    token = f'$${name}$$'
+    if '_dir' in name or '_path' in name:
+        value = value.replace('\\', '/')
+    placeholders._placeholder_list.append((token, value))
+    if name == 'node_dir':
+        for subdir in _NODE_SUBDIRS:
+            subdir_name = f'{subdir}_node_dir'
+            subdir_value = f'{value}/.node/{subdir}'
+            placeholders._placeholder_list.append((f'$${subdir_name}$$', subdir_value))
+```
+
+### platform/shell/component/placeholders/internal/_apply.py
+```
+def _apply(placeholders, text: str) -> str:
+    result = text
+    for placeholder, value in placeholders._placeholder_list:
+        result = result.replace(placeholder, value)
+    return result
+```
+
+### platform/shell/component/placeholders/internal/_assert_no_unresolved_placeholders.py
+```
+import re
+
+
+def _assert_no_unresolved_placeholders(text: str) -> None:
+    unresolved = re.findall(r'\$\$[^$]+\$\$', text)
+    if unresolved:
+        raise ValueError(f"Unresolved placeholders in prompt text: {unresolved}")
+```
+
+### platform/shell/component/placeholders/internal/_bind_dict.py
+```
+from shell.component.placeholders.internal._add_placeholder import _add_placeholder
+from shell.component.placeholders.internal._set_placeholder import _set_placeholder
+
+
+def _bind_dict(placeholders, config_dict: dict) -> None:
+    existing_tokens = {token for token, _ in placeholders._placeholder_list}
+    for key, value in config_dict.items():
+        if isinstance(value, str):
+            token = f'$${key}$$'
+            if token in existing_tokens:
+                _set_placeholder(placeholders, key, value)
+            else:
+                _add_placeholder(placeholders, key, value)
+```
+
+### platform/shell/component/placeholders/internal/_bind_slots.py
+```
+def _bind_slots(placeholders, obj) -> None:
+    for slot in getattr(obj, '__slots__', []):
+        value = getattr(obj, slot, None)
+        if isinstance(value, str):
+            name = slot.lstrip('_')
+            placeholders.add_placeholder(name, value)
+```
+
+### platform/shell/component/placeholders/internal/_set_placeholder.py
+```
+def _set_placeholder(placeholders, name: str, value: str) -> None:
+    token = f'$${name}$$'
+    for index, (placeholder, _) in enumerate(placeholders._placeholder_list):
+        if placeholder == token:
+            placeholders._placeholder_list[index] = (token, value)
+            return
+```
+
+### platform/shell/component/placeholders/internal/_wrap.py
+```
+def _wrap(placeholders, text: str) -> str:
+    result = text
+    for placeholder, value in placeholders._placeholder_list:
+        result = result.replace(value, placeholder)
+    return result
+```
+
+### platform/shell/component/placeholders/placeholders.py
+```
+"""placeholders.py
+Placeholders — utility class for replacing $$name$$ tokens in prompt text.
+
+Slots:
+    _app              — parent App
+    _placeholder_list — list of (placeholder, value) tuples
+"""
+
+from __future__ import annotations
+
+from shell.component.placeholders.internal._add_placeholder import _add_placeholder
+from shell.component.placeholders.internal._apply import _apply
+from shell.component.placeholders.internal._assert_no_unresolved_placeholders import _assert_no_unresolved_placeholders
+from shell.component.placeholders.internal._bind_dict import _bind_dict
+from shell.component.placeholders.internal._bind_slots import _bind_slots
+from shell.component.placeholders.internal._set_placeholder import _set_placeholder
+from shell.component.placeholders.internal._wrap import _wrap
+
+
+class Placeholders:
+    """Holds a list of placeholder→value pairs and applies them to prompt text."""
+
+    __slots__ = ("_app", "_placeholder_list")
+
+    def __init__(self, app) -> None:
+        self._app = app
+        self._placeholder_list: list[tuple[str, str]] = []
+
+    @property
+    def placeholder_list_(self) -> list[tuple[str, str]]:
+        return self._placeholder_list
+
+    def add_placeholder(self, name: str, value: str) -> None:
+        _add_placeholder(self, name, value)
+
+    def bind_slots(self, obj) -> None:
+        _bind_slots(self, obj)
+
+    def bind_dict(self, config_dict: dict) -> None:
+        _bind_dict(self, config_dict)
+
+    def set_placeholder(self, name: str, value: str) -> None:
+        _set_placeholder(self, name, value)
+
+    def apply(self, text: str) -> str:
+        return _apply(self, text)
+
+    def assert_no_unresolved(self, text: str) -> None:
+        _assert_no_unresolved_placeholders(text)
+
+    def wrap(self, text: str) -> str:
+        return _wrap(self, text)
+```
+
+### platform/shell/component/process/__init__.py
+```
+from shell.component.process.process.process import Process
+```
+
+### platform/shell/component/process/process/internal/_init_process.py
+```
+from __future__ import annotations
+
+```
+
+### platform/shell/component/process/process/internal/_init_process_agent.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.component.process.process.process import Process
+
+
+def _init_process_agent(process: 'Process', prompt: str, timeout: int, which=None, os_name=None) -> None:
+    process.process_command_.init_process_command_agent(process.app_, prompt, timeout, which, os_name)
+```
+
+### platform/shell/component/process/process/internal/_init_process_command.py
+```
+from __future__ import annotations
+
+```
+
+### platform/shell/component/process/process/internal/_init_process_sub_node.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.component.process.process.process import Process
+
+
+def _init_process_sub_node(process: 'Process', sub_node, task_dir, python_exe=None) -> None:
+    process.process_command_.init_process_command_sub_node(sub_node, task_dir, process.app_, python_exe)
+```
+
+### platform/shell/component/process/process/internal/_init_process_tool.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.component.process.process.process import Process
+
+
+def _init_process_tool(process: 'Process') -> None:
+    app = process.app_
+    app_properties = app.app_properties_
+    cwd = str(app.app_node_.node_.node_dir_)
+    cmd = [app_properties.command_]
+    process.process_command_.init_process_command(cmd=cmd, cwd=cwd, timeout=app_properties.timeout_)
+```
+
+### platform/shell/component/process/process/internal/_init_process_worker.py
+```
+from __future__ import annotations
+
+import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.component.process.process.process import Process
+
+
+def _init_process_worker(process: 'Process') -> None:
+    app = process.app_
+    app_properties = app.app_properties_
+    cwd = str(app.app_node_.node_.node_dir_)
+    if app_properties.type_ == 'python_module':
+        cmd = [sys.executable, '-m', app_properties.command_]
+    else:
+        cmd = [app_properties.command_]
+    process.process_command_.init_process_command(cmd=cmd, cwd=cwd, timeout=app_properties.timeout_)
+```
+
+### platform/shell/component/process/process/internal/_run_process.py
+```
+from __future__ import annotations
+
+
+def _run_process(process: 'Process') -> None:
+    pc = process.process_command_
+    kwargs = {
+        'capture_output': True,
+        'text': True,
+        'encoding': 'utf-8',
+        'errors': 'replace',
+        'cwd': pc.cwd_,
+    }
+    if pc.stdin_ is not None:
+        kwargs['input'] = pc.stdin_
+    if pc.timeout_ is not None:
+        kwargs['timeout'] = pc.timeout_
+    if pc.env_ is not None:
+        kwargs['env'] = pc.env_
+    completed = process._runner(pc.cmd_, **kwargs)
+    process._returncode = completed.returncode
+    process._stdout = completed.stdout
+    process._stderr = completed.stderr
+```
+
+### platform/shell/component/process/process/process.py
+```
+"""process.py
+Process: wrapper for a single subprocess invocation.
+
+Slots:
+    _app             — parent app
+    _process_command — ProcessCommand; all subprocess parameters
+    _runner          — Callable; subprocess runner (default: subprocess.run)
+    _returncode      — int; exit code of the process
+    _stdout          — str; captured stdout
+    _stderr          — str; captured stderr
+"""
+
+from __future__ import annotations
+
+import subprocess
+from collections.abc import Callable
+
+from shell.component.process.process_command.process_command import ProcessCommand
+from shell.component.process.process.internal._run_process import _run_process
+from shell.component.process.process.internal._init_process_agent import _init_process_agent
+from shell.component.process.process.internal._init_process_worker import _init_process_worker
+from shell.component.process.process.internal._init_process_tool import _init_process_tool
+from shell.component.process.process.internal._init_process_sub_node import _init_process_sub_node
+
+
+class Process:
+    """Represents a single subprocess invocation and its result."""
+
+    __slots__ = ("_app", "_process_command", "_runner", "_returncode", "_stdout", "_stderr")
+
+    def __init__(self, app, runner: Callable[..., subprocess.CompletedProcess] | None = None) -> None:
+        self._app = app
+        self._process_command: ProcessCommand | None = None
+        self._runner: Callable[..., subprocess.CompletedProcess] = runner if runner is not None else subprocess.run
+        self._returncode: int | None = None
+        self._stdout: str | None = None
+        self._stderr: str | None = None
+
+    @property
+    def app_(self):
+        return self._app
+
+    @property
+    def process_command_(self) -> ProcessCommand:
+        if self._process_command is None:
+            self._process_command = ProcessCommand()
+        return self._process_command
+
+    @property
+    def returncode_(self) -> int | None:
+        return self._returncode
+
+    @property
+    def stdout_(self) -> str | None:
+        return self._stdout
+
+    @property
+    def stderr_(self) -> str | None:
+        return self._stderr
+
+    def init_process_agent(self, prompt: str, timeout: int, which=None, os_name=None) -> None:
+        _init_process_agent(self, prompt, timeout, which, os_name)
+
+    def init_process_worker(self) -> None:
+        _init_process_worker(self)
+
+    def init_process_tool(self) -> None:
+        _init_process_tool(self)
+
+    def init_process_sub_node(self, sub_node, task_dir, python_exe=None) -> None:
+        _init_process_sub_node(self, sub_node, task_dir, python_exe)
+
+    def run_process(self) -> None:
+        _run_process(self)
+```
+
+### platform/shell/component/process/process_command/internal/_assert_add_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_add_dir_exists(add_dir: PathType) -> None:
+    if not Path.is_dir(add_dir):
+        raise FileNotFoundError(f"Add directory does not exist: {add_dir}")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_copilot_cmd_found.py
+```
+def _assert_copilot_cmd_found(command) -> None:
+    if not command:
+        raise FileNotFoundError(
+            "Agent CLI not found. Set command in app/app.yaml "
+            "or ensure the binary is on PATH."
+        )
+```
+
+### platform/shell/component/process/process_command/internal/_assert_log_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_log_dir_exists(log_dir: PathType) -> None:
+    if not Path.is_dir(log_dir):
+        raise FileNotFoundError(f"Log directory does not exist: {log_dir}")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_model_set.py
+```
+def _assert_model_set(model: str) -> None:
+    if not model:
+        raise ValueError("[ProcessCommand] Required field missing: 'model'")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_output_dir_exists.py
+```
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_output_dir_exists(output_dir: PathType) -> None:
+    if not Path.is_dir(output_dir):
+        raise FileNotFoundError(f"Output directory does not exist: {output_dir}")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_source_dir_set.py
+```
+def _assert_source_dir_set(source_dir) -> None:
+    if not source_dir:
+        raise RuntimeError("[ProcessCommand] source_dir is not set — pass --source-dir to the CLI")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_task_dir_set.py
+```
+def _assert_task_dir_set(task_dir) -> None:
+    if not task_dir:
+        raise RuntimeError("[ProcessCommand] task_dir is not set — pass --task-dir to the CLI")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_task_name_set.py
+```
+def _assert_task_name_set(task_name) -> None:
+    if not task_name:
+        raise RuntimeError("[ProcessCommand] task_name is not set — pass --task-name to the CLI")
+```
+
+### platform/shell/component/process/process_command/internal/_assert_work_dir_set.py
+```
+def _assert_work_dir_set(work_dir) -> None:
+    if not work_dir:
+        raise RuntimeError("[ProcessCommand] work_dir is not set — pass --work-dir to the CLI")
+```
+
+### platform/shell/component/process/process_command/internal/_init_process_command.py
+```
+from __future__ import annotations
+
+
+def _init_process_command(process_command: 'ProcessCommand', cmd: list[str], cwd: str, stdin: str | None = None, timeout: int | None = None, env: dict | None = None) -> None:
+    process_command._cmd = cmd
+    process_command._stdin = stdin
+    process_command._timeout = timeout
+    process_command._cwd = cwd
+    process_command._env = env
+    if process_command._cmd is None:
+        raise ValueError("ProcessCommand._cmd is required")
+    if process_command._cwd is None:
+        raise ValueError("ProcessCommand._cwd is required")
+```
+
+### platform/shell/component/process/process_command/internal/_init_process_command_agent.py
+```
+from __future__ import annotations
+
+import os
+import shutil
+
+from shell.component.command.command import Command
+from shell.component.process.process_command.internal._init_process_command import _init_process_command
+from shell.component.process.process_command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
+from shell.component.process.process_command.internal._assert_model_set import _assert_model_set
+from shell.component.process.process_command.internal._assert_output_dir_exists import _assert_output_dir_exists
+from shell.component.process.process_command.internal._assert_log_dir_exists import _assert_log_dir_exists
+from shell.component.process.process_command.internal._assert_add_dir_exists import _assert_add_dir_exists
+from shell.constants.constants import DOT_NODE, DIR_OUTPUT
+
+
+def _init_process_command_agent(process_command, app, prompt, timeout, which=None, os_name=None) -> None:
+    which = which or shutil.which
+    os_name = os_name or os.name
+
+    command = Command([])
+
+    binary = which("copilot")
+    _assert_copilot_cmd_found(binary)
+
+    if os_name == "nt" and str(binary).lower().endswith((".cmd", ".bat")):
+        command.extend_command_args(["cmd", "/c", binary])
+    else:
+        command.add_command_arg(binary)
+
+    model = (app.runner_.agent_.agent_properties_.model_ or "").strip()
+    _assert_model_set(model)
+    command.extend_command_args(["--model", model])
+
+    if app.cli_.cli_properties_.is_allow_all_paths_:
+        command.add_command_arg("--allow-all-paths")
+
+    if app.cli_.cli_properties_.is_allow_all_tools_:
+        command.add_command_arg("--allow-all-tools")
+
+    command.extend_command_args(["--output-format", app.cli_.cli_properties_.output_format_])
+
+    if app.cli_.cli_properties_.is_no_ask_user_:
+        command.add_command_arg("--no-ask-user")
+
+    if app.cli_.cli_properties_.is_autopilot_:
+        command.add_command_arg("--autopilot")
+
+    output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
+    _assert_output_dir_exists(output_dir)
+    command.extend_command_args(["--add-dir", str(output_dir)])
+    app.app_trace_.record_info('process_command._init_process_command_agent', f'--add-dir {output_dir}')
+
+    logs_dir = app.app_node_.node_.node_logs_.logs_dir_
+    _assert_log_dir_exists(logs_dir)
+
+    for add_dir in app.cli_.cli_properties_.add_dirs_:
+        _assert_add_dir_exists(add_dir)
+        command.extend_command_args(["--add-dir", str(add_dir)])
+        app.app_trace_.record_info('process_command._init_process_command_agent', f'--add-dir {add_dir}')
+
+    node_dir = app.app_node_.node_.node_dir_
+    _assert_add_dir_exists(node_dir)
+    command.extend_command_args(["--add-dir", str(node_dir)])
+    app.app_trace_.record_info('process_command._init_process_command_agent', f'--add-dir {node_dir}')
+
+    command.extend_command_args(["--log-dir", str(logs_dir)])
+    app.app_trace_.record_info('process_command._init_process_command_agent', f'--log-dir {logs_dir}')
+
+    cwd = str(app.app_node_.node_.node_dir_)
+    _init_process_command(process_command, cmd=command.command_, cwd=cwd, stdin=prompt, timeout=timeout)
+```
+
+### platform/shell/component/process/process_command/internal/_init_process_command_sub_node.py
+```
+from __future__ import annotations
+
+import os
+import sys
+
+from shell.component.command.command import Command
+from shell.component.process.process_command.internal._init_process_command import _init_process_command
+from shell.component.process.process_command.internal._assert_source_dir_set import _assert_source_dir_set
+from shell.component.process.process_command.internal._assert_task_dir_set import _assert_task_dir_set
+from shell.component.process.process_command.internal._assert_task_name_set import _assert_task_name_set
+from shell.component.process.process_command.internal._assert_work_dir_set import _assert_work_dir_set
+from shell.component.process.process_command.internal._assert_model_set import _assert_model_set
+from shell.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
+from shell.utils.path.path import Path
+
+
+def _init_process_command_sub_node(process_command, sub_node, task_dir, app, python_exe=None) -> None:
+    if python_exe is None:
+        python_exe = sys.executable
+
+    sub_node_properties = sub_node.sub_node_properties_
+    sub_node_name = sub_node_properties.sub_node_name_
+    parent_node_dir = sub_node_properties.parent_node_dir_
+    runner_root_dir = sub_node_properties.sub_node_runner_root_dir_
+    mode = sub_node_properties.mode_
+    model = sub_node_properties.model_
+    cli = app.cli_
+    task_name = sub_node_properties.task_name_ or cli.task_name_
+    source_dir = sub_node_properties.source_dir_ or cli.source_dir_
+    work_dir = sub_node_properties.work_dir_ or cli.work_dir_
+    thread_id = cli.thread_id_
+
+    _assert_source_dir_set(source_dir)
+    _assert_work_dir_set(work_dir)
+    _assert_task_name_set(task_name)
+    _assert_task_dir_set(task_dir)
+
+    node_dir = Path.new(parent_node_dir) / sub_node_name
+    entrypoint_path = Path.new(runner_root_dir).resolve() / 'entrypoint.py'
+    _assert_entrypoint_exists(entrypoint_path)
+
+    command = Command([])
+    command.extend_command_args([python_exe, str(entrypoint_path)])
+    command.extend_command_args(['--node-dir', str(node_dir)])
+    command.extend_command_args(['--source-dir', str(source_dir)])
+    command.extend_command_args(['--work-dir', str(work_dir)])
+    command.extend_command_args(['--task-name', task_name])
+    command.extend_command_args(['--task-dir', str(task_dir)])
+
+    if parent_node_dir is not None:
+        command.extend_command_args(['--parent-node-dir', str(parent_node_dir)])
+        app.app_trace_.record_info('process_command._init_process_command_sub_node', f'parent_node_dir set: {parent_node_dir}')
+    else:
+        app.app_trace_.record_info('process_command._init_process_command_sub_node', 'parent_node_dir not set')
+
+    if thread_id is not None:
+        command.extend_command_args(['--parent-thread-id', thread_id])
+
+    if mode == 'agent':
+        _assert_model_set(model)
+        command.extend_command_args(['--model', model])
+
+    role = sub_node_properties.role_
+    if role is not None:
+        command.extend_command_args(['--role', role])
+
+    cwd = str(sub_node.entrypoint_path_.parent)
+    env = {**os.environ, 'PYTHONUTF8': '1'}
+    _init_process_command(process_command, cmd=command.command_, cwd=cwd, env=env)
+```
+
+### platform/shell/component/process/process_command/process_command.py
+```
+"""process_command.py
+ProcessCommand: holds all parameters for a single subprocess invocation.
+
+Slots:
+    _cmd     — list[str]; the CLI command arguments
+    _stdin   — str | None; text piped to process stdin (optional)
+    _timeout — int | None; seconds before TimeoutExpired (optional)
+    _cwd     — str; working directory for the process
+    _env     — dict | None; environment variables override (optional)
+"""
+
+from __future__ import annotations
+
+from shell.component.process.process_command.internal._init_process_command import _init_process_command
+from shell.component.process.process_command.internal._init_process_command_agent import _init_process_command_agent
+from shell.component.process.process_command.internal._init_process_command_sub_node import _init_process_command_sub_node
+
+
+class ProcessCommand:
+    """Holds all subprocess parameters for a single Process invocation."""
+
+    __slots__ = ("_cmd", "_stdin", "_timeout", "_cwd", "_env")
+
+    def __init__(self) -> None:
+        self._cmd: list[str] | None = None
+        self._stdin: str | None = None
+        self._timeout: int | None = None
+        self._cwd: str | None = None
+        self._env: dict | None = None
+
+    @property
+    def cmd_(self) -> list[str]:
+        return self._cmd
+
+    @property
+    def stdin_(self) -> str | None:
+        return self._stdin
+
+    @property
+    def timeout_(self) -> int | None:
+        return self._timeout
+
+    @property
+    def cwd_(self) -> str:
+        return self._cwd
+
+    @property
+    def env_(self) -> dict | None:
+        return self._env
+
+    def init_process_command(self, cmd: list[str], cwd: str, stdin: str | None = None, timeout: int | None = None, env: dict | None = None) -> None:
+        _init_process_command(self, cmd, cwd, stdin, timeout, env)
+
+    def init_process_command_agent(self, app, prompt: str, timeout: int, which=None, os_name=None) -> None:
+        _init_process_command_agent(self, app, prompt, timeout, which, os_name)
+
+    def init_process_command_sub_node(self, sub_node, task_dir, app, python_exe=None) -> None:
+        _init_process_command_sub_node(self, sub_node, task_dir, app, python_exe)
+```
+
+### platform/shell/component/prompt/__init__.py
+```
+```
+
+### platform/shell/component/prompt/prompt/__init__.py
+```
+from shell.component.prompt.prompt.prompt import Prompt
+```
+
+### platform/shell/component/prompt/prompt/internal/_init_prompt.py
+```
+from __future__ import annotations
+from shell.constants.constants import DOT_NODE, DIR_PROMPT
+
+
+def _init_prompt(prompt) -> None:
+    app = prompt._app
+    prompt._prompt_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_PROMPT
+
+    cli_prompt = app.cli_.cli_properties_.prompt_
+    if cli_prompt is not None:
+        prompt.prompt_cli_.init_prompt_cli()
+
+    prompt.prompt_role_.init_prompt_role()
+    prompt.prompt_skill_.init_prompt_skill()
+    prompt.prompt_system_.init_prompt_system()
+    prompt.prompt_task_.init_prompt_task()
+    prompt.prompt_input_.init_prompt_input()
+```
+
 ### platform/shell/component/prompt/prompt/prompt.py
 ```
-﻿from shell.utils.path.path import PathType
+
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -89,7 +881,7 @@ class Prompt:
 
 ### platform/shell/component/prompt/prompt_cli/__init__.py
 ```
-﻿from shell.component.prompt.prompt_cli.prompt_cli import PromptCli
+from shell.component.prompt.prompt_cli.prompt_cli import PromptCli
 ```
 
 ### platform/shell/component/prompt/prompt_cli/internal/__init__.py
@@ -98,7 +890,7 @@ class Prompt:
 
 ### platform/shell/component/prompt/prompt_cli/internal/_init_prompt_cli.py
 ```
-﻿from shell.component.prompt.prompt_type.prompt_type import PromptType
+from shell.component.prompt.prompt_type.prompt_type import PromptType
 
 
 def _init_prompt_cli(prompt_cli) -> None:
@@ -110,7 +902,7 @@ def _init_prompt_cli(prompt_cli) -> None:
 
 ### platform/shell/component/prompt/prompt_cli/prompt_cli.py
 ```
-﻿"""prompt_cli.py
+"""prompt_cli.py
 PromptCli — holds the CLI-sourced prompt for a single agent run.
 
 Slots:
@@ -144,14 +936,14 @@ class PromptCli:
 
 ### platform/shell/component/prompt/prompt_input/__init__.py
 ```
-﻿from shell.component.prompt.prompt_input.prompt_input import PromptInput
+from shell.component.prompt.prompt_input.prompt_input import PromptInput
 
 __all__ = ['PromptInput']
 ```
 
 ### platform/shell/component/prompt/prompt_input/internal/_init_prompt_input.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -186,7 +978,7 @@ def _prompt(prompt_input) -> str:
 
 ### platform/shell/component/prompt/prompt_input/prompt_input.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.prompt_file.prompt_file import PromptFile
 from shell.component.prompt.prompt_input.internal._init_prompt_input import _init_prompt_input
@@ -214,7 +1006,7 @@ class PromptInput:
 
 ### platform/shell/component/prompt/prompt_role/__init__.py
 ```
-﻿from shell.component.prompt.prompt_role.prompt_role import PromptRole
+from shell.component.prompt.prompt_role.prompt_role import PromptRole
 ```
 
 ### platform/shell/component/prompt/prompt_role/internal/__init__.py
@@ -223,7 +1015,7 @@ class PromptInput:
 
 ### platform/shell/component/prompt/prompt_role/internal/_init_prompt_role.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -260,7 +1052,7 @@ def _prompt(prompt_role) -> str:
 
 ### platform/shell/component/prompt/prompt_role/prompt_role.py
 ```
-﻿"""prompt_role.py
+"""prompt_role.py
 PromptRole — holds a list of PromptFile objects loaded from role prompt files.
 
 Slots:
@@ -304,7 +1096,7 @@ class PromptRole:
 
 ### platform/shell/component/prompt/prompt_skill/internal/_init_prompt_skill.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -338,7 +1130,7 @@ def _prompt(prompt_skill) -> str:
 
 ### platform/shell/component/prompt/prompt_skill/prompt_skill.py
 ```
-﻿"""prompt_skill.py
+"""prompt_skill.py
 PromptSkill — holds a list of PromptFile objects loaded from skill prompt files.
 
 Slots:
@@ -374,7 +1166,7 @@ class PromptSkill:
 
 ### platform/shell/component/prompt/prompt_system/__init__.py
 ```
-﻿from shell.component.prompt.prompt_system.prompt_system import PromptSystem
+from shell.component.prompt.prompt_system.prompt_system import PromptSystem
 ```
 
 ### platform/shell/component/prompt/prompt_system/internal/__init__.py
@@ -383,7 +1175,7 @@ class PromptSkill:
 
 ### platform/shell/component/prompt/prompt_system/internal/_init_prompt_system.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -418,7 +1210,7 @@ def _prompt(prompt_system) -> str:
 
 ### platform/shell/component/prompt/prompt_system/prompt_system.py
 ```
-﻿"""prompt_system.py
+"""prompt_system.py
 PromptSystem — holds system prompt list loaded from task-dir.
 
 Slots:
@@ -458,14 +1250,14 @@ class PromptSystem:
 
 ### platform/shell/component/prompt/prompt_task/__init__.py
 ```
-﻿from shell.component.prompt.prompt_task.prompt_task import PromptTask
+from shell.component.prompt.prompt_task.prompt_task import PromptTask
 
 __all__ = ['PromptTask']
 ```
 
 ### platform/shell/component/prompt/prompt_task/internal/_init_prompt_task.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.component.prompt_file.prompt_file import PromptFile
@@ -500,7 +1292,7 @@ def _prompt(prompt_task) -> str:
 
 ### platform/shell/component/prompt/prompt_task/prompt_task.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.prompt_file.prompt_file import PromptFile
 from shell.component.prompt.prompt_task.internal._init_prompt_task import _init_prompt_task
@@ -528,7 +1320,7 @@ class PromptTask:
 
 ### platform/shell/component/prompt/prompt_type/__init__.py
 ```
-﻿from shell.component.prompt.prompt_type.prompt_type import PromptType
+from shell.component.prompt.prompt_type.prompt_type import PromptType
 ```
 
 ### platform/shell/component/prompt/prompt_type/prompt_type.py
@@ -551,7 +1343,7 @@ class PromptType(Enum):
 
 ### platform/shell/component/prompt_file/__init__.py
 ```
-﻿# shell/prompt_file package
+# shell/prompt_file package
 from shell.component.prompt_file.prompt_file import PromptFile
 from shell.component.prompt.prompt_type.prompt_type import PromptType
 __all__ = ['PromptFile', 'PromptType']
@@ -559,13 +1351,16 @@ __all__ = ['PromptFile', 'PromptType']
 
 ### platform/shell/component/prompt_file/internal/__init__.py
 ```
-﻿# shell/prompt_file/internal package
+# shell/prompt_file/internal package
 ```
 
 ### platform/shell/component/prompt_file/internal/_init_prompt_file.py
 ```
-﻿from shell.utils.path.path import PathType
+
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 from shell.component.prompt_file.internal._save_prompt_file import _save_prompt_file
@@ -586,7 +1381,7 @@ def _init_prompt_file(prompt_file, file_name: str, file_body: str, save_dir: Pat
 
 ### platform/shell/component/prompt_file/internal/_save_prompt_file.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.utils.path.path import Path, PathType
@@ -600,7 +1395,6 @@ def _save_prompt_file(prompt_file, save_dir: PathType) -> None:
 
 ### platform/shell/component/prompt_file/prompt_file.py
 ```
-﻿from shell.utils.path.path import PathType
 """prompt_file.py
 PromptFile — represents a single prompt file loaded from disk.
 
@@ -611,6 +1405,9 @@ Slots:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 from shell.component.prompt_file.internal._init_prompt_file import _init_prompt_file
@@ -655,7 +1452,7 @@ class PromptFile:
 
 ### platform/shell/component/result/__init__.py
 ```
-﻿from shell.component.result.result import Result
+from shell.component.result.result import Result
 from shell.status.status import Status
 
 __all__ = ["Result", "Status"]
@@ -663,14 +1460,14 @@ __all__ = ["Result", "Status"]
 
 ### platform/shell/component/result/internal/__init__.py
 ```
-﻿from shell.component.result.internal._save_result import _save_result
+from shell.component.result.internal._save_result import _save_result
 
 __all__ = ["_save_result"]
 ```
 
 ### platform/shell/component/result/internal/_save_result.py
 ```
-﻿"""_save_result.py
+"""_save_result.py
 Responsible for one thing: persisting the graph result to .node/result/.
 
 Files written:
@@ -736,7 +1533,7 @@ def _save_result(node: PathType, result: 'Result', start_dt: datetime | None = N
 
 ### platform/shell/component/result/result.py
 ```
-﻿"""result.py
+"""result.py
 Result — singleton execution result for a single shell graph run.
 
 Klasa `Result` jest tworzona raz na uruchomienie i aktualizowana
@@ -829,6 +1626,9 @@ class Result:
         """Return current graph status."""
         return self._status
 
+    def set_status(self, status: Status) -> None:
+        self._status = status
+
     @property
     def stdout_(self) -> str | None:
         """Return subprocess stdout."""
@@ -910,353 +1710,33 @@ class Result:
 
 ```
 
-### platform/shell/component/runner/__init__.py
-```
-﻿from shell.component.runner.runner.runner import Runner
-```
-
-### platform/shell/component/runner/runner/internal/__init__.py
-```
-```
-
-### platform/shell/component/runner/runner/internal/_clean_node.py
-```
-﻿"""_clean_node.py
-Clean node output directories and write result to app.result_.
-"""
-
-from __future__ import annotations
-
-import time
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from shell.component.runner.runner.runner import Runner
-
-
-def _clean_node(runner: 'Runner', timer=None) -> None:
-    """Clean node output directories and write result to app.result_."""
-    if timer is None:
-        timer = time.monotonic
-    timer()
-    try:
-        runner._app.app_node_.node_.clean_node()
-        runner._app.app_trace_.record_info('runner._clean_node._clean_node', 'Node output cleaned.')
-    except Exception as exc:
-        runner._app.app_trace_.record_error_and_raise('runner._clean_node._clean_node', exc)
-```
-
-### platform/shell/component/runner/runner/internal/_init_runner.py
-```
-﻿"""_init_runner.py
-Initialise the appropriate runner type based on the current mode.
-"""
-
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from shell.component.runner.runner.runner import Runner
-
-
-def _init_runner(runner: 'Runner') -> None:
-    if runner.is_agent_:
-        runner.agent_.init_agent()
-    if runner.is_tasker_:
-        runner.tasker_.init_tasker()
-    if runner.is_router_:
-        runner.router_.init_router()
-    if runner.is_tool_:
-        runner.tool_.init_tool()
-    if runner.is_worker_:
-        runner.worker_.init_worker()
-```
-
-### platform/shell/component/runner/runner/internal/_print_help.py
-```
-﻿"""_print_help.py
-Print manifest yaml raw content and write result to app.result_.
-"""
-
-from __future__ import annotations
-
-import time
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from shell.component.runner.runner.runner import Runner
-
-
-def _print_help(runner: 'Runner', timer=None) -> None:
-    """Print manifest yaml raw content and write result to app.result_."""
-    if timer is None:
-        timer = time.monotonic
-    timer()
-    try:
-        output = runner._app.manifest_._manifest_file_body
-        runner._app.app_trace_.record_info('runner._print_help._print_help', output)
-        runner._app.app_trace_.record_info('runner._print_help._print_help', 'OK')
-    except Exception as exc:
-        runner._app.app_trace_.record_error_and_raise('runner._print_help._print_help', exc)
-```
-
-### platform/shell/component/runner/runner/internal/_print_version.py
-```
-﻿"""_print_version.py
-Print agent version and write result to app.result_.
-"""
-
-from __future__ import annotations
-
-import time
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from shell.component.runner.runner.runner import Runner
-
-
-def _print_version(runner: 'Runner', timer=None) -> None:
-    if timer is None:
-        timer = time.monotonic
-    timer()
-    try:
-        manifest = runner._app.manifest_
-        output = f"{manifest._manifest_name_} {manifest._manifest_version_}"
-        runner._app.app_trace_.record_info('runner._print_version._print_version', output)
-        runner._app.app_trace_.record_info('runner._print_version._print_version', 'OK')
-    except Exception as exc:
-        runner._app.app_trace_.record_error_and_raise('runner._print_version._print_version', exc)
-```
-
-### platform/shell/component/runner/runner/internal/_run_runner.py
-```
-﻿"""_run_runner.py
-Dispatch CLI flags to the appropriate runner domain method.
-"""
-
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.component.runner.runner.internal._clean_node import _clean_node
-from shell.component.runner.runner.internal._print_help import _print_help
-from shell.component.runner.runner.internal._print_version import _print_version
-
-if TYPE_CHECKING:
-    from shell.component.runner.runner.runner import Runner
-
-
-def _run_runner(runner: 'Runner', timer=None) -> None:
-    try:
-        if runner._app.cli_.cli_properties_.is_help_:
-            _print_help(runner, timer=timer)
-        elif runner._app.cli_.cli_properties_.is_version_:
-            _print_version(runner, timer=timer)
-        elif runner._app.cli_.cli_properties_.is_clean_:
-            _clean_node(runner, timer=timer)
-        elif runner.is_agent_:
-            runner.agent_.run_agent()
-        elif runner.is_tasker_:
-            runner.tasker_.run_tasker()
-        elif runner.is_router_:
-            runner.router_.run_router()
-        elif runner.is_tool_:
-            runner.tool_.run_tool()
-        elif runner.is_worker_:
-            runner.worker_.run_worker()
-        else:
-            raise ValueError("Invalid mode: no valid CLI flags found and no valid mode set.")
-        runner._app.app_trace_.record_info('runner._run_runner._run_runner', 'successfully executed')
-    except Exception as exc:  # noqa: BLE001
-        runner._app.app_trace_.record_error('runner._run_runner._run_runner', exc)
-```
-
-### platform/shell/component/runner/runner/runner.py
-```
-﻿"""runner.py
-Runner — domain methods shared by all runner types.
-
-Owns _app, _agent, _mode and _runner_properties slots.
-
-Domain methods (per spec):
-    run_runner(timer)    — dispatch CLI flags to the appropriate domain method
-"""
-
-from __future__ import annotations
-
-from shell.module.agent.agent.agent import Agent
-from shell.module.router.router.router import Router
-from shell.component.runner.runner.internal._init_runner import _init_runner
-from shell.component.runner.runner.internal._run_runner import _run_runner
-from shell.component.runner.runner_properties.runner_properties import RunnerProperties
-from shell.module.tasker.tasker import Tasker
-from shell.module.tool.tool import Tool
-from shell.module.worker.worker.worker import Worker
-
-_MODES: frozenset[str] = frozenset({"agent", "tasker", "router", "tool", "worker"})
-
-
-class Runner:
-    """Domain methods for a single node run.
-
-    Cached via app.runner_.
-    """
-
-    __slots__ = ("_app", "_agent", "_mode", "_runner_properties", "_tasker", "_router", "_tool", "_worker")
-
-    def __init__(self, app=None) -> None:
-        self._app = app
-        self._agent: Agent | None = None
-        self._mode: str | None = None
-        self._runner_properties: RunnerProperties | None = None
-        self._tasker: Tasker | None = None
-        self._router: Router | None = None
-        self._tool: Tool | None = None
-        self._worker: Worker | None = None
-    # -----------------------------------------------------------------------
-    # Slot properties
-    # -----------------------------------------------------------------------
-
-    @property
-    def agent_(self) -> Agent:
-        """Return the cached Agent instance for this runner."""
-        if self._agent is None:
-            self._agent = Agent(self._app)
-        return self._agent
-
-    @property
-    def runner_properties_(self) -> RunnerProperties:
-        """Return the RunnerProperties instance for this runner."""
-        if self._runner_properties is None:
-            self._runner_properties = RunnerProperties()
-        return self._runner_properties
-
-    @property
-    def tasker_(self) -> Tasker:
-        """Return the cached Tasker instance for this runner."""
-        if self._tasker is None:
-            self._tasker = Tasker(self._app)
-        return self._tasker
-
-    @property
-    def router_(self) -> Router:
-        """Return the cached Router instance for this runner."""
-        if self._router is None:
-            self._router = Router(self._app)
-        return self._router
-
-    @property
-    def tool_(self) -> Tool:
-        """Return the cached Tool instance for this runner."""
-        if self._tool is None:
-            self._tool = Tool(self._app)
-        return self._tool
-
-    @property
-    def worker_(self) -> Worker:
-        """Return the cached Worker instance for this runner."""
-        if self._worker is None:
-            self._worker = Worker(self._app)
-        return self._worker
-
-    def __repr__(self) -> str:
-        return f"Runner(mode={self._mode!r})"
-
-    @property
-    def mode_(self) -> str | None:
-        if self._mode is None:
-            return None
-        if self._mode not in _MODES:
-            raise ValueError(f"mode must be one of {sorted(_MODES)!r}, got {self._mode!r}")
-        return self._mode
-
-    # -----------------------------------------------------------------------
-    # Mode predicates
-    # -----------------------------------------------------------------------
-
-    @property
-    def is_agent_(self) -> bool:
-        return self.mode_ == 'agent'
-
-    @property
-    def is_router_(self) -> bool:
-        return self.mode_ == 'router'
-
-    @property
-    def is_tasker_(self) -> bool:
-        return self.mode_ == 'tasker'
-
-    @property
-    def is_tool_(self) -> bool:
-        return self.mode_ == 'tool'
-
-    @property
-    def is_worker_(self) -> bool:
-        return self.mode_ == 'worker'
-
-    # -----------------------------------------------------------------------
-    # Init
-    # -----------------------------------------------------------------------
-
-    def init_runner(self, mode: str | None = None) -> None:
-        if mode is not None:
-            self._mode = mode
-        _init_runner(self)
-
-    # -----------------------------------------------------------------------
-    # Dispatch (spec: Runner.run_runner)
-    # -----------------------------------------------------------------------
-
-    def run_runner(self, timer=None) -> None:
-        """Dispatch CLI flags to the appropriate domain method."""
-        _run_runner(self, timer=timer)
-
-```
-
-### platform/shell/component/runner/runner_properties/__init__.py
-```
-```
-
-### platform/shell/component/runner/runner_properties/runner_properties.py
-```
-"""runner_properties.py
-RunnerProperties — runtime execution parameters for the runner.
-
-Slots:
-    add_dirs — list of extra directories passed via --add-dir CLI flags
-"""
-
-from __future__ import annotations
-
-
-class RunnerProperties:
-    """Holds runner-level execution parameters."""
-
-    __slots__ = ("_add_dirs",)
-
-    def __init__(self) -> None:
-        self._add_dirs: list[str] | None = None
-
-    @property
-    def add_dirs_(self) -> list[str]:
-        """Return add_dirs list (empty list when not set)."""
-        return self._add_dirs or []
-```
-
 ### platform/shell/component/runtime/__init__.py
 ```
-﻿from shell.component.runtime.runtime.runtime import Runtime
+from shell.component.runtime.runtime.runtime import Runtime
 ```
 
 ### platform/shell/component/runtime/runtime/__init__.py
 ```
-﻿from shell.component.runtime.runtime.runtime import Runtime
+from shell.component.runtime.runtime.runtime import Runtime
+```
+
+### platform/shell/component/runtime/runtime/internal/_init_manifest.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.component.runtime.runtime.runtime import Runtime
+
+
+def _init_manifest(runtime: Runtime) -> None:
+    runtime.manifest_.init_manifest()
 ```
 
 ### platform/shell/component/runtime/runtime/internal/_init_runtime.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -1276,7 +1756,7 @@ def _init_runtime(runtime: Runtime, version_info: tuple[int, ...] | None = None)
 
 ### platform/shell/component/runtime/runtime/internal/_init_runtime_config.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -1293,7 +1773,7 @@ def _init_runtime_config(runtime: Runtime) -> None:
 
 ### platform/shell/component/runtime/runtime/runtime.py
 ```
-﻿"""runtime.py
+"""runtime.py
 Runtime — container for runtime-level objects shared across the graph run.
 
 Slots:
@@ -1364,7 +1844,7 @@ polozenie pliku wykonywalnego, manifest oraz defoltowy config z podstawowymi par
 
 ### platform/shell/component/runtime/runtime_properties/__init__.py
 ```
-﻿from shell.component.runtime.runtime_properties.runtime_properties import RuntimeProperties
+from shell.component.runtime.runtime_properties.runtime_properties import RuntimeProperties
 ```
 
 ### platform/shell/component/runtime/runtime_properties/internal/__init__.py
@@ -1380,7 +1860,7 @@ def _assert_runtime_properties_loaded(name: str | None) -> None:
 
 ### platform/shell/component/runtime/runtime_properties/runtime_properties.py
 ```
-﻿"""runtime_properties.py
+"""runtime_properties.py
 RuntimeProperties — typed accessors for runtime's config.yaml values.
 
 Slots:
@@ -1492,6 +1972,933 @@ DIR_STAGE_DEAD = 'dead'
 DIR_STAGE_DONE = 'done'
 ```
 
+### platform/shell/context/__init__.py
+```
+```
+
+### platform/shell/context/audit_context/__init__.py
+```
+```
+
+### platform/shell/context/audit_context/audit_context/__init__.py
+```
+```
+
+### platform/shell/context/audit_context/audit_context/audit_context.py
+```
+"""audit_context.py
+AuditContext — audit and traceability context for process reconstruction.
+
+Slots:
+    _request_id — unique request identifier
+    _user       — user or agent that initiated the request
+    _timestamp  — ISO 8601 timestamp of the request
+    _trace_id   — distributed trace identifier
+"""
+
+from __future__ import annotations
+
+from shell.context.audit_context.audit_context.internal._init_audit_context import _init_audit_context
+
+
+class AuditContext:
+    """Audit and traceability context.
+
+    Slots:
+        _request_id — unique request identifier
+        _user       — user or agent that initiated the request
+        _timestamp  — ISO 8601 timestamp of the request
+        _trace_id   — distributed trace identifier
+    """
+
+    __slots__ = ("_request_id", "_user", "_timestamp", "_trace_id")
+
+    def __init__(self) -> None:
+        self._request_id: str = ""
+        self._user: str = ""
+        self._timestamp: str = ""
+        self._trace_id: str = ""
+
+    @property
+    def request_id_(self) -> str:
+        return self._request_id
+
+    @property
+    def user_(self) -> str:
+        return self._user
+
+    @property
+    def timestamp_(self) -> str:
+        return self._timestamp
+
+    @property
+    def trace_id_(self) -> str:
+        return self._trace_id
+
+    def init_audit_context(self) -> None:
+        _init_audit_context(self)
+```
+
+### platform/shell/context/audit_context/audit_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/audit_context/audit_context/internal/_init_audit_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.audit_context.audit_context.audit_context import AuditContext
+
+
+def _init_audit_context(audit_context: AuditContext) -> None:
+    audit_context._request_id = ""
+    audit_context._user = ""
+    audit_context._timestamp = ""
+    audit_context._trace_id = ""
+```
+
+### platform/shell/context/communication_context/__init__.py
+```
+```
+
+### platform/shell/context/communication_context/communication_context/__init__.py
+```
+```
+
+### platform/shell/context/communication_context/communication_context/communication_context.py
+```
+"""communication_context.py
+CommunicationContext — inter-agent communication context.
+
+Slots:
+    _sender          — identifier of the sending agent
+    _receiver        — identifier of the receiving agent
+    _correlation_id  — correlation ID linking delegations in a conversation
+    _previous_messages — list of previous messages in this conversation
+"""
+
+from __future__ import annotations
+
+from shell.context.communication_context.communication_context.internal._init_communication_context import _init_communication_context
+
+
+class CommunicationContext:
+    """Inter-agent communication context.
+
+    Slots:
+        _sender          — identifier of the sending agent
+        _receiver        — identifier of the receiving agent
+        _correlation_id  — correlation ID linking delegations in a conversation
+        _previous_messages — list of previous messages in this conversation
+    """
+
+    __slots__ = ("_sender", "_receiver", "_correlation_id", "_previous_messages")
+
+    def __init__(self) -> None:
+        self._sender: str = ""
+        self._receiver: str = ""
+        self._correlation_id: str = ""
+        self._previous_messages: list[dict] = []
+
+    @property
+    def sender_(self) -> str:
+        return self._sender
+
+    @property
+    def receiver_(self) -> str:
+        return self._receiver
+
+    @property
+    def correlation_id_(self) -> str:
+        return self._correlation_id
+
+    @property
+    def previous_messages_(self) -> list[dict]:
+        return self._previous_messages
+
+    def init_communication_context(self, sender: str, receiver: str, correlation_id: str = "") -> None:
+        _init_communication_context(self, sender=sender, receiver=receiver, correlation_id=correlation_id)
+```
+
+### platform/shell/context/communication_context/communication_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/communication_context/communication_context/internal/_init_communication_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.communication_context.communication_context.communication_context import CommunicationContext
+
+
+def _init_communication_context(
+    communication_context: CommunicationContext,
+    sender: str,
+    receiver: str,
+    correlation_id: str = "",
+) -> None:
+    communication_context._sender = sender
+    communication_context._receiver = receiver
+    communication_context._correlation_id = correlation_id
+    communication_context._previous_messages = []
+```
+
+### platform/shell/context/context/__init__.py
+```
+```
+
+### platform/shell/context/context/context.py
+```
+"""context.py
+Context — execution context passed to internal functions.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from shell.context.context.internal._init_context import _init_context
+
+
+class Context:
+    """Execution context.
+
+    Slots:
+    """
+
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def init_context(self) -> None:
+        _init_context(self)
+```
+
+### platform/shell/context/context/internal/__init__.py
+```
+```
+
+### platform/shell/context/context/internal/_init_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.context.context import Context
+
+
+def _init_context(context: Context) -> None:
+    pass
+```
+
+### platform/shell/context/context.md
+```
+Ma struktura ma zawierac i przekazywac caly kontekst dla dowolnego node
+zarowno komendy jak i prompty zbudowane w dowolny sposob
+Kontekst ma zawierac komplet informacji ktore agent potrzebuje by poprawnie realizowac zadanie
+Jest podreczna biblioteka najwazniejszych niezbednych elementow ktore agent musi znac
+Podzial bedzie
+
+a)system context - to beda wszystkie reguly sterujace agenta, to by agent wiedzial co moze czego nie moze
+  z kim moze sie komunikowac co ma w dyspozycji systemowej jakie narzedzia i technologie,
+  tu jest okreslana rola agenta i powiazane z nia skille
+b)domain contekst to jest zbior informacji o domenie w ktorej agent sie porusza wiedza z czym ogolnie ma doczynienia
+c)session contekst to kontekst zwiazany z sessia calym zadaniem jakie jest realizowane dzieki temu agent dostac moze informacje o czyms co zostalo juz ustalone wczesniej
+e)memory_contekst to zbior informacji ktore zostaly ustalone we wczesniejszych procesach sesjach czesto powtarzalnych regolach lub waznych informacjach, tu agent moze siegnac by sie czegos nauczonego o przedmiocie dowiedziec
+f) execution_context - kontekst tego subzadania tego co tu i teraz jest do wykonania  
+
+
+
+
+Dla architektury agentowej / graph-based (LangGraph, Semantic Kernel, własny orchestrator) taki podział jest sensowny, ale brakuje jeszcze kilku warstw, które w praktyce bardzo szybko okazują się potrzebne.
+
+Ja rozdzieliłbym to tak:
+
+Context
+├── system_context
+├── domain_context
+├── session_context
+├── memory_context
+├── execution_context
+├── communication_context
+├── resource_context
+├── state_context
+└── audit_context
+1. system_context
+
+Stałe reguły działania agenta.
+
+Przykłady:
+
+agent_id: architect-agent
+
+role:
+  name: Enterprise Architect
+
+skills:
+  - java
+  - spring
+  - ddd
+  - cqrs
+
+constraints:
+  - never_modify_production
+  - no_external_calls
+
+available_tools:
+  - vector_search
+  - sql_query
+  - github_search
+
+communication_rules:
+  - can_call: [analyst-agent, coding-agent]
+
+Odpowiada na pytanie:
+
+Kim jestem i jakie są moje globalne zasady?
+
+2. domain_context
+
+Wiedza domenowa.
+
+Przykład:
+
+domain:
+  name: Banking
+
+entities:
+  - Customer
+  - Account
+  - Transaction
+
+business_rules:
+  - account_must_have_owner
+  - transaction_cannot_be_negative
+
+Odpowiada na pytanie:
+
+W jakim świecie biznesowym działam?
+
+3. session_context
+
+Kontekst całego procesu.
+
+Przykład:
+
+session_id: S-123
+
+goal:
+  migrate monolith to microservices
+
+decisions:
+  - use kafka
+  - use postgres
+
+completed_tasks:
+  - identify bounded contexts
+
+Odpowiada na pytanie:
+
+Co już ustaliliśmy w tej konkretnej sesji?
+
+4. memory_context
+
+Długoterminowa pamięć.
+
+Przykład:
+
+lessons_learned:
+  - customer_service_should_not_own_payments
+
+organization_preferences:
+  - use_java_21
+  - use_maven
+
+known_patterns:
+  - event_sourcing
+  - outbox_pattern
+
+Odpowiada na pytanie:
+
+Czego nauczyłem się wcześniej?
+
+5. execution_context
+
+Najważniejszy dla pojedynczego node.
+
+Przykład:
+
+task:
+  generate_rest_api
+
+input:
+  aggregate: Customer
+
+expected_output:
+  openapi_spec
+
+constraints:
+  - use_rest
+  - no_graphql
+
+Odpowiada na pytanie:
+
+Co mam zrobić dokładnie teraz?
+
+Brakuje jeszcze:
+6. communication_context
+
+Przy multi-agentach jest krytyczny.
+
+Przykład:
+
+sender:
+  analyst-agent
+
+receiver:
+  architect-agent
+
+conversation:
+  correlation_id: XYZ
+
+previous_messages:
+  - ...
+
+Odpowiada na pytanie:
+
+Kto mi to zlecił i z jakim kontekstem komunikacyjnym?
+
+Bez tego ciężko śledzić delegacje między agentami.
+
+7. resource_context
+
+Źródła wiedzy dostępne dla agenta.
+
+Przykład:
+
+documents:
+  - ADR-001
+  - ADR-002
+
+repositories:
+  - customer-service
+
+knowledge_sources:
+  - vector_db
+  - wiki
+
+Odpowiada na pytanie:
+
+Z jakich danych mogę korzystać?
+
+To nie jest domain context.
+
+Domain opisuje świat biznesowy.
+
+Resource opisuje skąd agent ma pobierać wiedzę.
+
+8. state_context
+
+Stan workflow.
+
+Przykład:
+
+workflow:
+  id: WF-22
+
+current_node:
+  architecture-review
+
+previous_node:
+  requirements-analysis
+
+next_node:
+  implementation
+
+Odpowiada na pytanie:
+
+Gdzie jestem w grafie procesu?
+
+Przy LangGraphach i własnych orchestratorach to zwykle osobna sekcja.
+
+9. audit_context
+
+Enterprise'owo bardzo przydatne.
+
+Przykład:
+
+request_id: R-123
+
+user:
+  john.smith
+
+timestamp:
+  2026-05-31T10:00:00
+
+trace_id:
+  abc-xyz
+
+Odpowiada na pytanie:
+
+Jak odtworzyć wykonanie procesu?
+
+Finalnie
+
+Gdybym projektował uniwersalny AgentContext dla enterprise multi-agent system, zrobiłbym:
+
+AgentContext
+ ├─ SystemContext
+ ├─ DomainContext
+ ├─ SessionContext
+ ├─ MemoryContext
+ ├─ ExecutionContext
+ ├─ CommunicationContext
+ ├─ ResourceContext
+ ├─ StateContext
+ └─ AuditContext
+
+Przy czym dla pojedynczego node najważniejsze są zwykle:
+
+SystemContext
++
+ExecutionContext
++
+SessionContext
++
+MemoryContext
+
+a pozostałe pełnią rolę infrastrukturalną i orkiestracyjną. To daje praktycznie kompletny model kontekstu dla agentów enterprise działających w grafach, workflow i architekturach multi-agent.
+```
+
+### platform/shell/context/domain_context/__init__.py
+```
+```
+
+### platform/shell/context/domain_context/domain_context/__init__.py
+```
+```
+
+### platform/shell/context/domain_context/domain_context/domain_context.py
+```
+"""domain_context.py
+DomainContext — domain-level execution context.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from shell.context.domain_context.domain_context.internal._init_domain_context import _init_domain_context
+
+
+class DomainContext:
+    """Domain-level execution context.
+
+    Slots:
+    """
+
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def init_domain_context(self) -> None:
+        _init_domain_context(self)
+```
+
+### platform/shell/context/domain_context/domain_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/domain_context/domain_context/internal/_init_domain_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.domain_context.domain_context.domain_context import DomainContext
+
+
+def _init_domain_context(domain_context: DomainContext) -> None:
+    pass
+```
+
+### platform/shell/context/domain_context/domain_context.md
+```
+kontekst domeny to kontekst z jaka domena technologiczna biznesowa agent ma pracowac
+```
+
+### platform/shell/context/execution_context/__init__.py
+```
+```
+
+### platform/shell/context/execution_context/execution_context/__init__.py
+```
+```
+
+### platform/shell/context/execution_context/execution_context/execution_context.py
+```
+"""execution_context.py
+ExecutionContext — sub-task execution context: what to do right now.
+
+Slots:
+    _task        — name of the task to execute
+    _input       — input data for the task
+    _expected_output — description of expected output
+    _constraints — list of constraints for this execution
+"""
+
+from __future__ import annotations
+
+from shell.context.execution_context.execution_context.internal._init_execution_context import _init_execution_context
+
+
+class ExecutionContext:
+    """Sub-task execution context.
+
+    Slots:
+        _task            — name of the task to execute
+        _input           — input data for the task
+        _expected_output — description of expected output
+        _constraints     — list of constraints for this execution
+    """
+
+    __slots__ = ("_task", "_input", "_expected_output", "_constraints")
+
+    def __init__(self) -> None:
+        self._task: str = ""
+        self._input: dict = {}
+        self._expected_output: str = ""
+        self._constraints: list[str] = []
+
+    @property
+    def task_(self) -> str:
+        return self._task
+
+    @property
+    def input_(self) -> dict:
+        return self._input
+
+    @property
+    def expected_output_(self) -> str:
+        return self._expected_output
+
+    @property
+    def constraints_(self) -> list[str]:
+        return self._constraints
+
+    def init_execution_context(self) -> None:
+        _init_execution_context(self)
+```
+
+### platform/shell/context/execution_context/execution_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/execution_context/execution_context/internal/_init_execution_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.execution_context.execution_context.execution_context import ExecutionContext
+
+
+def _init_execution_context(execution_context: ExecutionContext) -> None:
+    execution_context._task = ""
+    execution_context._input = {}
+    execution_context._expected_output = ""
+    execution_context._constraints = []
+```
+
+### platform/shell/context/memory_context/__init__.py
+```
+```
+
+### platform/shell/context/memory_context/memory_context/__init__.py
+```
+```
+
+### platform/shell/context/memory_context/memory_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/memory_context/memory_context/internal/_init_memory_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.memory_context.memory_context.memory_context import MemoryContext
+
+
+def _init_memory_context(memory_context: MemoryContext) -> None:
+    memory_context._lessons_learned = []
+    memory_context._organization_preferences = []
+    memory_context._known_patterns = []
+```
+
+### platform/shell/context/memory_context/memory_context/memory_context.py
+```
+"""memory_context.py
+MemoryContext — long-term memory context: lessons learned, preferences, known patterns.
+
+Slots:
+    _lessons_learned         — list of lessons learned from previous processes
+    _organization_preferences — list of organization-level preferences
+    _known_patterns          — list of known architectural or process patterns
+"""
+
+from __future__ import annotations
+
+from shell.context.memory_context.memory_context.internal._init_memory_context import _init_memory_context
+
+
+class MemoryContext:
+    """Long-term memory context.
+
+    Slots:
+        _lessons_learned          — list of lessons learned from previous processes
+        _organization_preferences — list of organization-level preferences
+        _known_patterns           — list of known architectural or process patterns
+    """
+
+    __slots__ = ("_lessons_learned", "_organization_preferences", "_known_patterns")
+
+    def __init__(self) -> None:
+        self._lessons_learned: list[str] = []
+        self._organization_preferences: list[str] = []
+        self._known_patterns: list[str] = []
+
+    @property
+    def lessons_learned_(self) -> list[str]:
+        return self._lessons_learned
+
+    @property
+    def organization_preferences_(self) -> list[str]:
+        return self._organization_preferences
+
+    @property
+    def known_patterns_(self) -> list[str]:
+        return self._known_patterns
+
+    def init_memory_context(self) -> None:
+        _init_memory_context(self)
+```
+
+### platform/shell/context/session_context/__init__.py
+```
+```
+
+### platform/shell/context/session_context/session_context/__init__.py
+```
+```
+
+### platform/shell/context/session_context/session_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/session_context/session_context/internal/_init_session_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.session_context.session_context.session_context import SessionContext
+
+
+def _init_session_context(session_context: SessionContext) -> None:
+    pass
+```
+
+### platform/shell/context/session_context/session_context/session_context.py
+```
+"""session_context.py
+SessionContext — session-level execution context.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from shell.context.session_context.session_context.internal._init_session_context import _init_session_context
+
+
+class SessionContext:
+    """Session-level execution context.
+
+    Slots:
+    """
+
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def init_session_context(self) -> None:
+        _init_session_context(self)
+```
+
+### platform/shell/context/session_context/session_context.md
+```
+to zbior danych ktore agent zgromadzil w sesji ktore moga byc dla niego istotne w dalszej pracy
+```
+
+### platform/shell/context/state_context/__init__.py
+```
+```
+
+### platform/shell/context/state_context/state_context/__init__.py
+```
+```
+
+### platform/shell/context/state_context/state_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/state_context/state_context/internal/_init_state_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.state_context.state_context.state_context import StateContext
+
+
+def _init_state_context(state_context: StateContext) -> None:
+    state_context._workflow_id = ""
+    state_context._current_node = ""
+    state_context._previous_node = ""
+    state_context._next_node = ""
+```
+
+### platform/shell/context/state_context/state_context/state_context.py
+```
+"""state_context.py
+StateContext — workflow state context: current position in the process graph.
+
+Slots:
+    _workflow_id   — identifier of the workflow
+    _current_node  — name of the currently executing node
+    _previous_node — name of the previously executed node
+    _next_node     — name of the next node to execute
+"""
+
+from __future__ import annotations
+
+from shell.context.state_context.state_context.internal._init_state_context import _init_state_context
+
+
+class StateContext:
+    """Workflow state context.
+
+    Slots:
+        _workflow_id   — identifier of the workflow
+        _current_node  — name of the currently executing node
+        _previous_node — name of the previously executed node
+        _next_node     — name of the next node to execute
+    """
+
+    __slots__ = ("_workflow_id", "_current_node", "_previous_node", "_next_node")
+
+    def __init__(self) -> None:
+        self._workflow_id: str = ""
+        self._current_node: str = ""
+        self._previous_node: str = ""
+        self._next_node: str = ""
+
+    @property
+    def workflow_id_(self) -> str:
+        return self._workflow_id
+
+    @property
+    def current_node_(self) -> str:
+        return self._current_node
+
+    @property
+    def previous_node_(self) -> str:
+        return self._previous_node
+
+    @property
+    def next_node_(self) -> str:
+        return self._next_node
+
+    def init_state_context(self) -> None:
+        _init_state_context(self)
+```
+
+### platform/shell/context/system_context/__init__.py
+```
+```
+
+### platform/shell/context/system_context/system_context/__init__.py
+```
+```
+
+### platform/shell/context/system_context/system_context/internal/__init__.py
+```
+```
+
+### platform/shell/context/system_context/system_context/internal/_init_system_context.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.context.system_context.system_context.system_context import SystemContext
+
+
+def _init_system_context(system_context: SystemContext) -> None:
+    pass
+```
+
+### platform/shell/context/system_context/system_context/system_context.py
+```
+"""system_context.py
+SystemContext — system-level execution context.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from shell.context.system_context.system_context.internal._init_system_context import _init_system_context
+
+
+class SystemContext:
+    """System-level execution context.
+
+    Slots:
+    """
+
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        pass
+
+    def init_system_context(self) -> None:
+        _init_system_context(self)
+```
+
+### platform/shell/context/system_context/system_context.md
+```
+system contekst to promppt sterujace prompty informujace o roli agenta i jego kozliwosciach technicznych i konfiguracyjnych
+```
+
 ### platform/shell/dirmode.md
 ```
 # Architektura DOM
@@ -1516,11 +2923,32 @@ Umożliwia dostęp do dowolnego obiektu z dowolnego miejsca poprzez korzeń drze
 
 ### platform/shell/docs/opis_platformy.md
 ```
+Jak używać Memory
+1. Inicjalizacja
+Aby przejść na inną bazę — wstrzykujesz inny driver, np. PostgresDriver(dsn) (gdy stub zostanie dokończony). Reszta kodu się nie zmienia.
+
+2. Context entries (klucz–wartość per scope)
+context_type to typ kontekstu (system, domain, session, memory, state, audit, execution, communication).
+
+3. Sesje agentów
+4. Konwersacje (komunikacja między agentami)
+5. Audit log
+6. RAG (przez memory.rag_)
+7. Zamknięcie
+Ścieżka skrótu — gdzie co siedzi
+memory.put_entry/get_entry/... — context_entry (UPSERT po (context_type, scope_id, entry_key))
+memory.open_session/close_session — tabela session
+memory.append_message/get_conversation — tabela message (po correlation_id)
+memory.log_event — tabela audit_event
+memory.rag_.index_text — tabele rag_document + rag_chunk (+ rag_chunk_fts na sqlite)
+memory.rag_.search — kosinusowe podobieństwo embeddingów w Pythonie
+memory.backend_.search_fts — BM25 przez FTS5
+Aby podpiąć prawdziwe embeddingi (np. OpenAI / sentence-transformers) — zaimplementuj Embedder (jeden metod encode(text) -> list[float]) zamiast HashEmbedder.
 ```
 
 ### platform/shell/logger/__init__.py
 ```
-﻿# lib/logger package
+# lib/logger package
 from shell.logger.logger import Logger
 
 __all__ = ["Logger"]
@@ -1532,7 +2960,7 @@ __all__ = ["Logger"]
 
 ### platform/shell/logger/internal/_build_log_path.py
 ```
-﻿from shell.utils.path.path import PathType
+from shell.utils.path.path import PathType
 """_build_log_path.py
 Responsible for one thing: building the log file path inside the node logs/ directory.
 Convention: logs/<role>.<YYYY-MM-DD_HH>.<level>.log_
@@ -1551,7 +2979,6 @@ def _build_log_path(node: PathType, log_level: str = "INFO", now: datetime = Non
 
 ### platform/shell/logger/internal/_get_logger.py
 ```
-﻿from shell.utils.path.path import PathType
 """_get_logger.py
 Private. Responsible for one thing: providing a configured logger
 that writes to a log file (configured level) and stderr (WARNING+).
@@ -1560,6 +2987,9 @@ Log format: timestamp | level | message
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 import logging
 from collections.abc import Callable
@@ -1661,7 +3091,7 @@ Modul loggera udostepnia metody loggujace odbiorca jego metod jest modul trace p
 
 ### platform/shell/logger/logger.py
 ```
-﻿"""logger.py
+"""logger.py
 Logger: single-entry-point facade over the underlying logging.Logger.
 
 Consolidates all structured log operations for a node run:
@@ -1730,25 +3160,1397 @@ class Logger:
         _get_logger(self._app).warning(message)
 ```
 
+### platform/shell/memory/__init__.py
+```
+```
+
+### platform/shell/memory/memory/__init__.py
+```
+```
+
+### platform/shell/memory/memory/internal/__init__.py
+```
+```
+
+### platform/shell/memory/memory/internal/_init_memory.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.memory.rag_index.rag_index import RagIndex
+from shell.memory.rag_index.embedder.hash_embedder import HashEmbedder
+
+if TYPE_CHECKING:
+    from shell.memory.memory.memory import Memory
+    from shell.memory.memory_backend.memory_backend import MemoryBackend
+    from shell.memory.rag_index.embedder.embedder import Embedder
+
+
+def _init_memory(memory: Memory, backend: MemoryBackend, embedder: Embedder | None) -> None:
+    backend.init_backend()
+    memory._backend = backend
+    memory._rag = RagIndex(backend, embedder if embedder is not None else HashEmbedder())
+```
+
+### platform/shell/memory/memory/memory.py
+```
+"""memory.py
+Memory — facade exposing the persistent context store and RAG index.
+
+Slots:
+    _backend  — Optional; MemoryBackend instance (None until init_memory)
+    _rag      — Optional; RagIndex instance (None until init_memory)
+"""
+
+from __future__ import annotations
+
+from shell.memory.memory_backend.memory_backend import MemoryBackend
+from shell.memory.rag_index.embedder.embedder import Embedder
+from shell.memory.rag_index.rag_index import RagIndex
+from shell.memory.memory.internal._init_memory import _init_memory
+
+
+class Memory:
+    """Facade exposing the persistent context store and RAG index.
+
+    Slots:
+        _backend  — Optional; MemoryBackend instance (None until init_memory)
+        _rag      — Optional; RagIndex instance (None until init_memory)
+    """
+
+    __slots__ = ("_backend", "_rag")
+
+    def __init__(self) -> None:
+        self._backend: MemoryBackend | None = None
+        self._rag: RagIndex | None = None
+
+    @property
+    def backend_(self) -> MemoryBackend:
+        return self._backend
+
+    @property
+    def rag_(self) -> RagIndex:
+        return self._rag
+
+    def init_memory(self, backend: MemoryBackend, embedder: Embedder | None = None) -> None:
+        _init_memory(self, backend, embedder)
+
+    def close_memory(self) -> None:
+        if self._backend is not None:
+            self._backend.close_backend()
+
+    def put_entry(self, context_type: str, scope_id: str, entry_key: str, value: dict, tags: list[str] | None = None) -> None:
+        self._backend.put_entry(context_type, scope_id, entry_key, value, tags)
+
+    def get_entry(self, context_type: str, scope_id: str, entry_key: str) -> dict | None:
+        return self._backend.get_entry(context_type, scope_id, entry_key)
+
+    def list_entries(self, context_type: str, scope_id: str) -> list[dict]:
+        return self._backend.list_entries(context_type, scope_id)
+
+    def delete_entry(self, context_type: str, scope_id: str, entry_key: str) -> None:
+        self._backend.delete_entry(context_type, scope_id, entry_key)
+
+    def open_session(self, session_id: str, agent_id: str, goal: str) -> None:
+        self._backend.open_session(session_id, agent_id, goal)
+
+    def close_session(self, session_id: str, status: str) -> None:
+        self._backend.close_session(session_id, status)
+
+    def append_message(self, correlation_id: str, sender: str, receiver: str, payload: dict) -> None:
+        self._backend.append_message(correlation_id, sender, receiver, payload)
+
+    def get_conversation(self, correlation_id: str) -> list[dict]:
+        return self._backend.get_conversation(correlation_id)
+
+    def log_event(self, request_id: str, event_type: str, payload: dict, trace_id: str | None = None, user: str | None = None) -> None:
+        self._backend.log_event(request_id, event_type, payload, trace_id, user)
+
+```
+
+### platform/shell/memory/memory_backend/__init__.py
+```
+```
+
+### platform/shell/memory/memory_backend/memory_backend.py
+```
+"""memory_backend.py
+MemoryBackend — abstract interface for persistent memory storage backends.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+
+class MemoryBackend(ABC):
+    """Abstract base for memory storage backends.
+
+    Implementations: SqlMemoryBackend (SqliteDriver default; PostgresDriver stub), future: Chroma, Qdrant.
+    """
+
+    __slots__ = ()
+
+    @abstractmethod
+    def init_backend(self) -> None:
+        ...
+
+    @abstractmethod
+    def close_backend(self) -> None:
+        ...
+
+    @abstractmethod
+    def put_entry(self, context_type: str, scope_id: str, entry_key: str, value: dict, tags: list[str] | None = None) -> None:
+        ...
+
+    @abstractmethod
+    def get_entry(self, context_type: str, scope_id: str, entry_key: str) -> dict | None:
+        ...
+
+    @abstractmethod
+    def list_entries(self, context_type: str, scope_id: str) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def delete_entry(self, context_type: str, scope_id: str, entry_key: str) -> None:
+        ...
+
+    @abstractmethod
+    def open_session(self, session_id: str, agent_id: str, goal: str) -> None:
+        ...
+
+    @abstractmethod
+    def close_session(self, session_id: str, status: str) -> None:
+        ...
+
+    @abstractmethod
+    def append_message(self, correlation_id: str, sender: str, receiver: str, payload: dict) -> None:
+        ...
+
+    @abstractmethod
+    def get_conversation(self, correlation_id: str) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def log_event(self, request_id: str, event_type: str, payload: dict, trace_id: str | None = None, user: str | None = None) -> None:
+        ...
+
+    @abstractmethod
+    def index_document(self, source_uri: str, title: str, domain: str, chunks: list[str], embeddings: list[bytes], embedding_model: str) -> int:
+        ...
+
+    @abstractmethod
+    def search_rag(self, query_embedding: bytes, top_k: int = 5, domain: str | None = None) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def search_fts(self, query_text: str, top_k: int = 5) -> list[dict]:
+        ...
+```
+
+### platform/shell/memory/rag_index/__init__.py
+```
+```
+
+### platform/shell/memory/rag_index/embedder/__init__.py
+```
+```
+
+### platform/shell/memory/rag_index/embedder/embedder.py
+```
+"""embedder.py
+Embedder — abstract interface for text embedding providers.
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+
+
+class Embedder(ABC):
+    """Abstract base for embedding providers (sentence-transformers, OpenAI, Ollama)."""
+
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def model_name_(self) -> str:
+        ...
+
+    @abstractmethod
+    def embed_text(self, text: str) -> list[float]:
+        ...
+
+    @abstractmethod
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        ...
+```
+
+### platform/shell/memory/rag_index/embedder/hash_embedder.py
+```
+"""hash_embedder.py
+HashEmbedder — deterministic, no-dependency stub embedder for tests/dev.
+
+Generates a fixed-dim float vector from the text via hashing — useful as a
+default plug while a real model (sentence-transformers / Ollama) is wired in.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import math
+import struct
+
+from shell.memory.rag_index.embedder.embedder import Embedder
+
+
+class HashEmbedder(Embedder):
+    """Deterministic hash-based embedder (dev/test only)."""
+
+    __slots__ = ("_dim", "_model_name")
+
+    def __init__(self, dim: int = 64) -> None:
+        self._dim: int = dim
+        self._model_name: str = f"hash-stub-{dim}"
+
+    @property
+    def model_name_(self) -> str:
+        return self._model_name
+
+    @property
+    def dim_(self) -> int:
+        return self._dim
+
+    def embed_text(self, text: str) -> list[float]:
+        digest = hashlib.sha256(text.encode("utf-8")).digest()
+        repeats = (self._dim * 4 + len(digest) - 1) // len(digest)
+        raw = (digest * repeats)[: self._dim * 4]
+        ints = struct.unpack(f"{self._dim}I", raw)
+        floats = [(v / 0xFFFFFFFF) * 2.0 - 1.0 for v in ints]
+        norm = math.sqrt(sum(x * x for x in floats)) or 1.0
+        return [x / norm for x in floats]
+
+    def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        return [self.embed_text(t) for t in texts]
+```
+
+### platform/shell/memory/rag_index/internal/__init__.py
+```
+```
+
+### platform/shell/memory/rag_index/internal/_chunk_text.py
+```
+from __future__ import annotations
+
+
+def _chunk_text(text: str, chunk_size: int, overlap: int) -> list[str]:
+    if chunk_size <= 0:
+        raise ValueError("[RagIndex._chunk_text] chunk_size must be positive")
+    if overlap < 0 or overlap >= chunk_size:
+        raise ValueError("[RagIndex._chunk_text] overlap must be in [0, chunk_size)")
+    text = text.strip()
+    if not text:
+        return []
+    chunks: list[str] = []
+    step = chunk_size - overlap
+    for start in range(0, len(text), step):
+        chunk = text[start:start + chunk_size]
+        if not chunk:
+            break
+        chunks.append(chunk)
+        if start + chunk_size >= len(text):
+            break
+    return chunks
+```
+
+### platform/shell/memory/rag_index/internal/_encode_vector.py
+```
+from __future__ import annotations
+
+import struct
+
+
+def _encode_vector(vector: list[float]) -> bytes:
+    return struct.pack(f"{len(vector)}f", *vector)
+```
+
+### platform/shell/memory/rag_index/internal/_index_text.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.memory.rag_index.internal._chunk_text import _chunk_text
+from shell.memory.rag_index.internal._encode_vector import _encode_vector
+
+if TYPE_CHECKING:
+    from shell.memory.rag_index.rag_index import RagIndex
+
+
+def _index_text(
+    rag: RagIndex,
+    source_uri: str,
+    title: str,
+    domain: str,
+    text: str,
+    chunk_size: int,
+    overlap: int,
+) -> int:
+    chunks = _chunk_text(text, chunk_size, overlap)
+    if not chunks:
+        return 0
+    vectors = rag.embedder_.embed_batch(chunks)
+    blobs = [_encode_vector(v) for v in vectors]
+    rag.backend_.index_document(
+        source_uri=source_uri,
+        title=title,
+        domain=domain,
+        chunks=chunks,
+        embeddings=blobs,
+        embedding_model=rag.embedder_.model_name_,
+    )
+    return len(chunks)
+```
+
+### platform/shell/memory/rag_index/internal/_search.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.memory.rag_index.internal._encode_vector import _encode_vector
+
+if TYPE_CHECKING:
+    from shell.memory.rag_index.rag_index import RagIndex
+
+
+def _search(rag: RagIndex, query: str, top_k: int, domain: str | None) -> list[dict]:
+    query_vector = rag.embedder_.embed_text(query)
+    query_blob = _encode_vector(query_vector)
+    return rag.backend_.search_rag(query_blob, top_k=top_k, domain=domain)
+```
+
+### platform/shell/memory/rag_index/rag_index.py
+```
+"""rag_index.py
+RagIndex — RAG facade: chunk text, embed, persist, retrieve.
+
+Slots:
+    _backend  — MemoryBackend instance for persistence
+    _embedder — Embedder instance for vector generation
+"""
+
+from __future__ import annotations
+
+from shell.memory.memory_backend.memory_backend import MemoryBackend
+from shell.memory.rag_index.embedder.embedder import Embedder
+from shell.memory.rag_index.internal._chunk_text import _chunk_text
+from shell.memory.rag_index.internal._encode_vector import _encode_vector
+from shell.memory.rag_index.internal._index_text import _index_text
+from shell.memory.rag_index.internal._search import _search
+
+
+class RagIndex:
+    """RAG indexing and retrieval facade.
+
+    Slots:
+        _backend  — MemoryBackend instance for persistence
+        _embedder — Embedder instance for vector generation
+    """
+
+    __slots__ = ("_backend", "_embedder")
+
+    def __init__(self, backend: MemoryBackend, embedder: Embedder) -> None:
+        self._backend: MemoryBackend = backend
+        self._embedder: Embedder = embedder
+
+    @property
+    def backend_(self) -> MemoryBackend:
+        return self._backend
+
+    @property
+    def embedder_(self) -> Embedder:
+        return self._embedder
+
+    def index_text(
+        self,
+        source_uri: str,
+        title: str,
+        domain: str,
+        text: str,
+        chunk_size: int = 500,
+        overlap: int = 50,
+    ) -> int:
+        return _index_text(self, source_uri, title, domain, text, chunk_size, overlap)
+
+    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+        return _chunk_text(text, chunk_size, overlap)
+
+    def encode_vector(self, vector: list[float]) -> bytes:
+        return _encode_vector(vector)
+
+    def search(self, query: str, top_k: int = 5, domain: str | None = None) -> list[dict]:
+        return _search(self, query, top_k, domain)
+```
+
+### platform/shell/memory/sql_driver/__init__.py
+```
+```
+
+### platform/shell/memory/sql_driver/dialect.py
+```
+"""dialect.py
+Dialect — value object describing SQL dialect specifics for a SqlDriver.
+
+Slots:
+    _placeholder    — placeholder string used by the driver ('?' for sqlite, '%s' for psycopg)
+    _auto_pk        — SQL fragment for auto-incrementing integer primary key
+    _blob_type      — column type for binary blobs ('BLOB' or 'BYTEA')
+    _supports_fts   — whether dialect supports full-text-search on stored data
+"""
+
+from __future__ import annotations
+
+
+class Dialect:
+    """SQL dialect descriptor."""
+
+    __slots__ = ("_placeholder", "_auto_pk", "_blob_type", "_supports_fts")
+
+    def __init__(
+        self,
+        placeholder: str,
+        auto_pk: str,
+        blob_type: str,
+        supports_fts: bool,
+    ) -> None:
+        self._placeholder: str = placeholder
+        self._auto_pk: str = auto_pk
+        self._blob_type: str = blob_type
+        self._supports_fts: bool = supports_fts
+
+    @property
+    def placeholder_(self) -> str:
+        return self._placeholder
+
+    @property
+    def auto_pk_(self) -> str:
+        return self._auto_pk
+
+    @property
+    def blob_type_(self) -> str:
+        return self._blob_type
+
+    @property
+    def supports_fts_(self) -> bool:
+        return self._supports_fts
+
+    def render_sql(self, sql: str) -> str:
+        if self._placeholder == "?":
+            return sql
+        out: list[str] = []
+        i = 0
+        for ch in sql:
+            if ch == "?":
+                i += 1
+                out.append(self._placeholder.replace("$N", str(i)) if "$N" in self._placeholder else self._placeholder)
+            else:
+                out.append(ch)
+        return "".join(out)
+```
+
+### platform/shell/memory/sql_driver/postgres_driver/__init__.py
+```
+```
+
+### platform/shell/memory/sql_driver/postgres_driver/postgres_driver.py
+```
+"""postgres_driver.py
+PostgresDriver — PostgreSQL stub implementation of SqlDriver.
+
+Wymaga psycopg / psycopg2 (nie zainstalowane domyślnie). Stub do podpięcia
+gdy projekt zdecyduje się na Postgres.
+
+Slots:
+    _dsn        — connection string ('postgresql://user:pass@host:port/db')
+    _connection — Optional; psycopg connection (None until connect)
+    _dialect    — Dialect describing Postgres SQL specifics
+"""
+
+from __future__ import annotations
+
+from typing import Any, Sequence
+
+from shell.memory.sql_driver.sql_driver import SqlDriver
+from shell.memory.sql_driver.dialect import Dialect
+
+
+_POSTGRES_DIALECT = Dialect(
+    placeholder="%s",
+    auto_pk="BIGSERIAL PRIMARY KEY",
+    blob_type="BYTEA",
+    supports_fts=False,
+)
+
+
+class PostgresDriver(SqlDriver):
+    """PostgreSQL SqlDriver (stub)."""
+
+    __slots__ = ("_dsn", "_connection", "_dialect")
+
+    def __init__(self, dsn: str) -> None:
+        self._dsn: str = dsn
+        self._connection = None
+        self._dialect: Dialect = _POSTGRES_DIALECT
+
+    @property
+    def dialect_(self) -> Dialect:
+        return self._dialect
+
+    @property
+    def dsn_(self) -> str:
+        return self._dsn
+
+    def connect(self) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def close(self) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def execute(self, sql: str, params: Sequence[Any] = ()) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def executemany(self, sql: str, rows: Sequence[Sequence[Any]]) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def executescript(self, script: str) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def query(self, sql: str, params: Sequence[Any] = ()) -> list[dict]:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def last_insert_id(self) -> int:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+
+    def commit(self) -> None:
+        raise NotImplementedError("[PostgresDriver] psycopg integration not implemented yet")
+```
+
+### platform/shell/memory/sql_driver/sql_driver.py
+```
+"""sql_driver.py
+SqlDriver — abstract bridge between SqlMemoryBackend and a concrete SQL engine.
+
+Slots:
+"""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Any, Sequence
+
+from shell.memory.sql_driver.dialect import Dialect
+
+
+class SqlDriver(ABC):
+    """Abstract SQL driver used by SqlMemoryBackend.
+
+    Implementations: SqliteDriver (default), PostgresDriver, future engines.
+    """
+
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def dialect_(self) -> Dialect:
+        ...
+
+    @abstractmethod
+    def connect(self) -> None:
+        ...
+
+    @abstractmethod
+    def close(self) -> None:
+        ...
+
+    @abstractmethod
+    def execute(self, sql: str, params: Sequence[Any] = ()) -> None:
+        ...
+
+    @abstractmethod
+    def executemany(self, sql: str, rows: Sequence[Sequence[Any]]) -> None:
+        ...
+
+    @abstractmethod
+    def executescript(self, script: str) -> None:
+        ...
+
+    @abstractmethod
+    def query(self, sql: str, params: Sequence[Any] = ()) -> list[dict]:
+        ...
+
+    @abstractmethod
+    def last_insert_id(self) -> int:
+        ...
+
+    @abstractmethod
+    def commit(self) -> None:
+        ...
+```
+
+### platform/shell/memory/sql_driver/sqlite_driver/__init__.py
+```
+```
+
+### platform/shell/memory/sql_driver/sqlite_driver/sqlite_driver.py
+```
+"""sqlite_driver.py
+SqliteDriver — SQLite implementation of SqlDriver (sqlite3, stdlib).
+
+Slots:
+    _db_path    — filesystem path to the SQLite database file
+    _connection — Optional; sqlite3.Connection (None until connect)
+    _dialect    — Dialect describing SQLite SQL specifics
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from typing import Any, Sequence
+
+from shell.utils.path.path import Path, PathType
+from shell.memory.sql_driver.sql_driver import SqlDriver
+from shell.memory.sql_driver.dialect import Dialect
+
+
+_SQLITE_DIALECT = Dialect(
+    placeholder="?",
+    auto_pk="INTEGER PRIMARY KEY AUTOINCREMENT",
+    blob_type="BLOB",
+    supports_fts=True,
+)
+
+
+class SqliteDriver(SqlDriver):
+    """SQLite SqlDriver."""
+
+    __slots__ = ("_db_path", "_connection", "_dialect")
+
+    def __init__(self, db_path: PathType) -> None:
+        self._db_path: PathType = db_path
+        self._connection: sqlite3.Connection | None = None
+        self._dialect: Dialect = _SQLITE_DIALECT
+
+    @property
+    def dialect_(self) -> Dialect:
+        return self._dialect
+
+    @property
+    def db_path_(self) -> PathType:
+        return self._db_path
+
+    @property
+    def connection_(self) -> sqlite3.Connection:
+        return self._connection
+
+    def connect(self) -> None:
+        parent = self._db_path.parent
+        if not Path.exists(parent):
+            Path.mkdir(parent)
+        self._connection = sqlite3.connect(str(self._db_path))
+        self._connection.row_factory = sqlite3.Row
+        self._connection.execute("PRAGMA foreign_keys = ON")
+
+    def close(self) -> None:
+        if self._connection is not None:
+            self._connection.close()
+            self._connection = None
+
+    def execute(self, sql: str, params: Sequence[Any] = ()) -> None:
+        self._connection.execute(self._dialect.render_sql(sql), tuple(params))
+
+    def executemany(self, sql: str, rows: Sequence[Sequence[Any]]) -> None:
+        self._connection.executemany(self._dialect.render_sql(sql), [tuple(r) for r in rows])
+
+    def executescript(self, script: str) -> None:
+        self._connection.executescript(script)
+
+    def query(self, sql: str, params: Sequence[Any] = ()) -> list[dict]:
+        cursor = self._connection.execute(self._dialect.render_sql(sql), tuple(params))
+        return [dict(row) for row in cursor.fetchall()]
+
+    def last_insert_id(self) -> int:
+        row = self._connection.execute("SELECT last_insert_rowid() AS id").fetchone()
+        return int(row["id"]) if row else 0
+
+    def commit(self) -> None:
+        self._connection.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/__init__.py
+```
+```
+
+### platform/shell/memory/sql_memory_backend/internal/__init__.py
+```
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_append_message.py
+```
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _append_message(
+    backend: SqlMemoryBackend,
+    correlation_id: str,
+    sender: str,
+    receiver: str,
+    payload: dict,
+) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    backend.driver_.execute(
+        """
+        INSERT INTO message (correlation_id, sender, receiver, payload_json, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (correlation_id, sender, receiver, json.dumps(payload, ensure_ascii=False), now),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_apply_schema.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _apply_schema(backend: SqlMemoryBackend) -> None:
+    dialect = backend.driver_.dialect_
+    auto_pk = dialect.auto_pk_
+    blob = dialect.blob_type_
+
+    ddl = f"""
+    CREATE TABLE IF NOT EXISTS context_entry (
+        id              {auto_pk},
+        context_type    TEXT NOT NULL,
+        scope_id        TEXT NOT NULL,
+        entry_key       TEXT NOT NULL,
+        value_json      TEXT NOT NULL,
+        tags            TEXT,
+        created_at      TEXT NOT NULL,
+        updated_at      TEXT NOT NULL,
+        UNIQUE(context_type, scope_id, entry_key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_ctx_type_scope ON context_entry(context_type, scope_id);
+    CREATE INDEX IF NOT EXISTS idx_ctx_tags       ON context_entry(tags);
+
+    CREATE TABLE IF NOT EXISTS session (
+        session_id   TEXT PRIMARY KEY,
+        agent_id     TEXT NOT NULL,
+        goal         TEXT,
+        status       TEXT NOT NULL,
+        started_at   TEXT NOT NULL,
+        ended_at     TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS message (
+        id              {auto_pk},
+        correlation_id  TEXT NOT NULL,
+        sender          TEXT NOT NULL,
+        receiver        TEXT NOT NULL,
+        payload_json    TEXT NOT NULL,
+        created_at      TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_msg_corr ON message(correlation_id);
+
+    CREATE TABLE IF NOT EXISTS audit_event (
+        id           {auto_pk},
+        request_id   TEXT NOT NULL,
+        trace_id     TEXT,
+        "user"       TEXT,
+        event_type   TEXT NOT NULL,
+        payload_json TEXT,
+        timestamp    TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_audit_req ON audit_event(request_id);
+
+    CREATE TABLE IF NOT EXISTS rag_document (
+        id          {auto_pk},
+        source_uri  TEXT NOT NULL,
+        title       TEXT,
+        domain      TEXT,
+        created_at  TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS rag_chunk (
+        id              {auto_pk},
+        document_id     INTEGER NOT NULL REFERENCES rag_document(id) ON DELETE CASCADE,
+        chunk_index     INTEGER NOT NULL,
+        chunk_text      TEXT NOT NULL,
+        embedding       {blob},
+        embedding_model TEXT,
+        UNIQUE(document_id, chunk_index)
+    );
+    CREATE INDEX IF NOT EXISTS idx_chunk_doc ON rag_chunk(document_id);
+    """
+    backend.driver_.executescript(ddl)
+    if dialect.supports_fts_:
+        backend.driver_.executescript(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS rag_chunk_fts "
+            "USING fts5(chunk_text, content='rag_chunk', content_rowid='id');"
+        )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_close_session.py
+```
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _close_session(backend: SqlMemoryBackend, session_id: str, status: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    backend.driver_.execute(
+        "UPDATE session SET status = ?, ended_at = ? WHERE session_id = ?",
+        (status, now, session_id),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_close_sql_memory_backend.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _close_sql_memory_backend(backend: SqlMemoryBackend) -> None:
+    backend.driver_.close()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_delete_entry.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _delete_entry(backend: SqlMemoryBackend, context_type: str, scope_id: str, entry_key: str) -> None:
+    backend.driver_.execute(
+        "DELETE FROM context_entry WHERE context_type = ? AND scope_id = ? AND entry_key = ?",
+        (context_type, scope_id, entry_key),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_get_conversation.py
+```
+from __future__ import annotations
+
+import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _get_conversation(backend: SqlMemoryBackend, correlation_id: str) -> list[dict]:
+    rows = backend.driver_.query(
+        """
+        SELECT id, sender, receiver, payload_json, created_at
+        FROM message
+        WHERE correlation_id = ?
+        ORDER BY id
+        """,
+        (correlation_id,),
+    )
+    return [
+        {
+            "id": r["id"],
+            "sender": r["sender"],
+            "receiver": r["receiver"],
+            "payload": json.loads(r["payload_json"]),
+            "created_at": r["created_at"],
+        }
+        for r in rows
+    ]
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_get_entry.py
+```
+from __future__ import annotations
+
+import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _get_entry(
+    backend: SqlMemoryBackend,
+    context_type: str,
+    scope_id: str,
+    entry_key: str,
+) -> dict | None:
+    rows = backend.driver_.query(
+        """
+        SELECT value_json, tags, created_at, updated_at
+        FROM context_entry
+        WHERE context_type = ? AND scope_id = ? AND entry_key = ?
+        """,
+        (context_type, scope_id, entry_key),
+    )
+    if not rows:
+        return None
+    row = rows[0]
+    return {
+        "value": json.loads(row["value_json"]),
+        "tags": row["tags"].split(",") if row["tags"] else [],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_index_document.py
+```
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _index_document(
+    backend: SqlMemoryBackend,
+    source_uri: str,
+    title: str,
+    domain: str,
+    chunks: list[str],
+    embeddings: list[bytes],
+    embedding_model: str,
+) -> int:
+    if len(chunks) != len(embeddings):
+        raise ValueError("[SqlMemoryBackend.index_document] chunks and embeddings length mismatch")
+    now = datetime.now(timezone.utc).isoformat()
+    backend.driver_.execute(
+        "INSERT INTO rag_document (source_uri, title, domain, created_at) VALUES (?, ?, ?, ?)",
+        (source_uri, title, domain, now),
+    )
+    document_id = backend.driver_.last_insert_id()
+    backend.driver_.executemany(
+        """
+        INSERT INTO rag_chunk (document_id, chunk_index, chunk_text, embedding, embedding_model)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        [
+            (document_id, idx, chunk, emb, embedding_model)
+            for idx, (chunk, emb) in enumerate(zip(chunks, embeddings))
+        ],
+    )
+    if backend.driver_.dialect_.supports_fts_:
+        backend.driver_.executemany(
+            "INSERT INTO rag_chunk_fts(rowid, chunk_text) "
+            "SELECT id, chunk_text FROM rag_chunk WHERE document_id = ? AND chunk_index = ?",
+            [(document_id, idx) for idx in range(len(chunks))],
+        )
+    backend.driver_.commit()
+    return document_id
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_init_sql_memory_backend.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.memory.sql_memory_backend.internal._apply_schema import _apply_schema
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _init_sql_memory_backend(backend: SqlMemoryBackend) -> None:
+    backend.driver_.connect()
+    _apply_schema(backend)
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_list_entries.py
+```
+from __future__ import annotations
+
+import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _list_entries(backend: SqlMemoryBackend, context_type: str, scope_id: str) -> list[dict]:
+    rows = backend.driver_.query(
+        """
+        SELECT entry_key, value_json, tags, created_at, updated_at
+        FROM context_entry
+        WHERE context_type = ? AND scope_id = ?
+        ORDER BY entry_key
+        """,
+        (context_type, scope_id),
+    )
+    return [
+        {
+            "entry_key": r["entry_key"],
+            "value": json.loads(r["value_json"]),
+            "tags": r["tags"].split(",") if r["tags"] else [],
+            "created_at": r["created_at"],
+            "updated_at": r["updated_at"],
+        }
+        for r in rows
+    ]
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_log_event.py
+```
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _log_event(
+    backend: SqlMemoryBackend,
+    request_id: str,
+    event_type: str,
+    payload: dict,
+    trace_id: str | None,
+    user: str | None,
+) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    backend.driver_.execute(
+        """
+        INSERT INTO audit_event (request_id, trace_id, "user", event_type, payload_json, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (request_id, trace_id, user, event_type, json.dumps(payload, ensure_ascii=False) if payload else None, now),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_open_session.py
+```
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _open_session(backend: SqlMemoryBackend, session_id: str, agent_id: str, goal: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    backend.driver_.execute(
+        """
+        INSERT INTO session (session_id, agent_id, goal, status, started_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(session_id) DO UPDATE SET
+            agent_id = excluded.agent_id,
+            goal     = excluded.goal,
+            status   = excluded.status,
+            started_at = excluded.started_at
+        """,
+        (session_id, agent_id, goal, "active", now),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_put_entry.py
+```
+from __future__ import annotations
+
+import json
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _put_entry(
+    backend: SqlMemoryBackend,
+    context_type: str,
+    scope_id: str,
+    entry_key: str,
+    value: dict,
+    tags: list[str] | None,
+) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    tags_csv = ",".join(tags) if tags else None
+    value_json = json.dumps(value, ensure_ascii=False)
+    backend.driver_.execute(
+        """
+        INSERT INTO context_entry (context_type, scope_id, entry_key, value_json, tags, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(context_type, scope_id, entry_key) DO UPDATE SET
+            value_json = excluded.value_json,
+            tags       = excluded.tags,
+            updated_at = excluded.updated_at
+        """,
+        (context_type, scope_id, entry_key, value_json, tags_csv, now, now),
+    )
+    backend.driver_.commit()
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_search_fts.py
+```
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _search_fts(backend: SqlMemoryBackend, query_text: str, top_k: int) -> list[dict]:
+    if not backend.driver_.dialect_.supports_fts_:
+        return []
+    rows = backend.driver_.query(
+        """
+        SELECT c.id, c.document_id, c.chunk_index, c.chunk_text,
+               d.source_uri, d.title, d.domain,
+               bm25(rag_chunk_fts) AS score
+        FROM rag_chunk_fts
+        JOIN rag_chunk c ON c.id = rag_chunk_fts.rowid
+        JOIN rag_document d ON d.id = c.document_id
+        WHERE rag_chunk_fts MATCH ?
+        ORDER BY score
+        LIMIT ?
+        """,
+        (query_text, top_k),
+    )
+    return [
+        {
+            "score": r["score"],
+            "chunk_id": r["id"],
+            "document_id": r["document_id"],
+            "chunk_index": r["chunk_index"],
+            "chunk_text": r["chunk_text"],
+            "source_uri": r["source_uri"],
+            "title": r["title"],
+            "domain": r["domain"],
+        }
+        for r in rows
+    ]
+```
+
+### platform/shell/memory/sql_memory_backend/internal/_search_rag.py
+```
+from __future__ import annotations
+
+import struct
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.memory.sql_memory_backend.sql_memory_backend import SqlMemoryBackend
+
+
+def _decode_vector(blob: bytes) -> list[float]:
+    count = len(blob) // 4
+    return list(struct.unpack(f"{count}f", blob))
+
+
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    if len(a) != len(b) or not a:
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b))
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(y * y for y in b) ** 0.5
+    if na == 0.0 or nb == 0.0:
+        return 0.0
+    return dot / (na * nb)
+
+
+def _search_rag(
+    backend: SqlMemoryBackend,
+    query_embedding: bytes,
+    top_k: int,
+    domain: str | None,
+) -> list[dict]:
+    query_vec = _decode_vector(query_embedding)
+    if domain:
+        rows = backend.driver_.query(
+            """
+            SELECT c.id, c.document_id, c.chunk_index, c.chunk_text, c.embedding,
+                   d.source_uri, d.title, d.domain
+            FROM rag_chunk c JOIN rag_document d ON d.id = c.document_id
+            WHERE d.domain = ? AND c.embedding IS NOT NULL
+            """,
+            (domain,),
+        )
+    else:
+        rows = backend.driver_.query(
+            """
+            SELECT c.id, c.document_id, c.chunk_index, c.chunk_text, c.embedding,
+                   d.source_uri, d.title, d.domain
+            FROM rag_chunk c JOIN rag_document d ON d.id = c.document_id
+            WHERE c.embedding IS NOT NULL
+            """,
+        )
+    scored = []
+    for r in rows:
+        score = _cosine_similarity(query_vec, _decode_vector(r["embedding"]))
+        scored.append((score, r))
+    scored.sort(key=lambda t: t[0], reverse=True)
+    return [
+        {
+            "score": score,
+            "chunk_id": r["id"],
+            "document_id": r["document_id"],
+            "chunk_index": r["chunk_index"],
+            "chunk_text": r["chunk_text"],
+            "source_uri": r["source_uri"],
+            "title": r["title"],
+            "domain": r["domain"],
+        }
+        for score, r in scored[:top_k]
+    ]
+```
+
+### platform/shell/memory/sql_memory_backend/sql_memory_backend.py
+```
+"""sql_memory_backend.py
+SqlMemoryBackend — SQL-based MemoryBackend that uses any SqlDriver (bridge).
+
+Wymiana bazy = wstrzyknięcie innego drivera w konstruktorze.
+
+Slots:
+    _driver — SqlDriver instance (sqlite/postgres/...)
+"""
+
+from __future__ import annotations
+
+from shell.memory.memory_backend.memory_backend import MemoryBackend
+from shell.memory.sql_driver.sql_driver import SqlDriver
+from shell.memory.sql_memory_backend.internal._init_sql_memory_backend import _init_sql_memory_backend
+from shell.memory.sql_memory_backend.internal._close_sql_memory_backend import _close_sql_memory_backend
+from shell.memory.sql_memory_backend.internal._put_entry import _put_entry
+from shell.memory.sql_memory_backend.internal._get_entry import _get_entry
+from shell.memory.sql_memory_backend.internal._list_entries import _list_entries
+from shell.memory.sql_memory_backend.internal._delete_entry import _delete_entry
+from shell.memory.sql_memory_backend.internal._open_session import _open_session
+from shell.memory.sql_memory_backend.internal._close_session import _close_session
+from shell.memory.sql_memory_backend.internal._append_message import _append_message
+from shell.memory.sql_memory_backend.internal._get_conversation import _get_conversation
+from shell.memory.sql_memory_backend.internal._log_event import _log_event
+from shell.memory.sql_memory_backend.internal._index_document import _index_document
+from shell.memory.sql_memory_backend.internal._search_rag import _search_rag
+from shell.memory.sql_memory_backend.internal._search_fts import _search_fts
+
+
+class SqlMemoryBackend(MemoryBackend):
+    """SQL-based MemoryBackend powered by a pluggable SqlDriver."""
+
+    __slots__ = ("_driver",)
+
+    def __init__(self, driver: SqlDriver) -> None:
+        self._driver: SqlDriver = driver
+
+    @property
+    def driver_(self) -> SqlDriver:
+        return self._driver
+
+    def init_backend(self) -> None:
+        _init_sql_memory_backend(self)
+
+    def close_backend(self) -> None:
+        _close_sql_memory_backend(self)
+
+    def put_entry(self, context_type, scope_id, entry_key, value, tags=None):
+        _put_entry(self, context_type, scope_id, entry_key, value, tags)
+
+    def get_entry(self, context_type, scope_id, entry_key):
+        return _get_entry(self, context_type, scope_id, entry_key)
+
+    def list_entries(self, context_type, scope_id):
+        return _list_entries(self, context_type, scope_id)
+
+    def delete_entry(self, context_type, scope_id, entry_key):
+        _delete_entry(self, context_type, scope_id, entry_key)
+
+    def open_session(self, session_id, agent_id, goal):
+        _open_session(self, session_id, agent_id, goal)
+
+    def close_session(self, session_id, status):
+        _close_session(self, session_id, status)
+
+    def append_message(self, correlation_id, sender, receiver, payload):
+        _append_message(self, correlation_id, sender, receiver, payload)
+
+    def get_conversation(self, correlation_id):
+        return _get_conversation(self, correlation_id)
+
+    def log_event(self, request_id, event_type, payload, trace_id=None, user=None):
+        _log_event(self, request_id, event_type, payload, trace_id, user)
+
+    def index_document(self, source_uri, title, domain, chunks, embeddings, embedding_model):
+        return _index_document(self, source_uri, title, domain, chunks, embeddings, embedding_model)
+
+    def search_rag(self, query_embedding, top_k=5, domain=None):
+        return _search_rag(self, query_embedding, top_k, domain)
+
+    def search_fts(self, query_text, top_k=5):
+        return _search_fts(self, query_text, top_k)
+```
+
 ### platform/shell/module/__init__.py
 ```
 ```
 
 ### platform/shell/module/agent/__init__.py
 ```
-﻿from shell.module.agent.agent.agent import Agent
+from shell.module.agent.agent.agent import Agent
 ```
 
 ### platform/shell/module/agent/agent/__init__.py
 ```
-﻿from shell.module.agent.agent.agent import Agent
+from shell.module.agent.agent.agent import Agent
 
 __all__ = ["Agent"]
 ```
 
 ### platform/shell/module/agent/agent/agent.py
 ```
-﻿"""Entry point for Agent command construction and execution."""
+"""Entry point for Agent command construction and execution."""
 
 from __future__ import annotations
 
@@ -1757,34 +4559,47 @@ from subprocess import CompletedProcess
 
 from shell.module.agent.agent.internal._init_agent import _init_agent
 from shell.module.agent.agent.internal._run_agent import _run_agent
-from shell.module.agent.agent_command.agent_command import AgentCommand
 from shell.module.agent.agent_prompt.agent_prompt import AgentPrompt
 from shell.module.agent.agent_properties.agent_properties import AgentProperties
 
 
 class Agent:
-    __slots__ = ("_app","_agent_command", "_agent_prompt", "_agent_properties")
+    """
+    Slots:
+        _app              — parent App
+        _which            — Optional; injectable shutil.which replacement
+        _os_name          — Optional; injectable os.name replacement
+        _agent_prompt     — AgentPrompt
+        _agent_properties — AgentProperties
+    """
+
+    __slots__ = ("_app", "_which", "_os_name", "_agent_prompt", "_agent_properties")
 
     def __init__(self, app, which=None, os_name=None) -> None:
         self._app = app
-        self._agent_command: AgentCommand = AgentCommand(app, which, os_name)
-        self._agent_prompt: AgentPrompt = AgentPrompt(app)
-        self._agent_properties: AgentProperties = AgentProperties(app)
-
-    # -----------------------------------------------------------------------
-    # Slot properties
-    # -----------------------------------------------------------------------
+        self._which = which
+        self._os_name = os_name
+        self._agent_prompt: AgentPrompt | None = None
+        self._agent_properties: AgentProperties | None = None
 
     @property
-    def agent_command_(self) -> AgentCommand:
-        return self._agent_command
+    def which_(self):
+        return self._which
+
+    @property
+    def os_name_(self):
+        return self._os_name
 
     @property
     def agent_prompt_(self) -> AgentPrompt:
+        if self._agent_prompt is None:
+            self._agent_prompt = AgentPrompt(self._app)
         return self._agent_prompt
 
     @property
     def agent_properties_(self) -> AgentProperties:
+        if self._agent_properties is None:
+            self._agent_properties = AgentProperties(self._app)
         return self._agent_properties
 
     def init_agent(self) -> None:
@@ -1817,23 +4632,17 @@ def _assert_prompt_not_empty(prompt: str) -> None:
 
 ### platform/shell/module/agent/agent/internal/_init_agent.py
 ```
-"""_init_agent.py
-Initialise Agent sub-objects from _app.
-"""
-
 from __future__ import annotations
 
 
 def _init_agent(agent) -> None:
-    """Initialise Agent — each sub-object reads from _app directly."""
-    agent._agent_properties.init_agent_properties()
-    agent._agent_command.init_agent_command()
-    agent._agent_prompt.init_agent_prompt()
+    agent.agent_properties_.init_agent_properties()
+    agent.agent_prompt_.init_agent_prompt()
 ```
 
 ### platform/shell/module/agent/agent/internal/_run_agent.py
 ```
-﻿"""run_agent.py
+"""run_agent.py
 Responsible for one thing: running the CLI command via subprocess,
 capturing stdout/stderr, handling TimeoutExpired and retries.
 Writes stdout, stderr, returncode to app.
@@ -1866,25 +4675,22 @@ def _run_agent(
     if sleep is None:
         sleep = time.sleep
     app = agent._app
-    cmd: list[str] = agent._agent_command.command_
+    which = agent.which_
+    os_name = agent.os_name_
     timeout: int = app.runner_.agent_.agent_properties_.timeout_
     retries: int = app.runner_.agent_.agent_properties_.retries_
     retry_delay: float = app.runner_.agent_.agent_properties_.retry_delay_
     prompt: str = app.runner_.agent_.agent_prompt_.prompt()
-    cli = app.cli_
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'parent_thread_id={cli.parent_thread_id_} thread_id={cli.thread_id_}')
-    binds = [(name, value) for name, value in app.placeholders_.placeholder_list_]
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'placeholders before apply: {binds}')
+
     prompt = app.placeholders_.apply(prompt)
     _assert_prompt_not_empty(prompt)
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'cmd: {cmd}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'cwd: {app.app_node_.node_.node_dir_}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'timeout={timeout} retries={retries} retry_delay={retry_delay}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'prompt ({len(prompt)} chars):\n{prompt}')
 
     for attempt in range(retries + 1):
 
-        status = _run_once(cmd=cmd, prompt=prompt, timeout=timeout, app=app, runner=runner)
+        status = _run_once(prompt=prompt, timeout=timeout, app=app, runner=runner, which=which, os_name=os_name)
 
         if status == Status.SUCCESS:
             app.app_trace_.record_info('agent._run_agent._run_agent', f'Command succeeded on attempt {attempt + 1}.')
@@ -1899,47 +4705,35 @@ def _run_agent(
 
 ### platform/shell/module/agent/agent/internal/_run_once.py
 ```
-﻿"""_run_once.py
-Responsible for one thing: running a CLI command once via subprocess.
-Writes stdout, stderr, returncode to app.
-On any error sets warning status.
-"""
+from __future__ import annotations
 
 import subprocess
 
+from shell.component.process.process.process import Process
 from shell.status.status import Status
 
 
 def _run_once(
-    cmd: list[str],
     prompt: str,
     timeout: int,
     app,
     runner=None,
+    which=None,
+    os_name=None,
 ) -> Status:
-    if runner is None:
-        runner = subprocess.run
-    node_dir = app.app_node_.node_.node_dir_
+    process = Process(app, runner)
+    process.init_process_agent(prompt, timeout, which, os_name)
     try:
-        proc = runner(
-            cmd,
-            input=prompt,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            encoding="utf-8",
-            errors="replace",
-            cwd=node_dir,
-        )
-        app.app_trace_.record_info('agent._run_once._run_once', f'returncode={proc.returncode}', stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
-        if proc.stdout and proc.stdout.strip():
-            app.app_trace_.record_info('agent._run_once._run_once', f'stdout:\n{proc.stdout.strip()}', stdout=proc.stdout, returncode=proc.returncode)
-        if proc.stderr:
-            if proc.returncode == 0:
-                app.app_trace_.record_info('agent._run_once._run_once', f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}", stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
+        process.run_process()
+        app.app_trace_.record_info('agent._run_once._run_once', f'returncode={process.returncode_}', stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
+        if process.stdout_ and process.stdout_.strip():
+            app.app_trace_.record_info('agent._run_once._run_once', f'stdout:\n{process.stdout_.strip()}', stdout=process.stdout_, returncode=process.returncode_)
+        if process.stderr_:
+            if process.returncode_ == 0:
+                app.app_trace_.record_info('agent._run_once._run_once', f"stderr (returncode={process.returncode_}): {process.stderr_.strip()}", stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
             else:
-                app.app_trace_.record_warning('agent._run_once._run_once', Exception(f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}"), stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
-        return Status.from_returncode(proc.returncode)
+                app.app_trace_.record_warning('agent._run_once._run_once', Exception(f"stderr (returncode={process.returncode_}): {process.stderr_.strip()}"), stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
+        return Status.from_returncode(process.returncode_)
     except subprocess.TimeoutExpired as exc:
         partial_out = exc.output or ""
         partial_err = exc.stderr or f"Timeout after {timeout}s"
@@ -1950,260 +4744,6 @@ def _run_once(
         app.app_trace_.record_warning_and_raise('agent._run_once._run_once', exc)
 ```
 
-### platform/shell/module/agent/agent_command/__init__.py
-```
-```
-
-### platform/shell/module/agent/agent_command/agent_command.py
-```
-﻿"""agent_command.py
-AgentCommand — responsible for assembling the Copilot CLI command.
-"""
-
-from __future__ import annotations
-
-from shell.module.agent.agent_command.internal._init_agent_command import _init_agent_command
-from shell.component.command.command import Command
-
-
-class AgentCommand:
-    """Builds the Copilot CLI command argument list."""
-
-    __slots__ = ("_app", "_which", "_os_name", "_command")
-
-    def __init__(self, app, which=None, os_name=None) -> None:
-        self._app = app
-        self._which = which
-        self._os_name = os_name
-        self._command: Command | None = None
-
-    @property
-    def command_(self) -> Command:
-        if self._command is None:
-            self._command = Command([])
-        return self._command
-
-    def init_agent_command(self) -> None:
-        _init_agent_command(self)
-```
-
-### platform/shell/module/agent/agent_command/internal/__init__.py
-```
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_add_dir_exists.py
-```
-﻿
-from shell.utils.path.path import Path, PathType
-
-
-def _assert_add_dir_exists(add_dir: PathType) -> None:
-    if not Path.is_dir(add_dir):
-        raise FileNotFoundError(f"Add directory does not exist: {add_dir}")
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_command_set.py
-```
-def _assert_command_set(command: list | None) -> None:
-    if command is None:
-        raise ValueError("[AgentCommand] command_ accessed before init_agent_command() was called")
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_copilot_cmd_found.py
-```
-"""_assert_copilot_cmd_found.py
-Responsible for one thing: raising FileNotFoundError when the agent CLI binary cannot be located.
-"""
-
-
-def _assert_copilot_cmd_found(command) -> None:
-    """Raise FileNotFoundError if command is falsy."""
-    if not command:
-        raise FileNotFoundError(
-            "Agent CLI not found. Set command in app/app.yaml "
-            "or ensure the binary is on PATH."
-        )
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_log_dir_exists.py
-```
-﻿
-from shell.utils.path.path import Path, PathType
-
-
-def _assert_log_dir_exists(log_dir: PathType) -> None:
-    if not Path.is_dir(log_dir):
-        raise FileNotFoundError(f"Log directory does not exist: {log_dir}")
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_model_set.py
-```
-"""_assert_model_set.py
-Responsible for one thing: raising ValueError when model app field is missing.
-"""
-
-
-def _assert_model_set(model: str) -> None:
-    """Raise ValueError if model is empty."""
-    if not model:
-        raise ValueError("[build_command] Required app field missing: 'model'")
-```
-
-### platform/shell/module/agent/agent_command/internal/_assert_output_dir_exists.py
-```
-﻿
-from shell.utils.path.path import Path, PathType
-
-
-def _assert_output_dir_exists(output_dir: PathType) -> None:
-    if not Path.is_dir(output_dir):
-        raise FileNotFoundError(f"Output directory does not exist: {output_dir}")
-```
-
-### platform/shell/module/agent/agent_command/internal/_create_command.py
-```
-﻿"""create_command.py
-Responsible for one thing: assembling the Copilot CLI command as a list
-of arguments ready for subprocess.run.
-
-Requires either app.command or a 'copilot' binary in PATH.
-"""
-
-import os
-import shutil
-
-from shell.module.agent.agent_command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
-from shell.module.agent.agent_command.internal._assert_model_set import _assert_model_set
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT, DIR_LOGS
-
-
-def _create_command(app, which=None, os_name=None) -> list[str]:
-    """Build and return the Copilot CLI command argument list.
-
-    Raises FileNotFoundError when the Copilot binary cannot be located.
-    which:   optional callable (name: str) -> str | None (defaults to shutil.which).
-    os_name: optional str to override os.name for testability.
-    """
-    if which is None:
-        which = shutil.which
-    if os_name is None:
-        os_name = os.name
-
-    command = which("copilot")
-    _assert_copilot_cmd_found(command)
-
-    cmd: list[str] = [command]
-
-    if os_name == "nt" and str(command).lower().endswith((".cmd", ".bat")):
-        cmd = ["cmd", "/c"] + cmd
-    model = (app.runner_.agent_.agent_properties_.model_ or "").strip()
-    _assert_model_set(model)
-    cmd.extend(["--model", model])
-
-    cmd.extend(["--allow-all-paths", "--allow-all-tools", "--output-format", "json"])
-
-    if app.cli_.cli_properties_.is_no_ask_user_:
-        cmd.append("--no-ask-user")
-
-    if app.cli_.cli_properties_.is_autopilot_:
-        cmd.append("--autopilot")
-
-    add_dirs: list[str] = []
-
-    for directory in app.cli_.cli_properties_.add_dirs_:
-        d = str(directory).strip()
-        if d:
-            add_dirs.append(d)
-
-    output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
-    Path.mkdir(output_dir)
-    add_dirs.append(output_dir.as_posix())
-    add_dirs.append(app.app_node_.node_.node_dir_.as_posix())
-
-    log_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_LOGS
-    Path.mkdir(log_dir)
-
-    for add_dir in add_dirs:
-        cmd.extend(["--add-dir", add_dir])
-        app.app_trace_.record_info('agent_command._create_command', f'--add-dir {add_dir}')
-
-    cmd.extend(["--log-dir", log_dir.as_posix()])
-    app.app_trace_.record_info('agent_command._create_command', f'--log-dir {log_dir.as_posix()}')
-
-    return cmd
-```
-
-### platform/shell/module/agent/agent_command/internal/_init_agent_command.py
-```
-﻿from __future__ import annotations
-
-import os
-import shutil
-
-from shell.module.agent.agent_command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
-from shell.module.agent.agent_command.internal._assert_model_set import _assert_model_set
-from shell.module.agent.agent_command.internal._assert_output_dir_exists import _assert_output_dir_exists
-from shell.module.agent.agent_command.internal._assert_log_dir_exists import _assert_log_dir_exists
-from shell.module.agent.agent_command.internal._assert_add_dir_exists import _assert_add_dir_exists
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _init_agent_command(agent_command) -> None:
-    which = agent_command._which or shutil.which
-    os_name = agent_command._os_name or os.name
-    app = agent_command._app
-
-    binary = which("copilot")
-    _assert_copilot_cmd_found(binary)
-
-    if os_name == "nt" and str(binary).lower().endswith((".cmd", ".bat")):
-        agent_command.command_.extend_command_args(["cmd", "/c", binary])
-    else:
-        agent_command.command_.add_command_arg(binary)
-
-    model = (app.runner_.agent_.agent_properties_.model_ or "").strip()
-    _assert_model_set(model)
-    agent_command.command_.extend_command_args(["--model", model])
-
-    if app.cli_.cli_properties_.is_allow_all_paths_:
-        agent_command.command_.add_command_arg("--allow-all-paths")
-
-    if app.cli_.cli_properties_.is_allow_all_tools_:
-        agent_command.command_.add_command_arg("--allow-all-tools")
-
-    agent_command.command_.extend_command_args(["--output-format", app.cli_.cli_properties_.output_format_])
-
-
-    if app.cli_.cli_properties_.is_no_ask_user_:
-        agent_command.command_.add_command_arg("--no-ask-user")
-
-    if app.cli_.cli_properties_.is_autopilot_:
-        agent_command.command_.add_command_arg("--autopilot")
-
-    output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
-    _assert_output_dir_exists(output_dir)
-    agent_command.command_.extend_command_args(["--add-dir", str(output_dir)])
-    app.app_trace_.record_info('agent_command._init_agent_command', f'--add-dir {output_dir}')
-
-    logs_dir = app.app_node_.node_.node_logs_.logs_dir_
-    _assert_log_dir_exists(logs_dir)
-
-    for add_dir in app.cli_.cli_properties_.add_dirs_:
-        _assert_add_dir_exists(add_dir)
-        agent_command.command_.extend_command_args(["--add-dir", str(add_dir)])
-        app.app_trace_.record_info('agent_command._init_agent_command', f'--add-dir {add_dir}')
-
-    node_dir = app.app_node_.node_.node_dir_
-    _assert_add_dir_exists(node_dir)
-    agent_command.command_.extend_command_args(["--add-dir", str(node_dir)])
-    app.app_trace_.record_info('agent_command._init_agent_command', f'--add-dir {node_dir}')
-
-    agent_command.command_.extend_command_args(["--log-dir", str(logs_dir)])
-    app.app_trace_.record_info('agent_command._init_agent_command', f'--log-dir {logs_dir}')
-
-```
-
 ### platform/shell/module/agent/agent_prompt/__init__.py
 ```
 # lib/prompt package
@@ -2211,7 +4751,7 @@ def _init_agent_command(agent_command) -> None:
 
 ### platform/shell/module/agent/agent_prompt/agent_prompt.py
 ```
-﻿"""agent_prompt.py
+"""agent_prompt.py
 AgentPrompt: single entry point for prompt state for a single node run.
 
 Fields (own):
@@ -2309,7 +4849,7 @@ def _assert_role_resolved(role) -> None:
 
 ### platform/shell/module/agent/agent_prompt/internal/_assert_role_set.py
 ```
-﻿def _assert_role_set(role) -> None:
+def _assert_role_set(role) -> None:
     if not role:
         raise ValueError("[init_system_prompt] 'role' is required in app but was not set.")
 ```
@@ -2323,7 +4863,7 @@ def _assert_task_dir_resolved(task_dir) -> None:
 
 ### platform/shell/module/agent/agent_prompt/internal/_build_from_dir.py
 ```
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.utils.io.io import default_read_utf8_safe
@@ -2358,7 +4898,7 @@ def _build_from_dir(directory: PathType, reader=None) -> str:
 
 ### platform/shell/module/agent/agent_prompt/internal/_build_prompt_from_input.py
 ```
-﻿"""_build_prompt_from_input.py
+"""_build_prompt_from_input.py
 Private. Responsible for one thing: building the full prompt string from
 *.md files already loaded into app.app_node_.node_.node_input_.input_files_map_.
 """
@@ -2403,7 +4943,7 @@ def _clean_name(stem: str) -> str:
 
 ### platform/shell/module/agent/agent_prompt/internal/_create_prompt.py
 ```
-﻿from shell.module.agent.agent_prompt.internal._build_prompt_from_input import _build_prompt_from_input
+from shell.module.agent.agent_prompt.internal._build_prompt_from_input import _build_prompt_from_input
 from shell.module.agent.agent_prompt.internal._resolve_prompt import _resolve_prompt
 
 
@@ -2422,7 +4962,7 @@ def _create_prompt(app, reader=None) -> str:
 
 ### platform/shell/module/agent/agent_prompt/internal/_find_file.py
 ```
-﻿
+
 from shell.utils.path.path import Path, PathType
 
 
@@ -2438,7 +4978,7 @@ def _find_file(filename: str, node: PathType) -> PathType | None:
 
 ### platform/shell/module/agent/agent_prompt/internal/_has_system_prompt.py
 ```
-﻿"""_has_system_prompt.py
+"""_has_system_prompt.py
 Private. Responsible for one thing: checking whether a system prompt file
 for the given role already exists in the input/ directory.
 """
@@ -2453,2523 +4993,4 @@ def _has_system_prompt(input_dir: PathType, role: str) -> bool:
         return False
     pattern = re.compile(rf'^\d{{4}}_system_{re.escape(role)}\.md$')
     return any(pattern.match(f.name) for f in Path.iterdir(input_dir) if Path.is_file(f))
-```
-
-### platform/shell/module/agent/agent_prompt/internal/_init_agent_prompt.py
-```
-﻿from __future__ import annotations
-
-
-from shell.module.agent.agent_prompt.internal._assert_task_dir_resolved import _assert_task_dir_resolved
-from shell.module.agent.agent_prompt.internal._assert_role_resolved import _assert_role_resolved
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_PROMPT
-
-
-def _init_agent_prompt(agent_prompt) -> None:
-    app = agent_prompt._app
-    task_dir = app.cli_.cli_properties_.task_dir_
-    source_dir = app.cli_.cli_properties_.source_dir_
-    app.app_trace_.record_info('agent_prompt._init_agent_prompt._init_agent_prompt', f'task_dir={task_dir}, source_dir={source_dir}')
-    role = app.app_properties_.role_
-    _assert_task_dir_resolved(task_dir)
-    _assert_role_resolved(role)
-    prompt_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_PROMPT
-
-    cli_prompt = app.cli_.cli_properties_.prompt_
-    app.app_trace_.record_info('agent_prompt._init_agent_prompt._init_agent_prompt', f'cli_prompt set={cli_prompt is not None}')
-    if cli_prompt is not None:
-        agent_prompt.prompt_cli_.init_prompt_cli(app)
-        app.app_trace_.record_info('agent_prompt._init_agent_prompt._init_agent_prompt', 'using cli prompt — skipping role/system prompt loading')
-        return
-
-    prompt_source = source_dir if source_dir is not None else task_dir
-    prompt_source_files = [p.name for p in Path.iterdir(Path.new(prompt_source)) if Path.is_file(p)]
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'prompt_source files: {prompt_source_files}'
-    )
-
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'loading role prompts from {prompt_source} pattern *.prompt.md (excluding *.system.*)'
-    )
-    task_name = app.cli_.cli_properties_.task_name_
-    agent_prompt.prompt_role_.init_prompt_role(prompt_source, role, task_name, prompt_dir)
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'role prompts loaded: {[p.file_name_ for p in agent_prompt.prompt_role_.file_prompts_]}'
-    )
-
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'loading system prompts from {prompt_source} pattern *.system.prompt.md (role={role}, task_name={task_name})'
-    )
-    agent_prompt.prompt_skill_.init_prompt_skill(prompt_source, task_name, prompt_dir)
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'skill prompts loaded: {[p.file_name_ for p in agent_prompt.prompt_skill_.file_prompts_]}'
-    )
-
-    agent_prompt.prompt_system_.init_prompt_system(prompt_source, role, task_name, prompt_dir)
-    app.app_trace_.record_info(
-        'agent_prompt._init_agent_prompt._init_agent_prompt',
-        f'system prompts loaded: {[p.file_name_ for p in agent_prompt.prompt_system_.file_prompts_]}'
-    )
-```
-
-### platform/shell/module/agent/agent_prompt/internal/_load_role_prompt.py
-```
-﻿"""_init_role_prompt.py
-Private. Responsible for one thing: loading a role prompt file from
-role_prompts/<role>.md into the Prompt instance.
-"""
-
-
-from shell.utils.path.path import Path, PathType
-
-_ROLE_PROMPTS_DIR = Path.new(__file__).parent.parent / 'role_prompts'
-
-
-def _init_role_prompt(prompt) -> None:
-    role = prompt._app.app_properties_.role_
-    if role:
-        template = _ROLE_PROMPTS_DIR / f'{role}.md'
-        if Path.is_file(template):
-            prompt._role_prompt = Path.read_text(template)
-```
-
-### platform/shell/module/agent/agent_prompt/internal/_resolve_prompt.py
-```
-﻿from __future__ import annotations
-
-
-from shell.utils.io.io import default_read_utf8_safe
-from shell.module.agent.agent_prompt.internal._build_from_dir import _build_from_dir
-from shell.module.agent.agent_prompt.internal._find_file import _find_file
-from shell.utils.path.path import Path, PathType
-
-
-def _resolve_prompt(value: str, node: PathType, reader=None) -> str:
-    if reader is None:
-        reader = default_read_utf8_safe
-    path = Path.new(value)
-
-    if Path.is_file(path):
-        return reader(path)
-
-    if Path.is_dir(path):
-        return _build_from_dir(path, reader=reader)
-
-    if len(path.parts) == 1:
-        found_file = _find_file(value, node)
-        if found_file:
-            return reader(found_file)
-
-    return value
-```
-
-### platform/shell/module/agent/agent_prompt/load_system_prompt.py
-```
-﻿"""init_system_prompt.py  (prompt)
-Responsible for one thing: ensuring the agent's input/ contains a system
-prompt file matching its role.
-
-Called during init phase (agent mode), after handle_config and before
-build_prompt.  If the agent already has a system prompt in input/, does
-nothing.  If a matching template exists in system_prompts/, writes it as
-0000_system_<role>.md into input/.
-"""
-
-from __future__ import annotations
-
-import re
-from collections.abc import Callable
-
-from shell.utils.io.io import default_read_utf8, default_write_utf8
-from shell.module.agent.agent_prompt.internal._assert_role_set import _assert_role_set
-from shell.module.agent.agent_prompt.internal._has_system_prompt import _has_system_prompt
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-_SYSTEM_PROMPTS_DIR = Path.new(__file__).parent / 'role_prompts'
-_SYSTEM_PROMPT_PATTERN = re.compile(r'^\d{4}_system_(?P<role>[^.]+)\.md$')
-
-
-def init_system_prompt(app: dict, reader: Callable[[PathType], str] | None = None, writer: Callable[[PathType, str], None] | None = None) -> None:
-    """Write 0000_system_<role>.md to agent input/ if not already present.
-
-    Silently skips when:
-    - no template exists for the given role
-    - a system prompt for this role already exists in input/
-
-    reader: optional callable (path: PathType) -> str for testability.
-    writer: optional callable (path: PathType, content: str) -> None for testability.
-    """
-    if reader is None:
-        reader = default_read_utf8
-    if writer is None:
-        writer = default_write_utf8
-
-    try:
-        role = app.app_node_.node_.role
-        _assert_role_set(role)
-
-        node_dir = app.app_node_.node_.node_dir_
-        input_dir = node_dir / DOT_NODE / DIR_INPUT
-
-        if _has_system_prompt(input_dir, role):
-            return
-
-        template_path = _SYSTEM_PROMPTS_DIR / f'{role}.md'
-        if not Path.is_file(template_path):
-            raise FileNotFoundError(f"[init_system_prompt] No system prompt template for role '{role}': {template_path}")
-
-        content = reader(template_path)
-        app.app_trace_.record_info('agent_prompt.load_system_prompt.load_system_prompt', f'read {template_path}')
-        Path.mkdir(input_dir)
-        target = input_dir / f'0000_system_{role}.md'
-        writer(target, content)
-        app.app_trace_.record_info('agent_prompt.load_system_prompt.load_system_prompt', f'write {target}')
-    except Exception as exc:
-        app.app_trace_.record_error_and_raise('agent_prompt.load_system_prompt.load_system_prompt', exc)
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/analyzer.md
-```
-You are an **analyzer** agent.
-Your role is to analyze the provided input and produce a structured report.
-- Identify patterns, problems, and opportunities
-- Summarize findings clearly with supporting evidence
-- Output a structured markdown report
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/architect.md
-```
-You are an **architect** agent.
-Your role is to design the solution architecture based on the task description.
-- Produce a clear architectural blueprint with component diagram (text or ASCII)
-- Define interfaces, data flows, and responsibilities of each component
-- Output a single markdown architecture document
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/developer.md
-```
-You are a **developer** agent.
-Your role is to implement the solution based on the provided draft or task description.
-- Implement all TODOs and stubs left by previous agents
-- Write clean, idiomatic, production-quality code
-- Add unit tests covering happy path and edge cases
-- Output one file per deliverable
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/maker.md
-```
-You are a **maker** agent.
-Your role is to prepare a clear, well-structured draft or scaffold based on the task description.
-- Produce a skeleton with correct structure, signatures, and docstrings
-- Do not implement the full logic — leave TODOs where implementation is needed
-- Output one file per deliverable
-- Be concise and precise
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/reviewer.md
-```
-You are a **reviewer** agent.
-Your role is to review the provided code or document for quality, correctness, and completeness.
-- Check for bugs, edge cases, and missing error handling
-- Verify tests are present and meaningful
-- Suggest concrete improvements with code examples
-- Output a review report as a single markdown file
-```
-
-### platform/shell/module/agent/agent_prompt/role_prompts/tester.md
-```
-You are a **tester** agent.
-Your role is to write and execute tests for the provided implementation.
-- Write unit tests, integration tests, and edge case tests
-- Ensure all tests pass before outputting
-- Output test files and a short test report
-```
-
-### platform/shell/module/agent/agent_properties/__init__.py
-```
-```
-
-### platform/shell/module/agent/agent_properties/agent_properties.py
-```
-"""Agent execution parameters: model, timeout, retries, retry_delay."""
-
-from __future__ import annotations
-
-
-class AgentProperties:
-    """Holds Agent runtime parameters extracted from YAML config."""
-
-    __slots__ = ("_app", "_model", "_timeout", "_retries", "_retry_delay")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._model: str | None = None
-        self._timeout: int | None = None
-        self._retries: int | None = None
-        self._retry_delay: float | None = None
-
-    @property
-    def model_(self) -> str | None:
-        """Return the Agent model name."""
-        return self._model
-
-    @property
-    def timeout_(self) -> int:
-        """Return the Agent timeout in seconds (default 300)."""
-        return self._timeout if self._timeout is not None else 300
-
-    @property
-    def retries_(self) -> int:
-        """Return the number of retries (default 0)."""
-        return self._retries if self._retries is not None else 0
-
-    @property
-    def retry_delay_(self) -> float:
-        """Return the delay between retries in seconds (default 2.0)."""
-        return float(self._retry_delay) if self._retry_delay is not None else 2.0
-
-    def init_agent_properties(self) -> None:
-        app_properties = self._app.app_properties_
-        self._model = app_properties.model_
-        self._timeout = app_properties.timeout_
-        self._retries = app_properties.retries_
-```
-
-### platform/shell/module/router/__init__.py
-```
-﻿from shell.module.router.router.router import Router
-```
-
-### platform/shell/module/router/router/__init__.py
-```
-﻿from shell.module.router.router.router import Router
-```
-
-### platform/shell/module/router/router/build_frontmatter.py
-```
-def build_frontmatter(content: str, source: str, target: str, timestamp: str, task_id: str) -> str:
-    """Prepend YAML frontmatter block to content."""
-    frontmatter = (
-        f"---\n"
-        f"source: {source}\n"
-        f"target: {target}\n"
-        f"timestamp: {timestamp}\n"
-        f"task_id: {task_id}\n"
-        f"---\n\n"
-    )
-    return frontmatter + content
-```
-
-### platform/shell/module/router/router/collect_source_files.py
-```
-﻿
-from shell.utils.path.path import Path, PathType
-
-
-def collect_source_files(prev_output_dir: PathType) -> list[PathType]:
-    if not Path.is_dir(prev_output_dir):
-        return []
-    return [f for f in Path.iterdir(prev_output_dir) if Path.is_file(f)]
-```
-
-### platform/shell/module/router/router/frontmatter.py
-```
-"""frontmatter.py
-Responsible for one thing: parsing YAML front-matter from text.
-"""
-
-from __future__ import annotations
-
-import re
-from typing import Dict, Optional, Tuple
-
-import yaml
-
-
-def parse_frontmatter(text: str) -> Tuple[Optional[Dict], str]:
-    """Parse YAML front-matter. Returns (data, body) or (None, text) on parse failure."""
-    if not text.startswith("---"):
-        return None, text
-    end = text.find("\n---", 3)
-    if end == -1:
-        return None, text
-    fm_text = text[3:end].strip()
-    body = text[end + 4:]
-    try:
-        data = yaml.safe_load(fm_text)
-        return data, body
-    except yaml.YAMLError:
-        return None, text
-```
-
-### platform/shell/module/router/router/get_role_to_node_map.py
-```
-﻿def get_role_to_node_map(graph: list) -> dict[str, dict]:
-    """Return mapping of role -> node for all nodes that have a role defined."""
-    return {n['role']: n for n in graph if n.get('role')}
-```
-
-### platform/shell/module/router/router/get_target_role_from_filename.py
-```
-﻿from shell.utils.path.path import Path, PathType
-
-
-def get_target_role_from_filename(filename: str, roles: set) -> str | None:
-    """Return role if the stem ends with _<role>, else None."""
-    stem = Path.new(filename).stem
-    parts = stem.rsplit('_', 1)
-    if len(parts) == 2 and parts[-1] in roles:
-        return parts[-1]
-    return None
-```
-
-### platform/shell/module/router/router/internal/__init__.py
-```
-```
-
-### platform/shell/module/router/router/internal/_assert_active_file_parsed.py
-```
-﻿from shell.utils.path.path import PathType
-
-from shell.module.router.router.parse_message_filename import MessageFilename
-
-
-def _assert_active_file_parsed(parsed: MessageFilename | None, active_file: PathType) -> None:
-    if parsed is None:
-        raise ValueError(f"[Router] active file has unparseable filename: '{active_file.name}'")
-    if not parsed.from_role:
-        raise ValueError(f"[Router] active file has no from_role in filename: '{active_file.name}'")
-```
-
-### platform/shell/module/router/router/internal/_assert_graph_node_role_set.py
-```
-﻿def _assert_graph_node_role_set(role: str | None, node_name: str) -> None:
-    if not role:
-        raise ValueError(f"[Router] graph node '{node_name}' has no role defined")
-```
-
-### platform/shell/module/router/router/internal/_assert_node_in_graph.py
-```
-﻿"""_assert_node_in_graph.py
-Responsible for one thing: raising ValueError when a node id is not found in the graph.
-"""
-
-
-def _assert_node_in_graph(index, node_id: str) -> None:
-    """Raise ValueError if index is None (node not found in graph)."""
-    if index is None:
-        raise ValueError(f"node '{node_id}' not found in graph")
-```
-
-### platform/shell/module/router/router/internal/_assert_role_set.py
-```
-﻿"""_assert_role_set.py
-Responsible for one thing: raising ValueError when a graph node has no role defined.
-"""
-
-
-def _assert_role_set(role: str | None, node: dict) -> None:
-    """Raise ValueError if role is falsy."""
-    if not role:
-        raise ValueError(f"[Router] node '{node.get('id', '?')}' has no role defined")
-```
-
-### platform/shell/module/router/router/internal/_assert_router_base_set.py
-```
-def _assert_router_base_set(value) -> None:
-    if value is None:
-        raise ValueError("router_base not initialized — call init_router() first")
-```
-
-### platform/shell/module/router/router/internal/_assert_step_within_ttl.py
-```
-﻿from shell.module.router.router.parse_message_filename import MessageFilename
-
-
-def _assert_step_within_ttl(parsed: MessageFilename, max_step: int) -> None:
-    try:
-        step = int(parsed.step)
-    except (ValueError, TypeError):
-        return
-    if step >= max_step:
-        raise RuntimeError(
-            f"TTL exceeded: message '{parsed.sequence_id}__{parsed.from_role}__{parsed.to_role}' "
-            f"has step={step} >= max_step={max_step}"
-        )
-```
-
-### platform/shell/module/router/router/internal/_distribute_active.py
-```
-﻿from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.structure.graph.graph.internal._persist_node_status import _persist_node_status
-from shell.module.router.router.parse_message_filename import increment_step
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.status.status import Status
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-if TYPE_CHECKING:
-    from shell.module.router.router.router import Router
-
-
-def _distribute_active(router: 'Router', node_stage, graph_nodes, app) -> None:
-    active_files = node_stage.get_active_files()
-    app.app_trace_.record_info('router._distribute_active', f'distributing {len(active_files)} active file(s)')
-    for active_file in active_files:
-        active_parsed = parse_message_filename(active_file.name)
-        target_role = active_parsed.to_role if active_parsed is not None else None
-        target_node = (
-            router.router_base_.role_to_node_map_.get(target_role) if target_role
-            else router.get_next_graph_node()
-        )
-        if target_node is None:
-            continue
-        distributed_name = increment_step(active_parsed) if active_parsed is not None else active_file.name
-        dest_dir = app.app_node_.node_.node_dir_.parent / target_node.node_name_ / DOT_NODE / DIR_INPUT
-        Path.mkdir(dest_dir)
-        Path.copy_to(active_file, dest_dir / distributed_name)
-        app.app_trace_.record_info(
-            'router._distribute_active',
-            f'copied {active_file.name} -> node={target_node.node_name_} dir={dest_dir}'
-        )
-        target_graph_node = next(
-            (pn for pn in graph_nodes if pn.role_ == target_role),
-            None,
-        ) if target_role else next(
-            (pn for pn in graph_nodes if pn.mode_ == 'agent'),
-            None,
-        )
-        if target_graph_node is not None:
-            target_graph_node.node_status_.set_status(Status.READY)
-            _persist_node_status(target_graph_node, app)
-            app.app_trace_.record_info(
-                'router._run_router._run_router',
-                f'node {target_graph_node.node_name_} status=READY'
-            )
-        if active_parsed is not None and active_parsed.msg_type == 'QUESTION':
-            node_stage.move_to_pending(active_file.name)
-        else:
-            node_stage.move_to_history(active_file.name)
-```
-
-### platform/shell/module/router/router/internal/_expire_pending_ttl.py
-```
-﻿from __future__ import annotations
-
-from shell.module.router.router.parse_message_filename import parse_message_filename
-
-
-def _expire_pending_ttl(app, node_stage, max_step: int) -> None:
-    for pending_file in node_stage.get_pending_files():
-        pending_parsed = parse_message_filename(pending_file.name)
-        if pending_parsed is not None:
-            try:
-                if int(pending_parsed.step) > max_step:
-                    app.app_trace_.record_info(
-                        'router._expire_pending_ttl',
-                        f'pending expired ttl: {pending_file.name}'
-                    )
-                    node_stage.move_to_ignored(pending_file.name)
-            except ValueError:
-                pass
-```
-
-### platform/shell/module/router/router/internal/_flush_done.py
-```
-﻿from __future__ import annotations
-
-from shell.module.router.router.parse_message_filename import SEPARATOR
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _flush_done(app, node_stage) -> None:
-    app.app_trace_.record_info('router._flush_done', 'no agent output and active/ empty — flushing')
-    last_message = node_stage.get_last_message()
-    if last_message is not None:
-        node_dir = app.app_node_.node_.node_dir_
-        own_output_dir = node_dir / DOT_NODE / DIR_OUTPUT
-        Path.mkdir(own_output_dir)
-        parsed = parse_message_filename(last_message.name)
-        if parsed is not None and parsed.msg_type == 'DONE':
-            output_name = SEPARATOR.join([
-                parsed.sequence_id,
-                parsed.from_role,
-                'analizer',
-                'TASK',
-                parsed.intent,
-                parsed.thread_id,
-                app.cli_.cli_properties_.message_id_,
-                parsed.step,
-            ]) + parsed.suffix
-        else:
-            output_name = last_message.name
-        destination = own_output_dir / output_name
-        Path.copy_to(last_message, destination)
-        app.app_trace_.record_info('router._flush_done', f'copied {last_message.name} to {destination}')
-    else:
-        app.app_trace_.record_info('router._flush_done', 'no last message in history')
-    app.app_trace_.record_info('router._flush_done', 'flush: done', returncode=11)
-```
-
-### platform/shell/module/router/router/internal/_init_router.py
-```
-﻿from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.module.router.router_base.router_base import RouterBase
-
-if TYPE_CHECKING:
-    from shell.module.router.router.router import Router
-
-
-def _init_router(router: 'Router') -> None:
-    router.router_base_.init_router_base()
-```
-
-### platform/shell/module/router/router/internal/_parse_frontmatter.py
-```
-"""_parse_frontmatter.py
-Responsible for one thing: parsing YAML front-matter from text.
-"""
-
-from __future__ import annotations
-
-from typing import Dict, Optional, Tuple
-
-import yaml
-
-
-def _parse_frontmatter(text: str) -> Tuple[Optional[Dict], str]:
-    """Parse YAML front-matter. Returns (data, body) or (None, text) on parse failure."""
-    if not text.startswith("---"):
-        return None, text
-    end = text.find("\n---", 3)
-    if end == -1:
-        return None, text
-    fm_text = text[3:end].strip()
-    body = text[end + 4:]
-    try:
-        data = yaml.safe_load(fm_text)
-        return data, body
-    except yaml.YAMLError:
-        return None, text
-```
-
-### platform/shell/module/router/router/internal/_pick_active_file.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.constants.constants import DIR_STAGE_ACTIVE
-
-
-def _pick_active_file(app, node_stage) -> PathType | None:
-    active_dir = node_stage.stage_dir_ / DIR_STAGE_ACTIVE
-    app.app_trace_.record_info('router._pick_active_file', f'scanning: {active_dir}')
-    active_files = node_stage.get_active_files()
-    app.app_trace_.record_info(
-        'router._pick_active_file',
-        f'active_candidates={len(active_files)}'
-    )
-    if not active_files:
-        return None
-    picked = active_files[0]
-    app.app_trace_.record_info(
-        'router._pick_active_file',
-        f'picked: {picked.name}'
-    )
-    return picked
-```
-
-### platform/shell/module/router/router/internal/_pick_agent_output.py
-```
-﻿from __future__ import annotations
-
-
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.module.router.router.internal._assert_graph_node_role_set import _assert_graph_node_role_set
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _message_id_sort_key(filename: str) -> int:
-    parsed = parse_message_filename(filename)
-    if parsed is None:
-        return -1
-    try:
-        return int(parsed.message_id)
-    except ValueError:
-        return -1
-
-
-def _pick_agent_output(app, agent_nodes) -> tuple[PathType, str] | None:
-    all_candidates = []
-    for graph_node in agent_nodes:
-        agent_output_dir = graph_node.sub_node_properties_.node_dir_ / DOT_NODE / DIR_OUTPUT
-        app.app_trace_.record_info('router._pick_agent_output', f'scanning: {agent_output_dir}')
-        if not Path.exists(agent_output_dir):
-            continue
-        role = graph_node.role_
-        _assert_graph_node_role_set(role, graph_node.node_name_)
-        for f in Path.iterdir(agent_output_dir):
-            if Path.is_file(f):
-                all_candidates.append((f, role))
-    app.app_trace_.record_info(
-        'router._pick_agent_output',
-        f'candidates={len(all_candidates)}'
-    )
-    if not all_candidates:
-        return None
-    all_candidates.sort(key=lambda pair: _message_id_sort_key(pair[0].name))
-    picked_file, source_role = all_candidates[0]
-    app.app_trace_.record_info(
-        'router._pick_agent_output',
-        f'picked: {picked_file.name} from role={source_role}'
-    )
-    return picked_file, source_role
-```
-
-### platform/shell/module/router/router/internal/_pick_parent_input.py
-```
-﻿from __future__ import annotations
-
-
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-
-def _pick_parent_input(app) -> PathType | None:
-    parent_node_dir = app.cli_.cli_properties_.parent_node_dir_
-    if parent_node_dir is None:
-        return None
-    input_dir = parent_node_dir / DOT_NODE / DIR_INPUT
-    app.app_trace_.record_info('router._pick_parent_input', f'scanning: {input_dir}')
-    if not Path.exists(input_dir):
-        return None
-    files = sorted([f for f in Path.iterdir(input_dir) if Path.is_file(f)])
-    if not files:
-        return None
-    app.app_trace_.record_info('router._pick_parent_input', f'picked: {files[0].name}')
-    return files[0]
-```
-
-### platform/shell/module/router/router/internal/_rename_parent_input_as_task.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-
-from shell.module.router.router.parse_message_filename import SEPARATOR
-from shell.module.router.router.parse_message_filename import parse_message_filename
-
-
-def _rename_parent_input_as_task(parent_file: PathType, app, first_role: str, own_role: str) -> PathType:
-    message_id = app.cli_.cli_properties_.message_id_
-    thread_id = app.cli_.cli_properties_.thread_id_
-    parsed = parse_message_filename(parent_file.name)
-    intent = parsed.intent if parsed is not None else parent_file.stem
-    suffix = parent_file.suffix
-    new_name = SEPARATOR.join([
-        '1', own_role, first_role, 'TASK', intent, thread_id, message_id, '1'
-    ]) + suffix
-    new_path = parent_file.parent / new_name
-    parent_file.rename(new_path)
-    return new_path
-```
-
-### platform/shell/module/router/router/internal/_route_incoming.py
-```
-﻿from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.module.router.router.parse_message_filename import FROM_PLACEHOLDER
-from shell.module.router.router.parse_message_filename import build_message_filename
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.module.router.router.internal._assert_step_within_ttl import _assert_step_within_ttl
-from shell.module.router.router.internal._distribute_active import _distribute_active
-from shell.module.router.router_stage.internal._match_pending import _match_pending
-from shell.utils.path.path import Path, PathType
-
-if TYPE_CHECKING:
-    from shell.module.router.router.router import Router
-
-
-def _route_incoming(router: 'Router', node_stage, graph_nodes, picked_file: PathType, source_role: str, app) -> None:
-    max_step = app.cli_.cli_properties_.max_step_
-
-    parsed = parse_message_filename(picked_file.name)
-    if parsed is not None:
-        _assert_step_within_ttl(parsed, max_step)
-    if parsed is not None and parsed.from_role == FROM_PLACEHOLDER:
-        dest_name = build_message_filename(parsed, from_role=source_role)
-    else:
-        dest_name = picked_file.name
-
-    app.app_trace_.record_info(
-        'router._route_incoming',
-        f'routing: {picked_file.name} msg_type={parsed.msg_type if parsed else None} to_role={parsed.to_role if parsed else None}'
-    )
-
-    if parsed is not None and parsed.msg_type == 'DONE':
-        app.app_trace_.record_info('router._route_incoming', f'DONE received: {picked_file.name}')
-        node_stage.save_to_done(picked_file)
-        Path.unlink(picked_file)
-        return
-
-    if parsed is not None and parsed.to_role == 'router':
-        matched_pending = _match_pending(node_stage, parsed)
-        if matched_pending is not None:
-            app.app_trace_.record_info('router._route_incoming', f'matched pending: {matched_pending.name}')
-            node_stage.move_pending_to_history(matched_pending.name)
-        app.app_trace_.record_info('router._route_incoming', f'saving to history: {picked_file.name}')
-        node_stage.save_to_history(picked_file)
-        Path.unlink(picked_file)
-        return
-
-    app.app_trace_.record_info('router._route_incoming', f'saving to active: {dest_name}')
-    if picked_file.parent.name != 'active':
-        node_stage.save_to_active(picked_file, dest_name=dest_name)
-        Path.unlink(picked_file)
-    _distribute_active(router, node_stage, graph_nodes, app)
-```
-
-### platform/shell/module/router/router/internal/_run_router.py
-```
-﻿from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.module.router.router.internal._expire_pending_ttl import _expire_pending_ttl
-from shell.module.router.router.internal._flush_done import _flush_done
-from shell.module.router.router.internal._pick_agent_output import _pick_agent_output
-from shell.module.router.router.internal._assert_active_file_parsed import _assert_active_file_parsed
-from shell.module.router.router.internal._pick_active_file import _pick_active_file
-from shell.module.router.router.internal._pick_parent_input import _pick_parent_input
-from shell.module.router.router.internal._rename_parent_input_as_task import _rename_parent_input_as_task
-from shell.module.router.router.internal._route_incoming import _route_incoming
-from shell.module.router.router.internal._seed_tasker_input_to_first_agent import _seed_tasker_input_to_first_agent
-
-if TYPE_CHECKING:
-    from shell.module.router.router.router import Router
-
-
-def _run_router(router: 'Router') -> None:
-    app = router._app
-    max_step = app.cli_.cli_properties_.max_step_
-    node_stage = router.router_stage_.node_stage_
-
-    graph_nodes = router.router_base_.graph_nodes_
-    non_router_nodes = [pn for pn in graph_nodes if pn.mode_ != 'router']
-
-    _expire_pending_ttl(app, node_stage, max_step)
-
-    agent_result = _pick_agent_output(app, non_router_nodes)
-    active_file = _pick_active_file(app, node_stage)
-    parent_input_file = _pick_parent_input(app)
-    app.app_trace_.record_info('router._run_router', f'agent_result={agent_result[0].name if agent_result else None}')
-    app.app_trace_.record_info('router._run_router', f'active_file={active_file.name if active_file else None}')
-    app.app_trace_.record_info('router._run_router', f'parent_input_file={parent_input_file.name if parent_input_file else None}')
-
-    if agent_result is not None:
-        picked_file, source_role = agent_result
-    elif active_file is not None:
-        _parsed = parse_message_filename(active_file.name)
-        _assert_active_file_parsed(_parsed, active_file)
-        picked_file, source_role = active_file, _parsed.from_role
-        app.app_trace_.record_info(
-            'router._run_router',
-            f'routing from active: {active_file.name} from_role={source_role}'
-        )
-    elif parent_input_file is not None:
-        if not non_router_nodes:
-            app.app_trace_.record_info('router._run_router', 'parent input found but no target nodes — skipping')
-            return
-        first_role = non_router_nodes[0].role_
-        role = app.cli_.cli_properties_.role_
-        renamed = _rename_parent_input_as_task(parent_input_file, app, first_role, role)
-        picked_file, source_role = renamed, role
-        app.app_trace_.record_info(
-            'router._run_router',
-            f'routing parent input as TASK: {renamed.name} to_role={first_role}'
-        )
-    else:
-        if not node_stage.get_active_files():
-            _flush_done(app, node_stage)
-        return
-
-    _route_incoming(router, node_stage, graph_nodes, picked_file, source_role, app)
-
-```
-
-### platform/shell/module/router/router/internal/_seed_tasker_input_to_first_agent.py
-```
-﻿from __future__ import annotations
-
-
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-
-def _seed_tasker_input_to_first_agent(app, agent_nodes) -> bool:
-    task_dir = app.cli_.cli_properties_.task_dir_
-    if task_dir is None:
-        return False
-    tasker_input_dir = task_dir.parent / DIR_INPUT
-    if not Path.exists(tasker_input_dir):
-        return False
-    files = [f for f in Path.iterdir(tasker_input_dir) if Path.is_file(f)]
-    if not files:
-        return False
-    if not agent_nodes:
-        return False
-    first_agent_input = agent_nodes[0].sub_node_properties_.node_dir_ / DOT_NODE / DIR_INPUT
-    Path.mkdir(first_agent_input)
-    for f in files:
-        dest = first_agent_input / f.name
-        Path.move(f, dest)
-        app.app_trace_.record_info(
-            'router._seed_tasker_input_to_first_agent',
-            f'moved {f.name} from tasker input to {agent_nodes[0].node_name_} input'
-        )
-    return True
-```
-
-### platform/shell/module/router/router/load_router_params.py
-```
-﻿"""load_router_params.py — DEPRECATED.
-Use app.runner_.router_.init_router() instead.
-"""
-
-
-def load_router_params(app) -> None:
-    """Deprecated. Delegates to app.runner_.router_.init_router()."""
-    app.runner_.router_.init_router()
-
-```
-
-### platform/shell/module/router/router/parse_message_filename.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path, PathType
-from dataclasses import dataclass
-
-SEPARATOR = '__'
-FROM_PLACEHOLDER = 'X'
-
-
-@dataclass
-class MessageFilename:
-    sequence_id: str
-    from_role: str
-    to_role: str
-    msg_type: str
-    intent: str
-    thread_id: str
-    message_id: str
-    step: str
-    suffix: str
-
-
-def parse_message_filename(filename: str) -> MessageFilename | None:
-    path = Path.new(filename)
-    parts = path.stem.split(SEPARATOR)
-    if len(parts) != 8:
-        return None
-    return MessageFilename(
-        sequence_id=parts[0],
-        from_role=parts[1],
-        to_role=parts[2],
-        msg_type=parts[3],
-        intent=parts[4],
-        thread_id=parts[5],
-        message_id=parts[6],
-        step=parts[7],
-        suffix=path.suffix,
-    )
-
-
-def build_message_filename(parsed: MessageFilename, from_role: str) -> str:
-    return SEPARATOR.join([
-        parsed.sequence_id,
-        from_role,
-        parsed.to_role,
-        parsed.msg_type,
-        parsed.intent,
-        parsed.thread_id,
-        parsed.message_id,
-        parsed.step,
-    ]) + parsed.suffix
-
-
-def increment_step(parsed: MessageFilename) -> str:
-    try:
-        new_step = str(int(parsed.step) + 1)
-    except ValueError:
-        new_step = parsed.step
-    return SEPARATOR.join([
-        parsed.sequence_id,
-        parsed.from_role,
-        parsed.to_role,
-        parsed.msg_type,
-        parsed.intent,
-        parsed.thread_id,
-        parsed.message_id,
-        new_step,
-    ]) + parsed.suffix
-```
-
-### platform/shell/module/router/router/read_metadata_from_file.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-from collections.abc import Callable
-
-from shell.module.router.router.internal._parse_frontmatter import _parse_frontmatter
-
-from shell.utils.io.io import default_read_utf8
-
-
-def read_metadata_from_file(
-    path: PathType,
-    reader: Callable[[PathType], str] | None = None,
-) -> dict:
-    """Return parsed frontmatter metadata from file. Empty dict if none.
-
-    reader: optional callable (path: PathType) -> str for testability.
-    """
-    if reader is None:
-        reader = default_read_utf8
-    text = reader(path)
-    data, _ = _parse_frontmatter(text)
-    return data or {}
-```
-
-### platform/shell/module/router/router/router.py
-```
-﻿"""router.py
-Router: single entry point for all router-phase operations.
-
-Delegates graph state (node order, role map, neighbours) to RouterBase.
-Exposes domain-aware methods matching the router phase steps:
-
-    move_prev_output_to_input()  — move previous node output/ → own input/
-    copy_input_to_output()       — copy own input/ → own output/, prepend frontmatter
-    distribute_output_to_targets() — fan-out own output/ to target nodes' input/
-
-Query helpers (return values, never mutate app):
-    get_next_graph_node()          — node after current in graph (or None)
-    get_prev_graph_node()          — node before current in graph
-    get_prev_graph_node_role()     — role of previous node
-    get_prev_graph_node_output_dir() — Path to prev node output/
-"""
-
-from __future__ import annotations
-
-import shutil
-from collections.abc import Callable
-from datetime import datetime
-
-from shell.utils.io.io import default_read_utf8, default_write_utf8
-from shell.module.router.router.build_frontmatter import build_frontmatter
-from shell.module.router.router.collect_source_files import collect_source_files
-from shell.module.router.router.parse_message_filename import increment_step
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.module.router.router.internal._assert_role_set import _assert_role_set
-from shell.module.router.router.internal._init_router import _init_router
-from shell.module.router.router.internal._run_router import _run_router
-from shell.module.router.router_base.router_base import RouterBase
-from shell.module.router.router_stage.router_stage import RouterStage
-from shell.utils.path.path import Path, PathType
-
-
-class Router:
-    """Router for a single node run.
-
-    Resolves graph, role map and neighbour nodes once on construction.
-    All IO methods accept injectable callables for full testability.
-    """
-
-    __slots__ = ("_app", "_router_base", "_router_stage")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._router_base: RouterBase | None = None
-        self._router_stage: RouterStage | None = None
-
-    @property
-    def router_base_(self) -> RouterBase:
-        if self._router_base is None:
-            self._router_base = RouterBase(self._app)
-        return self._router_base
-
-    @property
-    def router_stage_(self) -> RouterStage:
-        if self._router_stage is None:
-            self._router_stage = RouterStage(self._app)
-        return self._router_stage
-
-    # ------------------------------------------------------------------ #
-    # Query helpers                                                        #
-    # ------------------------------------------------------------------ #
-
-    def get_next_graph_node(self) -> dict | None:
-        return self.router_base_.get_next_graph_node(self._app.app_node_.node_.node_name_)
-
-    def get_prev_graph_node(self) -> dict | None:
-        return self.router_base_.get_prev_graph_node(self._app.app_node_.node_.node_name_)
-
-    def get_prev_graph_node_role(self) -> str:
-        """Return the role of the previous node.
-
-        Raises ValueError if 'role' is missing.
-        """
-        node = self.get_prev_graph_node()
-        role = node.get("role")
-        _assert_role_set(role, node)
-        return role
-
-    def get_prev_graph_node_output_dir(self, resolve: bool = True) -> PathType:
-        """Return the output/ directory of the previous node.
-
-        resolve: when True (default) returns resolved absolute Path.
-        """
-        p = self._app.app_node_.node_.node_dir_.parent / self.get_prev_graph_node().node_name_ / ".node" / "output"
-        return p.resolve() if resolve else p
-
-    # ------------------------------------------------------------------ #
-    # IO methods                                                           #
-    # ------------------------------------------------------------------ #
-
-    # deprecated
-    def move_prev_output_to_input(
-        self,
-        copier: Callable[[PathType, Path], None] | None = None,
-    ) -> list[str]:
-        """Move previous node output/ to own input/.
-
-        Returns list of moved filenames. Empty list if nothing to move.
-        copier: optional callable (src: PathType, dst: PathType) -> None for testability.
-        """
-        if copier is None:
-            copier = lambda src, dst: PathType.move(src, dst)
-
-        src_dir = self.get_prev_graph_node_output_dir()
-        dest_dir = self._app.app_node_.node_.node_dir_ / ".node" / "input"
-        files = collect_source_files(src_dir)
-        for f in files:
-            copier(f, dest_dir / f.name)
-        return [f.name for f in files]
-
-    # deprecated
-    def copy_input_to_output(
-        self,
-        timestamp: str | None = None,
-        reader: Callable[[PathType], str] | None = None,
-        writer: Callable[[PathType, str], None] | None = None,
-    ) -> list[str]:
-        """Copy own input/ to own output/, prepending YAML frontmatter.
-
-        Frontmatter fields: source, target, timestamp, task_id.
-        Returns list of copied filenames.
-        reader: optional callable (path: PathType) -> str for testability.
-        writer: optional callable (path: PathType, content: str) -> None for testability.
-        """
-        if reader is None:
-            reader = default_read_utf8
-        if writer is None:
-            writer = default_write_utf8
-
-        input_dir = self._app.app_node_.node_.node_dir_ / ".node" / "input"
-        output_dir = self._app.app_node_.node_.node_dir_ / ".node" / "output"
-
-        files = collect_source_files(input_dir)
-        if not files:
-            return []
-
-        source_role = self.get_prev_graph_node_role()
-        node_name = self._app.app_node_.node_.node_name_
-        ts = timestamp or datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-
-        copied = []
-        for f in files:
-            parsed = parse_message_filename(f.name)
-            target_role = parsed.to_role if parsed is not None else ""
-            content = build_frontmatter(reader(f), source_role, target_role, ts, node_name)
-            writer(output_dir / f.name, content)
-            copied.append(f.name)
-        return copied
-
-    # deprecated
-    def distribute_output_to_targets(
-        self,
-        copier: Callable[[PathType, Path], None] | None = None,
-    ) -> list[str]:
-        """Fan-out own output/ to target nodes' input/ based on filename metadata.
-
-        Target resolved from 'to' field in message filename format.
-        Files with no resolvable target are skipped.
-        Returns list of distributed filenames.
-        copier: optional callable (src: PathType, dst: PathType) -> None for testability.
-        """
-        if copier is None:
-            copier = Path.copy_to
-
-        output_dir = self._app.app_node_.node_.node_dir_ / ".node" / "output"
-
-        files = collect_source_files(output_dir)
-        distributed = []
-
-        next_node = self.get_next_graph_node()
-        for f in files:
-            parsed = parse_message_filename(f.name)
-            target_role = parsed.to_role if parsed is not None else None
-            target_node = (
-                self.router_base_.role_to_node_map_.get(target_role) if target_role
-                else next_node
-            )
-            if target_node is None:
-                continue
-            dest_name = increment_step(parsed) if parsed is not None else f.name
-            dest_dir = self._app.app_node_.node_.node_dir_.parent / target_node.node_name_ / ".node" / "input"
-            Path.mkdir(dest_dir)
-            copier(f, dest_dir / dest_name)
-            distributed.append(dest_name)
-
-        return distributed
-
-    # ------------------------------------------------------------------ #
-    # Init                                                                 #
-    # ------------------------------------------------------------------ #
-
-    def init_router(self) -> None:
-        _init_router(self)
-
-    def run_router(self) -> None:
-        """Execute the full router graph: copy input, build output, distribute."""
-        _run_router(self)
-
-    # ------------------------------------------------------------------ #
-    # Private                                                              #
-    # ------------------------------------------------------------------ #
-
-    def _current_node_index(self) -> int:
-        return self.router_base_.get_current_graph_node_index(self._app.app_node_.node_.node_name_)
-```
-
-### platform/shell/module/router/router_base/__init__.py
-```
-﻿# router_base package
-from shell.module.router.router_base.router_base import RouterBase
-```
-
-### platform/shell/module/router/router_base/internal/__init__.py
-```
-# router_maker internal package
-```
-
-### platform/shell/module/router/router_base/internal/_assert_node_in_graph.py
-```
-﻿def _assert_node_in_graph(index, node_name: str) -> None:
-    if index is None:
-        raise ValueError(f"node '{node_name}' not found in graph")
-```
-
-### platform/shell/module/router/router_base/internal/_assert_task_md_file_body_set.py
-```
-def _assert_task_md_file_body_set(value) -> None:
-    if value is None:
-        raise ValueError("task_md_file_body not loaded — call init_router_base() first")
-```
-
-### platform/shell/module/router/router_base/internal/_assert_task_yaml_file_body_set.py
-```
-def _assert_task_yaml_file_body_set(value) -> None:
-    if value is None:
-        raise ValueError("task_yaml_file_body not loaded — call init_router_base() first")
-```
-
-### platform/shell/module/router/router_base/internal/_assert_task_yaml_in_task_dir.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-
-
-def _assert_task_yaml_in_task_dir(yaml_files: list, task_dir: PathType) -> None:
-    if not yaml_files:
-        raise FileNotFoundError(f"[RouterBase] no .yaml file found in task_dir: {task_dir}")
-```
-
-### platform/shell/module/router/router_base/internal/_init_router_base.py
-```
-﻿from __future__ import annotations
-
-from shell.module.router.router_base.internal._assert_task_yaml_file_body_set import _assert_task_yaml_file_body_set
-from shell.module.router.router_base.internal._assert_task_yaml_in_task_dir import _assert_task_yaml_in_task_dir
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_router_base(router_base, reader=None) -> None:
-    task_dir = (router_base._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    yaml_files = Path.glob(task_dir, '*.yaml')
-    _assert_task_yaml_in_task_dir(yaml_files, task_dir)
-    task_yaml_file_body = Path.read_text(yaml_files[0])
-    _assert_task_yaml_file_body_set(task_yaml_file_body)
-    router_base._app.app_node_.node_.node_task_._task_yaml_file_body = task_yaml_file_body
-    router_base._app.app_node_.node_.node_task_._task_name = yaml_files[0].stem
-    router_base.graph_.init_graph()
-```
-
-### platform/shell/module/router/router_base/router_base.py
-```
-﻿"""router_base.py
-RouterBase: holds task files loaded from .node/task for every router node.
-
-Slots:
-    _app                 — parent App (back-reference)
-    _graph            — Optional; lazy Graph instance
-    _role_to_node_map    — dict[role, node] built from graph (dict | None)
-"""
-
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.structure.graph.graph.graph import Graph
-from shell.module.router.router_base.internal._assert_node_in_graph import _assert_node_in_graph
-from shell.module.router.router_base.internal._init_router_base import _init_router_base
-
-
-class RouterBase:
-    """Holds task files and graph state for any router node."""
-
-    __slots__ = ("_app", "_graph", "_role_to_node_map")
-
-    def __init__(self, app=None) -> None:
-        self._app = app
-        self._graph = None
-        self._role_to_node_map: dict | None = None
-    @property
-    def graph_(self) -> Graph:
-        if self._graph is None:
-            self._graph = Graph(self._app)
-        return self._graph
-
-    @property
-    def graph_nodes_(self):
-        return self.graph_.sub_nodes_
-
-    @property
-    def role_to_node_map_(self) -> dict:
-        if self._role_to_node_map is None:
-            self._role_to_node_map = {n.role_: n for n in self.graph_nodes_ if n.role_}
-        return self._role_to_node_map
-
-    def get_current_graph_node_index(self, node_name: str) -> int:
-        index = next(
-            (i for i, n in enumerate(self.graph_nodes_) if n.node_name_ == node_name),
-            None,
-        )
-        _assert_node_in_graph(index, node_name)
-        return index
-
-    def get_next_graph_node(self, node_name: str):
-        index = self.get_current_graph_node_index(node_name)
-        graph_nodes = self.graph_nodes_
-        return graph_nodes[index + 1] if index + 1 < len(graph_nodes) else None
-
-    def get_prev_graph_node(self, node_name: str):
-        index = self.get_current_graph_node_index(node_name)
-        return self.graph_nodes_[index - 1] if index > 0 else None
-
-    def init_router_base(self, reader=None) -> None:
-        _init_router_base(self, reader=reader)
-```
-
-### platform/shell/module/router/router_stage/__init__.py
-```
-```
-
-### platform/shell/module/router/router_stage/internal/__init__.py
-```
-```
-
-### platform/shell/module/router/router_stage/internal/_match_pending.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from shell.module.router.router.parse_message_filename import parse_message_filename
-
-if TYPE_CHECKING:
-    from shell.structure.node.node_stage.node_stage import NodeStage
-
-
-def _match_pending(node_stage: 'NodeStage', parsed) -> PathType | None:
-    if parsed is None or not parsed.thread_id:
-        return None
-    for pending_file in node_stage.get_pending_files():
-        pending_parsed = parse_message_filename(pending_file.name)
-        if pending_parsed is not None and pending_parsed.message_id == parsed.message_id:
-            return pending_file
-    return None
-```
-
-### platform/shell/module/router/router_stage/router_stage.py
-```
-﻿from shell.utils.path.path import PathType
-"""router_stage.py
-RouterStage — high-level stage management logic for the router node.
-
-Slots:
-    _app — parent App (DOM back-reference)
-
-Delegates all physical I/O to NodeStage via app.app_node_.node_.node_stage_.
-"""
-
-from __future__ import annotations
-
-
-from shell.structure.node.node_stage.node_stage import NodeStage
-
-
-class RouterStage:
-    """High-level stage logic for the router — delegates physical I/O to NodeStage."""
-
-    __slots__ = ("_app",)
-
-    def __init__(self, app) -> None:
-        self._app = app
-
-    @property
-    def node_stage_(self) -> NodeStage:
-        return self._app.app_node_.node_.node_stage_
-```
-
-### platform/shell/module/tasker/__init__.py
-```
-```
-
-### platform/shell/module/tasker/internal/__init__.py
-```
-```
-
-### platform/shell/module/tasker/internal/_assert_first_non_router_node_exists.py
-```
-﻿from __future__ import annotations
-
-
-def _assert_first_non_router_node_exists(first_node) -> None:
-    if first_node is None:
-        raise ValueError("Graph has no non-router node — cannot seed task")
-```
-
-### platform/shell/module/tasker/internal/_assert_router_node_exists.py
-```
-﻿def _assert_router_node_exists(router_node) -> None:
-    if router_node is None:
-        raise ValueError(
-            "Graph configuration error: no router node (mode='router', role != 'maker') found in graph"
-        )
-```
-
-### platform/shell/module/tasker/internal/_assert_session_id_set.py
-```
-def _assert_session_id_set(session_id: str | None) -> None:
-    if session_id is None:
-        raise RuntimeError('session_id is not set — call _init_task_yaml before accessing session_id_')
-```
-
-### platform/shell/module/tasker/internal/_assert_task_files_exist.py
-```
-﻿from shell.utils.path.path import PathType
-from __future__ import annotations
-
-
-
-def _assert_task_files_exist(task_dir: PathType, task_files: list) -> None:
-    if not task_files:
-        raise FileNotFoundError(f"No *.md files found in task_dir: {task_dir}")
-```
-
-### platform/shell/module/tasker/internal/_assert_task_graph_yaml_exists.py
-```
-﻿"""_assert_task_graph_yaml_exists.py
-Responsible for one thing: raising FileNotFoundError when the task graph YAML file is missing.
-"""
-
-from __future__ import annotations
-
-
-from shell.utils.path.path import Path, PathType
-
-
-def _assert_task_graph_yaml_exists(path: PathType) -> None:
-    if not Path.is_file(path):
-        raise FileNotFoundError(f"[_validate_task] Task graph YAML not found: {path}")
-```
-
-### platform/shell/module/tasker/internal/_assert_task_graph_yaml_valid.py
-```
-﻿"""_assert_task_graph_yaml_valid.py
-Responsible for one thing: validating the structure of a loaded graph YAML dict.
-"""
-
-from __future__ import annotations
-
-
-def _assert_task_graph_yaml_valid(data: dict) -> None:
-    """Raise ValueError when graph YAML is missing required keys or structure."""
-    if not isinstance(data, dict):
-        raise ValueError(f"Graph YAML must be a mapping, got {type(data).__name__}")
-    if 'graph' not in data:
-        raise ValueError("Graph YAML is missing required key: 'graph'")
-    if not isinstance(data['graph'], list):
-        raise ValueError(f"Graph YAML 'graph' must be a list, got {type(data['graph']).__name__}")
-    if not data['graph']:
-        raise ValueError("Graph YAML 'graph' list must not be empty")
-    for i, node in enumerate(data['graph']):
-        for required in ('node_name', 'runner_root_dir', 'role', 'type'):
-            if required not in node:
-                raise ValueError(f"Graph node [{i}] is missing required key: '{required}'")
-```
-
-### platform/shell/module/tasker/internal/_assert_task_md_exists.py
-```
-﻿"""_assert_task_md_exists.py
-Responsible for one thing: raising FileNotFoundError when the task markdown file is missing.
-"""
-
-from __future__ import annotations
-
-
-from shell.utils.path.path import Path, PathType
-
-
-def _assert_task_md_exists(path: PathType) -> None:
-    if not Path.is_file(path):
-        raise FileNotFoundError(f"[_init_task_md] Task md not found: {path}")
-```
-
-### platform/shell/module/tasker/internal/_find_node_with_input.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-
-def _find_node_with_input(non_router_nodes) -> object | None:
-    for pn in non_router_nodes:
-        input_dir = pn.sub_node_properties_.node_dir_ / DOT_NODE / DIR_INPUT
-        if Path.exists(input_dir) and any(Path.iterdir(input_dir)):
-            return pn
-    return None
-```
-
-### platform/shell/module/tasker/internal/_has_own_input.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-
-def _has_own_input(app) -> bool:
-    input_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_INPUT
-    return Path.exists(input_dir) and any(Path.iterdir(input_dir))
-```
-
-### platform/shell/module/tasker/internal/_has_own_output.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _has_own_output(app) -> bool:
-    output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
-    return Path.exists(output_dir) and any(Path.iterdir(output_dir))
-```
-
-### platform/shell/module/tasker/internal/_has_router_work.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _has_router_work(non_router_nodes, router_node) -> bool:
-    for pn in non_router_nodes:
-        output_dir = pn.sub_node_properties_.node_dir_ / DOT_NODE / DIR_OUTPUT
-        if Path.exists(output_dir) and any(Path.iterdir(output_dir)):
-            return True
-    node_stage = router_node.sub_node_properties_.sub_node_node_stage_
-    if node_stage.get_active_files():
-        return True
-    if node_stage.get_pending_files():
-        return True
-    return False
-```
-
-### platform/shell/module/tasker/internal/_init_new_node_statuses.py
-```
-﻿from __future__ import annotations
-
-import yaml
-
-from shell.status.status import Status
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_new_node_statuses(tasker) -> None:
-    app = tasker._app
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    yaml_files = Path.glob(task_dir, '*.yaml')
-    if not yaml_files:
-        return
-    yaml_path = yaml_files[0]
-
-    initialized_nodes = [pn for pn in tasker.graph_.sub_nodes_ if pn.status_ == Status.INITIALIZED]
-    if not initialized_nodes:
-        return
-
-    data = yaml.safe_load(Path.read_text(yaml_path)) or {}
-    for graph_node in initialized_nodes:
-        for node_dict in data.get('graph', []):
-            if node_dict.get('node_name') == graph_node.node_name_:
-                node_dict['status'] = Status.INITIALIZED.name
-                break
-
-    Path.write_text(yaml_path, yaml.dump(data, default_flow_style=False, allow_unicode=True))
-    app.app_trace_.record_info(
-        'tasker._init_new_node_statuses._init_new_node_statuses',
-        f'persisted INITIALIZED for {len(initialized_nodes)} new node(s) to {yaml_path.name}'
-    )
-```
-
-### platform/shell/module/tasker/internal/_init_task_md.py
-```
-﻿from __future__ import annotations
-
-from collections.abc import Callable
-
-from shell.utils.io.io import default_read_utf8
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_task_md(
-    app,
-    reader: Callable[[PathType], str] | None = None,
-) -> None:
-    if reader is None:
-        reader = default_read_utf8
-
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    task_name = app.cli_.cli_properties_.task_name_
-    task_md_path = task_dir / f"{task_name}.md"
-
-    if not Path.is_file(task_md_path):
-        source_dir = Path.new(app.cli_.cli_properties_.source_dir_)
-        source_md = source_dir / f"{task_name}.md"
-        Path.copy_to(source_md, task_md_path)
-        app.app_trace_.record_info('tasker._init_task_md._init_task_md', f'copy {source_md} -> {task_md_path}')
-
-    app.runner_.tasker_._task_md_file_body = reader(task_md_path)
-    app.app_trace_.record_info('tasker._init_task_md._init_task_md', f'read {task_md_path}')
-```
-
-### platform/shell/module/tasker/internal/_init_task_prompts.py
-```
-﻿from __future__ import annotations
-
-
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_task_prompts(app) -> None:
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    source_dir = Path.new(app.cli_.cli_properties_.source_dir_)
-
-    for source_prompt in Path.glob(source_dir, '*.prompt.md'):
-        dest = task_dir / source_prompt.name
-        if not Path.is_file(dest):
-            Path.copy_to(source_prompt, dest)
-            app.app_trace_.record_info(
-                'tasker._init_task_prompts._init_task_prompts',
-                f'copy {source_prompt} -> {dest}'
-            )
-```
-
-### platform/shell/module/tasker/internal/_init_task_yaml.py
-```
-﻿from __future__ import annotations
-
-import yaml
-from collections.abc import Callable
-from datetime import datetime
-
-from shell.utils.io.io import default_read_utf8, default_write_utf8
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_task_yaml(
-    app,
-    reader: Callable[[PathType], str] | None = None,
-    writer: Callable[[PathType, str], None] | None = None,
-) -> None:
-    if reader is None:
-        reader = default_read_utf8
-    if writer is None:
-        writer = default_write_utf8
-
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    task_name = app.cli_.cli_properties_.task_name_
-    task_yaml_path = task_dir / f"{task_name}.yaml"
-
-    if not Path.is_file(task_yaml_path):
-        source_dir = Path.new(app.cli_.cli_properties_.source_dir_)
-        source_yaml = source_dir / f"{task_name}.yaml"
-        Path.copy_to(source_yaml, task_yaml_path)
-        app.app_trace_.record_info('tasker._init_task_yaml._init_task_yaml', f'copy {source_yaml} -> {task_yaml_path}')
-
-    app.runner_.tasker_._task_yaml_file_body = reader(task_yaml_path)
-    app.app_trace_.record_info('tasker._init_task_yaml._init_task_yaml', f'read {task_yaml_path}')
-
-    session_id = datetime.now().strftime('%Y%m%d_%H%M%S')
-    app.runner_.tasker_._session_id = session_id
-
-    data = yaml.safe_load(app.runner_.tasker_._task_yaml_file_body) or {}
-    data['session_id'] = session_id
-    writer(task_yaml_path, yaml.dump(data, default_flow_style=False, allow_unicode=True))
-    app.app_trace_.record_info('tasker._init_task_yaml._init_task_yaml', f'session_id={session_id} written to {task_yaml_path}')
-```
-
-### platform/shell/module/tasker/internal/_init_tasker.py
-```
-﻿from __future__ import annotations
-
-from shell.module.tasker.internal._validate_task import _validate_task
-from shell.module.tasker.internal._seed_graph_node_task import _seed_graph_node_task
-
-
-def _init_tasker(tasker, reader=None) -> None:
-    _validate_task(tasker._app)
-    tasker.graph_.init_graph()
-    _seed_graph_node_task(tasker)
-```
-
-### platform/shell/module/tasker/internal/_move_router_output_to_own.py
-```
-﻿from __future__ import annotations
-
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_OUTPUT
-
-
-def _move_router_output_to_own(tasker, app) -> bool:
-    sub_nodes = tasker.graph_.sub_nodes_
-    router_nodes = [pn for pn in sub_nodes if pn.mode_ == 'router']
-    if not router_nodes:
-        return False
-    router_output_dir = router_nodes[0].sub_node_properties_.node_dir_ / DOT_NODE / DIR_OUTPUT
-    if not Path.exists(router_output_dir):
-        return False
-    files = [f for f in Path.iterdir(router_output_dir) if Path.is_file(f)]
-    if not files:
-        return False
-    own_output_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT
-    Path.mkdir(own_output_dir)
-    for file in files:
-        Path.move(file, own_output_dir / file.name)
-    app.app_trace_.record_info('tasker._run_iterative_tasker', f'moved {len(files)} file(s) from router output to own output')
-    return True
-```
-
-### platform/shell/module/tasker/internal/_run_iterative_tasker.py
-```
-﻿from __future__ import annotations
-
-from shell.structure.graph.graph.internal._persist_node_status import _persist_node_status
-from shell.structure.graph.graph_node.internal._run_sub_node import _run_sub_node
-from shell.status.status import Status
-from shell.module.tasker.internal._seed_task_to_first_node import _seed_task_to_first_node
-from shell.module.tasker.internal._find_node_with_input import _find_node_with_input
-from shell.module.tasker.internal._has_router_work import _has_router_work
-from shell.module.tasker.internal._has_own_output import _has_own_output
-from shell.module.tasker.internal._has_own_input import _has_own_input
-from shell.module.tasker.internal._move_router_output_to_own import _move_router_output_to_own
-from shell.module.tasker.internal._init_task_md import _init_task_md
-from shell.module.tasker.internal._init_task_yaml import _init_task_yaml
-from shell.module.tasker.internal._init_task_prompts import _init_task_prompts
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT, DIR_OUTPUT, DIR_TASK
-
-_MAX_ITERATIONS = 200
-
-
-def _run_iterative_tasker(tasker) -> Status:
-    app = tasker._app
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-
-    if _has_own_output(app):
-        app.app_trace_.record_info('tasker._run_iterative_tasker', 'own output not empty — skipping execution')
-        return Status.SUCCESS
-
-    if not _has_own_input(app):
-        app.app_trace_.record_info('tasker._run_iterative_tasker', 'own input empty — skipping execution')
-        return Status.SUCCESS
-
-
-    iteration = 0
-    # _seed_task_to_first_node(tasker, task_dir)
-
-    _own_node_dir = app.app_node_.node_.node_dir_ / DOT_NODE
-    _input_dir = _own_node_dir / DIR_INPUT
-    _output_dir = _own_node_dir / DIR_OUTPUT
-    _input_files = Path.iterdir(_input_dir) if Path.exists(_input_dir) else []
-    _output_files = Path.iterdir(_output_dir) if Path.exists(_output_dir) else []
-    app.app_trace_.record_info('tasker._run_iterative_tasker', f'input dir: {_input_dir} files: {[f.name for f in _input_files]}')
-    app.app_trace_.record_info('tasker._run_iterative_tasker', f'output dir: {_output_dir} files: {[f.name for f in _output_files]}')
-
-    while True:
-        if iteration >= _MAX_ITERATIONS:
-            raise RuntimeError(f"tasker stalled after {_MAX_ITERATIONS} iterations without reaching DONE")
-        iteration += 1
-
-        sub_nodes = tasker.graph_.sub_nodes_
-        non_router_nodes = [pn for pn in sub_nodes if pn.mode_ != 'router']
-        router_nodes = [pn for pn in sub_nodes if pn.mode_ == 'router']
-
-        if _move_router_output_to_own(tasker, app):
-            return Status.DONE
-
-        node_with_input = _find_node_with_input(non_router_nodes)
-        if node_with_input is not None:
-            app.app_trace_.record_info('tasker._run_iterative_tasker', f"agent input found — running {node_with_input.node_name_}")
-            status = _run_sub_node(node_with_input, task_dir, app)
-            _persist_node_status(node_with_input, app)
-            if status == Status.ERROR:
-                return Status.ERROR
-            continue
-
-        if router_nodes:
-            router_node = router_nodes[0]
-            if _has_router_work(non_router_nodes, router_node):
-                app.app_trace_.record_info('tasker._run_iterative_tasker', f"router work found — running {router_node.node_name_}")
-                status = _run_sub_node(router_node, task_dir, app)
-                _persist_node_status(router_node, app)
-                if status == Status.ERROR:
-                    return Status.ERROR
-                if status == Status.DONE:
-                    _move_router_output_to_own(tasker, app)
-                    return Status.DONE
-                continue
-
-            if _has_own_input(app):
-                app.app_trace_.record_info('tasker._run_iterative_tasker', f"own input not empty — running {router_node.node_name_}")
-                status = _run_sub_node(router_node, task_dir, app)
-                _persist_node_status(router_node, app)
-                if status == Status.ERROR:
-                    return Status.ERROR
-                if status == Status.DONE:
-                    _move_router_output_to_own(tasker, app)
-                    return Status.DONE
-                continue
-
-            app.app_trace_.record_info('tasker._run_iterative_tasker', f"no work — flushing via {router_node.node_name_}")
-            status = _run_sub_node(router_node, task_dir, app)
-            _persist_node_status(router_node, app)
-            if status == Status.ERROR:
-                return Status.ERROR
-            if status == Status.DONE:
-                _move_router_output_to_own(tasker, app)
-                return Status.DONE
-            break
-
-        break
-
-    return Status.SUCCESS
-```
-
-### platform/shell/module/tasker/internal/_run_tasker.py
-```
-﻿from __future__ import annotations
-
-from shell.status.status import Status
-from shell.module.tasker.internal._run_iterative_tasker import _run_iterative_tasker
-
-
-def _run_tasker(tasker) -> Status:
-    app = tasker._app
-    app.app_trace_.record_info('tasker.Tasker.run_tasker', f"starting task {tasker.task_name_}")
-    result = Status.SUCCESS
-    try:
-        result = _run_iterative_tasker(tasker)
-    except Exception as exc:
-        result = Status.ERROR
-        app.app_trace_.record_error_and_raise('tasker.Tasker.run_tasker', Exception(f"task {tasker.task_name_} failed: {exc}"))
-    app.app_trace_.record_info('tasker.Tasker.run_tasker', f"task {tasker.task_name_} completed status={result.name}({int(result)})")
-    return result
-```
-
-### platform/shell/module/tasker/internal/_seed_graph_node_task.py
-```
-﻿from __future__ import annotations
-
-from shell.structure.graph.graph.internal._persist_node_status import _persist_node_status
-from shell.status.status import Status
-from shell.module.tasker.internal._assert_router_node_exists import _assert_router_node_exists
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _seed_graph_node_task(tasker) -> None:
-    app = tasker._app
-
-    router_node = next(
-        (pn for pn in tasker.graph_.sub_nodes_
-         if pn.mode_ == 'router'
-         and pn.role_ != 'maker'),
-        None,
-    )
-    _assert_router_node_exists(router_node)
-
-    router_node.node_status_.set_status(Status.READY)
-    _persist_node_status(router_node, app)
-    app.app_trace_.record_info(
-        'tasker._seed_graph_node_task',
-        f'node {router_node.node_name_} status=READY(8)'
-    )
-
-    node_task = app.app_node_.node_.node_task_
-    task_name = node_task.task_name_
-    task_md_file_body = node_task.task_md_file_body_
-    if task_name is None or task_md_file_body is None:
-        return
-
-    task_dir = router_node.sub_node_properties_.node_dir_ / DOT_NODE / DIR_TASK
-    Path.mkdir(task_dir)
-    Path.write_text(task_dir / f'{task_name}.md', task_md_file_body)
-    app.app_trace_.record_info(
-        'tasker._seed_graph_node_task',
-        f'seeded {task_name}.md into {router_node.node_name_} task'
-    )
-```
-
-### platform/shell/module/tasker/internal/_seed_task_to_first_node.py
-```
-﻿from __future__ import annotations
-
-from shell.module.tasker.internal._assert_first_non_router_node_exists import _assert_first_non_router_node_exists
-from shell.module.tasker.internal._assert_task_files_exist import _assert_task_files_exist
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT
-
-
-def _seed_task_to_first_node(tasker, task_dir) -> None:
-    sub_nodes = tasker.graph_.sub_nodes_
-    first_node = next((pn for pn in sub_nodes if pn.mode_ != 'router'), None)
-    _assert_first_non_router_node_exists(first_node)
-    task_files = Path.glob(task_dir, '*.md') if Path.exists(task_dir) else []
-    _assert_task_files_exist(task_dir, task_files)
-    input_dir = first_node.sub_node_properties_.node_dir_ / DOT_NODE / DIR_INPUT
-    Path.mkdir(input_dir)
-    for task_file in task_files:
-        Path.copy_to(task_file, input_dir / task_file.name)
-    tasker._app.app_trace_.record_info(
-        'tasker._run_iterative_tasker._seed_task_to_first_node',
-        f'seeded {len(task_files)} file(s) from task_dir to {first_node.node_name_} input'
-    )
-```
-
-### platform/shell/module/tasker/internal/_validate_task.py
-```
-﻿"""_validate_task.py
-Responsible for one thing: asserting that all required task files exist.
-"""
-
-from __future__ import annotations
-
-from shell.module.tasker.internal._assert_task_md_exists import _assert_task_md_exists
-from shell.module.tasker.internal._assert_task_graph_yaml_exists import _assert_task_graph_yaml_exists
-from shell.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _validate_task(app) -> None:
-    """Assert that all required task files exist."""
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    task_name = app.cli_.cli_properties_.task_name_
-    _assert_task_graph_yaml_exists(task_dir / f"{task_name}.yaml")
-    _assert_task_md_exists(task_dir / f"{task_name}.md")
-```
-
-### platform/shell/module/tasker/tasker.py
-```
-﻿"""tasker.py
-Tasker: structured runtime state for a single task.
-
-Slots:
-    _app         — parent App (DOM back-reference)
-    _graph              — Graph instance (built by init_tasker)
-    _session_id            — Optional; session timestamp string (YYYYmmdd_HHMMSS)
-
-Validated properties:
-    task_dir_              — resolved Path to node directory (task lives there)
-    task_name_             — name derived from node directory name
-"""
-
-from __future__ import annotations
-from shell.structure.graph.graph.graph import Graph
-from shell.status.status import Status
-from shell.module.tasker.internal._assert_session_id_set import _assert_session_id_set
-from shell.module.tasker.internal._init_tasker import _init_tasker
-from shell.module.tasker.internal._run_tasker import _run_tasker
-
-
-class Tasker:
-    """Structured task data for a shell graph run.
-
-    Constructed lazily and held as app.runner_.tasker_.
-    """
-
-    __slots__ = ("_app", "_graph", "_session_id")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._graph: Graph | None = None
-        self._session_id: str | None = None
-
-    @property
-    def graph_(self) -> Graph:
-        """Return the cached Graph instance for this task."""
-        if self._graph is None:
-            self._graph = Graph(self._app)
-        return self._graph
-
-    @property
-    def task_name_(self) -> str:
-        """Name of the node directory on which this task is executed."""
-        return self._app.app_node_.node_.node_dir_.name
-
-    @property
-    def session_id_(self) -> str:
-        _assert_session_id_set(self._session_id)
-        return self._session_id
-
-    def init_tasker(self, reader=None) -> None:
-        _init_tasker(self, reader=reader)
-
-    def run_tasker(self) -> Status:
-        return _run_tasker(self)
-```
-
-### platform/shell/module/tool/__init__.py
-```
-```
-
-### platform/shell/module/tool/tool/__init__.py
-```
-﻿from shell.module.tool.tool.tool import Tool
-```
-
-### platform/shell/module/tool/tool/internal/__init__.py
-```
-```
-
-### platform/shell/module/tool/tool/internal/_init_tool.py
-```
-"""_init_tool.py
-Delegate initialization to tool_properties and tool_command.
-"""
-
-from __future__ import annotations
-
-
-def _init_tool(tool, reader=None) -> None:
-    app = tool._app
-
-    try:
-        tool.tool_properties_.init_tool_properties()
-    except ValueError as exc:
-        app.app_trace_.record_error_and_raise('tool._init_tool._init_tool', exc)
-```
-
-### platform/shell/module/tool/tool/internal/_run_tool.py
-```
-﻿"""_run_tool.py
-Run the external tool defined in config.yaml.
-
-Tools are lightweight executables that do NOT generate working logs.
-Builds the subprocess command, runs it, captures output, and returns Status.
-"""
-
-from __future__ import annotations
-
-import subprocess
-
-from shell.status.status import Status
-
-
-def _run_tool(tool, runner=None) -> Status:
-    if runner is None:
-        runner = subprocess.run
-
-    app = tool._app
-    app_properties = app.app_properties_
-    node_dir = app.app_node_.node_.node_dir_
-
-    cmd = _build_cmd(app_properties)
-
-    env = None
-
-    try:
-        proc = runner(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=app_properties.timeout_,
-            encoding='utf-8',
-            errors='replace',
-            cwd=node_dir,
-            env=env,
-        )
-        app.app_trace_.record_info(
-            'tool._run_tool._run_tool',
-            f'returncode={proc.returncode}',
-            stdout=proc.stdout,
-            stderr=proc.stderr,
-            returncode=proc.returncode,
-        )
-        if proc.stderr:
-            app.app_trace_.record_warning(
-                'tool._run_tool._run_tool',
-                Exception(f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}"),
-                stdout=proc.stdout,
-                stderr=proc.stderr,
-                returncode=proc.returncode,
-            )
-        return Status.from_returncode(proc.returncode)
-    except subprocess.TimeoutExpired:
-        return Status.from_returncode(2)
-    except Exception as exc:
-        app.app_trace_.record_error('tool._run_tool._run_tool', exc)
-        return Status.from_returncode(1)
-
-
-def _build_cmd(cfg) -> list[str]:
-    return [cfg.command_]
-```
-
-### platform/shell/module/tool/tool/tool.py
-```
-﻿"""tool.py
-Tool — wrapper for external tools in a graph node.
-
-Tools are extra apps that do NOT generate working logs (unlike scripts/workers).
-
-Responsibilities:
-    init_tool()   — validate tool fields from node_config
-    run_tool()    — build command, run subprocess, return Status
-"""
-
-from __future__ import annotations
-
-from collections.abc import Callable
-from subprocess import CompletedProcess
-
-from shell.module.tool.tool.internal._init_tool import _init_tool
-from shell.module.tool.tool.internal._run_tool import _run_tool
-from shell.status.status import Status
-from shell.module.tool.tool_properties.tool_properties import ToolProperties
-
-
-class Tool:
-    """Runs an external tool process for a single graph node."""
-
-    __slots__ = ("_app", "_tool_properties")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._tool_properties: ToolProperties | None = None
-
-    def init_tool(self, reader=None) -> None:
-        _init_tool(self, reader=reader)
-
-    def run_tool(
-        self,
-        runner: Callable[..., CompletedProcess] | None = None,
-    ) -> Status:
-        return _run_tool(self, runner=runner)
-
-    @property
-    def tool_properties_(self) -> ToolProperties:
-        if self._tool_properties is None:
-            self._tool_properties = ToolProperties(self._app)
-        return self._tool_properties
-```
-
-### platform/shell/module/tool/tool_properties/__init__.py
-```
-```
-
-### platform/shell/module/tool/tool_properties/tool_properties.py
-```
-"""tool_properties.py
-ToolProperties — placeholder for future tool execution parameters.
-"""
-
-from __future__ import annotations
-
-
-class ToolProperties:
-    """Holds Tool runtime parameters extracted from YAML config."""
-
-    __slots__ = ("_app",)
-
-    def __init__(self, app) -> None:
-        self._app = app
-
-    def init_tool_properties(self) -> None:
-        pass
-```
-
-### platform/shell/module/worker/__init__.py
-```
-﻿from shell.module.worker.worker.worker import Worker
-```
-
-### platform/shell/module/worker/worker/__init__.py
-```
-﻿from shell.module.worker.worker.worker import Worker
-
-__all__ = ["Worker"]
-```
-
-### platform/shell/module/worker/worker/internal/__init__.py
-```
-```
-
-### platform/shell/module/worker/worker/internal/_init_worker.py
-```
-"""_init_worker.py
-Delegate initialization to worker_properties.
-"""
-
-from __future__ import annotations
-
-
-def _init_worker(worker, reader=None) -> None:
-    app = worker._app
-
-    try:
-        worker.worker_properties_.init_worker_properties()
-    except ValueError as exc:
-        app.app_trace_.record_error_and_raise('worker._init_worker._init_worker', exc)
-```
-
-### platform/shell/module/worker/worker/internal/_run_worker.py
-```
-﻿"""_run_worker.py
-Run the external script or process defined in worker.yaml.
-
-Builds the subprocess command from WorkerConfig, runs it, captures output,
-writes stdout to output/stdout.txt when capture includes stdout,
-and returns Status based on returncode.
-"""
-
-from __future__ import annotations
-
-import subprocess
-import sys
-
-from shell.status.status import Status
-
-
-def _run_worker(worker, runner=None) -> Status:
-    """Run the external process and return its Status.
-
-    runner: optional callable with the same signature as subprocess.run (for testing).
-    """
-    if runner is None:
-        runner = subprocess.run
-
-    app = worker._app
-    app_properties = app.app_properties_
-    node_dir = app.app_node_.node_.node_dir_
-
-    cmd = _build_cmd(app_properties)
-
-    env = None
-
-    try:
-        proc = runner(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=app_properties.timeout_,
-            encoding='utf-8',
-            errors='replace',
-            cwd=node_dir,
-            env=env,
-        )
-        app.app_trace_.record_info(
-            'worker._run_worker._run_worker',
-            f'returncode={proc.returncode}',
-            stdout=proc.stdout,
-            stderr=proc.stderr,
-            returncode=proc.returncode,
-        )
-        if proc.stderr:
-            app.app_trace_.record_warning(
-                'worker._run_worker._run_worker',
-                Exception(f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}"),
-                stdout=proc.stdout,
-                stderr=proc.stderr,
-                returncode=proc.returncode,
-            )
-        return Status.from_returncode(proc.returncode)
-    except subprocess.TimeoutExpired as exc:
-        partial_out = exc.output or ''
-        partial_err = exc.stderr or f'Timeout after {app_properties.timeout_}s'
-        app.app_trace_.record_warning_and_raise('worker._run_worker._run_worker', exc, stdout=partial_out, stderr=partial_err)
-    except OSError as exc:
-        app.app_trace_.record_error_and_raise('worker._run_worker._run_worker', exc)
-    except Exception as exc:  # noqa: BLE001
-        app.app_trace_.record_error_and_raise('worker._run_worker._run_worker', exc)
-
-
-def _build_cmd(cfg) -> list[str]:
-    if cfg.type_ == 'python_module':
-        return [sys.executable, '-m', cfg.command_]
-    return [cfg.command_]
-```
-
-### platform/shell/module/worker/worker/worker.py
-```
-﻿"""worker.py
-Worker — wrapper for external scripts and processes in a graph node.
-
-Responsibilities:
-    init_worker()   — validate worker fields from node_config
-    run_worker()    — build command, run subprocess, return Status
-"""
-
-from __future__ import annotations
-
-from collections.abc import Callable
-from subprocess import CompletedProcess
-
-from shell.module.worker.worker.internal._init_worker import _init_worker
-from shell.module.worker.worker.internal._run_worker import _run_worker
-from shell.status.status import Status
-from shell.module.worker.worker_properties.worker_properties import WorkerProperties
-
-
-class Worker:
-    """Runs an external script or process for a single graph node."""
-
-    __slots__ = ("_app", "_script_file_body", "_worker_properties")
-
-    def __init__(self, app) -> None:
-        self._app = app
-        self._script_file_body: str | None = None
-        self._worker_properties: WorkerProperties | None = None
-
-    # -----------------------------------------------------------------------
-    # Domain methods
-    # -----------------------------------------------------------------------
-
-    def init_worker(self, reader=None) -> None:
-        """Validate worker fields from node_config."""
-        _init_worker(self, reader=reader)
-
-    def run_worker(
-        self,
-        runner: Callable[..., CompletedProcess] | None = None,
-    ) -> Status:
-        """Run the external process and return its Status."""
-        return _run_worker(self, runner=runner)
-
-    # -----------------------------------------------------------------------
-    # Lazy properties
-    # -----------------------------------------------------------------------
-
-    @property
-    def worker_properties_(self) -> WorkerProperties:
-        """Return WorkerProperties, creating it on first access."""
-        if self._worker_properties is None:
-            self._worker_properties = WorkerProperties(self._app)
-        return self._worker_properties
-```
-
-### platform/shell/module/worker/worker_properties/__init__.py
-```
-```
-
-### platform/shell/module/worker/worker_properties/worker_properties.py
-```
-"""WorkerProperties — placeholder for future worker execution parameters."""
-
-from __future__ import annotations
-
-_VALID_TYPES: frozenset[str] = frozenset({'script', 'process', 'python_module'})
-
-
-class WorkerProperties:
-    """Holds Worker runtime parameters extracted from YAML config."""
-
-    __slots__ = ("_app",)
-
-    def __init__(self, app) -> None:
-        self._app = app
-
-    def init_worker_properties(self) -> None:
-        app_properties = self._app.app_properties_
-        if app_properties.type_ not in _VALID_TYPES:
-            raise ValueError(
-                f"Invalid worker type: {app_properties.type_!r}. Must be one of {sorted(_VALID_TYPES)}"
-            )
-        if not app_properties.command_:
-            raise ValueError("config.yaml missing required field: 'command'")
-```
-
-### platform/shell/status/__init__.py
-```
-﻿from shell.status.status import Status
-
-__all__ = ["Status"]
-```
-
-### platform/shell/status/module_status/__init__.py
-```
-﻿from shell.status.module_status.module_status import ModuleStatus
-```
-
-### platform/shell/status/module_status/module_status/__init__.py
-```
-﻿from shell.status.module_status.module_status.module_status import ModuleStatus
-```
-
-### platform/shell/status/module_status/module_status/module_status.py
-```
-"""module_status.py
-ModuleStatus — lifecycle status for node child modules.
-
-Values:
-    NEW   — initial; module constructed, not yet initialized
-    INIT  — init method has been called successfully
-"""
-
-from __future__ import annotations
-
-from enum import Enum
-
-
-class ModuleStatus(Enum):
-    NEW = 'new'
-    INIT = 'init'
-```
-
-### platform/shell/status/status/__init__.py
-```
-﻿from shell.status.status.status import Status
-```
-
-### platform/shell/status/status/status.py
-```
-﻿"""status.py
-Status — semantic result of a graph run.
-
-Values match OS exit codes:
-    SUCCESS  = 0
-    ERROR    = 1
-    TIMEOUT  = 2
-    WARNING  = 3
-    LOCKED   = 4
-    QUESTION = 5
-    WAITING  = 6
-    SKIP     = 7
-    READY        = 8
-    INITIALIZED  = 9
-    NULL         = 10
-    DONE         = 11
-    CRITICAL = 99
-"""
-
-from __future__ import annotations
-
-from enum import Enum
-
-
-class Status(int, Enum):
-    SUCCESS = 0
-    ERROR = 1
-    TIMEOUT = 2
-    WARNING = 3
-    LOCKED = 4
-    QUESTION = 5
-    WAITING = 6
-    SKIP = 7
-    READY = 8
-    INITIALIZED = 9
-    NULL = 10
-    DONE = 11
-    CRITICAL = 99
-
-    @classmethod
-    def from_returncode(cls, returncode: int) -> 'Status':
-        try:
-            return cls(returncode)
-        except ValueError:
-            return cls.ERROR
-
-    @classmethod
-    def from_str(cls, value: str) -> 'Status':
-        try:
-            return cls[value.upper()]
-        except KeyError:
-            raise ValueError(f"[Status] Unknown status value: '{value}'")
-```
-
-### platform/shell/structure/__init__.py
-```
-```
-
-### platform/shell/structure/graph/__init__.py
-```
-﻿from shell.structure.graph.graph.graph import Graph
-```
-
-### platform/shell/structure/graph/graph/__init__.py
-```
-﻿from shell.structure.graph.graph.graph import Graph
 ```

@@ -34,8 +34,10 @@ class WorkflowState:
         workflow_id: str,
         root_task_id: str | None = None,
         parent_workflow_id: str | None = None,
+        task_id: int | None = None,
+        session_id: str | None = None,
     ) -> None:
-        _open_workflow(self, workflow_id, root_task_id, parent_workflow_id)
+        _open_workflow(self, workflow_id, root_task_id, parent_workflow_id, task_id, session_id)
 
     def close_workflow(self, workflow_id: str, status: str = "COMPLETED") -> None:
         _close_workflow(self, workflow_id, status)
