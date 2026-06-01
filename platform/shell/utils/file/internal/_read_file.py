@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.utils.file.internal._assert_suffix_allowed import _assert_suffix_allowed

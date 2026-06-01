@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.internal._from_envelope import _from_envelope
 from shell.component.message.message_envelope.message_envelope import MessageEnvelope

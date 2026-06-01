@@ -1,4 +1,4 @@
-﻿"""router.py
+"""router.py
 Router: single entry point for all router-phase operations.
 
 Delegates graph state (node order, role map, neighbours) to RouterBase.
@@ -17,7 +17,6 @@ Query helpers (return values, never mutate app):
 
 from __future__ import annotations
 
-import shutil
 from collections.abc import Callable
 from datetime import datetime
 

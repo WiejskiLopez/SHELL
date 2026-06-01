@@ -1,11 +1,11 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
-from shell.module.router.router.parse_message_filename import parse_message_filename
 from shell.utils.path.path import Path, PathType
 
 
 def _get_stage_active_files(stage_active) -> list[PathType]:
+    from shell.module.router.router.parse_message_filename import parse_message_filename
     active_dir = stage_active.active_dir_
     if not Path.exists(active_dir):
         return []

@@ -1,4 +1,4 @@
-﻿"""_clean_output.py
+"""_clean_output.py
 Responsible for one thing: removing all contents of the output/ directory inside a node.
 """
 

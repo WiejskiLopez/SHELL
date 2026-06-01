@@ -1,4 +1,4 @@
-﻿"""event.py
+"""event.py
 Event — single execution event collected by AppTrace.
 
 Slots:

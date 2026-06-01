@@ -1,4 +1,4 @@
-﻿"""manifest.py
+"""manifest.py
 Manifest: structured representation of a loaded manifest.yaml file.
 
 Fields:

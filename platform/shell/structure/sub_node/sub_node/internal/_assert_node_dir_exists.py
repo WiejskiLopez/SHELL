@@ -1,4 +1,4 @@
-﻿"""_assert_node_dir_exists.py
+"""_assert_node_dir_exists.py
 Responsible for one thing: raising FileNotFoundError when the node directory is missing.
 """
 

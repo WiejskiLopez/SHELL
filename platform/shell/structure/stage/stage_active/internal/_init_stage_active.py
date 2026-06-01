@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.utils.path.path import Path
 from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_ACTIVE

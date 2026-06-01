@@ -1,4 +1,4 @@
-﻿"""prompt_skill.py
+"""prompt_skill.py
 PromptSkill — holds a list of PromptFile objects loaded from skill prompt files.
 
 Slots:

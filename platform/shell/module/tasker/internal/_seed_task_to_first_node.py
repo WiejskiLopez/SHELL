@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.module.tasker.internal._assert_first_non_router_node_exists import _assert_first_non_router_node_exists
 from shell.module.tasker.internal._assert_task_files_exist import _assert_task_files_exist

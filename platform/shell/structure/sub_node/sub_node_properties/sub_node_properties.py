@@ -1,4 +1,4 @@
-﻿"""sub_node_properties.py
+"""sub_node_properties.py
 SubNodeProperties — parsed attributes of a sub_node's config.yaml,
 with node infrastructure slots migrated from SubNodeConfiguration.
 

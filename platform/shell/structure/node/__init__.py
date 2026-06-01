@@ -1,1 +1,1 @@
-﻿from shell.structure.node.node.node import Node
+from shell.structure.node.node.node import Node

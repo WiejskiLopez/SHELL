@@ -1,4 +1,4 @@
-﻿"""status.py
+"""status.py
 Status — semantic result of a graph run.
 
 Values match OS exit codes:

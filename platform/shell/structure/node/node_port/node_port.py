@@ -1,4 +1,4 @@
-﻿"""node_port.py
+"""node_port.py
 NodePort — port (Protocol) abstrakcji storage dla operacji na nodzie.
 
 Definiuje kontrakt wymienny między adapterami:

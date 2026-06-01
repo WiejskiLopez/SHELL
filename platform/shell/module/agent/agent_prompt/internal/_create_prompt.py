@@ -1,4 +1,4 @@
-﻿from shell.module.agent.agent_prompt.internal._build_prompt_from_input import _build_prompt_from_input
+from shell.module.agent.agent_prompt.internal._build_prompt_from_input import _build_prompt_from_input
 from shell.module.agent.agent_prompt.internal._resolve_prompt import _resolve_prompt
 
 

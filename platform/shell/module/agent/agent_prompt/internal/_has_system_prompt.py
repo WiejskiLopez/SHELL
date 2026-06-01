@@ -1,4 +1,4 @@
-﻿"""_has_system_prompt.py
+"""_has_system_prompt.py
 Private. Responsible for one thing: checking whether a system prompt file
 for the given role already exists in the input/ directory.
 """

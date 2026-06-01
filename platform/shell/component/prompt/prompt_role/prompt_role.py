@@ -1,4 +1,4 @@
-﻿"""prompt_role.py
+"""prompt_role.py
 PromptRole — holds a list of PromptFile objects loaded from role prompt files.
 
 Slots:

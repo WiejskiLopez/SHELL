@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.internal._assert_meta_data_fields import _assert_meta_data_fields
 from shell.component.message.message_status.message_status import MessageStatus

@@ -1,4 +1,4 @@
-﻿"""node_input.py
+"""node_input.py
 NodeInput: single entry point for reading node input files.
 
 Fields (own):

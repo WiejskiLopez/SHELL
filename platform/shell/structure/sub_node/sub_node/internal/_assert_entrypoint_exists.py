@@ -1,4 +1,4 @@
-﻿"""_assert_entrypoint_exists.py
+"""_assert_entrypoint_exists.py
 Responsible for one thing: raising FileNotFoundError when entrypoint.py is missing.
 """
 

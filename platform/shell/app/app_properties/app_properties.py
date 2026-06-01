@@ -1,4 +1,4 @@
-﻿"""app_properties.py
+"""app_properties.py
 AppProperties — typed accessors for app's config.yaml values.
 
 Slots:

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.status.status import Status
 from shell.module.tasker.internal._run_iterative_tasker import _run_iterative_tasker

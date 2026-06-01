@@ -1,4 +1,4 @@
-﻿"""logger.py
+"""logger.py
 Logger: single-entry-point facade over the underlying logging.Logger.
 
 Consolidates all structured log operations for a node run:

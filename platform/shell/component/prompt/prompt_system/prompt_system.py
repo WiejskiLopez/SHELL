@@ -1,4 +1,4 @@
-﻿"""prompt_system.py
+"""prompt_system.py
 PromptSystem — holds system prompt list loaded from task-dir.
 
 Slots:

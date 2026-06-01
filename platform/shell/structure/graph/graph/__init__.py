@@ -1,1 +1,1 @@
-﻿from shell.structure.graph.graph.graph import Graph
+from shell.structure.graph.graph.graph import Graph

@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """node_output.py
 NodeOutput: single entry point for writing node output files.
 
@@ -13,6 +12,8 @@ Methods:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.component.message.message_list.message_list import MessageList

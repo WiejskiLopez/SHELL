@@ -1,4 +1,4 @@
-﻿"""File.py
+"""File.py
 File — DOM node representing a single file on disk.
 
 Fields:

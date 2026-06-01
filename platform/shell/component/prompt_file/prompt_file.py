@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """prompt_file.py
 PromptFile — represents a single prompt file loaded from disk.
 
@@ -9,6 +8,9 @@ Slots:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 from shell.component.prompt_file.internal._init_prompt_file import _init_prompt_file

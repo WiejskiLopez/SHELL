@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message.message import Message
 from shell.component.message.message_reader.internal._read_message_file import _read_message_file

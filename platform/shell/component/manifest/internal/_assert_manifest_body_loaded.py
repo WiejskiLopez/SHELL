@@ -1,4 +1,4 @@
-﻿"""_assert_manifest_body_loaded.py
+"""_assert_manifest_body_loaded.py
 Responsible for one thing: raising ValueError when manifest_file_body is empty.
 """
 

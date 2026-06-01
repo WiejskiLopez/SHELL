@@ -1,4 +1,4 @@
-﻿"""_validate_task.py
+"""_validate_task.py
 Responsible for one thing: asserting that all required task files exist.
 """
 

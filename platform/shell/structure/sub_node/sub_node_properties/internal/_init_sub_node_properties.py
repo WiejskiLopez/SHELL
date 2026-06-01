@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.structure.node.node.internal._validate_node import _validate_node
 

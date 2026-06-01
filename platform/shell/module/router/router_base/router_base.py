@@ -1,4 +1,4 @@
-﻿"""router_base.py
+"""router_base.py
 RouterBase: holds task files loaded from .node/task for every router node.
 
 Slots:

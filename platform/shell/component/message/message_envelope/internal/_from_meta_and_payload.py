@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 def _from_meta_and_payload(message_meta: object, payload: str) -> object:

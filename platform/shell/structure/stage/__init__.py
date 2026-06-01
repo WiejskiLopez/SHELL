@@ -1,1 +1,1 @@
-﻿from shell.structure.stage.stage.stage import Stage
+from shell.structure.stage.stage.stage import Stage

@@ -1,4 +1,4 @@
-﻿"""_init_node_config.py
+"""_init_node_config.py
 Private. Responsible for one thing: reading config.yaml into NodeConfig._config.
 """
 

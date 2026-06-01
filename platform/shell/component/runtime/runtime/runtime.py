@@ -1,4 +1,4 @@
-﻿"""runtime.py
+"""runtime.py
 Runtime — container for runtime-level objects shared across the graph run.
 
 Slots:

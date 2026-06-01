@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.structure.node.node_task.internal._assert_source_dir_set import _assert_source_dir_set

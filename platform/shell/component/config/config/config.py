@@ -1,4 +1,4 @@
-﻿"""config.py
+"""config.py
 Config: holder for the default config.yaml loaded from runner_root_dir.
 
 Slots:

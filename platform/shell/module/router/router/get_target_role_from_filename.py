@@ -1,4 +1,4 @@
-﻿from shell.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def get_target_role_from_filename(filename: str, roles: set) -> str | None:

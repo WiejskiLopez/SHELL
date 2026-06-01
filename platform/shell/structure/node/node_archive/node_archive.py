@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """node_archive.py  (node_archive)
 NodeArchive — single entry point for all node archive operations.
 
@@ -11,6 +10,8 @@ Methods:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 from collections.abc import Callable
 from datetime import datetime

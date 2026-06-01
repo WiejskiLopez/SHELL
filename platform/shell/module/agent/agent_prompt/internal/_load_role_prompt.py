@@ -1,4 +1,4 @@
-﻿"""_init_role_prompt.py
+"""_init_role_prompt.py
 Private. Responsible for one thing: loading a role prompt file from
 role_prompts/<role>.md into the Prompt instance.
 """

@@ -1,5 +1,6 @@
-﻿from shell.utils.path.path import PathType
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.module.router.router.parse_message_filename import SEPARATOR

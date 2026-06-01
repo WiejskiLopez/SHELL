@@ -1,4 +1,4 @@
-﻿"""_clean_dir.py
+"""_clean_dir.py
 Remove all files and subdirectories inside a single directory.
 """
 from __future__ import annotations

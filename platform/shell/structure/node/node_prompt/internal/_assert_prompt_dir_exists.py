@@ -1,4 +1,4 @@
-﻿"""_assert_prompt_dir_exists.py
+"""_assert_prompt_dir_exists.py
 Validate that the prompt directory exists and is a directory.
 """
 

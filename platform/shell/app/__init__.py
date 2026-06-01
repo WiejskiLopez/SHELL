@@ -1,1 +1,1 @@
-﻿from shell.app.app.app import App
+from shell.app.app.app import App

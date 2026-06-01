@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.message_meta import MessageMeta
 from shell.component.message.message_name.internal._format_name import _format_name

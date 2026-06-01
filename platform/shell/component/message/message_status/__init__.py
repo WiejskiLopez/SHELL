@@ -1,1 +1,1 @@
-﻿from shell.component.message.message_status.message_status import MessageStatus
+from shell.component.message.message_status.message_status import MessageStatus

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.utils.path.path import Path, PathType
 from datetime import datetime
@@ -16,8 +16,8 @@ class CliProperties:
 
     __slots__ = ("_cli",)
 
-    def __init__(self) -> None:
-        self._cli = None
+    def __init__(self, cli=None) -> None:
+        self._cli = cli
 
     @property
     def is_version_(self) -> bool:

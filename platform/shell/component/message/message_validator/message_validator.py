@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_validator.internal._is_valid_message import _is_valid_message
 from shell.component.message.message_validator.internal._validate_message_body import _validate_message_body

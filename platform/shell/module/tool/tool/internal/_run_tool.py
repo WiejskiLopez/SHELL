@@ -1,62 +1,35 @@
-﻿"""_run_tool.py
-Run the external tool defined in config.yaml.
-
-Tools are lightweight executables that do NOT generate working logs.
-Builds the subprocess command, runs it, captures output, and returns Status.
-"""
-
 from __future__ import annotations
 
 import subprocess
 
+from shell.component.process.process.process import Process
 from shell.status.status import Status
 
 
 def _run_tool(tool, runner=None) -> Status:
-    if runner is None:
-        runner = subprocess.run
-
     app = tool._app
-    app_properties = app.app_properties_
-    node_dir = app.app_node_.node_.node_dir_
-
-    cmd = _build_cmd(app_properties)
-
-    env = None
-
+    process = Process(app, runner)
+    process.init_process_tool()
     try:
-        proc = runner(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=app_properties.timeout_,
-            encoding='utf-8',
-            errors='replace',
-            cwd=node_dir,
-            env=env,
-        )
+        process.run_process()
         app.app_trace_.record_info(
             'tool._run_tool._run_tool',
-            f'returncode={proc.returncode}',
-            stdout=proc.stdout,
-            stderr=proc.stderr,
-            returncode=proc.returncode,
+            f'returncode={process.returncode_}',
+            stdout=process.stdout_,
+            stderr=process.stderr_,
+            returncode=process.returncode_,
         )
-        if proc.stderr:
+        if process.stderr_:
             app.app_trace_.record_warning(
                 'tool._run_tool._run_tool',
-                Exception(f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}"),
-                stdout=proc.stdout,
-                stderr=proc.stderr,
-                returncode=proc.returncode,
+                Exception(f"stderr (returncode={process.returncode_}): {process.stderr_.strip()}"),
+                stdout=process.stdout_,
+                stderr=process.stderr_,
+                returncode=process.returncode_,
             )
-        return Status.from_returncode(proc.returncode)
+        return Status.from_returncode(process.returncode_)
     except subprocess.TimeoutExpired:
         return Status.from_returncode(2)
     except Exception as exc:
         app.app_trace_.record_error('tool._run_tool._run_tool', exc)
         return Status.from_returncode(1)
-
-
-def _build_cmd(cfg) -> list[str]:
-    return [cfg.command_]

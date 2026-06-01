@@ -1,9 +1,11 @@
-﻿from shell.utils.path.path import PathType
 """_assert_suffix_allowed.py
 Validate that a file suffix is in the allowed set.
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 _ALLOWED_SUFFIXES: frozenset[str] = frozenset({

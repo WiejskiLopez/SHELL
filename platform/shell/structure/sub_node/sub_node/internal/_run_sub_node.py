@@ -1,4 +1,4 @@
-﻿"""_run_sub_node.py
+"""_run_sub_node.py
 Responsible for one thing: invoking a runner on a single task node via subprocess
 and updating the node status.
 """

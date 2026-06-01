@@ -1,4 +1,4 @@
-﻿from shell.constants.constants import DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP
+from shell.constants.constants import DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP
 
 _NODE_SUBDIRS = (DIR_OUTPUT, DIR_INPUT, DIR_ARCHIVE, DIR_TEMP)
 

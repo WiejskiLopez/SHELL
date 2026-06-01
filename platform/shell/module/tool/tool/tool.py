@@ -1,4 +1,4 @@
-﻿"""tool.py
+"""tool.py
 Tool — wrapper for external tools in a graph node.
 
 Tools are extra apps that do NOT generate working logs (unlike scripts/workers).

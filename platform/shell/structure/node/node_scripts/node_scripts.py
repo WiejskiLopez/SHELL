@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """node_scripts.py
 NodeScripts — scripts directory for a single node.
 
@@ -8,6 +7,8 @@ Slots:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.status.module_status.module_status import ModuleStatus

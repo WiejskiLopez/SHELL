@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.utils.file.internal._assert_file_body_not_empty import _assert_file_body_not_empty

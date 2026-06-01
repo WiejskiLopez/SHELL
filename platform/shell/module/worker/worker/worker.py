@@ -1,4 +1,4 @@
-﻿"""worker.py
+"""worker.py
 Worker — wrapper for external scripts and processes in a graph node.
 
 Responsibilities:

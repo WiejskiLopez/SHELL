@@ -1,4 +1,4 @@
-﻿"""_assert_role_set.py
+"""_assert_role_set.py
 Responsible for one thing: raising ValueError when a graph node has no role defined.
 """
 

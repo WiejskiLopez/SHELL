@@ -1,44 +1,32 @@
-﻿"""_run_once.py
-Responsible for one thing: running a CLI command once via subprocess.
-Writes stdout, stderr, returncode to app.
-On any error sets warning status.
-"""
+from __future__ import annotations
 
 import subprocess
 
+from shell.component.process.process.process import Process
 from shell.status.status import Status
 
 
 def _run_once(
-    cmd: list[str],
     prompt: str,
     timeout: int,
     app,
     runner=None,
+    which=None,
+    os_name=None,
 ) -> Status:
-    if runner is None:
-        runner = subprocess.run
-    node_dir = app.app_node_.node_.node_dir_
+    process = Process(app, runner)
+    process.init_process_agent(prompt, timeout, which, os_name)
     try:
-        proc = runner(
-            cmd,
-            input=prompt,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            encoding="utf-8",
-            errors="replace",
-            cwd=node_dir,
-        )
-        app.app_trace_.record_info('agent._run_once._run_once', f'returncode={proc.returncode}', stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
-        if proc.stdout and proc.stdout.strip():
-            app.app_trace_.record_info('agent._run_once._run_once', f'stdout:\n{proc.stdout.strip()}', stdout=proc.stdout, returncode=proc.returncode)
-        if proc.stderr:
-            if proc.returncode == 0:
-                app.app_trace_.record_info('agent._run_once._run_once', f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}", stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
+        process.run_process()
+        app.app_trace_.record_info('agent._run_once._run_once', f'returncode={process.returncode_}', stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
+        if process.stdout_ and process.stdout_.strip():
+            app.app_trace_.record_info('agent._run_once._run_once', f'stdout:\n{process.stdout_.strip()}', stdout=process.stdout_, returncode=process.returncode_)
+        if process.stderr_:
+            if process.returncode_ == 0:
+                app.app_trace_.record_info('agent._run_once._run_once', f"stderr (returncode={process.returncode_}): {process.stderr_.strip()}", stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
             else:
-                app.app_trace_.record_warning('agent._run_once._run_once', Exception(f"stderr (returncode={proc.returncode}): {proc.stderr.strip()}"), stdout=proc.stdout, stderr=proc.stderr, returncode=proc.returncode)
-        return Status.from_returncode(proc.returncode)
+                app.app_trace_.record_warning('agent._run_once._run_once', Exception(f"stderr (returncode={process.returncode_}): {process.stderr_.strip()}"), stdout=process.stdout_, stderr=process.stderr_, returncode=process.returncode_)
+        return Status.from_returncode(process.returncode_)
     except subprocess.TimeoutExpired as exc:
         partial_out = exc.output or ""
         partial_err = exc.stderr or f"Timeout after {timeout}s"

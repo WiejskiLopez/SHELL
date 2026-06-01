@@ -1,4 +1,4 @@
-﻿from shell.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 import sys
 
 

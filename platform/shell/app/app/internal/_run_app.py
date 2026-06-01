@@ -1,4 +1,4 @@
-﻿"""_run_app.py
+"""_run_app.py
 Phase — execute the runner, archive, finalize and return the exit code.
 """
 

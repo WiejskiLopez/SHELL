@@ -1,4 +1,4 @@
-﻿"""_save_archive_zip.py
+"""_save_archive_zip.py
 Private. Responsible for one thing: writing a timestamped ZIP archive
 containing app metadata and snapshots of input/, output/, logs/, tmp/.
 """

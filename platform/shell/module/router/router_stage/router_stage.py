@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """router_stage.py
 RouterStage — high-level stage management logic for the router node.
 
@@ -9,6 +8,8 @@ Delegates all physical I/O to NodeStage via app.app_node_.node_.node_stage_.
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.structure.node.node_stage.node_stage import NodeStage

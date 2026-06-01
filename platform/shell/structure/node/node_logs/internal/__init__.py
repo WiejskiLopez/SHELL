@@ -1,1 +1,1 @@
-﻿# shell/node_logs/internal package
+# shell/node_logs/internal package

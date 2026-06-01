@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.prompt_file.prompt_file import PromptFile
 from shell.component.prompt.prompt_input.internal._init_prompt_input import _init_prompt_input

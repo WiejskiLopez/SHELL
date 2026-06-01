@@ -1,4 +1,4 @@
-﻿from shell.utils.path.path import PathType
+from shell.utils.path.path import PathType
 """_build_log_path.py
 Responsible for one thing: building the log file path inside the node logs/ directory.
 Convention: logs/<role>.<YYYY-MM-DD_HH>.<level>.log_

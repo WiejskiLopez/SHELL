@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.module.tasker.internal._validate_task import _validate_task
 from shell.module.tasker.internal._seed_graph_node_task import _seed_graph_node_task

@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """acquire_lock.py
 Responsible for one thing: atomically acquiring an exclusive file lock
 on a node directory.  Raises LockError when the node is already locked.
@@ -12,6 +11,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timezone
 
+from shell.utils.path.path import PathType
 from shell.component.locker.internal._is_stale import _is_stale
 from shell.component.locker.internal._lock_error import LockError
 

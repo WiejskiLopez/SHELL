@@ -1,10 +1,12 @@
-﻿from shell.utils.path.path import PathType
 """release_lock.py
 Responsible for one thing: releasing (deleting) the node lock file.
 Safe to call even when the file has already been removed.
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 from collections.abc import Callable
 

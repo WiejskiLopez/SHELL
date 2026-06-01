@@ -1,4 +1,4 @@
-﻿"""_assert_node_in_graph.py
+"""_assert_node_in_graph.py
 Responsible for one thing: raising ValueError when a node id is not found in the graph.
 """
 

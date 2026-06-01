@@ -1,4 +1,4 @@
-﻿"""run_agent.py
+"""run_agent.py
 Responsible for one thing: running the CLI command via subprocess,
 capturing stdout/stderr, handling TimeoutExpired and retries.
 Writes stdout, stderr, returncode to app.
@@ -31,25 +31,22 @@ def _run_agent(
     if sleep is None:
         sleep = time.sleep
     app = agent._app
-    cmd: list[str] = agent._agent_command.command_
+    which = agent.which_
+    os_name = agent.os_name_
     timeout: int = app.runner_.agent_.agent_properties_.timeout_
     retries: int = app.runner_.agent_.agent_properties_.retries_
     retry_delay: float = app.runner_.agent_.agent_properties_.retry_delay_
     prompt: str = app.runner_.agent_.agent_prompt_.prompt()
-    cli = app.cli_
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'parent_thread_id={cli.parent_thread_id_} thread_id={cli.thread_id_}')
-    binds = [(name, value) for name, value in app.placeholders_.placeholder_list_]
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'placeholders before apply: {binds}')
+
     prompt = app.placeholders_.apply(prompt)
     _assert_prompt_not_empty(prompt)
-    app.app_trace_.record_info('agent._run_agent._run_agent', f'cmd: {cmd}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'cwd: {app.app_node_.node_.node_dir_}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'timeout={timeout} retries={retries} retry_delay={retry_delay}')
     app.app_trace_.record_info('agent._run_agent._run_agent', f'prompt ({len(prompt)} chars):\n{prompt}')
 
     for attempt in range(retries + 1):
 
-        status = _run_once(cmd=cmd, prompt=prompt, timeout=timeout, app=app, runner=runner)
+        status = _run_once(prompt=prompt, timeout=timeout, app=app, runner=runner, which=which, os_name=os_name)
 
         if status == Status.SUCCESS:
             app.app_trace_.record_info('agent._run_agent._run_agent', f'Command succeeded on attempt {attempt + 1}.')

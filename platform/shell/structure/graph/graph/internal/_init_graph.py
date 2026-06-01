@@ -1,4 +1,4 @@
-﻿"""_init_graph.py
+"""_init_graph.py
 Private. Load graph YAML from disk, validate and initialize graph_nodes.
 """
 

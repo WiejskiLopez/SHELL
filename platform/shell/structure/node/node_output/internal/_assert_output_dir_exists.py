@@ -1,4 +1,4 @@
-﻿"""_assert_output_dir_exists.py
+"""_assert_output_dir_exists.py
 Validate that the output directory exists and is a directory.
 """
 

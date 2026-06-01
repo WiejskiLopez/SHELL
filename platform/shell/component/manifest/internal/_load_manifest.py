@@ -1,4 +1,4 @@
-﻿
+
 from shell.component.manifest.manifest import Manifest
 from shell.utils.path.path import Path, PathType
 from shell.constants.constants import MANIFEST_YAML

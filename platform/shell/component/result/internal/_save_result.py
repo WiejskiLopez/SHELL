@@ -1,4 +1,4 @@
-﻿"""_save_result.py
+"""_save_result.py
 Responsible for one thing: persisting the graph result to .node/result/.
 
 Files written:

@@ -1,5 +1,6 @@
-﻿from shell.utils.path.path import PathType
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.structure.node.node.internal._assert_node_dir_is_dir import _assert_node_dir_is_dir

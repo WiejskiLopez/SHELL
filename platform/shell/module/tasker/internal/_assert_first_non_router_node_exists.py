@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 def _assert_first_non_router_node_exists(first_node) -> None:

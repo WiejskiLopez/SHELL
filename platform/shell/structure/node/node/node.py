@@ -1,4 +1,4 @@
-﻿"""node.py
+"""node.py
 Node — single entry point for all node directory operations.
 
 Slots (own, private):

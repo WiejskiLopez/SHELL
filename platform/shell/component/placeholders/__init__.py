@@ -1,1 +1,1 @@
-﻿from shell.component.placeholders.placeholders import Placeholders
+from shell.component.placeholders.placeholders import Placeholders

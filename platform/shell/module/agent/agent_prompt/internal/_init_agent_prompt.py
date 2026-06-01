@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 from shell.module.agent.agent_prompt.internal._assert_task_dir_resolved import _assert_task_dir_resolved

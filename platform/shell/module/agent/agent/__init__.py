@@ -1,3 +1,3 @@
-﻿from shell.module.agent.agent.agent import Agent
+from shell.module.agent.agent.agent import Agent
 
 __all__ = ["Agent"]

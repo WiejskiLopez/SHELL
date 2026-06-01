@@ -1,4 +1,4 @@
-﻿"""_init_app.py
+"""_init_app.py
 Phase 1 — build and return a App from CLI args.
 """
 

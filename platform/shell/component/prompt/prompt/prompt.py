@@ -1,5 +1,8 @@
-﻿from shell.utils.path.path import PathType
+
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 from shell.component.prompt_file.prompt_file import PromptFile

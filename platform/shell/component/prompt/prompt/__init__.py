@@ -1,1 +1,1 @@
-﻿from shell.component.prompt.prompt.prompt import Prompt
+from shell.component.prompt.prompt.prompt import Prompt

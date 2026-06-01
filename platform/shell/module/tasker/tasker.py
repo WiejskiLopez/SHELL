@@ -1,4 +1,4 @@
-﻿"""tasker.py
+"""tasker.py
 Tasker: structured runtime state for a single task.
 
 Slots:

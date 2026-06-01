@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """node_task.py
 NodeTask: loads task files from task_dir and saves them to the node's task/ folder.
 
@@ -11,6 +10,8 @@ Slots:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 import yaml
 

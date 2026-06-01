@@ -1,4 +1,4 @@
-﻿"""node_config.py
+"""node_config.py
 NodeConfig — loader and holder for node_dir/.node/config/config.yaml.
 
 Slots:

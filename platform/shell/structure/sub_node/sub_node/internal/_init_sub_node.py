@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.config.config.config import Config
 from shell.utils.path.path import Path

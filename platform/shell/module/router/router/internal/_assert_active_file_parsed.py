@@ -1,4 +1,4 @@
-﻿from shell.utils.path.path import PathType
+from shell.utils.path.path import PathType
 
 from shell.module.router.router.parse_message_filename import MessageFilename
 

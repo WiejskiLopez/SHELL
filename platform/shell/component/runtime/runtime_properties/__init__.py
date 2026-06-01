@@ -1,1 +1,1 @@
-﻿from shell.component.runtime.runtime_properties.runtime_properties import RuntimeProperties
+from shell.component.runtime.runtime_properties.runtime_properties import RuntimeProperties

@@ -1,4 +1,4 @@
-﻿from shell.component.message.message.message import Message
+from shell.component.message.message.message import Message
 from shell.component.message.message_envelope.message_envelope import MessageEnvelope
 from shell.component.message.message_formatter.message_formatter import MessageFormatter
 from shell.component.message.message_list.message_list import MessageList

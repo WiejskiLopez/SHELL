@@ -1,4 +1,4 @@
-﻿"""_assert_task_md_exists.py
+"""_assert_task_md_exists.py
 Responsible for one thing: raising FileNotFoundError when the task markdown file is missing.
 """
 

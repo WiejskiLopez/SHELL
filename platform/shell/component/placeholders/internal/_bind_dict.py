@@ -1,4 +1,4 @@
-﻿from shell.component.placeholders.internal._add_placeholder import _add_placeholder
+from shell.component.placeholders.internal._add_placeholder import _add_placeholder
 from shell.component.placeholders.internal._set_placeholder import _set_placeholder
 
 

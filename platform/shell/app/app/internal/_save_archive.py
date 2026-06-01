@@ -1,4 +1,4 @@
-﻿"""_save_archive.py
+"""_save_archive.py
 Phase — archive the node execution state.
 """
 

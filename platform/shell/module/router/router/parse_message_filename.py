@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.utils.path.path import Path, PathType
 from dataclasses import dataclass

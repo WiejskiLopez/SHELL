@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 
 def _from_envelope(envelope: object, source_name: str, source_type: object) -> object:

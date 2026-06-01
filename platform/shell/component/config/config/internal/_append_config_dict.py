@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.config.config.internal._append_config_value import _append_config_value
 

@@ -1,4 +1,4 @@
-﻿"""_assert_task_graph_yaml_valid.py
+"""_assert_task_graph_yaml_valid.py
 Responsible for one thing: validating the structure of a loaded graph YAML dict.
 """
 

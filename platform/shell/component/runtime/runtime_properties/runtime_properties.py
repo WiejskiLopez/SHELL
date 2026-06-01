@@ -1,4 +1,4 @@
-﻿"""runtime_properties.py
+"""runtime_properties.py
 RuntimeProperties — typed accessors for runtime's config.yaml values.
 
 Slots:

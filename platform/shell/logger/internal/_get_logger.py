@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """_get_logger.py
 Private. Responsible for one thing: providing a configured logger
 that writes to a log file (configured level) and stderr (WARNING+).
@@ -7,6 +6,9 @@ Log format: timestamp | level | message
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 import logging
 from collections.abc import Callable

@@ -1,4 +1,4 @@
-﻿"""node_status.py
+"""node_status.py
 NodeStatus — owns and manages the status of a single node.
 
 Slots:

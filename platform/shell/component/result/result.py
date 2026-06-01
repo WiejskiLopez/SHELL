@@ -1,4 +1,4 @@
-﻿"""result.py
+"""result.py
 Result — singleton execution result for a single shell graph run.
 
 Klasa `Result` jest tworzona raz na uruchomienie i aktualizowana
@@ -90,6 +90,9 @@ class Result:
     def status_(self) -> Status:
         """Return current graph status."""
         return self._status
+
+    def set_status(self, status: Status) -> None:
+        self._status = status
 
     @property
     def stdout_(self) -> str | None:

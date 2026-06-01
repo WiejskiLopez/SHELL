@@ -1,4 +1,4 @@
-﻿from shell.utils.path.path import PathType
+from shell.utils.path.path import PathType
 
 
 def _assert_source_dir_set(source_dir) -> None:

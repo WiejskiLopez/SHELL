@@ -1,4 +1,4 @@
-﻿"""_is_stale.py
+"""_is_stale.py
 Private. Responsible for one thing: determining whether a lock file is stale
 (i.e. the owning process no longer exists).
 """

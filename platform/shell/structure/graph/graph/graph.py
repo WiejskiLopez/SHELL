@@ -1,9 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.structure.graph.graph.internal._init_graph import _init_graph
 from shell.structure.sub_node.sub_node.sub_node import SubNode
 from shell.status.status import Status
-from shell.constants.constants import DOT_NODE, DIR_TASK
 
 
 class Graph:
@@ -21,10 +20,10 @@ class Graph:
     def __init__(self, app=None) -> None:
         self._sub_nodes: list[SubNode] = []
         self._app = app
-        self._status = Status
+        self._status: Status = Status.NULL
 
     @property
-    def status_(self):
+    def status_(self) -> Status:
         return self._status
 
     # ------------------------------------------------------------------ #
@@ -43,11 +42,6 @@ class Graph:
     # ------------------------------------------------------------------ #
     # Pure queries                                                         #
     # ------------------------------------------------------------------ #
-
-    @property
-    def _graph_path_(self):  ## to raczej do wywalenia, graph powinien dostawac to jako argument, a nie sam sobie wyliczac
-        """Return the resolved path to the graph YAML file."""
-        return (self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve() / f"{self._app.app_node_.node_.node_name_}.yaml"
 
     @property
     def sub_nodes_(self) -> list:

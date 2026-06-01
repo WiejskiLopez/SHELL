@@ -1,4 +1,4 @@
-﻿"""load_router_params.py — DEPRECATED.
+"""load_router_params.py — DEPRECATED.
 Use app.runner_.router_.init_router() instead.
 """
 

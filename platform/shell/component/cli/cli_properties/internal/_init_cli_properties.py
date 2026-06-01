@@ -1,4 +1,4 @@
-﻿from shell.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
+from shell.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
 from shell.component.cli.cli.internal._assert_source_dir_set import _assert_source_dir_set
 from shell.component.cli.cli.internal._assert_task_name_set import _assert_task_name_set
 from shell.component.cli.cli.internal._assert_task_dir_set import _assert_task_dir_set

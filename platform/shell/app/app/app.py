@@ -1,4 +1,4 @@
-﻿"""app.py
+"""app.py
 App — central runtime state for a shell graph run.
 
 Holds typed references to all module objects and flat configuration values.
@@ -17,7 +17,7 @@ from shell.component.placeholders.placeholders import Placeholders
 from shell.app.app_trace.app_trace import AppTrace
 from shell.app.app_properties.app_properties import AppProperties
 from shell.component.result.result import Result
-from shell.component.runner.runner.runner import Runner
+from shell.app.app_runner.app_runner import AppRunner
 from shell.component.runtime.runtime.runtime import Runtime
 from shell.app.app.internal._init_app import _init_app
 from shell.app.app.internal._run_app import _run_app
@@ -41,26 +41,16 @@ class App:
         '_runtime',
     )
 
-    def __init__(
-        self,
-        mode: str | None = None,
-        logger: Any = None,
-        status: str | None = None,
-    ) -> None:
-        # Module backing slots
+    def __init__(self) -> None:
         self._app_node: AppNode | None = None
-        self._runner: Runner | None = None
+        self._runner: AppRunner | None = None
         self._cli: Cli | None = None
         self._app_config: Config | None = None
-        self._result: Result | None = Result(self)
+        self._result: Result | None = None
         self._app_trace: AppTrace | None = None
         self._placeholders: Placeholders | None = None
         self._app_properties: AppProperties | None = None
         self._runtime: Runtime | None = None
-        if status is not None:
-            self._result._status = status
-        if mode is not None:
-            self.runner_._mode = mode
 
     # -----------------------------------------------------------------------
     # Repr
@@ -97,10 +87,10 @@ class App:
     # -----------------------------------------------------------------------
 
     @property
-    def runner_(self) -> Runner:
+    def runner_(self) -> AppRunner:
         """Return the cached Runner for this app."""
         if self._runner is None:
-            self._runner = Runner(self)
+            self._runner = AppRunner(self)
         return self._runner
 
     # AppNode facade
@@ -130,8 +120,7 @@ class App:
     @property
     def runtime_(self) -> Runtime:
         if self._runtime is None:
-            self._runtime = Runtime()
-            self._runtime._app = self
+            self._runtime = Runtime(self)
         return self._runtime
 
     @property

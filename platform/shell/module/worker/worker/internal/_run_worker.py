@@ -1,4 +1,4 @@
-﻿"""_run_worker.py
+"""_run_worker.py
 Run the external script or process defined in worker.yaml.
 
 Builds the subprocess command from WorkerConfig, runs it, captures output,

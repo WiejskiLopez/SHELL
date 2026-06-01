@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.module.router.router.parse_message_filename import parse_message_filename
 

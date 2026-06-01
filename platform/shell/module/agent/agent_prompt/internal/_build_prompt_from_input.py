@@ -1,4 +1,4 @@
-﻿"""_build_prompt_from_input.py
+"""_build_prompt_from_input.py
 Private. Responsible for one thing: building the full prompt string from
 *.md files already loaded into app.app_node_.node_.node_input_.input_files_map_.
 """

@@ -1,4 +1,3 @@
-﻿from shell.utils.path.path import PathType
 """node_prompt.py
 NodePrompt: loads all *.prompt.md files from task_dir into a list.
 
@@ -13,6 +12,8 @@ Methods:
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.status.module_status.module_status import ModuleStatus

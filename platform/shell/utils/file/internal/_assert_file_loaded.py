@@ -1,9 +1,11 @@
-﻿from shell.utils.path.path import PathType
 """_assert_file_loaded.py
 Validate that file has been loaded (file_body is not empty).
 """
 
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
 
 
 

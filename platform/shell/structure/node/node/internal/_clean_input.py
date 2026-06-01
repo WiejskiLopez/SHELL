@@ -1,4 +1,4 @@
-﻿"""_clean_input.py
+"""_clean_input.py
 Responsible for one thing: removing all contents of the input/ directory inside a node.
 """
 

@@ -1,4 +1,4 @@
-﻿from shell.module.router.router.parse_message_filename import MessageFilename
+from shell.module.router.router.parse_message_filename import MessageFilename
 
 
 def _assert_step_within_ttl(parsed: MessageFilename, max_step: int) -> None:

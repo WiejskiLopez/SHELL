@@ -1,1 +1,1 @@
-﻿# shell/node_prompt/internal package
+# shell/node_prompt/internal package

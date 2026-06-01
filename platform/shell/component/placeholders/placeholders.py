@@ -1,4 +1,4 @@
-﻿"""placeholders.py
+"""placeholders.py
 Placeholders — utility class for replacing $$name$$ tokens in prompt text.
 
 Slots:

@@ -1,5 +1,6 @@
-﻿from shell.utils.path.path import PathType
 from __future__ import annotations
+
+from shell.utils.path.path import PathType
 
 
 from shell.status.module_status.module_status import ModuleStatus

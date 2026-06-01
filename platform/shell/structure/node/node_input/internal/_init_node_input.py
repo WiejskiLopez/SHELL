@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_list.message_list import MessageList
 from shell.component.message.message_reader.message_reader import MessageReader

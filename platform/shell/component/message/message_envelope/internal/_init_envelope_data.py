@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_envelope.internal._assert_envelope_fields import _assert_envelope_fields
 from shell.component.message.message_meta.message_meta import MessageMeta

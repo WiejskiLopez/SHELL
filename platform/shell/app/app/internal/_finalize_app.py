@@ -1,4 +1,4 @@
-﻿"""_finalize_app.py
+"""_finalize_app.py
 Phase — release the lock and clean up after execution.
 """
 

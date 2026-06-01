@@ -1,4 +1,4 @@
-﻿"""graph_status.py
+"""graph_status.py
 GraphStatus — derives overall graph status from node statuses.
 
 Slots:

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.structure.graph.graph.internal._persist_node_status import _persist_node_status
 from shell.status.status import Status

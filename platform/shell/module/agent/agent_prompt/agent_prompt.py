@@ -1,4 +1,4 @@
-﻿"""agent_prompt.py
+"""agent_prompt.py
 AgentPrompt: single entry point for prompt state for a single node run.
 
 Fields (own):

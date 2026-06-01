@@ -1,4 +1,4 @@
-﻿"""app_trace.py
+"""app_trace.py
 AppTrace — collects execution events during a single shell graph run.
 
 Accumulates events (error, warning, success, info) from all phases.

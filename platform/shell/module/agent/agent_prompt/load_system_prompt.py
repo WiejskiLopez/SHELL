@@ -1,4 +1,4 @@
-﻿"""init_system_prompt.py  (prompt)
+"""init_system_prompt.py  (prompt)
 Responsible for one thing: ensuring the agent's input/ contains a system
 prompt file matching its role.
 

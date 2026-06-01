@@ -1,4 +1,4 @@
-﻿"""app_node.py
+"""app_node.py
 AppNode: structured value object for the current node in the context of App.
 
 Analogous to SubNode (which represents a single node in a graph),

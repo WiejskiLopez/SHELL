@@ -1,4 +1,4 @@
-﻿"""prompt_cli.py
+"""prompt_cli.py
 PromptCli — holds the CLI-sourced prompt for a single agent run.
 
 Slots:

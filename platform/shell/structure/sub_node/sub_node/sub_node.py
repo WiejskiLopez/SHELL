@@ -1,4 +1,4 @@
-﻿"""sub_node.py
+"""sub_node.py
 SubNode: structured value object for a single graph node.
 
 Slots:

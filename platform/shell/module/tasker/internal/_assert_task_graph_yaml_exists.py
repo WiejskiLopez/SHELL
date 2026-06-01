@@ -1,4 +1,4 @@
-﻿"""_assert_task_graph_yaml_exists.py
+"""_assert_task_graph_yaml_exists.py
 Responsible for one thing: raising FileNotFoundError when the task graph YAML file is missing.
 """
 

@@ -1,4 +1,4 @@
-﻿"""_print_app.py
+"""_print_app.py
 Responsible for one thing: printing stdout, stderr and result summary to the output callable.
 """
 

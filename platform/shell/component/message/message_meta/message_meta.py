@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from shell.component.message.message_meta.internal._init_meta_data import _init_meta_data
 from shell.component.message.message_meta.internal._reverse_message_meta import _reverse_message_meta

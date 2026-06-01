@@ -1,4 +1,4 @@
-﻿"""_result_app.py
+"""_result_app.py
 Phase — resolve final status and return the OS exit code.
 """
 

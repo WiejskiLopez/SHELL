@@ -1,6 +1,1342 @@
-### platform/dirnode/structure/node/node_output/node_output.py
+### platform/shell/structure/graph/graph/graph.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from __future__ import annotations
+
+from shell.structure.graph.graph.internal._init_graph import _init_graph
+from shell.structure.sub_node.sub_node.sub_node import SubNode
+from shell.status.status import Status
+from shell.constants.constants import DOT_NODE, DIR_TASK
+
+
+class Graph:
+    """Graph nodes loaded from a task YAML.
+
+    ``self.graph_nodes`` is an empty list until ``init_graph`` is called,
+    at which point it is populated as ``list[SubNode]`` from ``task_graph_yaml``.
+
+    Supports iteration, len, and indexing so it can be used directly
+    wherever a sequence of graph nodes is expected.
+    """
+
+    __slots__ = ("_sub_nodes", "_app", "_status")
+
+    def __init__(self, app=None) -> None:
+        self._sub_nodes: list[SubNode] = []
+        self._app = app
+        self._status = Status
+
+    @property
+    def status_(self):
+        return self._status
+
+    # ------------------------------------------------------------------ #
+    # Sequence protocol                                                    #
+    # ------------------------------------------------------------------ #
+
+    def __iter__(self):
+        return iter(self._sub_nodes)
+
+    def __len__(self) -> int:
+        return len(self._sub_nodes)
+
+    def __getitem__(self, index):
+        return self._sub_nodes[index]
+
+    # ------------------------------------------------------------------ #
+    # Pure queries                                                         #
+    # ------------------------------------------------------------------ #
+
+    @property
+    def _graph_path_(self):  ## to raczej do wywalenia, graph powinien dostawac to jako argument, a nie sam sobie wyliczac
+        """Return the resolved path to the graph YAML file."""
+        return (self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve() / f"{self._app.app_node_.node_.node_name_}.yaml"
+
+    @property
+    def sub_nodes_(self) -> list:
+        return self._sub_nodes
+
+    # ------------------------------------------------------------------ #
+    # Mutating operations                                                  #
+    # ------------------------------------------------------------------ #
+
+    def init_graph(
+        self,
+        reader=None,
+        writer=None,
+    ) -> None:
+        _init_graph(self, reader=reader, writer=writer)
+```
+
+### platform/shell/structure/graph/graph/internal/__init__.py
+```
+```
+
+### platform/shell/structure/graph/graph/internal/_init_graph.py
+```
+﻿"""_init_graph.py
+Private. Load graph YAML from disk, validate and initialize graph_nodes.
+"""
+
+from __future__ import annotations
+
+import yaml
+
+from shell.utils.io.io import default_read_utf8, default_write_utf8
+from shell.status.status import Status
+from shell.structure.sub_node.sub_node.sub_node import SubNode
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_TASK
+
+
+def _init_graph(graph, reader=None, writer=None) -> None:
+    if reader is None:
+        reader = default_read_utf8
+    if writer is None:
+        writer = default_write_utf8
+
+    task_graph_dict = graph._app.app_node_.node_.node_task_.task_graph_dict_
+    task_dir = (graph._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
+
+    sub_nodes = []
+    for sub_node_dict in task_graph_dict['graph']:
+        sub_node = SubNode(app=graph._app)
+        sub_node.init_sub_node(sub_node_dict, writer=writer, reader=reader)
+        sub_nodes.append(sub_node)
+    graph._sub_nodes = sub_nodes
+
+    task_name = graph._app.app_node_.node_.node_task_.task_name_
+    yaml_path = task_dir / f'{task_name}.yaml'
+    Path.write_text(yaml_path, yaml.dump(task_graph_dict, default_flow_style=False, allow_unicode=True))
+    graph._app.app_trace_.record_info(
+        'graph._init_graph._init_graph',
+        f'persisted graph status to {yaml_path.name}'
+    )
+```
+
+### platform/shell/structure/graph/graph/internal/_load_graph_yaml.py
+```
+﻿from __future__ import annotations
+
+import yaml
+
+from shell.module.tasker.internal._assert_task_graph_yaml_valid import _assert_task_graph_yaml_valid
+
+
+def _load_graph_yaml(graph) -> dict:
+    task_yaml_file_body = graph._app.app_node_.node_.node_task_.task_yaml_file_body_
+    graph_yaml = yaml.safe_load(task_yaml_file_body)
+    _assert_task_graph_yaml_valid(graph_yaml)
+    return graph_yaml
+```
+
+### platform/shell/structure/graph/graph/internal/_persist_node_status.py
+```
+﻿from __future__ import annotations
+
+import yaml
+
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DOT_NODE, DIR_TASK
+
+
+def _persist_node_status(sub_node, app) -> None:
+    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
+    yaml_files = Path.glob(task_dir, '*.yaml')
+    if not yaml_files:
+        return
+    yaml_path = yaml_files[0]
+    data = yaml.safe_load(Path.read_text(yaml_path)) or {}
+    for node_dict in data.get('graph', []):
+        if node_dict.get('node_name') == sub_node.node_name_:
+            node_dict['status'] = sub_node.status_.name
+            break
+    Path.write_text(yaml_path, yaml.dump(data, default_flow_style=False, allow_unicode=True))
+    app.app_trace_.record_info(
+        'graph._persist_node_status._persist_node_status',
+        f'persisted status={sub_node.status_.name} for node {sub_node.node_name_} to {yaml_path.name}'
+    )
+```
+
+### platform/shell/structure/graph/graph_status/graph_status.py
+```
+﻿"""graph_status.py
+GraphStatus — derives overall graph status from node statuses.
+
+Slots:
+    _graph    — parent Graph instance (back-reference)
+    _app  — parent App instance (back-reference)
+
+Validated properties:
+    graph_status_  — overall Status derived from node statuses
+"""
+
+from __future__ import annotations
+class Status(int, Enum):
+    SUCCESS = 0
+    ERROR = 1
+    TIMEOUT = 2
+    WARNING = 3
+    LOCKED = 4
+    QUESTION = 5
+    WAITING = 6
+    SKIP = 7
+    READY = 8
+    INITIALIZED = 9
+    NULL = 10
+    DONE = 11
+    CRITICAL = 99tam gdzie uzywana 
+from shell.status.status import Status
+
+_STATUS_PRIORITY = (
+    Status.ERROR,
+    Status.LOCKED,
+    Status.TIMEOUT,
+    Status.WAITING,
+    Status.QUESTION,
+)
+_SUCCESS_STATES = frozenset({Status.SUCCESS, Status.SKIP})
+
+
+class GraphStatus:
+    """Derives overall graph status from node statuses (priority order).
+
+    Priority: ERROR > LOCKED > TIMEOUT > WAITING > QUESTION > SUCCESS.
+    Returns Status.SUCCESS only when all nodes are in {SUCCESS, SKIP}.
+    """
+
+    __slots__ = ("_graph", "_app")
+
+    def __init__(self, graph) -> None:
+        self._graph = graph
+        self._app = graph._app
+
+    @property
+    def graph_status_(self) -> Status:
+        """Derive overall graph status from node statuses (priority order)."""
+        sub_nodes = self._graph.sub_nodes_
+        statuses = {n.node_.status_ for n in sub_nodes}
+        for s in _STATUS_PRIORITY:
+            if s in statuses:
+                return s
+        if all(n.node_.status_ in _SUCCESS_STATES for n in sub_nodes):
+            return Status.SUCCESS
+        for node in sub_nodes:
+            if node.node_.status_ not in _SUCCESS_STATES:
+                return node.node_.status_
+        return Status.SUCCESS
+```
+
+### platform/shell/structure/node/__init__.py
+```
+﻿from shell.structure.node.node.node import Node
+```
+
+### platform/shell/structure/node/node/__init__.py
+```
+﻿from shell.structure.node.node.node import Node
+```
+
+### platform/shell/structure/node/node/internal/__init__.py
+```
+```
+
+### platform/shell/structure/node/node/internal/_assert_config_yaml_exists.py
+```
+﻿from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_config_yaml_exists(path: PathType) -> None:
+    if not Path.is_file(path):
+        raise FileNotFoundError(f"[_validate_node] Node config not found: {path}")
+```
+
+### platform/shell/structure/node/node/internal/_assert_input_dir_exists.py
+```
+﻿"""_assert_input_dir_exists.py
+Responsible for one thing: raising FileNotFoundError when the node input/ directory is missing.
+"""
+
+from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_input_dir_exists(path: PathType) -> None:
+    if not Path.is_dir(path):
+        raise FileNotFoundError(f"[_validate_node] Node input/ not found: {path}")
+```
+
+### platform/shell/structure/node/node/internal/_assert_node_dir_is_dir.py
+```
+﻿"""_assert_node_dir_is_dir.py
+Responsible for one thing: raising FileNotFoundError when a node directory does not exist.
+"""
+
+from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_node_dir_is_dir(path: PathType, context: str) -> None:
+    if not Path.is_dir(path):
+        raise FileNotFoundError(f"[{context}] Node directory not found: {path}")
+```
+
+### platform/shell/structure/node/node/internal/_assert_node_dir_set.py
+```
+"""_assert_node_dir_set.py
+Responsible for one thing: raising ValueError when node_dir is not set.
+"""
+
+from __future__ import annotations
+
+
+def _assert_node_dir_set(node_dir: str | None) -> None:
+    if node_dir is None:
+        raise ValueError("[Node] node_dir is not set")
+```
+
+### platform/shell/structure/node/node/internal/_assert_node_name_resolvable.py
+```
+"""_assert_node_name_resolvable.py
+Responsible for one thing: raising ValueError when neither _node_name nor _node_dir is set.
+"""
+
+
+def _assert_node_name_resolvable(node_name: str | None, node_dir: str | None) -> None:
+    """Raise ValueError if both node_name and node_dir are falsy."""
+    if not node_name and not node_dir:
+        raise ValueError("[Node] _node_name is not set and _node_dir is not set")
+```
+
+### platform/shell/structure/node/node/internal/_assert_source_dir_set.py
+```
+﻿from shell.utils.path.path import PathType
+from __future__ import annotations
+
+
+
+def _assert_source_dir_set(source_dir: PathType | None) -> None:
+    if source_dir is None:
+        raise RuntimeError("[Node] source_dir is not set — pass --source-dir to the CLI")
+```
+
+### platform/shell/structure/node/node/internal/_clean_dir.py
+```
+﻿"""_clean_dir.py
+Remove all files and subdirectories inside a single directory.
+"""
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from shell.utils.path.path import Path, PathType
+
+
+def _clean_dir(
+    target: PathType,
+    rmtree: Callable[[PathType], None] | None = None,
+    unlink: Callable[[PathType], None] | None = None,
+) -> None:
+    """Remove all contents of *target* directory (if it exists).
+
+    Does NOT remove the directory itself.
+    """
+    if not Path.exists(target):
+        return
+    if rmtree is None:
+        rmtree = Path.rmtree
+    if unlink is None:
+        unlink = Path.unlink
+    for item in Path.iterdir(target):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                unlink(item)
+            elif Path.is_dir(item):
+                rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node/internal/_clean_input.py
+```
+﻿"""_clean_input.py
+Responsible for one thing: removing all contents of the input/ directory inside a node.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from shell.utils.path.path import Path, PathType
+
+
+def _clean_input(
+    node: PathType,
+    rmtree: Callable[[PathType], None] | None = None,
+    unlink: Callable[[PathType], None] | None = None,
+) -> None:
+    """Remove all files and subdirectories inside <node>/input/."""
+    if rmtree is None:
+        rmtree = Path.rmtree
+    if unlink is None:
+        unlink = Path.unlink
+    target = node / ".node" / "input"
+    if not Path.exists(target):
+        return
+    for item in Path.iterdir(target):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                unlink(item)
+            elif Path.is_dir(item):
+                rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node/internal/_clean_node.py
+```
+from __future__ import annotations
+
+
+def _clean_node(node) -> None:
+    node.node_input_.clean_node_input()
+    node.node_output_.clean_node_output()
+    node.node_temp_.clean_node_temp()
+    node.node_scripts_.clean_node_scripts()
+    node.node_logs_.clean_node_logs()
+    node.node_stage_.clean_node_stage()
+    node.node_archive_.clean_node_archive()
+```
+
+### platform/shell/structure/node/node/internal/_clean_output.py
+```
+﻿"""_clean_output.py
+Responsible for one thing: removing all contents of the output/ directory inside a node.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from shell.utils.path.path import Path, PathType
+
+
+def _clean_output(
+    node: PathType,
+    rmtree: Callable[[PathType], None] | None = None,
+    unlink: Callable[[PathType], None] | None = None,
+) -> None:
+    """Remove all files and subdirectories inside <node>/output/."""
+    if rmtree is None:
+        rmtree = Path.rmtree
+    if unlink is None:
+        unlink = Path.unlink
+    target = node / ".node" / "output"
+    if not Path.exists(target):
+        return
+    for item in Path.iterdir(target):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                unlink(item)
+            elif Path.is_dir(item):
+                rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node/internal/_create_node.py
+```
+﻿from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DOT_NODE
+
+if TYPE_CHECKING:
+    from shell.app.app_trace.app_trace import AppTrace
+
+_DOT_NODE_DIRS = ("input", "output", "archive", "temp", "logs", "config", "scripts")
+
+
+def _create_node(node_dir: PathType, make_dirs: Callable[[PathType], None], trace: 'AppTrace | None' = None) -> None:
+    dot_node = node_dir / DOT_NODE
+    for sub in _DOT_NODE_DIRS:
+        path = dot_node / sub
+        make_dirs(path)
+        if not Path.exists(path):
+            raise RuntimeError(f'[node._create_node] failed to create directory: {path}')
+        # if trace is not None:
+        #     trace.record_info('node._create_node._create_node', f'mkdir {path}')
+```
+
+### platform/shell/structure/node/node/internal/_init_node.py
+```
+﻿from __future__ import annotations
+
+
+from shell.structure.node.node.internal._validate_node import _validate_node
+from shell.structure.node.node.internal._assert_source_dir_set import _assert_source_dir_set
+from shell.utils.path.path import Path, PathType
+
+def _init_node(node, node_dir: str, node_config=None) -> None:
+    node._node_dir = node_dir
+    node._node_name = Path.new(node_dir).name
+    node_dir = node.node_dir_
+
+    node.node_config_.init_node_config()
+    node.node_input_.init_node_input()
+    node.node_output_.init_node_output()
+    node.node_logs_.init_node_logs()
+    node.node_archive_.init_node_archive()
+
+    source_dir = node._app.cli_.cli_properties_.source_dir_
+    _assert_source_dir_set(source_dir)
+    if node._app.cli_.cli_properties_.mode_ == 'agent':
+        node.node_prompt_.init_node_prompt()
+    if node._app.cli_.cli_properties_.mode_ == 'router':
+        node.node_stage_.init_node_stage()
+    if node._app.cli_.cli_properties_.mode_ == 'tasker':
+        node.node_task_.init_node_task()
+    _validate_node(node_dir)
+```
+
+### platform/shell/structure/node/node/internal/_validate_node.py
+```
+﻿from shell.utils.path.path import PathType
+from __future__ import annotations
+
+
+from shell.structure.node.node.internal._assert_node_dir_is_dir import _assert_node_dir_is_dir
+from shell.structure.node.node.internal._assert_config_yaml_exists import _assert_config_yaml_exists
+from shell.structure.node.node.internal._assert_input_dir_exists import _assert_input_dir_exists
+from shell.constants.constants import DOT_NODE, CONFIG_DIR, CONFIG_YAML, DIR_INPUT
+
+
+def _validate_node(node_dir: PathType) -> None:
+    _assert_node_dir_is_dir(node_dir, '_validate_node')
+    _assert_config_yaml_exists(node_dir / DOT_NODE / CONFIG_DIR / CONFIG_YAML)
+    _assert_input_dir_exists(node_dir / DOT_NODE / DIR_INPUT)
+```
+
+### platform/shell/structure/node/node/node.py
+```
+﻿"""node.py
+Node — single entry point for all node directory operations.
+
+Slots (own, private):
+    _node_dir    — raw path string to the node directory (str | None)
+    _node_config — lazy NodeConfig instance (NodeConfig | None)
+    node_output  — lazy NodeOutput instance (NodeOutput | None)
+    node_input   — lazy NodeInput instance (NodeInput | None)
+
+Validated properties:
+    node_dir_    — resolved Path from _node_dir; required, raises if not set
+    node_name_   — directory name of node_dir_ as node identifier
+    node_config_ — lazy NodeConfig instance
+
+Methods:
+    clean_node(rmtree, unlink)     — remove output/ archive/ contents
+    init_node()             — validate + create dirs
+"""
+
+from __future__ import annotations
+
+from shell.structure.node.node.internal._init_node import _init_node
+from shell.structure.node.node.internal._clean_node import _clean_node
+from shell.structure.node.node.internal._assert_node_dir_set import _assert_node_dir_set
+from shell.structure.node.node_archive.node_archive import NodeArchive
+from shell.structure.node.node_config.node_config import NodeConfig
+from shell.structure.node.node_input.node_input import NodeInput
+from shell.structure.node.node_output.node_output import NodeOutput
+from shell.structure.node.node_prompt.node_prompt import NodePrompt
+from shell.structure.node.node_logs.node_logs import NodeLogs
+from shell.structure.node.node_scripts.node_scripts import NodeScripts
+from shell.structure.node.node_task.node_task import NodeTask
+from shell.structure.node.node_status.node_status import NodeStatus
+from shell.structure.node.node_stage.node_stage import NodeStage
+from shell.structure.node.node_temp.node_temp import NodeTemp
+from shell.status.status import Status
+
+class Node:
+    """Typed interface for all node directory operations.
+
+    Owns _node_dir and _config_node. All node-related logic passes through here.
+    _app is kept for operations that need logging and runner_root_dir fallback.
+    """
+
+    __slots__ = ("_node_dir", "_node_name", "_node_config", "_app", "_node_status", "_node_output", "_node_input", "_node_archive", "_node_prompt", "_node_task", "_node_stage", "_node_logs", "_node_temp", "_node_scripts")
+
+    def __init__(self, app, node_name: str | None = None,
+                 role: str | None = None, type: str | None = None, status: Status | None = None) -> None:
+        self._app = app
+        self._node_dir: str | None = None
+        self._node_name: str | None = node_name
+        self._node_config: NodeConfig | None = None
+        self._node_output: NodeOutput | None = None
+        self._node_input: NodeInput | None = None
+        self._node_archive: NodeArchive | None = None
+        self._node_status = NodeStatus(status)
+        self._node_prompt: NodePrompt | None = None
+        self._node_task: NodeTask | None = None
+        self._node_stage: NodeStage | None = None
+        self._node_logs: NodeLogs | None = None
+        self._node_temp: NodeTemp | None = None
+        self._node_scripts: NodeScripts | None = None
+
+    # -----------------------------------------------------------------------
+    # Validated properties (suffix _ convention)
+    # -----------------------------------------------------------------------
+
+    @property
+    def node_dir_(self) -> Path:
+        """Return resolved Path of node_dir. Raises if not set."""
+        _assert_node_dir_set(self._node_dir)
+        return Path(self._node_dir).resolve()
+
+    @property
+    def node_name_(self) -> str:
+        """Return the node name: explicit _node_name if set, else directory name of node_dir_."""
+        return self._node_name if self._node_name else self.node_dir_.name
+
+    @property
+    def node_status_(self) -> NodeStatus:
+        """Return the NodeStatus instance for this node."""
+        return self._node_status
+
+    @property
+    def status_(self) -> Status | None:
+        return self._node_status.status_
+
+    @property
+    def is_ready_(self) -> bool:
+        """Return True when node should be executed (status 'ready')."""
+        return self._node_status.is_ready_
+
+    @property
+    def node_config_(self) -> NodeConfig:
+        """Lazy NodeConfig instance for this node."""
+        if self._node_config is None:
+            self._node_config = NodeConfig(self._app)
+        return self._node_config
+
+    @property
+    def node_output_(self) -> NodeOutput:
+        """Lazy NodeOutput instance for this node."""
+        if self._node_output is None:
+            self._node_output = NodeOutput(self._app)
+        return self._node_output
+
+    @property
+    def node_input_(self) -> NodeInput:
+        """Lazy NodeInput instance for this node."""
+        if self._node_input is None:
+            self._node_input = NodeInput(self._app)
+        return self._node_input
+
+    @property
+    def node_prompt_(self) -> NodePrompt:
+        if self._node_prompt is None:
+            self._node_prompt = NodePrompt(self._app)
+        return self._node_prompt
+
+    @property
+    def node_task_(self) -> NodeTask:
+        if self._node_task is None:
+            self._node_task = NodeTask(self._app)
+        return self._node_task
+
+    @property
+    def node_stage_(self) -> NodeStage:
+        if self._node_stage is None:
+            self._node_stage = NodeStage(self._app)
+        return self._node_stage
+
+    @property
+    def node_logs_(self) -> NodeLogs:
+        if self._node_logs is None:
+            self._node_logs = NodeLogs(self._app)
+        return self._node_logs
+
+    @property
+    def node_archive_(self) -> NodeArchive:
+        """Lazy NodeArchive instance for this node."""
+        if self._node_archive is None:
+            self._node_archive = NodeArchive(self._app)
+        return self._node_archive
+
+    @property
+    def node_temp_(self) -> NodeTemp:
+        if self._node_temp is None:
+            self._node_temp = NodeTemp(self._app)
+        return self._node_temp
+
+    @property
+    def node_scripts_(self) -> NodeScripts:
+        if self._node_scripts is None:
+            self._node_scripts = NodeScripts(self._app)
+        return self._node_scripts
+
+    # -----------------------------------------------------------------------
+    # Clean operations
+    # -----------------------------------------------------------------------
+
+    def clean_node(self) -> None:
+        _clean_node(self)
+        self._app.app_trace_.record_info('node.Node.clean_node', 'OK')
+
+    # -----------------------------------------------------------------------
+    # Lifecycle operations
+    # -----------------------------------------------------------------------
+
+    def init_node(self, node_dir: str) -> None:
+        try:
+            _init_node(self, node_dir)
+        except Exception as exc:
+            self._app.app_trace_.record_error_and_raise('node.Node.init_node', exc)
+
+
+
+```
+
+### platform/shell/structure/node/node_archive/__init__.py
+```
+﻿# shell/node_archive package
+from shell.structure.node.node_archive.node_archive import NodeArchive
+__all__ = ['NodeArchive']
+```
+
+### platform/shell/structure/node/node_archive/internal/__init__.py
+```
+```
+
+### platform/shell/structure/node/node_archive/internal/_clean_node_archive.py
+```
+﻿from __future__ import annotations
+
+from shell.utils.path.path import Path
+
+
+def _clean_node_archive(node_archive) -> None:
+    node_archive_dir = node_archive.node_archive_dir_
+    if not Path.exists(node_archive_dir):
+        return
+    for item in Path.iterdir(node_archive_dir):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                Path.unlink(item)
+            elif Path.is_dir(item):
+                Path.rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node_archive/internal/_save_archive_zip.py
+```
+﻿"""_save_archive_zip.py
+Private. Responsible for one thing: writing a timestamped ZIP archive
+containing app metadata and snapshots of input/, output/, logs/, tmp/.
+"""
+
+from __future__ import annotations
+
+import json
+import zipfile
+from collections.abc import Callable
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+from shell.utils.path.path import Path, PathType
+
+if TYPE_CHECKING:
+    from shell.app.app_trace.app_trace import AppTrace
+
+_SNAPSHOT_DIRS = ("input", "output", "logs", "temp")
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _save_archive_zip(
+    archive_dir: PathType,
+    snapshot: dict,
+    clock: Callable[[], datetime] | None = None,
+    trace: 'AppTrace | None' = None,
+) -> None:
+    """Write a .zip archive under archive_dir/ capturing this execution snapshot.
+
+    archive_dir: path to the node's archive/ directory.
+    snapshot:    dict from result.runner_result (timestamp, status, role, mode, version, start, stop).
+    clock:       optional callable () -> datetime for testability.
+    """
+    if clock is None:
+        clock = _utc_now
+
+    ts_dt = clock()
+    meta = dict(snapshot)
+    meta['timestamp'] = ts_dt.isoformat()
+
+    role = meta['role']
+    status = meta.get('status', 'unknown')
+    ts = ts_dt.strftime("%Y%m%d_%H%M%S")
+    fname = f"{role}_{ts}_{status}.zip"
+
+    node = archive_dir.parent
+    zip_path = archive_dir / fname
+    if trace is not None:
+        trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'archive_dir exists={Path.exists(archive_dir)} path={archive_dir}')
+        trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'zip_path={zip_path}')
+        trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'meta={meta}')
+    Path.mkdir(archive_dir)
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("meta.json", json.dumps(meta, ensure_ascii=False, indent=2))
+        if trace is not None:
+            trace.record_info('node_archive._save_archive_zip._save_archive_zip', 'meta.json written to zip')
+        for sub in _SNAPSHOT_DIRS:
+            src = node / sub
+            if trace is not None:
+                trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'scanning dir={src} exists={Path.exists(src)}')
+            if not Path.exists(src):
+                continue
+            for p in Path.rglob(src, "*"):
+                if Path.is_file(p):
+                    arcname = f"{sub}/{p.relative_to(src)}"
+                    zf.write(p, arcname=arcname)
+                    if trace is not None:
+                        trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'archive add {arcname}')
+    if trace is not None:
+        trace.record_info('node_archive._save_archive_zip._save_archive_zip', f'zip written size={zip_path.stat().st_size}B')
+
+```
+
+### platform/shell/structure/node/node_archive/node_archive.py
+```
+﻿from shell.utils.path.path import PathType
+"""node_archive.py  (node_archive)
+NodeArchive — single entry point for all node archive operations.
+
+Slots:
+    _app            — parent App
+    _module_status  — ModuleStatus enum; NEW on construction, INIT after init_node_archive()
+
+Methods:
+    save_archive(clock)     — write archive ZIP; never raises
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from datetime import datetime
+
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_archive.internal._save_archive_zip import _save_archive_zip
+from shell.structure.node.node_archive.internal._clean_node_archive import _clean_node_archive
+from shell.constants.constants import DOT_NODE, DIR_ARCHIVE
+
+
+class NodeArchive:
+    """Typed interface for node archive operations.
+
+    Slots:
+        _app            — parent App
+        _module_status  — ModuleStatus; NEW until init_node_archive() is called
+    """
+
+    __slots__ = ("_app", "_module_status")
+
+    def __init__(self, app) -> None:
+        self._app = app
+        self._module_status: ModuleStatus = ModuleStatus.NEW
+
+    @property
+    def node_archive_dir_(self) -> PathType:
+        return (self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_ARCHIVE).resolve()
+
+    @property
+    def module_status_(self) -> ModuleStatus:
+        return self._module_status
+
+    def init_node_archive(self) -> None:
+        self._module_status = ModuleStatus.INIT
+
+    def clean_node_archive(self) -> None:
+        _clean_node_archive(self)
+
+    def save_archive(self, clock: Callable[[], datetime] | None = None) -> None:
+        """Write archive ZIP.  Never raises — errors are logged and suppressed.
+
+        clock: optional callable () -> datetime (defaults to datetime.now(utc)).
+        """
+        try:
+            node_archive_dir = self.node_archive_dir_
+            runner_result = self._app.result_.runner_result_
+            self._app.app_trace_.record_info('node_archive.NodeArchive.save_archive', f'archive_dir={node_archive_dir}')
+            self._app.app_trace_.record_info('node_archive.NodeArchive.save_archive', f'runner_result={runner_result}')
+            _save_archive_zip(node_archive_dir, runner_result, clock=clock, trace=self._app.app_trace_)
+            self._app.app_trace_.record_info('node_archive.NodeArchive.save_archive', 'archive zip written')
+        except Exception as exc:
+            self._app.app_trace_.record_error('node_archive.NodeArchive.save_archive', exc)
+```
+
+### platform/shell/structure/node/node_config/__init__.py
+```
+﻿from shell.structure.node.node_config.node_config import NodeConfig
+
+__all__ = ["NodeConfig"]
+```
+
+### platform/shell/structure/node/node_config/internal/__init__.py
+```
+```
+
+### platform/shell/structure/node/node_config/internal/_init_node_config.py
+```
+﻿"""_init_node_config.py
+Private. Responsible for one thing: reading config.yaml into NodeConfig._config.
+"""
+
+from __future__ import annotations
+
+from shell.app.app.app import App
+
+
+def _init_node_config(app: App) -> None:
+    app.node_config_.init_node_config()
+```
+
+### platform/shell/structure/node/node_config/node_config.py
+```
+﻿"""node_config.py
+NodeConfig — loader and holder for node_dir/.node/config/config.yaml.
+
+Slots:
+    _app           — parent App (DOM back-reference)
+    _config        — Config instance (Config | None)
+    _module_status — ModuleStatus enum; NEW on construction, INIT after init_node_config()
+
+Responsibilities:
+    Reads config.yaml from the node directory into a Config object.
+    Can also be initialised from data (role, type) without reading from disk.
+"""
+
+from __future__ import annotations
+
+from shell.component.config.config.config import Config
+from shell.status.module_status.module_status import ModuleStatus
+from shell.constants.constants import DOT_NODE, CONFIG_DIR, CONFIG_YAML
+
+class NodeConfig:
+    """Holds Config object for the node directory.
+
+    Cached via app.node_config_. _config is populated
+    by init_node_config() or append_node_config().
+    """
+
+    __slots__ = ("_app", "_config", "_module_status")
+
+    def __init__(self, app) -> None:
+        self._app = app
+        self._config: Config | None = None
+        self._module_status: ModuleStatus = ModuleStatus.NEW
+
+    # -----------------------------------------------------------------------
+    # Validated property
+    # -----------------------------------------------------------------------
+
+    @property
+    def config_(self) -> Config:
+        if self._config is None:
+            self._config = Config(self._app)
+        return self._config
+
+    @property
+    def module_status_(self) -> ModuleStatus:
+        return self._module_status
+
+    @property
+    def config_dir_(self) -> PathType:
+        return self._app.app_node_.node_.node_dir_ / DOT_NODE / CONFIG_DIR
+
+    # -----------------------------------------------------------------------
+    # Init
+    # -----------------------------------------------------------------------
+
+    def init_node_config(self) -> None:
+        cfg_path = self.config_dir_ / CONFIG_YAML
+        self.config_.init_config(cfg_path, source='node')
+        self._module_status = ModuleStatus.INIT
+```
+
+### platform/shell/structure/node/node_input/__init__.py
+```
+﻿# shell/node_input package
+from shell.structure.node.node_input.node_input import NodeInput
+__all__ = ['NodeInput']
+```
+
+### platform/shell/structure/node/node_input/internal/__init__.py
+```
+# input internal package
+```
+
+### platform/shell/structure/node/node_input/internal/_assert_input_dir_exists.py
+```
+﻿"""_assert_input_dir_exists.py
+Validate that the input directory exists and is a directory.
+"""
+
+from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_input_dir_exists(input_dir: PathType) -> None:
+    if not Path.is_dir(input_dir):
+        raise ValueError(f"Input directory does not exist or is not a directory: {input_dir}")
+```
+
+### platform/shell/structure/node/node_input/internal/_init_node_input.py
+```
+﻿from __future__ import annotations
+
+from shell.component.message.message_list.message_list import MessageList
+from shell.component.message.message_reader.message_reader import MessageReader
+from shell.structure.node.node_input.internal._assert_input_dir_exists import _assert_input_dir_exists
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_INPUT
+
+_MESSAGE_SUFFIXES = {".yaml", ".yml"}
+
+
+def _init_node_input(node_input) -> None:
+    node_input._input_dir = (node_input._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_INPUT).resolve()
+    _assert_input_dir_exists(node_input._input_dir)
+
+    messages = []
+    for path in sorted(p for p in Path.iterdir(node_input.input_dir_) if Path.is_file(p) and p.suffix.lower() in _MESSAGE_SUFFIXES):
+        reader = MessageReader()
+        reader._path = path
+        messages.append(reader.read_message_file())
+
+    message_list = MessageList()
+    message_list._messages = messages
+    node_input._input_message = message_list
+```
+
+### platform/shell/structure/node/node_input/node_input.py
+```
+﻿"""node_input.py
+NodeInput: single entry point for reading node input files.
+
+Fields (own):
+    input_dir     — path to the input directory (Path)
+    input_message — MessageList of loaded messages
+    _module_status — ModuleStatus enum; NEW on construction, INIT after init_node_input()
+
+Methods:
+    init_node_input() — load all *.yaml files from input_dir into input_message
+"""
+
+from __future__ import annotations
+
+
+from shell.component.message.message_list.message_list import MessageList
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_input.internal._init_node_input import _init_node_input
+from shell.utils.path.path import Path, PathType
+
+
+class NodeInput:
+    """Manages reading of input files for a single node run.
+
+    input_dir must be set before calling init_node_input.
+    init_node_input loads all *.yaml files from input_dir into input_message.
+    """
+
+    __slots__ = ("_app", "_input_dir", "_module_status", "_input_message")
+
+    def __init__(self, app) -> None:
+        self._app = app
+        self._input_dir: PathType | None = None
+        self._module_status: ModuleStatus = ModuleStatus.NEW
+        self._input_message: MessageList | None = None
+
+    # -----------------------------------------------------------------------
+    # Validated properties
+    # -----------------------------------------------------------------------
+
+    @property
+    def input_message_(self) -> MessageList:
+        return self._input_message
+
+    @property
+    def input_dir_(self) -> PathType:
+        return self._input_dir
+
+    @property
+    def input_files_map_(self) -> dict[File, str]:
+        """Return mapping of loaded File objects to their file names."""
+        return self._input_files_map
+
+    @property
+    def module_status_(self) -> ModuleStatus:
+        return self._module_status
+
+    def init_node_input(self) -> None:
+        _init_node_input(self)
+        self._module_status = ModuleStatus.INIT
+
+    def clean_node_input(self) -> None:
+        target = self._input_dir
+        if not Path.exists(target):
+            return
+        for item in Path.iterdir(target):
+            try:
+                if Path.is_file(item) or Path.is_symlink(item):
+                    Path.unlink(item)
+                elif Path.is_dir(item):
+                    Path.rmtree(item)
+            except OSError:
+                pass
+```
+
+### platform/shell/structure/node/node_logs/__init__.py
+```
+﻿# shell/node_logs package
+from shell.structure.node.node_logs.node_logs import NodeLogs
+__all__ = ['NodeLogs']
+```
+
+### platform/shell/structure/node/node_logs/internal/__init__.py
+```
+﻿# shell/node_logs/internal package
+```
+
+### platform/shell/structure/node/node_logs/internal/_clean_node_logs.py
+```
+﻿from __future__ import annotations
+
+from shell.utils.path.path import Path
+
+
+def _clean_node_logs(node_logs) -> None:
+    logs_dir = node_logs.logs_dir_
+    if not Path.exists(logs_dir):
+        return
+    for item in Path.iterdir(logs_dir):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                Path.unlink(item)
+            elif Path.is_dir(item):
+                Path.rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node_logs/internal/_init_node_logs.py
+```
+﻿from __future__ import annotations
+from shell.constants.constants import DOT_NODE, DIR_LOGS
+
+
+def _init_node_logs(node_logs) -> None:
+    node_logs._logs_dir = (node_logs._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_LOGS).resolve()
+```
+
+### platform/shell/structure/node/node_logs/node_logs.py
+```
+﻿from shell.utils.path.path import PathType
+"""node_logs.py
+NodeLogs: manages the logs directory for a single node run.
+
+Slots:
+    _app            — parent App
+    _module_status  — ModuleStatus enum; NEW on construction, INIT after init_node_logs()
+"""
+
+from __future__ import annotations
+
+
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_logs.internal._clean_node_logs import _clean_node_logs
+from shell.structure.node.node_logs.internal._init_node_logs import _init_node_logs
+
+
+class NodeLogs:
+    """Manages the logs directory for a single node run.
+
+    Slots:
+        _app            — parent App
+        _module_status  — ModuleStatus; NEW until init_node_logs() is called
+    """
+
+    __slots__ = ("_app", "_logs_dir", "_module_status")
+
+    def __init__(self, app) -> None:
+        self._app = app
+        self._logs_dir: PathType | None = None
+        self._module_status: ModuleStatus = ModuleStatus.NEW
+
+    # -----------------------------------------------------------------------
+    # Validated properties
+    # -----------------------------------------------------------------------
+
+    @property
+    def logs_dir_(self) -> PathType:
+        return self._logs_dir
+
+    @property
+    def module_status_(self) -> ModuleStatus:
+        return self._module_status
+
+    def init_node_logs(self) -> None:
+        _init_node_logs(self)
+        self._module_status = ModuleStatus.INIT
+
+    def clean_node_logs(self) -> None:
+        _clean_node_logs(self)
+```
+
+### platform/shell/structure/node/node_output/__init__.py
+```
+﻿# shell/node_output package
+from shell.structure.node.node_output.node_output import NodeOutput
+__all__ = ['NodeOutput']
+```
+
+### platform/shell/structure/node/node_output/internal/__init__.py
+```
+# output internal package
+```
+
+### platform/shell/structure/node/node_output/internal/_assert_output_dir_exists.py
+```
+﻿"""_assert_output_dir_exists.py
+Validate that the output directory exists and is a directory.
+"""
+
+from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _assert_output_dir_exists(output_dir: PathType) -> None:
+    if not Path.is_dir(output_dir):
+        raise ValueError(f"Output directory does not exist or is not a directory: {output_dir}")
+```
+
+### platform/shell/structure/node/node_output/internal/_assert_output_files_found.py
+```
+﻿from __future__ import annotations
+
+from shell.utils.path.path import PathType
+
+
+def _assert_output_files_found(output_files: list, output_dir: PathType) -> None:
+    if not output_files:
+        raise FileNotFoundError(f"[NodeOutput] no file found in output_dir: {output_dir}")
+```
+
+### platform/shell/structure/node/node_output/internal/_assert_pending_message_found.py
+```
+from __future__ import annotations
+
+
+def _assert_pending_message_found(pending_message) -> None:
+    if pending_message is None:
+        raise ValueError("[NodeOutput] no PENDING message found in input_message_list")
+```
+
+### platform/shell/structure/node/node_output/internal/_clean_node_output.py
+```
+﻿from __future__ import annotations
+
+
+from shell.utils.path.path import Path, PathType
+
+
+def _clean_node_output(node_output) -> None:
+    output_dir = node_output.output_dir_
+    if not Path.exists(output_dir):
+        return
+    for item in Path.iterdir(output_dir):
+        try:
+            if Path.is_file(item) or Path.is_symlink(item):
+                Path.unlink(item)
+            elif Path.is_dir(item):
+                Path.rmtree(item)
+        except OSError:
+            pass
+```
+
+### platform/shell/structure/node/node_output/internal/_format_node_output.py
+```
+﻿from __future__ import annotations
+
+from shell.component.message.message.message import Message
+from shell.component.message.message_envelope.message_envelope import MessageEnvelope
+from shell.component.message.message_meta.message_meta import MessageMeta
+from shell.component.message.message_name.message_name import MessageName
+from shell.component.message.message_reader.message_reader import MessageReader
+from shell.component.message.message_status.message_status import MessageStatus
+from shell.component.message.message_validator.message_validator import MessageValidator
+from shell.component.message.message_writer.message_writer import MessageWriter
+from shell.component.message.source_type.source_type import SourceType
+from shell.structure.node.node_output.internal._assert_output_files_found import _assert_output_files_found
+from shell.utils.path.path import Path
+
+
+def _format_node_output(node_output: object) -> None:
+    node = node_output._app.app_node_.node_
+    output_dir = node_output.output_dir_
+    input_message_list = node.node_input_.input_message_
+
+    pending_message = input_message_list.get_message_by_status(MessageStatus.PENDING)
+    input_message_meta = pending_message.message_envelope_.message_meta_
+    output_message_meta = MessageMeta.reverse_message_meta(input_message_meta)
+
+    output_files = sorted(p for p in Path.iterdir(output_dir) if Path.is_file(p))
+    _assert_output_files_found(output_files, output_dir)
+
+    for file_path in output_files:
+        body = Path.read_text(file_path)
+        if MessageValidator.is_valid_message(body):
+            message = MessageReader.read(file_path)
+        else:
+            envelope = MessageEnvelope.from_meta_and_payload(output_message_meta, body)
+            message = Message.from_envelope(envelope, str(file_path), SourceType.FILE)
+            MessageWriter.write(file_path, message)
+
+        meta = message.message_envelope_.message_meta_
+        if not MessageName.is_valid_name(file_path.name, meta):
+            file_path = MessageName.rename_message(file_path, meta)
+
+        node_output._output_message_.append_message(message)
+```
+
+### platform/shell/structure/node/node_output/internal/_init_node_output.py
+```
+﻿from __future__ import annotations
+from shell.constants.constants import DOT_NODE, DIR_OUTPUT
+
+
+def _init_node_output(node_output) -> None:
+    node_output._output_dir = (node_output._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_OUTPUT).resolve()
+```
+
+### platform/shell/structure/node/node_output/node_output.py
+```
+﻿from shell.utils.path.path import PathType
 """node_output.py
 NodeOutput: single entry point for writing node output files.
 
@@ -17,11 +1353,13 @@ Methods:
 from __future__ import annotations
 
 
-from dirnode.utils.file.File import File
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_output.internal._assert_output_dir_exists import _assert_output_dir_exists
-from dirnode.structure.node.node_output.internal._clean_node_output import _clean_node_output
-from dirnode.structure.node.node_output.internal._init_node_output import _init_node_output
+from shell.component.message.message_list.message_list import MessageList
+from shell.utils.file.File import File
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_output.internal._assert_output_dir_exists import _assert_output_dir_exists
+from shell.structure.node.node_output.internal._clean_node_output import _clean_node_output
+from shell.structure.node.node_output.internal._init_node_output import _init_node_output
+from shell.structure.node.node_output.internal._format_node_output import _format_node_output
 
 
 class NodeOutput:
@@ -31,17 +1369,22 @@ class NodeOutput:
     save_output writes all File objects from output_files_map to output_dir.
     """
 
-    __slots__ = ("_app", "_output_dir", "_output_files_map", "_module_status")
+    __slots__ = ("_app", "_output_dir", "_output_files_map", "_module_status", "_output_message")
 
     def __init__(self, app) -> None:
         self._app = app
         self._output_dir: PathType | None = None
         self._output_files_map: dict[File, str] = {}
         self._module_status: ModuleStatus = ModuleStatus.NEW
+        self._output_message: MessageList | None = None
 
     # -----------------------------------------------------------------------
     # Validated properties
     # -----------------------------------------------------------------------
+
+    @property
+    def output_message_(self) -> MessageList:
+        return self._output_message
 
     @property
     def output_dir_(self) -> PathType:
@@ -73,15 +1416,18 @@ class NodeOutput:
 
     def clean_node_output(self) -> None:
         _clean_node_output(self)
+
+    def format_node_output(self) -> None:
+        _format_node_output(self)
 ```
 
-### platform/dirnode/structure/node/node_port/__init__.py
+### platform/shell/structure/node/node_port/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_port/node_port.py
+### platform/shell/structure/node/node_port/node_port.py
 ```
-"""node_port.py
+﻿"""node_port.py
 NodePort — port (Protocol) abstrakcji storage dla operacji na nodzie.
 
 Definiuje kontrakt wymienny między adapterami:
@@ -97,9 +1443,9 @@ Konwencja:
 
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 from typing import Protocol, runtime_checkable
-from dirnode.constants.constants import DIR_INPUT
+from shell.constants.constants import DIR_INPUT
 
 
 @runtime_checkable
@@ -171,28 +1517,28 @@ class NodePort(Protocol):
         ...
 ```
 
-### platform/dirnode/structure/node/node_prompt/__init__.py
+### platform/shell/structure/node/node_prompt/__init__.py
 ```
-# dirnode/node_prompt package
-from dirnode.structure.node.node_prompt.node_prompt import NodePrompt
+﻿# shell/node_prompt package
+from shell.structure.node.node_prompt.node_prompt import NodePrompt
 __all__ = ['NodePrompt']
 ```
 
-### platform/dirnode/structure/node/node_prompt/internal/__init__.py
+### platform/shell/structure/node/node_prompt/internal/__init__.py
 ```
-# dirnode/node_prompt/internal package
+﻿# shell/node_prompt/internal package
 ```
 
-### platform/dirnode/structure/node/node_prompt/internal/_assert_prompt_dir_exists.py
+### platform/shell/structure/node/node_prompt/internal/_assert_prompt_dir_exists.py
 ```
-"""_assert_prompt_dir_exists.py
+﻿"""_assert_prompt_dir_exists.py
 Validate that the prompt directory exists and is a directory.
 """
 
 from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _assert_prompt_dir_exists(prompt_dir: PathType) -> None:
@@ -200,14 +1546,14 @@ def _assert_prompt_dir_exists(prompt_dir: PathType) -> None:
         raise ValueError(f"Prompt directory does not exist or is not a directory: {prompt_dir}")
 ```
 
-### platform/dirnode/structure/node/node_prompt/internal/_init_node_prompt.py
+### platform/shell/structure/node/node_prompt/internal/_init_node_prompt.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.component.prompt_file.prompt_file import PromptFile
-from dirnode.constants.constants import DOT_NODE, DIR_PROMPT
+from shell.utils.path.path import Path, PathType
+from shell.component.prompt_file.prompt_file import PromptFile
+from shell.constants.constants import DOT_NODE, DIR_PROMPT
 
 
 def _init_node_prompt(node_prompt) -> None:
@@ -236,9 +1582,9 @@ def _init_node_prompt(node_prompt) -> None:
         node_prompt.prompt_.file_prompts_.append(file_prompt)
 ```
 
-### platform/dirnode/structure/node/node_prompt/node_prompt.py
+### platform/shell/structure/node/node_prompt/node_prompt.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """node_prompt.py
 NodePrompt: loads all *.prompt.md files from task_dir into a list.
 
@@ -255,9 +1601,9 @@ Methods:
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_prompt.internal._init_node_prompt import _init_node_prompt
-from dirnode.component.prompt.prompt.prompt import Prompt
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_prompt.internal._init_node_prompt import _init_node_prompt
+from shell.component.prompt.prompt.prompt import Prompt
 
 
 class NodePrompt:
@@ -289,19 +1635,19 @@ class NodePrompt:
         self._module_status = ModuleStatus.INIT
 ```
 
-### platform/dirnode/structure/node/node_scripts/__init__.py
+### platform/shell/structure/node/node_scripts/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_scripts/internal/__init__.py
+### platform/shell/structure/node/node_scripts/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_scripts/internal/_clean_node_scripts.py
+### platform/shell/structure/node/node_scripts/internal/_clean_node_scripts.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_node_scripts(node_scripts) -> None:
@@ -318,12 +1664,12 @@ def _clean_node_scripts(node_scripts) -> None:
             pass
 ```
 
-### platform/dirnode/structure/node/node_scripts/internal/_init_scripts_dir.py
+### platform/shell/structure/node/node_scripts/internal/_init_scripts_dir.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_SCRIPTS
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_SCRIPTS
 
 
 def _init_scripts_dir(node_scripts) -> None:
@@ -331,9 +1677,9 @@ def _init_scripts_dir(node_scripts) -> None:
     Path.mkdir(node_scripts.scripts_dir_)
 ```
 
-### platform/dirnode/structure/node/node_scripts/node_scripts.py
+### platform/shell/structure/node/node_scripts/node_scripts.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """node_scripts.py
 NodeScripts — scripts directory for a single node.
 
@@ -345,9 +1691,9 @@ Slots:
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_scripts.internal._init_scripts_dir import _init_scripts_dir
-from dirnode.structure.node.node_scripts.internal._clean_node_scripts import _clean_node_scripts
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_scripts.internal._init_scripts_dir import _init_scripts_dir
+from shell.structure.node.node_scripts.internal._clean_node_scripts import _clean_node_scripts
 
 
 class NodeScripts:
@@ -376,15 +1722,15 @@ class NodeScripts:
         _clean_node_scripts(self)
 ```
 
-### platform/dirnode/structure/node/node_stage/__init__.py
+### platform/shell/structure/node/node_stage/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/__init__.py
+### platform/shell/structure/node/node_stage/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_clean_node_stage.py
+### platform/shell/structure/node/node_stage/internal/_clean_node_stage.py
 ```
 from __future__ import annotations
 
@@ -398,14 +1744,14 @@ def _clean_node_stage(node_stage) -> None:
     node_stage.stage_done_.clean_stage_done()
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_get_active_files.py
+### platform/shell/structure/node/node_stage/internal/_get_active_files.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.module.router.router.parse_message_filename import parse_message_filename
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_ACTIVE
+from shell.module.router.router.parse_message_filename import parse_message_filename
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_ACTIVE
 
 
 def _get_active_files(node_stage) -> list[PathType]:
@@ -426,13 +1772,13 @@ def _get_active_files(node_stage) -> list[PathType]:
     return sorted(candidates, key=_msg_id_key)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_get_last_message.py
+### platform/shell/structure/node/node_stage/internal/_get_last_message.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_DONE
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_DONE
 
 
 def _get_last_message(node_stage) -> PathType | None:
@@ -445,13 +1791,13 @@ def _get_last_message(node_stage) -> PathType | None:
     return max(candidates, key=lambda f: f.stat().st_mtime)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_get_pending_files.py
+### platform/shell/structure/node/node_stage/internal/_get_pending_files.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_PENDING
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_PENDING
 
 
 def _get_pending_files(node_stage) -> list[PathType]:
@@ -461,10 +1807,10 @@ def _get_pending_files(node_stage) -> list[PathType]:
     return [f for f in Path.iterdir(pending_dir) if Path.is_file(f)]
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_init_node_stage.py
+### platform/shell/structure/node/node_stage/internal/_init_node_stage.py
 ```
-from __future__ import annotations
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE
+﻿from __future__ import annotations
+from shell.constants.constants import DOT_NODE, DIR_STAGE
 
 
 def _init_node_stage(node_stage) -> None:
@@ -472,13 +1818,13 @@ def _init_node_stage(node_stage) -> None:
     node_stage.stage_.init_stage()
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_init_stage_dirs.py
+### platform/shell/structure/node/node_stage/internal/_init_stage_dirs.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.constants.constants import DIR_STAGE_ACTIVE, DIR_STAGE_PENDING, DIR_STAGE_HISTORY, DIR_STAGE_IGNORED, DIR_STAGE_DEAD, DIR_STAGE_DONE
-from dirnode.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_ACTIVE, DIR_STAGE_PENDING, DIR_STAGE_HISTORY, DIR_STAGE_IGNORED, DIR_STAGE_DEAD, DIR_STAGE_DONE
+from shell.utils.path.path import Path, PathType
 
 
 def _init_stage_dirs(node_stage) -> None:
@@ -487,11 +1833,11 @@ def _init_stage_dirs(node_stage) -> None:
         Path.mkdir(stage_dir / sub)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_move_pending_to_history.py
+### platform/shell/structure/node/node_stage/internal/_move_pending_to_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _move_pending_to_history(node_stage, filename: str) -> None:
@@ -500,11 +1846,11 @@ def _move_pending_to_history(node_stage, filename: str) -> None:
     Path.move(source, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_move_to_dead.py
+### platform/shell/structure/node/node_stage/internal/_move_to_dead.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _move_to_dead(node_stage, filename: str) -> None:
@@ -513,11 +1859,11 @@ def _move_to_dead(node_stage, filename: str) -> None:
     Path.move(source, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_move_to_history.py
+### platform/shell/structure/node/node_stage/internal/_move_to_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _move_to_history(node_stage, filename: str) -> None:
@@ -526,11 +1872,11 @@ def _move_to_history(node_stage, filename: str) -> None:
     Path.move(source, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_move_to_ignored.py
+### platform/shell/structure/node/node_stage/internal/_move_to_ignored.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _move_to_ignored(node_stage, filename: str) -> None:
@@ -539,11 +1885,11 @@ def _move_to_ignored(node_stage, filename: str) -> None:
     Path.move(source, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_move_to_pending.py
+### platform/shell/structure/node/node_stage/internal/_move_to_pending.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _move_to_pending(node_stage, filename: str) -> None:
@@ -552,13 +1898,13 @@ def _move_to_pending(node_stage, filename: str) -> None:
     Path.move(source, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_save_to_active.py
+### platform/shell/structure/node/node_stage/internal/_save_to_active.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_ACTIVE
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_ACTIVE
 
 
 def _save_to_active(node_stage, file: PathType, dest_name: str | None = None) -> None:
@@ -567,13 +1913,13 @@ def _save_to_active(node_stage, file: PathType, dest_name: str | None = None) ->
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_save_to_done.py
+### platform/shell/structure/node/node_stage/internal/_save_to_done.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_DONE
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_DONE
 
 
 def _save_to_done(node_stage, file: PathType) -> None:
@@ -581,13 +1927,13 @@ def _save_to_done(node_stage, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_save_to_history.py
+### platform/shell/structure/node/node_stage/internal/_save_to_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_HISTORY
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_HISTORY
 
 
 def _save_to_history(node_stage, file: PathType) -> None:
@@ -595,13 +1941,13 @@ def _save_to_history(node_stage, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/internal/_save_to_pending.py
+### platform/shell/structure/node/node_stage/internal/_save_to_pending.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DIR_STAGE_PENDING
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DIR_STAGE_PENDING
 
 
 def _save_to_pending(node_stage, file: PathType) -> None:
@@ -609,9 +1955,9 @@ def _save_to_pending(node_stage, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/node/node_stage/node_stage.py
+### platform/shell/structure/node/node_stage/node_stage.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """node_stage.py
 NodeStage — physical stage directory I/O for a single node.
 
@@ -623,21 +1969,21 @@ Slots:
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_stage.internal._init_node_stage import _init_node_stage
-from dirnode.structure.node.node_stage.internal._clean_node_stage import _clean_node_stage
-from dirnode.structure.node.node_stage.internal._move_to_pending import _move_to_pending
-from dirnode.structure.node.node_stage.internal._move_pending_to_history import _move_pending_to_history
-from dirnode.structure.node.node_stage.internal._move_to_history import _move_to_history
-from dirnode.structure.node.node_stage.internal._move_to_ignored import _move_to_ignored
-from dirnode.structure.node.node_stage.internal._move_to_dead import _move_to_dead
-from dirnode.structure.stage.stage.stage import Stage
-from dirnode.structure.stage.stage_active.stage_active import StageActive
-from dirnode.structure.stage.stage_pending.stage_pending import StagePending
-from dirnode.structure.stage.stage_history.stage_history import StageHistory
-from dirnode.structure.stage.stage_ignored.stage_ignored import StageIgnored
-from dirnode.structure.stage.stage_dead.stage_dead import StageDead
-from dirnode.structure.stage.stage_done.stage_done import StageDone
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_stage.internal._init_node_stage import _init_node_stage
+from shell.structure.node.node_stage.internal._clean_node_stage import _clean_node_stage
+from shell.structure.node.node_stage.internal._move_to_pending import _move_to_pending
+from shell.structure.node.node_stage.internal._move_pending_to_history import _move_pending_to_history
+from shell.structure.node.node_stage.internal._move_to_history import _move_to_history
+from shell.structure.node.node_stage.internal._move_to_ignored import _move_to_ignored
+from shell.structure.node.node_stage.internal._move_to_dead import _move_to_dead
+from shell.structure.stage.stage.stage import Stage
+from shell.structure.stage.stage_active.stage_active import StageActive
+from shell.structure.stage.stage_pending.stage_pending import StagePending
+from shell.structure.stage.stage_history.stage_history import StageHistory
+from shell.structure.stage.stage_ignored.stage_ignored import StageIgnored
+from shell.structure.stage.stage_dead.stage_dead import StageDead
+from shell.structure.stage.stage_done.stage_done import StageDone
 
 
 class NodeStage:
@@ -734,14 +2080,14 @@ class NodeStage:
 
 ```
 
-### platform/dirnode/structure/node/node_status/__init__.py
+### platform/shell/structure/node/node_status/__init__.py
 ```
-from dirnode.structure.node.node_status.node_status import NodeStatus
+﻿from shell.structure.node.node_status.node_status import NodeStatus
 ```
 
-### platform/dirnode/structure/node/node_status/node_status.py
+### platform/shell/structure/node/node_status/node_status.py
 ```
-"""node_status.py
+﻿"""node_status.py
 NodeStatus — owns and manages the status of a single node.
 
 Slots:
@@ -756,7 +2102,7 @@ Methods:
 
 from __future__ import annotations
 
-from dirnode.status.status import Status
+from shell.status.status import Status
 
 
 class NodeStatus:
@@ -794,17 +2140,17 @@ class NodeStatus:
             self._status = Status.from_str(status_str)
 ```
 
-### platform/dirnode/structure/node/node_task/__init__.py
+### platform/shell/structure/node/node_task/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_task/internal/__init__.py
+### platform/shell/structure/node/node_task/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_source_dir_set.py
+### platform/shell/structure/node/node_task/internal/_assert_source_dir_set.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
@@ -814,9 +2160,9 @@ def _assert_source_dir_set(source_dir: PathType | None) -> None:
         raise RuntimeError("[NodeTask] source_dir is not set — pass --source-dir to the CLI")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_task_dir_set.py
+### platform/shell/structure/node/node_task/internal/_assert_task_dir_set.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 
 
 def _assert_task_dir_set(task_dir: PathType | None) -> None:
@@ -824,12 +2170,12 @@ def _assert_task_dir_set(task_dir: PathType | None) -> None:
         raise RuntimeError("[NodeTask] task_dir is not set — pass --task-dir to the CLI")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_task_md_exists.py
+### platform/shell/structure/node/node_task/internal/_assert_task_md_exists.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _assert_task_md_exists(path: PathType) -> None:
@@ -837,7 +2183,7 @@ def _assert_task_md_exists(path: PathType) -> None:
         raise FileNotFoundError(f"[NodeTask] task MD not found: {path}")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_task_name_set.py
+### platform/shell/structure/node/node_task/internal/_assert_task_name_set.py
 ```
 from __future__ import annotations
 
@@ -847,12 +2193,12 @@ def _assert_task_name_set(task_name: str | None) -> None:
         raise ValueError("[NodeTask] --task-name is required")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_task_yaml_exists.py
+### platform/shell/structure/node/node_task/internal/_assert_task_yaml_exists.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _assert_task_yaml_exists(path: PathType) -> None:
@@ -860,9 +2206,9 @@ def _assert_task_yaml_exists(path: PathType) -> None:
         raise FileNotFoundError(f"[NodeTask] task YAML not found: {path}")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_assert_task_yaml_in_task_dir.py
+### platform/shell/structure/node/node_task/internal/_assert_task_yaml_in_task_dir.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
@@ -872,17 +2218,17 @@ def _assert_task_yaml_in_task_dir(yaml_files: list, task_dir: PathType) -> None:
         raise FileNotFoundError(f"[NodeTask] no .yaml file found in task_dir: {task_dir}")
 ```
 
-### platform/dirnode/structure/node/node_task/internal/_init_node_task.py
+### platform/shell/structure/node/node_task/internal/_init_node_task.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.structure.node.node_task.internal._assert_source_dir_set import _assert_source_dir_set
-from dirnode.structure.node.node_task.internal._assert_task_name_set import _assert_task_name_set
-from dirnode.structure.node.node_task.internal._assert_task_yaml_exists import _assert_task_yaml_exists
-from dirnode.structure.node.node_task.internal._assert_task_md_exists import _assert_task_md_exists
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DOT_NODE, DIR_TASK
+from shell.structure.node.node_task.internal._assert_source_dir_set import _assert_source_dir_set
+from shell.structure.node.node_task.internal._assert_task_name_set import _assert_task_name_set
+from shell.structure.node.node_task.internal._assert_task_yaml_exists import _assert_task_yaml_exists
+from shell.structure.node.node_task.internal._assert_task_md_exists import _assert_task_md_exists
+from shell.utils.path.path import Path, PathType
+from shell.constants.constants import DOT_NODE, DIR_TASK
 
 
 def _init_node_task(node_task) -> None:
@@ -909,9 +2255,9 @@ def _init_node_task(node_task) -> None:
 
 ```
 
-### platform/dirnode/structure/node/node_task/node_task.py
+### platform/shell/structure/node/node_task/node_task.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """node_task.py
 NodeTask: loads task files from task_dir and saves them to the node's task/ folder.
 
@@ -927,9 +2273,9 @@ from __future__ import annotations
 
 import yaml
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_task.internal._init_node_task import _init_node_task
-from dirnode.module.tasker.internal._assert_task_pipeline_yaml_valid import _assert_task_pipeline_yaml_valid
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_task.internal._init_node_task import _init_node_task
+from shell.module.tasker.internal._assert_task_graph_yaml_valid import _assert_task_graph_yaml_valid
 
 
 class NodeTask:
@@ -957,10 +2303,10 @@ class NodeTask:
         return self._task_yaml_file_body
 
     @property
-    def task_pipeline_dict_(self) -> dict:
-        pipeline_yaml = yaml.safe_load(self._task_yaml_file_body)
-        _assert_task_pipeline_yaml_valid(pipeline_yaml)
-        return pipeline_yaml
+    def task_graph_dict_(self) -> dict:
+        graph_yaml = yaml.safe_load(self._task_yaml_file_body)
+        _assert_task_graph_yaml_valid(graph_yaml)
+        return graph_yaml
 
     @property
     def module_status_(self) -> ModuleStatus:
@@ -971,19 +2317,19 @@ class NodeTask:
         self._module_status = ModuleStatus.INIT
 ```
 
-### platform/dirnode/structure/node/node_temp/__init__.py
+### platform/shell/structure/node/node_temp/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_temp/internal/__init__.py
+### platform/shell/structure/node/node_temp/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/node/node_temp/internal/_clean_node_temp.py
+### platform/shell/structure/node/node_temp/internal/_clean_node_temp.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_node_temp(node_temp) -> None:
@@ -1000,12 +2346,12 @@ def _clean_node_temp(node_temp) -> None:
             pass
 ```
 
-### platform/dirnode/structure/node/node_temp/internal/_init_temp_dir.py
+### platform/shell/structure/node/node_temp/internal/_init_temp_dir.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_TEMP
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_TEMP
 
 
 def _init_temp_dir(node_temp) -> None:
@@ -1013,9 +2359,9 @@ def _init_temp_dir(node_temp) -> None:
     Path.mkdir(node_temp.temp_dir_)
 ```
 
-### platform/dirnode/structure/node/node_temp/node_temp.py
+### platform/shell/structure/node/node_temp/node_temp.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """node_temp.py
 NodeTemp — temp directory for a single node.
 
@@ -1027,9 +2373,9 @@ Slots:
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.node.node_temp.internal._init_temp_dir import _init_temp_dir
-from dirnode.structure.node.node_temp.internal._clean_node_temp import _clean_node_temp
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.node.node_temp.internal._init_temp_dir import _init_temp_dir
+from shell.structure.node.node_temp.internal._clean_node_temp import _clean_node_temp
 
 
 class NodeTemp:
@@ -1058,258 +2404,20 @@ class NodeTemp:
         _clean_node_temp(self)
 ```
 
-### platform/dirnode/structure/pipeline/__init__.py
+### platform/shell/structure/stage/__init__.py
 ```
-from dirnode.structure.pipeline.pipeline.pipeline import Pipeline
-```
-
-### platform/dirnode/structure/pipeline/pipeline/__init__.py
-```
-from dirnode.structure.pipeline.pipeline.pipeline import Pipeline
+﻿from shell.structure.stage.stage.stage import Stage
 ```
 
-### platform/dirnode/structure/pipeline/pipeline/internal/__init__.py
+### platform/shell/structure/stage/stage/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/pipeline/pipeline/internal/_init_pipeline.py
-```
-"""_init_pipeline.py
-Private. Load pipeline YAML from disk, validate and initialize pipeline_nodes.
-"""
-
-from __future__ import annotations
-
-import yaml
-
-from dirnode.utils.io.io import default_read_utf8, default_write_utf8
-from dirnode.status.status import Status
-from dirnode.structure.sub_node.sub_node.sub_node import SubNode
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _init_pipeline(pipeline, reader=None, writer=None) -> None:
-    if reader is None:
-        reader = default_read_utf8
-    if writer is None:
-        writer = default_write_utf8
-
-    task_pipeline_dict = pipeline._app.app_node_.node_.node_task_.task_pipeline_dict_
-    task_dir = (pipeline._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-
-    sub_nodes = []
-    for sub_node_dict in task_pipeline_dict['pipeline']:
-        sub_node = SubNode(app=pipeline._app)
-        sub_node.init_sub_node(sub_node_dict, writer=writer, reader=reader)
-        sub_nodes.append(sub_node)
-    pipeline._sub_nodes = sub_nodes
-
-    task_name = pipeline._app.app_node_.node_.node_task_.task_name_
-    yaml_path = task_dir / f'{task_name}.yaml'
-    Path.write_text(yaml_path, yaml.dump(task_pipeline_dict, default_flow_style=False, allow_unicode=True))
-    pipeline._app.app_trace_.record_info(
-        'pipeline._init_pipeline._init_pipeline',
-        f'persisted pipeline status to {yaml_path.name}'
-    )
-```
-
-### platform/dirnode/structure/pipeline/pipeline/internal/_load_pipeline_yaml.py
-```
-from __future__ import annotations
-
-import yaml
-
-from dirnode.module.tasker.internal._assert_task_pipeline_yaml_valid import _assert_task_pipeline_yaml_valid
-
-
-def _load_pipeline_yaml(pipeline) -> dict:
-    task_yaml_file_body = pipeline._app.app_node_.node_.node_task_.task_yaml_file_body_
-    pipeline_yaml = yaml.safe_load(task_yaml_file_body)
-    _assert_task_pipeline_yaml_valid(pipeline_yaml)
-    return pipeline_yaml
-```
-
-### platform/dirnode/structure/pipeline/pipeline/internal/_persist_node_status.py
-```
-from __future__ import annotations
-
-import yaml
-
-from dirnode.utils.path.path import Path, PathType
-from dirnode.constants.constants import DOT_NODE, DIR_TASK
-
-
-def _persist_node_status(sub_node, app) -> None:
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
-    yaml_files = Path.glob(task_dir, '*.yaml')
-    if not yaml_files:
-        return
-    yaml_path = yaml_files[0]
-    data = yaml.safe_load(Path.read_text(yaml_path)) or {}
-    for node_dict in data.get('pipeline', []):
-        if node_dict.get('node_name') == sub_node.node_name_:
-            node_dict['status'] = sub_node.status_.name
-            break
-    Path.write_text(yaml_path, yaml.dump(data, default_flow_style=False, allow_unicode=True))
-    app.app_trace_.record_info(
-        'pipeline._persist_node_status._persist_node_status',
-        f'persisted status={sub_node.status_.name} for node {sub_node.node_name_} to {yaml_path.name}'
-    )
-```
-
-### platform/dirnode/structure/pipeline/pipeline/pipeline.py
-```
-from __future__ import annotations
-
-from dirnode.structure.pipeline.pipeline.internal._init_pipeline import _init_pipeline
-from dirnode.structure.sub_node.sub_node.sub_node import SubNode
-from dirnode.status.status import Status
-from dirnode.constants.constants import DOT_NODE, DIR_TASK
-
-
-class Pipeline:
-    """Pipeline nodes loaded from a task YAML.
-
-    ``self.pipeline_nodes`` is an empty list until ``init_pipeline`` is called,
-    at which point it is populated as ``list[SubNode]`` from ``task_pipeline_yaml``.
-
-    Supports iteration, len, and indexing so it can be used directly
-    wherever a sequence of pipeline nodes is expected.
-    """
-
-    __slots__ = ("_sub_nodes", "_app", "_status")
-
-    def __init__(self, app=None) -> None:
-        self._sub_nodes: list[SubNode] = []
-        self._app = app
-        self._status = Status
-
-    @property
-    def status_(self):
-        return self._status
-
-    # ------------------------------------------------------------------ #
-    # Sequence protocol                                                    #
-    # ------------------------------------------------------------------ #
-
-    def __iter__(self):
-        return iter(self._sub_nodes)
-
-    def __len__(self) -> int:
-        return len(self._sub_nodes)
-
-    def __getitem__(self, index):
-        return self._sub_nodes[index]
-
-    # ------------------------------------------------------------------ #
-    # Pure queries                                                         #
-    # ------------------------------------------------------------------ #
-
-    @property
-    def _pipeline_path_(self):  ## to raczej do wywalenia, pipeline powinien dostawac to jako argument, a nie sam sobie wyliczac
-        """Return the resolved path to the pipeline YAML file."""
-        return (self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve() / f"{self._app.app_node_.node_.node_name_}.yaml"
-
-    @property
-    def sub_nodes_(self) -> list:
-        return self._sub_nodes
-
-    # ------------------------------------------------------------------ #
-    # Mutating operations                                                  #
-    # ------------------------------------------------------------------ #
-
-    def init_pipeline(
-        self,
-        reader=None,
-        writer=None,
-    ) -> None:
-        _init_pipeline(self, reader=reader, writer=writer)
-```
-
-### platform/dirnode/structure/pipeline/pipeline_status/pipeline_status.py
-```
-"""pipeline_status.py
-PipelineStatus — derives overall pipeline status from node statuses.
-
-Slots:
-    _pipeline    — parent Pipeline instance (back-reference)
-    _app  — parent App instance (back-reference)
-
-Validated properties:
-    pipeline_status_  — overall Status derived from node statuses
-"""
-
-from __future__ import annotations
-class Status(int, Enum):
-    SUCCESS = 0
-    ERROR = 1
-    TIMEOUT = 2
-    WARNING = 3
-    LOCKED = 4
-    QUESTION = 5
-    WAITING = 6
-    SKIP = 7
-    READY = 8
-    INITIALIZED = 9
-    NULL = 10
-    DONE = 11
-    CRITICAL = 99tam gdzie uzywana 
-from dirnode.status.status import Status
-
-_STATUS_PRIORITY = (
-    Status.ERROR,
-    Status.LOCKED,
-    Status.TIMEOUT,
-    Status.WAITING,
-    Status.QUESTION,
-)
-_SUCCESS_STATES = frozenset({Status.SUCCESS, Status.SKIP})
-
-
-class PipelineStatus:
-    """Derives overall pipeline status from node statuses (priority order).
-
-    Priority: ERROR > LOCKED > TIMEOUT > WAITING > QUESTION > SUCCESS.
-    Returns Status.SUCCESS only when all nodes are in {SUCCESS, SKIP}.
-    """
-
-    __slots__ = ("_pipeline", "_app")
-
-    def __init__(self, pipeline) -> None:
-        self._pipeline = pipeline
-        self._app = pipeline._app
-
-    @property
-    def pipeline_status_(self) -> Status:
-        """Derive overall pipeline status from node statuses (priority order)."""
-        sub_nodes = self._pipeline.sub_nodes_
-        statuses = {n.node_.status_ for n in sub_nodes}
-        for s in _STATUS_PRIORITY:
-            if s in statuses:
-                return s
-        if all(n.node_.status_ in _SUCCESS_STATES for n in sub_nodes):
-            return Status.SUCCESS
-        for node in sub_nodes:
-            if node.node_.status_ not in _SUCCESS_STATES:
-                return node.node_.status_
-        return Status.SUCCESS
-```
-
-### platform/dirnode/structure/stage/__init__.py
-```
-from dirnode.structure.stage.stage.stage import Stage
-```
-
-### platform/dirnode/structure/stage/stage/__init__.py
+### platform/shell/structure/stage/stage/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage/internal/__init__.py
-```
-```
-
-### platform/dirnode/structure/stage/stage/internal/_init_stage.py
+### platform/shell/structure/stage/stage/internal/_init_stage.py
 ```
 from __future__ import annotations
 
@@ -1323,9 +2431,9 @@ def _init_stage(stage) -> None:
     stage.stage_done_.init_stage_done()
 ```
 
-### platform/dirnode/structure/stage/stage/stage.py
+### platform/shell/structure/stage/stage/stage.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """stage.py
 Stage — groups all stage sub-directories for a single node.
 
@@ -1343,14 +2451,14 @@ Slots:
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage.internal._init_stage import _init_stage
-from dirnode.structure.stage.stage_active.stage_active import StageActive
-from dirnode.structure.stage.stage_pending.stage_pending import StagePending
-from dirnode.structure.stage.stage_history.stage_history import StageHistory
-from dirnode.structure.stage.stage_ignored.stage_ignored import StageIgnored
-from dirnode.structure.stage.stage_dead.stage_dead import StageDead
-from dirnode.structure.stage.stage_done.stage_done import StageDone
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage.internal._init_stage import _init_stage
+from shell.structure.stage.stage_active.stage_active import StageActive
+from shell.structure.stage.stage_pending.stage_pending import StagePending
+from shell.structure.stage.stage_history.stage_history import StageHistory
+from shell.structure.stage.stage_ignored.stage_ignored import StageIgnored
+from shell.structure.stage.stage_dead.stage_dead import StageDead
+from shell.structure.stage.stage_done.stage_done import StageDone
 
 
 class Stage:
@@ -1427,19 +2535,19 @@ class Stage:
         self._module_status = ModuleStatus.INIT
 ```
 
-### platform/dirnode/structure/stage/stage_active/__init__.py
+### platform/shell/structure/stage/stage_active/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_active/internal/__init__.py
+### platform/shell/structure/stage/stage_active/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_active/internal/_clean_stage_active.py
+### platform/shell/structure/stage/stage_active/internal/_clean_stage_active.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_active(stage_active) -> None:
@@ -1456,13 +2564,13 @@ def _clean_stage_active(stage_active) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_active/internal/_get_stage_active_files.py
+### platform/shell/structure/stage/stage_active/internal/_get_stage_active_files.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.module.router.router.parse_message_filename import parse_message_filename
-from dirnode.utils.path.path import Path, PathType
+from shell.module.router.router.parse_message_filename import parse_message_filename
+from shell.utils.path.path import Path, PathType
 
 
 def _get_stage_active_files(stage_active) -> list[PathType]:
@@ -1483,12 +2591,12 @@ def _get_stage_active_files(stage_active) -> list[PathType]:
     return sorted(candidates, key=_msg_id_key)
 ```
 
-### platform/dirnode/structure/stage/stage_active/internal/_init_stage_active.py
+### platform/shell/structure/stage/stage_active/internal/_init_stage_active.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_ACTIVE
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_ACTIVE
 
 
 def _init_stage_active(stage_active) -> None:
@@ -1496,12 +2604,12 @@ def _init_stage_active(stage_active) -> None:
     Path.mkdir(stage_active.active_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_active/internal/_save_stage_active.py
+### platform/shell/structure/stage/stage_active/internal/_save_stage_active.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _save_stage_active(stage_active, file: PathType, dest_name: str | None = None) -> None:
@@ -1510,17 +2618,17 @@ def _save_stage_active(stage_active, file: PathType, dest_name: str | None = Non
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/stage/stage_active/stage_active.py
+### platform/shell/structure/stage/stage_active/stage_active.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_active.internal._init_stage_active import _init_stage_active
-from dirnode.structure.stage.stage_active.internal._clean_stage_active import _clean_stage_active
-from dirnode.structure.stage.stage_active.internal._save_stage_active import _save_stage_active
-from dirnode.structure.stage.stage_active.internal._get_stage_active_files import _get_stage_active_files
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_active.internal._init_stage_active import _init_stage_active
+from shell.structure.stage.stage_active.internal._clean_stage_active import _clean_stage_active
+from shell.structure.stage.stage_active.internal._save_stage_active import _save_stage_active
+from shell.structure.stage.stage_active.internal._get_stage_active_files import _get_stage_active_files
 
 
 class StageActive:
@@ -1554,19 +2662,19 @@ class StageActive:
         return _get_stage_active_files(self)
 ```
 
-### platform/dirnode/structure/stage/stage_dead/__init__.py
+### platform/shell/structure/stage/stage_dead/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_dead/internal/__init__.py
+### platform/shell/structure/stage/stage_dead/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_dead/internal/_clean_stage_dead.py
+### platform/shell/structure/stage/stage_dead/internal/_clean_stage_dead.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_dead(stage_dead) -> None:
@@ -1583,12 +2691,12 @@ def _clean_stage_dead(stage_dead) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_dead/internal/_init_stage_dead.py
+### platform/shell/structure/stage/stage_dead/internal/_init_stage_dead.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_DEAD
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_DEAD
 
 
 def _init_stage_dead(stage_dead) -> None:
@@ -1596,15 +2704,15 @@ def _init_stage_dead(stage_dead) -> None:
     Path.mkdir(stage_dead.dead_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_dead/stage_dead.py
+### platform/shell/structure/stage/stage_dead/stage_dead.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_dead.internal._init_stage_dead import _init_stage_dead
-from dirnode.structure.stage.stage_dead.internal._clean_stage_dead import _clean_stage_dead
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_dead.internal._init_stage_dead import _init_stage_dead
+from shell.structure.stage.stage_dead.internal._clean_stage_dead import _clean_stage_dead
 
 
 class StageDead:
@@ -1632,19 +2740,19 @@ class StageDead:
         _clean_stage_dead(self)
 ```
 
-### platform/dirnode/structure/stage/stage_done/__init__.py
+### platform/shell/structure/stage/stage_done/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_done/internal/__init__.py
+### platform/shell/structure/stage/stage_done/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_done/internal/_clean_stage_done.py
+### platform/shell/structure/stage/stage_done/internal/_clean_stage_done.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_done(stage_done) -> None:
@@ -1661,12 +2769,12 @@ def _clean_stage_done(stage_done) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_done/internal/_get_stage_done_last_message.py
+### platform/shell/structure/stage/stage_done/internal/_get_stage_done_last_message.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _get_stage_done_last_message(stage_done) -> PathType | None:
@@ -1679,12 +2787,12 @@ def _get_stage_done_last_message(stage_done) -> PathType | None:
     return max(candidates, key=lambda f: f.stat().st_mtime)
 ```
 
-### platform/dirnode/structure/stage/stage_done/internal/_init_stage_done.py
+### platform/shell/structure/stage/stage_done/internal/_init_stage_done.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_DONE
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_DONE
 
 
 def _init_stage_done(stage_done) -> None:
@@ -1692,12 +2800,12 @@ def _init_stage_done(stage_done) -> None:
     Path.mkdir(stage_done.done_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_done/internal/_save_stage_done.py
+### platform/shell/structure/stage/stage_done/internal/_save_stage_done.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _save_stage_done(stage_done, file: PathType) -> None:
@@ -1705,17 +2813,17 @@ def _save_stage_done(stage_done, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/stage/stage_done/stage_done.py
+### platform/shell/structure/stage/stage_done/stage_done.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_done.internal._init_stage_done import _init_stage_done
-from dirnode.structure.stage.stage_done.internal._clean_stage_done import _clean_stage_done
-from dirnode.structure.stage.stage_done.internal._save_stage_done import _save_stage_done
-from dirnode.structure.stage.stage_done.internal._get_stage_done_last_message import _get_stage_done_last_message
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_done.internal._init_stage_done import _init_stage_done
+from shell.structure.stage.stage_done.internal._clean_stage_done import _clean_stage_done
+from shell.structure.stage.stage_done.internal._save_stage_done import _save_stage_done
+from shell.structure.stage.stage_done.internal._get_stage_done_last_message import _get_stage_done_last_message
 
 
 class StageDone:
@@ -1749,19 +2857,19 @@ class StageDone:
         return _get_stage_done_last_message(self)
 ```
 
-### platform/dirnode/structure/stage/stage_history/__init__.py
+### platform/shell/structure/stage/stage_history/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_history/internal/__init__.py
+### platform/shell/structure/stage/stage_history/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_history/internal/_clean_stage_history.py
+### platform/shell/structure/stage/stage_history/internal/_clean_stage_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_history(stage_history) -> None:
@@ -1778,12 +2886,12 @@ def _clean_stage_history(stage_history) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_history/internal/_init_stage_history.py
+### platform/shell/structure/stage/stage_history/internal/_init_stage_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_HISTORY
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_HISTORY
 
 
 def _init_stage_history(stage_history) -> None:
@@ -1791,12 +2899,12 @@ def _init_stage_history(stage_history) -> None:
     Path.mkdir(stage_history.history_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_history/internal/_save_stage_history.py
+### platform/shell/structure/stage/stage_history/internal/_save_stage_history.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _save_stage_history(stage_history, file: PathType) -> None:
@@ -1804,16 +2912,16 @@ def _save_stage_history(stage_history, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/stage/stage_history/stage_history.py
+### platform/shell/structure/stage/stage_history/stage_history.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_history.internal._init_stage_history import _init_stage_history
-from dirnode.structure.stage.stage_history.internal._clean_stage_history import _clean_stage_history
-from dirnode.structure.stage.stage_history.internal._save_stage_history import _save_stage_history
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_history.internal._init_stage_history import _init_stage_history
+from shell.structure.stage.stage_history.internal._clean_stage_history import _clean_stage_history
+from shell.structure.stage.stage_history.internal._save_stage_history import _save_stage_history
 
 
 class StageHistory:
@@ -1844,19 +2952,19 @@ class StageHistory:
         _save_stage_history(self, file)
 ```
 
-### platform/dirnode/structure/stage/stage_ignored/__init__.py
+### platform/shell/structure/stage/stage_ignored/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_ignored/internal/__init__.py
+### platform/shell/structure/stage/stage_ignored/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_ignored/internal/_clean_stage_ignored.py
+### platform/shell/structure/stage/stage_ignored/internal/_clean_stage_ignored.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_ignored(stage_ignored) -> None:
@@ -1873,12 +2981,12 @@ def _clean_stage_ignored(stage_ignored) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_ignored/internal/_init_stage_ignored.py
+### platform/shell/structure/stage/stage_ignored/internal/_init_stage_ignored.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_IGNORED
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_IGNORED
 
 
 def _init_stage_ignored(stage_ignored) -> None:
@@ -1886,15 +2994,15 @@ def _init_stage_ignored(stage_ignored) -> None:
     Path.mkdir(stage_ignored.ignored_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_ignored/stage_ignored.py
+### platform/shell/structure/stage/stage_ignored/stage_ignored.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_ignored.internal._init_stage_ignored import _init_stage_ignored
-from dirnode.structure.stage.stage_ignored.internal._clean_stage_ignored import _clean_stage_ignored
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_ignored.internal._init_stage_ignored import _init_stage_ignored
+from shell.structure.stage.stage_ignored.internal._clean_stage_ignored import _clean_stage_ignored
 
 
 class StageIgnored:
@@ -1922,19 +3030,19 @@ class StageIgnored:
         _clean_stage_ignored(self)
 ```
 
-### platform/dirnode/structure/stage/stage_pending/__init__.py
+### platform/shell/structure/stage/stage_pending/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_pending/internal/__init__.py
+### platform/shell/structure/stage/stage_pending/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/stage/stage_pending/internal/_clean_stage_pending.py
+### platform/shell/structure/stage/stage_pending/internal/_clean_stage_pending.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def _clean_stage_pending(stage_pending) -> None:
@@ -1951,12 +3059,12 @@ def _clean_stage_pending(stage_pending) -> None:
             pass
 ```
 
-### platform/dirnode/structure/stage/stage_pending/internal/_get_stage_pending_files.py
+### platform/shell/structure/stage/stage_pending/internal/_get_stage_pending_files.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _get_stage_pending_files(stage_pending) -> list[PathType]:
@@ -1966,12 +3074,12 @@ def _get_stage_pending_files(stage_pending) -> list[PathType]:
     return [f for f in Path.iterdir(pending_dir) if Path.is_file(f)]
 ```
 
-### platform/dirnode/structure/stage/stage_pending/internal/_init_stage_pending.py
+### platform/shell/structure/stage/stage_pending/internal/_init_stage_pending.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_PENDING
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_STAGE, DIR_STAGE_PENDING
 
 
 def _init_stage_pending(stage_pending) -> None:
@@ -1979,12 +3087,12 @@ def _init_stage_pending(stage_pending) -> None:
     Path.mkdir(stage_pending.pending_dir_)
 ```
 
-### platform/dirnode/structure/stage/stage_pending/internal/_save_stage_pending.py
+### platform/shell/structure/stage/stage_pending/internal/_save_stage_pending.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _save_stage_pending(stage_pending, file: PathType) -> None:
@@ -1992,17 +3100,17 @@ def _save_stage_pending(stage_pending, file: PathType) -> None:
     Path.copy_to(file, dest)
 ```
 
-### platform/dirnode/structure/stage/stage_pending/stage_pending.py
+### platform/shell/structure/stage/stage_pending/stage_pending.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 from __future__ import annotations
 
 
-from dirnode.status.module_status.module_status import ModuleStatus
-from dirnode.structure.stage.stage_pending.internal._init_stage_pending import _init_stage_pending
-from dirnode.structure.stage.stage_pending.internal._clean_stage_pending import _clean_stage_pending
-from dirnode.structure.stage.stage_pending.internal._save_stage_pending import _save_stage_pending
-from dirnode.structure.stage.stage_pending.internal._get_stage_pending_files import _get_stage_pending_files
+from shell.status.module_status.module_status import ModuleStatus
+from shell.structure.stage.stage_pending.internal._init_stage_pending import _init_stage_pending
+from shell.structure.stage.stage_pending.internal._clean_stage_pending import _clean_stage_pending
+from shell.structure.stage.stage_pending.internal._save_stage_pending import _save_stage_pending
+from shell.structure.stage.stage_pending.internal._get_stage_pending_files import _get_stage_pending_files
 
 
 class StagePending:
@@ -2036,24 +3144,24 @@ class StagePending:
         return _get_stage_pending_files(self)
 ```
 
-### platform/dirnode/structure/sub_node/__init__.py
+### platform/shell/structure/sub_node/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/__init__.py
+### platform/shell/structure/sub_node/sub_node/internal/__init__.py
 ```
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/_assert_entrypoint_exists.py
+### platform/shell/structure/sub_node/sub_node/internal/_assert_entrypoint_exists.py
 ```
-"""_assert_entrypoint_exists.py
+﻿"""_assert_entrypoint_exists.py
 Responsible for one thing: raising FileNotFoundError when entrypoint.py is missing.
 """
 
 from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _assert_entrypoint_exists(path: PathType) -> None:
@@ -2061,16 +3169,16 @@ def _assert_entrypoint_exists(path: PathType) -> None:
         raise FileNotFoundError(f"[SubNode] entrypoint not found: {path}")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/_assert_node_dir_exists.py
+### platform/shell/structure/sub_node/sub_node/internal/_assert_node_dir_exists.py
 ```
-"""_assert_node_dir_exists.py
+﻿"""_assert_node_dir_exists.py
 Responsible for one thing: raising FileNotFoundError when the node directory is missing.
 """
 
 from __future__ import annotations
 
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
 
 def _assert_node_dir_exists(path: PathType) -> None:
@@ -2078,7 +3186,7 @@ def _assert_node_dir_exists(path: PathType) -> None:
         raise FileNotFoundError(f"[sub_node] node dir not found: {path}")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/_assert_node_name_set.py
+### platform/shell/structure/sub_node/sub_node/internal/_assert_node_name_set.py
 ```
 """_assert_node_name_set.py
 Responsible for one thing: raising ValueError when _node_name is not set.
@@ -2091,14 +3199,14 @@ def _assert_node_name_set(node_name: str | None) -> None:
         raise ValueError("[SubNode] _node_name is not set")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/_init_sub_node.py
+### platform/shell/structure/sub_node/sub_node/internal/_init_sub_node.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.component.config.config.config import Config
-from dirnode.utils.path.path import Path
-from dirnode.constants.constants import DOT_NODE, DIR_TASK
-from dirnode.status.status import Status
+from shell.component.config.config.config import Config
+from shell.utils.path.path import Path
+from shell.constants.constants import DOT_NODE, DIR_TASK
+from shell.status.status import Status
 
 
 def _init_sub_node(sub_node, sub_node_config_dict, writer, reader) -> None:
@@ -2118,9 +3226,9 @@ def _init_sub_node(sub_node, sub_node_config_dict, writer, reader) -> None:
         config.append_config_value('status', Status.INITIALIZED.name, 'sub_node')
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/internal/_run_sub_node.py
+### platform/shell/structure/sub_node/sub_node/internal/_run_sub_node.py
 ```
-"""_run_sub_node.py
+﻿"""_run_sub_node.py
 Responsible for one thing: invoking a runner on a single task node via subprocess
 and updating the node status.
 """
@@ -2128,7 +3236,7 @@ and updating the node status.
 import os
 import subprocess
 
-from dirnode.status.status import Status
+from shell.status.status import Status
 
 
 def _run_sub_node(sub_node, task_dir, app, runner=None) -> Status:
@@ -2166,33 +3274,33 @@ def _run_sub_node(sub_node, task_dir, app, runner=None) -> Status:
         app.app_trace_.record_error_and_raise('sub_node._run_sub_node._run_sub_node', exc)
 ```
 
-### platform/dirnode/structure/sub_node/sub_node/sub_node.py
+### platform/shell/structure/sub_node/sub_node/sub_node.py
 ```
-"""sub_node.py
-SubNode: structured value object for a single pipeline node.
+﻿"""sub_node.py
+SubNode: structured value object for a single graph node.
 
 Slots:
     _app                  -- parent App (DOM back-reference)
-    _sub_node_config      -- Config instance loaded from pipeline node entry
+    _sub_node_config      -- Config instance loaded from graph node entry
 """
 
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
-from dirnode.utils.io.io import default_make_dirs, default_read_utf8, default_write_utf8
-from dirnode.component.config.config.config import Config
-from dirnode.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
-from dirnode.structure.sub_node.sub_node.internal._init_sub_node import _init_sub_node
-from dirnode.structure.sub_node.sub_node.internal._run_sub_node import _run_sub_node
-from dirnode.structure.sub_node.sub_node_command.sub_node_command import SubNodeCommand
-from dirnode.structure.sub_node.sub_node_properties.sub_node_properties import SubNodeProperties
-from dirnode.structure.node.node_status.node_status import NodeStatus
-from dirnode.status.status import Status
+from shell.utils.io.io import default_make_dirs, default_read_utf8, default_write_utf8
+from shell.component.config.config.config import Config
+from shell.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
+from shell.structure.sub_node.sub_node.internal._init_sub_node import _init_sub_node
+from shell.structure.sub_node.sub_node.internal._run_sub_node import _run_sub_node
+from shell.structure.sub_node.sub_node_command.sub_node_command import SubNodeCommand
+from shell.structure.sub_node.sub_node_properties.sub_node_properties import SubNodeProperties
+from shell.structure.node.node_status.node_status import NodeStatus
+from shell.status.status import Status
 
 
 class SubNode:
-    """Structured value object for a single pipeline node."""
+    """Structured value object for a single graph node."""
 
     __slots__ = ("_app", "_sub_node_config", "_sub_node_command", "_node_status", "_sub_node_properties")
 
@@ -2301,28 +3409,28 @@ class SubNode:
         return _run_sub_node(self, task_dir, self._app, runner=runner, python_exe=python_exe)
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/__init__.py
+### platform/shell/structure/sub_node/sub_node_command/__init__.py
 ```
-from dirnode.structure.sub_node.sub_node_command.sub_node_command import SubNodeCommand
+﻿from shell.structure.sub_node.sub_node_command.sub_node_command import SubNodeCommand
 
 __all__ = ["SubNodeCommand"]
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/__init__.py
+### platform/shell/structure/sub_node/sub_node_command/internal/__init__.py
 ```
 
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_model_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_model_set.py
 ```
 def _assert_model_set(model) -> None:
     if not model:
         raise RuntimeError("[SubNodeCommand] model is not set — pass --model to the CLI")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_source_dir_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_source_dir_set.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 
 
 def _assert_source_dir_set(source_dir) -> None:
@@ -2330,46 +3438,46 @@ def _assert_source_dir_set(source_dir) -> None:
         raise RuntimeError("[SubNodeCommand] source_dir is not set — pass --source-dir to the CLI")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_sub_node_command_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_sub_node_command_set.py
 ```
 def _assert_sub_node_command_set(command) -> None:
     if command is None:
         raise ValueError("[SubNodeCommand] _command is not set — call init_sub_node_command() first")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_task_dir_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_task_dir_set.py
 ```
 def _assert_task_dir_set(task_dir) -> None:
     if not task_dir:
         raise RuntimeError("[SubNodeCommand] task_dir is not set — pass --task-dir to the CLI")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_task_name_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_task_name_set.py
 ```
 def _assert_task_name_set(task_name) -> None:
     if not task_name:
         raise RuntimeError("[SubNodeCommand] task_name is not set — pass --task-name to the CLI")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_assert_work_dir_set.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_assert_work_dir_set.py
 ```
 def _assert_work_dir_set(work_dir) -> None:
     if not work_dir:
         raise RuntimeError("[SubNodeCommand] work_dir is not set — pass --work-dir to the CLI")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/internal/_init_sub_node_command.py
+### platform/shell/structure/sub_node/sub_node_command/internal/_init_sub_node_command.py
 ```
-from dirnode.utils.path.path import Path, PathType
+﻿from shell.utils.path.path import Path, PathType
 import sys
 
 
-from dirnode.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
-from dirnode.structure.sub_node.sub_node_command.internal._assert_source_dir_set import _assert_source_dir_set
-from dirnode.structure.sub_node.sub_node_command.internal._assert_task_dir_set import _assert_task_dir_set
-from dirnode.structure.sub_node.sub_node_command.internal._assert_task_name_set import _assert_task_name_set
-from dirnode.structure.sub_node.sub_node_command.internal._assert_work_dir_set import _assert_work_dir_set
-from dirnode.structure.sub_node.sub_node_command.internal._assert_model_set import _assert_model_set
+from shell.structure.sub_node.sub_node.internal._assert_entrypoint_exists import _assert_entrypoint_exists
+from shell.structure.sub_node.sub_node_command.internal._assert_source_dir_set import _assert_source_dir_set
+from shell.structure.sub_node.sub_node_command.internal._assert_task_dir_set import _assert_task_dir_set
+from shell.structure.sub_node.sub_node_command.internal._assert_task_name_set import _assert_task_name_set
+from shell.structure.sub_node.sub_node_command.internal._assert_work_dir_set import _assert_work_dir_set
+from shell.structure.sub_node.sub_node_command.internal._assert_model_set import _assert_model_set
 
 
 def _init_sub_node_command(sub_node_command, sub_node_properties, task_dir, python_exe=None) -> None:
@@ -2426,10 +3534,10 @@ def _init_sub_node_command(sub_node_command, sub_node_properties, task_dir, pyth
 
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_command/sub_node_command.py
+### platform/shell/structure/sub_node/sub_node_command/sub_node_command.py
 ```
-"""sub_node_command.py
-SubNodeCommand — builds and holds the subprocess command for a pipeline node.
+﻿"""sub_node_command.py
+SubNodeCommand — builds and holds the subprocess command for a graph node.
 
 Slots:
     _app     — parent App
@@ -2438,13 +3546,13 @@ Slots:
 
 from __future__ import annotations
 
-from dirnode.structure.sub_node.sub_node_command.internal._assert_sub_node_command_set import _assert_sub_node_command_set
-from dirnode.structure.sub_node.sub_node_command.internal._init_sub_node_command import _init_sub_node_command
-from dirnode.component.command.command import Command
+from shell.structure.sub_node.sub_node_command.internal._assert_sub_node_command_set import _assert_sub_node_command_set
+from shell.structure.sub_node.sub_node_command.internal._init_sub_node_command import _init_sub_node_command
+from shell.component.command.command import Command
 
 
 class SubNodeCommand:
-    """Builds and holds the subprocess command for a single pipeline node."""
+    """Builds and holds the subprocess command for a single graph node."""
 
     __slots__ = ("_app", "_command",)
 
@@ -2461,27 +3569,27 @@ class SubNodeCommand:
         _init_sub_node_command(self, sub_node_configuration, task_dir, python_exe)
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_properties/__init__.py
+### platform/shell/structure/sub_node/sub_node_properties/__init__.py
 ```
-from dirnode.structure.sub_node.sub_node_properties.sub_node_properties import SubNodeProperties
-```
-
-### platform/dirnode/structure/sub_node/sub_node_properties/internal/__init__.py
-```
+﻿from shell.structure.sub_node.sub_node_properties.sub_node_properties import SubNodeProperties
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_properties/internal/_assert_sub_node_properties_loaded.py
+### platform/shell/structure/sub_node/sub_node_properties/internal/__init__.py
+```
+```
+
+### platform/shell/structure/sub_node/sub_node_properties/internal/_assert_sub_node_properties_loaded.py
 ```
 def _assert_sub_node_properties_loaded(name: str | None) -> None:
     if name is None:
         raise ValueError("[SubNodeProperties] not loaded — call init_sub_node_properties() first")
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_properties/internal/_init_sub_node_properties.py
+### platform/shell/structure/sub_node/sub_node_properties/internal/_init_sub_node_properties.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from dirnode.structure.node.node.internal._validate_node import _validate_node
+from shell.structure.node.node.internal._validate_node import _validate_node
 
 
 def _init_sub_node_properties(sub_node_properties, sub_node_config_dict: dict, writer=None) -> None:
@@ -2509,9 +3617,9 @@ def _init_sub_node_properties(sub_node_properties, sub_node_config_dict: dict, w
     sub_node_properties._work_dir = config_dict.get('work_dir')
 ```
 
-### platform/dirnode/structure/sub_node/sub_node_properties/sub_node_properties.py
+### platform/shell/structure/sub_node/sub_node_properties/sub_node_properties.py
 ```
-"""sub_node_properties.py
+﻿"""sub_node_properties.py
 SubNodeProperties — parsed attributes of a sub_node's config.yaml,
 with node infrastructure slots migrated from SubNodeConfiguration.
 
@@ -2542,12 +3650,12 @@ Slots:
 
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
-from dirnode.structure.node.node_config.node_config import NodeConfig
-from dirnode.structure.node.node_stage.node_stage import NodeStage
-from dirnode.structure.sub_node.sub_node_properties.internal._assert_sub_node_properties_loaded import _assert_sub_node_properties_loaded
-from dirnode.structure.sub_node.sub_node_properties.internal._init_sub_node_properties import _init_sub_node_properties
+from shell.structure.node.node_config.node_config import NodeConfig
+from shell.structure.node.node_stage.node_stage import NodeStage
+from shell.structure.sub_node.sub_node_properties.internal._assert_sub_node_properties_loaded import _assert_sub_node_properties_loaded
+from shell.structure.sub_node.sub_node_properties.internal._init_sub_node_properties import _init_sub_node_properties
 
 
 class SubNodeProperties:
@@ -2602,7 +3710,7 @@ class SubNodeProperties:
 
     @property
     def node_dir_(self) -> PathType:
-        from dirnode.structure.node.node.internal._assert_node_dir_set import _assert_node_dir_set
+        from shell.structure.node.node.internal._assert_node_dir_set import _assert_node_dir_set
         _assert_node_dir_set(self._sub_node_dir)
         return Path.new(self._sub_node_dir).resolve()
 
@@ -2708,18 +3816,18 @@ class SubNodeProperties:
         _init_sub_node_properties(self, sub_node_config_dict, writer=writer)
 ```
 
-### platform/dirnode/utils/__init__.py
+### platform/shell/utils/__init__.py
 ```
 ```
 
-### platform/dirnode/utils/file/__init__.py
+### platform/shell/utils/file/__init__.py
 ```
 # lib/data package
 ```
 
-### platform/dirnode/utils/file/File.py
+### platform/shell/utils/file/File.py
 ```
-"""File.py
+﻿"""File.py
 File — DOM node representing a single file on disk.
 
 Fields:
@@ -2732,11 +3840,11 @@ Properties:
 
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 
-from dirnode.utils.file.internal._assert_file_loaded import _assert_file_loaded
-from dirnode.utils.file.internal._read_file import _read_file
-from dirnode.utils.file.internal._save_file import _save_file
+from shell.utils.file.internal._assert_file_loaded import _assert_file_loaded
+from shell.utils.file.internal._read_file import _read_file
+from shell.utils.file.internal._save_file import _save_file
 
 
 class File:
@@ -2770,12 +3878,12 @@ class File:
         _save_file(self._file_path, self._file_body, encoding)
 ```
 
-### platform/dirnode/utils/file/internal/__init__.py
+### platform/shell/utils/file/internal/__init__.py
 ```
 # file internal package
 ```
 
-### platform/dirnode/utils/file/internal/_assert_file_body_not_empty.py
+### platform/shell/utils/file/internal/_assert_file_body_not_empty.py
 ```
 """_assert_file_body_not_empty.py
 Validate that file_body is not empty.
@@ -2790,9 +3898,9 @@ def _assert_file_body_not_empty(file_body: str) -> None:
         raise ValueError("Cannot save empty file_body.")
 ```
 
-### platform/dirnode/utils/file/internal/_assert_file_loaded.py
+### platform/shell/utils/file/internal/_assert_file_loaded.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """_assert_file_loaded.py
 Validate that file has been loaded (file_body is not empty).
 """
@@ -2807,9 +3915,9 @@ def _assert_file_loaded(file_body: str, file_path: PathType) -> None:
         raise ValueError(f"File not loaded: {file_path}")
 ```
 
-### platform/dirnode/utils/file/internal/_assert_suffix_allowed.py
+### platform/shell/utils/file/internal/_assert_suffix_allowed.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """_assert_suffix_allowed.py
 Validate that a file suffix is in the allowed set.
 """
@@ -2831,13 +3939,13 @@ def _assert_suffix_allowed(file_path: PathType) -> None:
         )
 ```
 
-### platform/dirnode/utils/file/internal/_read_file.py
+### platform/shell/utils/file/internal/_read_file.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.file.internal._assert_suffix_allowed import _assert_suffix_allowed
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.file.internal._assert_suffix_allowed import _assert_suffix_allowed
+from shell.utils.path.path import Path, PathType
 
 
 def _read_file(file_path: PathType, encoding: str = "utf-8") -> str:
@@ -2845,14 +3953,14 @@ def _read_file(file_path: PathType, encoding: str = "utf-8") -> str:
     return Path.read_text(file_path)
 ```
 
-### platform/dirnode/utils/file/internal/_save_file.py
+### platform/shell/utils/file/internal/_save_file.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 
-from dirnode.utils.file.internal._assert_file_body_not_empty import _assert_file_body_not_empty
-from dirnode.utils.file.internal._assert_suffix_allowed import _assert_suffix_allowed
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.file.internal._assert_file_body_not_empty import _assert_file_body_not_empty
+from shell.utils.file.internal._assert_suffix_allowed import _assert_suffix_allowed
+from shell.utils.path.path import Path, PathType
 
 
 def _save_file(file_path: PathType, file_body: str, encoding: str = "utf-8") -> None:
@@ -2862,17 +3970,17 @@ def _save_file(file_path: PathType, file_body: str, encoding: str = "utf-8") -> 
     Path.write_text(file_path, file_body)
 ```
 
-### platform/dirnode/utils/io/__init__.py
+### platform/shell/utils/io/__init__.py
 ```
 ```
 
-### platform/dirnode/utils/io/io.py
+### platform/shell/utils/io/io.py
 ```
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import logging
 
-from dirnode.utils.path.path import Path
+from shell.utils.path.path import Path
 
 
 def default_read_utf8(path) -> str:
@@ -2899,11 +4007,11 @@ def default_file_handler(path) -> logging.FileHandler:
     return logging.FileHandler(path, encoding="utf-8")
 ```
 
-### platform/dirnode/utils/path/__init__.py
+### platform/shell/utils/path/__init__.py
 ```
 ```
 
-### platform/dirnode/utils/path/path.py
+### platform/shell/utils/path/path.py
 ```
 """path.py
 Path — static proxy for file and directory operations on a pathlib.Path.
@@ -2986,11 +4094,11 @@ class Path:
         return path.read_text(encoding='utf-8', errors='replace')
 ```
 
-### platform/dirnode/utils/system/__init__.py
+### platform/shell/utils/system/__init__.py
 ```
 ```
 
-### platform/dirnode/utils/system/system.py
+### platform/shell/utils/system/system.py
 ```
 """python_version_validator.py
 Responsible for one thing: validating the Python interpreter version.
@@ -3013,297 +4121,18 @@ class System:
             )
 ```
 
-### platform/dokumentacja.md
-```
-# Dokumentacja platformy `dirnode`
-
-> Analiza wygenerowana na podstawie przeglądu kodu. Zawiera opis architektury, przepływ wykonania oraz znalezione błędy logiczne.
-
----
-
-## 1. Czym jest platforma
-
-Platforma `dirnode` to lekki silnik agentowy uruchamiany jednowątkowo. Zadania wykonywane są krok po kroku — jeden subproces na raz.  
-Wszystkie komponenty komunikują się **przez system plików** (katalogi `.node/input/`, `.node/output/`, `.node/stage/`).
-
-Punkt wejścia to zewnętrzny skrypt (np. `C:\Temp\run-tasker.py`):
-
-```python
-from dirnode.app.app import App
-
-app = App.init_app(mode='tasker', runner_root_dir=__file__)
-sys.exit(app.run_app())
-```
-
----
-
-## 2. Tryby pracy (mode)
-
-| Mode     | Opis |
-|----------|------|
-| `tasker` | Zarządza zadaniem: wczytuje pipeline YAML, uruchamia node'y jako subprocesy |
-| `router` | Odbiera output od agentów i kieruje wiadomości do kolejnych node'ów |
-| `agent`  | Wykonuje pracę AI: buduje prompt, wywołuje model CLI, zwraca output |
-| `worker` | Jak agent, ale bez LLM — prosta logika, dodatkowe logi |
-| `tool`   | Prosta narzędzia bez złożonej logiki (np. wywołanie API) |
-
----
-
-## 3. Katalog `.node/` — struktura na dysku
-
-Każdy node (agent, router, tasker) ma swój katalog roboczy, np. `C:\temp\workspace\step-2\`:
-
-```
-step-2/
-  .node/
-    input/       ← pliki wejściowe (np. wiadomości do przetworzenia)
-    output/      ← pliki wyjściowe (wygenerowane przez agenta)
-    stage/
-      active/    ← wiadomości aktywnie routowane przez router
-      pending/   ← wiadomości czekające na odpowiedź (TTL)
-      history/   ← przetworzone wiadomości (archiwum)
-      done/      ← wiadomości DONE (koniec zadania)
-      ignored/   ← wiadomości przeterminowane (przekroczony max_step)
-      dead/      ← wiadomości usunięte z active
-    task/        ← kopia <task-name>.yaml i <task-name>.md (odczytywane przez node)
-    config/      ← config.yaml node'a
-    archive/     ← archiwum po zakończeniu
-    logs/        ← logi
-```
-
----
-
-## 4. Format nazwy pliku wiadomości
-
-Wiadomości między node'ami mają ściśle określony format nazwy:
-
-```
-n__<from_role>__<to_role>__<msg_type>__<intent>__<thread_id>__<message_id>__<step_number>.md
-```
-
-Przykład:
-```
-1__developer__router__DONE__task_complete__20260503120000123456__20260503120001234567__1.md
-```
-
-- `FROM_PLACEHOLDER` (`X`) jest zastępowane przez `source_role` podczas routingu  
-- `msg_type == DONE` → router przesyła wiadomość do `stage/done/` i sygnalizuje koniec zadania
-- `to_role == router` → wiadomość wraca do historii (odpowiedź na pending)
-- Każde przekazanie przez router inkrementuje `step` — po przekroczeniu `max_step` wiadomość trafia do `ignored/`
-
----
-
-## 5. Przepływ wykonania (mode=tasker)
-
-### 5.1 Inicjalizacja (`App.init_app`)
-
-```
-System.validate()
-init_app_config(argv, mode, runner_root_dir)
-start_trace()
-init_app_node(make_dirs)   ← tworzy .node/ dla tasker node'a
-lock_.lock()
-init_runner(mode='tasker') → init_tasker()
-```
-
-### 5.2 `init_tasker()`
-
-```
-_init_task_prompts()         ← kopiuje *.prompt.md z source_dir do .node/task/
-_validate_task()             ← assert: <task>.yaml i <task>.md istnieją
-pipeline_.init_pipeline()   ← wczytuje YAML, tworzy PipelineNode[] + katalogi node'ów
-_init_new_node_statuses()   ← nowe node'y → status INITIALIZED, persystuje do YAML
-_seed_pipeline_node_task()  ← router (non-maker) → READY, task.md → router's task/
-```
-
-### 5.3 Pętla główna `_run_iterative_tasker` (do 200 iteracji)
-
-```
-1. Szukaj agenta z plikiem w input/:
-   → jeśli znaleziony → uruchom agent subproces → continue
-
-2. Szukaj pracy dla routera:
-   _has_router_work = jakiś agent ma output/ LUB router.stage/active/ niepuste
-                      LUB router.stage/pending/ niepuste
-   → jeśli jest praca → uruchom router subproces → jeśli DONE → return DONE → continue
-
-3. "no work" → uruchom router subproces (flush done)
-   → jeśli DONE → return DONE
-   → break
-```
-
-### 5.4 Subproces agenta
-
-```
-App.init_app(mode='agent', --node-dir=<agent_dir>, --task-dir=<task_dir>)
-init_agent()    ← agent_properties, agent_command, agent_prompt (z placeholders)
-run_agent()     ← subprocess.run (LLM CLI) z pętlą retry
-```
-
-Agent:
-- czyta z `input/` (wiadomość od routera)
-- generuje output do `output/` (wiadomość dla routera)
-- exit code = Status
-
-### 5.5 Subproces routera
-
-```
-App.init_app(mode='router', --node-dir=<router_dir>, --task-dir=<task_dir>)
-init_router()   ← init_router_base(task_dir)
-run_router()    ← _run_router()
-```
-
-Router (non-maker):
-```
-node_stage.init_stage_dirs()
-_expire_pending_ttl()          ← pending z step > max_step → ignored
-_pick_agent_output(agent_nodes) ← znajdź output z któregoś agenta
-  → jeśli znaleziono:
-      _route_incoming()        ← DONE → done/, to_role=router → history, else → active + distribute
-  → jeśli nie znaleziono i brak active/:
-      _flush_done()            ← kopiuj ostatnią wiadomość z history do tasker output/, exit code=11 (DONE)
-```
-
-### 5.6 Mechanizm sygnalizacji DONE
-
-1. Router subprocess: `_flush_done` wywołuje `app.app_trace_.record_info(..., returncode=11)`
-2. Router subprocess kończy pracę z `returncode=11`
-3. Tasker: `_run_pipeline_node` zapisuje `returncode=11` do tasker's `app_trace_`
-4. Tasker: `app.app_trace_.has_done_` → True → `return Status.DONE`
-
----
-
-## 6. Pipeline YAML — przykładowa struktura
-
-```yaml
-name: my-task
-session_id: null    # generowane przez tasker podczas init
-
-pipeline:
-  - node_name: step-2
-    parent_node_dir: C:\temp\workspace
-    runner_root_dir: C:\...\agent\cli-agent
-    mode: agent
-    role: developer
-    model: gpt-5-mini
-    status: null
-
-  - node_name: step-4
-    parent_node_dir: C:\temp\workspace
-    runner_root_dir: C:\...\agent\cli-agent
-    mode: agent
-    role: reviewer
-    model: gpt-5-mini
-    status: null
-
-  - node_name: step-1
-    parent_node_dir: C:\temp\workspace
-    runner_root_dir: C:\...\router\default-router
-    mode: router
-    role: router
-    status: null
-```
-
-`session_id` jest nadpisywany przez tasker przy każdym `init_tasker()`.  
-Statusy node'ów są persystowane do tego samego YAML przez `_persist_node_status`.
-
----
-
-## 7. RouterBase vs Pipeline
-
-`RouterBase` posiada własną instancję `Pipeline` (lazy), inicjalizowaną przez `init_router_base(task_dir)`. Po wywołaniu `_init_router_base` pipeline jest załadowany z `.node/task/<name>.yaml` i `pipeline_nodes_` zwraca `list[PipelineNode]` (pełne obiekty) — takie same jak w taskerze.
-
-| Kontekst | Jak ładowane | Dostępne? |
-|----------|-------------|-----------|
-| Tasker subprocess | `pipeline_.init_pipeline()` bezpośrednio | ✓ |
-| Router subprocess | `router_base_.pipeline_.init_pipeline()` via `init_router_base()` | ✓ |
-
----
-
-## 8. Naprawione błędy (historia)
-
-Wszystkie bugi zidentyfikowane podczas analizy zostały naprawione:
-
-| Bug | Opis | Naprawa |
-|-----|------|---------|
-| BUG-1 | `_init_router_base.py` był pusty | Teraz wywołuje `pipeline_.init_pipeline()` |
-| BUG-2 | Router używał `Pipeline` tasker subprocess zamiast własnego | `_run_router.py` używa `router.router_base_.pipeline_nodes_` |
-| BUG-3 | `task.md` był seedowany do `input/` routera, który go ignorował | Przeniesiono do `task/` (`_seed_pipeline_node_task`) |
-| BUG-4 | `_run_router_maker.py` używał `.node_` zamiast `.pipeline_node_slot_` | Naprawiono (kod jest dead code — RouterMaker wyłączony) |
-| BUG-5 | `_seed_first_agent_input.py` — dead code z błędnym API | Plik usunięty |
-
----
-
-## 9. Podsumowanie przepływu — aktualny stan
-
-```
-Tasker init:
-  ✓ Wczytuje pipeline YAML do PipelineNode[]
-  ✓ Tworzy katalogi .node/ dla każdego pipeline node'a
-  ✓ Ustawia node'y na INITIALIZED, router na READY
-  ✓ _seed_pipeline_node_task() seeduje task.md do router's task/ (nie input/)
-
-Pętla tasker:
-  ✓ Sprawdza agent z input/ (filesystem)
-  ✓ Sprawdza router stage (filesystem)
-  ✓ Router subprocess otrzymuje pipeline_nodes z RouterBase (nie pustą listę)
-
-Router subprocess:
-  ✓ init_router_base() ładuje pipeline przez pipeline_.init_pipeline()
-  ✓ pipeline_nodes_ zwraca list[PipelineNode] (pełne obiekty)
-  ✓ _run_router używa router.router_base_.pipeline_nodes_
-  ✓ task.md jest dostępny w task/ (nie w input/)
-
-Agent subprocess:
-  ✓ (architektura spójna, nie wymaga zmian)
-```
-
----
-
-## 10. Aktualny stan platformy
-
-Wszystkie znalezione bugi naprawione. Platforma powinna wykonywać pełny cykl:
-tasker init → router READY → router subprocess ładuje pipeline → agenci dostają zadania → router routuje odpowiedzi → DONE.
-```
-
-### platform/python.good_practics.md
-```
-Najlepsza praktyka
-Low-level
-def repository():
-    raise DatabaseError(...)
-
-bez logowania.
-
-Mid-level
-
-opcjonalnie:
-
-wrap exception,
-dodaj kontekst.
-try:
-    repository()
-except DatabaseError as exc:
-    raise ServiceError("User loading failed") from exc
-Top-level
-try:
-    app.run()
-except Exception:
-    logger.exception("Fatal application error")
-```
-
 ### platform/temp/check_var_names.py
 ```
-"""check_var_names.py
+﻿"""check_var_names.py
 Finds assignments where local variable name differs from the property name being assigned.
 Example bad:  target = node_logs.logs_dir_   (should be: logs_dir = node_logs.logs_dir_)
 """
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 import re
 
-base = Path.new(__file__).parent.parent / "dirnode"
+base = Path.new(__file__).parent.parent / "shell"
 prop_assign = re.compile(r'^\s*(\w+)\s*=\s*[\w.]+\.(\w+)_\s*$')
 
 mismatches = []
@@ -3332,23 +4161,23 @@ for rel, lineno, var, prop, line in mismatches:
 
 ### platform/temp/list_slots.py
 ```
-"""list_slots.py
+﻿"""list_slots.py
 Skanuje pliki .py w podanym katalogu, zbiera wszystkie klasy z __slots__
 i generuje posortowany plik class_slots.md (class_name, slot_name).
 
 Użycie:
     python utils/list_slots.py [katalog] [--out PLIK]
 
-Domyślnie skanuje platform/dirnode i zapisuje do utils/class_slots.md.
+Domyślnie skanuje platform/shell i zapisuje do utils/class_slots.md.
 
 Przykłady:
     python utils/list_slots.py
-    python utils/list_slots.py platform/dirnode --out utils/class_slots.md
+    python utils/list_slots.py platform/shell --out utils/class_slots.md
 """
 
 from __future__ import annotations
 
-from dirnode.utils.path.path import Path, PathType
+from shell.utils.path.path import Path, PathType
 import ast
 import argparse
 import sys
@@ -3396,7 +4225,7 @@ def write_md(rows: list[tuple[str, str]], out: PathType) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generuje class_slots.md ze __slots__ w kodzie Python.")
-    parser.add_argument("directory", nargs="?", default="platform/dirnode", help="Katalog do skanowania")
+    parser.add_argument("directory", nargs="?", default="platform/shell", help="Katalog do skanowania")
     parser.add_argument("--out", default="utils/class_slots.md", help="Plik wyjściowy")
     args = parser.parse_args()
 
@@ -3418,7 +4247,7 @@ if __name__ == "__main__":
 
 ### platform/temp/nodechild_lazy_loading_and_init_andproperty_algoritm.md
 ```
-# NodeLogs — wzorzec lazy loading, inicjalizacja, konstruktor, property, sloty
+﻿# NodeLogs — wzorzec lazy loading, inicjalizacja, konstruktor, property, sloty
 
 ## Sloty
 
@@ -3427,7 +4256,7 @@ __slots__ = ("_app", "_module_status")
 ```
 
 - `_app` — referencja do parent App; przekazywana przez konstruktor
-- `_module_status` — enum `ModuleStatus` (z `dirnode.module_status.module_status`); ustawiany w konstruktorze na `NEW`, zmieniany na `INIT` przez `init_node_logs()`
+- `_module_status` — enum `ModuleStatus` (z `shell.module_status.module_status`); ustawiany w konstruktorze na `NEW`, zmieniany na `INIT` przez `init_node_logs()`
 
 ---
 
@@ -3535,13 +4364,13 @@ node.node_logs_.init_node_logs()
 
 ### platform/tests/cli/internal/test__parse_args.py
 ```
-"""Tests for lib/args/_parse_args.py
+﻿"""Tests for lib/args/_parse_args.py
 
 Verifies that raw CLI argument parsing produces the correct Namespace values.
 """
 
 import pytest
-from dirnode.component.cli.cli.internal._parse_args import _parse_args
+from shell.component.cli.cli.internal._parse_args import _parse_args
 
 
 def test_no_args_produces_safe_defaults():
@@ -3594,9 +4423,9 @@ def test_clean_out_flag():
 
 ### platform/tests/cli/internal/test__prepare_args.py
 ```
-from dirnode.utils.path.path import PathType
-from dirnode.app.app import App
-from dirnode.component.cli.cli.internal._init_cli import _init_cli
+﻿from shell.utils.path.path import PathType
+from shell.app.app import App
+from shell.component.cli.cli.internal._init_cli import _init_cli
 
 
 def test_node_flag_is_written_to_config(tmp_path):
@@ -3616,10 +4445,10 @@ def test_source_dir_is_set_from_flag(tmp_path):
 
 ### platform/tests/cli/internal/test__validate_args.py
 ```
-import pytest
-from dirnode.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
-from dirnode.component.cli.cli.internal._assert_task_name_set import _assert_task_name_set
-from dirnode.component.cli.cli.internal._assert_mode_allowed import _assert_mode_allowed
+﻿import pytest
+from shell.component.cli.cli.internal._assert_node_dir_set import _assert_node_dir_set
+from shell.component.cli.cli.internal._assert_task_name_set import _assert_task_name_set
+from shell.component.cli.cli.internal._assert_mode_allowed import _assert_mode_allowed
 
 
 def test_assert_node_dir_set_raises_in_agent_mode_when_missing():
@@ -3659,13 +4488,13 @@ def test_assert_mode_allowed_does_not_raise_for_tasker():
 
 ### platform/tests/conftest.py
 ```
-from dirnode.utils.path.path import Path, PathType
+﻿from shell.utils.path.path import Path, PathType
 import sys
 import logging
 
 import pytest
 
-from dirnode.app.app import App
+from shell.app.app import App
 
 # Make the shared `lib` package (outside this package) importable in tests.
 _LIB_ROOT = Path.new(__file__).resolve().parents[2]  # 07-automation/
@@ -3714,6 +4543,21 @@ def cfg_with_node(cfg, node_dir):
 
 ```
 
+### platform/tests/graph/__init__.py
+```
+
+```
+
+### platform/tests/graph_node/__init__.py
+```
+
+```
+
+### platform/tests/graph_node/internal/__init__.py
+```
+
+```
+
 ### platform/tests/logger/__init__.py
 ```
 
@@ -3726,7 +4570,7 @@ def cfg_with_node(cfg, node_dir):
 
 ### platform/tests/logger/internal/test_logger_internals.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """Tests for lib/logger/_build_log_path.py and lib/logger/_get_logging_formatter.py
 
 Verifies: correct log path construction, correct formatter pattern.
@@ -3735,8 +4579,8 @@ Verifies: correct log path construction, correct formatter pattern.
 import logging
 import pytest
 from datetime import datetime, timezone
-from dirnode.logger.internal._build_log_path import _build_log_path
-from dirnode.logger.internal._make_formatter import _make_formatter
+from shell.logger.internal._build_log_path import _build_log_path
+from shell.logger.internal._make_formatter import _make_formatter
 
 _FIXED_NOW = datetime(2026, 4, 8, 15, 30, 0, tzinfo=timezone.utc)
 
@@ -3811,14 +4655,14 @@ def test_formatter_pattern_contains_message():
 
 ### platform/tests/node/test_clean_node.py
 ```
-"""Tests for Node.clean_node()
+﻿"""Tests for Node.clean_node()
 
 Verifies: unlink called for files, rmtree called for subdirectories,
 missing directories are skipped, OSError on individual items is ignored.
 """
 
 import pytest
-from dirnode.app.app import App
+from shell.app.app import App
 
 _CLEAN_DIRS = ("tmp", "script")
 
@@ -3885,21 +4729,6 @@ def test_clean_node_uses_real_filesystem_by_default(node_dir):
     assert not target.exists()
 ```
 
-### platform/tests/pipeline/__init__.py
-```
-
-```
-
-### platform/tests/pipeline_node/__init__.py
-```
-
-```
-
-### platform/tests/pipeline_node/internal/__init__.py
-```
-
-```
-
 ### platform/tests/prompt/__init__.py
 ```
 
@@ -3912,11 +4741,11 @@ def test_clean_node_uses_real_filesystem_by_default(node_dir):
 
 ### platform/tests/prompt/internal/test__resolve_prompt.py
 ```
-from dirnode.utils.path.path import PathType
-"""Tests for dirnode/agent_prompt/internal/_resolve_prompt.py"""
+﻿from shell.utils.path.path import PathType
+"""Tests for shell/agent_prompt/internal/_resolve_prompt.py"""
 
 import pytest
-from dirnode.agent_prompt.internal._resolve_prompt import _resolve_prompt
+from shell.agent_prompt.internal._resolve_prompt import _resolve_prompt
 
 
 def test_returns_file_content_for_existing_file_path(tmp_path):
@@ -3958,7 +4787,7 @@ def test_reader_is_used_for_file_reading(tmp_path):
 
 ### platform/tests/prompt/internal/test_build_from_dir_and_find_file.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """Tests for lib/llm_prompt/_build_from_dir.py and lib/llm_prompt/_find_file.py
 
 _build_from_dir: builds structured Markdown from numbered section folders.
@@ -3966,8 +4795,8 @@ find_file: searches input/ then tmp/ for a file by name.
 """
 
 import pytest
-from dirnode.agent_prompt.internal._build_from_dir import _build_from_dir
-from dirnode.agent_prompt.internal._find_file import _find_file
+from shell.agent_prompt.internal._build_from_dir import _build_from_dir
+from shell.agent_prompt.internal._find_file import _find_file
 
 
 # --- build_from_dir ---
@@ -4068,7 +4897,7 @@ def test_find_file_prefers_input_over_tmp(tmp_path):
 
 ### platform/tests/task/test_task_and_execute.py
 ```
-from dirnode.utils.path.path import PathType
+﻿from shell.utils.path.path import PathType
 """Tests for execute/runner modules:
 execute_clean, execute_help, execute_version, app properties.
 """
@@ -4077,8 +4906,8 @@ import logging
 import pytest
 import yaml
 
-from dirnode.app.app import App
-from dirnode.component.manifest.manifest import Manifest
+from shell.app.app import App
+from shell.component.manifest.manifest import Manifest
 
 
 def _null_logger():
@@ -4093,15 +4922,15 @@ def _null_logger():
 # init_tasker
 # ---------------------------------------------------------------------------
 
-def test_init_tasker_copies_files_and_initializes_pipeline(tmp_path):
+def test_init_tasker_copies_files_and_initializes_graph(tmp_path):
     source_dir = tmp_path / "source"
     source_dir.mkdir()
     (source_dir / "my-task.md").write_text("# my-task\nsome task description", encoding="utf-8")
 
     workspace_dir = tmp_path / "workspace"
     workspace_dir.mkdir()
-    pipeline_yaml = (
-        "pipeline:\n"
+    graph_yaml = (
+        "graph:\n"
         "  - node_name: agent-01\n"
         f"    parent_node_dir: {workspace_dir}\n"
         f"    runner_root_dir: {workspace_dir}\n"
@@ -4110,7 +4939,7 @@ def test_init_tasker_copies_files_and_initializes_pipeline(tmp_path):
         "    type: agent\n"
         "    status: null\n"
     )
-    (source_dir / "my-task.yaml").write_text(pipeline_yaml, encoding="utf-8")
+    (source_dir / "my-task.yaml").write_text(graph_yaml, encoding="utf-8")
 
     node_dir = tmp_path / "tasker-node"
     node_dir.mkdir()
@@ -4124,8 +4953,8 @@ def test_init_tasker_copies_files_and_initializes_pipeline(tmp_path):
 
     task_dir = node_dir / ".node" / "task"
     assert (task_dir / "my-task.md").is_file()
-    assert (task_dir / "pipeline_my-task.yaml").is_file()
-    assert len(app.runner_.tasker_.pipeline_._pipeline_nodes) == 1
+    assert (task_dir / "graph_my-task.yaml").is_file()
+    assert len(app.runner_.tasker_.graph_._graph_nodes) == 1
 
 
 
@@ -4133,682 +4962,4 @@ def test_init_tasker_copies_files_and_initializes_pipeline(tmp_path):
 
 ### platform/tests/throwable/__init__.py
 ```
-```
-
-### platform/utils/class_slots.md
-```
-# class_slots
-
-| class_name | slot_name |
-|---|---|
-| AgentProperties | _app |
-| AgentProperties | _model |
-| AgentProperties | _retries |
-| AgentProperties | _retry_delay |
-| AgentProperties | _timeout |
-| App | _app_configuration |
-| App | _app_node |
-| App | _app_properties |
-| App | _app_trace |
-| App | _app_utils |
-| App | _result |
-| App | _runner |
-| AppNode | _app |
-| AppNode | _lock |
-| AppNode | _node |
-| AppProperties | _autopilot |
-| AppProperties | _command |
-| AppProperties | _log_level |
-| AppProperties | _max_step |
-| AppProperties | _mode |
-| AppProperties | _model |
-| AppProperties | _name |
-| AppProperties | _no_ask_user |
-| AppProperties | _retries |
-| AppProperties | _role |
-| AppProperties | _timeout |
-| AppProperties | _type |
-| AppUtils | _placeholders |
-| Cli | _app |
-| Cli | _cli_properties |
-| CliProperties | _add_dirs |
-| CliProperties | _allow_all_paths |
-| CliProperties | _allow_all_tools |
-| CliProperties | _autopilot |
-| CliProperties | _clean |
-| CliProperties | _clean_out |
-| CliProperties | _prompt |
-| CliProperties | _dry_run |
-| CliProperties | _help |
-| CliProperties | _log_level |
-| CliProperties | _max_step |
-| CliProperties | _mode |
-| CliProperties | _model |
-| CliProperties | _no_ask_user |
-| CliProperties | _node_dir |
-| CliProperties | _output_format |
-| CliProperties | _parent_node_dir |
-| CliProperties | _parent_thread_id |
-| CliProperties | _prompt_dir |
-| CliProperties | _role |
-| CliProperties | _runner_root_dir |
-| CliProperties | _source_dir |
-| CliProperties | _step_number |
-| CliProperties | _task_dir |
-| CliProperties | _task_name |
-| CliProperties | _thread_id |
-| CliProperties | _timeout |
-| CliProperties | _type |
-| CliProperties | _version |
-| CliProperties | _work_dir |
-| Command | _command |
-| Config | _app |
-| Config | _config_dict |
-| Config | _config_path |
-| Event | _event_type |
-| Event | _log_level_code |
-| Event | _message |
-| Event | _returncode |
-| Event | _source |
-| Event | _stderr |
-| Event | _stdout |
-| Event | _timestamp |
-| File | _file_body |
-| File | _file_path |
-| FilePrompt | _file_body |
-| FilePrompt | _file_name |
-| FilePrompt | _prompt_type |
-| Locker | _app |
-| Locker | _lock_path |
-| Logger | _app |
-| Logger | _cached_logger |
-| Logger | _log_level |
-| Node | _app |
-| Node | _node_archive |
-| Node | _node_config |
-| Node | _node_dir |
-| Node | _node_input |
-| Node | _node_logs |
-| Node | _node_name |
-| Node | _node_output |
-| Node | _node_prompt |
-| Node | _node_properties |
-| Node | _node_scripts |
-| Node | _node_stage |
-| Node | _node_status |
-| Node | _node_task |
-| Node | _node_temp |
-| NodeArchive | _app |
-| NodeArchive | _module_status |
-| NodeConfig | _app |
-| NodeConfig | _module_status |
-| NodeConfig | _node_config_file_body |
-| NodeConfig | _node_properties |
-| NodeLogs | _app |
-| NodeLogs | _logs_dir |
-| NodeLogs | _module_status |
-| NodeOutput | _app |
-| NodeOutput | _module_status |
-| NodeOutput | _output_dir |
-| NodeOutput | _output_files_map |
-| NodePrompt | _app |
-| NodePrompt | _module_status |
-| NodePrompt | _prompt |
-| NodePrompt | _prompt_dir |
-| NodeScripts | _app |
-| NodeScripts | _module_status |
-| NodeScripts | _scripts_dir |
-| NodeStage | _app |
-| NodeStage | _module_status |
-| NodeStage | _stage |
-| NodeStage | _stage_dir |
-| NodeStatus | _app |
-| NodeStatus | _status |
-| NodeTask | _app |
-| NodeTask | _module_status |
-| NodeTask | _task_md_file_body |
-| NodeTask | _task_name |
-| NodeTask | _task_yaml_file_body |
-| NodeTemp | _app |
-| NodeTemp | _module_status |
-| NodeTemp | _temp_dir |
-| Pipeline | _app |
-| Pipeline | _status |
-| Pipeline | _sub_nodes |
-| Placeholders | _placeholder_list |
-| Process | _process_command |
-| Process | _returncode |
-| Process | _runner |
-| Process | _stderr |
-| Process | _stdout |
-| ProcessCommand | _command |
-| Prompt | _app |
-| Prompt | _file_prompts |
-| Prompt | _prompt_cli |
-| Prompt | _prompt_dir |
-| Prompt | _prompt_input |
-| Prompt | _prompt_role |
-| Prompt | _prompt_skill |
-| Prompt | _prompt_system |
-| Prompt | _prompt_task |
-| PromptCli | _app |
-| PromptCli | _file_prompt |
-| PromptInput | _app |
-| PromptInput | _file_prompts |
-| PromptRole | _app |
-| PromptRole | _file_prompts |
-| PromptSkill | _app |
-| PromptSkill | _file_prompts |
-| PromptSystem | _app |
-| PromptSystem | _file_prompts |
-| PromptTask | _app |
-| PromptTask | _file_prompts |
-| Result | _app |
-| Result | _returncode |
-| Result | _status |
-| Result | _stderr |
-| Result | _stdout |
-| RouterBase | _app |
-| RouterBase | _pipeline |
-| RouterBase | _role_to_node_map |
-| RouterStage | _app |
-| RunnerProperties | _add_dirs |
-| Stage | _app |
-| Stage | _module_status |
-| Stage | _stage_active |
-| Stage | _stage_dead |
-| Stage | _stage_dir |
-| Stage | _stage_done |
-| Stage | _stage_history |
-| Stage | _stage_ignored |
-| Stage | _stage_pending |
-| StageActive | _active_dir |
-| StageActive | _app |
-| StageActive | _module_status |
-| StageDead | _app |
-| StageDead | _dead_dir |
-| StageDead | _module_status |
-| StageDone | _app |
-| StageDone | _done_dir |
-| StageDone | _module_status |
-| StageHistory | _app |
-| StageHistory | _history_dir |
-| StageHistory | _module_status |
-| StageIgnored | _app |
-| StageIgnored | _ignored_dir |
-| StageIgnored | _module_status |
-| StagePending | _app |
-| StagePending | _module_status |
-| StagePending | _pending_dir |
-| SubNode | _app |
-| SubNode | _is_new |
-| SubNode | _node_status |
-| SubNode | _sub_node_command |
-| SubNode | _sub_node_config_dict |
-| SubNode | _sub_node_configuration |
-| SubNode | _sub_node_properties |
-| SubNodeCommand | _app |
-| SubNodeCommand | _command |
-| SubNodeConfiguration | _app |
-| SubNodeConfiguration | _config |
-| SubNodeConfiguration | _mode |
-| SubNodeConfiguration | _model |
-| SubNodeConfiguration | _node_archive |
-| SubNodeConfiguration | _node_config |
-| SubNodeConfiguration | _node_input |
-| SubNodeConfiguration | _node_output |
-| SubNodeConfiguration | _node_prompt |
-| SubNodeConfiguration | _node_properties |
-| SubNodeConfiguration | _node_stage |
-| SubNodeConfiguration | _node_task |
-| SubNodeConfiguration | _role |
-| SubNodeConfiguration | _runner_root_dir |
-| SubNodeConfiguration | _source_dir |
-| SubNodeConfiguration | _sub_node |
-| SubNodeConfiguration | _sub_node_dir |
-| SubNodeConfiguration | _sub_node_name |
-| SubNodeConfiguration | _task_name |
-| SubNodeConfiguration | _timeout |
-| SubNodeConfiguration | _type |
-| SubNodeConfiguration | _work_dir |
-| SubNodeProperties | _autopilot |
-| SubNodeProperties | _command |
-| SubNodeProperties | _log_level |
-| SubNodeProperties | _max_step |
-| SubNodeProperties | _mode |
-| SubNodeProperties | _model |
-| SubNodeProperties | _name |
-| SubNodeProperties | _no_ask_user |
-| SubNodeProperties | _retries |
-| SubNodeProperties | _role |
-| SubNodeProperties | _timeout |
-| SubNodeProperties | _type |
-| Tasker | _app |
-| Tasker | _pipeline |
-| Tasker | _session_id |
-| Tool | _app |
-| Tool | _tool_properties |
-| ToolProperties | _app |
-| Worker | _app |
-| Worker | _script_file_body |
-| Worker | _worker_properties |
-| WorkerProperties | _app |
-```
-
-### router/default-router/config/config.yaml
-```
-name: default-router
-mode: router
-role: router
-type: base
-# Default configuration for router.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-log_level: INFO  # Default log level for router
-max_step: 20     # Maximum TTL step; message with step >= max_step is rejected immediately
-```
-
-### router/default-router/entrypoint.py
-```
-import sys
-
-from dirnode.app.app import App
-
-
-def main() -> int:
-    app = App.init_app(mode='router', runner_root_dir=__file__)
-    return app.run_app()
-
-if __name__ == "__main__":
-    sys.exit(main())
-```
-
-### router/default-router/manifest.yaml
-```
-name: default-router
-mode: router
-role: router
-type: default
-version: 0.1.0
-description: "Router for routing agent structure"
-
-exit_codes:
-  0: SUCCESS
-  1: ERROR
-  2: TIMEOUT
-  3: WARNING
-  4: LOCKED
-  5: QUESTION
-  6: WAITING
-  7: SKIP
-  8: READY
-  9: INITIALIZED
-  99: CRITICAL
-
-".<node_name>":  # Node name this name was from --node-dir.name cli param or task-file.yaml pipeline.node-name tag
-  input:         #Input folder for files used by App
-  output:        #Output folder for files generated by App
-  archive:       #Archive folder for save state after App finish his job
-  temp:          #Temporary folder place where App can generate temporary files
-  log:           #Folder when loggers App can put his working logs
-  config:        #Folder containing config.yaml
-  scripts:       #Folder contain scripts using by App, scripts generate working logs
-  tools:         #Folder contain tools using by App, tools are extra apps who not generating working logs
-  router:        #Folder containing <router-name>.route.yaml file
-
-cli_args:
-  --node-dir:  #Path to the  node directory
-  --task-dir:  #Path to directory containing task files (.md and .yaml); required
-  --dry-run:   #Optional; validate router node-dir structure and paths without executing; default empty
-  --version:   #Optional; print router version and exit; default empty
-  --help:      #Optional; show manifest and exit; default empty
-  --clean:     #Optional; clean output/, logs/ and tmp/, then exit; default empty
-  --clean-out: #Optional; clean output/, logs/ and tmp/, then run normally; default empty
-  --log-level: #Optional; log level: DEBUG, INFO, WARNING, ERROR, CRITICAL; default INFO
-  --no-ask-user: #Optional; working without interaction with human; default empty
-  --autopilot:  #Optional; autonomic work; default empty
-  --add-dir:    #Optional; extra folders like workspaces what App can use; default empty
-  --mode:      #Optional; for future multimode support; default is mode from manifest
-  --role:      #Optional; for future multirole support; default is role from manifest
-  --type:      #Optional; for future multi type support; default is type from manifest
-  --work-dir:  #Optional; working directory for agent operations; default c:/temp
-  --max-step:  #Optional; maximum TTL step for message routing; default 20
-```
-
-### tasker/default-tasker/config/config.yaml
-```
-name: default-tasker
-mode: tasker
-role: tasker
-type: base
-# Default configuration for tasker.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-log_level: INFO  # Default log level for tasker
-source_dir: c:/temp/workspace  # Default source directory
-max_step: 20     # Maximum TTL step; message with step >= max_step is rejected immediately
-```
-
-### tasker/default-tasker/entrypoint.py
-```
-"""entrypoint.py
-Entry point for tasker-worker.
-Contains ONLY method calls — no inline logic.
-
-Exit codes for the external orchestrator:
-    0 — success
-    1 — error
-    2 — timeout
-    4 — locked
-    5 — question
-"""
-
-import sys
-
-from dirnode.app.app import App
-
-
-def main() -> int:
-    app = App.init_app(mode='tasker', runner_root_dir=__file__)
-    return app.run_app()
-
-if __name__ == "__main__":
-    sys.exit(main())
-```
-
-### tasker/default-tasker/examples/my-task.md
-```
-# my-task
-
-W katalogu c:/temp
-1. Utworz prosty projekt aplikacje ktora dodaje 2 liczby i zwraca wynik
-2. W jezyku python
-3. Napisz do niego testy jednostkowe
-4. Uruchom testy i pokaż wynik
-```
-
-### tasker/default-tasker/examples/my-task.yaml
-```
-name: my-task
-
-# session_id — generated by tasker on each init_task run; used by router to tag outgoing messages.
-# Allows distinguishing messages from different runs when stage/done/ is checked for idempotency.
-# Do not set manually — tasker overwrites this field on every run.
-session_id: null
-
-# node mode type values:
-#   agent    — AI agent with LLM (e.g. cli-agent)
-#   worker   — background worker with some extra logs
-#   router   — router for routing between agents and workers
-#   tasker    — task manager for managing tasks and pipelines
-#   tool     — simple tool without complex logic, e.g. for calling external API or running shell commands
-
-# node role values (examples),usually roles are for agent mode
-#   analyzer   — analyzes input and produces report
-#   developer  — writes or modifies code
-#   architect  — designs solution / produces blueprint
-#   deployer   — deploys artifacts to environment
-#   reviewer   — reviews and validates output
-#   tester     — runs tests and reports results
-
-# node status values:
-#   new      — defined in yaml, not yet initialized
-#   initialized — initialized, but not yet ready for execution
-#   ready    — ready for execution
-#   pending  — execution started but not finished
-#   success  — completed successfully
-#   error    — completed with error
-#   question — agent stopped and is waiting for extra input
-#   waiting  — waiting for external dependency
-
-pipeline:
-
-  - sub_node_dir: C:\temp\workspace\step-2
-    runner_root_dir: C:\Users\palysiewicz\IdeaProjects\MICROSYSTEM\.github\copilot-knowledge\07-automation\agent\cli-agent
-    mode: agent
-    role: developer
-    model: gpt-5-mini
-    type: agent
-    status: null
-
-  - sub_node_dir: C:\temp\workspace\step-5
-    runner_root_dir: C:\Users\palysiewicz\IdeaProjects\MICROSYSTEM\.github\copilot-knowledge\07-automation\agent\cli-agent
-    mode: agent
-    role: reviewer
-    model: gpt-5-mini
-    type: agent
-    status: null
-
-  - sub_node_dir: C:\temp\workspace\step-6
-    runner_root_dir: C:\Users\palysiewicz\IdeaProjects\MICROSYSTEM\.github\copilot-knowledge\07-automation\agent\cli-agent
-    mode: agent
-    role: analyzer
-    model: gpt-5-mini
-    type: agent
-    status: null
-
-  - sub_node_dir: C:\temp\workspace\step-7
-    runner_root_dir: C:\Users\palysiewicz\IdeaProjects\MICROSYSTEM\.github\copilot-knowledge\07-automation\router\default-router
-    mode: router
-    role: router
-    type: router
-    status: null
-
-  # Example sub-tasker node (mode: tasker).
-  # task_name refers to a subfolder / file pair in source_dir: <task_name>.yaml + <task_name>.md
-  # source_dir is optional — inherited from parent CLI --source-dir when omitted.
-  - sub_node_dir: C:\temp\workspace\step-8
-    runner_root_dir: C:\Users\palysiewicz\IdeaProjects\MICROSYSTEM\.github\copilot-knowledge\07-automation\tasker\default-tasker
-    mode: tasker
-    role: tasker
-    type: tasker
-    task_name: my-subtask
-    source_dir: null
-    status: null
-```
-
-### tasker/default-tasker/manifest.yaml
-```
-name: default-tasker
-mode: tasker
-role: tasker
-type: default
-version: 0.1.0
-description: "Task-level multi-node orchestrator."
-
-exit_codes:
-  0: SUCCESS
-  1: ERROR
-  2: TIMEOUT
-  3: WARNING
-  4: LOCKED
-  5: QUESTION
-  6: WAITING
-  7: SKIP
-  8: READY
-  9: INITIALIZED
-  99: CRITICAL
-
-".<node_name>":  # Node name this name was from --node-dir.name cli param or task-file.yaml pipeline.node-name tag
-  input:         #Input folder for files used by App
-  output:        #Output folder for files generated by App
-  archive:       #Archive folder for save state after App finish his job
-  temp:          #Temporary folder place where App can generate temporary files
-  log:           #Folder when loggers App can put his working logs
-  config:        #Folder containing config.yaml
-  scripts:       #Folder contain scripts using by App, scripts generate working logs
-  tools:         #Folder contain tools using by App, tools are extra apps who not generating working logs
-  task:          #Folder contain task definition files: <task_name>.yaml and <task_name>.md
-  ".<node_name>": #Sub node, every node can contain none of some sub nodes
-
-cli_args:
-  --node-dir:  #Path to the  node directory
-  --dry-run:   #Optional; validate tasker node-dir structure and paths without executing; default empty
-  --version:   #Optional; print tasker version and exit; default empty
-  --help:      #Optional; show manifest and exit; default empty
-  --clean:     #Optional; clean output/, logs/ and tmp/, then exit; default empty
-  --clean-out: #Optional; clean output/, logs/ and tmp/, then run normally; default empty
-  --log-level: #Optional; log level: DEBUG, INFO, WARNING, ERROR, CRITICAL; default INFO
-  --no-ask-user: #Optional; working without interaction with human; default empty
-  --autopilot:  #Optional; autonomic work; default empty
-  --add-dir:    #Optional; extra folders like workspaces what App can use; default empty
-  --mode:      #Optional; for future multimode support; default is mode from manifest
-  --role:      #Optional; for future multirole support; default is role from manifest
-  --type:      #Optional; for future multi type support; default is type from manifest
-  --source-dir: #Required; path to source directory containing task files
-  --task-name: #Name of the task to execute; that was name of folder in task repository; 
-  --work-dir:  #Optional; working directory for agent operations; default c:/temp
-  --max-step:  #Optional; maximum TTL step for message routing; default 20
-```
-
-### tools/default-tool/config/config.yaml
-```
-name: default-tool
-mode: tool
-role: tool
-type: base
-# Default configuration for tool.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-log_level: INFO  # Default log level for tool
-```
-
-### tools/default-tool/entrypoint.py
-```
-import sys
-
-from dirnode.app.app import App
-
-
-def main() -> int:
-    app = App.init_app(mode='tasker', runner_root_dir=__file__)
-    return app.run_app()
-if __name__ == "__main__":
-    sys.exit(main())
-```
-
-### tools/default-tool/manifest.yaml
-```
-name: default-tool
-mode: tool
-role: tool
-type: default
-version: 0.1.0
-description: "Default tool for do something in agent structure."
-
-exit_codes:
-  0: SUCCESS
-  1: ERROR
-  2: TIMEOUT
-  3: WARNING
-  4: LOCKED
-  5: QUESTION
-  6: WAITING
-  7: SKIP
-  8: READY
-  9: INITIALIZED
-  99: CRITICAL
-
-".<node_name>":  # Node name this name was from --node-dir.name cli param or task-file.yaml pipeline.node-name tag
-  input:         #Input folder for files used by App
-  output:        #Output folder for files generated by App
-  archive:       #Archive folder for save state after App finish his job
-  temp:          #Temporary folder place where App can generate temporary files
-  log:           #Folder when loggers App can put his working logs
-  config:        #Folder containing config.yaml
-  scripts:       #Folder contain scripts using by App, scripts generate working logs
-  tools:         #Folder contain tools using by App, tools are extra apps who not generating working logs
-cli_args:
-  --node-dir:  #Path to the  node directory
-  --dry-run:   #Optional; validate tool node-dir structure and paths without executing; default empty
-  --version:   #Optional; print tool version and exit; default empty
-  --help:      #Optional; show manifest and exit; default empty
-  --clean:     #Optional; clean output/, logs/ and tmp/, then exit; default empty
-  --clean-out: #Optional; clean output/, logs/ and tmp/, then run normally; default empty
-  --log-level: #Optional; log level: DEBUG, INFO, WARNING, ERROR, CRITICAL; default INFO
-  --no-ask-user: #Optional; working without interaction with human; default empty
-  --autopilot:  #Optional; autonomic work; default empty
-  --add-dir:    #Optional; extra folders like workspaces what App can use; default empty
-  --mode:      #Optional; for future multimode support; default is mode from manifest
-  --role:      #Optional; for future multirole support; default is role from manifest
-  --type:      #Optional; for future multi type support; default is type from manifest
-  --work-dir:  #Optional; working directory for agent operations; default c:/temp
-```
-
-### worker/default-worker/config/config.yaml
-```
-# Default configuration for tasker-worker.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-
-# Number of retries on failure (0 = no retry)
-retries: 0
-
-# If true, do not ask user for input (non-interactive mode)
-no_ask_user: true
-
-# If true, run in autopilot mode (no confirmation prompts)
-autopilot: true
-```
-
-### worker/default-worker/entrypoint.py
-```
-import sys
-
-from dirnode.app.app import App
-
-def main() -> int:
-    app = App.init_app(mode='worker', runner_root_dir=__file__)
-    return app.run_app()
-
-if __name__ == "__main__":
-    sys.exit(main())
-```
-
-### worker/default-worker/manifest.yaml
-```
-name: default-worker
-mode: worker
-role: worker
-type: default
-version: 0.1.0
-description: "Default worker for do something in agent structure."
-
-exit_codes:
-  0: SUCCESS
-  1: ERROR
-  2: TIMEOUT
-  3: WARNING
-  4: LOCKED
-  5: QUESTION
-  6: WAITING
-  7: SKIP
-  8: READY
-  9: INITIALIZED
-  99: CRITICAL
-
-".<node_name>":  # Node name this name was from --node-dir.name cli param or task-file.yaml pipeline.node-name tag
-  input:         #Input folder for files used by App
-  output:        #Output folder for files generated by App
-  archive:       #Archive folder for save state after App finish his job
-  temp:          #Temporary folder place where App can generate temporary files
-  log:           #Folder when loggers App can put his working logs
-  config:        #Folder containing config.yaml
-  scripts:       #Folder contain scripts using by App, scripts generate working logs
-  tools:         #Folder contain tools using by App, tools are extra apps who not generating working logs
-cli_args:
-  --node-dir:  #Path to the  node directory
-  --dry-run:   #Optional; validate worker node-dir structure and paths without executing; default empty
-  --version:   #Optional; print worker version and exit; default empty
-  --help:      #Optional; show manifest and exit; default empty
-  --clean:     #Optional; clean output/, logs/ and tmp/, then exit; default empty
-  --clean-out: #Optional; clean output/, logs/ and tmp/, then run normally; default empty
-  --log-level: #Optional; log level: DEBUG, INFO, WARNING, ERROR, CRITICAL; default INFO
-  --no-ask-user: #Optional; working without interaction with human; default empty
-  --autopilot:  #Optional; autonomic work; default empty
-  --add-dir:    #Optional; extra folders like workspaces what App can use; default empty
-  --mode:      #Optional; for future multimode support; default is mode from manifest
-  --role:      #Optional; for future multirole support; default is role from manifest
-  --type:      #Optional; for future multi type support; default is type from manifest
-  --work-dir:  #Optional; working directory for agent operations; default c:/temp
 ```

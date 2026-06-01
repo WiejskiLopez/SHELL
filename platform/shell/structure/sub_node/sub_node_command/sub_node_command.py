@@ -1,4 +1,4 @@
-﻿"""sub_node_command.py
+"""sub_node_command.py
 SubNodeCommand — builds and holds the subprocess command for a graph node.
 
 Slots:
