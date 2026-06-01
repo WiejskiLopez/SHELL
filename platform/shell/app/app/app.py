@@ -22,6 +22,7 @@ from shell.component.runtime.runtime.runtime import Runtime
 from shell.memory.memory.memory import Memory
 from shell.bus.message_bus.message_bus import MessageBus
 from shell.bus.workflow_state.workflow_state import WorkflowState
+from shell.task.task_repo.task_repo import TaskRepo
 from shell.app.app.internal._init_app import _init_app
 from shell.app.app.internal._init_memory_and_bus import _init_memory_and_bus
 from shell.app.app.internal._run_app import _run_app
@@ -43,7 +44,7 @@ class App:
         '_placeholders',
         '_app_properties',
         '_runtime',
-        '_memory', '_bus', '_workflow_state',
+        '_memory', '_bus', '_workflow_state', '_task_repo',
     )
 
     def __init__(self) -> None:
@@ -59,6 +60,7 @@ class App:
         self._memory: Memory | None = None
         self._bus: MessageBus | None = None
         self._workflow_state: WorkflowState | None = None
+        self._task_repo: TaskRepo | None = None
 
     # -----------------------------------------------------------------------
     # Repr
@@ -170,6 +172,12 @@ class App:
         if self._workflow_state is None:
             self._workflow_state = WorkflowState()
         return self._workflow_state
+
+    @property
+    def task_repo_(self) -> TaskRepo:
+        if self._task_repo is None:
+            self._task_repo = TaskRepo()
+        return self._task_repo
 
     def init_memory_and_bus(self) -> None:
         _init_memory_and_bus(self)

@@ -15,6 +15,8 @@ def _apply_bus_schema(driver: SqlDriver) -> None:
         workflow_id        TEXT PRIMARY KEY,
         parent_workflow_id TEXT,
         root_task_id       TEXT,
+        task_id            INTEGER,
+        session_id         TEXT,
         status             TEXT NOT NULL,
         started_at         TEXT NOT NULL,
         ended_at           TEXT,

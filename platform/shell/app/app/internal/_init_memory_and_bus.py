@@ -32,3 +32,4 @@ def _init_memory_and_bus(app: 'App') -> None:
 
     app.bus_.init_message_bus(app.memory_.driver_)
     app.workflow_state_.init_workflow_state(app.memory_.driver_)
+    app.task_repo_.init_task_repo(app.memory_.driver_)
