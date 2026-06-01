@@ -19,7 +19,11 @@ from shell.app.app_properties.app_properties import AppProperties
 from shell.component.result.result import Result
 from shell.app.app_runner.app_runner import AppRunner
 from shell.component.runtime.runtime.runtime import Runtime
+from shell.memory.memory.memory import Memory
+from shell.bus.message_bus.message_bus import MessageBus
+from shell.bus.workflow_state.workflow_state import WorkflowState
 from shell.app.app.internal._init_app import _init_app
+from shell.app.app.internal._init_memory_and_bus import _init_memory_and_bus
 from shell.app.app.internal._run_app import _run_app
 from shell.app.app.internal._append_app_config import _append_app_config
 
@@ -39,6 +43,7 @@ class App:
         '_placeholders',
         '_app_properties',
         '_runtime',
+        '_memory', '_bus', '_workflow_state',
     )
 
     def __init__(self) -> None:
@@ -51,6 +56,9 @@ class App:
         self._placeholders: Placeholders | None = None
         self._app_properties: AppProperties | None = None
         self._runtime: Runtime | None = None
+        self._memory: Memory | None = None
+        self._bus: MessageBus | None = None
+        self._workflow_state: WorkflowState | None = None
 
     # -----------------------------------------------------------------------
     # Repr
@@ -140,6 +148,31 @@ class App:
         if self._app_properties is None:
             self._app_properties = AppProperties(self)
         return self._app_properties
+
+    # -----------------------------------------------------------------------
+    # Memory / Bus / WorkflowState facades
+    # -----------------------------------------------------------------------
+
+    @property
+    def memory_(self) -> Memory:
+        if self._memory is None:
+            self._memory = Memory()
+        return self._memory
+
+    @property
+    def bus_(self) -> MessageBus:
+        if self._bus is None:
+            self._bus = MessageBus()
+        return self._bus
+
+    @property
+    def workflow_state_(self) -> WorkflowState:
+        if self._workflow_state is None:
+            self._workflow_state = WorkflowState()
+        return self._workflow_state
+
+    def init_memory_and_bus(self) -> None:
+        _init_memory_and_bus(self)
 
     # -----------------------------------------------------------------------
     # Phase methods

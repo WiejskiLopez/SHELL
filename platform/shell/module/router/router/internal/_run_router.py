@@ -1,17 +1,18 @@
+"""_run_router.py
+Router run: bus-based routing pass.
+
+Moves PENDING envelopes (no receiver_node_id yet) to ACTIVE by resolving
+target_role -> receiver_node_id via graph role map. Envelopes without
+target_role are routed to the next graph node.
+
+Also expires envelopes whose step >= max_step (move to DEAD).
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.module.router.router.parse_message_filename import parse_message_filename
-from shell.module.router.router.internal._expire_pending_ttl import _expire_pending_ttl
-from shell.module.router.router.internal._flush_done import _flush_done
-from shell.module.router.router.internal._pick_agent_output import _pick_agent_output
-from shell.module.router.router.internal._assert_active_file_parsed import _assert_active_file_parsed
-from shell.module.router.router.internal._pick_active_file import _pick_active_file
-from shell.module.router.router.internal._pick_parent_input import _pick_parent_input
-from shell.module.router.router.internal._rename_parent_input_as_task import _rename_parent_input_as_task
-from shell.module.router.router.internal._route_incoming import _route_incoming
-from shell.module.router.router.internal._seed_tasker_input_to_first_agent import _seed_tasker_input_to_first_agent
+from shell.bus.envelope.envelope_stage import EnvelopeStage
 
 if TYPE_CHECKING:
     from shell.module.router.router.router import Router
@@ -19,47 +20,58 @@ if TYPE_CHECKING:
 
 def _run_router(router: 'Router') -> None:
     app = router._app
+    bus = app.bus_
+    workflow_id = _resolve_workflow_id(app)
     max_step = app.cli_.cli_properties_.max_step_
-    node_stage = router.router_stage_.node_stage_
 
+    expired_count = bus.expire_ttl(workflow_id, max_step) if max_step else 0
+    app.app_trace_.record_info('router._run_router', f'expired_count={expired_count}')
+
+    pending = [
+        e for e in bus.get_history_for_workflow(workflow_id)
+        if e.stage_ == EnvelopeStage.PENDING
+    ]
+    app.app_trace_.record_info('router._run_router', f'pending_count={len(pending)}')
+
+    role_to_node = router.router_base_.role_to_node_map_
     graph_nodes = router.router_base_.graph_nodes_
-    non_router_nodes = [pn for pn in graph_nodes if pn.mode_ != 'router']
+    non_router_nodes = [n for n in graph_nodes if n.mode_ != 'router']
 
-    _expire_pending_ttl(app, node_stage, max_step)
-
-    agent_result = _pick_agent_output(app, non_router_nodes)
-    active_file = _pick_active_file(app, node_stage)
-    parent_input_file = _pick_parent_input(app)
-    app.app_trace_.record_info('router._run_router', f'agent_result={agent_result[0].name if agent_result else None}')
-    app.app_trace_.record_info('router._run_router', f'active_file={active_file.name if active_file else None}')
-    app.app_trace_.record_info('router._run_router', f'parent_input_file={parent_input_file.name if parent_input_file else None}')
-
-    if agent_result is not None:
-        picked_file, source_role = agent_result
-    elif active_file is not None:
-        _parsed = parse_message_filename(active_file.name)
-        _assert_active_file_parsed(_parsed, active_file)
-        picked_file, source_role = active_file, _parsed.from_role
+    routed = 0
+    for envelope in pending:
+        target_role = envelope.target_role_
+        target_node = role_to_node.get(target_role) if target_role else None
+        if target_node is None and non_router_nodes:
+            target_node = non_router_nodes[0]
+        if target_node is None:
+            app.app_trace_.record_info(
+                'router._run_router',
+                f'envelope id={envelope.id_} target_role={target_role!r} unresolved — skip',
+            )
+            continue
+        bus.driver_.execute(
+            "UPDATE envelope SET receiver_node_id = ?, stage = ? WHERE id = ?",
+            (target_node.node_name_, EnvelopeStage.ACTIVE.value, envelope.id_),
+        )
+        bus.driver_.execute(
+            """
+            INSERT INTO envelope_event (envelope_id, event_type, from_value, to_value, source)
+            VALUES (?, 'STAGE_CHANGED', ?, ?, 'router')
+            """,
+            (envelope.id_, EnvelopeStage.PENDING.value, EnvelopeStage.ACTIVE.value),
+        )
+        bus.driver_.commit()
+        routed += 1
         app.app_trace_.record_info(
             'router._run_router',
-            f'routing from active: {active_file.name} from_role={source_role}'
+            f'routed envelope id={envelope.id_} target_role={target_role} -> node={target_node.node_name_}',
         )
-    elif parent_input_file is not None:
-        if not non_router_nodes:
-            app.app_trace_.record_info('router._run_router', 'parent input found but no target nodes — skipping')
-            return
-        first_role = non_router_nodes[0].role_
-        role = app.cli_.cli_properties_.role_
-        renamed = _rename_parent_input_as_task(parent_input_file, app, first_role, role)
-        picked_file, source_role = renamed, role
-        app.app_trace_.record_info(
-            'router._run_router',
-            f'routing parent input as TASK: {renamed.name} to_role={first_role}'
-        )
-    else:
-        if not node_stage.get_active_files():
-            _flush_done(app, node_stage)
-        return
 
-    _route_incoming(router, node_stage, graph_nodes, picked_file, source_role, app)
+    app.app_trace_.record_info('router._run_router', f'routed={routed}')
 
+
+def _resolve_workflow_id(app) -> str:
+    task_name = app.cli_.cli_properties_.task_name_
+    if task_name:
+        return task_name
+    return app.app_node_.node_.node_dir_.name
