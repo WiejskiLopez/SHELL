@@ -10,20 +10,7 @@ Validated properties:
 """
 
 from __future__ import annotations
-class Status(int, Enum):
-    SUCCESS = 0
-    ERROR = 1
-    TIMEOUT = 2
-    WARNING = 3
-    LOCKED = 4
-    QUESTION = 5
-    WAITING = 6
-    SKIP = 7
-    READY = 8
-    INITIALIZED = 9
-    NULL = 10
-    DONE = 11
-    CRITICAL = 99tam gdzie uzywana 
+
 from shell.status.status import Status
 
 _STATUS_PRIORITY = (
