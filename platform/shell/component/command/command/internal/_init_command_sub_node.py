@@ -32,7 +32,7 @@ def _init_command_sub_node(command, sub_node_properties, task_dir, app, python_e
     _assert_task_dir_set(task_dir)
 
     node_dir = Path.new(parent_node_dir) / sub_node_name
-    entrypoint_path = Path.new(runner_root_dir).resolve() / 'entrypoint.py'
+    entrypoint_path = Path.resolve(Path.new(runner_root_dir)) / 'entrypoint.py'
     _assert_entrypoint_exists(entrypoint_path)
 
     command.extend_command_args([python_exe, str(entrypoint_path)])

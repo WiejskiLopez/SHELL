@@ -83,14 +83,14 @@ class CliProperties:
     def runner_root_dir_(self) -> PathType:
         value = self._cli.cli_config_.config_dict_.get('runner_root_dir')
         _assert_runner_root_dir_set(value)
-        return Path.new(value).parent.resolve()
+        return Path.resolve(Path.new(value).parent)
 
     @property
     def source_dir_(self) -> PathType | None:
         value = self._cli.cli_config_.config_dict_.get('source_dir')
         if value is None:
             return None
-        return Path.new(value).resolve()
+        return Path.resolve(Path.new(value))
 
     @property
     def task_name_(self) -> str | None:
@@ -108,7 +108,7 @@ class CliProperties:
         value = self._cli.cli_config_.config_dict_.get('task_dir')
         if value is None:
             return None
-        return Path.new(value).resolve()
+        return Path.resolve(Path.new(value))
 
     @property
     def model_(self) -> str | None:
@@ -138,7 +138,18 @@ class CliProperties:
         value = self._cli.cli_config_.config_dict_.get('parent_node_dir')
         if value is None:
             return None
-        return Path.new(value).resolve()
+        return Path.resolve(Path.new(value))
+
+    @property
+    def workflow_id_(self) -> str | None:
+        return self._cli.cli_config_.config_dict_.get('workflow_id')
+
+    @property
+    def envelope_id_(self) -> int | None:
+        value = self._cli.cli_config_.config_dict_.get('envelope_id')
+        if value is None:
+            return None
+        return int(value)
 
     @property
     def message_id_(self) -> str:

@@ -69,6 +69,23 @@ def _apply_bus_schema(driver: SqlDriver) -> None:
         timestamp     TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS idx_event_envelope ON envelope_event(envelope_id, id);
+
+    CREATE TABLE IF NOT EXISTS envelope_archive (
+        id                {auto_pk},
+        envelope_id       INTEGER NOT NULL,
+        workflow_id       TEXT,
+        sequence_id       INTEGER,
+        sender_node_id    TEXT,
+        receiver_node_id  TEXT,
+        status            TEXT,
+        stage             TEXT,
+        payload_json      TEXT,
+        frontmatter_yaml  TEXT,
+        archive_uri       TEXT,
+        archived_at       TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_envarc_workflow ON envelope_archive(workflow_id);
+    CREATE INDEX IF NOT EXISTS idx_envarc_envelope ON envelope_archive(envelope_id);
     """
     driver.executescript(ddl)
     driver.commit()

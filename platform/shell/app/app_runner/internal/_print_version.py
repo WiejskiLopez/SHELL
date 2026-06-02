@@ -17,7 +17,7 @@ def _print_version(runner: 'AppRunner', timer=None) -> None:
     timer()
     try:
         manifest = runner._app.manifest_
-        output = f"{manifest._manifest_name_} {manifest._manifest_version_}"
+        output = f"{manifest.manifest_name_} {manifest.manifest_version_}"
         runner._app.app_trace_.record_info('runner._print_version._print_version', output)
         runner._app.app_trace_.record_info('runner._print_version._print_version', 'OK')
     except Exception as exc:

@@ -1,1 +1,0 @@
-from shell.component.message.message_formatter.message_formatter import MessageFormatter

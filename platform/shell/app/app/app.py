@@ -24,6 +24,9 @@ from shell.bus.message_bus.message_bus import MessageBus
 from shell.bus.workflow_state.workflow_state import WorkflowState
 from shell.task.task_repo.task_repo import TaskRepo
 from shell.task.task_record import TaskRecord
+from shell.component.prompt_repo.prompt_repo import PromptRepo
+from shell.component.node_result_repo.node_result_repo import NodeResultRepo
+from shell.component.runner_config_repo.runner_config_repo import RunnerConfigRepo
 from shell.app.app.internal._init_app import _init_app
 from shell.app.app.internal._init_memory_and_bus import _init_memory_and_bus
 from shell.app.app.internal._run_app import _run_app
@@ -46,6 +49,9 @@ class App:
         '_app_properties',
         '_runtime',
         '_memory', '_bus', '_workflow_state', '_task_repo', '_task_record',
+        '_prompt_repo',
+        '_node_result_repo',
+        '_runner_config_repo',
     )
 
     def __init__(self) -> None:
@@ -63,6 +69,9 @@ class App:
         self._workflow_state: WorkflowState | None = None
         self._task_repo: TaskRepo | None = None
         self._task_record: TaskRecord | None = None
+        self._prompt_repo: PromptRepo | None = None
+        self._node_result_repo: NodeResultRepo | None = None
+        self._runner_config_repo: RunnerConfigRepo | None = None
 
     # -----------------------------------------------------------------------
     # Repr
@@ -180,6 +189,24 @@ class App:
         if self._task_repo is None:
             self._task_repo = TaskRepo()
         return self._task_repo
+
+    @property
+    def prompt_repo_(self) -> PromptRepo:
+        if self._prompt_repo is None:
+            self._prompt_repo = PromptRepo()
+        return self._prompt_repo
+
+    @property
+    def node_result_repo_(self) -> NodeResultRepo:
+        if self._node_result_repo is None:
+            self._node_result_repo = NodeResultRepo()
+        return self._node_result_repo
+
+    @property
+    def runner_config_repo_(self) -> RunnerConfigRepo:
+        if self._runner_config_repo is None:
+            self._runner_config_repo = RunnerConfigRepo()
+        return self._runner_config_repo
 
     @property
     def task_record_(self) -> TaskRecord:

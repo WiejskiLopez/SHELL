@@ -57,6 +57,10 @@ def _init_cli_properties(cli_properties, args) -> None:
         config.append_config_value('parent_thread_id', args.parent_thread_id, 'cli')
     if args.parent_node_dir is not None:
         config.append_config_value('parent_node_dir', args.parent_node_dir, 'cli')
+    if args.workflow_id is not None:
+        config.append_config_value('workflow_id', args.workflow_id, 'cli')
+    if args.envelope_id is not None:
+        config.append_config_value('envelope_id', args.envelope_id, 'cli')
     d = config.config_dict_
     _assert_node_dir_set(d.get('node_dir'), d.get('mode'))
     _assert_source_dir_set(d.get('source_dir'), d.get('mode'))

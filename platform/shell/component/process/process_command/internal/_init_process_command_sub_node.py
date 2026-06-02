@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
 import sys
 
+from shell.utils.system.system import System
 from shell.component.command.command import Command
 from shell.component.process.process_command.internal._init_process_command import _init_process_command
 from shell.component.process.process_command.internal._assert_source_dir_set import _assert_source_dir_set
@@ -36,7 +36,7 @@ def _init_process_command_sub_node(process_command, sub_node, task_dir, app, pyt
     _assert_task_dir_set(task_dir)
 
     node_dir = Path.new(parent_node_dir) / sub_node_name
-    entrypoint_path = Path.new(runner_root_dir).resolve() / 'entrypoint.py'
+    entrypoint_path = Path.resolve(Path.new(runner_root_dir)) / 'entrypoint.py'
     _assert_entrypoint_exists(entrypoint_path)
 
     command = Command([])
@@ -65,5 +65,5 @@ def _init_process_command_sub_node(process_command, sub_node, task_dir, app, pyt
         command.extend_command_args(['--role', role])
 
     cwd = str(sub_node.entrypoint_path_.parent)
-    env = {**os.environ, 'PYTHONUTF8': '1'}
+    env = {**System.env(), 'PYTHONUTF8': '1'}
     _init_process_command(process_command, cmd=command.command_, cwd=cwd, env=env)

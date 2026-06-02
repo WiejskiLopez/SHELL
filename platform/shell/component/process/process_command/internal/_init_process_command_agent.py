@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
-import shutil
-
+from shell.utils.system.system import System
 from shell.component.command.command import Command
 from shell.component.process.process_command.internal._init_process_command import _init_process_command
 from shell.component.process.process_command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
@@ -14,8 +12,8 @@ from shell.constants.constants import DOT_NODE, DIR_OUTPUT
 
 
 def _init_process_command_agent(process_command, app, prompt, timeout, which=None, os_name=None) -> None:
-    which = which or shutil.which
-    os_name = os_name or os.name
+    which = which or System.which
+    os_name = os_name or System.os_name()
 
     command = Command([])
 

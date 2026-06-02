@@ -27,6 +27,9 @@ def _init_app(
     app = cls()
     try:
         app.cli_.init_cli(argv=argv, runner_root_dir=runner_root_dir, mode=mode)
+        if mode in ('agent', 'tasker', 'router', 'tool', 'worker'):
+            app.app_trace_.start_trace()
+            app.init_memory_and_bus()
         app.runtime_.init_runtime(version_info=version_info)
         _init_app_modules(app, mode=mode, locker=locker)
         _init_app_config(app)

@@ -20,6 +20,11 @@ from shell.module.tasker.internal._assert_session_id_set import _assert_session_
 from shell.module.tasker.internal._init_tasker import _init_tasker
 from shell.module.tasker.internal._run_tasker import _run_tasker
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Tasker:
     """Structured task data for a shell graph run.
@@ -29,7 +34,7 @@ class Tasker:
 
     __slots__ = ("_app", "_graph", "_session_id")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._graph: Graph | None = None
         self._session_id: str | None = None

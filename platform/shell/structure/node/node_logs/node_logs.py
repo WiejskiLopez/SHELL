@@ -15,6 +15,11 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_logs.internal._clean_node_logs import _clean_node_logs
 from shell.structure.node.node_logs.internal._init_node_logs import _init_node_logs
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeLogs:
     """Manages the logs directory for a single node run.
@@ -26,7 +31,7 @@ class NodeLogs:
 
     __slots__ = ("_app", "_logs_dir", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._logs_dir: PathType | None = None
         self._module_status: ModuleStatus = ModuleStatus.NEW

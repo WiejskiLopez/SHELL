@@ -1,17 +1,21 @@
-"""_init_role_prompt.py
-Private. Responsible for one thing: loading a role prompt file from
-role_prompts/<role>.md into the Prompt instance.
+"""_load_role_prompt.py
+Loads role prompt from DB (PromptRepo). Bootstrap-imports `role_prompts/<role>.md`
+package files lazily on first call.
 """
 
 
-from shell.utils.path.path import Path, PathType
+from shell.utils.path.path import Path
 
 _ROLE_PROMPTS_DIR = Path.new(__file__).parent.parent / 'role_prompts'
 
 
-def _init_role_prompt(prompt) -> None:
+def _load_role_prompt(prompt) -> None:
     role = prompt._app.app_properties_.role_
-    if role:
-        template = _ROLE_PROMPTS_DIR / f'{role}.md'
-        if Path.is_file(template):
-            prompt._role_prompt = Path.read_text(template)
+    if not role:
+        return
+    repo = prompt._app.prompt_repo_
+    if Path.is_dir(_ROLE_PROMPTS_DIR):
+        repo.bootstrap_role_prompts(_ROLE_PROMPTS_DIR)
+    record = repo.get_current_prompt(kind='role', name=role, role=role)
+    if record is not None:
+        prompt._role_prompt = record.body_

@@ -3,9 +3,9 @@ Responsible for one thing: invoking a runner on a single task node via subproces
 and updating the node status.
 """
 
-import os
 import subprocess
 
+from shell.utils.system.system import System
 from shell.status.status import Status
 
 
@@ -29,7 +29,7 @@ def _run_sub_node(sub_node, task_dir, app, runner=None) -> Status:
             text=True,
             encoding='utf-8',
             errors='replace',
-            env={**os.environ, 'PYTHONUTF8': '1'},
+            env={**System.env(), 'PYTHONUTF8': '1'},
             cwd=str(sub_node.entrypoint_path_.parent),
         )
         sub_node.node_status_.set_status(proc.returncode)

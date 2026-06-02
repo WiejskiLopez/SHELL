@@ -19,13 +19,18 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_task.internal._init_node_task import _init_node_task
 from shell.module.tasker.internal._assert_task_graph_yaml_valid import _assert_task_graph_yaml_valid
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeTask:
     """Loads task files from task_dir and saves them to the node's .node/task/ folder."""
 
     __slots__ = ("_app", "_task_name", "_task_md_file_body", "_task_yaml_file_body", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._task_name: str | None = None
         self._task_md_file_body: str | None = None

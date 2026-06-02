@@ -21,6 +21,11 @@ from shell.structure.node.node_archive.internal._save_archive_zip import _save_a
 from shell.structure.node.node_archive.internal._clean_node_archive import _clean_node_archive
 from shell.constants.constants import DOT_NODE, DIR_ARCHIVE
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeArchive:
     """Typed interface for node archive operations.
@@ -32,13 +37,13 @@ class NodeArchive:
 
     __slots__ = ("_app", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._module_status: ModuleStatus = ModuleStatus.NEW
 
     @property
     def node_archive_dir_(self) -> PathType:
-        return (self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_ARCHIVE).resolve()
+        return Path.resolve(self._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_ARCHIVE)
 
     @property
     def module_status_(self) -> ModuleStatus:

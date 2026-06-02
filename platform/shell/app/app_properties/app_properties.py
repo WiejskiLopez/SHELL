@@ -9,12 +9,17 @@ from __future__ import annotations
 
 from shell.app.app_properties.internal._assert_app_properties_loaded import _assert_app_properties_loaded
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class AppProperties:
 
     __slots__ = ("_app",)
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
 
     @property

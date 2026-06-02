@@ -16,13 +16,18 @@ from shell.component.placeholders.internal._bind_slots import _bind_slots
 from shell.component.placeholders.internal._set_placeholder import _set_placeholder
 from shell.component.placeholders.internal._wrap import _wrap
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Placeholders:
     """Holds a list of placeholder→value pairs and applies them to prompt text."""
 
     __slots__ = ("_app", "_placeholder_list")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._placeholder_list: list[tuple[str, str]] = []
 

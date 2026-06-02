@@ -9,5 +9,11 @@ if TYPE_CHECKING:
 
 
 def _init_runtime_config(runtime: Runtime) -> None:
-    config_path = runtime.app_.cli_.cli_properties_.runner_root_dir_ / CONFIG_DIR / CONFIG_YAML
-    runtime.runtime_config_.init_config(config_path, source='runtime')
+    runner_root = runtime.app_.cli_.cli_properties_.runner_root_dir_
+    seed_path = runner_root / CONFIG_DIR / CONFIG_YAML
+    runtime.runtime_config_.init_config(
+        package_name=runner_root.name,
+        kind='config',
+        source='runtime',
+        seed_yaml_path=seed_path,
+    )

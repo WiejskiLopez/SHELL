@@ -15,13 +15,18 @@ from shell.module.router.router.internal._init_router import _init_router
 from shell.module.router.router.internal._run_router import _run_router
 from shell.module.router.router_base.router_base import RouterBase
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Router:
     """Routing decisions on the bus for a single node run."""
 
     __slots__ = ("_app", "_router_base")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._router_base: RouterBase | None = None
 

@@ -18,6 +18,11 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_input.internal._init_node_input import _init_node_input
 from shell.utils.path.path import Path, PathType
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeInput:
     """Manages reading of input files for a single node run.
@@ -28,7 +33,7 @@ class NodeInput:
 
     __slots__ = ("_app", "_input_dir", "_module_status", "_input_message")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._input_dir: PathType | None = None
         self._module_status: ModuleStatus = ModuleStatus.NEW
@@ -60,14 +65,12 @@ class NodeInput:
         self._module_status = ModuleStatus.INIT
 
     def clean_node_input(self) -> None:
+        port = self._app.app_node_.node_.port_
         target = self._input_dir
-        if not Path.exists(target):
+        if not port.exists(target):
             return
-        for item in Path.iterdir(target):
+        for item in port.list_files(target):
             try:
-                if Path.is_file(item) or Path.is_symlink(item):
-                    Path.unlink(item)
-                elif Path.is_dir(item):
-                    Path.rmtree(item)
+                port.unlink(item)
             except OSError:
                 pass

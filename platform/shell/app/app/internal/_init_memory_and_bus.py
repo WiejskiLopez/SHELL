@@ -33,6 +33,9 @@ def _init_memory_and_bus(app: 'App') -> None:
     app.bus_.init_message_bus(app.memory_.driver_)
     app.workflow_state_.init_workflow_state(app.memory_.driver_)
     app.task_repo_.init_task_repo(app.memory_.driver_)
+    app.prompt_repo_.init_prompt_repo(app.memory_.driver_)
+    app.node_result_repo_.init_node_result_repo(app.memory_.driver_)
+    app.runner_config_repo_.init_runner_config_repo(app.memory_.driver_)
 
     task_id = app.cli_.cli_properties_.task_id_
     if task_id is not None:

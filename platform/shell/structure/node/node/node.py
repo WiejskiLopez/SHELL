@@ -26,6 +26,8 @@ from shell.structure.node.node_archive.node_archive import NodeArchive
 from shell.structure.node.node_config.node_config import NodeConfig
 from shell.structure.node.node_input.node_input import NodeInput
 from shell.structure.node.node_output.node_output import NodeOutput
+from shell.structure.node.node_port.db_node_port import DbNodePort
+from shell.structure.node.node_port.node_port import NodePort
 from shell.structure.node.node_prompt.node_prompt import NodePrompt
 from shell.structure.node.node_logs.node_logs import NodeLogs
 from shell.structure.node.node_scripts.node_scripts import NodeScripts
@@ -33,6 +35,7 @@ from shell.structure.node.node_task.node_task import NodeTask
 from shell.structure.node.node_status.node_status import NodeStatus
 from shell.structure.node.node_temp.node_temp import NodeTemp
 from shell.status.status import Status
+from shell.utils.path.path import Path, PathType
 
 class Node:
     """Typed interface for all node directory operations.
@@ -41,7 +44,7 @@ class Node:
     _app is kept for operations that need logging and runner_root_dir fallback.
     """
 
-    __slots__ = ("_node_dir", "_node_name", "_node_config", "_app", "_node_status", "_node_output", "_node_input", "_node_archive", "_node_prompt", "_node_task", "_node_logs", "_node_temp", "_node_scripts")
+    __slots__ = ("_node_dir", "_node_name", "_node_config", "_app", "_node_status", "_node_output", "_node_input", "_node_archive", "_node_prompt", "_node_task", "_node_logs", "_node_temp", "_node_scripts", "_port")
 
     def __init__(self, app, node_name: str | None = None,
                  role: str | None = None, type: str | None = None, status: Status | None = None) -> None:
@@ -58,16 +61,17 @@ class Node:
         self._node_logs: NodeLogs | None = None
         self._node_temp: NodeTemp | None = None
         self._node_scripts: NodeScripts | None = None
+        self._port: NodePort | None = None
 
     # -----------------------------------------------------------------------
     # Validated properties (suffix _ convention)
     # -----------------------------------------------------------------------
 
     @property
-    def node_dir_(self) -> Path:
+    def node_dir_(self) -> PathType:
         """Return resolved Path of node_dir. Raises if not set."""
         _assert_node_dir_set(self._node_dir)
-        return Path(self._node_dir).resolve()
+        return Path.resolve(Path.new(self._node_dir))
 
     @property
     def node_name_(self) -> str:
@@ -145,6 +149,18 @@ class Node:
         if self._node_scripts is None:
             self._node_scripts = NodeScripts(self._app)
         return self._node_scripts
+
+    @property
+    def port_(self) -> NodePort:
+        if self._port is None:
+            workflow_id = self._app.cli_.cli_properties_.workflow_id_
+            port = DbNodePort()
+            port.init_db_node_port(self._app.memory_, self.node_dir_, self.node_name_, workflow_id)
+            self._port = port
+        return self._port
+
+    def set_port(self, port: NodePort) -> None:
+        self._port = port
 
     # -----------------------------------------------------------------------
     # Clean operations

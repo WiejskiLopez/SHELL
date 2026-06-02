@@ -5,5 +5,5 @@ from shell.constants.constants import DOT_NODE, DIR_TEMP
 
 
 def _init_temp_dir(node_temp) -> None:
-    node_temp._temp_dir = (node_temp._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TEMP).resolve()
+    node_temp._temp_dir = Path.resolve(node_temp._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TEMP)
     Path.mkdir(node_temp.temp_dir_)

@@ -1,24 +1,17 @@
 from __future__ import annotations
 
-import json
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 import yaml
 
 from shell.bus.envelope.envelope import Envelope
-from shell.constants.constants import DIR_ARCHIVE, DOT_NODE
-from shell.utils.path.path import Path, PathType
 
 if TYPE_CHECKING:
     from shell.bus.envelope_archiver.envelope_archiver import EnvelopeArchiver
 
 
-def _archive_envelope(archiver: EnvelopeArchiver, envelope: Envelope) -> PathType:
-    archive_dir = archiver.node_dir_ / DOT_NODE / DIR_ARCHIVE
-    if not Path.exists(archive_dir):
-        Path.mkdir(archive_dir)
-    filename = f"{envelope.sequence_id_:06d}__{envelope.status_.value}__{envelope.id_}.md"
-    archive_path = archive_dir / filename
+def _archive_envelope(archiver: EnvelopeArchiver, envelope: Envelope) -> None:
     frontmatter = {
         "envelope_id": envelope.id_,
         "workflow_id": envelope.workflow_id_,
@@ -36,18 +29,25 @@ def _archive_envelope(archiver: EnvelopeArchiver, envelope: Envelope) -> PathTyp
         "updated_at": envelope.updated_at_,
         "artifact_uri": envelope.artifact_uri_,
     }
-    body_lines = [
-        "---",
-        yaml.dump(frontmatter, allow_unicode=True, sort_keys=False).rstrip(),
-        "---",
-        "",
-    ]
-    try:
-        payload_obj = json.loads(envelope.payload_json_)
-        body_lines.append("```json")
-        body_lines.append(json.dumps(payload_obj, ensure_ascii=False, indent=2))
-        body_lines.append("```")
-    except (ValueError, TypeError):
-        body_lines.append(envelope.payload_json_)
-    Path.write_text(archive_path, "\n".join(body_lines))
-    return archive_path
+    frontmatter_yaml = yaml.dump(frontmatter, allow_unicode=True, sort_keys=False).rstrip()
+    archived_at = datetime.now(timezone.utc).isoformat()
+    archiver.bus_.driver_.execute(
+        "INSERT INTO envelope_archive "
+        "(envelope_id, workflow_id, sequence_id, sender_node_id, receiver_node_id, "
+        " status, stage, payload_json, frontmatter_yaml, archive_uri, archived_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            envelope.id_,
+            envelope.workflow_id_,
+            envelope.sequence_id_,
+            envelope.sender_node_id_,
+            envelope.receiver_node_id_,
+            envelope.status_.value,
+            envelope.stage_.value,
+            envelope.payload_json_,
+            frontmatter_yaml,
+            None,
+            archived_at,
+        ),
+    )
+    archiver.bus_.driver_.commit()

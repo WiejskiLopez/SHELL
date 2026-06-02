@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import os
-import shutil
-
+from shell.utils.system.system import System
 from shell.component.command.command.internal._assert_copilot_cmd_found import _assert_copilot_cmd_found
 from shell.component.command.command.internal._assert_model_set import _assert_model_set
 from shell.component.command.command.internal._assert_output_dir_exists import _assert_output_dir_exists
@@ -12,8 +10,8 @@ from shell.constants.constants import DOT_NODE, DIR_OUTPUT
 
 
 def _init_command_agent(command, app, which=None, os_name=None) -> None:
-    which = which or shutil.which
-    os_name = os_name or os.name
+    which = which or System.which
+    os_name = os_name or System.os_name()
 
     binary = which("copilot")
     _assert_copilot_cmd_found(binary)

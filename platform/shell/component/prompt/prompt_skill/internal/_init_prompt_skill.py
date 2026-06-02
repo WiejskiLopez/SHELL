@@ -1,23 +1,21 @@
 from __future__ import annotations
 
-
 from shell.component.prompt_file.prompt_file import PromptFile
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_PROMPT
 
 
 def _init_prompt_skill(prompt_skill) -> None:
     app = prompt_skill._app
-    task_dir = Path.new(app.cli_.cli_properties_.source_dir_ or app.cli_.cli_properties_.task_dir_)
     task_name = app.cli_.cli_properties_.task_name_
-    prompt_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_PROMPT
     prompt_skill._file_prompts = []
+    record = app.task_repo_.get_current_task(task_name) if task_name else None
+    if record is None:
+        return
     marker = f'.{task_name}.'
-    for path in Path.glob(task_dir, '*.skill.prompt.md'):
-        if marker not in path.name:
+    for entry in app.prompt_repo_.list_prompts_for_task(record.task_id_, kind='skill'):
+        if marker not in entry.name_:
             continue
-        body = Path.read_text(path)
-        if body:
-            file_prompt = PromptFile()
-            file_prompt.init_prompt_file(path.name, body, prompt_dir)
-            prompt_skill._file_prompts.append(file_prompt)
+        if not entry.body_:
+            continue
+        file_prompt = PromptFile()
+        file_prompt.init_prompt_file(entry.name_, entry.body_)
+        prompt_skill._file_prompts.append(file_prompt)

@@ -15,13 +15,18 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_scripts.internal._init_scripts_dir import _init_scripts_dir
 from shell.structure.node.node_scripts.internal._clean_node_scripts import _clean_node_scripts
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeScripts:
     """Manages the scripts directory for a single node run."""
 
     __slots__ = ("_app", "_scripts_dir", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._scripts_dir: PathType | None = None
         self._module_status: ModuleStatus = ModuleStatus.NEW

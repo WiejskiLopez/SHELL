@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class AgentProperties:
     """Holds Agent runtime parameters extracted from YAML config."""
 
     __slots__ = ("_app", "_model", "_timeout", "_retries", "_retry_delay")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._model: str | None = None
         self._timeout: int | None = None

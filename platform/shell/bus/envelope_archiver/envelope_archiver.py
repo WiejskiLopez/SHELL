@@ -1,11 +1,9 @@
 """envelope_archiver.py
-EnvelopeArchiver — write-only mirror of finalized envelopes to <node_dir>/.node/archive/.
-
-DB is the source of truth; archive is read-only audit trail for humans.
+EnvelopeArchiver — DB-only archiver of finalized envelopes (envelope_archive table).
 
 Slots:
-    _node_dir — node directory whose .node/archive/ folder is the target
-    _bus      — MessageBus instance (used to update archive_uri)
+    _node_dir — node directory whose archived envelopes are scoped to
+    _bus      — MessageBus instance (driver used to record archive events)
 """
 
 from __future__ import annotations
@@ -19,7 +17,7 @@ from shell.utils.path.path import PathType
 
 
 class EnvelopeArchiver:
-    """Writes finalized envelopes to .node/archive/ as audit-only mirror."""
+    """Archives finalized envelopes to the envelope_archive table."""
 
     __slots__ = ("_node_dir", "_bus")
 
@@ -39,19 +37,14 @@ class EnvelopeArchiver:
         self._node_dir = node_dir
         self._bus = bus
 
-    def archive_envelope(self, envelope: Envelope) -> PathType:
-        archive_path = _archive_envelope(self, envelope)
+    def archive_envelope(self, envelope: Envelope) -> None:
+        _archive_envelope(self, envelope)
         now = datetime.now(timezone.utc).isoformat()
-        self._bus.driver_.execute(
-            "UPDATE envelope SET archive_uri = ? WHERE id = ?",
-            (str(archive_path), envelope.id_),
-        )
         self._bus.driver_.execute(
             """
             INSERT INTO envelope_event (envelope_id, event_type, to_value, source, timestamp)
-            VALUES (?, 'ARCHIVED', ?, 'archiver', ?)
+            VALUES (?, 'ARCHIVED', NULL, 'archiver', ?)
             """,
-            (envelope.id_, str(archive_path), now),
+            (envelope.id_, now),
         )
         self._bus.driver_.commit()
-        return archive_path

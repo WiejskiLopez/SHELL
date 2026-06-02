@@ -14,6 +14,11 @@ from shell.component.prompt.prompt_skill.prompt_skill import PromptSkill
 from shell.component.prompt.prompt_system.prompt_system import PromptSystem
 from shell.component.prompt.prompt_task.prompt_task import PromptTask
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Prompt:
 
@@ -29,7 +34,7 @@ class Prompt:
         "_prompt_task",
     )
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._file_prompts: list[PromptFile] = []
         self._prompt_dir: PathType | None = None

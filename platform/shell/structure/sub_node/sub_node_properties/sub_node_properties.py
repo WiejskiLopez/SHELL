@@ -87,7 +87,7 @@ class SubNodeProperties:
     def node_dir_(self) -> PathType:
         from shell.structure.node.node.internal._assert_node_dir_set import _assert_node_dir_set
         _assert_node_dir_set(self._sub_node_dir)
-        return Path.new(self._sub_node_dir).resolve()
+        return Path.resolve(Path.new(self._sub_node_dir))
 
     @property
     def sub_node_dir_(self) -> str | None:

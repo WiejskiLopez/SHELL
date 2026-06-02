@@ -15,13 +15,18 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_temp.internal._init_temp_dir import _init_temp_dir
 from shell.structure.node.node_temp.internal._clean_node_temp import _clean_node_temp
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeTemp:
     """Manages the temp directory for a single node run."""
 
     __slots__ = ("_app", "_temp_dir", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._temp_dir: PathType | None = None
         self._module_status: ModuleStatus = ModuleStatus.NEW

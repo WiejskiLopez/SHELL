@@ -13,6 +13,11 @@ import logging
 
 from shell.logger.internal._get_logger import _get_logger
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Logger:
     """Structured logger for a single node run.
@@ -26,7 +31,7 @@ class Logger:
 
     __slots__ = ("_app", "_log_level", "_cached_logger")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._log_level: str | None = None
         self._cached_logger: logging.Logger | None = None

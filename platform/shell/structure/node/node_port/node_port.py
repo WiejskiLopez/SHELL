@@ -1,15 +1,12 @@
 """node_port.py
 NodePort — port (Protocol) abstrakcji storage dla operacji na nodzie.
 
-Definiuje kontrakt wymienny między adapterami:
-    - FilesystemNodePort  (domyślny, produkcyjny)
-    - DbNodePort          (przyszłość: wszystkie operacje node → baza danych)
-    - InMemoryNodePort    (testy: brak I/O)
+Jedyny adapter produkcyjny: DbNodePort (wszystkie operacje node → baza danych).
 
 Konwencja:
     PathType przekazywany do każdej metody jest logicznym identyfikatorem
     (np. node_dir / DIR_INPUT / 'task.md'), a nie bezwzględną ścieżką systemu plików.
-    Adapter tłumaczy go na właściwe medium (ścieżka, klucz DB, klucz słownika).
+    Adapter tłumaczy go na klucz w tabeli context_entry.
 """
 
 from __future__ import annotations

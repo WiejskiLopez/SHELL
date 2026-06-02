@@ -26,8 +26,13 @@ def _import_task_to_db(app: App) -> TaskRecord:
         source_md_path=str(md_path),
         source_yaml_path=str(yaml_path),
     )
+    prompt_count = app.prompt_repo_.import_task_prompts(
+        task_id=record.task_id_,
+        task_name=task_name,
+        source_dir=source_dir,
+    )
     app.app_trace_.record_info(
         'tasker._import_task_to_db',
-        f'task_id={record.task_id_} version={record.version_} hash={record.content_hash_[:12]}',
+        f'task_id={record.task_id_} version={record.version_} hash={record.content_hash_[:12]} prompts={prompt_count}',
     )
     return record

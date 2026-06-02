@@ -1,23 +1,30 @@
 from __future__ import annotations
 
-from shell.component.message.message_list.message_list import MessageList
-from shell.component.message.message_reader.message_reader import MessageReader
-from shell.structure.node.node_input.internal._assert_input_dir_exists import _assert_input_dir_exists
-from shell.utils.path.path import Path
-from shell.constants.constants import DOT_NODE, DIR_INPUT
+import yaml
 
-_MESSAGE_SUFFIXES = {".yaml", ".yml"}
+from shell.component.message.message.message import Message
+from shell.component.message.message_envelope.message_envelope import MessageEnvelope
+from shell.component.message.message_list.message_list import MessageList
+from shell.component.message.source_type.source_type import SourceType
+from shell.constants.constants import DOT_NODE, DIR_INPUT
 
 
 def _init_node_input(node_input) -> None:
-    node_input._input_dir = (node_input._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_INPUT).resolve()
-    _assert_input_dir_exists(node_input._input_dir)
+    node = node_input._app.app_node_.node_
+    node_input._input_dir = Path.resolve(node.node_dir_ / DOT_NODE / DIR_INPUT)
+    port = node.port_
 
     messages = []
-    for path in sorted(p for p in Path.iterdir(node_input.input_dir_) if Path.is_file(p) and p.suffix.lower() in _MESSAGE_SUFFIXES):
-        reader = MessageReader()
-        reader._path = path
-        messages.append(reader.read_message_file())
+    for path in port.list_files(node_input._input_dir, ".yaml") + port.list_files(node_input._input_dir, ".yml"):
+        raw = port.read_text(path)
+        data = yaml.safe_load(raw)
+        envelope = MessageEnvelope()
+        envelope.init_envelope_data(data)
+        message = Message()
+        message._message_envelope = envelope
+        message._source_name = str(path)
+        message._source_type = SourceType.FILE
+        messages.append(message)
 
     message_list = MessageList()
     message_list._messages = messages

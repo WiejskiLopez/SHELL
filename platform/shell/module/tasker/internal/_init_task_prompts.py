@@ -6,7 +6,7 @@ from shell.constants.constants import DOT_NODE, DIR_TASK
 
 
 def _init_task_prompts(app) -> None:
-    task_dir = (app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
+    task_dir = Path.resolve(app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK)
     source_dir = Path.new(app.cli_.cli_properties_.source_dir_)
 
     for source_prompt in Path.glob(source_dir, '*.prompt.md'):

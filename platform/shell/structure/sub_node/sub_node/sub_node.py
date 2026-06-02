@@ -100,9 +100,9 @@ class SubNode:
 
     @property
     def entrypoint_path_(self) -> PathType:
-        path = Path.new(self._sub_node_config.config_dict_['runner_root_dir']).resolve() / 'entrypoint.py'
+        path = Path.resolve(Path.new(self._sub_node_config.config_dict_['runner_root_dir'])) / 'entrypoint.py'
         _assert_entrypoint_exists(path)
-        return path.resolve()
+        return Path.resolve(path)
 
     # -----------------------------------------------------------------------
     # Init

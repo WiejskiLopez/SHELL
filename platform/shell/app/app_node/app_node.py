@@ -22,13 +22,18 @@ from __future__ import annotations
 from shell.structure.node.node.node import Node
 from shell.app.app_node.internal._init_app_node import _init_app_node
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class AppNode:
     """Structured value object for the current node in the context of App."""
 
     __slots__ = ("_app", "_node")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._node: Node | None = None
 

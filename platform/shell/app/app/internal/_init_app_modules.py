@@ -8,7 +8,5 @@ if TYPE_CHECKING:
 
 def _init_app_modules(app: App, mode: str | None, locker=None) -> None:
     if mode in ('agent', 'tasker', 'router', 'tool', 'worker'):
-        app.app_trace_.start_trace()
         app.app_node_.init_app_node()
-        app.init_memory_and_bus()
     app.runner_.init_runner(mode=mode)

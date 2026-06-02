@@ -20,12 +20,17 @@ from shell.status.module_status.module_status import ModuleStatus
 from shell.structure.node.node_prompt.internal._init_node_prompt import _init_node_prompt
 from shell.component.prompt.prompt.prompt import Prompt
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodePrompt:
 
     __slots__ = ("_app", "_prompt_dir", "_prompt", "_module_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._prompt_dir: PathType | None = None
         self._prompt: Prompt | None = None

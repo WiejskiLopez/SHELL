@@ -21,10 +21,8 @@ Rozróżnienie status vs returncode:
 
 from __future__ import annotations
 
-from shell.utils.path.path import Path, PathType
 from typing import TYPE_CHECKING
 
-from shell.component.result.internal._save_result import _save_result
 from shell.status.status import Status
 
 if TYPE_CHECKING:
@@ -132,15 +130,36 @@ class Result:
     # -----------------------------------------------------------------------
 
     def save_result(self) -> None:
-        """Persist stdout, stderr and result.yaml to <node>/.node/result/.
-
-        Node path is resolved from the back-reference to app.
-        """
         try:
-            node = Path.new(self._app.app_node_.node_.node_dir_)
-            start_dt = self._app.app_trace_._start_trace_date_time
-            stop_dt = self._app.app_trace_._stop_trace_date_time
-            _save_result(node, self, start_dt, stop_dt, self._app.app_trace_)
+            app = self._app
+            start_dt = app.app_trace_._start_trace_date_time
+            stop_dt = app.app_trace_._stop_trace_date_time
+            workflow_id = app.cli_.cli_properties_.workflow_id_
+            node_id = app.cli_.cli_properties_.node_dir_
+            try:
+                node_id = app.app_node_.node_.node_task_.task_name_ or node_id
+            except Exception:
+                pass
+            try:
+                role = app.app_properties_.role_
+            except Exception:
+                role = None
+            try:
+                mode = app.runner_.mode_
+            except Exception:
+                mode = None
+            app.node_result_repo_.save_node_result(
+                workflow_id=workflow_id,
+                node_id=node_id,
+                role=role,
+                mode=mode,
+                status=self._status.name if self._status is not None else None,
+                returncode=self._returncode,
+                stdout=self._stdout,
+                stderr=self._stderr,
+                started_at=start_dt.isoformat() if start_dt is not None else None,
+                stopped_at=stop_dt.isoformat() if stop_dt is not None else None,
+            )
         except Exception as exc:
             self._app.app_trace_.record_error('result.Result.save_result', exc)
 

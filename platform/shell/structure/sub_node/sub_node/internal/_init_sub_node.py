@@ -14,7 +14,7 @@ def _init_sub_node(sub_node, sub_node_config_dict, writer, reader) -> None:
         sub_node_config_dict,
         writer=writer,
     )
-    task_dir = (sub_node._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK).resolve()
+    task_dir = Path.resolve(sub_node._app.app_node_.node_.node_dir_ / DOT_NODE / DIR_TASK)
     sub_node.init_sub_node_command(task_dir)
     sub_node.node_status_.init_status(sub_node_config_dict.get('status'))
     if sub_node.status_ == Status.NULL:

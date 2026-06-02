@@ -1,24 +1,22 @@
 from __future__ import annotations
 
-
 from shell.component.prompt_file.prompt_file import PromptFile
-from shell.utils.path.path import Path, PathType
-from shell.constants.constants import DOT_NODE, DIR_PROMPT
 
 
 def _init_prompt_task(prompt_task) -> None:
     app = prompt_task._app
-    task_dir = Path.new(app.cli_.cli_properties_.task_dir_)
     role = app.app_properties_.role_
     task_name = app.cli_.cli_properties_.task_name_
-    prompt_dir = app.app_node_.node_.node_dir_ / DOT_NODE / DIR_PROMPT
     prompt_task._file_prompts = []
+    record = app.task_repo_.get_current_task(task_name) if task_name else None
+    if record is None:
+        return
     marker = f'.{role}.{task_name}.'
-    for path in Path.glob(task_dir, '*.task.prompt.md'):
-        if marker not in path.name:
+    for entry in app.prompt_repo_.list_prompts_for_task(record.task_id_, kind='task', role=role):
+        if marker not in entry.name_:
             continue
-        body = Path.read_text(path)
-        if body:
-            file_prompt = PromptFile()
-            file_prompt.init_prompt_file(path.name, body, prompt_dir)
-            prompt_task._file_prompts.append(file_prompt)
+        if not entry.body_:
+            continue
+        file_prompt = PromptFile()
+        file_prompt.init_prompt_file(entry.name_, entry.body_)
+        prompt_task._file_prompts.append(file_prompt)

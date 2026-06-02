@@ -18,13 +18,18 @@ from shell.module.tool.tool.internal._run_tool import _run_tool
 from shell.status.status import Status
 from shell.module.tool.tool_properties.tool_properties import ToolProperties
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class Tool:
     """Runs an external tool process for a single graph node."""
 
     __slots__ = ("_app", "_tool_properties")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._tool_properties: ToolProperties | None = None
 

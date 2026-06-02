@@ -234,4 +234,21 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         help="Path to the parent tasker node directory; propagated to all subprocesses.",
     )
 
+    parser.add_argument(
+        "--workflow-id",
+        metavar="ID",
+        default=None,
+        dest="workflow_id",
+        help="Workflow id propagated by tasker; used to scope DB-backed node files.",
+    )
+
+    parser.add_argument(
+        "--envelope-id",
+        metavar="ID",
+        type=int,
+        default=None,
+        dest="envelope_id",
+        help="Envelope id passed by tasker so subprocess can locate its input in the bus.",
+    )
+
     return parser.parse_args(argv)

@@ -27,7 +27,7 @@ from shell.app.app_trace.event.event import Event, EventType
 from shell.logger.logger import Logger
 
 if TYPE_CHECKING:
-    pass
+    from shell.app.app.app import App
 
 LogLevelCode = Literal['error', 'warning', 'success', 'info']
 
@@ -43,7 +43,7 @@ class AppTrace:
 
     __slots__ = ("_events", "_logger", "_start_trace_date_time", "_stop_trace_date_time", "_app_trace_status")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._events: list[Event] = []
         self._logger = Logger(app)
         self._start_trace_date_time: datetime | None = None

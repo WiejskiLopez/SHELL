@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 _VALID_TYPES: frozenset[str] = frozenset({'script', 'process', 'python_module'})
 
 
@@ -10,7 +15,7 @@ class WorkerProperties:
 
     __slots__ = ("_app",)
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
 
     def init_worker_properties(self) -> None:

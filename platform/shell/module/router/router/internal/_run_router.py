@@ -41,7 +41,7 @@ def _run_router(router: 'Router') -> None:
     for envelope in pending:
         target_role = envelope.target_role_
         target_node = role_to_node.get(target_role) if target_role else None
-        if target_node is None and non_router_nodes:
+        if target_node is None and target_role is None and non_router_nodes:
             target_node = non_router_nodes[0]
         if target_node is None:
             app.app_trace_.record_info(

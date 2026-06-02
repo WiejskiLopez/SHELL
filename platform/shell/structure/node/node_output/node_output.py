@@ -24,6 +24,11 @@ from shell.structure.node.node_output.internal._clean_node_output import _clean_
 from shell.structure.node.node_output.internal._init_node_output import _init_node_output
 from shell.structure.node.node_output.internal._format_node_output import _format_node_output
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.app.app.app import App
+
 
 class NodeOutput:
     """Manages writing of output files for a single node run.
@@ -34,7 +39,7 @@ class NodeOutput:
 
     __slots__ = ("_app", "_output_dir", "_output_files_map", "_module_status", "_output_message")
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: 'App') -> None:
         self._app = app
         self._output_dir: PathType | None = None
         self._output_files_map: dict[File, str] = {}

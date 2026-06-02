@@ -77,3 +77,7 @@ class Path:
     @staticmethod
     def read_text_safe(path: PathType) -> str:
         return path.read_text(encoding='utf-8', errors='replace')
+
+    @staticmethod
+    def resolve(path: PathType) -> PathType:
+        return path.resolve()
