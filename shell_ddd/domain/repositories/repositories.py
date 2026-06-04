@@ -1,0 +1,89 @@
+"""Repository port interfaces (domain-level)."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from shell_ddd.domain.entities.envelope import Envelope
+    from shell_ddd.domain.entities.node_result import NodeResult
+    from shell_ddd.domain.entities.prompt import Prompt
+    from shell_ddd.domain.entities.rag_document import RagChunk, RagDocument
+    from shell_ddd.domain.entities.runner_config import RunnerConfig
+    from shell_ddd.domain.entities.session import Message, Session
+    from shell_ddd.domain.entities.task import Task
+    from shell_ddd.domain.entities.workflow import Workflow
+    from shell_ddd.domain.value_objects.ids import (
+        EnvelopeId,
+        MessageId,
+        NodeId,
+        NodeResultId,
+        PromptId,
+        RagDocumentId,
+        RunnerConfigId,
+        SessionId,
+        TaskId,
+        WorkflowId,
+    )
+    from shell_ddd.domain.value_objects.task_name import TaskName
+
+
+class TaskRepository(Protocol):
+    async def get_by_id(self, task_id: TaskId) -> Task | None: ...
+    async def get_by_name(self, name: TaskName) -> Task | None: ...
+    async def get_current_by_name(self, name: TaskName) -> Task | None: ...
+    async def save(self, task: Task) -> None: ...
+    async def list_current(self) -> list[Task]: ...
+
+
+class WorkflowRepository(Protocol):
+    async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None: ...
+    async def save(self, workflow: Workflow) -> None: ...
+
+
+class EnvelopeRepository(Protocol):
+    async def get_by_id(self, envelope_id: EnvelopeId) -> Envelope | None: ...
+    async def save(self, envelope: Envelope) -> None: ...
+    async def list_by_workflow(self, workflow_id: WorkflowId) -> list[Envelope]: ...
+    async def list_pending(self, workflow_id: WorkflowId) -> list[Envelope]: ...
+
+
+class EnvelopeArchive(Protocol):
+    async def archive(self, envelope: Envelope) -> str: ...  # returns archive_uri
+    async def get(self, archive_uri: str) -> Envelope | None: ...
+
+
+class PromptRepository(Protocol):
+    async def get_by_id(self, prompt_id: PromptId) -> Prompt | None: ...
+    async def get_current_by_name(self, name: str) -> Prompt | None: ...
+    async def save(self, prompt: Prompt) -> None: ...
+
+
+class NodeResultRepository(Protocol):
+    async def get_by_id(self, result_id: NodeResultId) -> NodeResult | None: ...
+    async def get_by_node_and_workflow(
+        self, node_id: NodeId, workflow_id: WorkflowId
+    ) -> NodeResult | None: ...
+    async def save(self, result: NodeResult) -> None: ...
+
+
+class RunnerConfigRepository(Protocol):
+    async def get_by_id(self, config_id: RunnerConfigId) -> RunnerConfig | None: ...
+    async def get_by_package(self, package_name: str) -> RunnerConfig | None: ...
+    async def save(self, config: RunnerConfig) -> None: ...
+
+
+class RagDocumentRepository(Protocol):
+    async def save(self, document: RagDocument) -> None: ...
+    async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None: ...
+    async def search_similar(
+        self,
+        query_embedding: bytes,
+        top_k: int = 5,
+        domain: str | None = None,
+    ) -> list[RagChunk]: ...
+
+
+class SessionRepository(Protocol):
+    async def save(self, session: Session) -> None: ...
+    async def get_by_id(self, session_id: SessionId) -> Session | None: ...
+    async def get_messages(self, session_id: SessionId) -> list[Message]: ...

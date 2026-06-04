@@ -1,0 +1,54 @@
+"""Workflows router — start and query workflows."""
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+
+from shell_ddd.application.commands.commands import RouteEnvelopesCommand, StartWorkflowCommand
+from shell_ddd.application.queries.queries import GetWorkflowQuery
+from shell_ddd.bootstrap.container import Container
+
+router = APIRouter(prefix="/workflows", tags=["workflows"])
+
+
+class StartWorkflowRequest(BaseModel):
+    task_name: str
+
+
+class StartWorkflowResponse(BaseModel):
+    workflow_id: str
+
+
+class RouteResponse(BaseModel):
+    routed: int
+
+
+from fastapi import Request as _Request
+
+
+def get_container(request: _Request) -> Container:
+    return request.app.state.container
+
+
+@router.post("", response_model=StartWorkflowResponse, status_code=201)
+async def start_workflow(
+    body: StartWorkflowRequest, container: Container = Depends(get_container)
+) -> StartWorkflowResponse:
+    cmd = StartWorkflowCommand(task_name=body.task_name)
+    wf_id = await container.command_bus.dispatch(cmd)
+    return StartWorkflowResponse(workflow_id=str(wf_id))
+
+
+@router.get("/{workflow_id}")
+async def get_workflow(workflow_id: str, container: Container = Depends(get_container)) -> dict:  # type: ignore[type-arg]
+    result = await container.query_bus.dispatch(GetWorkflowQuery(workflow_id=workflow_id))
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
+    return {"workflow_id": workflow_id, "workflow": str(result)}
+
+
+@router.post("/{workflow_id}/route", response_model=RouteResponse)
+async def route_envelopes(workflow_id: str, container: Container = Depends(get_container)) -> RouteResponse:
+    cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
+    count = await container.command_bus.dispatch(cmd)
+    return RouteResponse(routed=count or 0)

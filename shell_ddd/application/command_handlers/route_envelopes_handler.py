@@ -1,0 +1,83 @@
+"""RouteEnvelopesHandler — routes PENDING envelopes for a workflow."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell_ddd.domain.events.events import EnvelopeExpired, EnvelopeRouted
+from shell_ddd.domain.exceptions import WorkflowNotFound
+from shell_ddd.domain.services.envelope_lifecycle_service import EnvelopeLifecycleService
+from shell_ddd.domain.services.graph_routing_service import GraphRoutingService
+from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
+from shell_ddd.domain.value_objects.ids import WorkflowId
+from shell_ddd.domain.value_objects.task_name import TaskName
+
+if TYPE_CHECKING:
+    from shell_ddd.application.commands.commands import RouteEnvelopesCommand
+    from shell_ddd.application.ports.ports import Clock, EventPublisher, UnitOfWork
+    from shell_ddd.domain.events.events import DomainEvent
+
+
+class RouteEnvelopesHandler:
+    """Routes PENDING envelopes to the correct receiver_node_id using the task graph.
+
+    - Envelopes exceeding max_step are expired (DEAD).
+    - Remaining PENDING envelopes are resolved to a receiver and moved to ACTIVE.
+    """
+
+    def __init__(
+        self,
+        uow: UnitOfWork,
+        clock: Clock,
+        events: EventPublisher,
+        max_step: int = 0,
+    ) -> None:
+        self._uow = uow
+        self._clock = clock
+        self._events = events
+        self._max_step = max_step
+
+    async def handle(self, cmd: RouteEnvelopesCommand) -> int:
+        """Process envelopes and return the number of envelopes routed."""
+        wf_id = WorkflowId(cmd.workflow_id)
+        published: list[DomainEvent] = []
+
+        async with self._uow as uow:
+            workflow = await uow.workflows.get_by_id(wf_id)
+            if workflow is None:
+                raise WorkflowNotFound(cmd.workflow_id)
+
+            pending = await uow.envelopes.list_pending(wf_id)
+            task = await uow.tasks.get_current_by_name(TaskName(workflow.task_name))
+
+            now = self._clock.now()
+            routed = 0
+
+            for envelope in pending:
+                new_status = EnvelopeLifecycleService.advance(envelope, self._max_step)
+                if new_status == EnvelopeStatus.DEAD:
+                    envelope.transition_status(EnvelopeStatus.DEAD, now)
+                    await uow.envelopes.save(envelope)
+                    published.append(EnvelopeExpired.now(envelope.id, envelope.workflow_id))
+                    continue
+
+                if task is not None and task.graph is not None:
+                    try:
+                        target_node_id = GraphRoutingService.resolve_target_node(
+                            task.graph,
+                            envelope.sender_node_id,
+                            envelope.target_role or None,
+                        )
+                        envelope.receiver_node_id = target_node_id
+                    except Exception:
+                        continue  # Unresolvable — leave PENDING
+
+                envelope.transition_status(EnvelopeStatus.ACTIVE, now)
+                envelope.transition_stage(EnvelopeStage.SENT, now)
+                await uow.envelopes.save(envelope)
+                published.append(EnvelopeRouted.now(envelope.id, envelope.workflow_id))
+                routed += 1
+
+            await uow.commit()
+
+        await self._events.publish(published)
+        return routed
