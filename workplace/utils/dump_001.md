@@ -469,6 +469,7 @@ from typing import TYPE_CHECKING
 from shell_ddd.domain.entities.node_result import NodeResult
 from shell_ddd.domain.entities.workflow import Workflow
 from shell_ddd.domain.events.events import (
+    DomainEvent,
     NodeCompleted,
     NodeFailed,
     WorkflowCompleted,
@@ -611,7 +612,7 @@ class RunTaskerWorkflowHandler:
             await uow.commit()
 
         # ── 5. Publish events ─────────────────────────────────────────────
-        domain_events = []
+        domain_events: list[DomainEvent] = []
         for node_id_str, ok, _, reason in exec_results:
             node_id = NodeId(node_id_str)
             if ok:
@@ -2228,71 +2229,107 @@ creates the correct `AsyncEngine` and returns an `async_sessionmaker`.
 - Tests run against SQLite by default; CI optionally starts Postgres+Mongo via `docker-compose.test.yml`.
 ```
 
-### docs/migration_notes.md
+### docs/dokumentacja/doc.md
 ```
-# Migration Notes: SHELL → shell_ddd
+[ Klient / Testy / API ]
+│
+▼
+┌────────────────────────────────────────────────────────┐
+│ WARSTWA INFRASTRUKTURY WEJŚCIOWEJ                      │
+│ - Tworzy: Command / Query (DTO)                        │
+│ - Wywołuje: CommandBus.dispatch() / QueryBus.dispatch()│
+└───────────────────────┬────────────────────────────────┘
+│
+▼
+┌────────────────────────────────────────────────────────┐
+│ WARSTWA APLIKACJI (Buses & Handlers)                   │
+│ - Szyny (CommandBus, QueryBus) przekazują paczkę do:   │
+│   -> CommandHandler (np. StartWorkflowHandler)         │
+└───────────────────────┬────────────────────────────────┘
+│
+├──────────────────────────────────────────┐
+▼ (używa portów / interfejsów)             ▼ (zapisuje eventy)
+┌──────────────────────────────────────────┐   ┌─────────────────────────────────────┐
+│ PORTY APLIKACJI (Interfejsy)             │   │ PORT EVENTÓW                        │
+│ - UnitOfWork (Abstract)                  │   │ - EventPublisher (Abstract)         │
+└───────────────────────┬──────────────────┘   └───────────────────┬─────────────────┘
+│                                          │
+▼ (konkretna implementacja)                ▼ (konkretna implementacja)
+┌──────────────────────────────────────────┐   ┌─────────────────────────────────────┐
+│ ADAPTERY INFRASTRUKTURY                  │   │ ADAPTER TRANSMISJI                  │
+│ - SqlAlchemyUnitOfWork                   │   │ - SqlOutboxPublisher                │
+│   (Zarządza AsyncSession)                │   │   (Zapisuje do OutboxEventModel)    │
+│ - SqlPromptRepository, etc.              │   └─────────────────────────────────────┘
+└───────────────────────┬──────────────────┘
+│
+▼ (ładuje / zapisuje)
+┌────────────────────────────────────────────────────────┐
+│ WARSTWA DOMENY (Jądro systemu)                         │
+│ - Agregaty & Encje (Envelope, Prompt, Task)           │
+│ - Logika biznesowa, niezmienniki, reguły stanów        │
+└────────────────────────────────────────────────────────┘
 
-This document maps old `shell/` structures to their `shell_ddd/` equivalents.
 
----
+🔄 Szczegółowy podział na warstwy i relacje klas
+1. Wejście do systemu (Infrastruktura aplikacyjna)
+   Klasy: TestSqlCommitRollback, StartWorkflowCommand, GetPromptQuery.
 
-## Module Mapping
+Przepływ: Zewnętrzny świat (np. test integracyjny lub kontroler API) tworzy niemutowalny obiekt intencji (Command lub Query) 
+i wrzuca go do odpowiedniej szyny (CommandBus/QueryBus).
 
-| Old path | New path | Notes |
-|---|---|---|
-| `shell/task/task_record.py` | `shell_ddd/domain/entities/task.py` | Pure dataclass; no DB-awareness |
-| `shell/task/task_repo/` | `shell_ddd/infrastructure/persistence/sql/repositories/sql_task_repository.py` | SQLAlchemy async |
-| `shell/task/task_schema/` | `shell_ddd/infrastructure/persistence/sql/models/__init__.py` (TaskModel) | ORM model |
-| `shell/bus/workflow_state/` | `shell_ddd/domain/entities/workflow.py` | Workflow aggregate |
-| `shell/bus/envelope/` | `shell_ddd/domain/entities/envelope.py` | Envelope entity |
-| `shell/bus/envelope_archiver/` | `shell_ddd/infrastructure/filesystem/envelope_archive_fs.py` | FS archive |
-| `shell/component/process/` | `shell_ddd/infrastructure/process/subprocess_runner.py` | Subprocess port impl |
-| `shell/component/prompt_repo/` | `shell_ddd/infrastructure/persistence/sql/repositories/sql_prompt_repository.py` | |
-| `shell/component/node_result_repo/` | `shell_ddd/infrastructure/persistence/sql/repositories/sql_node_result_repository.py` | |
-| `shell/component/runner_config_repo/` | `shell_ddd/infrastructure/persistence/sql/repositories/sql_runner_config_repository.py` | |
-| `shell/memory/sql_memory_backend/` | `shell_ddd/infrastructure/rag/sql_rag_repository.py` | |
-| `shell/context/session_context/` | `shell_ddd/infrastructure/persistence/sql/repositories/sql_session_repository.py` | |
-| `shell/logger/logger.py` | `shell_ddd/infrastructure/logging/stdlib_logger.py` | JSON, correlation_id |
-| `shell/module/agent/` | `shell_ddd/application/strategies/agent_strategy.py` | Strategy pattern |
-| `shell/module/router/` | `shell_ddd/application/strategies/router_strategy.py` | |
-| `shell/module/tasker/` | `shell_ddd/application/strategies/tasker_strategy.py` | |
-| `shell/module/tool/` | `shell_ddd/application/strategies/tool_strategy.py` | |
-| `shell/module/worker/` | `shell_ddd/application/strategies/worker_strategy.py` | |
+Zależność: Warstwa ta zależy wyłącznie od interfejsu szyny oraz struktur DTO/Commands.
 
----
+2. Warstwa Orkiestracji (Aplikacja / Handlery)
+   Klasy: CommandBus, QueryBus, StartWorkflowHandler, SaveNodeResultHandler.
 
-## Conventions Changed
+Przepływ: CommandBus znajduje w słowniku _handlers odpowiednią klasę handlera i wywołuje metodę handle(command).
 
-| Old SHELL convention | shell_ddd equivalent |
-|---|---|
-| `_name` + `name_` property (slots) | Normal `name` attribute in dataclass |
-| `internal/_init_*.py` per function | Single `module.py` with all helpers |
-| `AppNode/Node/SubNode` folder-DOM | `NodeWorkspace` service in `infrastructure/filesystem/` |
-| Lazy-init property | Constructor injection |
-| `shell/utils/path/` UtilsPath wrapper | `pathlib.Path` directly |
-| `print()` for logging | `Logger` port → `StdlibLogger` |
-| Sync `SqlDriver` | Async `async_sessionmaker` (SQLAlchemy 2.x) |
+Zależność: Handlery implementują logikę aplikacyjną. Nie wykonują operacji na bazie danych bezpośrednio – w swoim konstruktorze 
+przyjmują abstrakcję UnitOfWork (Dependency Injection).
 
----
+3. Warstwa Dostępu do Danych (Adaptery Infrastruktury)
+   Klasy: SqlAlchemyUnitOfWork, SqlPromptRepository, SqlEnvelopeRepository.
 
-## Database Schema Changes
+Przepływ: 1. Handler otwiera kontekst menedżera: async with self._uow as uow:.
+2. SqlAlchemyUnitOfWork tworzy sesję SQLAlchemy (AsyncSession).
+3. Handler poprzez uow.prompts lub uow.envelopes wywołuje metody repozytorium (np. save(), get_by_id()).
 
-| Old table | New table | Change |
-|---|---|---|
-| `tasks` | `task` | Renamed, columns normalised |
-| `workflow_states` | `workflow` | Renamed |
-| `envelopes` | `envelope` | Renamed |
-| *(none)* | `audit_event` | New — observability (Faza 11) |
-| *(none)* | `outbox_event` | New — transactional outbox (Faza 12) |
+Zależność: Klasy repozytoriów zależą od modeli SQLAlchemy (OutboxEventModel, etc.), ale mapują je na czyste obiekty domenowe.
 
----
+4. Serce Biznesowe (Czysta Domena)
+   Klasy: Envelope, Prompt, Task, TaskId, Status.
 
-## What Was Not Migrated
+Przepływ: Repozytorium wyciąga surowe dane z bazy, rekonstruuje z nich obiekt domenowy (np. Envelope) 
+i przekazuje go do Handlera. Handler wywołuje na encji metodę biznesową (np. zmianę stanu, walidację).
+Encja modyfikuje swój stan wewnętrzny i opcjonalnie generuje zdarzenie (np. WorkflowStarted).
 
-- **MongoDB adapter** (`shell_ddd/infrastructure/persistence/mongo/`) — Faza 8 suspended indefinitely.  
-  The SQL adapters cover all current usage.
-- **LLM/Copilot gateway stubs** — `infrastructure/external/` contains only placeholder files;  
-  real integration is a separate project.
+Zależność: Brak zależności zewnętrznych. Domena stoi na samym dole hierarchii. Klasy takie jak TaskId czy Status to 
+Value Objects wykorzystywane przez Encje.
+
+5. Asynchroniczny przepływ zdarzeń (Wzorzec Outbox)
+   W Twoim kodzie zastosowano genialne oddzielenie efektów ubocznych za pomocą bazy danych:
+
+Plaintext
+
+[Handler / Domena] ──(Generuje DomainEvent)──> [SqlOutboxPublisher] ──> Zapis w DB (outbox_event)
+│
+(Asynchroniczny proces)
+▼
+[Klient końcowy] <── [EventBus] <── [EventPublisher] <── [_OutboxProxy] <── [OutboxRelay]
+
+Krok A: Handler po udanej operacji biznesowej przekazuje zdarzenia domenowe do SqlOutboxPublisher.
+
+Krok B: SqlOutboxPublisher tworzy dedykowaną, krótką sesję DB i zapisuje wiersz w tabeli outbox_event jako 
+JSON (dzięki temu nawet jeśli transakcja główna się wycofa, ślad o błędzie lub zdarzeniu technicznym może zostać utrwalony, bądź – przy pełnym UoW – zostanie zatwierdzony razem z domeną).
+
+Krok C: OutboxRelay działa w tle. Cyklicznie odpytuje tabelę OutboxEventModel o nieopublikowane wiersze (published_at.is_(None)). 
+Wrapuje je w lekkie obiekty _OutboxProxy i przekazuje do właściwego, pamięciowego EventBus, który powiadamia asynchronicznych odbiorców (Event Handlerów).
+
+💡 Kluczowy wniosek architektoniczny
+Wszystkie strzałki zależności kompilacji (kto importuje kogo) skierowane są w stronę domeny. Kod infrastruktury bazy danych 
+(sql/models.py) implementuje interfejsy zdefiniowane w domenie/aplikacji. Dzięki temu rozwiązaniu, zmiana bazy danych z SQLite/PostgreSQL
+na np. MongoDB wymagałaby jedynie napisania nowego adaptera (klasy implementującej porty repozytoriów), podczas gdy cała logika 
+w handlerach i encjach pozostałaby nienaruszona.
 ```
 
 ### domain/__init__.py
@@ -4882,93 +4919,4 @@ class InMemoryOutboxStore:
 
 ### infrastructure/messaging/outbox/__init__.py
 ```
-```
-
-### infrastructure/messaging/outbox_relay.py
-```
-"""OutboxRelay — reads pending outbox_event rows and re-publishes to an EventPublisher.
-
-Intended as a one-shot or periodic background task:
-    relay = OutboxRelay(session_factory, downstream_publisher)
-    await relay.run_once()   # processes all pending rows in one pass
-
-Concurrency safety: uses SELECT FOR UPDATE SKIP LOCKED when the dialect supports
-it (Postgres).  On SQLite the SKIP LOCKED clause is omitted (single-writer).
-"""
-from __future__ import annotations
-
-from datetime import UTC, datetime
-from typing import TYPE_CHECKING
-
-from sqlalchemy import select, update
-
-from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
-    from shell_ddd.application.ports.ports import EventPublisher
-
-
-class OutboxRelay:
-    """Reads unpublished outbox rows and forwards them to the downstream publisher."""
-
-    def __init__(
-        self,
-        session_factory: async_sessionmaker[AsyncSession],
-        downstream: EventPublisher,
-        batch_size: int = 100,
-    ) -> None:
-        self._session_factory = session_factory
-        self._downstream = downstream
-        self._batch_size = batch_size
-
-    async def run_once(self) -> int:
-        """Process one batch of pending outbox events.
-
-        Returns the number of events processed.
-        """
-        async with self._session_factory() as session:
-            rows = (
-                await session.execute(
-                    select(OutboxEventModel)
-                    .where(OutboxEventModel.published_at.is_(None))
-                    .order_by(OutboxEventModel.occurred_at)
-                    .limit(self._batch_size)
-                )
-            ).scalars().all()
-
-            if not rows:
-                return 0
-
-            # Build lightweight event wrappers for the downstream publisher
-            events: list[_OutboxProxy] = [_OutboxProxy(r) for r in rows]
-            await self._downstream.publish(events)  # type: ignore[arg-type]
-
-            now = datetime.now(tz=UTC)
-            ids = [r.id for r in rows]
-            await session.execute(
-                update(OutboxEventModel)
-                .where(OutboxEventModel.id.in_(ids))
-                .values(published_at=now)
-            )
-            await session.commit()
-            return len(rows)
-
-
-class _OutboxProxy:
-    """Thin wrapper exposing the minimal interface expected by EventPublisher.publish().
-
-    The downstream publisher only needs ``type(event).__name__`` and
-    ``event.occurred_at``; everything else lives in ``payload``.
-    """
-
-    def __init__(self, row: OutboxEventModel) -> None:
-        self._row = row
-        self.occurred_at: datetime = row.occurred_at
-        self.event_type: str = row.event_type
-        self.payload: dict = row.payload  # type: ignore[type-arg]
-
-    def __class_getitem__(cls, item: object) -> object:  # pragma: no cover
-        return cls
 ```

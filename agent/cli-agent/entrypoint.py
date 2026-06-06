@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 
 from shell.app.app import App
 def main() -> int:

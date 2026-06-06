@@ -1,4 +1,4 @@
-﻿"""entrypoint.py
+"""entrypoint.py
 Entry point for tasker-worker.
 Contains ONLY method calls — no inline logic.
 

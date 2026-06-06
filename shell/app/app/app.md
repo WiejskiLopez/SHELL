@@ -1,4 +1,4 @@
-﻿# Submoduł `app` — klasa `App`
+# Submoduł `app` — klasa `App`
 
 Centralny węzeł DOM dla pojedynczego uruchomienia graph. Przechowuje lazy-referencje do wszystkich modułów.
 

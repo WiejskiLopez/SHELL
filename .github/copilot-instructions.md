@@ -404,14 +404,14 @@ Fragment kodu
 ruff check shell_ddd
 
 # Rygorystyczna kontrola typów w rdzeniu biznesowym (Domain & Application)
-mypy --strict shell_ddd/domain shell_ddd/application
+python -m mypy --strict shell_ddd/domain shell_ddd/application
 3. Pełne Testy Integracyjne (Wymaga Docker Compose)
 Fragment kodu
 # 1. Podniesienie lokalnej bazy testowej PostgreSQL w tle
 docker compose -f shell_ddd/docker-compose.test.yml up -d postgres
 
 # 2. Uruchomienie pełnego zestawu testów integracyjnych (SQLite + Postgres + FS)
-pytest shell_ddd/tests/integration -x
+python -m pytest shell_ddd/tests/integration -x
 
 # 3. Bezpieczne zatrzymanie kontenerów wraz z czyszczeniem wolumenów danych
 docker compose -f shell_ddd/docker-compose.test.yml down -v

@@ -1,4 +1,4 @@
-﻿name: cli-agent
+name: cli-agent
 mode: agent
 role: agent
 type: default

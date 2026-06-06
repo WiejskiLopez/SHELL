@@ -1,4 +1,4 @@
-﻿name: default-worker
+name: default-worker
 mode: worker
 role: worker
 type: default

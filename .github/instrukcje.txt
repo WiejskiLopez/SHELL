@@ -1,0 +1,82 @@
+1. Instalacja
+Przed uruchomieniem upewnij się, że używasz środowiska z Pythonem w wersji 3.11 lub nowszej, i znajdujesz się w głównym katalogu projektu. Zainstaluj pakiet wraz z zależnościami deweloperskimi:
+
+Bash
+pip install -e ".[dev]"      wczesniej  byo: pip install -e "shell_ddd[dev]"
+2. Uruchamianie aplikacji
+System shell_ddd posiada dwa główne interfejsy:
+Command Line Interface (CLI) służący do bezpośredniego wywoływania procesów,
+oraz API (FastAPI) pełniące rolę control plane.
+
+Interfejs CLI
+Główny punkt wejścia to moduł shell_ddd.framework.cli.main.
+Możesz go wywoływać z różnymi subkomendami w zależności od trybu pracy:
+
+Import zadania z plików .md i .yaml:
+
+Bash
+python -m shell_ddd.framework.cli.main import-task --task-name my-task --task-dir ./workplace/example_tasks/
+Orkiestracja całego cyklu (Tasker):
+
+Bash
+python -m shell_ddd.framework.cli.main run-tasker --task-name my-task --work-dir ./work/
+Uruchomienie specyficznego węzła (np. agent, router, worker):
+
+Bash
+python -m shell_ddd.framework.cli.main agent --node-dir ./work/agent-01 --workflow-id <uuid> --work-dir ./work/
+Interfejs REST API (FastAPI)
+Aby uruchomić API zarządzające zadaniami i przepływami, użyj skryptu serwującego aplikację przez uvicorn. W terminalu uruchom poniższy kod Pythona:
+
+Python
+python -c "
+import asyncio, uvicorn
+from shell_ddd.bootstrap.container import ApplicationFactory
+from shell_ddd.framework.api.app import create_app
+
+async def main():
+    container = await ApplicationFactory(database_url='sqlite+aiosqlite:///shell_ddd.db').build()
+    app = create_app(container)
+    config = uvicorn.Config(app, host='0.0.0.0', port=8000)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+asyncio.run(main())
+"
+Interaktywna dokumentacja Swagger (umożliwiająca odpytywanie API) będzie dostępna w przeglądarce pod adresem: http://localhost:8000/docs.
+
+3. Uruchamianie pełnych testów
+Zgodnie z plikiem konfiguracyjnym conftest.py, pełen zakres testów integracyjnych wymaga dostępu do działających baz PostgreSQL i MongoDB. Bez nich testy integracyjne baz danych zostaną zignorowane (skipped).
+
+Krok 1: Uruchomienie kontenerów testowych
+Włącz wymagane bazy danych za pomocą pliku docker-compose.test.yml:
+
+Bash
+docker compose -f shell_ddd/docker-compose.test.yml up -d postgres mongo
+Krok 2: Ustawienie zmiennych środowiskowych
+Zdefiniuj URL testowych baz danych, by pytest wiedział, gdzie ma się połączyć (przykład dla powłoki PowerShell):
+
+PowerShell
+$env:PG_TEST_URL = "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test"
+$env:MONGO_TEST_URL = "mongodb://localhost:27018/?replicaSet=rs0"
+(Dla bash w systemach Linux/macOS użyj: export PG_TEST_URL="...")
+
+Krok 3: Uruchomienie zestawu testów
+Teraz możesz uruchomić pełen zestaw testów (jednostkowe, integracyjne, E2E i architektoniczne) wraz z raportem pokrycia kodu:
+
+Bash
+python -m pytest shell_ddd/tests --cov=shell_ddd --cov-report=term-missing
+Jeśli chcesz uruchamiać pakiety testów selektywnie, możesz to zrobić zawężając ścieżkę:
+
+Testy jednostkowe: python -m pytest shell_ddd/tests/unit
+
+Testy architektoniczne (weryfikacja granic DDD): python -m pytest shell_ddd/tests/architecture
+
+Testy integracyjne SQL (Postgres): python -m pytest shell_ddd/tests/integration/sql_postgres
+
+Testy E2E (API oraz CLI): python -m pytest shell_ddd/tests/e2e
+
+Krok 4: Sprzątanie infrastruktury
+Po przejściu wszystkich testów możesz wyczyścić środowisko dockerowe, ubijając kontenery i usuwając ich wolumeny:
+
+Bash
+docker compose -f shell_ddd/docker-compose.test.yml down -v

@@ -1,4 +1,4 @@
-﻿# Submoduł `app_trace` — klasa `AppTrace`
+# Submoduł `app_trace` — klasa `AppTrace`
 
 Zbiera zdarzenia wykonania (error, warning, success, info) w trakcie pojedynczego uruchomienia graph.
 

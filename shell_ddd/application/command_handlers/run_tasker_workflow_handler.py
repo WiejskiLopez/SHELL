@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from shell_ddd.domain.entities.node_result import NodeResult
 from shell_ddd.domain.entities.workflow import Workflow
 from shell_ddd.domain.events.events import (
+    DomainEvent,
     NodeCompleted,
     NodeFailed,
     WorkflowCompleted,
@@ -149,7 +150,7 @@ class RunTaskerWorkflowHandler:
             await uow.commit()
 
         # ── 5. Publish events ─────────────────────────────────────────────
-        domain_events = []
+        domain_events: list[DomainEvent] = []
         for node_id_str, ok, _, reason in exec_results:
             node_id = NodeId(node_id_str)
             if ok:
