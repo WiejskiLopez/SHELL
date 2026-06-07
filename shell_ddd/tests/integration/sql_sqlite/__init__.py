@@ -14,6 +14,7 @@ from shell_ddd.application.queries.queries import GetCurrentTaskQuery, GetWorkfl
     GetPromptQuery
 from shell_ddd.application.query_handlers.query_handlers import GetCurrentTaskHandler, GetWorkflowHandler, \
     GetNodeResultHandler, GetPromptHandler
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 
 from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.value_objects.ids import (
@@ -36,7 +37,7 @@ from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServ
 async def session_factory(tmp_path_factory: pytest.TempPathFactory) -> async_sessionmaker:  # type: ignore[type-arg]
     db = tmp_path_factory.mktemp("sqlite") / "test.db"
     url = f"sqlite+aiosqlite:///{db}"
-    await create_all_tables(url)
+    await bootstrap_database(url)
     return build_session_factory(url)
 
 
@@ -108,7 +109,7 @@ class TestSqlTaskRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task"))
@@ -126,8 +127,8 @@ class TestSqlTaskRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task-v"))
@@ -146,7 +147,7 @@ class TestSqlWorkflowRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await imp.handle(ImportTaskCommand("t.md", "t.yaml", "wf-task"))
+        await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))

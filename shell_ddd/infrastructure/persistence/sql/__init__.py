@@ -3,11 +3,14 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+
+from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel
 
 
 def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
@@ -42,3 +45,39 @@ async def get_session(
     """Async generator yielding a single AsyncSession (for use with Depends)."""
     async with session_factory() as session:
         yield session
+
+
+async def seed_base_data(url: str) -> None:
+    engine = create_async_engine(url, echo=False, future=True)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(_seed_sync)
+
+    await engine.dispose()
+
+
+def _seed_sync(sync_conn) -> None:
+    from sqlalchemy.orm import Session
+    from sqlalchemy import select
+    from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel
+
+    session = Session(sync_conn)
+
+    exists = session.execute(
+        select(TemplateGraphModel).where(
+            TemplateGraphModel.name == "base_planner"
+        )
+    ).scalar_one_or_none()
+
+    if exists:
+        return
+
+    session.add(
+        TemplateGraphModel(
+            id="base-planner-id",
+            name="base_planner",
+            purpose="default_planning",
+        )
+    )
+
+    session.commit()

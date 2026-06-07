@@ -4,6 +4,7 @@ from __future__ import annotations
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
@@ -50,7 +51,7 @@ async def session_factory(
 ) -> async_sessionmaker:  # type: ignore[type-arg]
     db = tmp_path_factory.mktemp("sqlite") / "test.db"
     url = f"sqlite+aiosqlite:///{db}"
-    await create_all_tables(url)
+    await bootstrap_database(url)
     return build_session_factory(url)
 
 
@@ -95,7 +96,7 @@ class TestSqlTaskRepository:
         session_factory,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task"))
@@ -113,8 +114,8 @@ class TestSqlTaskRepository:
         session_factory,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task-v"))
@@ -138,7 +139,7 @@ class TestSqlWorkflowRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await imp.handle(ImportTaskCommand("t.md", "t.yaml", "wf-task"))
+        await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))

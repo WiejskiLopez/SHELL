@@ -13,6 +13,7 @@ import os
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
@@ -63,7 +64,8 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 async def session_factory() -> async_sessionmaker:  # type: ignore[type-arg]
-    await create_all_tables(_PG_URL)
+    #await create_all_tables(_PG_URL)
+    await bootstrap_database(_PG_URL)
     return build_session_factory(_PG_URL)
 
 
@@ -107,7 +109,7 @@ class TestPgTaskRepository:
         task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task"))
+        await handler.handle(ImportTaskCommand("t.md", "pg-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("pg-task"))
@@ -124,8 +126,8 @@ class TestPgTaskRepository:
         task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task-v"))
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
+        await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("pg-task-v"))
@@ -148,7 +150,7 @@ class TestPgWorkflowRepository:
         task_loader: FakeTaskLoader,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await imp.handle(ImportTaskCommand("t.md", "t.yaml", "pg-wf-task"))
+        await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("pg-wf-task"))

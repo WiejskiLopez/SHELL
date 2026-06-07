@@ -89,7 +89,7 @@ class TestImportTaskHandler:
             task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        task_id = await handler.handle(ImportTaskCommand("t.md", "t.yaml", "my-task"))
+        task_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         assert task_id
         assert len(events.published) == 1
@@ -104,7 +104,7 @@ class TestImportTaskHandler:
             task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "my-task"))
+        await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         from shell_ddd.domain.value_objects.task_name import TaskName
 
@@ -121,8 +121,8 @@ class TestImportTaskHandler:
             task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
-        first_id = await handler.handle(ImportTaskCommand("t.md", "t.yaml", "my-task"))
-        await handler.handle(ImportTaskCommand("t.md", "t.yaml", "my-task"))
+        first_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
+        await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         old = await uow.tasks.get_by_id(
             __import__(
@@ -142,7 +142,7 @@ class TestImportTaskHandler:
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
         with pytest.raises(ValueError):
-            await handler.handle(ImportTaskCommand("t.md", "t.yaml", ""))
+            await handler.handle(ImportTaskCommand("t.md", ""))
 
 
 # ---------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class TestStartWorkflowHandler:
     ) -> None:
         pub = FakeEventPublisher()
         h = ImportTaskHandler(uow, clock, id_gen, task_loader, pub)
-        await h.handle(ImportTaskCommand("t.md", "t.yaml", "my-task"))
+        await h.handle(ImportTaskCommand("t.md", "my-task"))
 
     async def test_happy_path(
             self,

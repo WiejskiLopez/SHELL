@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 from shell_ddd.infrastructure.external.hash_embedder import HashEmbedder
@@ -59,7 +60,7 @@ from shell_ddd.infrastructure.logging.logging_event_publisher import LoggingEven
 from shell_ddd.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell_ddd.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
 
 
 @dataclass
@@ -69,6 +70,7 @@ class Container:
     command_bus: CommandBus
     query_bus: QueryBus
     event_bus: EventBus
+    uow: callable
 
 
 class ApplicationFactory:
@@ -86,9 +88,8 @@ class ApplicationFactory:
 
     async def build(self) -> Container:
         """Initialise the DB schema (if needed) and wire all components."""
-        await create_all_tables(self._database_url)
+        await bootstrap_database(self._database_url)
         session_factory = build_session_factory(self._database_url)
-
         query_services = SqlQueryServices(session_factory)
 
         from shell_ddd.infrastructure.persistence.memory.memory import (
@@ -213,6 +214,7 @@ class ApplicationFactory:
             command_bus=command_bus,
             query_bus=query_bus,
             event_bus=event_bus,
+            uow=lambda: SqlAlchemyUnitOfWork(session_factory),
         )
 
 

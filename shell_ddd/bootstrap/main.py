@@ -11,6 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+
 
 async def _smoke(db_url: str) -> None:
     """End-to-end smoke test: import → start-workflow → route.
@@ -41,7 +43,6 @@ async def _smoke(db_url: str) -> None:
         task_id = await bus.dispatch(
             ImportTaskCommand(
                 md_path=str(md),
-                yaml_path=str(yaml),
                 task_name="smoke-task",
             )
         )
@@ -73,7 +74,7 @@ async def _relay(db_url: str) -> None:
     from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
     from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
 
-    await create_all_tables(db_url)
+    await bootstrap_database(db_url)
     sf = build_session_factory(db_url)
     logger = StdlibLogger("shell_ddd.relay")
     downstream = CompositeEventPublisher([LoggingEventPublisher(logger)])

@@ -17,7 +17,7 @@ class TaskDto:
     is_current: bool
     created_at: datetime
     body_md: str
-    body_yaml_raw: str
+    template_graph_id: str
     graph_nodes: list[GraphNodeDto] = field(default_factory=list)
 
 
@@ -130,3 +130,29 @@ class SessionDto:
     opened_at: datetime
     closed_at: datetime | None
     messages: list[MessageDto] = field(default_factory=list)
+
+
+@dataclass(frozen=True, slots=True)
+class GraphDto:
+    id: str
+    graph_template_id: str
+    task_id: str
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateGraphDto:
+    id: str
+    name: str
+    purpose: str
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateGraphNodeDto:
+    id: str
+    position: int
+    node_dir: str
+    mode: str
+    role: str
+    node_type: str
+    model: str
+    command: str

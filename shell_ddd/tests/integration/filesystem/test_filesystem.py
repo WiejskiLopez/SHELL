@@ -66,9 +66,8 @@ class TestFileSystemTaskLoader:
         yaml.write_text("graph: []", encoding="utf-8")
 
         loader = FileSystemTaskLoader()
-        body_md, body_yaml_raw = await loader.load(str(md), str(yaml))
+        body_md = await loader.load(str(md))
         assert body_md == "# My Task"
-        assert body_yaml_raw == "graph: []"
 
 
 # ---------------------------------------------------------------------------

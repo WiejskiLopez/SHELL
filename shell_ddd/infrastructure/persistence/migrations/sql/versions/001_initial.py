@@ -23,7 +23,7 @@ def upgrade() -> None:
         sa.Column("version", sa.Integer, nullable=False, server_default="1"),
         sa.Column("hash", sa.String(64), nullable=False),
         sa.Column("body_md", sa.Text, nullable=False, server_default=""),
-        sa.Column("body_yaml_raw", sa.Text, nullable=False, server_default=""),
+        sa.Column("template_graph_id", sa.String(36), nullable=False, server_default=""),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
@@ -185,6 +185,41 @@ def upgrade() -> None:
     op.create_index("ix_envelope_archive_workflow_id", "envelope_archive", ["workflow_id"])
     op.create_index("ix_envelope_archive_envelope_id", "envelope_archive", ["envelope_id"])
 
+    # Tabela template_graph
+    op.create_table(
+        "template_graph",
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("name", sa.String(36), nullable=False),
+        sa.Column("purpose", sa.String(36), nullable=False),
+    )
+
+    # Tabela template_graph_node
+    op.create_table(
+        "template_graph_node",
+        sa.Column("id", sa.String(36), primary_key=True),
+        sa.Column("template_graph_id", sa.String(36), sa.ForeignKey("template_graph.id", ondelete="CASCADE"),
+                  nullable=False),
+        sa.Column("position", sa.Integer, nullable=False),
+        sa.Column("mode", sa.String(32), nullable=False),
+        sa.Column("role", sa.String(128), nullable=False),
+        sa.Column("node_type", sa.String(64), nullable=False),
+        sa.Column("model", sa.String(128), nullable=True),
+        sa.Column("command", sa.Text, nullable=False),
+        sa.Column("timeout", sa.Integer, nullable=False),
+        sa.Column("retries", sa.Integer, nullable=False),
+        sa.Column("log_level", sa.String(16), nullable=False),
+        sa.Column("max_step", sa.Integer, nullable=True),
+        sa.Column("no_ask_user", sa.Boolean, nullable=True),
+        sa.Column("autopilot", sa.Boolean, nullable=True),
+        sa.Column("status_initial", sa.String(64), nullable=False),
+        sa.Column("extra", sa.JSON, nullable=True),
+        sa.Column("script", sa.Text, nullable=True),
+        sa.Column("script_type", sa.String(16), nullable=True),
+    )
+
+    # Indeks dla klucza obcego (zgodnie z wzorcem ix_envelope_workflow_id)
+    op.create_index("ix_template_graph_node_graph_id", "template_graph_node", ["template_graph_id"])
+
 
 def downgrade() -> None:
     op.drop_table("envelope_archive")
@@ -198,3 +233,5 @@ def downgrade() -> None:
     op.drop_table("graph_node")
     op.drop_table("graph")
     op.drop_table("task")
+    op.drop_table("template_graph")
+    op.drop_table("template_graph_node")

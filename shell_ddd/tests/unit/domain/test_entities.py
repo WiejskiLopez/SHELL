@@ -23,7 +23,7 @@ class TestTask:
             id_=TaskId.generate(),
             name=TaskName("my-task"),
             body_md="# Task",
-            body_yaml_raw="graph: []",
+            template_graph_id="",
         )
         assert task.is_current is True
         assert task.version == 1
@@ -35,13 +35,13 @@ class TestTask:
             id_=base_id,
             name=TaskName("t"),
             body_md="a",
-            body_yaml_raw="",
+            template_graph_id="",
         )
         t2 = Task.new(
             id_=TaskId.generate(),
             name=TaskName("t"),
             body_md="b",
-            body_yaml_raw="",
+            template_graph_id="",
         )
         assert t1.hash != t2.hash
 

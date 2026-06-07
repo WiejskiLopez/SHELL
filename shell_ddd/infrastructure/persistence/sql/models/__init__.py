@@ -19,7 +19,7 @@ class TaskModel(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     hash: Mapped[str] = mapped_column(String(64), nullable=False)
     body_md: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    body_yaml_raw: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -225,7 +225,7 @@ class MessageModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     session_id: Mapped[str] = mapped_column(
-       String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
     )
     correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     sender: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -253,3 +253,68 @@ class OutboxEventModel(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class TemplateGraphModel(Base):
+    __tablename__ = "template_graph"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(36), nullable=False)
+    purpose: Mapped[str] = mapped_column(String(36), nullable=False)
+
+    nodes: Mapped[list["TemplateGraphNodeModel"]] = relationship(
+        "TemplateGraphNodeModel",
+        back_populates="graph",
+        cascade="all, delete-orphan",
+        order_by="TemplateGraphNodeModel.position",
+    )
+
+
+class TemplateGraphNodeModel(Base):
+    __tablename__ = "template_graph_node"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    template_graph_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("template_graph.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    mode: Mapped[str] = mapped_column(String(32), nullable=False)
+    role: Mapped[str] = mapped_column(String(128), nullable=False)
+    node_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    command: Mapped[str] = mapped_column(Text, nullable=False)
+    timeout: Mapped[int] = mapped_column(Integer, nullable=False)
+    retries: Mapped[int] = mapped_column(Integer, nullable=False)
+    log_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    max_step: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    no_ask_user: Mapped[bool | None] = mapped_column(
+        Boolean,
+        nullable=True,
+    )
+    autopilot: Mapped[bool | None] = mapped_column(
+        Boolean,
+        nullable=True,
+    )
+    status_initial: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+    extra: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )  # type: ignore[type-arg]
+    script: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+    script_type: Mapped[str | None] = mapped_column(
+        String(16),
+        nullable=True,
+    )
+    graph: Mapped[TemplateGraphModel] = relationship(
+        "TemplateGraphModel",
+        back_populates="nodes",
+    )

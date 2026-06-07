@@ -5,10 +5,14 @@ import uuid
 from datetime import datetime, timezone
 
 from shell_ddd.domain.entities.envelope import Envelope, EnvelopeEvent
+from shell_ddd.domain.entities.graph import Graph
+from shell_ddd.domain.entities.graph_node import GraphNode
 from shell_ddd.domain.entities.node_result import NodeResult
 from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.entities.runner_config import RunnerConfig
-from shell_ddd.domain.entities.task import Graph, GraphNode, Task
+from shell_ddd.domain.entities.task import Task
+from shell_ddd.domain.entities.template_graph import TemplateGraph
+from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.entities.workflow import NodeState, Workflow
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell_ddd.domain.value_objects.hash import Hash
@@ -20,7 +24,7 @@ from shell_ddd.domain.value_objects.ids import (
     PromptId,
     RunnerConfigId,
     TaskId,
-    WorkflowId,
+    WorkflowId, TemplateGraphNodeId, TemplateGraphId,
 )
 from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.status import Status
@@ -35,7 +39,7 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     PromptModel,
     RunnerConfigModel,
     TaskModel,
-    WorkflowModel,
+    WorkflowModel, TemplateGraphModel, TemplateGraphNodeModel,
 )
 
 
@@ -89,57 +93,56 @@ def task_model_to_entity(m: TaskModel) -> Task:
         version=m.version,
         hash=Hash(m.hash),
         body_md=m.body_md,
-        body_yaml_raw=m.body_yaml_raw,
+        template_graph_id=TemplateGraphId(m.template_graph_id),
         is_current=m.is_current,
         created_at=_ensure_utc(m.created_at),
         graph=graph,
     )
 
 
-def task_entity_to_model(t: Task) -> TaskModel:
-    m = TaskModel(
-        id=t.id.value,
-        name=t.name.value,
-        version=t.version,
-        hash=t.hash.value,
-        body_md=t.body_md,
-        body_yaml_raw=t.body_yaml_raw,
-        is_current=t.is_current,
-        created_at=t.created_at,
+def task_entity_to_model(task: Task) -> TaskModel:
+    task_model = TaskModel(
+        id=task.id.value,
+        name=task.name.value,
+        version=task.version,
+        hash=task.hash.value,
+        body_md=task.body_md,
+        template_graph_id=task.template_graph_id.value,
+        is_current=task.is_current,
+        created_at=task.created_at,
     )
-    if t.graph:
-        gm = GraphModel(
-            id=t.graph.id.value,
-            task_id=t.id.value,
-            raw_dict=t.graph.raw_dict,
+    if task.graph:
+        graph_mmodel = GraphModel(
+            id=task.graph.id.value,
+            task_id=task.id.value,
         )
-        gm.nodes = [
+        graph_mmodel.nodes = [
             GraphNodeModel(
-                id=n.id.value,
-                graph_id=t.graph.id.value,
-                position=n.position,
-                node_dir=n.node_dir,
-                mode=n.mode.value,
-                role=n.role,
-                node_type=n.node_type,
-                model=n.model,
-                command=n.command,
-                timeout=n.timeout,
-                retries=n.retries,
-                log_level=n.log_level,
-                max_step=n.max_step,
-                no_ask_user=n.no_ask_user,
-                autopilot=n.autopilot,
-                task_name=n.task_name,
-                source_dir=n.source_dir,
-                work_dir=n.work_dir,
-                status_initial=n.status_initial,
-                extra=n.extra,
+                id=graph_nodes.id.value,
+                graph_id=task.graph.id.value,
+                position=graph_nodes.position,
+                node_dir=graph_nodes.node_dir,
+                mode=graph_nodes.mode.value,
+                role=graph_nodes.role,
+                node_type=graph_nodes.node_type,
+                model=graph_nodes.model,
+                command=graph_nodes.command,
+                timeout=graph_nodes.timeout,
+                retries=graph_nodes.retries,
+                log_level=graph_nodes.log_level,
+                max_step=graph_nodes.max_step,
+                no_ask_user=graph_nodes.no_ask_user,
+                autopilot=graph_nodes.autopilot,
+                task_name=graph_nodes.task_name,
+                source_dir=graph_nodes.source_dir,
+                work_dir=graph_nodes.work_dir,
+                status_initial=graph_nodes.status_initial,
+                extra=graph_nodes.extra,
             )
-            for n in t.graph.nodes
+            for graph_nodes in task.graph.nodes
         ]
-        m.graph = gm
-    return m
+        task_model.graph = graph_mmodel
+    return task_model
 
 
 # ---------------------------------------------------------------------------
@@ -342,4 +345,91 @@ def runner_config_entity_to_model(c: RunnerConfig) -> RunnerConfigModel:
         hash=c.hash.value,
         body=c.body,
         created_at=c.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# TemplateGraph
+# ---------------------------------------------------------------------------
+
+
+def template_graph_model_to_entity(
+        m: TemplateGraphModel,
+) -> TemplateGraph:
+    return TemplateGraph(
+        id=TemplateGraphId(m.id),
+        name=m.name,
+        purpose=m.purpose,
+        nodes=[
+            template_graph_node_model_to_entity(node)
+            for node in m.nodes
+        ],
+    )
+
+
+def template_graph_entity_to_model(
+        graph: TemplateGraph,
+) -> TemplateGraphModel:
+    m = TemplateGraphModel(
+        id=graph.id,
+        name=graph.name,
+        purpose=graph.purpose,
+    )
+    m.nodes = [
+        template_graph_node_entity_to_model(
+            node,
+            graph.id,
+        )
+        for node in graph.nodes
+    ]
+    return m
+
+
+def template_graph_node_model_to_entity(
+        m: TemplateGraphNodeModel,
+) -> TemplateGraphNode:
+    return TemplateGraphNode(
+        id=TemplateGraphNodeId(m.id),
+        position=m.position,
+        mode=Mode(m.mode),
+        role=m.role,
+        node_type=m.node_type,
+        model=m.model or "",
+        command=m.command,
+        timeout=m.timeout,
+        retries=m.retries,
+        log_level=m.log_level,
+        max_step=m.max_step,
+        no_ask_user=bool(m.no_ask_user),
+        autopilot=bool(m.autopilot),
+        status_initial=m.status_initial,
+        extra=dict(m.extra or {}),
+        script=m.script or "",
+        script_type=m.script_type or "",
+    )
+
+
+def template_graph_node_entity_to_model(
+        node: TemplateGraphNode,
+        template_graph_id: str,
+) -> TemplateGraphNodeModel:
+    return TemplateGraphNodeModel(
+        id=node.id.value,
+        template_graph_id=template_graph_id,
+        position=node.position,
+        mode=node.mode.value,
+        role=node.role,
+        node_type=node.node_type,
+        model=node.model,
+        command=node.command,
+        timeout=node.timeout,
+        retries=node.retries,
+        log_level=node.log_level,
+        max_step=node.max_step,
+        no_ask_user=node.no_ask_user,
+        autopilot=node.autopilot,
+        status_initial=node.status_initial,
+        extra=node.extra,
+        script=node.script,
+        script_type=node.script_type,
     )

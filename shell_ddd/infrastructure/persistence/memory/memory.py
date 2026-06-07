@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from shell_ddd.domain.entities.template_graph import TemplateGraph
+from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
@@ -16,7 +18,7 @@ from shell_ddd.domain.value_objects.ids import (
     RunnerConfigId,
     SessionId,
     TaskId,
-    WorkflowId,
+    WorkflowId, TemplateGraphId, TemplateGraphNodeId,
 )
 
 if TYPE_CHECKING:
@@ -238,6 +240,14 @@ class InMemoryUnitOfWork:
         self.envelope_archive = InMemoryEnvelopeArchive()
         self.rag_documents = InMemoryRagDocumentRepository()
         self.sessions = InMemorySessionRepository()
+        self.template_graphs = InMemoryTemplateGraphRepository()
+        # 🔥 SEED
+        self.template_graphs._store["base_planner"] = TemplateGraph(
+            id=TemplateGraphId("base-planner-id"),
+            name="base_planner",
+            purpose="default_planning",
+        )
+
         self._committed = False
 
     async def commit(self) -> None:
@@ -380,7 +390,8 @@ class InMemoryQueryServices:
             return None
         return TaskDto(
             id=str(task.id), name=str(task.name),
-            body_md=task.body_md, body_yaml=task.body_yaml_raw,
+            body_md=task.body_md,
+            template_graph_id=task.template_graph_id,
             graph=task.graph.to_dict()
         )
 
@@ -513,3 +524,31 @@ class InMemoryQueryServices:
                 score=1.0
             ) for i in range(min(top_k, len(chunks)))
         ]
+
+
+class InMemoryTemplateGraphRepository:
+    def __init__(self) -> None:
+        self._store: dict[str, TemplateGraph] = {}
+
+    async def get_template_graph_by_name(self, name: str) -> TemplateGraph | None:
+        for g in self._store.values():
+            if g.name == name:
+                return g
+        return None
+
+    async def get_by_id(self, id_: TemplateGraphId) -> TemplateGraph | None:
+        return self._store.get(id_.value)
+
+    async def save(self, graph: TemplateGraph) -> None:
+        self._store[graph.id.value] = graph
+
+
+class InMemoryTemplateGraphNodeRepository:
+    def __init__(self) -> None:
+        self._store: dict[str, TemplateGraphNode] = {}
+
+    async def get_by_id(self, node_id: TemplateGraphNodeId) -> TemplateGraphNode | None:
+        return self._store.get(node_id.value)
+
+    async def save(self, node: TemplateGraphNode) -> None:
+        self._store[node.id.value] = node

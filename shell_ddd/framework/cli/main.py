@@ -77,7 +77,7 @@ async def _import_task(argv: Sequence[str]) -> int:
 
     database_url = _get_database_url()
     container = await ApplicationFactory(database_url=database_url).build()
-    cmd = ImportTaskCommand(md_path=md_path, yaml_path=yaml_path, task_name=task_name)
+    cmd = ImportTaskCommand(md_path=md_path, task_name=task_name)
     try:
         task_id = await container.command_bus.dispatch(cmd)
         print(f"Imported task '{task_name}' with id={task_id}")

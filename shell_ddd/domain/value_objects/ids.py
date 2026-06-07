@@ -207,3 +207,35 @@ class CorrelationId:
     @classmethod
     def generate(cls) -> CorrelationId:
         return cls(str(uuid.uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateGraphId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("TemplateGraphId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> TemplateGraphId:
+        return cls(str(uuid.uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateGraphNodeId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("TemplateGraphNodeId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> TemplateGraphNodeId:
+        return cls(str(uuid.uuid4()))

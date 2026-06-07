@@ -15,7 +15,7 @@ import pytest  # noqa: F401 — used in type annotations and fixtures
 import uuid
 from shell_ddd.infrastructure.logging.stdlib_logger import correlation_id_var
 from shell_ddd.infrastructure.persistence.memory.memory import InMemoryUnitOfWork, InMemoryQueryServices
-from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
 
 
 # ---------------------------------------------------------------------------

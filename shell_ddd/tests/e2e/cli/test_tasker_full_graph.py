@@ -12,13 +12,15 @@ from __future__ import annotations
 
 import pytest
 
+from shell_ddd.domain.entities.graph import Graph
+from shell_ddd.domain.entities.graph_node import GraphNode
 from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServices
 
 from shell_ddd.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
 from shell_ddd.application.queries.queries import GetWorkflowQuery
 from shell_ddd.application.query_handlers.query_handlers import GetWorkflowHandler
-from shell_ddd.domain.entities.task import Graph, GraphNode, Task
+from shell_ddd.domain.entities.task import Task
 from shell_ddd.domain.events.events import NodeCompleted, NodeFailed, WorkflowCompleted, WorkflowFailed
 from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TaskId
 from shell_ddd.domain.value_objects.mode import Mode
@@ -30,8 +32,6 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeNodeProcessRunner,
     InMemoryUnitOfWork,
 )
-from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
-from shell_ddd.tests.integration.sql_sqlite import session_factory
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +65,7 @@ def _make_task_with_graph(name: str, node_modes: list[str], uow_tasks_store: dic
         version=1,
         hash=__import__("shell_ddd.domain.value_objects.hash", fromlist=["Hash"]).Hash.of("x"),
         body_md="# Task",
-        body_yaml_raw="",
+        template_graph_id="",
         is_current=True,
         created_at=datetime.now(tz=UTC),
         graph=Graph(

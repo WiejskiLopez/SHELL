@@ -6,6 +6,8 @@ import pathlib
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+from shell_ddd.domain.entities.template_graph import TemplateGraph
+
 
 async def _make_app(tmp_path: pathlib.Path):  # type: ignore[return]
     from shell_ddd.bootstrap.container import ApplicationFactory
@@ -33,6 +35,19 @@ class TestTasksRouter:
         yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
         app = await _make_app(tmp_path)
+
+  #      container = app.state.container
+  #      async with container.uow() as uow:
+
+  #          base_planner = TemplateGraph(
+  #              id="base-planner-id",
+  #              name="base_planner",
+  #              purpose="default_planning"
+  #          )
+  #          await uow.template_graphs.save(base_planner)
+  #          await uow.commit()
+        # ---------------------------------------
+
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post("/tasks/import", json={
                 "task_name": "api_task",

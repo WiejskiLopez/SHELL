@@ -64,7 +64,7 @@ class SqlQueryServices:
                 is_current=model.is_current,
                 created_at=model.created_at,
                 body_md=model.body_md,
-                body_yaml_raw=model.body_yaml_raw,
+                template_graph_id=model.template_graph_id,
                 graph_nodes=self._map_graph_nodes(graph_model) if graph_model else []
             )
 

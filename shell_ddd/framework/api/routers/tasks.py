@@ -27,7 +27,7 @@ def get_container(request: Request) -> Container:
 
 @router.post("/import", response_model=ImportTaskResponse, status_code=201)
 async def import_task(body: ImportTaskRequest, container: Container = Depends(get_container)) -> ImportTaskResponse:
-    cmd = ImportTaskCommand(md_path=body.md_path, yaml_path=body.yaml_path, task_name=body.task_name)
+    cmd = ImportTaskCommand(md_path=body.md_path, task_name=body.task_name)
     task_id = await container.command_bus.dispatch(cmd)
     return ImportTaskResponse(task_id=str(task_id))
 

@@ -2,17 +2,15 @@
 from __future__ import annotations
 
 import asyncio
+from asyncio import to_thread
 from pathlib import Path
 
 
 class FileSystemTaskLoader:
-    """Reads task markdown and yaml files asynchronously (via thread pool)."""
+    """Reads task markdown asynchronously (via thread pool)."""
 
-    async def load(self, md_path: str, yaml_path: str) -> tuple[str, str]:
-        """Return (body_md, body_yaml_raw).  Both paths must exist."""
-        loop = asyncio.get_event_loop()
-        body_md, body_yaml_raw = await asyncio.gather(
-            loop.run_in_executor(None, Path(md_path).read_text, "utf-8"),
-            loop.run_in_executor(None, Path(yaml_path).read_text, "utf-8"),
+    async def load(self, md_path: str) -> str:
+        return await to_thread(
+            Path(md_path).read_text,
+            encoding="utf-8",
         )
-        return body_md, body_yaml_raw

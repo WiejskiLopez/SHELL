@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from shell_ddd.domain.entities.envelope import Envelope
 from shell_ddd.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
@@ -14,6 +13,7 @@ from shell_ddd.infrastructure.persistence.sql.repositories import (
     SqlSessionRepository,
     SqlTaskRepository,
     SqlWorkflowRepository,
+    SqlTemplateGraphRepository,
 )
 
 
@@ -37,6 +37,7 @@ class SqlAlchemyUnitOfWork:
         self.envelope_archive: SqlEnvelopeArchiveStub = SqlEnvelopeArchiveStub()
         self.rag_documents = SqlRagDocumentRepository(self._session)
         self.sessions = SqlSessionRepository(self._session)
+        self.template_graphs = SqlTemplateGraphRepository(self._session)
         return self
 
     async def __aexit__(self, exc_type: object, *args: object) -> None:

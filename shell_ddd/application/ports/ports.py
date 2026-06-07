@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
+
 if TYPE_CHECKING:
     from datetime import datetime
 
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
         SessionRepository,
         TaskRepository,
         WorkflowRepository,
+        TemplateGraphRepository,
     )
     from shell_ddd.domain.value_objects.execution_result import ExecutionResult
     from shell_ddd.domain.value_objects.ids import (
@@ -29,8 +31,8 @@ if TYPE_CHECKING:
         RunnerConfigId,
         SessionId,
         TaskId,
-        WorkflowId,
-    )
+        WorkflowId, TemplateGraphId, TemplateGraphNodeId,
+)
     from shell_ddd.domain.value_objects.manifest import Manifest
 
 
@@ -46,6 +48,7 @@ class UnitOfWork(Protocol):
     envelope_archive: EnvelopeArchive
     rag_documents: RagDocumentRepository
     sessions: SessionRepository
+    template_graphs: TemplateGraphRepository
 
     async def commit(self) -> None: ...
     async def rollback(self) -> None: ...
@@ -68,6 +71,8 @@ class IdGenerator(Protocol):
     def new_rag_chunk_id(self) -> RagChunkId: ...
     def new_session_id(self) -> SessionId: ...
     def new_message_id(self) -> MessageId: ...
+    def new_template_graph_id(self) -> TemplateGraphId: ...
+    def new_template_graph_node_id(self) -> TemplateGraphNodeId: ...
 
 
 class EventPublisher(Protocol):
@@ -84,8 +89,8 @@ class Logger(Protocol):
 class TaskLoader(Protocol):
     """Reads task markdown + yaml from the filesystem."""
 
-    async def load(self, md_path: str, yaml_path: str) -> tuple[str, str]:
-        """Return (body_md, body_yaml_raw)."""
+    async def load(self, md_path: str, yaml_path: str) -> str:
+        """Return (body_md)."""
         ...
 
 

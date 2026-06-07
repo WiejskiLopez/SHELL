@@ -9,7 +9,6 @@ class ImportTaskCommand:
     """Import a task from markdown + yaml files."""
 
     md_path: str
-    yaml_path: str
     task_name: str
 
 
