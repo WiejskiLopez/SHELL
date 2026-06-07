@@ -89,7 +89,6 @@ class IndexDocumentCommand:
 class OpenSessionCommand:
     """Open a new conversation session."""
 
-    agent_id: str
     goal: str
 
 
@@ -105,6 +104,7 @@ class AppendMessageCommand:
     """Append a message to an open session."""
 
     session_id: str
+    correlation_id: str
     sender: str
     receiver: str
     payload: dict[str, object] = field(default_factory=dict)

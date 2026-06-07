@@ -46,13 +46,11 @@ def upgrade() -> None:
     op.create_table(
         "session",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("agent_id", sa.String(255), nullable=False),
         sa.Column("goal", sa.Text, nullable=False),
         sa.Column("status", sa.String(16), nullable=False, server_default="open"),
         sa.Column("opened_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True),
     )
-    op.create_index("ix_session_agent_id", "session", ["agent_id"])
 
     op.create_table(
         "message",

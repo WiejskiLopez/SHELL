@@ -16,6 +16,8 @@ class TaskDto:
     hash: str
     is_current: bool
     created_at: datetime
+    body_md: str
+    body_yaml_raw: str
     graph_nodes: list[GraphNodeDto] = field(default_factory=list)
 
 
@@ -113,6 +115,7 @@ class RagChunkDto:
 class MessageDto:
     id: str
     session_id: str
+    correlation_id: str
     sender: str
     receiver: str
     payload: dict[str, object]
@@ -122,7 +125,6 @@ class MessageDto:
 @dataclass(frozen=True, slots=True)
 class SessionDto:
     id: str
-    agent_id: str
     goal: str
     status: str
     opened_at: datetime

@@ -12,6 +12,8 @@ from __future__ import annotations
 
 import pytest
 
+from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServices
+
 from shell_ddd.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
 from shell_ddd.application.queries.queries import GetWorkflowQuery
@@ -28,6 +30,8 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeNodeProcessRunner,
     InMemoryUnitOfWork,
 )
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell_ddd.tests.integration.sql_sqlite import session_factory
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +104,12 @@ def events() -> FakeEventPublisher:
     return FakeEventPublisher()
 
 
+@pytest.fixture()
+def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
+    """Fixture dostarczający serwis zapytań In-Memory dla testu E2E."""
+    return InMemoryQueryServices(uow)
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -109,11 +119,12 @@ class TestRunTaskerWorkflowHappyPath:
     """All 3 nodes succeed → workflow COMPLETED."""
 
     async def test_all_nodes_complete(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
         _make_task_with_graph(
@@ -128,18 +139,18 @@ class TestRunTaskerWorkflowHappyPath:
         )
 
         # Workflow persisted and marked complete
-        dto = await GetWorkflowHandler(uow).handle(GetWorkflowQuery(workflow_id))
+        dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
         assert dto.status == "done"
         assert len(dto.node_states) == 3
         assert all(s.status == "done" for s in dto.node_states.values())
 
     async def test_three_node_results_saved(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(stdout="result", returncode=0)
         _make_task_with_graph("nr-task", ["agent", "tool", "worker"], uow.tasks._store)
@@ -153,11 +164,11 @@ class TestRunTaskerWorkflowHappyPath:
         assert all(r.stdout == "result" for r in results)
 
     async def test_events_published(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=0)
         _make_task_with_graph("ev-task", ["agent", "tool", "worker"], uow.tasks._store)
@@ -177,11 +188,12 @@ class TestRunTaskerWorkflowPartialFailure:
     """One node returns non-zero → workflow FAILED."""
 
     async def test_workflow_marked_failed(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=1, stderr="crash")
         _make_task_with_graph(
@@ -195,16 +207,16 @@ class TestRunTaskerWorkflowPartialFailure:
             RunTaskerWorkflowCommand(task_name="fail-task", work_dir="/tmp")
         )
 
-        dto = await GetWorkflowHandler(uow).handle(GetWorkflowQuery(workflow_id))
+        dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
         assert dto.status == "failed"
 
     async def test_workflow_failed_event_published(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=1)
         _make_task_with_graph("fail-ev-task", ["agent", "tool"], uow.tasks._store)
@@ -219,11 +231,12 @@ class TestRunTaskerWorkflowPartialFailure:
 
 class TestRunTaskerWorkflowEdgeCases:
     async def test_empty_graph_creates_completed_workflow(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=0)
         _make_task_with_graph("empty-task", [], uow.tasks._store)
@@ -233,16 +246,16 @@ class TestRunTaskerWorkflowEdgeCases:
             RunTaskerWorkflowCommand(task_name="empty-task", work_dir="/tmp")
         )
 
-        dto = await GetWorkflowHandler(uow).handle(GetWorkflowQuery(workflow_id))
+        dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
         assert dto.status == "done"
 
     async def test_task_not_found_raises(
-        self,
-        uow: InMemoryUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
+            self,
+            uow: InMemoryUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
     ) -> None:
         from shell_ddd.domain.exceptions import TaskNotFound
 

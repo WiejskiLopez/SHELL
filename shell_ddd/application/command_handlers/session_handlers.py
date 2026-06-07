@@ -9,7 +9,7 @@ from shell_ddd.application.commands.commands import (
 from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
 from shell_ddd.domain.entities.session import Session
 from shell_ddd.domain.exceptions import DomainError
-from shell_ddd.domain.value_objects.ids import MessageId, SessionId
+from shell_ddd.domain.value_objects.ids import MessageId, SessionId, CorrelationId
 
 
 class SessionNotFound(DomainError):
@@ -26,7 +26,6 @@ class OpenSessionHandler:
         session_id = self._id_gen.new_session_id()
         session = Session.open(
             id_=session_id,
-            agent_id=cmd.agent_id,
             goal=cmd.goal,
             now=self._clock.now(),
         )
@@ -65,6 +64,7 @@ class AppendMessageHandler:
             msg_id = self._id_gen.new_message_id()
             session.append_message(
                 msg_id=msg_id,
+                correlation_id=CorrelationId(cmd.correlation_id),
                 sender=cmd.sender,
                 receiver=cmd.receiver,
                 payload=dict(cmd.payload),

@@ -4,6 +4,9 @@ from __future__ import annotations
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
@@ -89,11 +92,12 @@ class TestSqlTaskRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
+        session_factory,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task"))
 
-        q = GetCurrentTaskHandler(uow)
+        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task"))
         assert dto is not None
         assert dto.name == "sql-task"
@@ -106,12 +110,13 @@ class TestSqlTaskRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
+        session_factory,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "sql-task-v"))
 
-        q = GetCurrentTaskHandler(uow)
+        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("sql-task-v"))
         assert dto is not None
         assert dto.is_current is True
@@ -130,6 +135,7 @@ class TestSqlWorkflowRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
         await imp.handle(ImportTaskCommand("t.md", "t.yaml", "wf-task"))
@@ -137,7 +143,7 @@ class TestSqlWorkflowRepository:
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))
 
-        q = GetWorkflowHandler(uow)
+        q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
@@ -145,9 +151,9 @@ class TestSqlWorkflowRepository:
 
     async def test_workflow_not_found_returns_none(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        session_factory: async_sessionmaker,
     ) -> None:
-        q = GetWorkflowHandler(uow)
+        q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery("no-such-wf"))
         assert dto is None
 
@@ -163,20 +169,21 @@ class TestSqlPromptRepository:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("sys-prompt", "You are helpful."))
 
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("sys-prompt"))
         assert dto is not None
         assert dto.body == "You are helpful."
 
     async def test_prompt_not_found_returns_none(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        session_factory: async_sessionmaker,
     ) -> None:
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("missing-prompt"))
         assert dto is None
 
@@ -193,6 +200,7 @@ class TestSqlNodeResultRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = SaveNodeResultHandler(uow, clock, id_gen, events)
         await handler.handle(
@@ -204,7 +212,7 @@ class TestSqlNodeResultRepository:
             )
         )
 
-        q = GetNodeResultHandler(uow)
+        q = GetNodeResultHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetNodeResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
         assert dto is not None
         assert dto.stdout == "success"
@@ -221,7 +229,7 @@ class TestSqlUnitOfWorkRollback:
         self,
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         try:
             async with uow as u:
@@ -240,7 +248,7 @@ class TestSqlUnitOfWorkRollback:
         except RuntimeError:
             pass
 
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("rollback-prompt-x"))
         assert dto is None
 
@@ -256,6 +264,7 @@ class TestSqlRagDocumentRepository:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
         from shell_ddd.application.commands.commands import IndexDocumentCommand
@@ -268,7 +277,7 @@ class TestSqlRagDocumentRepository:
         cmd = IndexDocumentCommand(source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text)
         await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
 
-        results = await SearchSimilarHandler(uow, embedder).handle(
+        results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
         )
         assert len(results) > 0
@@ -279,6 +288,7 @@ class TestSqlRagDocumentRepository:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
         from shell_ddd.application.commands.commands import IndexDocumentCommand
@@ -290,7 +300,7 @@ class TestSqlRagDocumentRepository:
         await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(
             IndexDocumentCommand(source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20)
         )
-        results = await SearchSimilarHandler(uow, embedder).handle(
+        results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="unique text x", top_k=5, domain="domain-y")
         )
         assert results == []
@@ -302,6 +312,7 @@ class TestSqlSessionRepository:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         from shell_ddd.application.command_handlers.session_handlers import (
             AppendMessageHandler,
@@ -317,17 +328,17 @@ class TestSqlSessionRepository:
         from shell_ddd.application.query_handlers.query_handlers import GetSessionHistoryHandler
 
         session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
-            OpenSessionCommand(agent_id="sql-agent", goal="integration test")
+            OpenSessionCommand(goal="integration test")
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value, sender="sql-agent", receiver="router", payload={"k": 1})
+            AppendMessageCommand(session_id=session_id.value,correlation_id=get_correlation_id(), sender="sql-agent", receiver="router", payload={"k": 1})
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value, sender="router", receiver="sql-agent", payload={"k": 2})
+            AppendMessageCommand(session_id=session_id.value,correlation_id=get_correlation_id(), sender="router", receiver="sql-agent", payload={"k": 2})
         )
         await CloseSessionHandler(uow, clock).handle(CloseSessionCommand(session_id=session_id.value))
 
-        dto = await GetSessionHistoryHandler(uow).handle(GetSessionHistoryQuery(session_id=session_id.value))
+        dto = await GetSessionHistoryHandler(SqlQueryServices(session_factory)).handle(GetSessionHistoryQuery(session_id=session_id.value))
         assert dto is not None
         assert dto.status == "closed"
         assert len(dto.messages) == 2

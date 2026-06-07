@@ -1,2 +1,0 @@
--e ../../platform
-pyyaml>=6.0

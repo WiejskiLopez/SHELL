@@ -7,6 +7,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell_ddd.domain.entities.envelope import Envelope
 from shell_ddd.domain.entities.node_result import NodeResult
 from shell_ddd.domain.entities.prompt import Prompt
@@ -28,7 +29,7 @@ from shell_ddd.domain.value_objects.ids import (
     RunnerConfigId,
     SessionId,
     TaskId,
-    WorkflowId,
+    WorkflowId, CorrelationId,
 )
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
@@ -358,25 +359,25 @@ class SqlSessionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._s = session
 
-    async def save(self, entity: Session) -> None:
+    async def save(self, session: Session) -> None:
         model = SessionModel(
-            id=entity.id.value,
-            agent_id=entity.agent_id,
-            goal=entity.goal,
-            status=entity.status,
-            opened_at=entity.opened_at,
-            closed_at=entity.closed_at,
+            id=session.id.value,
+            goal=session.goal,
+            status=session.status,
+            opened_at=session.opened_at,
+            closed_at=session.closed_at,
         )
         await self._s.merge(model)
-        for msg in entity.messages:
+        for message in session.messages:
             await self._s.merge(
                 MessageModel(
-                    id=msg.id.value,
-                    session_id=msg.session_id.value,
-                    sender=msg.sender,
-                    receiver=msg.receiver,
-                    payload=msg.payload,
-                    created_at=msg.created_at,
+                    id=message.id.value,
+                    session_id=message.session_id.value,
+                    correlation_id=message.correlation_id.value,
+                    sender=message.sender,
+                    receiver=message.receiver,
+                    payload=message.payload,
+                    created_at=message.created_at,
                 )
             )
 
@@ -387,7 +388,6 @@ class SqlSessionRepository:
             return None
         return Session(
             id=SessionId(row.id),
-            agent_id=row.agent_id,
             goal=row.goal,
             status=row.status,
             opened_at=row.opened_at,
@@ -405,6 +405,7 @@ class SqlSessionRepository:
             Message(
                 id=MessageId(r.id),
                 session_id=SessionId(r.session_id),
+                correlation_id=CorrelationId(r.correlation_id),
                 sender=r.sender,
                 receiver=r.receiver,
                 payload=r.payload,

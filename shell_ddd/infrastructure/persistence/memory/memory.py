@@ -31,6 +31,10 @@ if TYPE_CHECKING:
     from shell_ddd.domain.events.events import DomainEvent
     from shell_ddd.domain.value_objects.task_name import TaskName
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
 # Repository fakes
@@ -133,7 +137,7 @@ class InMemoryNodeResultRepository:
         return self._store.get(result_id.value)
 
     async def get_by_node_and_workflow(
-        self, node_id: NodeId, workflow_id: WorkflowId
+            self, node_id: NodeId, workflow_id: WorkflowId
     ) -> NodeResult | None:
         for r in self._store.values():
             if r.node_id == node_id and r.workflow_id == workflow_id:
@@ -172,10 +176,10 @@ class InMemoryRagDocumentRepository:
         return self._store.get(doc_id.value)
 
     async def search_similar(
-        self,
-        query_embedding: bytes,
-        top_k: int = 5,
-        domain: str | None = None,
+            self,
+            query_embedding: bytes,
+            top_k: int = 5,
+            domain: str | None = None,
     ) -> list[RagChunk]:
         import struct
         from shell_ddd.domain.services.rag_index_service import cosine_similarity
@@ -352,3 +356,160 @@ class FakeNodeWorkspace:
 
     async def cleanup(self, workspace_path: str) -> None:
         pass
+
+
+from shell_ddd.application.dto.dto import (
+    EnvelopeDto, NodeResultDto, PromptDto, RagChunkDto,
+    RunnerConfigDto, SessionDto, TaskDto, WorkflowDto,
+    NodeStateDto, MessageDto
+)
+
+
+class InMemoryQueryServices:
+    """Implementacja portów odczytu dla testów jednostkowych.
+    Czyta dane bezpośrednio z magazynów InMemoryUnitOfWork i mapuje je na DTO.
+    """
+
+    def __init__(self, uow: InMemoryUnitOfWork) -> None:
+        self._uow = uow
+
+    async def get_task_by_name(self, name: str) -> TaskDto | None:
+        # Przeszukujemy magazyn zadań w repozytorium in-memory
+        task = next((t for t in self._uow.tasks._store.values() if t.name == name), None)
+        if not task:
+            return None
+        return TaskDto(
+            id=str(task.id), name=str(task.name),
+            body_md=task.body_md, body_yaml=task.body_yaml_raw,
+            graph=task.graph.to_dict()
+        )
+
+    async def get_current_task(self, name: str) -> TaskDto | None:
+        return await self.get_task_by_name(name)
+
+    async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
+
+        workflow = self._uow.workflows._store.get(workflow_id)
+        if not workflow:
+            return None
+        return WorkflowDto(
+            id=str(workflow.id),
+            task_name=workflow.task_name,
+            status=workflow.status.value,
+            created_at=workflow.created_at,
+            node_states={
+                str(node_id): NodeStateDto(
+                    node_id=str(s.node_id),
+                    status=s.status.value,
+                    step=s.step,
+                    updated_at=s.updated_at
+                )
+                for node_id, s in workflow.node_states.items()
+            }
+        )
+
+    async def get_envelopes_by_workflow(
+            self, workflow_id: str, pending_only: bool = False
+    ) -> list[EnvelopeDto]:
+        envelopes = [
+            e for e in self._uow.envelopes._store.values()
+            if str(e.workflow_id) == workflow_id
+        ]
+        if pending_only:
+            envelopes = [e for e in envelopes if e.status.value == "pending"]
+
+        return [
+            EnvelopeDto(
+                id=str(e.id), workflow_id=str(e.workflow_id),
+                destination_node=e.destination_node, status=e.status.value,
+                payload=e.payload
+            ) for e in envelopes
+        ]
+
+    async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
+
+        # 1. Debugujemy co mamy w "bazie" (memory)
+        all_results = list(self._uow.node_results._store.values())  # palysiewicz
+        logger.debug(f"DEBUG: W _store jest {len(all_results)} elementów.")
+        for r in all_results:  # plysiewicz
+            logger.debug(
+                f"DEBUG: Sprawdzam rekord: ID={r.id}, node_id={r.node_id} (typ: {type(r.node_id)}), workflow_id={r.workflow_id} (typ: {type(r.workflow_id)})")
+        res = next((
+            r for r in self._uow.node_results._store.values()
+            if r.node_id.value == node_id and r.workflow_id.value == workflow_id
+        ), None)
+        if not res:
+            return None
+        return NodeResultDto(
+            id=str(res.id),
+            node_id=res.node_id,
+            workflow_id=str(res.workflow_id),
+            status=res.status.value,
+            stdout=res.stdout,
+            stderr=res.stderr,
+            artifact_uri=res.artifact_uri,
+            created_at=res.created_at,
+        )
+
+    async def get_prompt(self, name: str) -> PromptDto | None:
+        prompt = next((p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None)
+        if not prompt:
+            return None
+        return PromptDto(
+            id=str(prompt.id),
+            name=prompt.name,
+            version=prompt.version,
+            hash=prompt.hash,
+            body=prompt.body,
+            is_current=prompt.is_current,
+            created_at=prompt.created_at)
+
+    async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
+        c = self._uow.runner_configs._store.get(package_name)
+        if not c:
+            return None
+        return RunnerConfigDto(package_name=c.package_name, version=c.version, config=c.config)
+
+    async def get_session_history(self, session_id: str) -> SessionDto | None:
+        session = self._uow.sessions._store.get(session_id)
+
+        if session is None:
+            return None
+
+        return SessionDto(
+            id=session.id.value,
+            goal=session.goal,
+            status=session.status,
+            opened_at=session.opened_at,
+            closed_at=session.closed_at,
+            messages=[
+                MessageDto(
+                    id=message.id.value,
+                    session_id=message.session_id.value,
+                    correlation_id=message.correlation_id.value,
+                    sender=message.sender,
+                    receiver=message.receiver,
+                    payload=message.payload,
+                    created_at=message.created_at,
+                )
+                for message in session.messages
+            ],
+        )
+
+    async def search_similar(
+            self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
+    ) -> list[RagChunkDto]:
+        # Prosta implementacja dla testów
+        chunks = list(self._uow.rag_documents._store.values())
+        return [
+            RagChunkDto(
+                chunk_id=f"chunk-{i}",
+                document_id="doc-1",
+                chunk_index=i,
+                chunk_text="test content",
+                source_uri="file://test.md",
+                title="Test Doc",
+                domain=domain or "default",
+                score=1.0
+            ) for i in range(min(top_k, len(chunks)))
+        ]

@@ -12,7 +12,7 @@ from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
     NodeId,
     TaskId,
-    WorkflowId,
+    WorkflowId, CorrelationId,
 )
 from shell_ddd.domain.value_objects.task_name import TaskName
 
@@ -182,7 +182,7 @@ class TestSession:
         from shell_ddd.domain.entities.session import Session
         from shell_ddd.domain.value_objects.ids import SessionId
 
-        return Session.open(id_=SessionId.generate(), agent_id="agent-1", goal="do stuff", now=self._NOW)
+        return Session.open(id_=SessionId.generate(), goal="do stuff", now=self._NOW)
 
     def test_open_creates_open_session(self) -> None:
         s = self._make_session()
@@ -206,7 +206,7 @@ class TestSession:
         from shell_ddd.domain.value_objects.ids import MessageId
 
         s = self._make_session()
-        msg = s.append_message(MessageId.generate(), "agent-1", "router-1", {"text": "hi"}, self._NOW)
+        msg = s.append_message(MessageId.generate(),CorrelationId.generate(), "agent-1", "router-1", {"text": "hi"}, self._NOW)
         assert msg.sender == "agent-1"
         assert len(s.messages) == 1
 
@@ -216,11 +216,5 @@ class TestSession:
         s = self._make_session()
         s.close(self._LATER)
         with pytest.raises(ValueError, match="closed"):
-            s.append_message(MessageId.generate(), "a", "b", {}, self._NOW)
+            s.append_message(MessageId.generate(),CorrelationId.generate(), "a", "b", {}, self._NOW)
 
-    def test_empty_agent_id_raises(self) -> None:
-        from shell_ddd.domain.entities.session import Session
-        from shell_ddd.domain.value_objects.ids import SessionId
-
-        with pytest.raises(ValueError, match="agent_id"):
-            Session.open(id_=SessionId.generate(), agent_id="", goal="g", now=self._NOW)

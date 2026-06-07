@@ -1,1 +1,0 @@
-kontekst domeny to kontekst z jaka domena technologiczna biznesowa agent ma pracowac

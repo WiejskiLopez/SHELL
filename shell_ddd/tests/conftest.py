@@ -12,6 +12,12 @@ import os
 
 import pytest  # noqa: F401 — used in type annotations and fixtures
 
+import uuid
+from shell_ddd.infrastructure.logging.stdlib_logger import correlation_id_var
+from shell_ddd.infrastructure.persistence.memory.memory import InMemoryUnitOfWork, InMemoryQueryServices
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
+
 # ---------------------------------------------------------------------------
 # Markers
 # ---------------------------------------------------------------------------
@@ -33,7 +39,6 @@ MONGO_URL = os.environ.get("MONGO_TEST_URL", "mongodb://localhost:27018/?replica
 
 _postgres_available = os.environ.get("POSTGRES_TEST_URL") is not None
 _mongo_available = os.environ.get("MONGO_TEST_URL") is not None
-
 
 # ---------------------------------------------------------------------------
 # Skip helpers
@@ -68,3 +73,16 @@ def postgres_test_url() -> str:
 @pytest.fixture(scope="session")
 def mongo_test_url() -> str:
     return MONGO_URL
+
+
+@pytest.fixture(autouse=True)
+def auto_correlation_id():
+    """Automatycznie ustawia correlation_id dla każdego testu."""
+    token = correlation_id_var.set(f"test-{uuid.uuid4()}")
+    yield
+    correlation_id_var.reset(token)
+
+
+@pytest.fixture
+def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
+    return InMemoryQueryServices(uow)

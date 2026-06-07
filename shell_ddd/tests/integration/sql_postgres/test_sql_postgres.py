@@ -13,6 +13,8 @@ import os
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
@@ -107,7 +109,7 @@ class TestPgTaskRepository:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task"))
 
-        q = GetCurrentTaskHandler(uow)
+        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("pg-task"))
         assert dto is not None
         assert dto.name == "pg-task"
@@ -125,7 +127,7 @@ class TestPgTaskRepository:
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "t.yaml", "pg-task-v"))
 
-        q = GetCurrentTaskHandler(uow)
+        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetCurrentTaskQuery("pg-task-v"))
         assert dto is not None
         assert dto.is_current is True
@@ -151,7 +153,7 @@ class TestPgWorkflowRepository:
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("pg-wf-task"))
 
-        q = GetWorkflowHandler(uow)
+        q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
@@ -161,7 +163,7 @@ class TestPgWorkflowRepository:
         self,
         uow: SqlAlchemyUnitOfWork,
     ) -> None:
-        q = GetWorkflowHandler(uow)
+        q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery("pg-no-such-wf"))
         assert dto is None
 
@@ -181,7 +183,7 @@ class TestPgPromptRepository:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("pg-sys-prompt", "You are a pg helper."))
 
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("pg-sys-prompt"))
         assert dto is not None
         assert dto.body == "You are a pg helper."
@@ -190,7 +192,7 @@ class TestPgPromptRepository:
         self,
         uow: SqlAlchemyUnitOfWork,
     ) -> None:
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("pg-missing-prompt"))
         assert dto is None
 
@@ -218,7 +220,7 @@ class TestPgNodeResultRepository:
             )
         )
 
-        q = GetNodeResultHandler(uow)
+        q = GetNodeResultHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetNodeResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
         assert dto is not None
         assert dto.stdout == "pg success"
@@ -254,6 +256,6 @@ class TestPgUnitOfWorkRollback:
         except RuntimeError:
             pass
 
-        q = GetPromptHandler(uow)
+        q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("pg-rollback-prompt-x"))
         assert dto is None

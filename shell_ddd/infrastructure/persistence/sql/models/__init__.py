@@ -210,7 +210,6 @@ class SessionModel(Base):
     __tablename__ = "session"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    agent_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     goal: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -226,11 +225,12 @@ class MessageModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     session_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
+       String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     sender: Mapped[str] = mapped_column(String(255), nullable=False)
     receiver: Mapped[str] = mapped_column(String(255), nullable=False)
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
+    payload: Mapped[dict] = mapped_column("payload_json", JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     session: Mapped[SessionModel] = relationship("SessionModel", back_populates="messages")

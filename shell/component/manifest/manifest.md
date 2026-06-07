@@ -1,1 +1,0 @@
-ten moul i ta klasa to kontener na plik manifest

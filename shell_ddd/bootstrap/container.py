@@ -3,6 +3,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
+from shell_ddd.infrastructure.external.hash_embedder import HashEmbedder
+
 from shell_ddd.application.bus import CommandBus, EventBus, QueryBus
 from shell_ddd.application.command_handlers.archive_envelope_handler import ArchiveEnvelopeHandler
 from shell_ddd.application.command_handlers.bootstrap_runner_config_handler import (
@@ -34,6 +38,9 @@ from shell_ddd.application.queries.queries import (
     GetRunnerConfigQuery,
     GetTaskByNameQuery,
     GetWorkflowQuery,
+    GetSessionHistoryQuery,
+    SearchSimilarQuery,
+
 )
 from shell_ddd.application.query_handlers.query_handlers import (
     GetCurrentTaskHandler,
@@ -43,6 +50,8 @@ from shell_ddd.application.query_handlers.query_handlers import (
     GetRunnerConfigHandler,
     GetTaskByNameHandler,
     GetWorkflowHandler,
+    GetSessionHistoryHandler,
+    SearchSimilarHandler,
 )
 from shell_ddd.application.strategies.node_execution_strategy import get_strategy
 from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
@@ -73,11 +82,14 @@ class ApplicationFactory:
     def __init__(self, database_url: str, max_step: int = 0) -> None:
         self._database_url = database_url
         self._max_step = max_step
+        self._embedder = HashEmbedder()
 
     async def build(self) -> Container:
         """Initialise the DB schema (if needed) and wire all components."""
         await create_all_tables(self._database_url)
         session_factory = build_session_factory(self._database_url)
+
+        query_services = SqlQueryServices(session_factory)
 
         from shell_ddd.infrastructure.persistence.memory.memory import (
             FakeClock,
@@ -160,13 +172,42 @@ class ApplicationFactory:
 
         # Query bus
         query_bus = QueryBus()
-        query_bus.register(GetTaskByNameQuery, GetTaskByNameHandler(uow))
-        query_bus.register(GetCurrentTaskQuery, GetCurrentTaskHandler(uow))
-        query_bus.register(GetWorkflowQuery, GetWorkflowHandler(uow))
-        query_bus.register(GetEnvelopesByWorkflowQuery, GetEnvelopesByWorkflowHandler(uow))
-        query_bus.register(GetNodeResultQuery, GetNodeResultHandler(uow))
-        query_bus.register(GetPromptQuery, GetPromptHandler(uow))
-        query_bus.register(GetRunnerConfigQuery, GetRunnerConfigHandler(uow))
+        query_bus.register(
+            GetTaskByNameQuery,
+            GetTaskByNameHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetCurrentTaskQuery,
+            GetCurrentTaskHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetWorkflowQuery,
+            GetWorkflowHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetEnvelopesByWorkflowQuery,
+            GetEnvelopesByWorkflowHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetNodeResultQuery,
+            GetNodeResultHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetPromptQuery,
+            GetPromptHandler(queries=query_services)
+        )
+        query_bus.register(
+            GetRunnerConfigQuery,
+            GetRunnerConfigHandler(queries=query_services)
+        )
+        query_bus.register(
+           GetSessionHistoryQuery,
+           GetSessionHistoryHandler(queries=query_services)
+        )
+        query_bus.register(
+           SearchSimilarQuery,
+           SearchSimilarHandler(queries=query_services, embedder=self._embedder)
+        )
 
         return Container(
             command_bus=command_bus,

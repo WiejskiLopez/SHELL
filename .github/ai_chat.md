@@ -1,0 +1,6 @@
+https://use.ai/pl?model=gpt-5&utm_match_type=e&utm_funnel=&partner=WM&id=Z29vZ2xlfGNwY3xBSV9XV19FTi1UMV9DaGF0X0RTS19TRUFfR0VOX0NoYXR3aXRoQUl8MjM3NDM3ODA3ODZ8Y2hhdCBhaXw4MDQ1MzU1NzEyMzB8fDE5MjQ2NzkwMjk0MnxBSV9XV19FTi1UMV9DaGF0d2l0aEFJX0V4YWN0fDgwNDUzNTU3MTIzMHx8fHx8fENqMEtDUWp3aW9fUkJoRE1BUklzQUpQdmVOUFktaGxDZG9fRG1Ib2NBcWhYeFdnNk1NYjA4QnBmNjNiUk1RYy1sRkRqeXlLZ0JHbW5Bd0FhQXFpa0VBTHdfd2NCfHx8&url=https%3A%2F%2Fuse.ai%3Fmodel%3Dgpt-5&gad_source=1&gad_campaignid=23743780786&gbraid=0AAAAACQlLoZS0R6mnyCdAEZ2-OJRYKLWG
+
+https://notebooklm.google.com/notebook/b059ad66-78cf-48b1-9e4a-e411c17f0e7c
+
+
+https://www.youtube.com/watch?v=HMtfBCcjMKw

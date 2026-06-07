@@ -1,1 +1,0 @@
-system contekst to promppt sterujace prompty informujace o roli agenta i jego kozliwosciach technicznych i konfiguracyjnych
