@@ -6,6 +6,7 @@ import os
 import sys
 from typing import Sequence
 
+from shell_ddd.bootstrap.setup_logging import setup_logging
 from shell_ddd.framework.cli.parser import build_parser
 
 
@@ -146,6 +147,7 @@ async def _run_tasker(argv: Sequence[str]) -> int:
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry-point — first positional arg is the mode/subcommand."""
     args = list(argv) if argv is not None else sys.argv[1:]
+    setup_logging()
     if not args:
         print("Usage: shell_ddd <mode> [options]", file=sys.stderr)
         print(f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task', 'route'])}", file=sys.stderr)

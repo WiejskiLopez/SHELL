@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 
 from shell_ddd.bootstrap.container import Container
+from shell_ddd.bootstrap.setup_logging import setup_logging
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell_ddd.framework.api.middleware.error_handler import domain_error_handler
@@ -18,6 +19,7 @@ def create_app(container: Container) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
+        setup_logging()
         yield  # startup / shutdown hooks can be added here
 
     app = FastAPI(

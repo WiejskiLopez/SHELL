@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+from shell_ddd.bootstrap.setup_logging import setup_logging
 
 
 async def _smoke(db_url: str) -> None:
@@ -90,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
         print("  smoke  — import→workflow→route end-to-end check")
         print("  relay  — process one batch of outbox events")
         return 0
-
+    setup_logging()
     cmd = args[0]
     db_url = "sqlite+aiosqlite:///shell_ddd.db"
     for i, a in enumerate(args[1:], 1):

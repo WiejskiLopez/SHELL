@@ -61,6 +61,10 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     WorkflowModel, TemplateGraphModel, TemplateGraphNodeModel,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class SqlTaskRepository:
     def __init__(self, session: AsyncSession) -> None:
@@ -87,6 +91,7 @@ class SqlTaskRepository:
         return task_model_to_entity(row) if row else None
 
     async def get_current_by_name(self, name: TaskName) -> Task | None:
+        logger.info("Querying current Task by name=%s", name.value)
         q = (
             select(TaskModel)
             .options(selectinload(TaskModel.graph))
@@ -94,6 +99,17 @@ class SqlTaskRepository:
             .limit(1)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
+        if not row:
+            logger.info("No current Task found for name=%s", name.value)
+            return None
+
+        logger.info(
+            "TaskModel found: id=%s name=%s template_graph_id=%s is_current=%s",
+            row.id,
+            row.name,
+            row.template_graph_id,
+            row.is_current,
+        )
         return task_model_to_entity(row) if row else None
 
     async def save(self, task: Task) -> None:

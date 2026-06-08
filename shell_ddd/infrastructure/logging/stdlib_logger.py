@@ -65,10 +65,7 @@ class StdlibLogger:
 
     def __init__(self, name: str = "shell_ddd", level: int = logging.INFO) -> None:
         self._logger = logging.getLogger(name)
-        if not self._logger.handlers:
-            self._logger.addHandler(_make_handler())
         self._logger.setLevel(level)
-        self._logger.propagate = False
 
     def debug(self, msg: str, **kw: object) -> None:
         self._logger.debug(msg, extra=kw if kw else None)

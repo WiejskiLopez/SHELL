@@ -65,7 +65,7 @@ def _make_task_with_graph(name: str, node_modes: list[str], uow_tasks_store: dic
         version=1,
         hash=__import__("shell_ddd.domain.value_objects.hash", fromlist=["Hash"]).Hash.of("x"),
         body_md="# Task",
-        template_graph_id="",
+        template_graph_id="template_graph_id",
         is_current=True,
         created_at=datetime.now(tz=UTC),
         graph=Graph(

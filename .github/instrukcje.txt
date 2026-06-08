@@ -27,21 +27,8 @@ python -m shell_ddd.framework.cli.main agent --node-dir ./work/agent-01 --workfl
 Interfejs REST API (FastAPI)
 Aby uruchomić API zarządzające zadaniami i przepływami, użyj skryptu serwującego aplikację przez uvicorn. W terminalu uruchom poniższy kod Pythona:
 
-Python
-python -c "
-import asyncio, uvicorn
-from shell_ddd.bootstrap.container import ApplicationFactory
-from shell_ddd.framework.api.app import create_app
 
-async def main():
-    container = await ApplicationFactory(database_url='sqlite+aiosqlite:///shell_ddd.db').build()
-    app = create_app(container)
-    config = uvicorn.Config(app, host='0.0.0.0', port=8000)
-    server = uvicorn.Server(config)
-    await server.serve()
 
-asyncio.run(main())
-"
 Interaktywna dokumentacja Swagger (umożliwiająca odpytywanie API) będzie dostępna w przeglądarce pod adresem: http://localhost:8000/docs.
 
 3. Uruchamianie pełnych testów
