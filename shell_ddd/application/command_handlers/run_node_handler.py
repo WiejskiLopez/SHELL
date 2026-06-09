@@ -37,7 +37,7 @@ class RunNodeHandler:
         workspace: NodeWorkspace,
         runner: NodeProcessRunner,
         strategy: NodeExecutionStrategy,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
@@ -45,7 +45,7 @@ class RunNodeHandler:
         self._workspace = workspace
         self._runner = runner
         self._strategy = strategy
-        self._events = events
+        self._event_publisher = event_publisher
 
     async def handle(self, cmd: RunNodeCommand) -> str:
         """Execute node and return NodeResult id."""
@@ -91,7 +91,7 @@ class RunNodeHandler:
                     await uow.workflows.save(wf)
                 await uow.commit()
             published.append(NodeFailed.now(node_id, wf_id, str(exc)))
-            await self._events.publish(published)
+            await self._event_publisher.publish(published)
             return node_result_id.value
 
         node_result_id = self._id_gen.new_node_result_id()
@@ -115,5 +115,5 @@ class RunNodeHandler:
             await uow.commit()
 
         published.append(NodeCompleted.now(node_id, wf_id, node_result_id))
-        await self._events.publish(published)
+        await self._event_publisher.publish(published)
         return node_result_id.value

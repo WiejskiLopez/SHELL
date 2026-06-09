@@ -28,12 +28,12 @@ class RouteEnvelopesHandler:
         self,
         uow: UnitOfWork,
         clock: Clock,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
         max_step: int = 0,
     ) -> None:
         self._uow = uow
         self._clock = clock
-        self._events = events
+        self._event_publisher = event_publisher
         self._max_step = max_step
 
     async def handle(self, cmd: RouteEnvelopesCommand) -> int:
@@ -79,5 +79,5 @@ class RouteEnvelopesHandler:
 
             await uow.commit()
 
-        await self._events.publish(published)
+        await self._event_publisher.publish(published)
         return routed

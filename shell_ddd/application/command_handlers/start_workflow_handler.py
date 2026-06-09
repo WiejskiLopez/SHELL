@@ -19,12 +19,12 @@ class StartWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._events = events
+        self._event_publisher = event_publisher
 
     async def handle(self, cmd: StartWorkflowCommand) -> str:
         async with self._uow as uow:
@@ -39,5 +39,5 @@ class StartWorkflowHandler:
             workflow.start()
             await uow.workflows.save(workflow)
             await uow.commit()
-        await self._events.publish([WorkflowStarted.now(workflow.id, cmd.task_name)])
+        await self._event_publisher.publish([WorkflowStarted.now(workflow.id, cmd.task_name)])
         return workflow.id.value

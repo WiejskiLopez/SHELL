@@ -17,11 +17,11 @@ class ArchiveEnvelopeHandler:
         self,
         uow: UnitOfWork,
         clock: Clock,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
-        self._events = events
+        self._event_publisher = event_publisher
 
     async def handle(self, cmd: ArchiveEnvelopeCommand) -> None:
         env_id = EnvelopeId(cmd.envelope_id)

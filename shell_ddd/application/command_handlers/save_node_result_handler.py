@@ -19,12 +19,12 @@ class SaveNodeResultHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._events = events
+        self._event_publisher = event_publisher
 
     async def handle(self, cmd: SaveNodeResultCommand) -> str:
         node_id = NodeId(cmd.node_id)
@@ -44,7 +44,7 @@ class SaveNodeResultHandler:
             await uow.node_results.save(result)
             await uow.commit()
         if status == Status.done():
-            await self._events.publish([NodeCompleted.now(node_id, workflow_id, result.id)])
+            await self._event_publisher.publish([NodeCompleted.now(node_id, workflow_id, result.id)])
         elif status == Status.failed():
-            await self._events.publish([NodeFailed.now(node_id, workflow_id, cmd.stderr)])
+            await self._event_publisher.publish([NodeFailed.now(node_id, workflow_id, cmd.stderr)])
         return result.id.value

@@ -325,12 +325,11 @@ class FakeEventPublisher:
 
 
 class FakeTaskLoader:
-    def __init__(self, md: str = "# Task", yaml_raw: str = "graph: []") -> None:
+    def __init__(self, md: str = "# Task") -> None:
         self._md = md
-        self._yaml = yaml_raw
 
-    async def load(self, md_path: str, yaml_path: str) -> tuple[str, str]:
-        return self._md, self._yaml
+    async def load(self, md_path: str) -> str:
+        return self._md
 
 
 # ---------------------------------------------------------------------------

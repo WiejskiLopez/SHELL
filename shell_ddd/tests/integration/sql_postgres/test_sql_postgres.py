@@ -91,7 +91,7 @@ def events() -> FakeEventPublisher:
 
 @pytest.fixture()
 def task_loader() -> FakeTaskLoader:
-    return FakeTaskLoader(md="# PG Task", yaml_raw="graph: []")
+    return FakeTaskLoader(md="# PG Task")
 
 
 # ---------------------------------------------------------------------------

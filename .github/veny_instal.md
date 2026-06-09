@@ -24,3 +24,6 @@ pip install sqlalchemy aiosqlite
 pip install httpx
 
 pip install fastapi uvicorn
+
+pip install dependency-injector
+.

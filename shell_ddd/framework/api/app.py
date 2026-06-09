@@ -6,7 +6,7 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
-from shell_ddd.bootstrap.container import Container
+from shell_ddd.bootstrap.core_container import CoreContainer
 from shell_ddd.bootstrap.setup_logging import setup_logging
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.framework.api.middleware.correlation_id import CorrelationIdMiddleware
@@ -14,7 +14,7 @@ from shell_ddd.framework.api.middleware.error_handler import domain_error_handle
 from shell_ddd.framework.api.routers import envelopes, nodes, tasks, workflows
 
 
-def create_app(container: Container) -> FastAPI:
+def create_app(core_container: CoreContainer) -> FastAPI:
     """Create the FastAPI application with all routers and middleware."""
 
     @asynccontextmanager
@@ -27,7 +27,7 @@ def create_app(container: Container) -> FastAPI:
         version="0.1.0",
         lifespan=lifespan,
     )
-    app.state.container = container
+    app.state.core_container = core_container
 
     # Middleware
     app.add_middleware(CorrelationIdMiddleware)

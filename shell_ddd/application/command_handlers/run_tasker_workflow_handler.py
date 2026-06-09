@@ -52,14 +52,14 @@ class RunTaskerWorkflowHandler:
         clock: Clock,
         id_gen: IdGenerator,
         runner: NodeProcessRunner,
-        events: EventPublisher,
+        event_publisher: EventPublisher,
         max_parallel: int = 4,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
         self._runner = runner
-        self._events = events
+        self._event_publisher = event_publisher
         self._max_parallel = max_parallel
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
@@ -85,7 +85,7 @@ class RunTaskerWorkflowHandler:
             await uow.commit()
 
         workflow_id = workflow.id
-        await self._events.publish([WorkflowStarted.now(workflow_id, cmd.task_name)])
+        await self._event_publisher.publish([WorkflowStarted.now(workflow_id, cmd.task_name)])
 
         # ── 3. Execute all nodes concurrently ─────────────────────────────
         semaphore = asyncio.Semaphore(effective_parallel)
@@ -163,6 +163,6 @@ class RunTaskerWorkflowHandler:
             domain_events.append(WorkflowCompleted.now(workflow_id, cmd.task_name))
         else:
             domain_events.append(WorkflowFailed.now(workflow_id, cmd.task_name))
-        await self._events.publish(domain_events)
+        await self._event_publisher.publish(domain_events)
 
         return workflow_id.value

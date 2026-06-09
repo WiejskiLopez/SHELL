@@ -30,16 +30,16 @@ class ImportTaskHandler:
             clock: Clock,
             id_gen: IdGenerator,
             task_loader: TaskLoader,
-            events: EventPublisher,
+            event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
         self._task_loader = task_loader
-        self._events = events
+        self._event_publisher = event_publisher
 
     async def handle(self, cmd: ImportTaskCommand) -> str:
-        body_md, _ = await self._task_loader.load(cmd.md_path, "")
+        body_md = await self._task_loader.load(cmd.md_path)
         name = TaskName(cmd.task_name)
         async with self._uow as uow:
             template_graph = await uow.template_graphs.get_template_graph_by_name("base_planner")
@@ -73,6 +73,6 @@ class ImportTaskHandler:
             )
             await uow.tasks.save(task)
             await uow.commit()
-        await self._events.publish([TaskImported.now(task.id, name)])
+        await self._event_publisher.publish([TaskImported.now(task.id, name)])
         logger.info("Event published: task_id=%s", task.id.value)
         return task.id.value

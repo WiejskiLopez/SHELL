@@ -3,19 +3,17 @@ from __future__ import annotations
 
 import pathlib
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 
-from shell_ddd.domain.entities.template_graph import TemplateGraph
+from shell_ddd.bootstrap.application_factory import ApplicationFactory
 
 
 async def _make_app(tmp_path: pathlib.Path):  # type: ignore[return]
-    from shell_ddd.bootstrap.container import ApplicationFactory
     from shell_ddd.framework.api.app import create_app
 
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-    container = await ApplicationFactory(database_url=db_url).build()
-    return create_app(container)
+    core_container = await ApplicationFactory(database_url=db_url).build()
+    return create_app(core_container)
 
 
 class TestHealthEndpoint:
@@ -36,23 +34,22 @@ class TestTasksRouter:
 
         app = await _make_app(tmp_path)
 
-  #      container = app.state.container
-  #      async with container.uow() as uow:
+        #      core_container = app.state.core_container
+        #      async with core_container.uow() as uow:
 
-  #          base_planner = TemplateGraph(
-  #              id="base-planner-id",
-  #              name="base_planner",
-  #              purpose="default_planning"
-  #          )
-  #          await uow.template_graphs.save(base_planner)
-  #          await uow.commit()
+        #          base_planner = TemplateGraph(
+        #              id="base-planner-id",
+        #              name="base_planner",
+        #              purpose="default_planning"
+        #          )
+        #          await uow.template_graphs.save(base_planner)
+        #          await uow.commit()
         # ---------------------------------------
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post("/tasks/import", json={
                 "task_name": "api_task",
                 "md_path": str(md),
-                "yaml_path": str(yaml_),
             })
         assert resp.status_code == 201
         assert "task_id" in resp.json()
@@ -84,7 +81,6 @@ class TestWorkflowsRouter:
             await client.post("/tasks/import", json={
                 "task_name": "wf_task",
                 "md_path": str(md),
-                "yaml_path": str(yaml_),
             })
             # start workflow
             resp = await client.post("/workflows", json={"task_name": "wf_task"})

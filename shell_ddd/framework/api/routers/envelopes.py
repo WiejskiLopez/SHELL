@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from shell_ddd.application.queries.queries import GetEnvelopesByWorkflowQuery
-from shell_ddd.bootstrap.container import Container
+from shell_ddd.bootstrap.core_container import CoreContainer
 
 router = APIRouter(prefix="/envelopes", tags=["envelopes"])
 
@@ -12,17 +12,17 @@ router = APIRouter(prefix="/envelopes", tags=["envelopes"])
 from fastapi import Request as _Request
 
 
-def get_container(request: _Request) -> Container:
-    return request.app.state.container
+def get_core_container(request: _Request) -> CoreContainer:
+    return request.app.state.core_container
 
 
 @router.get("/workflow/{workflow_id}")
 async def list_by_workflow(
     workflow_id: str,
     pending_only: bool = False,
-    container: Container = Depends(get_container),
+    core_container: CoreContainer = Depends(get_core_container),
 ) -> dict:  # type: ignore[type-arg]
-    result = await container.query_bus.dispatch(
+    result = await core_container.query_bus().dispatch(
         GetEnvelopesByWorkflowQuery(workflow_id=workflow_id, pending_only=pending_only)
     )
     envelopes = result if result is not None else []

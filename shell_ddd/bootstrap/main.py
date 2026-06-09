@@ -11,6 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from shell_ddd.bootstrap.application_factory import ApplicationFactory
 from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 from shell_ddd.bootstrap.setup_logging import setup_logging
 
@@ -27,12 +28,11 @@ async def _smoke(db_url: str) -> None:
         StartWorkflowCommand,
     )
     from shell_ddd.application.queries.queries import GetWorkflowQuery
-    from shell_ddd.bootstrap.container import ApplicationFactory
 
     print(f"[smoke] using database: {db_url}")
-    container = await ApplicationFactory(database_url=db_url).build()
-    bus = container.command_bus
-    qbus = container.query_bus
+    core_container = await ApplicationFactory(database_url=db_url).build()
+
+
 
     # --- 1. Write a minimal .md / .yaml to a temp dir and import the task ---
     with tempfile.TemporaryDirectory() as tmp:
@@ -41,7 +41,7 @@ async def _smoke(db_url: str) -> None:
         yaml = Path(tmp) / "smoke-task.yaml"
         yaml.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
-        task_id = await bus.dispatch(
+        task_id = await core_container.command_bus().dispatch(
             ImportTaskCommand(
                 md_path=str(md),
                 task_name="smoke-task",
@@ -50,19 +50,19 @@ async def _smoke(db_url: str) -> None:
     print(f"[smoke] task imported: {task_id}")
 
     # --- 2. Start a workflow ---
-    workflow_id = await bus.dispatch(
+    workflow_id = await core_container.command_bus().dispatch(
         StartWorkflowCommand(task_name="smoke-task")
     )
     print(f"[smoke] workflow started: {workflow_id}")
 
     # --- 3. Route (0 envelopes expected for empty graph) ---
-    routed = await bus.dispatch(
+    routed = await core_container.command_bus().dispatch(
         RouteEnvelopesCommand(workflow_id=workflow_id)
     )
     print(f"[smoke] envelopes routed: {routed}")
 
     # --- 4. Query workflow status ---
-    dto = await qbus.dispatch(GetWorkflowQuery(workflow_id))
+    dto = await core_container.query_bus().dispatch(GetWorkflowQuery(workflow_id))
     print(f"[smoke] workflow status: {dto.status if dto else 'not found'}")
     print("[smoke] OK")
 

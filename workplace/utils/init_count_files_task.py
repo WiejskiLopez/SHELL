@@ -314,17 +314,17 @@ def _upsert_runner_config(driver: SqliteDriver, package_name: str, kind: str, bo
         )
     driver.execute(
         "INSERT INTO runner_config "
-        "(package_name, kind, body_yaml_raw, content_hash, source_uri, version, is_current, created_at) "
+        "(package_name, kind, content_hash, source_uri, version, is_current, created_at) "
         "VALUES (?, ?, ?, ?, NULL, ?, 1, ?)",
-        (package_name, kind, body, content_hash, next_version, _now()),
+        (package_name, kind, content_hash, next_version, _now()),
     )
     driver.commit()
     print(f"  [OK] runner_config {package_name}/{kind} v{next_version}")
 
 
 def _upsert_task(driver: SqliteDriver, work_dir: str) -> int:
-    body_yaml_raw = _build_task_yaml(work_dir)
-    content_hash = _compute_task_hash(_TASK_MD, body_yaml_raw)
+    body_raw = _build_task_yaml(work_dir)
+    content_hash = _compute_task_hash(_TASK_MD, body_raw)
 
     rows = driver.query(
         "SELECT task_id, content_hash FROM task WHERE name = ? AND is_current = 1 LIMIT 1",

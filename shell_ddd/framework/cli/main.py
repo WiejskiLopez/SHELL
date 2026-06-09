@@ -6,6 +6,7 @@ import os
 import sys
 from typing import Sequence
 
+from shell_ddd.bootstrap.application_factory import ApplicationFactory
 from shell_ddd.bootstrap.setup_logging import setup_logging
 from shell_ddd.framework.cli.parser import build_parser
 
@@ -32,7 +33,6 @@ def _get_max_step() -> int:
 
 
 async def _run_node(mode: str, argv: Sequence[str]) -> int:
-    from shell_ddd.bootstrap.container import ApplicationFactory
     from shell_ddd.application.commands.commands import RunNodeCommand
 
     parser = build_parser(prog=f"shell_ddd {mode}")
@@ -40,7 +40,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
 
     database_url = _get_database_url()
     max_step = ns.max_step if ns.max_step is not None else _get_max_step()
-    container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
+    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
 
     node_id = ns.node_dir or mode
     workflow_id = ns.workflow_id or "default"
@@ -52,7 +52,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
         workspace_path=work_dir,
     )
     try:
-        await container.command_bus.dispatch(cmd)
+        await core_container.command_bus().dispatch(cmd)
         return 0
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {exc}", file=sys.stderr)
@@ -60,7 +60,6 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
 
 
 async def _import_task(argv: Sequence[str]) -> int:
-    from shell_ddd.bootstrap.container import ApplicationFactory
     from shell_ddd.application.commands.commands import ImportTaskCommand
 
     parser = build_parser(prog="shell_ddd import-task")
@@ -74,13 +73,12 @@ async def _import_task(argv: Sequence[str]) -> int:
 
     import pathlib
     md_path = str(pathlib.Path(task_dir) / f"{task_name}.md")
-    yaml_path = str(pathlib.Path(task_dir) / f"{task_name}.yaml")
 
     database_url = _get_database_url()
-    container = await ApplicationFactory(database_url=database_url).build()
+    core_container = await ApplicationFactory(database_url=database_url).build()
     cmd = ImportTaskCommand(md_path=md_path, task_name=task_name)
     try:
-        task_id = await container.command_bus.dispatch(cmd)
+        task_id = await core_container.command_bus().dispatch(cmd)
         print(f"Imported task '{task_name}' with id={task_id}")
         return 0
     except Exception as exc:  # noqa: BLE001
@@ -89,7 +87,6 @@ async def _import_task(argv: Sequence[str]) -> int:
 
 
 async def _route(argv: Sequence[str]) -> int:
-    from shell_ddd.bootstrap.container import ApplicationFactory
     from shell_ddd.application.commands.commands import RouteEnvelopesCommand
 
     parser = build_parser(prog="shell_ddd route")
@@ -97,12 +94,12 @@ async def _route(argv: Sequence[str]) -> int:
 
     database_url = _get_database_url()
     max_step = ns.max_step if ns.max_step is not None else _get_max_step()
-    container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
+    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
 
     workflow_id = ns.workflow_id or "default"
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
     try:
-        count = await container.command_bus.dispatch(cmd)
+        count = await core_container.command_bus().dispatch(cmd)
         print(f"Routed {count} envelopes.")
         return 0
     except Exception as exc:  # noqa: BLE001
@@ -111,7 +108,6 @@ async def _route(argv: Sequence[str]) -> int:
 
 
 async def _run_tasker(argv: Sequence[str]) -> int:
-    from shell_ddd.bootstrap.container import ApplicationFactory
     from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
 
     parser = build_parser(prog="shell_ddd run-tasker")
@@ -129,14 +125,14 @@ async def _run_tasker(argv: Sequence[str]) -> int:
         max_parallel = 4
 
     database_url = _get_database_url()
-    container = await ApplicationFactory(database_url=database_url).build()
+    core_container = await ApplicationFactory(database_url=database_url).build()
     cmd = RunTaskerWorkflowCommand(
         task_name=task_name,
         work_dir=work_dir,
         max_parallel=max_parallel,
     )
     try:
-        workflow_id = await container.command_bus.dispatch(cmd)
+        workflow_id = await core_container.command_bus().dispatch(cmd)
         print(f"Tasker workflow completed: workflow_id={workflow_id}")
         return 0
     except Exception as exc:  # noqa: BLE001

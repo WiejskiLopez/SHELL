@@ -89,7 +89,7 @@ class Logger(Protocol):
 class TaskLoader(Protocol):
     """Reads task markdown + yaml from the filesystem."""
 
-    async def load(self, md_path: str, yaml_path: str) -> str:
+    async def load(self, md_path: str) -> str:
         """Return (body_md)."""
         ...
 
