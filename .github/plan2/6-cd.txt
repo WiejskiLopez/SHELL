@@ -1,0 +1,47 @@
+czy w aplikacji widzisz jeszcze wiecej problemow ktre musimy wyjasnic naprawic nim ruszymy dalej z rozwojem?
+
+Przeanalizowałem resztę Twojego kodu równie bezlitośnie i obiektywnie pod kątem standardów "Mega Enterprise". Wykonaliśmy ogromną pracę nad fundamentami, ale tak – widzę jeszcze kilka poważnych problemów, które zemszczą się na produkcji, zwłaszcza gdy system zacznie się skalować i działać asynchronicznie.
+
+Oto 5 kolejnych punktów zapalnych, z czego pierwszy to krytyczny błąd logiczny w implementacji wzorca:
+
+1. Rozbity wzorzec Outbox (Brak gwarancji transakcyjności) - 🔴 KRYTYCZNE
+Co jest nie tak: Zastosowałeś wzorzec Transactional Outbox, który ma gwarantować, że zapis stanu w bazie (np. nowego zadania) i publikacja zdarzenia to jedna operacja atomowa (albo obie się powiodą, albo żadna).
+Jednak Twój SqlOutboxPublisher (infrastructure/messaging/sql_outbox_publisher.py) bierze z DI session_factory i wewnątrz metody publish() otwiera zupełnie nową, niezależną transakcję bazy danych (async with self._session_factory() as session:).
+Co więcej, w handlerach (np. ImportTaskHandler) wywołujesz najpierw await uow.commit(), a dopiero potem await self._events.publish(...).
+Konsekwencja: Jeśli tuż po uow.commit() Twoja aplikacja z powodu błędu, OOM (Out of Memory) czy restartu podaera padnie, zapiszesz zadanie, ale nigdy nie wyślesz eventu. Zgubiłeś zdarzenie domenowe na zawsze.
+Rozwiązanie: SqlOutboxPublisher musi korzystać z tej samej sesji (transakcji) co SqlAlchemyUnitOfWork. Outbox musi być integralną częścią Twojego UoW. Zapisujemy w jednej transakcji domeny i eventy, a potem robimy JEDEN wspólny commit.
+
+2. Brak blokad współbieżności w Outbox Relay (Race Condition) - 🟠 POWAŻNE
+Co jest nie tak: W pliku infrastructure/messaging/outbox_relay.py w komentarzu na samej górze dumnie piszesz: "uses SELECT FOR UPDATE SKIP LOCKED when the dialect supports it".
+Tymczasem... w samym kodzie SQLAlchemy metody run_once() tego nie ma. Jest zwykłe select(OutboxEventModel).limit(self._batch_size).
+Konsekwencja: Gdy odpalisz aplikację w dwóch kontenerach (skalowanie horyzontalne) albo odpalisz dwa równoległe zadania Crona do Relaya, oba procesy pobiorą te same zdarzenia z bazy i wyślą je do EventBusa. Wywołasz te same eventy wielokrotnie (duplikacja).
+Rozwiązanie: Musimy dodać klauzulę .with_for_update(skip_locked=True) w zapytaniu SQLAlchemy wewnątrz Relaya.
+
+3. Długotrwałe operacje (Subprocesy) blokujące Command Handlery - 🟡 ŚREDNIE
+Co jest nie tak: Architektura CQRS i Command Handlery zakładają, że komenda "tylko zmienia stan" (i robi to szybko). Tymczasem Twój RunTaskerWorkflowHandler ładuje zadanie, a następnie za pomocą asyncio.gather i asyncio.Semaphore fizycznie uruchamia równoległe procesy robocze (subprocesy agentów), co może trwać minutami, a na koniec aktualizuje bazę!
+Konsekwencja: Jeśli zepniesz ten handler z API REST, żądanie HTTP zawiesi się (timeout). Dodatkowo, jeśli proces główny aplikacji zostanie zrestartowany w trakcie działania node'ów, tracisz kontrolę nad subprocesami (tzw. procesy zombie) i gubisz status Workflow.
+Rozwiązanie: Handler komendy RunTasker powinien tylko zmienić stan bazy na "Running" i wyrzucić Event WorkflowExecutionRequested. Aplikacja powinna mieć w tle Workera (np. nasłuchującego na eventy z EventBusa), który przejmuje ciężką orkiestrację bez blokowania interfejsu (tzw. wzorzec Process Manager / Saga).
+
+4. Tykająca bomba pamięciowa: Brak paginacji - 🟡 ŚREDNIE
+Co jest nie tak: W repozytoriach SQL używasz .all() bez żadnych limitów dla listowania. Np. w SqlEnvelopeRepository masz metody list_by_workflow i list_pending.
+Konsekwencja: Gdy workflow przetworzy 50 000 kopert, metoda list_by_workflow zaciągnie 50 000 wierszy do pamięci RAM jako obiekty domenowe, natychmiast ubijając Twoją aplikację (Out of Memory).
+Rozwiązanie: Do operacji listowania powinieneś wdrożyć mechanizmy paginacji (np. limit/offset lub kursory) w repozytoriach, a jeśli pobierasz te dane tylko do "wyświetlenia" w panelu, użyj Query (CQRS - SqlQueryServices), a nie Repozytorium Domenowego! Repozytoria służą do wyciągania pojedynczych Agregatów w celu zmiany ich stanu.
+
+5. Martwy kod i bug w Walidacji (Domena) - 🟢 DROBNE, ALE BRZYDKIE
+Co jest nie tak: Otwórz plik domain/entities/envelope.py. Słownik _STATUS_TRANSITIONS zarządzający najważniejszą maszyną stanów w Twoim systemie zdefiniowany jest dwa razy z rzędu:
+
+Python
+_STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
+    EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
+    # ...
+    EnvelopeStatus.DELIVERED: {EnvelopeStatus.ARCHIVED} if False else set(), # Tu jest jakiś dziwny warunek "if False"
+    # ...
+}
+
+_STATUS_TRANSITIONS = {
+    EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
+    # ... drugi raz zdefiniowane z nadpisaniem wartości
+}
+Konsekwencja: Python nadpisuje pierwszy słownik drugim. Pierwszy (z błędem if False else set()) staje się martwym kodem wprowadzającym deweloperów w błąd. Należy to od razu posprzątać.
+
+Od czego zaczynamy? Radzę od punktu 1. Rozbity Outbox to "kłamstwo architektoniczne" – myślisz, że system gwarantuje spójność, a w rzeczywistości tak nie jest. Bierzemy go na warsztat?

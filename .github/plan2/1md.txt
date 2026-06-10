@@ -1,0 +1,474 @@
+Zdecydowanie opcja z wdrożeniem profesjonalnego kontenera DI z zarządzaniem zasięgiem (Scope) jest bardziej "pro" i stanowi rynkowy standard w rozwiązaniach enterprise.
+
+Oto konkrety, dlaczego tak jest:
+
+Prawdziwe Inversion of Control (IoC): Handler w Czystej Architekturze ma skupiać się na logice biznesowej. Nie powinien wiedzieć, jak powstaje jego zależność ani zarządzać jej tworzeniem (wywoływać fabryki). Wstrzykiwanie fabryki (Callable) to tzw. Poor Man's DI – przenosi ciężar tworzenia obiektu z powrotem do warstwy aplikacyjnej.
+
+Czystość i czytelność kodu: Sygnatura konstruktora __init__(self, uow: UnitOfWork) jednoznacznie opisuje zależności. Sygnatura __init__(self, uow_factory: Callable[[], UnitOfWork]) zaciemnia ten obraz i zmusza do stosowania boilerplate'u przy każdym użyciu.
+
+Współdzielenie w ramach Requestu (Request Scope): To największa zaleta kontenerów DI. W aplikacjach enterprise często jeden handler wywołuje inne serwisy domenowe. Kontener DI (np. z cyklem życia przypisanym do requestu HTTP) gwarantuje, że wszystkie komponenty w ramach jednego żądania dostaną dokładnie tę samą, świeżą instancję UoW. Unikasz w ten sposób sytuacji, gdzie otwierają się dwie osobne transakcje bazodanowe.
+
+Łatwiejsze testowanie: Mockowanie w testach staje się banalnie proste – po prostu wstrzykujesz instancję mocka UnitOfWork. Przy użyciu fabryki musisz tworzyć mocka zwracającego kolejnego mocka (menedżera kontekstu), co bywa irytujące.
+
+Opcja z Callable to bardzo popularny w Pythonie "szybki fix", który działa, ale pod kątem czystości architektury i standardów korporacyjnych to właśnie kontener DI z wbudowanym Request Scope wygrywa bezapelacyjnie. Zresztą widziałem, że w warstwie API używasz już Depends z FastAPI – to gotowy mechanizm, który pod spodem realizuje dokładnie ten wzorzec.
+
+Jakiego rozwiązania DI wolałbyś docelowo użyć w tym projekcie – zamierzasz oprzeć się w pełni na mechanizmach FastAPI, czy chcesz wdrożyć niezależny od frameworka kontener, np. dependency-injector?
+
+
+
++++++++++++++++++++++++++++++++++++++
+
+pip install dependency-injector dodac
+
+
+
+Python
+# application/bus.py
+from typing import Any, Callable
+
+class CommandBus:
+    """Routes commands to their registered handlers dynamically."""
+
+    def __init__(self) -> None:
+        # Zamiast instancji Handlera, przechowujemy funkcję (Callable), która go tworzy
+        self._handler_factories: dict[type[Any], Callable[[], Any]] = {}
+
+    def register(self, command_type: type[Any], factory: Callable[[], Any]) -> None:
+        """Rejestruje dostawcę handlera dla danej komendy."""
+        self._handler_factories[command_type] = factory
+
+    async def dispatch(self, command: Any) -> Any:
+        """Pobiera nową instancję handlera i deleguje mu zadanie."""
+        factory = self._handler_factories.get(type(command))
+        if factory is None:
+            raise KeyError(f"No handler registered for {type(command).__name__}")
+        
+        # Tworzymy NOWĄ instancję handlera (i jego UoW) wyłącznie na czas tego wykonania
+        handler = factory()
+        return await handler.handle(command)
+Krok 3: Konfiguracja Kontenera DI
+W pliku bootstrap tworzymy deklaratywny kontener. Wskazujemy w nim wyraźnie cykl życia: co jest Singletonem (tworzone raz), a co Factory (tworzone za każdym razem).
+
+Python
+# bootstrap/container.py
+from dependency_injector import containers, providers
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
+from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell_ddd.application.bus import CommandBus
+
+class CoreContainer(containers.DeclarativeContainer):
+    """Główny kontener DI aplikacji."""
+
+    # 1. Konfiguracja (np. adresy DB)
+    config = providers.Configuration()
+
+    # 2. Singletony (Infrastruktura współdzielona)
+    # Fabryka sesji to Singleton (inicjuje połączenie do DB raz)
+    session_factory = providers.Singleton(
+        build_session_factory,
+        url=config.db_url
+    )
+
+    # 3. Factory (Zasięg Requestu)
+    # ZAWSZE tworzy nową instancję UoW z nową sesją bazodanową!
+    uow = providers.Factory(
+        SqlAlchemyUnitOfWork,
+        session_factory=session_factory
+    )
+
+    # Pozostałe zależności (zastąp własnymi prawdziwymi klasami)
+    clock = providers.Factory(SystemClock)
+    id_gen = providers.Factory(UuidIdGenerator)
+    events = providers.Singleton(EventBus)
+    task_loader = providers.Factory(FileSystemTaskLoader)
+
+    # 4. Handlery (Factory)
+    # Każde wywołanie .import_task_handler() zwróci NOWY obiekt z własnym uow
+    import_task_handler = providers.Factory(
+        ImportTaskHandler,
+        uow=uow,
+        clock=clock,
+        id_gen=id_gen,
+        task_loader=task_loader,
+        events=events
+    )
+
+    # 5. Szyna (Singleton)
+    command_bus = providers.Singleton(CommandBus)
+Krok 4: Rejestracja i uruchomienie w ApplicationFactory
+Gdy budujesz aplikację, rejestrujesz w Busie providery z kontenera. W bibliotece dependency_injector każdy element typu providers.Factory jest traktowany jako Callable, co idealnie pasuje do naszego zmodyfikowanego Busa.
+
+Python
+# bootstrap/container.py (ciąg dalszy)
+from shell_ddd.application.commands.commands import ImportTaskCommand
+
+class ApplicationFactory:
+    """Buduje gotowe do działania komponenty aplikacji."""
+
+    def __init__(self, database_url: str) -> None:
+        self._database_url = database_url
+
+    async def build(self) -> CoreContainer:
+        # Inicjujemy kontener
+        container = CoreContainer()
+        container.config.db_url.from_value(self._database_url)
+
+        # Pobieramy instancję CommandBusa z kontenera
+        bus = container.command_bus()
+
+        # REJESTRACJA: Przekazujemy wskaźnik do fabryki (providera), a NIE wynik jej działania ()
+        bus.register(
+            ImportTaskCommand, 
+            container.import_task_handler.provider # <--- Przekazujemy fabrykę
+        )
+
+        return container
+Podsumowanie: Jak to działa w praktyce?
+Twój kod handlera pozostaje idealnie czysty i nieskalany frameworkiem (sygnatura pozostaje: def __init__(self, uow: UnitOfWork)).
+
+Kiedy w FastAPI lub z palca w CLI wywołasz:
+
+Python
+await command_bus.dispatch(ImportTaskCommand(...))
+Dzieje się następująca magia:
+
+Szyna uderza do słownika i wyciąga container.import_task_handler.provider.
+
+Szyna wykonuje go jak funkcję ().
+
+Kontener wie, że to obiekt Factory, więc automatycznie konstruuje świeżutki SqlAlchemyUnitOfWork (otwiera nową sesję bazodanową), wstrzykuje go do nowej instancji ImportTaskHandler i zwraca gotowy obiekt.
+
+Handler obsługuje request i umiera wraz z porzuceniem go przez Garbage Collector, zamykając swoją transakcję i sesję UoW bez kolizji z żadnym innym requestem.
+
+
+
+
+
+
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+1. QueryBus (relacja 1:1)
+Zmiana jest identyczna jak w CommandBus.
+
+Python
+class QueryBus:
+    """Routes queries to their registered handlers dynamically."""
+
+    def __init__(self) -> None:
+        self._handler_factories: dict[type[Any], Callable[[], Any]] = {}
+
+    def register(self, query_type: type[Any], factory: Callable[[], Any]) -> None:
+        self._handler_factories[query_type] = factory
+
+    async def dispatch(self, query: Any) -> Any:
+        factory = self._handler_factories.get(type(query))
+        if factory is None:
+            raise KeyError(f"No handler registered for {type(query).__name__}")
+        
+        # Tworzymy nową instancję Query Handlera (ze świeżym SqlQueryServices)
+        handler = factory()
+        return await handler.handle(query)
+2. EventBus (relacja 1:N)
+Tutaj w słowniku musisz przechowywać listę fabryk dla danego typu zdarzenia, a podczas publikacji wywołać każdą z nich.
+
+Python
+class EventBus:
+    """Publishes domain events to dynamically resolved subscribers."""
+
+    def __init__(self) -> None:
+        # Zamiast listy handlerów, trzymamy listę fabryk
+        self._subscriber_factories: dict[type[Any], list[Callable[[], Any]]] = {}
+
+    def subscribe(self, event_type: type[Any], factory: Callable[[], Any]) -> None:
+        self._subscriber_factories.setdefault(event_type, []).append(factory)
+
+    async def publish(self, events: list[Any]) -> None:
+        for event in events:
+            factories = self._subscriber_factories.get(type(event), [])
+            for factory in factories:
+                # Tworzymy nową instancję Event Handlera dla KAŻDEGO obsługiwanego eventu
+                handler = factory()
+                await handler.handle(event)
+3. Rejestracja w ApplicationFactory (lub Kontenerze)
+W kodzie spinającym wszystko w całość (w bootstrap/container.py) rejestrujesz je dokładnie tak samo, podając .provider z kontenera dependency_injector:
+
+Python
+# Rejestracja Query
+query_bus.register(
+    GetWorkflowQuery,
+    container.get_workflow_handler.provider
+)
+
+# Rejestracja Eventu
+event_bus.subscribe(
+    EnvelopeRouted,
+    container.archive_on_delivered_handler.provider
+)
+Dzięki temu cała Twoja warstwa aplikacyjna staje się w pełni bezstanowa (stateless) i odporna na wszelkie problemy z asynchroniczną współbieżnością.
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+a polaczenia do bazy danych one sa zwracane na zewnatrz czy nie przepelnia sie uchyty do bazy danych?
+
+To fantastyczne i bardzo dojrzałe pytanie. Wycieki połączeń (connection leaks) to jeden z najczęstszych powodów awarii w aplikacjach współbieżnych (jak FastAPI).
+
+Krótka odpowiedź brzmi: Nie, uchwyty do bazy danych się nie przepełnią, a połączenia będą bezpiecznie wracać do puli – pod warunkiem, że połączymy DI z Twoim już istniejącym mechanizmem async with.
+
+Oto dokładnie, jak to zadziała pod spodem w kontekście SQLAlchemy i kontenera DI:
+
+1. Pula połączeń to Singleton (Engine)
+Kiedy w kontenerze definiujesz session_factory jako providers.Singleton, funkcja create_async_engine uruchamia się tylko raz podczas startu aplikacji.
+To właśnie Engine utrzymuje pulę fizycznych połączeń (Connection Pool) z bazą (zazwyczaj domyślnie 5 aktywnych + 10 w tzw. overflow).
+
+2. Sesja to wypożyczenie (Factory)
+Kiedy CommandBus tworzy nową instancję SqlAlchemyUnitOfWork dla konkretnego handlera, ten UoW w swojej metodzie __aenter__ wywołuje self._factory(), co tworzy obiekt AsyncSession. W tym momencie sesja "wypożycza" jedno fizyczne połączenie z puli.
+
+3. Zwracanie połączenia do puli (Magia __aexit__)
+Zajrzałem w Twój kod (infrastructure/persistence/__init__.py) i masz tam już to świetnie napisane:
+
+Python
+async def __aexit__(self, exc_type: object, *args: object) -> None:
+    if exc_type:
+        await self.rollback()
+    await self._session.close() # <--- TO JEST KLUCZ
+Metoda await self._session.close() w SQLAlchemy nie zamyka fizycznego połączenia TCP z bazą. Ona resetuje stan sesji i zwraca połączenie z powrotem do puli Singletona (Engine'u), by kolejny handler mógł z niego skorzystać.
+
+Jak zepsuć ten mechanizm?
+Uchwyty wyciekną tylko wtedy, gdy w handlerze zapomnisz o bloku async with i zrobisz to tak:
+
+Python
+# BŁĄD! Sesja ucieknie, połączenie nigdy nie wróci do puli!
+async def handle(self, cmd):
+    envelope = await self._uow.envelopes.get_by_id(...) 
+Dlatego żelazną zasadą w Twoich handlerach musi być to, jak masz to napisane obecnie:
+
+Python
+# POPRAWNIE - Gwarancja zamknięcia i zwrotu połączenia
+async def handle(self, cmd):
+    async with self._uow as uow:
+        envelope = await uow.envelopes.get_by_id(...)
+        await uow.commit()
+Gdy używasz Dependency Injection, kontener wstrzykuje Ci po prostu świeżą, "gotową do otwarcia" instancję UoW. Sam cykl wypożyczenia i zwrotu połączenia do bazy kontrolowany jest bezpiecznie przez menedżera kontekstu w Pythonie (async with).
+
+Czy chciałbyś, abym przygotował dla Ciebie gotowy plik konfiguracyjny kontenera dependency-injector i pokazał, jak gładko podmienić nim Twój obecny kod w bootstrap/container.py?
+
+
+
+
+Oto kompletna implementacja wdrożenia dependency-injector. Rozbijemy to na 2 konkretne pliki, które musisz zaktualizować. Rozwiązanie to gwarantuje czystość, bezpieczeństwo transakcji (brak wycieków) i pełne IoC.
+
+Krok 1: Aktualizacja szyn (Buses) w application/bus.py
+Zmieniamy rejestr, aby przyjmował funkcje tworzące (Callable/Factory), a nie gotowe instancje. Szyna tworzy handlera tylko na czas wykonania.
+
+Python
+# application/bus.py
+from __future__ import annotations
+from typing import Any, Callable
+
+class CommandBus:
+    """Routes commands to their dynamically resolved handlers."""
+    def __init__(self) -> None:
+        self._factories: dict[type[Any], Callable[[], Any]] = {}
+
+    def register(self, command_type: type[Any], factory: Callable[[], Any]) -> None:
+        self._factories[command_type] = factory
+
+    async def dispatch(self, command: Any) -> Any:
+        factory = self._factories.get(type(command))
+        if factory is None:
+            raise KeyError(f"No handler registered for {type(command).__name__}")
+        
+        handler = factory()  # Tworzy nową instancję Handlera (i nowe UoW)
+        return await handler.handle(command)
+
+
+class QueryBus:
+    """Routes queries to their dynamically resolved handlers."""
+    def __init__(self) -> None:
+        self._factories: dict[type[Any], Callable[[], Any]] = {}
+
+    def register(self, query_type: type[Any], factory: Callable[[], Any]) -> None:
+        self._factories[query_type] = factory
+
+    async def dispatch(self, query: Any) -> Any:
+        factory = self._factories.get(type(query))
+        if factory is None:
+            raise KeyError(f"No handler registered for {type(query).__name__}")
+        
+        handler = factory()  # Tworzy nową instancję Handlera
+        return await handler.handle(query)
+
+
+class EventBus:
+    """Publishes domain events to dynamically resolved subscribers."""
+    def __init__(self) -> None:
+        self._factories: dict[type[Any], list[Callable[[], Any]]] = {}
+
+    def subscribe(self, event_type: type[Any], factory: Callable[[], Any]) -> None:
+        self._factories.setdefault(event_type, []).append(factory)
+
+    async def publish(self, events: list[Any]) -> None:
+        for event in events:
+            for factory in self._factories.get(type(event), []):
+                handler = factory()  # Tworzy nową instancję dla każdego eventu
+                await handler.handle(event)
+Krok 2: Czysty Kontener DI w bootstrap/container.py
+Usuwamy stary kod i wprowadzamy profesjonalny kontener dependency-injector. Deklaratywnie określamy, co ma żyć jako Singleton, a co ma być fabrykowane per request (Factory).
+
+Python
+# bootstrap/container.py
+from __future__ import annotations
+from dependency_injector import containers, providers
+
+# --- Importy infrastruktury ---
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell_ddd.infrastructure.time.system_clock import SystemClock
+from shell_ddd.shared.ids import UuidIdGenerator
+from shell_ddd.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
+from shell_ddd.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
+from shell_ddd.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
+from shell_ddd.infrastructure.external.hash_embedder import HashEmbedder
+from shell_ddd.infrastructure.process.subprocess_runner import SubprocessNodeProcessRunner
+from shell_ddd.infrastructure.filesystem.node_workspace import NodeWorkspaceFs
+from shell_ddd.infrastructure.filesystem.task_loader import FileSystemTaskLoader
+
+# --- Importy aplikacji ---
+from shell_ddd.application.bus import CommandBus, QueryBus, EventBus
+from shell_ddd.application.commands.commands import ImportTaskCommand, StartWorkflowCommand # dodaj resztę...
+from shell_ddd.application.queries.queries import GetWorkflowQuery # dodaj resztę...
+from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell_ddd.application.command_handlers.start_workflow_handler import StartWorkflowHandler
+from shell_ddd.application.query_handlers.query_handlers import GetWorkflowHandler
+from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+
+class _EventBusPublisher:
+    """Adapts EventBus to the EventPublisher port."""
+    def __init__(self, bus: EventBus) -> None:
+        self._bus = bus
+    async def publish(self, events: list) -> None:
+        await self._bus.publish(events)
+
+
+class CoreContainer(containers.DeclarativeContainer):
+    """Główny kontener DI. Organizuje graf zależności."""
+    
+    config = providers.Configuration()
+
+    # -----------------------------------------------------------
+    # 1. Singletony (Infrastruktura współdzielona)
+    # -----------------------------------------------------------
+    session_factory = providers.Singleton(
+        build_session_factory,
+        url=config.db_url
+    )
+    
+    query_services = providers.Singleton(
+        SqlQueryServices,
+        session_factory=session_factory
+    )
+
+    stdlib_logger = providers.Singleton(StdlibLogger, name="shell_ddd")
+    embedder = providers.Singleton(HashEmbedder)
+    
+    # Szyny
+    command_bus = providers.Singleton(CommandBus)
+    query_bus = providers.Singleton(QueryBus)
+    event_bus = providers.Singleton(EventBus)
+
+    # Event Publisher (Composite)
+    logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)
+    sql_audit_publisher = providers.Singleton(SqlAuditPublisher, session_factory=session_factory)
+    event_bus_publisher = providers.Singleton(_EventBusPublisher, bus=event_bus)
+    
+    event_publisher = providers.Singleton(
+        CompositeEventPublisher,
+        publishers=providers.List(logging_publisher, sql_audit_publisher, event_bus_publisher)
+    )
+
+    # -----------------------------------------------------------
+    # 2. Factories (Tworzone od nowa per Request)
+    # -----------------------------------------------------------
+    uow = providers.Factory(
+        SqlAlchemyUnitOfWork,
+        session_factory=session_factory
+    )
+    
+    clock = providers.Factory(SystemClock)
+    id_gen = providers.Factory(UuidIdGenerator)
+    task_loader = providers.Factory(FileSystemTaskLoader)
+    workspace = providers.Factory(NodeWorkspaceFs)
+    runner = providers.Factory(SubprocessNodeProcessRunner)
+
+    # -----------------------------------------------------------
+    # 3. Handlery Komend (Factories - uow wstrzykiwane na świeżo)
+    # -----------------------------------------------------------
+    import_task_handler = providers.Factory(
+        ImportTaskHandler,
+        uow=uow, clock=clock, id_gen=id_gen, task_loader=task_loader, events=event_publisher
+    )
+    
+    start_workflow_handler = providers.Factory(
+        StartWorkflowHandler,
+        uow=uow, clock=clock, id_gen=id_gen, events=event_publisher
+    )
+    # TODO: Dodaj tutaj resztę Command Handlerów analogicznie...
+
+    # -----------------------------------------------------------
+    # 4. Handlery Zapytań (Factories)
+    # -----------------------------------------------------------
+    get_workflow_handler = providers.Factory(
+        GetWorkflowHandler,
+        queries=query_services
+    )
+    # TODO: Dodaj tutaj resztę Query Handlerów analogicznie...
+
+
+class ApplicationFactory:
+    """Punkt wejścia do budowy i konfiguracji aplikacji."""
+    def __init__(self, database_url: str, max_step: int = 0) -> None:
+        self._database_url = database_url
+        self._max_step = max_step
+
+    async def build(self) -> CoreContainer:
+        await bootstrap_database(self._database_url)
+
+        container = CoreContainer()
+        container.config.db_url.from_value(self._database_url)
+        
+        # Inicjalizacja szyn i przypinanie fabryk (.provider)
+        cmd_bus = container.command_bus()
+        cmd_bus.register(ImportTaskCommand, container.import_task_handler.provider)
+        cmd_bus.register(StartWorkflowCommand, container.start_workflow_handler.provider)
+        # TODO: Zarejestruj resztę komend...
+
+        q_bus = container.query_bus()
+        q_bus.register(GetWorkflowQuery, container.get_workflow_handler.provider)
+        # TODO: Zarejestruj resztę zapytań...
+
+        return container
+Krok 3: Drobna zmiana w wywołaniach FastAPI / CLI
+Teraz kontener z ApplicationFactory.build() to obiekt CoreContainer. Zamiast odwoływać się do atrybutów dataclassy, wywołujesz je jak funkcje (by pobrać instancję Singletona).
+
+Tam gdzie miałeś:
+
+Python
+await container.command_bus.dispatch(cmd)
+Zamieniasz na:
+
+Python
+await container.command_bus().dispatch(cmd)
+Dlaczego to jest "Enterprise"?
+
+Brak wycieków transakcji: Każdy command_bus().dispatch() to automatycznie zupełnie nowy UoW i nowa transakcja dla logiki biznesowej.
+
+Modułowość: Dodanie nowej zależności (np. SmtpEmailSender) sprowadza się do dopisania jednej linijki w CoreContainer – wszystkie handlery dostaną go automatycznie.
+
+Odklejenie Busa od logiki: Bus nie wie nic o Twoim frameworku DI. Wymaga jedynie funkcji typu Callable[[], Any]. Wstrzyknęliśmy właściwość .provider z frameworka dependency-injector, która idealnie ten interfejs spełnia.

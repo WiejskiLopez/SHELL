@@ -1,0 +1,157 @@
+i eraz otatni element poprawmy to 5. Hermetyzacja Czasu Systemowego w Domenie
+
+Co jest nie tak: Mimo posiadania portu Clock, Twoje encje domenowe (np. Envelope, Task, Prompt) uciekają się do cichego pobierania czasu systemowego: now: datetime | None = None a następnie now or datetime.now(tz=UTC). Sprawia to, że domena nie jest w pełni deterministyczna bez podania parametru, co jest furtką do ukrytych błędów w testach.
+
+Jak zrefaktoryzować:
+
+
+
+Skasuj now or datetime.now(tz=UTC) ze wszystkich encji w katalogu domain/.
+
+
+
+Parametr now: datetime (lub Timestamp jako Value Object) musi być zawsze bezwzględnie wymagany w konstruktorach (metodach typu new()). Aplikacja/Handler jest odpowiedzialny za odpytanie wstrzykniętego portu 
+
+Clock i przekazanie tego czasu w dół do warstwy domenowej.
+
+Ten ostatni krok to absolutny fundament determinizmu w systemach enterprise. Jeśli domena ucieka się do ukrytego pobierania czasu systemowego (datetime.now()), niemożliwe staje się przeprowadzenie wiarygodnych testów historycznych, testów wygasania sesji czy weryfikacji chronologii logów bez użycia skomplikowanych bibliotek typu freezegun.
+
+W Czystej Architekturze czas to po prostu dana wejściowa.
+
+Oto precyzyjna instrukcja usunięcia wycieków czasu systemowego w 4 krokach.
+
+Krok 1: Usunięcie default_factory z Zagnieżdżonych Encji i Eventów
+Często zapominamy, że dataclass w Pythonie pozwala na ustawianie domyślnych wartości (np. field(default_factory=lambda: datetime.now(tz=UTC))). To ukryty, niedeterministyczny stan.
+
+1. EnvelopeEvent (domain/entities/envelope.py)
+
+Python
+@dataclass(slots=True)
+class EnvelopeEvent:
+    id: EnvelopeEventId
+    kind: str
+    payload: dict[str, object]
+    created_at: datetime  # <--- Brak default_factory!
+2. NodeState (domain/entities/workflow.py)
+
+Python
+@dataclass(slots=True)
+class NodeState:
+    id: NodeStateId
+    node_id: NodeId
+    status: Status
+    updated_at: datetime  # <--- Brak default_factory!
+    step: int = 0
+3. DomainEvent (domain/events/events.py)
+
+Python
+@dataclass(frozen=True, slots=True)
+class DomainEvent:
+    event_id: str
+    occurred_at: datetime  # <--- Brak default_factory!
+Krok 2: Wymuszenie parametru now w Metodach Fabrykujących i Mutatorach
+Zmieniamy sygnatury metod tak, by czas był wymaganym argumentem nazwanym. Usuwamy wszelkie wystąpienia now or datetime.now(...).
+
+Przykład dla Agregatu Workflow (domain/entities/workflow.py):
+
+Python
+    @classmethod
+    def new(
+        cls,
+        *,
+        id_: WorkflowId,
+        task_name: str,
+        now: datetime,  # <--- Wymagane bez domyślnej wartości
+    ) -> Workflow:
+        # Usunięte: created = now or datetime.now(tz=UTC)
+        return cls(
+            id=id_,
+            task_name=task_name,
+            status=Status.idle(),
+            created_at=now,
+        )
+
+    def start(self, now: datetime) -> None:  # <--- Wymagane
+        self.status = Status.running()
+        # Przykład jak mógłbyś aktualizować stan: self.updated_at = now
+
+    def update_node_state(self, node_id: NodeId, status: Status, now: datetime, step: int = 0) -> None:
+        existing = self.node_states.get(node_id.value)
+        state_id = existing.id if existing else NodeStateId.generate()
+        
+        self.node_states[node_id.value] = NodeState(
+            id=state_id,
+            node_id=node_id,
+            status=status,
+            step=step,
+            updated_at=now,  # <--- Przekazujemy czas jawnie
+        )
+Przykład dla Zdarzeń Domenowych (domain/events/events.py):
+
+Python
+@dataclass(frozen=True, slots=True)
+class WorkflowStarted(DomainEvent):
+    workflow_id: WorkflowId
+    task_name: str
+
+    @classmethod
+    def now(cls, workflow_id: WorkflowId, task_name: str, now: datetime) -> WorkflowStarted:
+        return cls(
+            event_id=str(uuid.uuid4()), # Lub IdGenerator.new_event_id()
+            occurred_at=now,            # <--- Czas podany z zewnątrz
+            workflow_id=workflow_id,
+            task_name=task_name,
+        )
+Musisz zaktualizować ten wzorzec we wszystkich klasach agregatów: Task, Envelope, RunnerConfig, NodeResult, Prompt, RagDocument, Session.
+
+Krok 3: Prawidłowe wstrzykiwanie w Handlerach
+Handler jako koordynator przypadku użycia pobiera aktualny czas za pomocą wstrzykniętego portu Clock (jeden raz na cały request) i rozprowadza go po domenowych klockach.
+
+Przykład: StartWorkflowHandler (application/command_handlers/start_workflow_handler.py)
+
+Python
+    async def handle(self, cmd: StartWorkflowCommand) -> str:
+        # 1. Pobieramy "zamrożony" czas wykonania całej komendy
+        current_time = self._clock.now()
+
+        async with self._uow as uow:
+            task = await uow.tasks.get_current_by_name(TaskName(cmd.task_name))
+            if task is None:
+                raise TaskNotFound(cmd.task_name)
+            
+            workflow = Workflow.new(
+                id_=self._id_gen.new_workflow_id(),
+                task_name=cmd.task_name,
+                now=current_time,  # <--- 2. Przekazujemy do tworzenia
+            )
+            
+            workflow.start(now=current_time)  # <--- 3. Przekazujemy do operacji biznesowej
+            
+            await uow.workflows.save(workflow)
+            await uow.commit()
+
+        # 4. Przekazujemy ten sam czas do tworzenia eventu domenowego
+        await self._events.publish([
+            WorkflowStarted.now(workflow.id, cmd.task_name, current_time)
+        ])
+        
+        return workflow.id.value
+Krok 4: Weryfikacja Testów (Dlaczego to było tak ważne?)
+Kiedy wszystko oprzesz na wstrzykiwanym FakeClock, testy stają się kuloodporne.
+
+Python
+# tests/unit/application/test_workflow.py
+
+async def test_workflow_has_deterministic_time(uow, id_gen, events):
+    # Kontrolujemy upływ czasu w teście!
+    fixed_time = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+    fake_clock = FakeClock(fixed=fixed_time)
+    
+    handler = StartWorkflowHandler(uow, fake_clock, id_gen, events)
+    wf_id = await handler.handle(StartWorkflowCommand("test-task"))
+    
+    # Assert
+    wf = await uow.workflows.get_by_id(WorkflowId(wf_id))
+    assert wf.created_at == fixed_time # Nigdy nie zawiedzie!
+    assert events.published[0].occurred_at == fixed_time
+Dzięki temu Twój agregat jest w 100% "czysty". Od tej pory jedynym i ostatecznym źródłem prawdy o czasie w całym systemie (logi, baza danych, eventy, audyt) jest to, co poda zewnętrzny komponent infrastruktury implementujący interfejs Clock.

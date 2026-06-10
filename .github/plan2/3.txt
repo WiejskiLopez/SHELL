@@ -1,0 +1,188 @@
+zaluzmy ze poprzednie zadania wykonane prosze teraz opracuj dokladnie to 3. Oczyszczenie Mapperów z efektów ubocznych (Generowanie ID)
+
+Co jest nie tak: Plik infrastructure/persistence/sql/mappers/__init__.py generuje nowe identyfikatory w locie. Przykład w envelope_entity_to_model: generujesz id=str(uuid.uuid4()) dla EnvelopeEventModel.
+
+Jak zrefaktoryzować:
+
+
+
+Mappery w Czystej Architekturze muszą być "czystymi funkcjami" (Pure Functions). Zwracają dane wejściowe przekształcone na inny typ, bez efektów ubocznych.
+
+
+
+Tożsamość (ID) eventu domenowego musi być wygenerowana w domenie – w momencie, gdy encja Envelope dodaje event do swojej listy (np. poprzez IdGenerator lub domenowe VO EnvelopeEventId). Mapper ma jedynie przepisać wygenerowane ID z obiektu domeny do encji SQLAlchemy.
+
+Świetny wybór. Ten krok naprawia nie tylko teoretyczne złamanie czystości architektury, ale przede wszystkim bardzo groźny błąd ORM.
+
+Kiedy mapper tworzy nowe uuid.uuid4() przy każdej transformacji encji na model bazodanowy, każde wywołanie uow.envelopes.save(envelope) (nawet przy zwykłym odczycie i ponownym zapisie) sprawiłoby, że ORM zobaczy nowe ID dla eventów i doda zduplikowane wiersze do bazy zamiast zaktualizować/zignorować istniejące!
+
+Dodatkowo, przejrzałem Twój kod i dokładnie ten sam błąd występuje w agregacie Workflow (mapper generuje id=str(uuid.uuid4()) dla NodeStateModel). Naprawimy od razu oba.
+
+Oto jak dokładnie to zrefaktoryzować w 3 krokach.
+
+Krok 3A: Utworzenie Value Objects dla nowych ID
+W pliku z tożsamościami dodajemy dwa nowe typy ID dla wewnętrznych struktur naszych agregatów.
+
+Python
+# domain/value_objects/ids.py
+# (Dodaj na końcu pliku)
+
+@dataclass(frozen=True, slots=True)
+class EnvelopeEventId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("EnvelopeEventId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> EnvelopeEventId:
+        return cls(str(uuid.uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class NodeStateId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("NodeStateId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> NodeStateId:
+        return cls(str(uuid.uuid4()))
+Krok 3B: Wzbogacenie Domeny o tożsamość
+Teraz Encje muszą przejąć kontrolę nad generowaniem swoich wewnętrznych ID. Gdy domena tworzy nowy event, nadaje mu własne, domenowe ID.
+
+1. Naprawa EnvelopeEvent:
+
+Python
+# domain/entities/envelope.py
+
+from shell_ddd.domain.value_objects.ids import EnvelopeEventId # <--- Dodaj import
+
+@dataclass(slots=True)
+class EnvelopeEvent:
+    id: EnvelopeEventId  # <--- Wprowadzamy ID do domeny
+    kind: str
+    payload: dict[str, object]
+    created_at: datetime = field(default_factory=lambda: datetime.now(tz=UTC))
+
+# ... (Wewnątrz klasy Envelope) ...
+
+    def transition_status(self, new_status: EnvelopeStatus, now: datetime | None = None) -> None:
+        # ... walidacje ...
+        self.status = new_status
+        self.updated_at = now or datetime.now(tz=UTC)
+        self.events.append(
+            EnvelopeEvent(
+                id=EnvelopeEventId.generate(), # <--- Domena generuje tożsamość
+                kind="status_changed", 
+                payload={"status": new_status.value},
+                created_at=self.updated_at
+            )
+        )
+2. Naprawa NodeState:
+
+Python
+# domain/entities/workflow.py
+
+from shell_ddd.domain.value_objects.ids import NodeStateId # <--- Dodaj import
+
+@dataclass(slots=True)
+class NodeState:
+    id: NodeStateId     # <--- Wprowadzamy ID do domeny
+    node_id: NodeId
+    status: Status
+    step: int = 0
+    updated_at: datetime = field(default_factory=lambda: datetime.now(tz=UTC))
+
+# ... (Wewnątrz klasy Workflow) ...
+
+    def update_node_state(self, node_id: NodeId, status: Status, step: int = 0) -> None:
+        # Jeśli stan już istnieje, zachowujemy jego ID! Jeśli nie, generujemy nowe.
+        existing = self.node_states.get(node_id.value)
+        state_id = existing.id if existing else NodeStateId.generate()
+        
+        self.node_states[node_id.value] = NodeState(
+            id=state_id, # <--- Przypisujemy stałą tożsamość
+            node_id=node_id,
+            status=status,
+            step=step,
+        )
+Krok 3C: Oczyszczenie Mapperów (Pure Functions)
+Otwieramy plik infrastructure/persistence/sql/mappers/__init__.py. Usuwamy stąd import uuid. Funkcje mają teraz w 100% przewidywalny charakter (dla danego wejścia ZAWSZE zwrócą to samo wyjście bez efektów ubocznych).
+
+1. Mapowanie w obie strony dla Envelope:
+
+Python
+# infrastructure/persistence/sql/mappers/__init__.py
+
+from shell_ddd.domain.value_objects.ids import EnvelopeEventId, NodeStateId
+
+def envelope_model_to_entity(m: EnvelopeModel) -> Envelope:
+    evts = [
+        EnvelopeEvent(
+            id=EnvelopeEventId(e.id), # <--- Mapowanie ID z bazy danych do obiektu Domeny
+            kind=e.kind,
+            payload=dict(e.payload),
+            created_at=_ensure_utc(e.created_at),
+        )
+        for e in m.events
+    ]
+    # ... reszta bez zmian ...
+
+def envelope_entity_to_model(e: Envelope) -> EnvelopeModel:
+    m = EnvelopeModel(...) # (mapowanie głównych pól koperty)
+    
+    m.events = [
+        EnvelopeEventModel(
+            id=ev.id.value,           # <--- BRAK uuid.uuid4(). Czytamy z domeny!
+            envelope_id=e.id.value,
+            kind=ev.kind,
+            payload=ev.payload,
+            created_at=ev.created_at,
+        )
+        for ev in e.events
+    ]
+    return m
+2. Mapowanie w obie strony dla Workflow:
+
+Python
+# infrastructure/persistence/sql/mappers/__init__.py
+
+def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
+    states = {
+        ns.node_id: NodeState(
+            id=NodeStateId(ns.id),   # <--- Mapowanie ID z bazy danych do obiektu Domeny
+            node_id=NodeId(ns.node_id),
+            status=Status(ns.status),
+            step=ns.step,
+            updated_at=_ensure_utc(ns.updated_at),
+        )
+        for ns in m.node_states
+    }
+    # ... reszta bez zmian ...
+
+def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
+    m = WorkflowModel(...) # (mapowanie głównych pól workflow)
+    
+    m.node_states = [
+        NodeStateModel(
+            id=ns.id.value,          # <--- BRAK uuid.uuid4(). Czytamy z domeny!
+            workflow_id=w.id.value,
+            node_id=ns.node_id.value,
+            status=ns.status.value,
+            step=ns.step,
+            updated_at=ns.updated_at,
+        )
+        for ns in w.node_states.values()
+    ]
+    return m
+Dzięki temu mapper stał się tzw. "głupią rurą" do przepisywania pól, co jest jego jedynym dozwolonym zadaniem w architekturze enterprise. Jeśli zmienimy mechanizm generowania ID (np. na numeryczne z bazy lub ULID zamiast UUID), w ogóle nie będziemy musieli dotykać adapterów bazy danych – wszystko wydarzy się w warstwie domenowej.

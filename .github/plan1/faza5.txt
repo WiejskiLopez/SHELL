@@ -1,0 +1,102 @@
+5. Ukrywanie wyjątków systemowych w agregacjach
+W plikach takich jak application/command_handlers/run_node_handler.py łapiesz szeroki zakres wyjątków (except Exception as exc:), ignorując potencjalne błędy systemowe. Choć intencją było zapisanie statusu failed() w bazie bez przerywania działania programu, w asynchronicznym Pythonie takie generyczne łapanie może przechwycić np. asyncio.CancelledError, co popsuje cykl życia coroutine'ów.
+
+
+
+
+To bardzo słuszna uwaga. W świecie asynchronicznego Pythona (szczególnie, gdy używamy asyncio.gather jak w Taskerze), zadania mogą zostać przerwane z zewnątrz poprzez rzucenie wyjątku asyncio.CancelledError.
+
+Jeśli złapiemy go w generycznym bloku except Exception:, pętla zdarzeń (event loop) uzna, że błąd został obsłużony i nie przerwie działania aplikacji w prawidłowy sposób. Zamiast tego zignoruje sygnał anulowania i zapisze status node'a jako failed, co jest bardzo niebezpiecznym zachowaniem (tzw. "zombie tasks"). Dodatkowo takie maskowanie ukrywa nasze własne błędy w kodzie (np. TypeError, KeyError).
+
+Aby to naprawić, dodamy explicit przepuszczanie asyncio.CancelledError oraz zmienimy sposób łapania wyjątków, aby kod był odporny i bezpieczny.
+
+Oto dwie szybkie zmiany do zrobienia metodą Copy-Paste.
+
+Krok 1: Poprawa RunNodeHandler
+Otwórz plik shell_ddd/application/command_handlers/run_node_handler.py.
+Musimy zaimportować bibliotekę asyncio i dodać odpowiednią obsługę w bloku try-except.
+
+1. Na górze pliku dodaj import:
+
+Python
+import asyncio
+2. Znajdź blok try-except (około linii 67) i podmień go na:
+
+Python
+        # Execute strategy (outside UoW — may take a long time)
+        try:
+            result = await self._strategy.execute(
+                node_id=cmd.node_id,
+                workspace_path=cmd.workspace_path,
+                runner=self._runner,
+            )
+            node_status = Status.done()
+        except asyncio.CancelledError:
+            # 🚨 WAŻNE: Pozwalamy pętli zdarzeń na prawidłowe anulowanie zadania.
+            # Nie traktujemy tego jako błędu wykonania node'a.
+            raise
+        except Exception as exc:
+            # Capture runtime execution failure (e.g. OSError, Timeout) to persist result.
+            # Błędy czysto kodowe (TypeError) również tu wpadną, co zapobiegnie awarii całego procesu,
+            # ale zostaną wyraźnie zapisane w stderr do późniejszej analizy.
+            result_status = Status.failed()
+            node_result_id = self._id_gen.new_node_result_id()
+            node_result = NodeResult.new(
+                id_=node_result_id,
+                node_id=node_id,
+                workflow_id=wf_id,
+                status=result_status,
+                stderr=f"Runtime Exception: {exc.__class__.__name__}: {str(exc)}", # Lepsze formatowanie błędu
+                now=now,
+            )
+            async with self._uow as uow:
+                await uow.node_results.save(node_result)
+                wf = await uow.workflows.get_by_id(wf_id)
+                if wf:
+                    wf.update_node_state(node_id, result_status)
+                    await uow.workflows.save(wf)
+                await uow.commit()
+            published.append(NodeFailed.now(node_id, wf_id, str(exc)))
+            await self._events.publish(published)
+            return node_result_id.value
+Krok 2: Poprawa RunTaskerWorkflowHandler
+Ten plik jest jeszcze ważniejszy, ponieważ uruchamia wiele procesów współbieżnie za pomocą asyncio.gather(). Ukrycie w nim CancelledError zepsuje całą orkiestrację.
+
+Otwórz plik shell_ddd/application/command_handlers/run_tasker_workflow_handler.py. Moduł asyncio jest już tam zaimportowany, więc podmieniamy tylko kod samej funkcji wewnętrznej.
+
+Znajdź wewnętrzną funkcję _run_one (około linii 85) i podmień ją na:
+
+Python
+        async def _run_one(node: GraphNode) -> tuple[str, bool, str, str]:
+            """Run a single node; return (node_id_str, success, stdout, stderr)."""
+            async with semaphore:
+                manifest = Manifest(
+                    name=node.id.value,
+                    mode=Mode(node.mode.value) if not isinstance(node.mode, Mode) else node.mode,
+                    role=node.role or node.mode.value,
+                    node_type=node.node_type or node.mode.value,
+                    version="1",
+                )
+                env: dict[str, str] = {
+                    "SHELL_DDD_WORKFLOW_ID": workflow_id.value,
+                    "SHELL_DDD_NODE_ID": node.id.value,
+                    "SHELL_DDD_TASK_NAME": cmd.task_name,
+                }
+                try:
+                    result: ExecutionResult = await self._runner.run(
+                        manifest, cmd.work_dir, env
+                    )
+                    return (node.id.value, result.success, result.stdout, result.stderr)
+                except asyncio.CancelledError:
+                    # 🚨 Krytyczne dla bezpieczeństwa cyklu życia asyncio.gather()
+                    # Jeśli Tasker zostanie przerwany (np. Ctrl+C lub timeout), natychmiast przerywamy!
+                    raise
+                except Exception as exc:  
+                    # Standardowy błąd wykonania
+                    return (node.id.value, False, "", f"Runtime Exception: {exc.__class__.__name__}: {str(exc)}")
+Co zyskaliśmy?
+Bezpieczny cykl życia asyncio: Jeśli spróbujesz np. ręcznie nałożyć timeout na wykonanie node'a lub zabić proces, aplikacja zareaguje natychmiast i zwinie wszystkie coroutiny bez pozostawiania wiszących w pamięci "zombie tasks".
+
+Lepszy wgląd w błędy: Dopisałem prefiks f"Runtime Exception: {exc.__class__.__name__}: {str(exc)}". Zamiast samego suchego opisu, w bazie jako stderr zapisze się też dokładna nazwa wyjątku (np. Runtime Exception: KeyError: 'my_key'), co od razu podpowie Ci, że usterka leży w kodzie platformy, a nie jest to np. zwykły błąd zwracany przez komendę bashową z runnera.
+
+Wykonaj te podmianki. System odzyska odporność na sygnały systemowe! Chcesz zobaczyć coś jeszcze z naszej listy architektonicznej?
