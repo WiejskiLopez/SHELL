@@ -2,33 +2,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.exceptions import InvalidEnvelopeTransition
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 
 if TYPE_CHECKING:
-    from shell_ddd.domain.value_objects.ids import EnvelopeId, NodeId, WorkflowId
+    from shell_ddd.domain.value_objects.ids import EnvelopeEventId, EnvelopeId, NodeId, WorkflowId
 
 
 @dataclass(slots=True)
 class EnvelopeEvent:
+    id: EnvelopeEventId
     kind: str
     payload: dict[str, object]
-    created_at: datetime = field(default_factory=lambda: datetime.now(tz=UTC))
+    created_at: datetime
 
 
 # Allowed status transitions
 _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
-    EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
-    EnvelopeStatus.ACTIVE: {EnvelopeStatus.DELIVERED, EnvelopeStatus.FAILED},
-    EnvelopeStatus.DELIVERED: {EnvelopeStatus.ARCHIVED} if False else set(),
-    EnvelopeStatus.FAILED: {EnvelopeStatus.PENDING, EnvelopeStatus.DEAD},
-    EnvelopeStatus.DEAD: set(),
-}
-
-_STATUS_TRANSITIONS = {
     EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
     EnvelopeStatus.ACTIVE: {EnvelopeStatus.DELIVERED, EnvelopeStatus.FAILED},
     EnvelopeStatus.DELIVERED: set(),
@@ -75,9 +68,8 @@ class Envelope:
         sequence_id: int = 0,
         step: int = 0,
         payload: dict[str, object] | None = None,
-        now: datetime | None = None,
+        now: datetime,
     ) -> Envelope:
-        ts = now or datetime.now(tz=UTC)
         return cls(
             id=id_,
             workflow_id=workflow_id,
@@ -94,11 +86,11 @@ class Envelope:
             payload=payload or {},
             artifact_uri="",
             archive_uri="",
-            created_at=ts,
-            updated_at=ts,
+            created_at=now,
+            updated_at=now,
         )
 
-    def transition_status(self, new_status: EnvelopeStatus, now: datetime | None = None) -> None:
+    def transition_status(self, new_status: EnvelopeStatus, now: datetime) -> None:
         allowed = _STATUS_TRANSITIONS.get(self.status, set())
         if new_status not in allowed:
             raise InvalidEnvelopeTransition(
@@ -106,11 +98,17 @@ class Envelope:
                 f"from {self.status.value!r} to {new_status.value!r}"
             )
         self.status = new_status
-        self.updated_at = now or datetime.now(tz=UTC)
+        self.updated_at = now
+        from shell_ddd.domain.value_objects.ids import EnvelopeEventId
         self.events.append(
-            EnvelopeEvent(kind="status_changed", payload={"status": new_status.value})
+            EnvelopeEvent(
+                id=EnvelopeEventId.generate(),
+                kind="status_changed",
+                payload={"status": new_status.value},
+                created_at=now,
+            )
         )
 
-    def transition_stage(self, new_stage: EnvelopeStage, now: datetime | None = None) -> None:
+    def transition_stage(self, new_stage: EnvelopeStage, now: datetime) -> None:
         self.stage = new_stage
-        self.updated_at = now or datetime.now(tz=UTC)
+        self.updated_at = now

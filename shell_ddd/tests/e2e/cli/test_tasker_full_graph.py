@@ -2,7 +2,8 @@
 
 Uses InMemory adapters + FakeNodeProcessRunner so no real subprocess is spawned.
 Verifies:
-- RunTaskerWorkflowHandler creates a Workflow and runs all 3 graph nodes.
+- RunTaskerWorkflowHandler creates a RUNNING Workflow and emits WorkflowExecutionRequested.
+- WorkflowExecutionWorker picks up the event and runs all graph nodes.
 - NodeResult is persisted for every node (status = done/failed per runner config).
 - Workflow final status = COMPLETED when all nodes succeed.
 - Workflow final status = FAILED when any node fails.
@@ -16,12 +17,21 @@ from shell_ddd.domain.entities.graph import Graph
 from shell_ddd.domain.entities.graph_node import GraphNode
 from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServices
 
+from shell_ddd.application.bus.event_bus import EventBus
+from shell_ddd.application.bus.event_bus_publisher import EventBusPublisher
 from shell_ddd.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
+from shell_ddd.application.event_handlers.workflow_execution_worker import WorkflowExecutionWorker
 from shell_ddd.application.queries.queries import GetWorkflowQuery
 from shell_ddd.application.query_handlers.query_handlers import GetWorkflowHandler
 from shell_ddd.domain.entities.task import Task
-from shell_ddd.domain.events.events import NodeCompleted, NodeFailed, WorkflowCompleted, WorkflowFailed
+from shell_ddd.domain.events.events import (
+    NodeCompleted,
+    NodeFailed,
+    WorkflowCompleted,
+    WorkflowExecutionRequested,
+    WorkflowFailed,
+)
 from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TaskId
 from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.task_name import TaskName
@@ -79,6 +89,40 @@ def _make_task_with_graph(name: str, node_modes: list[str], uow_tasks_store: dic
     return task
 
 
+async def _run_tasker_full(
+    uow: InMemoryUnitOfWork,
+    clock: FakeClock,
+    id_gen: FakeIdGenerator,
+    runner: FakeNodeProcessRunner,
+    task_name: str,
+    work_dir: str = "/tmp",
+    max_parallel: int = 4,
+) -> tuple[str, FakeEventPublisher]:
+    """Wire handler + worker via EventBus and run the full execution flow.
+
+    Returns (workflow_id, collector) where collector has all events from both
+    the handler phase and the worker phase.
+    """
+    collector = FakeEventPublisher()
+
+    event_bus = EventBus()
+    worker_factory = lambda: WorkflowExecutionWorker(  # noqa: E731
+        uow=uow, clock=clock, id_gen=id_gen, runner=runner, event_publisher=collector
+    )
+    event_bus.subscribe(WorkflowExecutionRequested, worker_factory)
+    bus_publisher = EventBusPublisher(event_bus)
+
+    from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
+    composite = CompositeEventPublisher(publishers=[collector, bus_publisher])
+
+    handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen, event_publisher=composite)
+    workflow_id = await handler.handle(
+        RunTaskerWorkflowCommand(task_name=task_name, work_dir=work_dir, max_parallel=max_parallel)
+    )
+
+    return workflow_id, collector
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -123,22 +167,13 @@ class TestRunTaskerWorkflowHappyPath:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
             queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
-        _make_task_with_graph(
-            "three-node-task",
-            ["agent", "tool", "worker"],
-            uow.tasks._store,
-        )
+        _make_task_with_graph("three-node-task", ["agent", "tool", "worker"], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        workflow_id = await handler.handle(
-            RunTaskerWorkflowCommand(task_name="three-node-task", work_dir="/tmp")
-        )
+        workflow_id, _ = await _run_tasker_full(uow, clock, id_gen, runner, "three-node-task")
 
-        # Workflow persisted and marked complete
         dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
         assert dto.status == "done"
@@ -150,13 +185,11 @@ class TestRunTaskerWorkflowHappyPath:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(stdout="result", returncode=0)
         _make_task_with_graph("nr-task", ["agent", "tool", "worker"], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        await handler.handle(RunTaskerWorkflowCommand(task_name="nr-task", work_dir="/tmp"))
+        await _run_tasker_full(uow, clock, id_gen, runner, "nr-task")
 
         results = list(uow.node_results._store.values())
         assert len(results) == 3
@@ -168,18 +201,15 @@ class TestRunTaskerWorkflowHappyPath:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=0)
         _make_task_with_graph("ev-task", ["agent", "tool", "worker"], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        await handler.handle(RunTaskerWorkflowCommand(task_name="ev-task", work_dir="/tmp"))
+        _, collector = await _run_tasker_full(uow, clock, id_gen, runner, "ev-task")
 
-        types = [type(e) for e in events.published]
+        types = [type(e) for e in collector.published]
         assert WorkflowCompleted in types
         assert types.count(NodeCompleted) == 3
-        # No failures
         assert NodeFailed not in types
         assert WorkflowFailed not in types
 
@@ -192,20 +222,12 @@ class TestRunTaskerWorkflowPartialFailure:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
             queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=1, stderr="crash")
-        _make_task_with_graph(
-            "fail-task",
-            ["agent", "tool", "worker"],
-            uow.tasks._store,
-        )
+        _make_task_with_graph("fail-task", ["agent", "tool", "worker"], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        workflow_id = await handler.handle(
-            RunTaskerWorkflowCommand(task_name="fail-task", work_dir="/tmp")
-        )
+        workflow_id, _ = await _run_tasker_full(uow, clock, id_gen, runner, "fail-task")
 
         dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
@@ -216,15 +238,13 @@ class TestRunTaskerWorkflowPartialFailure:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=1)
         _make_task_with_graph("fail-ev-task", ["agent", "tool"], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        await handler.handle(RunTaskerWorkflowCommand(task_name="fail-ev-task", work_dir="/tmp"))
+        _, collector = await _run_tasker_full(uow, clock, id_gen, runner, "fail-ev-task")
 
-        types = [type(e) for e in events.published]
+        types = [type(e) for e in collector.published]
         assert WorkflowFailed in types
         assert WorkflowCompleted not in types
 
@@ -235,16 +255,12 @@ class TestRunTaskerWorkflowEdgeCases:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
             id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
             queries: InMemoryQueryServices,
     ) -> None:
         runner = FakeNodeProcessRunner(returncode=0)
         _make_task_with_graph("empty-task", [], uow.tasks._store)
 
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
-        workflow_id = await handler.handle(
-            RunTaskerWorkflowCommand(task_name="empty-task", work_dir="/tmp")
-        )
+        workflow_id, _ = await _run_tasker_full(uow, clock, id_gen, runner, "empty-task")
 
         dto = await GetWorkflowHandler(queries).handle(GetWorkflowQuery(workflow_id))
         assert dto is not None
@@ -259,9 +275,9 @@ class TestRunTaskerWorkflowEdgeCases:
     ) -> None:
         from shell_ddd.domain.exceptions import TaskNotFound
 
-        runner = FakeNodeProcessRunner(returncode=0)
-        handler = RunTaskerWorkflowHandler(uow, clock, id_gen, runner, events)
+        handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen, event_publisher=events)
         with pytest.raises(TaskNotFound):
             await handler.handle(
                 RunTaskerWorkflowCommand(task_name="ghost-task", work_dir="/tmp")
             )
+

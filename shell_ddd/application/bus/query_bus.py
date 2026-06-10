@@ -13,10 +13,5 @@ class QueryBus:
 
     async def dispatch(self, query: Any) -> Any:
         factory = self._factories[type(query)]
-
-        print("factory =", factory)
-        print("factory type =", type(factory))
         handler = factory()
-        print("handler =", handler)
-        print("handler type =", type(handler))
         return await handler.handle(query)

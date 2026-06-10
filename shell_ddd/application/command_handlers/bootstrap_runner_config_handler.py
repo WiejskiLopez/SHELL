@@ -1,9 +1,11 @@
 """BootstrapRunnerConfigHandler."""
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.entities.runner_config import RunnerConfig
+from shell_ddd.domain.value_objects.hash import Hash
 
 if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import BootstrapRunnerConfigCommand
@@ -17,12 +19,15 @@ class BootstrapRunnerConfigHandler:
         self._id_gen = id_gen
 
     async def handle(self, cmd: BootstrapRunnerConfigCommand) -> str:
+        serialized = json.dumps(cmd.body, sort_keys=True)
+        config_hash = Hash.of(serialized)
         async with self._uow as uow:
             config = RunnerConfig.new(
                 id_=self._id_gen.new_runner_config_id(),
                 package_name=cmd.package_name,
                 kind=cmd.kind,
                 body=cmd.body,
+                config_hash=config_hash,
                 now=self._clock.now(),
             )
             await uow.runner_configs.save(config)

@@ -1,7 +1,6 @@
 """SQL ORM model <-> domain entity mappers."""
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timezone
 
 from shell_ddd.domain.entities.envelope import Envelope, EnvelopeEvent
@@ -17,10 +16,12 @@ from shell_ddd.domain.entities.workflow import NodeState, Workflow
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell_ddd.domain.value_objects.hash import Hash
 from shell_ddd.domain.value_objects.ids import (
+    EnvelopeEventId,
     EnvelopeId,
     GraphId,
     NodeId,
     NodeResultId,
+    NodeStateId,
     PromptId,
     RunnerConfigId,
     TaskId,
@@ -153,6 +154,7 @@ def task_entity_to_model(task: Task) -> TaskModel:
 def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
     states = {
         ns.node_id: NodeState(
+            id=NodeStateId(ns.id),
             node_id=NodeId(ns.node_id),
             status=Status(ns.status),
             step=ns.step,
@@ -178,7 +180,7 @@ def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
     )
     m.node_states = [
         NodeStateModel(
-            id=str(uuid.uuid4()),
+            id=ns.id.value,
             workflow_id=w.id.value,
             node_id=ns.node_id.value,
             status=ns.status.value,
@@ -198,6 +200,7 @@ def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
 def envelope_model_to_entity(m: EnvelopeModel) -> Envelope:
     evts = [
         EnvelopeEvent(
+            id=EnvelopeEventId(e.id),
             kind=e.kind,
             payload=dict(e.payload),
             created_at=_ensure_utc(e.created_at),
@@ -248,7 +251,7 @@ def envelope_entity_to_model(e: Envelope) -> EnvelopeModel:
     )
     m.events = [
         EnvelopeEventModel(
-            id=str(uuid.uuid4()),
+            id=ev.id.value,
             envelope_id=e.id.value,
             kind=ev.kind,
             payload=ev.payload,

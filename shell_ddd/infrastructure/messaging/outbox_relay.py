@@ -4,8 +4,8 @@ Intended as a one-shot or periodic background task:
     relay = OutboxRelay(session_factory, downstream_publisher)
     await relay.run_once()   # processes all pending rows in one pass
 
-Concurrency safety: uses SELECT FOR UPDATE SKIP LOCKED when the dialect supports
-it (Postgres).  On SQLite the SKIP LOCKED clause is omitted (single-writer).
+Concurrency safety: uses SELECT FOR UPDATE SKIP LOCKED on dialects that support
+it (PostgreSQL).  On SQLite (single-writer) the clause is omitted automatically.
 """
 from __future__ import annotations
 
@@ -34,6 +34,11 @@ class OutboxRelay:
         self._session_factory = session_factory
         self._downstream = downstream
         self._batch_size = batch_size
+        # Detect once at construction time whether the DB supports SKIP LOCKED.
+        # SQLite does not support FOR UPDATE; PostgreSQL does.
+        engine = getattr(session_factory, "bind", None)
+        dialect_name: str = engine.dialect.name if engine is not None else "unknown"
+        self._skip_locked: bool = dialect_name not in ("sqlite",)
 
     async def run_once(self) -> int:
         """Process one batch of pending outbox events.
@@ -41,14 +46,18 @@ class OutboxRelay:
         Returns the number of events processed.
         """
         async with self._session_factory() as session:
-            rows = (
-                await session.execute(
-                    select(OutboxEventModel)
-                    .where(OutboxEventModel.published_at.is_(None))
-                    .order_by(OutboxEventModel.occurred_at)
-                    .limit(self._batch_size)
-                )
-            ).scalars().all()
+            stmt = (
+                select(OutboxEventModel)
+                .where(OutboxEventModel.published_at.is_(None))
+                .order_by(OutboxEventModel.occurred_at)
+                .limit(self._batch_size)
+            )
+            if self._skip_locked:
+                # Prevents two relay workers from picking the same rows.
+                # Row-level lock is released after the UPDATE below commits.
+                stmt = stmt.with_for_update(skip_locked=True)
+
+            rows = (await session.execute(stmt)).scalars().all()
 
             if not rows:
                 return 0

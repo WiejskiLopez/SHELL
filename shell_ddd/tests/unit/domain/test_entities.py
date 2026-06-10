@@ -1,6 +1,8 @@
 """Unit tests for domain entities."""
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 
 from shell_ddd.domain.entities.envelope import Envelope
@@ -16,6 +18,8 @@ from shell_ddd.domain.value_objects.ids import (
 )
 from shell_ddd.domain.value_objects.task_name import TaskName
 
+_NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+
 
 class TestTask:
     def test_new_creates_task(self) -> None:
@@ -24,6 +28,7 @@ class TestTask:
             name=TaskName("my-task"),
             body_md="# Task",
             template_graph_id="template_graph_id",
+            now=_NOW,
         )
         assert task.is_current is True
         assert task.version == 1
@@ -36,32 +41,34 @@ class TestTask:
             name=TaskName("t"),
             body_md="a",
             template_graph_id="template_graph_id",
+            now=_NOW,
         )
         t2 = Task.new(
             id_=TaskId.generate(),
             name=TaskName("t"),
             body_md="b",
             template_graph_id="template_graph_id",
+            now=_NOW,
         )
         assert t1.hash != t2.hash
 
 
 class TestWorkflow:
     def test_new_workflow_is_idle(self) -> None:
-        wf = Workflow.new(id_=WorkflowId.generate(), task_name="my-task")
+        wf = Workflow.new(id_=WorkflowId.generate(), task_name="my-task", now=_NOW)
         assert wf.status.value == "idle"
 
     def test_start_sets_running(self) -> None:
-        wf = Workflow.new(id_=WorkflowId.generate(), task_name="t")
-        wf.start()
+        wf = Workflow.new(id_=WorkflowId.generate(), task_name="t", now=_NOW)
+        wf.start(now=_NOW)
         assert wf.status.value == "running"
 
     def test_update_node_state(self) -> None:
         from shell_ddd.domain.value_objects.status import Status
 
-        wf = Workflow.new(id_=WorkflowId.generate(), task_name="t")
+        wf = Workflow.new(id_=WorkflowId.generate(), task_name="t", now=_NOW)
         node_id = NodeId("node-1")
-        wf.update_node_state(node_id, Status.running(), step=2)
+        wf.update_node_state(node_id, Status.running(), now=_NOW, step=2)
         assert wf.node_states["node-1"].step == 2
 
 
@@ -74,6 +81,7 @@ class TestEnvelope:
             receiver_node_id=NodeId("receiver"),
             source_role="agent",
             target_role="router",
+            now=_NOW,
         )
 
     def test_new_is_pending_draft(self) -> None:
@@ -83,20 +91,20 @@ class TestEnvelope:
 
     def test_valid_transition_pending_to_active(self) -> None:
         e = self._make_envelope()
-        e.transition_status(EnvelopeStatus.ACTIVE)
+        e.transition_status(EnvelopeStatus.ACTIVE, now=_NOW)
         assert e.status == EnvelopeStatus.ACTIVE
         assert len(e.events) == 1
 
     def test_invalid_transition_raises(self) -> None:
         e = self._make_envelope()
         with pytest.raises(InvalidEnvelopeTransition):
-            e.transition_status(EnvelopeStatus.DELIVERED)  # PENDING → DELIVERED forbidden
+            e.transition_status(EnvelopeStatus.DELIVERED, now=_NOW)  # PENDING → DELIVERED forbidden
 
     def test_dead_is_terminal(self) -> None:
         e = self._make_envelope()
-        e.transition_status(EnvelopeStatus.DEAD)
+        e.transition_status(EnvelopeStatus.DEAD, now=_NOW)
         with pytest.raises(InvalidEnvelopeTransition):
-            e.transition_status(EnvelopeStatus.PENDING)
+            e.transition_status(EnvelopeStatus.PENDING, now=_NOW)
 
 
 # ---------------------------------------------------------------------------

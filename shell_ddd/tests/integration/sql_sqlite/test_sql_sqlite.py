@@ -1,6 +1,8 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
@@ -35,6 +37,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
+    FakeLogger,
     FakeTaskLoader,
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
@@ -95,7 +98,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -113,7 +116,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
@@ -138,7 +141,7 @@ class TestSqlWorkflowRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)
@@ -365,8 +368,8 @@ class TestSqlAuditPublisher:
 
         pub = SqlAuditPublisher(session_factory)
         events = [
-            TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("audit-task")),
-            WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="audit-task"),
+            TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("audit-task"), now=datetime(2026, 1, 1, tzinfo=UTC)),
+            WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="audit-task", now=datetime(2026, 1, 1, tzinfo=UTC)),
         ]
         await pub.publish(events)
 
@@ -415,7 +418,7 @@ class TestSqlOutboxPublisher:
         from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 
         pub = SqlOutboxPublisher(session_factory)
-        events = [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("ob-task"))]
+        events = [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("ob-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
         await pub.publish(events)
 
         async with session_factory() as session:
@@ -457,7 +460,7 @@ class TestOutboxRelay:
 
         # Write an event to outbox
         outbox_pub = SqlOutboxPublisher(session_factory)
-        event = WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="relay-task")
+        event = WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="relay-task", now=datetime(2026, 1, 1, tzinfo=UTC))
         await outbox_pub.publish([event])
 
         # Run relay — downstream captures events
@@ -488,7 +491,7 @@ class TestOutboxRelay:
 
         outbox_pub = SqlOutboxPublisher(session_factory)
         await outbox_pub.publish(
-            [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("idm-task"))]
+            [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("idm-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
         )
 
         downstream = FakeEventPublisher()
@@ -498,3 +501,77 @@ class TestOutboxRelay:
 
         assert first >= 1
         assert second == 0  # nothing left to process
+
+
+# ---------------------------------------------------------------------------
+# Transactional Outbox: atomicity guarantee
+# ---------------------------------------------------------------------------
+
+
+class TestTransactionalOutbox:
+    async def test_outbox_written_atomically_with_domain_state(
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        events: FakeEventPublisher,
+        task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
+    ) -> None:
+        """Outbox rows must be present after UoW commit without a separate publish step."""
+        from sqlalchemy import select
+
+        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
+
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        await handler.handle(ImportTaskCommand("t.md", "atomic-task"))
+
+        async with session_factory() as session:
+            rows = (
+                await session.execute(
+                    select(OutboxEventModel).where(
+                        OutboxEventModel.event_type == "TaskImported"
+                    )
+                )
+            ).scalars().all()
+
+        assert any(r.payload.get("task_name") is not None for r in rows), (
+            "Outbox row must be written in same transaction as domain state"
+        )
+
+    async def test_rollback_removes_staged_outbox_events(
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        session_factory: async_sessionmaker,
+    ) -> None:
+        """If the UoW transaction is rolled back, no outbox rows must be written."""
+        from sqlalchemy import select
+
+        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
+        from shell_ddd.domain.events.events import WorkflowStarted
+
+        async with session_factory() as s:
+            before = len(
+                (await s.execute(select(OutboxEventModel))).scalars().all()
+            )
+
+        try:
+            async with uow as u:
+                u.stage_events(
+                    [WorkflowStarted.now(
+                        workflow_id=__import__("shell_ddd.domain.value_objects.ids", fromlist=["WorkflowId"]).WorkflowId("wf-rollback"),
+                        task_name="rollback-task",
+                        now=clock.now(),
+                    )]
+                )
+                raise RuntimeError("forced rollback")
+        except RuntimeError:
+            pass
+
+        async with session_factory() as s:
+            after = len(
+                (await s.execute(select(OutboxEventModel))).scalars().all()
+            )
+
+        assert after == before, "Rolled-back transaction must not write outbox rows"

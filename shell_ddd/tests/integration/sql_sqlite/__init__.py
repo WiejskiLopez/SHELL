@@ -23,7 +23,7 @@ from shell_ddd.domain.value_objects.ids import (
 
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell_ddd.infrastructure.persistence.memory.memory import FakeClock, FakeTaskLoader, FakeEventPublisher, \
-    FakeIdGenerator
+    FakeIdGenerator, FakeLogger
 from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
@@ -108,7 +108,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -126,7 +126,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
@@ -146,7 +146,7 @@ class TestSqlWorkflowRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)

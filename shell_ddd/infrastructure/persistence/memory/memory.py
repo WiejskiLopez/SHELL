@@ -90,15 +90,23 @@ class InMemoryEnvelopeRepository:
     async def save(self, envelope: Envelope) -> None:
         self._store[envelope.id.value] = envelope
 
-    async def list_by_workflow(self, workflow_id: WorkflowId) -> list[Envelope]:
-        return [e for e in self._store.values() if e.workflow_id == workflow_id]
+    async def list_by_workflow(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+        results = [e for e in self._store.values() if e.workflow_id == workflow_id]
+        results = results[offset:]
+        if limit is not None:
+            results = results[:limit]
+        return results
 
-    async def list_pending(self, workflow_id: WorkflowId) -> list[Envelope]:
-        return [
+    async def list_pending(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+        results = [
             e
             for e in self._store.values()
             if e.workflow_id == workflow_id and e.status == EnvelopeStatus.PENDING
         ]
+        results = results[offset:]
+        if limit is not None:
+            results = results[:limit]
+        return results
 
 
 class InMemoryEnvelopeArchive:
@@ -249,15 +257,28 @@ class InMemoryUnitOfWork:
         )
 
         self._committed = False
+        self._staged_events: list[DomainEvent] = []
+
+    # ------------------------------------------------------------------
+    # Outbox staging — mirrors SqlAlchemyUnitOfWork interface
+    # ------------------------------------------------------------------
+
+    def stage_events(self, events: list[DomainEvent]) -> None:
+        self._staged_events.extend(events)
+
+    @property
+    def events(self) -> list[DomainEvent]:
+        return list(self._staged_events)
 
     async def commit(self) -> None:
         self._committed = True
 
     async def rollback(self) -> None:
-        pass
+        self._staged_events = []
 
     async def __aenter__(self) -> InMemoryUnitOfWork:
         self._committed = False
+        self._staged_events = []
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -322,6 +343,22 @@ class FakeEventPublisher:
 
     async def publish(self, events: list[DomainEvent]) -> None:
         self.published.extend(events)
+
+
+class FakeLogger:
+    """No-op implementation of the Logger port for use in unit tests."""
+
+    def debug(self, msg: str, **kw: object) -> None:
+        pass
+
+    def info(self, msg: str, **kw: object) -> None:
+        pass
+
+    def warning(self, msg: str, **kw: object) -> None:
+        pass
+
+    def error(self, msg: str, **kw: object) -> None:
+        pass
 
 
 class FakeTaskLoader:

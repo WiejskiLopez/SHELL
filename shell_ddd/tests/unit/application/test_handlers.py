@@ -32,6 +32,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
+    FakeLogger,
     FakeTaskLoader,
     InMemoryUnitOfWork,
 )
@@ -70,6 +71,11 @@ def task_loader() -> FakeTaskLoader:
 
 
 @pytest.fixture()
+def fake_logger() -> FakeLogger:
+    return FakeLogger()
+
+
+@pytest.fixture()
 def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
     return InMemoryQueryServices(uow)
 
@@ -88,7 +94,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         task_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         assert task_id
@@ -103,7 +109,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         from shell_ddd.domain.value_objects.task_name import TaskName
@@ -120,7 +126,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         first_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
@@ -140,7 +146,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         with pytest.raises(ValueError):
             await handler.handle(ImportTaskCommand("t.md", ""))
 
@@ -159,7 +165,7 @@ class TestStartWorkflowHandler:
             task_loader: FakeTaskLoader,
     ) -> None:
         pub = FakeEventPublisher()
-        h = ImportTaskHandler(uow, clock, id_gen, task_loader, pub)
+        h = ImportTaskHandler(uow, clock, id_gen, task_loader, pub, FakeLogger())
         await h.handle(ImportTaskCommand("t.md", "my-task"))
 
     async def test_happy_path(

@@ -239,3 +239,35 @@ class TemplateGraphNodeId:
     @classmethod
     def generate(cls) -> TemplateGraphNodeId:
         return cls(str(uuid.uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class EnvelopeEventId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("EnvelopeEventId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> EnvelopeEventId:
+        return cls(str(uuid.uuid4()))
+
+
+@dataclass(frozen=True, slots=True)
+class NodeStateId:
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError("NodeStateId cannot be empty")
+
+    def __str__(self) -> str:
+        return self.value
+
+    @classmethod
+    def generate(cls) -> NodeStateId:
+        return cls(str(uuid.uuid4()))

@@ -43,6 +43,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
+    FakeLogger,
     FakeTaskLoader,
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
@@ -108,7 +109,7 @@ class TestPgTaskRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -125,7 +126,7 @@ class TestPgTaskRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
 
@@ -149,7 +150,7 @@ class TestPgWorkflowRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events)
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))
 
         start = StartWorkflowHandler(uow, clock, id_gen, events)

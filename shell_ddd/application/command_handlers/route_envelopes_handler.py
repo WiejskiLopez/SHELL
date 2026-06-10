@@ -14,7 +14,6 @@ from shell_ddd.domain.value_objects.task_name import TaskName
 if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import RouteEnvelopesCommand
     from shell_ddd.application.ports.ports import Clock, EventPublisher, UnitOfWork
-    from shell_ddd.domain.events.events import DomainEvent
 
 
 class RouteEnvelopesHandler:
@@ -39,7 +38,6 @@ class RouteEnvelopesHandler:
     async def handle(self, cmd: RouteEnvelopesCommand) -> int:
         """Process envelopes and return the number of envelopes routed."""
         wf_id = WorkflowId(cmd.workflow_id)
-        published: list[DomainEvent] = []
 
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(wf_id)
@@ -57,7 +55,7 @@ class RouteEnvelopesHandler:
                 if new_status == EnvelopeStatus.DEAD:
                     envelope.transition_status(EnvelopeStatus.DEAD, now)
                     await uow.envelopes.save(envelope)
-                    published.append(EnvelopeExpired.now(envelope.id, envelope.workflow_id))
+                    uow.stage_events([EnvelopeExpired.now(envelope.id, envelope.workflow_id, now=now)])
                     continue
 
                 if task is not None and task.graph is not None:
@@ -74,10 +72,10 @@ class RouteEnvelopesHandler:
                 envelope.transition_status(EnvelopeStatus.ACTIVE, now)
                 envelope.transition_stage(EnvelopeStage.SENT, now)
                 await uow.envelopes.save(envelope)
-                published.append(EnvelopeRouted.now(envelope.id, envelope.workflow_id))
+                uow.stage_events([EnvelopeRouted.now(envelope.id, envelope.workflow_id, now=now)])
                 routed += 1
 
             await uow.commit()
 
-        await self._event_publisher.publish(published)
+        await self._event_publisher.publish(uow.events)
         return routed

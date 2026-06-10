@@ -18,11 +18,11 @@ from shell_ddd.infrastructure.messaging.memory_outbox_store import InMemoryOutbo
 
 
 def _task_imported() -> TaskImported:
-    return TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("t1"))
+    return TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
 
 
 def _workflow_started() -> WorkflowStarted:
-    return WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="t1")
+    return WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="t1", now=datetime(2026, 1, 1, tzinfo=UTC))
 
 
 # ---------------------------------------------------------------------------

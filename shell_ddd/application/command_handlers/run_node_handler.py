@@ -20,7 +20,6 @@ if TYPE_CHECKING:
         UnitOfWork,
     )
     from shell_ddd.application.strategies.node_execution_strategy import NodeExecutionStrategy
-    from shell_ddd.domain.events.events import DomainEvent
 
 
 class RunNodeHandler:
@@ -51,7 +50,6 @@ class RunNodeHandler:
         """Execute node and return NodeResult id."""
         wf_id = WorkflowId(cmd.workflow_id)
         node_id = NodeId(cmd.node_id)
-        published: list[DomainEvent] = []
         now = self._clock.now()
 
         async with self._uow as uow:
@@ -59,7 +57,7 @@ class RunNodeHandler:
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
 
-            workflow.update_node_state(node_id, Status.running())
+            workflow.update_node_state(node_id, Status.running(), now=now)
             await uow.workflows.save(workflow)
             await uow.commit()
 
@@ -87,11 +85,11 @@ class RunNodeHandler:
                 await uow.node_results.save(node_result)
                 wf = await uow.workflows.get_by_id(wf_id)
                 if wf:
-                    wf.update_node_state(node_id, result_status)
+                    wf.update_node_state(node_id, result_status, now=now)
                     await uow.workflows.save(wf)
+                uow.stage_events([NodeFailed.now(node_id, wf_id, str(exc), now=now)])
                 await uow.commit()
-            published.append(NodeFailed.now(node_id, wf_id, str(exc)))
-            await self._event_publisher.publish(published)
+            await self._event_publisher.publish(uow.events)
             return node_result_id.value
 
         node_result_id = self._id_gen.new_node_result_id()
@@ -110,10 +108,10 @@ class RunNodeHandler:
             await uow.node_results.save(node_result)
             wf = await uow.workflows.get_by_id(wf_id)
             if wf:
-                wf.update_node_state(node_id, node_status)
+                wf.update_node_state(node_id, node_status, now=now)
                 await uow.workflows.save(wf)
+            uow.stage_events([NodeCompleted.now(node_id, wf_id, node_result_id, now=now)])
             await uow.commit()
 
-        published.append(NodeCompleted.now(node_id, wf_id, node_result_id))
-        await self._event_publisher.publish(published)
+        await self._event_publisher.publish(uow.events)
         return node_result_id.value

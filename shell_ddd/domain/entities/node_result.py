@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ class NodeResult:
         stdout: str = "",
         stderr: str = "",
         artifact_uri: str = "",
-        now: datetime | None = None,
+        now: datetime,
     ) -> NodeResult:
         return cls(
             id=id_,
@@ -42,5 +42,5 @@ class NodeResult:
             stdout=stdout,
             stderr=stderr,
             artifact_uri=artifact_uri,
-            created_at=now or datetime.now(tz=UTC),
+            created_at=now,
         )

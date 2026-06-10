@@ -6,6 +6,17 @@ from shell_ddd.application.queries.queries import GetTaskByNameQuery, GetCurrent
     SearchSimilarQuery
 from shell_ddd.bootstrap.core_container import CoreContainer
 from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+from shell_ddd.domain.events.events import (
+    EnvelopeRouted,
+    EnvelopeExpired,
+    NodeCompleted,
+    NodeFailed,
+    TaskImported,
+    WorkflowExecutionRequested,
+    WorkflowStarted,
+    WorkflowCompleted,
+    WorkflowFailed,
+)
 
 
 class ApplicationFactory:
@@ -46,5 +57,18 @@ class ApplicationFactory:
         q_bus.register(GetRunnerConfigQuery, core_container.get_runner_config_handler_factory)
         q_bus.register(GetSessionHistoryQuery, core_container.get_session_history_handler_factory)
         q_bus.register(SearchSimilarQuery, core_container.search_similar_handler_factory)
+
+        # REJESTRACJA EVENTÓW: subskrybenci EventBus
+        e_bus = core_container.event_bus()
+        e_bus.subscribe(EnvelopeRouted, core_container.archive_on_delivered_handler_factory)
+        e_bus.subscribe(EnvelopeRouted, core_container.log_audit_handler_factory)
+        e_bus.subscribe(EnvelopeExpired, core_container.log_audit_handler_factory)
+        e_bus.subscribe(NodeCompleted, core_container.log_audit_handler_factory)
+        e_bus.subscribe(NodeFailed, core_container.log_audit_handler_factory)
+        e_bus.subscribe(TaskImported, core_container.log_audit_handler_factory)
+        e_bus.subscribe(WorkflowStarted, core_container.log_audit_handler_factory)
+        e_bus.subscribe(WorkflowCompleted, core_container.log_audit_handler_factory)
+        e_bus.subscribe(WorkflowFailed, core_container.log_audit_handler_factory)
+        e_bus.subscribe(WorkflowExecutionRequested, core_container.workflow_execution_worker_factory)
 
         return core_container

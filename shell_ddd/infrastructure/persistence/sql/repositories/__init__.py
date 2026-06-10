@@ -167,16 +167,19 @@ class SqlEnvelopeRepository:
         model = envelope_entity_to_model(envelope)
         await self._session.merge(model)
 
-    async def list_by_workflow(self, workflow_id: WorkflowId) -> list[Envelope]:
+    async def list_by_workflow(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
         q = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
             .where(EnvelopeModel.workflow_id == workflow_id.value)
+            .offset(offset)
         )
+        if limit is not None:
+            q = q.limit(limit)
         rows = (await self._session.execute(q)).scalars().all()
         return [envelope_model_to_entity(r) for r in rows]
 
-    async def list_pending(self, workflow_id: WorkflowId) -> list[Envelope]:
+    async def list_pending(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
         q = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
@@ -184,7 +187,10 @@ class SqlEnvelopeRepository:
                 EnvelopeModel.workflow_id == workflow_id.value,
                 EnvelopeModel.status == EnvelopeStatus.PENDING.value,
             )
+            .offset(offset)
         )
+        if limit is not None:
+            q = q.limit(limit)
         rows = (await self._session.execute(q)).scalars().all()
         return [envelope_model_to_entity(r) for r in rows]
 

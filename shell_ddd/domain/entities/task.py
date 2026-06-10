@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.entities.graph import Graph
@@ -35,9 +35,8 @@ class Task:
             name: TaskName,
             body_md: str,
             template_graph_id: TemplateGraphId,
-            now: datetime | None = None,
+            now: datetime,
     ) -> Task:
-        created = now or datetime.now(tz=UTC)
         content_hash = Hash.of(body_md)
         return cls(
             id=id_,
@@ -47,5 +46,5 @@ class Task:
             body_md=body_md,
             template_graph_id=template_graph_id,
             is_current=True,
-            created_at=created,
+            created_at=now,
         )

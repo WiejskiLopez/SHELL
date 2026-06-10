@@ -1,53 +1,23 @@
-"""Application queries."""
+"""Application queries — re-exports from granular modules (backward compatibility)."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from shell_ddd.application.queries.config_queries import GetRunnerConfigQuery
+from shell_ddd.application.queries.envelope_queries import GetEnvelopesByWorkflowQuery
+from shell_ddd.application.queries.node_queries import GetNodeResultQuery
+from shell_ddd.application.queries.prompt_queries import GetPromptQuery
+from shell_ddd.application.queries.rag_queries import SearchSimilarQuery
+from shell_ddd.application.queries.session_queries import GetSessionHistoryQuery
+from shell_ddd.application.queries.task_queries import GetCurrentTaskQuery, GetTaskByNameQuery
+from shell_ddd.application.queries.workflow_queries import GetWorkflowQuery
 
-
-@dataclass(frozen=True, slots=True)
-class GetTaskByNameQuery:
-    name: str
-
-
-@dataclass(frozen=True, slots=True)
-class GetCurrentTaskQuery:
-    name: str
-
-
-@dataclass(frozen=True, slots=True)
-class GetWorkflowQuery:
-    workflow_id: str
-
-
-@dataclass(frozen=True, slots=True)
-class GetEnvelopesByWorkflowQuery:
-    workflow_id: str
-    pending_only: bool = False
-
-
-@dataclass(frozen=True, slots=True)
-class GetNodeResultQuery:
-    node_id: str
-    workflow_id: str
-
-
-@dataclass(frozen=True, slots=True)
-class GetPromptQuery:
-    name: str
-
-
-@dataclass(frozen=True, slots=True)
-class GetRunnerConfigQuery:
-    package_name: str
-
-
-@dataclass(frozen=True, slots=True)
-class SearchSimilarQuery:
-    query_text: str
-    top_k: int = 5
-    domain: str | None = None
-
-
-@dataclass(frozen=True, slots=True)
-class GetSessionHistoryQuery:
-    session_id: str
+__all__ = [
+    "GetCurrentTaskQuery",
+    "GetEnvelopesByWorkflowQuery",
+    "GetNodeResultQuery",
+    "GetPromptQuery",
+    "GetRunnerConfigQuery",
+    "GetSessionHistoryQuery",
+    "GetTaskByNameQuery",
+    "GetWorkflowQuery",
+    "SearchSimilarQuery",
+]

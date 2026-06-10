@@ -35,6 +35,9 @@ from shell_ddd.application.command_handlers.save_node_result_handler import Save
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell_ddd.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 
+from shell_ddd.application.event_handlers.event_handlers import ArchiveOnDeliveredHandler, LogAuditHandler
+from shell_ddd.application.event_handlers.workflow_execution_worker import WorkflowExecutionWorker
+
 from shell_ddd.application.query_handlers.query_handlers import (
     GetCurrentTaskHandler,
     GetEnvelopesByWorkflowHandler,
@@ -97,7 +100,7 @@ class CoreContainer(containers.DeclarativeContainer):
 
     # 3. Command Handlers (Każde odwołanie to NOWA instancja i nowy UoW)
     import_task_handler_factory = providers.Factory(
-        ImportTaskHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, task_loader=task_loader_factory, event_publisher=event_publisher
+        ImportTaskHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, task_loader=task_loader_factory, event_publisher=event_publisher, logger=stdlib_logger
     )
     start_workflow_handler_factory = providers.Factory(
         StartWorkflowHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, event_publisher=event_publisher
@@ -122,7 +125,10 @@ class CoreContainer(containers.DeclarativeContainer):
         BootstrapRunnerConfigHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory
     )
     run_tasker_workflow_handler_factory = providers.Factory(
-        RunTaskerWorkflowHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, runner=runner_factory, event_publisher=event_publisher
+        RunTaskerWorkflowHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, event_publisher=event_publisher
+    )
+    workflow_execution_worker_factory = providers.Factory(
+        WorkflowExecutionWorker, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, runner=runner_factory, event_publisher=event_publisher
     )
 
     # 4. Query Handlers (Factories)
@@ -135,3 +141,11 @@ class CoreContainer(containers.DeclarativeContainer):
     get_runner_config_handler_factory = providers.Factory(GetRunnerConfigHandler, queries=query_services)
     get_session_history_handler_factory = providers.Factory(GetSessionHistoryHandler, queries=query_services)
     search_similar_handler_factory = providers.Factory(SearchSimilarHandler, queries=query_services, embedder=embedder)
+
+    # 5. Event Handlers (Factories — subskrybenci EventBus)
+    archive_on_delivered_handler_factory = providers.Factory(
+        ArchiveOnDeliveredHandler, uow=uow_factory
+    )
+    log_audit_handler_factory = providers.Factory(
+        LogAuditHandler, logger=stdlib_logger
+    )

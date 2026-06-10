@@ -30,6 +30,7 @@ class SaveNodeResultHandler:
         node_id = NodeId(cmd.node_id)
         workflow_id = WorkflowId(cmd.workflow_id)
         status = Status(cmd.status)
+        now = self._clock.now()
         result = NodeResult.new(
             id_=self._id_gen.new_node_result_id(),
             node_id=node_id,
@@ -38,13 +39,14 @@ class SaveNodeResultHandler:
             stdout=cmd.stdout,
             stderr=cmd.stderr,
             artifact_uri=cmd.artifact_uri,
-            now=self._clock.now(),
+            now=now,
         )
         async with self._uow as uow:
             await uow.node_results.save(result)
+            if status == Status.done():
+                uow.stage_events([NodeCompleted.now(node_id, workflow_id, result.id, now=now)])
+            elif status == Status.failed():
+                uow.stage_events([NodeFailed.now(node_id, workflow_id, cmd.stderr, now=now)])
             await uow.commit()
-        if status == Status.done():
-            await self._event_publisher.publish([NodeCompleted.now(node_id, workflow_id, result.id)])
-        elif status == Status.failed():
-            await self._event_publisher.publish([NodeFailed.now(node_id, workflow_id, cmd.stderr)])
+        await self._event_publisher.publish(uow.events)
         return result.id.value

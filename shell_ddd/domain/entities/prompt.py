@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.value_objects.hash import Hash
@@ -30,7 +30,7 @@ class Prompt:
         name: str,
         body: str,
         source_uri: str = "",
-        now: datetime | None = None,
+        now: datetime,
     ) -> Prompt:
         return cls(
             id=id_,
@@ -40,5 +40,5 @@ class Prompt:
             body=body,
             source_uri=source_uri,
             is_current=True,
-            created_at=now or datetime.now(tz=UTC),
+            created_at=now,
         )

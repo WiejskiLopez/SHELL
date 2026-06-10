@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -27,9 +27,9 @@ class TaskImported(DomainEvent):
     task_name: TaskName
 
     @classmethod
-    def now(cls, task_id: TaskId, task_name: TaskName) -> TaskImported:
+    def now(cls, task_id: TaskId, task_name: TaskName, now: datetime) -> TaskImported:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             task_id=task_id,
             task_name=task_name,
         )
@@ -41,9 +41,9 @@ class WorkflowStarted(DomainEvent):
     task_name: str
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_name: str) -> WorkflowStarted:
+    def now(cls, workflow_id: WorkflowId, task_name: str, now: datetime) -> WorkflowStarted:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             workflow_id=workflow_id,
             task_name=task_name,
         )
@@ -55,9 +55,9 @@ class EnvelopeRouted(DomainEvent):
     workflow_id: WorkflowId
 
     @classmethod
-    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId) -> EnvelopeRouted:
+    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime) -> EnvelopeRouted:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             envelope_id=envelope_id,
             workflow_id=workflow_id,
         )
@@ -69,9 +69,9 @@ class EnvelopeExpired(DomainEvent):
     workflow_id: WorkflowId
 
     @classmethod
-    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId) -> EnvelopeExpired:
+    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime) -> EnvelopeExpired:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             envelope_id=envelope_id,
             workflow_id=workflow_id,
         )
@@ -85,10 +85,10 @@ class NodeCompleted(DomainEvent):
 
     @classmethod
     def now(
-        cls, node_id: NodeId, workflow_id: WorkflowId, result_id: NodeResultId
+        cls, node_id: NodeId, workflow_id: WorkflowId, result_id: NodeResultId, now: datetime
     ) -> NodeCompleted:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             node_id=node_id,
             workflow_id=workflow_id,
             result_id=result_id,
@@ -102,9 +102,9 @@ class NodeFailed(DomainEvent):
     reason: str
 
     @classmethod
-    def now(cls, node_id: NodeId, workflow_id: WorkflowId, reason: str) -> NodeFailed:
+    def now(cls, node_id: NodeId, workflow_id: WorkflowId, reason: str, now: datetime) -> NodeFailed:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             node_id=node_id,
             workflow_id=workflow_id,
             reason=reason,
@@ -117,9 +117,9 @@ class WorkflowCompleted(DomainEvent):
     task_name: str
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_name: str) -> WorkflowCompleted:
+    def now(cls, workflow_id: WorkflowId, task_name: str, now: datetime) -> WorkflowCompleted:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             workflow_id=workflow_id,
             task_name=task_name,
         )
@@ -131,9 +131,40 @@ class WorkflowFailed(DomainEvent):
     task_name: str
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_name: str) -> WorkflowFailed:
+    def now(cls, workflow_id: WorkflowId, task_name: str, now: datetime) -> WorkflowFailed:
         return cls(
-            occurred_at=datetime.now(tz=UTC),
+            occurred_at=now,
             workflow_id=workflow_id,
             task_name=task_name,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class WorkflowExecutionRequested(DomainEvent):
+    """Fired by RunTaskerWorkflowHandler after persisting the RUNNING workflow.
+
+    A background WorkflowExecutionWorker subscribes to this event and performs
+    the actual subprocess orchestration without blocking the command handler.
+    """
+
+    workflow_id: WorkflowId
+    task_name: str
+    work_dir: str
+    max_parallel: int
+
+    @classmethod
+    def now(
+        cls,
+        workflow_id: WorkflowId,
+        task_name: str,
+        work_dir: str,
+        max_parallel: int,
+        now: datetime,
+    ) -> WorkflowExecutionRequested:
+        return cls(
+            occurred_at=now,
+            workflow_id=workflow_id,
+            task_name=task_name,
+            work_dir=work_dir,
+            max_parallel=max_parallel,
         )
