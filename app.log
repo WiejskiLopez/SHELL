@@ -170,3 +170,206 @@
 2026-06-10 07:20:41,754 WARNING test_stdlib_warn: watch out
 2026-06-10 07:20:41,755 ERROR test_stdlib_err: boom
 2026-06-10 07:20:41,756 DEBUG test_stdlib_dbg: trace
+2026-06-10 23:01:58,356 INFO shell_ddd: TemplateGraph loaded
+2026-06-10 23:01:58,356 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-10 23:01:58,358 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-10 23:01:58,358 INFO shell_ddd: Existing task lookup
+2026-06-10 23:01:58,358 INFO shell_ddd: New task created
+2026-06-10 23:01:58,363 INFO shell_ddd: Event published
+2026-06-10 23:02:03,217 INFO shell_ddd: TemplateGraph loaded
+2026-06-10 23:02:03,217 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-10 23:02:03,220 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=e8232437-2ea6-43c1-9747-5d889a9ec635 name=smoke-task template_graph_id=00000000-0000-0000-0000-000000000001 is_current=True
+2026-06-10 23:02:03,221 INFO shell_ddd: Existing task lookup
+2026-06-10 23:02:03,222 INFO shell_ddd: Marked previous task as non-current
+2026-06-10 23:02:03,222 INFO shell_ddd: New task created
+2026-06-10 23:02:03,229 INFO shell_ddd: Event published
+2026-06-10 23:02:03,230 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-10 23:02:03,232 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=c86b4e39-3be3-4c7b-a930-313415e6084b name=smoke-task template_graph_id=00000000-0000-0000-0000-000000000001 is_current=True
+2026-06-10 23:02:03,242 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-10 23:02:03,244 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=c86b4e39-3be3-4c7b-a930-313415e6084b name=smoke-task template_graph_id=00000000-0000-0000-0000-000000000001 is_current=True
+2026-06-11 05:38:03,487 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-11 05:39:42,522 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-11 05:57:14,919 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-11 07:16:09,467 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 07:16:09,471 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 07:16:09,479 INFO shell_ddd: Event published
+2026-06-11 07:18:45,224 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 07:18:45,228 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 07:18:45,233 INFO shell_ddd: Event published
+2026-06-11 07:18:54,248 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 07:18:54,251 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 07:18:54,257 INFO shell_ddd: Event published
+2026-06-11 07:18:54,732 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 07:18:54,735 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 07:18:54,746 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 07:18:54,747 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 07:18:54,752 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 07:18:54,753 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 07:18:54,761 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 07:18:54,762 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 07:18:54,767 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 07:18:54,768 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 07:18:54,911 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 07:18:54,912 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 07:18:54,951 INFO test_stdlib_info: hello world
+2026-06-11 07:18:54,952 WARNING test_stdlib_warn: watch out
+2026-06-11 07:18:54,952 ERROR test_stdlib_err: boom
+2026-06-11 07:18:54,953 DEBUG test_stdlib_dbg: trace
+2026-06-11 09:03:24,890 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 09:03:24,894 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 09:03:24,899 INFO shell_ddd: Event published
+2026-06-11 09:03:25,380 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 09:03:25,384 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 09:03:25,394 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 09:03:25,395 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 09:03:25,399 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 09:03:25,400 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 09:03:25,411 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 09:03:25,412 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 09:03:25,416 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 09:03:25,417 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 09:03:25,556 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 09:03:25,557 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 09:03:25,594 INFO test_stdlib_info: hello world
+2026-06-11 09:03:25,594 WARNING test_stdlib_warn: watch out
+2026-06-11 09:03:25,595 ERROR test_stdlib_err: boom
+2026-06-11 09:03:25,596 DEBUG test_stdlib_dbg: trace
+2026-06-11 09:07:18,922 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 09:07:18,926 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 09:07:18,933 INFO shell_ddd: Event published
+2026-06-11 09:07:19,435 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 09:07:19,438 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 09:07:19,448 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 09:07:19,449 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 09:07:19,455 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 09:07:19,456 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 09:07:19,465 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 09:07:19,466 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 09:07:19,470 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 09:07:19,471 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 09:07:19,610 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 09:07:19,610 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 09:07:19,655 INFO test_stdlib_info: hello world
+2026-06-11 09:07:19,656 WARNING test_stdlib_warn: watch out
+2026-06-11 09:07:19,657 ERROR test_stdlib_err: boom
+2026-06-11 09:07:19,658 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:27:34,204 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:27:34,208 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:27:34,213 INFO shell_ddd: Event published
+2026-06-11 10:27:34,700 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:27:34,703 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:27:34,715 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:27:34,715 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:27:34,721 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:27:34,722 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:27:34,732 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:27:34,733 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:27:34,738 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:27:34,738 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:27:34,879 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:27:34,880 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:27:34,923 INFO test_stdlib_info: hello world
+2026-06-11 10:27:34,924 WARNING test_stdlib_warn: watch out
+2026-06-11 10:27:34,925 ERROR test_stdlib_err: boom
+2026-06-11 10:27:34,926 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:30:17,631 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:30:17,635 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:30:17,639 INFO shell_ddd: Event published
+2026-06-11 10:30:18,112 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:30:18,116 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:30:18,125 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:30:18,126 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:30:18,131 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:30:18,132 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:30:18,140 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:30:18,141 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:30:18,145 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:30:18,146 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:30:18,284 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:30:18,285 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:30:18,329 INFO test_stdlib_info: hello world
+2026-06-11 10:30:18,330 WARNING test_stdlib_warn: watch out
+2026-06-11 10:30:18,331 ERROR test_stdlib_err: boom
+2026-06-11 10:30:18,332 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:37:30,389 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:37:30,393 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:37:30,397 INFO shell_ddd: Event published
+2026-06-11 10:37:30,871 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:37:30,874 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:37:30,884 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:37:30,885 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:37:30,890 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:37:30,890 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:37:30,899 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:37:30,900 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:37:30,904 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:37:30,905 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:37:31,045 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:37:31,046 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:37:31,104 INFO test_stdlib_info: hello world
+2026-06-11 10:37:31,105 WARNING test_stdlib_warn: watch out
+2026-06-11 10:37:31,106 ERROR test_stdlib_err: boom
+2026-06-11 10:37:31,107 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:40:24,676 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:40:24,680 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:40:24,685 INFO shell_ddd: Event published
+2026-06-11 10:40:25,173 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:40:25,177 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:40:25,186 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:40:25,187 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:40:25,191 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:40:25,192 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:40:25,201 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:40:25,202 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:40:25,206 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:40:25,207 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:40:25,214 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:40:25,215 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:40:25,458 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:40:25,459 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:40:25,503 INFO test_stdlib_info: hello world
+2026-06-11 10:40:25,503 WARNING test_stdlib_warn: watch out
+2026-06-11 10:40:25,504 ERROR test_stdlib_err: boom
+2026-06-11 10:40:25,505 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:41:24,557 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:41:24,560 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:41:24,565 INFO shell_ddd: Event published
+2026-06-11 10:41:25,031 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:41:25,035 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:41:25,044 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:41:25,045 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:41:25,050 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:41:25,051 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:41:25,060 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:25,061 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:41:25,065 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:25,066 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:41:25,073 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:25,074 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:41:25,217 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:41:25,217 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:41:25,262 INFO test_stdlib_info: hello world
+2026-06-11 10:41:25,263 WARNING test_stdlib_warn: watch out
+2026-06-11 10:41:25,263 ERROR test_stdlib_err: boom
+2026-06-11 10:41:25,264 DEBUG test_stdlib_dbg: trace
+2026-06-11 10:41:36,998 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-11 10:41:37,001 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-11 10:41:37,007 INFO shell_ddd: Event published
+2026-06-11 10:41:37,484 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task
+2026-06-11 10:41:37,488 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task
+2026-06-11 10:41:37,497 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:41:37,498 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=sql-task-v
+2026-06-11 10:41:37,503 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=sql-task-v
+2026-06-11 10:41:37,504 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-11 10:41:37,512 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:37,513 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=wf-task
+2026-06-11 10:41:37,517 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:37,518 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:41:37,525 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=wf-task
+2026-06-11 10:41:37,526 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-11 10:41:37,669 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=atomic-task
+2026-06-11 10:41:37,670 INFO shell_ddd.infrastructure.persistence.sql.repositories: No current Task found for name=atomic-task
+2026-06-11 10:41:37,713 INFO test_stdlib_info: hello world
+2026-06-11 10:41:37,714 WARNING test_stdlib_warn: watch out
+2026-06-11 10:41:37,715 ERROR test_stdlib_err: boom
+2026-06-11 10:41:37,716 DEBUG test_stdlib_dbg: trace

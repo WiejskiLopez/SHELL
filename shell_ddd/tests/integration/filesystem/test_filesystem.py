@@ -61,13 +61,10 @@ class TestFileSystemTaskLoader:
     async def test_load_reads_both_files(self, tmp_path: object) -> None:
         import pathlib
         md = pathlib.Path(str(tmp_path)) / "task.md"
-        yaml = pathlib.Path(str(tmp_path)) / "task.yaml"
         md.write_text("# My Task", encoding="utf-8")
-        yaml.write_text("graph: []", encoding="utf-8")
-
         loader = FileSystemTaskLoader()
-        body_md = await loader.load(str(md))
-        assert body_md == "# My Task"
+        task_text = await loader.load(str(md))
+        assert task_text == "# My Task"
 
 
 # ---------------------------------------------------------------------------

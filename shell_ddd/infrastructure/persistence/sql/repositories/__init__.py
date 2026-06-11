@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from shell_ddd.domain.entities.envelope import Envelope
-from shell_ddd.domain.entities.node_result import NodeResult
+from shell_ddd.domain.entities.graph import Graph
 from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.entities.rag_document import RagChunk, RagDocument
 from shell_ddd.domain.entities.runner_config import RunnerConfig
@@ -21,9 +21,9 @@ from shell_ddd.domain.services.rag_index_service import cosine_similarity
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
+    GraphId,
     MessageId,
     NodeId,
-    NodeResultId,
     PromptId,
     RagChunkId,
     RagDocumentId,
@@ -36,8 +36,8 @@ from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
     envelope_entity_to_model,
     envelope_model_to_entity,
-    node_result_entity_to_model,
-    node_result_model_to_entity,
+    graph_entity_to_model,
+    graph_model_to_entity,
     prompt_entity_to_model,
     prompt_model_to_entity,
     runner_config_entity_to_model,
@@ -50,8 +50,8 @@ from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
 )
 from shell_ddd.infrastructure.persistence.sql.models import (
     EnvelopeModel,
+    GraphModel,
     MessageModel,
-    NodeResultModel,
     PromptModel,
     RagChunkModel,
     RagDocumentModel,
@@ -71,18 +71,13 @@ class SqlTaskRepository:
         self._session = session
 
     async def get_by_id(self, task_id: TaskId) -> Task | None:
-        q = (
-            select(TaskModel)
-            .options(selectinload(TaskModel.graph))
-            .where(TaskModel.id == task_id.value)
-        )
+        q = select(TaskModel).where(TaskModel.id == task_id.value)
         row = (await self._session.execute(q)).scalar_one_or_none()
         return task_model_to_entity(row) if row else None
 
     async def get_by_name(self, name: TaskName) -> Task | None:
         q = (
             select(TaskModel)
-            .options(selectinload(TaskModel.graph))
             .where(TaskModel.name == name.value)
             .order_by(TaskModel.version.desc())
             .limit(1)
@@ -94,7 +89,6 @@ class SqlTaskRepository:
         logger.info("Querying current Task by name=%s", name.value)
         q = (
             select(TaskModel)
-            .options(selectinload(TaskModel.graph))
             .where(TaskModel.name == name.value, TaskModel.is_current.is_(True))
             .limit(1)
         )
@@ -104,26 +98,48 @@ class SqlTaskRepository:
             return None
 
         logger.info(
-            "TaskModel found: id=%s name=%s template_graph_id=%s is_current=%s",
+            "TaskModel found: id=%s name=%s is_current=%s",
             row.id,
             row.name,
-            row.template_graph_id,
             row.is_current,
         )
-        return task_model_to_entity(row) if row else None
+        return task_model_to_entity(row)
 
     async def save(self, task: Task) -> None:
         model = task_entity_to_model(task)
         await self._session.merge(model)
 
     async def list_current(self) -> list[Task]:
-        q = (
-            select(TaskModel)
-            .options(selectinload(TaskModel.graph))
-            .where(TaskModel.is_current.is_(True))
-        )
+        q = select(TaskModel).where(TaskModel.is_current.is_(True))
         rows = (await self._session.execute(q)).scalars().all()
         return [task_model_to_entity(r) for r in rows]
+
+
+class SqlGraphRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, graph_id: GraphId) -> Graph | None:
+        q = (
+            select(GraphModel)
+            .options(selectinload(GraphModel.nodes))
+            .where(GraphModel.id == graph_id.value)
+        )
+        row = (await self._session.execute(q)).scalar_one_or_none()
+        return graph_model_to_entity(row) if row else None
+
+    async def get_by_task_id(self, task_id: TaskId) -> Graph | None:
+        q = (
+            select(GraphModel)
+            .options(selectinload(GraphModel.nodes))
+            .where(GraphModel.task_id == task_id.value)
+        )
+        row = (await self._session.execute(q)).scalar_one_or_none()
+        return graph_model_to_entity(row) if row else None
+
+    async def save(self, graph: Graph) -> None:
+        model = graph_entity_to_model(graph)
+        await self._session.merge(model)
 
 
 class SqlWorkflowRepository:
@@ -133,19 +149,68 @@ class SqlWorkflowRepository:
     async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None:
         q = (
             select(WorkflowModel)
-            .options(selectinload(WorkflowModel.node_states))
+            .options(
+                selectinload(WorkflowModel.node_states),
+                selectinload(WorkflowModel.node_results),
+            )
             .where(WorkflowModel.id == workflow_id.value)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
         return workflow_model_to_entity(row) if row else None
 
     async def save(self, workflow: Workflow) -> None:
-        # Delete existing node_states to avoid conflicts, then merge
-        await self._session.execute(
-            update(WorkflowModel)
-            .where(WorkflowModel.id == workflow.id.value)
-            .values(status=workflow.status.value)
+        """Persist the workflow with optimistic concurrency control (CAS).
+
+        On first save (no row exists yet) the aggregate's ``version`` is
+        bumped from 0 to 1 and the row is inserted via merge. On subsequent
+        saves a CAS UPDATE asserts that the persisted ``version`` still
+        equals the aggregate's loaded version; on success the persisted
+        version is bumped to ``version + 1`` and mirrored on the aggregate.
+        On mismatch :class:`WorkflowConcurrentlyModified` is raised.
+        """
+        from shell_ddd.domain.exceptions import WorkflowConcurrentlyModified
+
+        # Detect existing row.
+        existing = await self._session.execute(
+            select(WorkflowModel.version).where(WorkflowModel.id == workflow.id.value)
         )
+        existing_version = existing.scalar_one_or_none()
+
+        if existing_version is None:
+            # First save — initial insert. Bump version 0 → 1.
+            workflow.version = max(workflow.version, 0) + 1
+            model = workflow_entity_to_model(workflow)
+            await self._session.merge(model)
+            return
+
+        # Subsequent save — CAS on persisted version.
+        if existing_version != workflow.version:
+            raise WorkflowConcurrentlyModified(workflow.id.value)
+
+        new_version = workflow.version + 1
+        cas_stmt = (
+            update(WorkflowModel)
+            .where(
+                WorkflowModel.id == workflow.id.value,
+                WorkflowModel.version == workflow.version,
+            )
+            .values(
+                status=workflow.status.value,
+                current_node_id=(
+                    workflow.cursor.current_node_id.value
+                    if workflow.cursor.current_node_id
+                    else None
+                ),
+                work_dir=workflow.execution_context.work_dir,
+                correlation_id=workflow.execution_context.correlation_id,
+                version=new_version,
+            )
+        )
+        result = await self._session.execute(cas_stmt)
+        if (result.rowcount or 0) == 0:
+            raise WorkflowConcurrentlyModified(workflow.id.value)
+
+        workflow.version = new_version
         model = workflow_entity_to_model(workflow)
         await self._session.merge(model)
 
@@ -213,30 +278,6 @@ class SqlPromptRepository:
 
     async def save(self, prompt: Prompt) -> None:
         model = prompt_entity_to_model(prompt)
-        await self._session.merge(model)
-
-
-class SqlNodeResultRepository:
-    def __init__(self, session: AsyncSession) -> None:
-        self._session = session
-
-    async def get_by_id(self, result_id: NodeResultId) -> NodeResult | None:
-        q = select(NodeResultModel).where(NodeResultModel.id == result_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
-        return node_result_model_to_entity(row) if row else None
-
-    async def get_by_node_and_workflow(
-            self, node_id: NodeId, workflow_id: WorkflowId
-    ) -> NodeResult | None:
-        q = select(NodeResultModel).where(
-            NodeResultModel.node_id == node_id.value,
-            NodeResultModel.workflow_id == workflow_id.value,
-        )
-        row = (await self._session.execute(q)).scalar_one_or_none()
-        return node_result_model_to_entity(row) if row else None
-
-    async def save(self, result: NodeResult) -> None:
-        model = node_result_entity_to_model(result)
         await self._session.merge(model)
 
 

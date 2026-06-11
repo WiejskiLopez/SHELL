@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from shell_ddd.domain.events.events import TaskImported, WorkflowStarted
+from shell_ddd.domain.events.events import TaskCreated, WorkflowStarted
 from shell_ddd.domain.value_objects.ids import TaskId, WorkflowId
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.messaging.memory_outbox_store import InMemoryOutboxStore
@@ -17,8 +17,8 @@ from shell_ddd.infrastructure.messaging.memory_outbox_store import InMemoryOutbo
 # ---------------------------------------------------------------------------
 
 
-def _task_imported() -> TaskImported:
-    return TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
+def _task_imported() -> TaskCreated:
+    return TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
 
 
 def _workflow_started() -> WorkflowStarted:
@@ -52,7 +52,7 @@ class TestInMemoryOutboxStore:
     async def test_records_have_event_type(self) -> None:
         store = InMemoryOutboxStore()
         await store.publish([_task_imported()])
-        assert store.records[0].event_type == "TaskImported"
+        assert store.records[0].event_type == "TaskCreated"
 
     async def test_empty_publish_no_records(self) -> None:
         store = InMemoryOutboxStore()

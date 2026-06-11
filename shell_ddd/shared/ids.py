@@ -5,6 +5,8 @@ import uuid
 
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
+    GraphId,
+    NodeId,
     NodeResultId,
     PromptId,
     RunnerConfigId,
@@ -33,3 +35,9 @@ class UuidIdGenerator:
 
     def new_runner_config_id(self) -> RunnerConfigId:
         return RunnerConfigId(str(uuid.uuid4()))
+
+    def new_graph_id(self) -> GraphId:
+        return GraphId(str(uuid.uuid4()))
+
+    def new_node_id(self) -> NodeId:
+        return NodeId(str(uuid.uuid4()))

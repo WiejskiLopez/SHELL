@@ -144,6 +144,34 @@ class TestSqlWorkflowRepository:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
+        # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
+        from shell_ddd.domain.entities.graph import Graph, GraphNode
+        from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+        from shell_ddd.domain.value_objects.mode import Mode
+        from shell_ddd.domain.value_objects.task_name import TaskName
+
+        async with uow as u:
+            task = await u.tasks.get_current_by_name(TaskName("wf-task"))
+            assert task is not None
+            graph = Graph(
+                id=GraphId.generate(),
+                task_id=task.id,
+                template_graph_id=TemplateGraphId("tpl"),
+                raw_dict={},
+                nodes=[
+                    GraphNode(
+                        id=NodeId("wf-task-node-0"),
+                        position=0,
+                        node_dir="/fake/wf-task-0",
+                        mode=Mode("agent"),
+                        role="agent",
+                        node_type="agent",
+                    )
+                ],
+            )
+            await u.graphs.save(graph)
+            await u.commit()
+
         start = StartWorkflowHandler(uow, clock, id_gen, events)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))
 
@@ -206,6 +234,15 @@ class TestSqlNodeResultRepository:
         events: FakeEventPublisher,
         session_factory: async_sessionmaker,
     ) -> None:
+        # Seed a Workflow first — NodeResult is owned by Workflow aggregate.
+        from shell_ddd.domain.entities.workflow import Workflow
+        from shell_ddd.domain.value_objects.ids import WorkflowId
+        async with uow as u:
+            await u.workflows.save(
+                Workflow.new(id_=WorkflowId("wf-sql-nr-1"), task_name="t", now=clock.now())
+            )
+            await u.commit()
+
         handler = SaveNodeResultHandler(uow, clock, id_gen, events)
         await handler.handle(
             SaveNodeResultCommand(
@@ -360,7 +397,7 @@ class TestSqlAuditPublisher:
     ) -> None:
         from sqlalchemy import select
 
-        from shell_ddd.domain.events.events import TaskImported, WorkflowStarted
+        from shell_ddd.domain.events.events import TaskCreated, WorkflowStarted
         from shell_ddd.domain.value_objects.ids import TaskId, WorkflowId
         from shell_ddd.domain.value_objects.task_name import TaskName
         from shell_ddd.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
@@ -368,7 +405,7 @@ class TestSqlAuditPublisher:
 
         pub = SqlAuditPublisher(session_factory)
         events = [
-            TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("audit-task"), now=datetime(2026, 1, 1, tzinfo=UTC)),
+            TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("audit-task"), now=datetime(2026, 1, 1, tzinfo=UTC)),
             WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="audit-task", now=datetime(2026, 1, 1, tzinfo=UTC)),
         ]
         await pub.publish(events)
@@ -377,7 +414,7 @@ class TestSqlAuditPublisher:
             rows = (await session.execute(select(AuditEventModel))).scalars().all()
 
         types = {r.event_type for r in rows}
-        assert "TaskImported" in types
+        assert "TaskCreated" in types
         assert "WorkflowStarted" in types
 
     async def test_empty_events_writes_nothing(
@@ -411,19 +448,19 @@ class TestSqlOutboxPublisher:
     ) -> None:
         from sqlalchemy import select
 
-        from shell_ddd.domain.events.events import TaskImported
+        from shell_ddd.domain.events.events import TaskCreated
         from shell_ddd.domain.value_objects.ids import TaskId
         from shell_ddd.domain.value_objects.task_name import TaskName
         from shell_ddd.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
         from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 
         pub = SqlOutboxPublisher(session_factory)
-        events = [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("ob-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
+        events = [TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("ob-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
         await pub.publish(events)
 
         async with session_factory() as session:
             rows = (await session.execute(select(OutboxEventModel))).scalars().all()
-        assert any(r.event_type == "TaskImported" for r in rows)
+        assert any(r.event_type == "TaskCreated" for r in rows)
         assert all(r.published_at is None for r in rows)
 
     async def test_empty_publish_noop(
@@ -482,7 +519,7 @@ class TestOutboxRelay:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell_ddd.domain.events.events import TaskImported
+        from shell_ddd.domain.events.events import TaskCreated
         from shell_ddd.domain.value_objects.ids import TaskId
         from shell_ddd.domain.value_objects.task_name import TaskName
         from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
@@ -491,7 +528,7 @@ class TestOutboxRelay:
 
         outbox_pub = SqlOutboxPublisher(session_factory)
         await outbox_pub.publish(
-            [TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("idm-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
+            [TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("idm-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
         )
 
         downstream = FakeEventPublisher()
@@ -530,7 +567,7 @@ class TestTransactionalOutbox:
             rows = (
                 await session.execute(
                     select(OutboxEventModel).where(
-                        OutboxEventModel.event_type == "TaskImported"
+                        OutboxEventModel.event_type == "TaskCreated"
                     )
                 )
             ).scalars().all()

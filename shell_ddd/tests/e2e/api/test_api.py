@@ -75,13 +75,48 @@ class TestWorkflowsRouter:
         md.write_text("# WF Task", encoding="utf-8")
         yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
-        app = await _make_app(tmp_path)
+        db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
+        core_container = await ApplicationFactory(database_url=db_url).build()
+        from shell_ddd.framework.api.app import create_app
+
+        app = create_app(core_container)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             # import task first
             await client.post("/tasks/import", json={
                 "task_name": "wf_task",
                 "md_path": str(md),
             })
+
+            # Attach a single-node Graph for the imported task so that
+            # StartWorkflowHandler can anchor the cursor.
+            from shell_ddd.domain.entities.graph import Graph, GraphNode
+            from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+            from shell_ddd.domain.value_objects.mode import Mode
+            from shell_ddd.domain.value_objects.task_name import TaskName
+
+            uow_factory = core_container.uow_factory()
+            async with uow_factory as uow:
+                task = await uow.tasks.get_current_by_name(TaskName("wf_task"))
+                assert task is not None
+                graph = Graph(
+                    id=GraphId.generate(),
+                    task_id=task.id,
+                    template_graph_id=TemplateGraphId("tpl"),
+                    raw_dict={},
+                    nodes=[
+                        GraphNode(
+                            id=NodeId("wf_task-node-0"),
+                            position=0,
+                            node_dir="/fake/wf_task-0",
+                            mode=Mode("agent"),
+                            role="agent",
+                            node_type="agent",
+                        )
+                    ],
+                )
+                await uow.graphs.save(graph)
+                await uow.commit()
+
             # start workflow
             resp = await client.post("/workflows", json={"task_name": "wf_task"})
         assert resp.status_code == 201

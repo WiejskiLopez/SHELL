@@ -24,29 +24,15 @@ if TYPE_CHECKING:
 
 
 def task_to_dto(task: Task) -> TaskDto:
-    nodes: list[GraphNodeDto] = []
-    if task.graph:
-        nodes = [
-            GraphNodeDto(
-                id=n.id.value,
-                position=n.position,
-                node_dir=n.node_dir,
-                mode=n.mode.value,
-                role=n.role,
-                node_type=n.node_type,
-                model=n.model,
-                command=n.command,
-            )
-            for n in task.graph.nodes
-        ]
     return TaskDto(
         id=task.id.value,
         name=task.name.value,
-        version=task.version,
+        version=task.version.value,
         hash=task.hash.value,
         is_current=task.is_current,
         created_at=task.created_at,
-        graph_nodes=nodes,
+        body=task.body.value,
+        graph_nodes=[],
     )
 
 

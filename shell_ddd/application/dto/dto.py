@@ -16,8 +16,7 @@ class TaskDto:
     hash: str
     is_current: bool
     created_at: datetime
-    body_md: str
-    template_graph_id: str
+    body: str
     graph_nodes: list[GraphNodeDto] = field(default_factory=list)
 
 

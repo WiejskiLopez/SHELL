@@ -6,7 +6,7 @@ import logging
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from shell_ddd.domain.events.events import TaskImported, WorkflowStarted
+from shell_ddd.domain.events.events import TaskCreated, WorkflowStarted
 from shell_ddd.domain.value_objects.ids import TaskId, WorkflowId
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
@@ -24,8 +24,8 @@ from shell_ddd.infrastructure.logging.stdlib_logger import (
 # ---------------------------------------------------------------------------
 
 
-def _task_imported() -> TaskImported:
-    return TaskImported.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
+def _task_imported() -> TaskCreated:
+    return TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
 
 
 def _workflow_started() -> WorkflowStarted:
@@ -131,7 +131,7 @@ class TestLoggingEventPublisher:
         event = _task_imported()
         await pub.publish([event])
         call_kwargs = spy.info.call_args
-        assert call_kwargs.kwargs.get("event_type") == "TaskImported"
+        assert call_kwargs.kwargs.get("event_type") == "TaskCreated"
 
     async def test_empty_events_no_log(self) -> None:
         spy = MagicMock()

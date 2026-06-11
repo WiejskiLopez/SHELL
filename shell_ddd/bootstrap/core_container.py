@@ -36,7 +36,12 @@ from shell_ddd.application.command_handlers.save_prompt_handler import SavePromp
 from shell_ddd.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 
 from shell_ddd.application.event_handlers.event_handlers import ArchiveOnDeliveredHandler, LogAuditHandler
-from shell_ddd.application.event_handlers.workflow_execution_worker import WorkflowExecutionWorker
+from shell_ddd.application.event_handlers.build_graph_on_task_created import BuildGraphOnTaskCreated
+from shell_ddd.application.event_handlers.node_execution_worker import NodeExecutionWorker
+
+from shell_ddd.domain.services.compensation_handler import NoOpCompensationHandler
+from shell_ddd.domain.services.node_execution_policy import FailFastPolicy
+from shell_ddd.domain.services.node_navigator import LinearNodeNavigator
 
 from shell_ddd.application.query_handlers.query_handlers import (
     GetCurrentTaskHandler,
@@ -98,12 +103,22 @@ class CoreContainer(containers.DeclarativeContainer):
     workspace_factory = providers.Factory(NodeWorkspaceFs)
     runner_factory = providers.Factory(SubprocessNodeProcessRunner)
 
+    # Strategie domenowe pluginowane do procesu wykonawczego (Process Manager).
+    node_navigator_factory = providers.Singleton(LinearNodeNavigator)
+    node_execution_policy_factory = providers.Singleton(FailFastPolicy)
+    compensation_handler_factory = providers.Singleton(NoOpCompensationHandler)
+
     # 3. Command Handlers (Każde odwołanie to NOWA instancja i nowy UoW)
     import_task_handler_factory = providers.Factory(
         ImportTaskHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, task_loader=task_loader_factory, event_publisher=event_publisher, logger=stdlib_logger
     )
     start_workflow_handler_factory = providers.Factory(
-        StartWorkflowHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, event_publisher=event_publisher
+        StartWorkflowHandler,
+        uow=uow_factory,
+        clock=clock_factory,
+        id_gen=id_gen_factory,
+        event_publisher=event_publisher,
+        navigator=node_navigator_factory,
     )
     route_envelopes_handler_factory = providers.Factory(
         RouteEnvelopesHandler, uow=uow_factory, clock=clock_factory, event_publisher=event_publisher, max_step=config.max_step
@@ -125,10 +140,24 @@ class CoreContainer(containers.DeclarativeContainer):
         BootstrapRunnerConfigHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory
     )
     run_tasker_workflow_handler_factory = providers.Factory(
-        RunTaskerWorkflowHandler, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, event_publisher=event_publisher
+        RunTaskerWorkflowHandler,
+        uow=uow_factory,
+        clock=clock_factory,
+        id_gen=id_gen_factory,
+        event_publisher=event_publisher,
+        navigator=node_navigator_factory,
     )
-    workflow_execution_worker_factory = providers.Factory(
-        WorkflowExecutionWorker, uow=uow_factory, clock=clock_factory, id_gen=id_gen_factory, runner=runner_factory, event_publisher=event_publisher
+    node_execution_worker_factory = providers.Factory(
+        NodeExecutionWorker,
+        uow=uow_factory,
+        clock=clock_factory,
+        id_gen=id_gen_factory,
+        runner=runner_factory,
+        event_publisher=event_publisher,
+        logger=stdlib_logger,
+        navigator=node_navigator_factory,
+        policy=node_execution_policy_factory,
+        compensation=compensation_handler_factory,
     )
 
     # 4. Query Handlers (Factories)
@@ -148,4 +177,12 @@ class CoreContainer(containers.DeclarativeContainer):
     )
     log_audit_handler_factory = providers.Factory(
         LogAuditHandler, logger=stdlib_logger
+    )
+    build_graph_on_task_created_factory = providers.Factory(
+        BuildGraphOnTaskCreated,
+        uow=uow_factory,
+        clock=clock_factory,
+        id_gen=id_gen_factory,
+        event_publisher=event_publisher,
+        logger=stdlib_logger,
     )

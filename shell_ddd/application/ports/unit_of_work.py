@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from shell_ddd.domain.events.events import DomainEvent
     from shell_ddd.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository
-    from shell_ddd.domain.repositories.node_result_repository import NodeResultRepository
+    from shell_ddd.domain.repositories.graph_repository import GraphRepository
     from shell_ddd.domain.repositories.prompt_repository import PromptRepository
     from shell_ddd.domain.repositories.rag_repository import RagDocumentRepository
     from shell_ddd.domain.repositories.runner_config_repository import RunnerConfigRepository
@@ -16,10 +16,10 @@ if TYPE_CHECKING:
 
 class UnitOfWork(Protocol):
     tasks: TaskRepository
+    graphs: GraphRepository
     workflows: WorkflowRepository
     envelopes: EnvelopeRepository
     prompts: PromptRepository
-    node_results: NodeResultRepository
     runner_configs: RunnerConfigRepository
     envelope_archive: EnvelopeArchive
     rag_documents: RagDocumentRepository

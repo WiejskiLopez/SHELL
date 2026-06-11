@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from shell_ddd.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository
-from shell_ddd.domain.repositories.node_result_repository import NodeResultRepository
 from shell_ddd.domain.repositories.prompt_repository import PromptRepository
 from shell_ddd.domain.repositories.rag_repository import RagDocumentRepository
 from shell_ddd.domain.repositories.runner_config_repository import RunnerConfigRepository
@@ -14,7 +13,6 @@ from shell_ddd.domain.repositories.workflow_repository import WorkflowRepository
 __all__ = [
     "EnvelopeArchive",
     "EnvelopeRepository",
-    "NodeResultRepository",
     "PromptRepository",
     "RagDocumentRepository",
     "RunnerConfigRepository",
@@ -22,4 +20,4 @@ __all__ = [
     "TaskRepository",
     "TemplateGraphRepository",
     "WorkflowRepository",
-]
+]

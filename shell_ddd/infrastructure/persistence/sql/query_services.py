@@ -52,9 +52,29 @@ class SqlQueryServices:
             if not model:
                 return None
 
-            graph_stmt = select(GraphModel).where(GraphModel.task_id == model.id)
+            graph_stmt = (
+                select(GraphModel)
+                .options(selectinload(GraphModel.nodes))
+                .where(GraphModel.task_id == model.id)
+            )
             graph_res = await session.execute(graph_stmt)
             graph_model = graph_res.scalar_one_or_none()
+
+            graph_nodes: list[GraphNodeDto] = []
+            if graph_model is not None:
+                graph_nodes = [
+                    GraphNodeDto(
+                        id=n.id,
+                        position=n.position,
+                        node_dir=n.node_dir,
+                        mode=n.mode,
+                        role=n.role,
+                        node_type=n.node_type,
+                        model=n.model,
+                        command=n.command,
+                    )
+                    for n in graph_model.nodes
+                ]
 
             return TaskDto(
                 id=model.id,
@@ -63,9 +83,8 @@ class SqlQueryServices:
                 hash=model.hash,
                 is_current=model.is_current,
                 created_at=model.created_at,
-                body_md=model.body_md,
-                template_graph_id=model.template_graph_id,
-                graph_nodes=self._map_graph_nodes(graph_model) if graph_model else []
+                body=model.body,
+                graph_nodes=graph_nodes,
             )
 
     async def get_current_task(self, name: str) -> TaskDto | None:
@@ -89,10 +108,15 @@ class SqlQueryServices:
                 task_name=model.task_name,
                 status=model.status,
                 created_at=model.created_at,
-                node_states=[
-                    NodeStateDto(id=n.node_id, status=n.status)
+                node_states={
+                    n.node_id: NodeStateDto(
+                        node_id=n.node_id,
+                        status=n.status,
+                        step=n.step,
+                        updated_at=n.updated_at,
+                    )
                     for n in model.node_states
-                ],
+                },
             )
 
     # --- EnvelopeQueryService ---
@@ -118,12 +142,16 @@ class SqlQueryServices:
     # --- NodeResultQueryService ---
     async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
         async with self._session_factory() as session:
-            stmt = select(NodeResultModel).where(
-                NodeResultModel.node_id == node_id,
-                NodeResultModel.workflow_id == workflow_id
+            stmt = (
+                select(WorkflowModel)
+                .options(selectinload(WorkflowModel.node_results))
+                .where(WorkflowModel.id == workflow_id)
             )
             res = await session.execute(stmt)
-            m = res.scalar_one_or_none()
+            wf = res.scalar_one_or_none()
+            if not wf:
+                return None
+            m = next((nr for nr in wf.node_results if nr.node_id == node_id), None)
             if not m:
                 return None
             return NodeResultDto(

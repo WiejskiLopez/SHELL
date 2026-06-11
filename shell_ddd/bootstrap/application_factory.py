@@ -9,10 +9,12 @@ from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
 from shell_ddd.domain.events.events import (
     EnvelopeRouted,
     EnvelopeExpired,
+    NodeAdvanced,
     NodeCompleted,
+    NodeExecutionRequested,
     NodeFailed,
-    TaskImported,
-    WorkflowExecutionRequested,
+    NodeStarted,
+    TaskCreated,
     WorkflowStarted,
     WorkflowCompleted,
     WorkflowFailed,
@@ -65,10 +67,13 @@ class ApplicationFactory:
         e_bus.subscribe(EnvelopeExpired, core_container.log_audit_handler_factory)
         e_bus.subscribe(NodeCompleted, core_container.log_audit_handler_factory)
         e_bus.subscribe(NodeFailed, core_container.log_audit_handler_factory)
-        e_bus.subscribe(TaskImported, core_container.log_audit_handler_factory)
+        e_bus.subscribe(TaskCreated, core_container.log_audit_handler_factory)
+        e_bus.subscribe(TaskCreated, core_container.build_graph_on_task_created_factory)
         e_bus.subscribe(WorkflowStarted, core_container.log_audit_handler_factory)
         e_bus.subscribe(WorkflowCompleted, core_container.log_audit_handler_factory)
         e_bus.subscribe(WorkflowFailed, core_container.log_audit_handler_factory)
-        e_bus.subscribe(WorkflowExecutionRequested, core_container.workflow_execution_worker_factory)
+        e_bus.subscribe(NodeStarted, core_container.log_audit_handler_factory)
+        e_bus.subscribe(NodeAdvanced, core_container.log_audit_handler_factory)
+        e_bus.subscribe(NodeExecutionRequested, core_container.node_execution_worker_factory)
 
         return core_container

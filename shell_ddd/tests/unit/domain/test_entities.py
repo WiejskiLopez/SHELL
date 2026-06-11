@@ -16,41 +16,60 @@ from shell_ddd.domain.value_objects.ids import (
     TaskId,
     WorkflowId, CorrelationId,
 )
+from shell_ddd.domain.value_objects.task_body import TaskBody
 from shell_ddd.domain.value_objects.task_name import TaskName
+from shell_ddd.domain.value_objects.version import Version
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 
 class TestTask:
-    def test_new_creates_task(self) -> None:
-        task = Task.new(
+    def test_create_yields_initial_task(self) -> None:
+        task = Task.create(
             id_=TaskId.generate(),
             name=TaskName("my-task"),
-            body_md="# Task",
-            template_graph_id="template_graph_id",
+            body=TaskBody("# Task"),
             now=_NOW,
         )
         assert task.is_current is True
-        assert task.version == 1
+        assert task.version == Version.initial()
         assert len(task.hash.value) == 64
 
-    def test_hash_changes_with_content(self) -> None:
-        base_id = TaskId.generate()
-        t1 = Task.new(
-            id_=base_id,
-            name=TaskName("t"),
-            body_md="a",
-            template_graph_id="template_graph_id",
+    def test_create_emits_task_created_event(self) -> None:
+        task = Task.create(
+            id_=TaskId.generate(),
+            name=TaskName("my-task"),
+            body=TaskBody("# Task"),
             now=_NOW,
         )
-        t2 = Task.new(
+        events = task.pull_events()
+        assert len(events) == 1
+        assert type(events[0]).__name__ == "TaskCreated"
+
+    def test_hash_changes_with_content(self) -> None:
+        t1 = Task.create(
             id_=TaskId.generate(),
             name=TaskName("t"),
-            body_md="b",
-            template_graph_id="template_graph_id",
+            body=TaskBody("a"),
+            now=_NOW,
+        )
+        t2 = Task.create(
+            id_=TaskId.generate(),
+            name=TaskName("t"),
+            body=TaskBody("b"),
             now=_NOW,
         )
         assert t1.hash != t2.hash
+
+    def test_supersede_marks_not_current(self) -> None:
+        task = Task.create(
+            id_=TaskId.generate(),
+            name=TaskName("t"),
+            body=TaskBody("a"),
+            now=_NOW,
+        )
+        task.supersede()
+        assert task.is_current is False
 
 
 class TestWorkflow:
@@ -58,10 +77,19 @@ class TestWorkflow:
         wf = Workflow.new(id_=WorkflowId.generate(), task_name="my-task", now=_NOW)
         assert wf.status.value == "idle"
 
-    def test_start_sets_running(self) -> None:
+    def test_start_at_sets_running(self) -> None:
+        from shell_ddd.domain.value_objects.workflow_execution_context import (
+            WorkflowExecutionContext,
+        )
+
         wf = Workflow.new(id_=WorkflowId.generate(), task_name="t", now=_NOW)
-        wf.start(now=_NOW)
+        wf.start_at(
+            first_node_id=NodeId("n1"),
+            context=WorkflowExecutionContext.empty(),
+            now=_NOW,
+        )
         assert wf.status.value == "running"
+        assert wf.cursor.current_node_id == NodeId("n1")
 
     def test_update_node_state(self) -> None:
         from shell_ddd.domain.value_objects.status import Status

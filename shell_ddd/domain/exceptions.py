@@ -54,3 +54,23 @@ class MaxStepExceeded(DomainError):
 
 class InvalidNodeMode(DomainError):
     """Raised when an unknown node mode is encountered."""
+
+
+class WorkflowHasNoNodes(DomainError):
+    """Raised when a workflow is started against a Task whose Graph is empty."""
+
+    def __init__(self, task_name: str) -> None:
+        super().__init__(f"Workflow has no nodes to execute (task={task_name!r})")
+
+
+class WorkflowConcurrentlyModified(DomainError):
+    """Raised when an optimistic-locking save fails (version mismatch)."""
+
+    def __init__(self, workflow_id: str) -> None:
+        super().__init__(
+            f"Workflow was concurrently modified: id={workflow_id!r}"
+        )
+
+
+class InvalidWorkflowTransition(DomainError):
+    """Raised when a state-machine transition on Workflow is forbidden."""

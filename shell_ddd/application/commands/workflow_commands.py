@@ -16,4 +16,3 @@ class RouteEnvelopesCommand:
 class RunTaskerWorkflowCommand:
     task_name: str
     work_dir: str
-    max_parallel: int = 4

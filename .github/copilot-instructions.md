@@ -129,7 +129,9 @@ DTO / Konfiguracja / Modele Requestów: Do walidacji danych wejściowych na brze
 3. Bezwzględne Zakazy Projektowe (Antywzorce)
 Zabrania się wprowadzania do kodu shell_ddd następujących mechanizmów (naruszenie skutkuje odrzuceniem kodu):
 
-Zakaz sztucznych właściwości: NIE używamy konwencji prywatnych slotów połączonych z publicznymi property z podkreśleniem na końcu (np. slot _name + property name_). Stosujemy bezpośredni, czysty dostęp do pól dataclass.
+Zakaz sztucznych właściwości: NIE używamy konwencji prywatnych slotów połączonych z publicznymi property z podkreśleniem na końcu (np. slot _name + property name_). Stosujemy bezpośredni, czysty dostęp do pól dataclass dla **Value Objects, Commands, Queries, Domain Events, DTO oraz BaseSettings**.
+
+Wyjątek (DDD primitives): klasy dziedziczące po `shell_ddd.domain.entities.base.Entity` lub `shell_ddd.domain.entities.base.AggregateRoot` są pisane jako jawne klasy z `__slots__` (NIE jako dataclass) i używają wzorca prywatne pole `_pole` + publiczne `@property pole`. Wynika to z natury encji DDD: tożsamość niezmienna po konstrukcji, stan pól mutowalny TYLKO przez metody domenowe wyrażające reguły biznesowe (np. `task.supersede()`, `workflow.start()`). Bezpośredni publiczny dostęp do pól dataclass byłby tutaj antywzorcem (encja straciłaby kontrolę nad swoimi inwariantami). Wzorzec ten dotyczy WYŁĄCZNIE encji i agregatów.
 
 Zakaz rozproszonych plików funkcyjnych: NIE tworzymy katalogów strukturalnych typu internal/_init_*.py czy plików _assert_*.py zawierających pojedyncze funkcje. Kod grupujemy w czytelne moduły domenowe.
 

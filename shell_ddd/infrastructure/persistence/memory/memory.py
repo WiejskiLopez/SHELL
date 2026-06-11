@@ -9,6 +9,7 @@ from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
+    GraphId,
     MessageId,
     NodeId,
     NodeResultId,
@@ -23,6 +24,7 @@ from shell_ddd.domain.value_objects.ids import (
 
 if TYPE_CHECKING:
     from shell_ddd.domain.entities.envelope import Envelope
+    from shell_ddd.domain.entities.graph import Graph
     from shell_ddd.domain.entities.node_result import NodeResult
     from shell_ddd.domain.entities.prompt import Prompt
     from shell_ddd.domain.entities.rag_document import RagChunk, RagDocument
@@ -69,15 +71,56 @@ class InMemoryTaskRepository:
         return [t for t in self._store.values() if t.is_current]
 
 
+class InMemoryGraphRepository:
+    def __init__(self) -> None:
+        self._store: dict[str, "Graph"] = {}
+
+    async def get_by_id(self, graph_id: GraphId) -> "Graph | None":
+        return self._store.get(graph_id.value)
+
+    async def get_by_task_id(self, task_id: TaskId) -> "Graph | None":
+        for g in self._store.values():
+            if g.task_id == task_id:
+                return g
+        return None
+
+    async def save(self, graph: "Graph") -> None:
+        self._store[graph.id.value] = graph
+
+
 class InMemoryWorkflowRepository:
+    """In-memory ``WorkflowRepository`` with optimistic concurrency control.
+
+    Mirrors :class:`SqlWorkflowRepository` semantics so unit tests behave the
+    same way as integration tests: ``save`` bumps ``Workflow.version`` and
+    raises :class:`WorkflowConcurrentlyModified` if the persisted snapshot was
+    written to by another caller. The persisted version is tracked
+    independently of the in-memory aggregate to simulate the database row.
+    """
+
     def __init__(self) -> None:
         self._store: dict[str, Workflow] = {}
+        self._persisted_versions: dict[str, int] = {}
 
     async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None:
         return self._store.get(workflow_id.value)
 
     async def save(self, workflow: Workflow) -> None:
+        from shell_ddd.domain.exceptions import WorkflowConcurrentlyModified
+
+        existing_version = self._persisted_versions.get(workflow.id.value)
+        if existing_version is None:
+            workflow.version = max(workflow.version, 0) + 1
+            self._store[workflow.id.value] = workflow
+            self._persisted_versions[workflow.id.value] = workflow.version
+            return
+
+        if existing_version != workflow.version:
+            raise WorkflowConcurrentlyModified(workflow.id.value)
+
+        workflow.version = workflow.version + 1
         self._store[workflow.id.value] = workflow
+        self._persisted_versions[workflow.id.value] = workflow.version
 
 
 class InMemoryEnvelopeRepository:
@@ -137,25 +180,6 @@ class InMemoryPromptRepository:
 
     async def save(self, prompt: Prompt) -> None:
         self._store[prompt.id.value] = prompt
-
-
-class InMemoryNodeResultRepository:
-    def __init__(self) -> None:
-        self._store: dict[str, NodeResult] = {}
-
-    async def get_by_id(self, result_id: NodeResultId) -> NodeResult | None:
-        return self._store.get(result_id.value)
-
-    async def get_by_node_and_workflow(
-            self, node_id: NodeId, workflow_id: WorkflowId
-    ) -> NodeResult | None:
-        for r in self._store.values():
-            if r.node_id == node_id and r.workflow_id == workflow_id:
-                return r
-        return None
-
-    async def save(self, result: NodeResult) -> None:
-        self._store[result.id.value] = result
 
 
 class InMemoryRunnerConfigRepository:
@@ -240,10 +264,10 @@ class InMemorySessionRepository:
 class InMemoryUnitOfWork:
     def __init__(self) -> None:
         self.tasks = InMemoryTaskRepository()
+        self.graphs = InMemoryGraphRepository()
         self.workflows = InMemoryWorkflowRepository()
         self.envelopes = InMemoryEnvelopeRepository()
         self.prompts = InMemoryPromptRepository()
-        self.node_results = InMemoryNodeResultRepository()
         self.runner_configs = InMemoryRunnerConfigRepository()
         self.envelope_archive = InMemoryEnvelopeArchive()
         self.rag_documents = InMemoryRagDocumentRepository()
@@ -336,6 +360,18 @@ class FakeIdGenerator:
     def new_message_id(self) -> MessageId:
         return MessageId(self._next())
 
+    def new_template_graph_id(self) -> TemplateGraphId:
+        return TemplateGraphId(self._next())
+
+    def new_template_graph_node_id(self) -> TemplateGraphNodeId:
+        return TemplateGraphNodeId(self._next())
+
+    def new_graph_id(self) -> GraphId:
+        return GraphId(self._next())
+
+    def new_node_id(self) -> NodeId:
+        return NodeId(self._next())
+
 
 class FakeEventPublisher:
     def __init__(self) -> None:
@@ -421,14 +457,38 @@ class InMemoryQueryServices:
 
     async def get_task_by_name(self, name: str) -> TaskDto | None:
         # Przeszukujemy magazyn zadań w repozytorium in-memory
-        task = next((t for t in self._uow.tasks._store.values() if t.name == name), None)
+        task = next(
+            (t for t in self._uow.tasks._store.values() if t.name.value == name),
+            None,
+        )
         if not task:
             return None
+        graph = await self._uow.graphs.get_by_task_id(task.id)
+        graph_nodes = []
+        if graph is not None:
+            from shell_ddd.application.dto.dto import GraphNodeDto
+            graph_nodes = [
+                GraphNodeDto(
+                    id=n.id.value,
+                    position=n.position,
+                    node_dir=n.node_dir,
+                    mode=n.mode.value,
+                    role=n.role,
+                    node_type=n.node_type,
+                    model=n.model,
+                    command=n.command,
+                )
+                for n in graph.nodes
+            ]
         return TaskDto(
-            id=str(task.id), name=str(task.name),
-            body_md=task.body_md,
-            template_graph_id=task.template_graph_id,
-            graph=task.graph.to_dict()
+            id=task.id.value,
+            name=task.name.value,
+            version=task.version.value,
+            hash=task.hash.value,
+            is_current=task.is_current,
+            created_at=task.created_at,
+            body=task.body.value,
+            graph_nodes=graph_nodes,
         )
 
     async def get_current_task(self, name: str) -> TaskDto | None:
@@ -474,17 +534,10 @@ class InMemoryQueryServices:
         ]
 
     async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
-
-        # 1. Debugujemy co mamy w "bazie" (memory)
-        all_results = list(self._uow.node_results._store.values())  # palysiewicz
-        logger.debug(f"DEBUG: W _store jest {len(all_results)} elementów.")
-        for r in all_results:  # plysiewicz
-            logger.debug(
-                f"DEBUG: Sprawdzam rekord: ID={r.id}, node_id={r.node_id} (typ: {type(r.node_id)}), workflow_id={r.workflow_id} (typ: {type(r.workflow_id)})")
-        res = next((
-            r for r in self._uow.node_results._store.values()
-            if r.node_id.value == node_id and r.workflow_id.value == workflow_id
-        ), None)
+        wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
+        if wf is None:
+            return None
+        res = wf.node_results.get(node_id)
         if not res:
             return None
         return NodeResultDto(

@@ -11,7 +11,7 @@ from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 from shell_ddd.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
-    SqlNodeResultRepository,
+    SqlGraphRepository,
     SqlPromptRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
@@ -52,10 +52,10 @@ class SqlAlchemyUnitOfWork:
         self._session: AsyncSession = self._factory()
         self._staged_events = []
         self.tasks = SqlTaskRepository(self._session)
+        self.graphs = SqlGraphRepository(self._session)
         self.workflows = SqlWorkflowRepository(self._session)
         self.envelopes = SqlEnvelopeRepository(self._session)
         self.prompts = SqlPromptRepository(self._session)
-        self.node_results = SqlNodeResultRepository(self._session)
         self.runner_configs = SqlRunnerConfigRepository(self._session)
         self.envelope_archive: SqlEnvelopeArchiveStub = SqlEnvelopeArchiveStub()
         self.rag_documents = SqlRagDocumentRepository(self._session)

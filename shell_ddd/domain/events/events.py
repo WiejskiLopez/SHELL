@@ -8,30 +8,55 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from shell_ddd.domain.value_objects.ids import (
         EnvelopeId,
+        GraphId,
         NodeId,
         NodeResultId,
         TaskId,
+        TemplateGraphId,
         WorkflowId,
     )
     from shell_ddd.domain.value_objects.task_name import TaskName
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class DomainEvent:
     occurred_at: datetime
+    schema_version: int = 1
 
 
 @dataclass(frozen=True, slots=True)
-class TaskImported(DomainEvent):
+class TaskCreated(DomainEvent):
     task_id: TaskId
     task_name: TaskName
 
     @classmethod
-    def now(cls, task_id: TaskId, task_name: TaskName, now: datetime) -> TaskImported:
+    def now(cls, task_id: TaskId, task_name: TaskName, now: datetime) -> TaskCreated:
         return cls(
             occurred_at=now,
             task_id=task_id,
             task_name=task_name,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class GraphBuilt(DomainEvent):
+    graph_id: GraphId
+    task_id: TaskId
+    template_graph_id: TemplateGraphId
+
+    @classmethod
+    def now(
+        cls,
+        graph_id: GraphId,
+        task_id: TaskId,
+        template_graph_id: TemplateGraphId,
+        now: datetime,
+    ) -> GraphBuilt:
+        return cls(
+            occurred_at=now,
+            graph_id=graph_id,
+            task_id=task_id,
+            template_graph_id=template_graph_id,
         )
 
 
@@ -140,31 +165,72 @@ class WorkflowFailed(DomainEvent):
 
 
 @dataclass(frozen=True, slots=True)
-class WorkflowExecutionRequested(DomainEvent):
-    """Fired by RunTaskerWorkflowHandler after persisting the RUNNING workflow.
+class NodeExecutionRequested(DomainEvent):
+    """Request to execute exactly one node identified by ``node_id``.
 
-    A background WorkflowExecutionWorker subscribes to this event and performs
-    the actual subprocess orchestration without blocking the command handler.
+    Emitted by the Workflow aggregate (start_at / advance_to) and dispatched
+    via the EventBus to ``NodeExecutionWorker``. The worker is expected to be
+    idempotent: it must compare the request against ``Workflow.cursor`` and
+    no-op if they do not match (re-delivery / out-of-order delivery).
     """
 
     workflow_id: WorkflowId
-    task_name: str
-    work_dir: str
-    max_parallel: int
+    node_id: NodeId
 
     @classmethod
     def now(
         cls,
         workflow_id: WorkflowId,
-        task_name: str,
-        work_dir: str,
-        max_parallel: int,
+        node_id: NodeId,
         now: datetime,
-    ) -> WorkflowExecutionRequested:
+    ) -> NodeExecutionRequested:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            task_name=task_name,
-            work_dir=work_dir,
-            max_parallel=max_parallel,
+            node_id=node_id,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class NodeStarted(DomainEvent):
+    """A node became the workflow cursor and is now ``running``."""
+
+    workflow_id: WorkflowId
+    node_id: NodeId
+
+    @classmethod
+    def now(
+        cls,
+        workflow_id: WorkflowId,
+        node_id: NodeId,
+        now: datetime,
+    ) -> NodeStarted:
+        return cls(
+            occurred_at=now,
+            workflow_id=workflow_id,
+            node_id=node_id,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class NodeAdvanced(DomainEvent):
+    """Workflow cursor moved from one node to another (audit trail)."""
+
+    workflow_id: WorkflowId
+    from_node_id: NodeId
+    to_node_id: NodeId
+
+    @classmethod
+    def now(
+        cls,
+        workflow_id: WorkflowId,
+        from_node_id: NodeId,
+        to_node_id: NodeId,
+        now: datetime,
+    ) -> NodeAdvanced:
+        return cls(
+            occurred_at=now,
+            workflow_id=workflow_id,
+            from_node_id=from_node_id,
+            to_node_id=to_node_id,
         )

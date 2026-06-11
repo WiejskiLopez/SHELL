@@ -334,12 +334,6 @@ def _upsert_task(driver: SqliteDriver, work_dir: str) -> int:
         task_id = rows[0]["task_id"]
         print(f"  [SKIP] task '{_TASK_NAME}' unchanged (task_id={task_id})")
         return task_id
-
-    import yaml
-    parsed = yaml.safe_load(body_yaml_raw) or {}
-    yaml_dict_json = json.dumps(parsed, ensure_ascii=False)
-    graph_entries = parsed.get("graph", []) or []
-
     next_version = 1
     if rows:
         next_version = driver.query(

@@ -18,14 +18,9 @@ class TaskModel(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     hash: Mapped[str] = mapped_column(String(64), nullable=False)
-    body_md: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-
-    graph: Mapped[GraphModel | None] = relationship(
-        "GraphModel", back_populates="task", uselist=False, cascade="all, delete-orphan"
-    )
 
 
 class GraphModel(Base):
@@ -33,11 +28,11 @@ class GraphModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     task_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("task.id", ondelete="CASCADE"), nullable=False, index=True
+        String(36), ForeignKey("task.id", ondelete="CASCADE"), nullable=False, index=True, unique=True
     )
+    template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     raw_dict: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
-    task: Mapped[TaskModel] = relationship("TaskModel", back_populates="graph")
     nodes: Mapped[list[GraphNodeModel]] = relationship(
         "GraphNodeModel", back_populates="graph", cascade="all, delete-orphan"
     )
@@ -78,10 +73,21 @@ class WorkflowModel(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     task_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
+    current_node_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None, index=True
+    )
+    work_dir: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    correlation_id: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     node_states: Mapped[list[NodeStateModel]] = relationship(
         "NodeStateModel", back_populates="workflow", cascade="all, delete-orphan"
+    )
+    node_results: Mapped[list[NodeResultModel]] = relationship(
+        "NodeResultModel",
+        primaryjoin="WorkflowModel.id == foreign(NodeResultModel.workflow_id)",
+        cascade="all, delete-orphan",
     )
 
 

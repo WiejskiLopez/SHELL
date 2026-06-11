@@ -25,7 +25,7 @@ from shell_ddd.application.query_handlers.query_handlers import (
     GetPromptHandler,
     GetWorkflowHandler,
 )
-from shell_ddd.domain.events.events import TaskImported, WorkflowStarted
+from shell_ddd.domain.events.events import TaskCreated, WorkflowStarted
 from shell_ddd.domain.exceptions import TaskNotFound
 from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell_ddd.infrastructure.persistence.memory.memory import (
@@ -99,7 +99,7 @@ class TestImportTaskHandler:
 
         assert task_id
         assert len(events.published) == 1
-        assert isinstance(events.published[0], TaskImported)
+        assert isinstance(events.published[0], TaskCreated)
 
     async def test_task_saved_as_current(
             self,
@@ -167,6 +167,37 @@ class TestStartWorkflowHandler:
         pub = FakeEventPublisher()
         h = ImportTaskHandler(uow, clock, id_gen, task_loader, pub, FakeLogger())
         await h.handle(ImportTaskCommand("t.md", "my-task"))
+        await self._attach_graph(uow, "my-task")
+
+    @staticmethod
+    async def _attach_graph(uow: InMemoryUnitOfWork, task_name: str) -> None:
+        """Persist a single-node Graph for the imported task so that
+        ``StartWorkflowHandler`` can anchor the cursor on a first node.
+        """
+        from shell_ddd.domain.entities.graph import Graph, GraphNode
+        from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+        from shell_ddd.domain.value_objects.mode import Mode
+        from shell_ddd.domain.value_objects.task_name import TaskName
+
+        task = await uow.tasks.get_current_by_name(TaskName(task_name))
+        assert task is not None
+        graph = Graph(
+            id=GraphId.generate(),
+            task_id=task.id,
+            template_graph_id=TemplateGraphId("tpl"),
+            raw_dict={},
+            nodes=[
+                GraphNode(
+                    id=NodeId(f"{task_name}-node-0"),
+                    position=0,
+                    node_dir=f"/fake/{task_name}-0",
+                    mode=Mode("agent"),
+                    role="agent",
+                    node_type="agent",
+                )
+            ],
+        )
+        uow.graphs._store[graph.id.value] = graph
 
     async def test_happy_path(
             self,
@@ -227,6 +258,11 @@ class TestSaveNodeResultHandler:
             events: FakeEventPublisher,
             queries: InMemoryQueryServices,
     ) -> None:
+        from shell_ddd.domain.entities.workflow import Workflow
+        from shell_ddd.domain.value_objects.ids import WorkflowId
+        wf = Workflow.new(id_=WorkflowId("wf-1"), task_name="t", now=clock.now())
+        uow.workflows._store["wf-1"] = wf
+
         handler = SaveNodeResultHandler(uow, clock, id_gen, events)
         result_id = await handler.handle(
             SaveNodeResultCommand(
@@ -239,12 +275,6 @@ class TestSaveNodeResultHandler:
         assert result_id
         q_handler = GetNodeResultHandler(queries)
         dto = await q_handler.handle(GetNodeResultQuery("node-1", "wf-1"))
-
-        if dto:
-            print(f"DEBUG: Znaleziono DTO: id={dto.id}, node_id={dto.node_id}, wf_id={dto.workflow_id}, stdout='{dto.stdout}'")
-        else:
-            print("DEBUG: dto jest None")
-        print(uow.node_results._store)
         assert dto is not None
         assert dto.stdout == "ok"
 

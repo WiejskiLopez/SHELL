@@ -46,6 +46,7 @@ class RouteEnvelopesHandler:
 
             pending = await uow.envelopes.list_pending(wf_id)
             task = await uow.tasks.get_current_by_name(TaskName(workflow.task_name))
+            graph = await uow.graphs.get_by_task_id(task.id) if task is not None else None
 
             now = self._clock.now()
             routed = 0
@@ -58,10 +59,10 @@ class RouteEnvelopesHandler:
                     uow.stage_events([EnvelopeExpired.now(envelope.id, envelope.workflow_id, now=now)])
                     continue
 
-                if task is not None and task.graph is not None:
+                if graph is not None:
                     try:
                         target_node_id = GraphRoutingService.resolve_target_node(
-                            task.graph,
+                            graph,
                             envelope.sender_node_id,
                             envelope.target_role or None,
                         )

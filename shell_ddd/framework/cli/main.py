@@ -119,17 +119,12 @@ async def _run_tasker(argv: Sequence[str]) -> int:
         return 1
 
     work_dir = ns.work_dir or os.getcwd()
-    try:
-        max_parallel = int(os.environ.get("SHELL_DDD_MAX_PARALLEL", "4"))
-    except ValueError:
-        max_parallel = 4
 
     database_url = _get_database_url()
     core_container = await ApplicationFactory(database_url=database_url).build()
     cmd = RunTaskerWorkflowCommand(
         task_name=task_name,
         work_dir=work_dir,
-        max_parallel=max_parallel,
     )
     try:
         workflow_id = await core_container.command_bus().dispatch(cmd)

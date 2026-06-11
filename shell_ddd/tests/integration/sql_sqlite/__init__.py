@@ -185,6 +185,14 @@ class TestSqlNodeResultRepository:
         events: FakeEventPublisher,
         session_factory: async_sessionmaker,
     ) -> None:
+        from shell_ddd.domain.entities.workflow import Workflow
+        from shell_ddd.domain.value_objects.ids import WorkflowId
+        async with uow as u:
+            await u.workflows.save(
+                Workflow.new(id_=WorkflowId("wf-sql-1"), task_name="t", now=clock.now())
+            )
+            await u.commit()
+
         handler = SaveNodeResultHandler(uow, clock, id_gen, events)
         await handler.handle(
             SaveNodeResultCommand(

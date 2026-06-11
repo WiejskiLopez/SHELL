@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell_ddd.domain.entities.node_result import NodeResult
-from shell_ddd.domain.events.events import NodeCompleted, NodeFailed
 from shell_ddd.domain.exceptions import WorkflowNotFound
 from shell_ddd.domain.value_objects.ids import NodeId, WorkflowId
 from shell_ddd.domain.value_objects.status import Status
@@ -25,7 +23,8 @@ if TYPE_CHECKING:
 class RunNodeHandler:
     """Executes a graph node via the registered NodeExecutionStrategy for its mode.
 
-    Saves a NodeResult, updates Workflow.node_states, and publishes NodeCompleted/NodeFailed.
+    Appends a NodeResult to the owning Workflow aggregate, syncing node state and
+    emitting NodeCompleted/NodeFailed via Workflow.record_node_result.
     """
 
     def __init__(
@@ -63,55 +62,37 @@ class RunNodeHandler:
 
         # Execute strategy (outside UoW — may take a long time)
         try:
-            result = await self._strategy.execute(
+            exec_result = await self._strategy.execute(
                 node_id=cmd.node_id,
                 workspace_path=cmd.workspace_path,
                 runner=self._runner,
             )
+            stdout = exec_result.stdout
+            stderr = exec_result.stderr
             node_status = Status.done()
+            failure_reason = ""
         except Exception as exc:
-            # Capture failure without re-raising so we can persist result
-            result_status = Status.failed()
-            node_result_id = self._id_gen.new_node_result_id()
-            node_result = NodeResult.new(
-                id_=node_result_id,
-                node_id=node_id,
-                workflow_id=wf_id,
-                status=result_status,
-                stderr=str(exc),
-                now=now,
-            )
-            async with self._uow as uow:
-                await uow.node_results.save(node_result)
-                wf = await uow.workflows.get_by_id(wf_id)
-                if wf:
-                    wf.update_node_state(node_id, result_status, now=now)
-                    await uow.workflows.save(wf)
-                uow.stage_events([NodeFailed.now(node_id, wf_id, str(exc), now=now)])
-                await uow.commit()
-            await self._event_publisher.publish(uow.events)
-            return node_result_id.value
-
-        node_result_id = self._id_gen.new_node_result_id()
-        node_result = NodeResult.new(
-            id_=node_result_id,
-            node_id=node_id,
-            workflow_id=wf_id,
-            status=node_status,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            artifact_uri="",
-            now=now,
-        )
+            stdout = ""
+            stderr = str(exc)
+            node_status = Status.failed()
+            failure_reason = str(exc)
 
         async with self._uow as uow:
-            await uow.node_results.save(node_result)
             wf = await uow.workflows.get_by_id(wf_id)
-            if wf:
-                wf.update_node_state(node_id, node_status, now=now)
-                await uow.workflows.save(wf)
-            uow.stage_events([NodeCompleted.now(node_id, wf_id, node_result_id, now=now)])
+            if wf is None:
+                raise WorkflowNotFound(cmd.workflow_id)
+            result = wf.record_node_result(
+                result_id=self._id_gen.new_node_result_id(),
+                node_id=node_id,
+                status=node_status,
+                now=now,
+                stdout=stdout,
+                stderr=stderr,
+                reason=failure_reason,
+            )
+            await uow.workflows.save(wf)
+            uow.stage_events(wf.pull_events())
             await uow.commit()
 
         await self._event_publisher.publish(uow.events)
-        return node_result_id.value
+        return result.id.value

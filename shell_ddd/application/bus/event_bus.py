@@ -6,7 +6,6 @@ class EventBus:
     """Publikuje zdarzenia domenowe do wielu subskrybentów."""
 
     def __init__(self) -> None:
-        # Zmiana: wartość to lista fabryk [Callable, ...]
         self._handler_factories: dict[type[Any], list[Callable[[], Any]]] = {}
 
     def subscribe(self, event_type: type[Any], factory: Callable[[], Any]) -> None:
@@ -18,6 +17,5 @@ class EventBus:
         for event in events:
             factories = self._handler_factories.get(type(event), [])
             for factory in factories:
-                # Tworzymy nowego handlera dla każdego subskrybenta
                 handler = factory()
                 await handler.handle(event)

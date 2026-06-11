@@ -29,7 +29,9 @@ from shell_ddd.domain.value_objects.ids import (
 )
 from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.status import Status
+from shell_ddd.domain.value_objects.task_body import TaskBody
 from shell_ddd.domain.value_objects.task_name import TaskName
+from shell_ddd.domain.value_objects.version import Version
 from shell_ddd.infrastructure.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
@@ -56,94 +58,101 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_model_to_entity(m: TaskModel) -> Task:
-    graph = None
-    if m.graph:
-        nodes = [
-            GraphNode(
-                id=NodeId(n.id),
-                position=n.position,
-                node_dir=n.node_dir,
-                mode=Mode(n.mode),
-                role=n.role,
-                node_type=n.node_type,
-                model=n.model,
-                command=n.command,
-                timeout=n.timeout,
-                retries=n.retries,
-                log_level=n.log_level,
-                max_step=n.max_step,
-                no_ask_user=n.no_ask_user,
-                autopilot=n.autopilot,
-                task_name=n.task_name,
-                source_dir=n.source_dir,
-                work_dir=n.work_dir,
-                status_initial=n.status_initial,
-                extra=dict(n.extra),
-            )
-            for n in m.graph.nodes
-        ]
-        graph = Graph(
-            id=GraphId(m.graph.id),
-            task_id=TaskId(m.id),
-            raw_dict=dict(m.graph.raw_dict),
-            nodes=nodes,
-        )
     return Task(
         id=TaskId(m.id),
         name=TaskName(m.name),
-        version=m.version,
+        version=Version(m.version),
         hash=Hash(m.hash),
-        body_md=m.body_md,
-        template_graph_id=TemplateGraphId(m.template_graph_id),
+        body=TaskBody(m.body),
         is_current=m.is_current,
         created_at=_ensure_utc(m.created_at),
-        graph=graph,
     )
 
 
 def task_entity_to_model(task: Task) -> TaskModel:
-    task_model = TaskModel(
+    return TaskModel(
         id=task.id.value,
         name=task.name.value,
-        version=task.version,
+        version=task.version.value,
         hash=task.hash.value,
-        body_md=task.body_md,
-        template_graph_id=task.template_graph_id.value,
+        body=task.body.value,
         is_current=task.is_current,
         created_at=task.created_at,
     )
-    if task.graph:
-        graph_mmodel = GraphModel(
-            id=task.graph.id.value,
-            task_id=task.id.value,
+
+
+# ---------------------------------------------------------------------------
+# Graph
+# ---------------------------------------------------------------------------
+
+
+def graph_model_to_entity(m: GraphModel) -> Graph:
+    nodes = [
+        GraphNode(
+            id=NodeId(n.id),
+            position=n.position,
+            node_dir=n.node_dir,
+            mode=Mode(n.mode),
+            role=n.role,
+            node_type=n.node_type,
+            model=n.model,
+            command=n.command,
+            timeout=n.timeout,
+            retries=n.retries,
+            log_level=n.log_level,
+            max_step=n.max_step,
+            no_ask_user=n.no_ask_user,
+            autopilot=n.autopilot,
+            task_name=n.task_name,
+            source_dir=n.source_dir,
+            work_dir=n.work_dir,
+            status_initial=n.status_initial,
+            extra=dict(n.extra),
         )
-        graph_mmodel.nodes = [
-            GraphNodeModel(
-                id=graph_nodes.id.value,
-                graph_id=task.graph.id.value,
-                position=graph_nodes.position,
-                node_dir=graph_nodes.node_dir,
-                mode=graph_nodes.mode.value,
-                role=graph_nodes.role,
-                node_type=graph_nodes.node_type,
-                model=graph_nodes.model,
-                command=graph_nodes.command,
-                timeout=graph_nodes.timeout,
-                retries=graph_nodes.retries,
-                log_level=graph_nodes.log_level,
-                max_step=graph_nodes.max_step,
-                no_ask_user=graph_nodes.no_ask_user,
-                autopilot=graph_nodes.autopilot,
-                task_name=graph_nodes.task_name,
-                source_dir=graph_nodes.source_dir,
-                work_dir=graph_nodes.work_dir,
-                status_initial=graph_nodes.status_initial,
-                extra=graph_nodes.extra,
-            )
-            for graph_nodes in task.graph.nodes
-        ]
-        task_model.graph = graph_mmodel
-    return task_model
+        for n in m.nodes
+    ]
+    return Graph(
+        id=GraphId(m.id),
+        task_id=TaskId(m.task_id),
+        template_graph_id=TemplateGraphId(m.template_graph_id),
+        raw_dict=dict(m.raw_dict),
+        nodes=nodes,
+    )
+
+
+def graph_entity_to_model(graph: Graph) -> GraphModel:
+    m = GraphModel(
+        id=graph.id.value,
+        task_id=graph.task_id.value,
+        template_graph_id=str(graph.template_graph_id),
+        raw_dict=dict(graph.raw_dict),
+    )
+    m.nodes = [
+        GraphNodeModel(
+            id=n.id.value,
+            graph_id=graph.id.value,
+            position=n.position,
+            node_dir=n.node_dir,
+            mode=n.mode.value,
+            role=n.role,
+            node_type=n.node_type,
+            model=n.model,
+            command=n.command,
+            timeout=n.timeout,
+            retries=n.retries,
+            log_level=n.log_level,
+            max_step=n.max_step,
+            no_ask_user=n.no_ask_user,
+            autopilot=n.autopilot,
+            task_name=n.task_name,
+            source_dir=n.source_dir,
+            work_dir=n.work_dir,
+            status_initial=n.status_initial,
+            extra=n.extra,
+        )
+        for n in graph.nodes
+    ]
+    return m
 
 
 # ---------------------------------------------------------------------------
@@ -162,12 +171,34 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
         )
         for ns in m.node_states
     }
+    results = {
+        nr.node_id: node_result_model_to_entity(nr)
+        for nr in m.node_results
+    }
+    from shell_ddd.domain.value_objects.workflow_cursor import WorkflowCursor
+    from shell_ddd.domain.value_objects.workflow_execution_context import (
+        WorkflowExecutionContext,
+    )
+
+    cursor = (
+        WorkflowCursor.at(NodeId(m.current_node_id))
+        if m.current_node_id
+        else WorkflowCursor.empty()
+    )
+    context = WorkflowExecutionContext(
+        work_dir=m.work_dir or "",
+        correlation_id=m.correlation_id or "",
+    )
     return Workflow(
         id=WorkflowId(m.id),
         task_name=m.task_name,
         status=Status(m.status),
         created_at=_ensure_utc(m.created_at),
+        cursor=cursor,
+        execution_context=context,
+        version=m.version,
         node_states=states,
+        node_results=results,
     )
 
 
@@ -176,6 +207,10 @@ def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
         id=w.id.value,
         task_name=w.task_name,
         status=w.status.value,
+        current_node_id=w.cursor.current_node_id.value if w.cursor.current_node_id else None,
+        work_dir=w.execution_context.work_dir,
+        correlation_id=w.execution_context.correlation_id,
+        version=w.version,
         created_at=w.created_at,
     )
     m.node_states = [
@@ -188,6 +223,10 @@ def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
             updated_at=ns.updated_at,
         )
         for ns in w.node_states.values()
+    ]
+    m.node_results = [
+        node_result_entity_to_model(nr)
+        for nr in w.node_results.values()
     ]
     return m
 

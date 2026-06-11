@@ -22,7 +22,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("version", sa.Integer, nullable=False, server_default="1"),
         sa.Column("hash", sa.String(64), nullable=False),
-        sa.Column("body_md", sa.Text, nullable=False, server_default=""),
+        sa.Column("task_text", sa.Text, nullable=False, server_default=""),
         sa.Column("template_graph_id", sa.String(36), nullable=False),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
