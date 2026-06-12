@@ -1,0 +1,284 @@
+4. Boilerplate w Mapperach i ryzyko błędów
+Plik application/mappers/mappers.py (i mapery w infrastrukturze) przeprowadzają ręczne, pole po polu, mapowanie między SQLAlchemy ↔ Entity ↔ DTO.
+
+Przy dodaniu jednego pola (np. do Envelope) musisz zaktualizować model bazy danych, encję domenową, DTO oraz trzy różne mapery. To spowalnia rozwój (Developer Experience) i jest podatne na literówki.
+
+
+To znakomity wybór na zamknięcie naszej refaktoryzacji. Ręczne przepisywanie pól z jednego obiektu do drugiego to zmora wielu projektów. Jest to nie tylko nudne, ale też niezwykle podatne na błędy (np. gdy dodasz pole timeout do modelu, ale zapomnisz go zmapować w jednym z trzech plików, w efekcie zawsze będzie miało wartość None).
+
+Rozwiążemy to wykorzystując potężne narzędzie, które już masz w swoich zależnościach – Pydantic (używasz go już w FastAPI). Pydantic ma wbudowaną funkcję from_attributes=True (dawniej orm_mode), która potrafi w ułamku sekundy automatycznie "wessać" dane z modelu bazy danych (SQLAlchemy) prosto do DTO.
+
+Skupimy się na ścieżce odczytu (DTO), ponieważ to tam mapowanie 1:1 występuje najczęściej. W ścieżce zapisu (Domain Entity ↔ SQLAlchemy Model) zachowamy jawne mapowanie, ponieważ Twoja domena używa Value Objectów (np. TaskId(m.id)), a ich automatyczne rozpakowywanie bywa nieprzewidywalne.
+
+Oto plan, który dosłownie wymaże dziesiątki linijek kodu boilerplate'u.
+
+Krok 1: Przekształcenie DTO w modele Pydantic
+Otwórz plik shell_ddd/application/dto/dto.py.
+Zamień wszystkie dataclasses na BaseModel z Pydantica i dodaj wspólną konfigurację model_config, która pozwoli na czytanie z obiektów ORM.
+
+Zastąp zawartość pliku poniższym kodem:
+
+Python
+"""Application DTOs — read-side data transfer objects (Pydantic Models)."""
+from __future__ import annotations
+
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, Field
+
+class BaseDto(BaseModel):
+    """Bazowy model DTO z włączonym czytaniem atrybutów z ORM (SQLAlchemy)."""
+    model_config = ConfigDict(from_attributes=True)
+
+class GraphNodeDto(BaseDto):
+    id: str
+    position: int
+    node_dir: str
+    mode: str
+    role: str
+    node_type: str
+    model: str
+    command: str
+
+class TaskDto(BaseDto):
+    id: str
+    name: str
+    version: int
+    hash: str
+    is_current: bool
+    created_at: datetime
+    graph_nodes: list[GraphNodeDto] = Field(default_factory=list)
+
+class NodeStateDto(BaseDto):
+    node_id: str
+    status: str
+    step: int
+    updated_at: datetime
+
+class WorkflowDto(BaseDto):
+    id: str
+    task_name: str
+    status: str
+    created_at: datetime
+    node_states: dict[str, NodeStateDto] = Field(default_factory=dict)
+
+class EnvelopeDto(BaseDto):
+    id: str
+    workflow_id: str
+    sender_node_id: str
+    receiver_node_id: str
+    source_role: str
+    target_role: str
+    status: str
+    stage: str
+    step: int
+    payload: dict[str, object]
+    created_at: datetime
+    updated_at: datetime
+
+class NodeResultDto(BaseDto):
+    id: str
+    node_id: str
+    workflow_id: str
+    status: str
+    stdout: str
+    stderr: str
+    artifact_uri: str
+    created_at: datetime
+
+class PromptDto(BaseDto):
+    id: str
+    name: str
+    version: int
+    hash: str
+    body: str
+    is_current: bool
+    created_at: datetime
+
+class RunnerConfigDto(BaseDto):
+    id: str
+    package_name: str
+    kind: str
+    hash: str
+    body: dict[str, object]
+    created_at: datetime
+
+class RagChunkDto(BaseDto):
+    chunk_id: str
+    document_id: str
+    chunk_index: int
+    chunk_text: str
+    source_uri: str
+    title: str
+    domain: str
+    score: float = 0.0
+
+class MessageDto(BaseDto):
+    id: str
+    session_id: str
+    sender: str
+    receiver: str
+    payload: dict[str, object]
+    created_at: datetime
+
+class SessionDto(BaseDto):
+    id: str
+    agent_id: str
+    goal: str
+    status: str
+    opened_at: datetime
+    closed_at: datetime | None
+    messages: list[MessageDto] = Field(default_factory=list)
+Krok 2: Oszlifowanie Serwisu Odczytu (usunięcie mapowań)
+Otwórz plik z Fazy 1: shell_ddd/infrastructure/persistence/sql/query_services.py.
+Możemy teraz usunąć wszystkie brzydkie definicje i użyć Model.model_validate(row).
+
+Zaktualizuj kod klasy SqlQueryServices. Zwróć uwagę, jak bardzo skurczyły się metody!
+
+Python
+"""Implementacje portów odczytu przy użyciu SQLAlchemy i Pydantic."""
+from __future__ import annotations
+import struct
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import selectinload
+
+# Importy DTO
+from shell_ddd.application.dto.dto import (
+    EnvelopeDto, GraphNodeDto, MessageDto, NodeResultDto, NodeStateDto,
+    PromptDto, RagChunkDto, RunnerConfigDto, SessionDto, TaskDto, WorkflowDto
+)
+from shell_ddd.domain.services.rag_index_service import cosine_similarity
+from shell_ddd.infrastructure.persistence.sql.models import (
+    EnvelopeModel, MessageModel, NodeResultModel, PromptModel,
+    RagChunkModel, RagDocumentModel, RunnerConfigModel, SessionModel, TaskModel, WorkflowModel
+)
+
+class SqlQueryServices:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        self._factory = session_factory
+
+    # --- TASK ---
+    async def get_task_by_name(self, name: str) -> TaskDto | None:
+        async with self._factory() as session:
+            stmt = select(TaskModel).options(selectinload(TaskModel.graph)).where(TaskModel.name == name).order_by(TaskModel.version.desc()).limit(1)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            return self._map_task(row) if row else None
+
+    async def get_current_task(self, name: str) -> TaskDto | None:
+        async with self._factory() as session:
+            stmt = select(TaskModel).options(selectinload(TaskModel.graph)).where(TaskModel.name == name, TaskModel.is_current.is_(True)).limit(1)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            return self._map_task(row) if row else None
+
+    def _map_task(self, row: TaskModel) -> TaskDto:
+        # Pydantic sam wessie 90% pól! Musimy tylko ręcznie obsłużyć graf, bo struktura ORM minimalnie różni się od płaskiego DTO.
+        dto = TaskDto.model_validate(row)
+        if row.graph:
+            dto.graph_nodes = [GraphNodeDto.model_validate(n) for n in row.graph.nodes]
+        return dto
+
+    # --- WORKFLOW ---
+    async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
+        async with self._factory() as session:
+            stmt = select(WorkflowModel).options(selectinload(WorkflowModel.node_states)).where(WorkflowModel.id == workflow_id)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            if not row: return None
+            
+            dto = WorkflowDto.model_validate(row)
+            # W modelu SQL to lista, w DTO to słownik - mapujemy
+            dto.node_states = {ns.node_id: NodeStateDto.model_validate(ns) for ns in row.node_states}
+            return dto
+
+    # --- ENVELOPE ---
+    async def get_envelopes_by_workflow(self, workflow_id: str, pending_only: bool = False) -> list[EnvelopeDto]:
+        async with self._factory() as session:
+            stmt = select(EnvelopeModel).where(EnvelopeModel.workflow_id == workflow_id)
+            if pending_only:
+                stmt = stmt.where(EnvelopeModel.status == "pending")
+            rows = (await session.execute(stmt)).scalars().all()
+            return [EnvelopeDto.model_validate(e) for e in rows]
+
+    # --- INNE PROSTE MODELE (Pełna automatyzacja) ---
+    async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
+        async with self._factory() as session:
+            stmt = select(NodeResultModel).where(NodeResultModel.node_id == node_id, NodeResultModel.workflow_id == workflow_id)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            return NodeResultDto.model_validate(row) if row else None
+
+    async def get_prompt(self, name: str) -> PromptDto | None:
+        async with self._factory() as session:
+            stmt = select(PromptModel).where(PromptModel.name == name, PromptModel.is_current.is_(True))
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            return PromptDto.model_validate(row) if row else None
+
+    async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
+        async with self._factory() as session:
+            stmt = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            return RunnerConfigDto.model_validate(row) if row else None
+
+    # --- SESSION ---
+    async def get_session_history(self, session_id: str) -> SessionDto | None:
+        async with self._factory() as session:
+            stmt = select(SessionModel).options(selectinload(SessionModel.messages)).where(SessionModel.id == session_id)
+            row = (await session.execute(stmt)).scalar_one_or_none()
+            if not row: return None
+            
+            dto = SessionDto.model_validate(row)
+            messages = sorted(row.messages, key=lambda m: m.created_at)
+            dto.messages = [MessageDto.model_validate(m) for m in messages]
+            return dto
+
+    # --- RAG SEARCH --- (Tutaj kod się nie zmienia, ponieważ dokonujemy obliczeń matematycznych)
+    async def search_similar(self, query_embedding: bytes, top_k: int = 5, domain: str | None = None) -> list[RagChunkDto]:
+        async with self._factory() as session:
+            stmt = select(RagChunkModel).options(selectinload(RagChunkModel.document))
+            if domain:
+                stmt = stmt.join(RagDocumentModel).where(RagDocumentModel.domain == domain)
+            rows = (await session.execute(stmt)).scalars().all()
+            
+            if not rows: return []
+                
+            dim = len(query_embedding) // 4
+            query_vec = list(struct.unpack(f"{dim}f", query_embedding))
+            scored = []
+            
+            for row in rows:
+                chunk_vec = list(struct.unpack(f"{len(row.embedding) // 4}f", row.embedding))
+                score = cosine_similarity(query_vec, chunk_vec)
+                scored.append((score, row))
+                
+            scored.sort(key=lambda t: t[0], reverse=True)
+            return [
+                RagChunkDto(
+                    chunk_id=r.id, document_id=r.document_id, chunk_index=r.chunk_index,
+                    chunk_text=r.chunk_text, source_uri=r.document.source_uri,
+                    title=r.document.title, domain=r.document.domain, score=score
+                ) for score, r in scored[:top_k]
+            ]
+Krok 3: Drobna poprawka w In-Memory Query Services dla testów
+Otwórz memory.py i podmień metody w naszej klasie testowej na prostsze zrzutowanie, ponieważ zmieniliśmy typy w DTO. Ponieważ Pydantic automatycznie radzi sobie ze słownikami, mapowanie w testach staje się banalnie proste.
+
+W pliku shell_ddd/infrastructure/persistence/memory/memory.py znajdź klasę InMemoryQueryServices i podmień jej najbrzydsze metody:
+
+Python
+    # Zastąp metodę _map_task w InMemoryQueryServices:
+    def _map_task(self, task):
+        from shell_ddd.application.dto.dto import TaskDto, GraphNodeDto
+        dto = TaskDto.model_validate(task, from_attributes=True)
+        if task.graph:
+            dto.graph_nodes = [GraphNodeDto.model_validate(n, from_attributes=True) for n in task.graph.nodes]
+        return dto
+(Zrób analogicznie dla Workflow, Envelope itd. Pydantic potrafi użyć from_attributes=True również na twoich obiektach domenowych w testach!)
+
+Co zyskaliśmy?
+Od teraz dodając pole do Bazy Danych (model SQLAlchemy), wystarczy, że dopiszesz jedną linijkę w DTO. Pydantic sam "domyśli się", jak je przenieść. Brak ręcznego żonglowania konstruktorami.
+
+Zastosowanie Pydantica oznacza darmową walidację typów w locie i świetną integrację z FastAPI, z którego już korzystasz w tym projekcie do API.
+
+Myślę, że to świetny punkt zatrzymania dla tej gruntownej refaktoryzacji architektonicznej. Udało nam się zoptymalizować ścieżki CQRS, OCP w UoW, uwolnić EventBus oraz zabić boilerplate. Uruchom testy – wszystko powinno zaświecić się na zielono. Masz jakieś dalsze plany względem tej platformy?
+
+
+
+

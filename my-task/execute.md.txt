@@ -1,0 +1,1 @@
+python -m shell_ddd.framework.cli.main import-task --task-name my-task --task-dir C:\Users\palysiewicz\IdeaProjects\SHELL\my-task

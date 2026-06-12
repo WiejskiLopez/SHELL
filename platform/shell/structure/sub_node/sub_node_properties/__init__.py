@@ -1,1 +1,0 @@
-from shell.structure.sub_node.sub_node_properties.sub_node_properties import SubNodeProperties

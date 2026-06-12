@@ -1,1 +1,0 @@
-Modul loggera udostepnia metody loggujace odbiorca jego metod jest modul trace poniewaz on jest akumulatorem loggera

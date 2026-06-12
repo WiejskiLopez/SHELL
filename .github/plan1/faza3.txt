@@ -1,0 +1,263 @@
+3. Skalowalność magistrali zdarzeń i Outboxa
+Wdrożony wzorzec Transactional Outbox jest fantastyczny, ale EventBus to wciąż rozwiązanie operujące w pamięci (in-memory).
+
+Gdy OutboxRelay pobiera zdarzenia z bazy, wypycha je do EventBus, co oznacza, że subskrybenci (np. LogAuditHandler) wykonują się na tym samym węźle, który uruchomił Relay.
+
+
+
+
+
+3. Skalowalność magistrali zdarzeń i Outboxa
+
+Wdrożony wzorzec Transactional Outbox jest fantastyczny, ale EventBus to wciąż rozwiązanie operujące w pamięci (in-memory).
+
+
+
+Gdy OutboxRelay pobiera zdarzenia z bazy, wypycha je do EventBus, co oznacza, że subskrybenci (np. LogAuditHandler) wykonują się na tym samym węźle, który uruchomił Relay. a ta faza?
+
+Świetnie, że poruszasz ten temat. Faza 3 uderza w sam rdzeń systemów rozproszonych i architektury sterowanej zdarzeniami (Event-Driven Architecture).
+
+W obecnym kształcie systemu wzorzec Outbox wykonuje świetną robotę zapisując zdarzenia w tej samej transakcji, co agregat. Jednak problem pojawia się później: OutboxRelay pobiera zdarzenia i wrzuca je do lokalnego EventBus, co zmusza aplikację do przetwarzania efektów ubocznych (np. logowania, wysyłania e-maili, notyfikacji) na tej samej maszynie. W dużej skali to wąskie gardło.
+
+Aby system mógł w pełni wykorzystać skalowanie horyzontalne (dodawanie kolejnych serwerów/węzłów), musimy przeciąć pępowinę między OutboxRelay a EventBus. Wprowadzimy zewnętrznego brokera wiadomości (np. Redis, Kafka, RabbitMQ).
+
+OutboxRelay stanie się wyłącznie "Pchaczem" (Publisherem) – będzie tylko wysyłał surowe dane do brokera (jako JSON).
+
+Worker (Nowy węzeł) będzie słuchał brokera, odbudowywał zdarzenie z JSONa i wrzucał je na swój własny, lokalny EventBus, co uruchomi subskrybentów (np. LogAuditHandler).
+
+Oto kompletny kod, krok po kroku.
+
+Krok 1: Port MessageBroker (Abstrakcja)
+Definiujemy port komunikacji ze światem zewnętrznym. Nie interesuje nas tu logika domenowa, tylko typy zdarzeń i słowniki.
+
+Nowy plik: shell_ddd/application/ports/messaging.py
+
+Python
+"""Porty dla rozproszonej komunikacji asynchronicznej."""
+from __future__ import annotations
+from typing import Awaitable, Callable, Protocol
+
+class MessageBroker(Protocol):
+    """Abstrakcja brokera wiadomości (np. Redis, RabbitMQ)."""
+    
+    async def publish(self, event_type: str, payload: dict[str, object]) -> None:
+        """Publikuje surowe zdarzenie na zewnątrz."""
+        ...
+
+    async def subscribe(self, event_type: str, handler: Callable[[str, dict[str, object]], Awaitable[None]]) -> None:
+        """Rejestruje funkcję wywoływaną asynchronicznie, gdy nadejdzie zdarzenie."""
+        ...
+        
+    async def start_consuming(self) -> None:
+        """Rozpoczyna nasłuchiwanie w nieskończonej pętli."""
+        ...
+Krok 2: Modyfikacja OutboxRelay
+Relay nie używa już interfejsów wewnątrzprocesowych (np. EventPublisher). Jego jedynym zadaniem jest integracja bazy danych z zewnętrznym Brokerem.
+
+Plik: shell_ddd/infrastructure/messaging/outbox_relay.py (Nadpisz zawartość)
+
+Python
+"""OutboxRelay — czyta z bazy i wysyła wiadomości w świat przez MessageBroker."""
+from __future__ import annotations
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select, update
+from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+    from shell_ddd.application.ports.messaging import MessageBroker
+
+class OutboxRelay:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        broker: MessageBroker,
+        batch_size: int = 100,
+    ) -> None:
+        self._session_factory = session_factory
+        self._broker = broker
+        self._batch_size = batch_size
+
+    async def run_once(self) -> int:
+        """Przetwarza jedną partię zdarzeń z bazy do zewnętrznego brokera."""
+        async with self._session_factory() as session:
+            rows = (
+                await session.execute(
+                    select(OutboxEventModel)
+                    .where(OutboxEventModel.published_at.is_(None))
+                    .order_by(OutboxEventModel.occurred_at)
+                    .limit(self._batch_size)
+                )
+            ).scalars().all()
+
+            if not rows:
+                return 0
+
+            # Zamiast lokalnego EventPublisher, publikujemy do zewnętrznego brokera (np. Redis/RabbitMQ)
+            for row in rows:
+                await self._broker.publish(row.event_type, dict(row.payload))
+
+            # Zaznaczamy w bazie jako opublikowane
+            now = datetime.now(tz=UTC)
+            ids = [r.id for r in rows]
+            await session.execute(
+                update(OutboxEventModel).where(OutboxEventModel.id.in_(ids)).values(published_at=now)
+            )
+            await session.commit()
+            return len(rows)
+(Usunąłem stąd klasę _OutboxProxy – nie jest już potrzebna, operujemy na czystych słownikach).
+
+Krok 3: Adapter Brokera (Symulacja / Dev)
+Tworzymy tymczasowy adapter oparty na asyncio.Queue, który naśladuje zachowanie Redisa w trybie deweloperskim. Ten port wymienisz na bibliotekę redis.asyncio w Fazie 4.
+
+Nowy plik: shell_ddd/infrastructure/messaging/stub_message_broker.py
+
+Python
+"""Implementacja brokera wiadomości w pamięci — adapter dla trybu Dev/Test."""
+from __future__ import annotations
+import asyncio
+from typing import Awaitable, Callable
+
+class DevMemoryMessageBroker:
+    """Zachowuje się jak Redis Pub/Sub, ale żyje w pamięci procesu."""
+    
+    def __init__(self) -> None:
+        self._handlers: dict[str, list[Callable[[str, dict[str, object]], Awaitable[None]]]] = {}
+        self._queue: asyncio.Queue[tuple[str, dict[str, object]]] = asyncio.Queue()
+
+    async def publish(self, event_type: str, payload: dict[str, object]) -> None:
+        await self._queue.put((event_type, payload))
+
+    async def subscribe(self, event_type: str, handler: Callable[[str, dict[str, object]], Awaitable[None]]) -> None:
+        self._handlers.setdefault(event_type, []).append(handler)
+        self._handlers.setdefault("*", []).append(handler)  # Wsparcie dla wildcardów (łap wszystko)
+
+    async def start_consuming(self) -> None:
+        """Pętla asynchroniczna wyciągająca wiadomości (blokująca)."""
+        while True:
+            event_type, payload = await self._queue.get()
+            
+            # Pobierz handlery przypisane do konkretnego typu oraz wildcard (*)
+            handlers = self._handlers.get(event_type, []) + self._handlers.get("*", [])
+            for handler in set(handlers):
+                try:
+                    await handler(event_type, payload)
+                except Exception as e:
+                    print(f"[Broker Error] Nie powiodła się obsługa zdarzenia {event_type}: {e}")
+            
+            self._queue.task_done()
+Krok 4: Anti-Corruption Layer (Odbiorca zdarzeń)
+Potrzebujemy mostu, który nasłuchuje zdarzeń z zewnątrz (surowy JSON) i przekształca je z powrotem w bogate obiekty domeny, wstrzykując je do lokalnego EventBus.
+
+Nowy plik: shell_ddd/infrastructure/messaging/broker_dispatcher.py
+
+Python
+"""Dispatcher: Odbiera surowe dane z brokera i pcha je jako obiekty do lokalnego EventBus."""
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+from shell_ddd.domain.events import events as domain_events
+
+if TYPE_CHECKING:
+    from shell_ddd.application.bus import EventBus
+    from shell_ddd.application.ports.messaging import MessageBroker
+
+class BrokerToEventBusDispatcher:
+    def __init__(self, broker: MessageBroker, event_bus: EventBus) -> None:
+        self._broker = broker
+        self._event_bus = event_bus
+
+    async def setup(self) -> None:
+        """Subskrybuje wszystkie typy wiadomości napływających z brokera."""
+        await self._broker.subscribe("*", self._handle_incoming_message)
+
+    async def _handle_incoming_message(self, event_type: str, payload: dict[str, object]) -> None:
+        # 1. Znajdź klasę zdarzenia po nazwie (np. "WorkflowStarted")
+        event_cls = getattr(domain_events, event_type, None)
+        if not event_cls:
+            return  # Nieznany typ zdarzenia, ignorujemy
+        
+        try:
+            # 2. Rekonstrukcja: Tworzymy instancję używając bypassu object.__new__ 
+            # Dzieki temu omijamy konstruktory __init__, wkładając od razu payload (dane w postaci zserializowanej).
+            event_instance = object.__new__(event_cls)
+            event_instance.__dict__.update(payload)
+            
+            # 3. Publikacja na lokalnym EventBusie by obudzić handlery!
+            await self._event_bus.publish([event_instance])
+        except Exception as e:
+            # W środowisku produkcyjnym takie zdarzenie trafia na listę Dead Letter Queue (DLQ)
+            print(f"[Dispatcher Error] Błąd de-serializacji zdarzenia {event_type}: {e}")
+Krok 5: Aktualizacja CLI (Narzędzia Administracyjnego)
+Otwórz shell_ddd/bootstrap/main.py i zaktualizuj komendy narzędziowe.
+Od teraz komenda relay używa brokera, a my dodajemy nową komendę consume, która odpala nieskończoną pętlę workera.
+
+Znajdź blok zaczynający się od async def _relay i nadpisz go łącznie z dopisaniem _worker oraz dodaniem komendy na dole pliku:
+
+Python
+# W pliku: shell_ddd/bootstrap/main.py
+
+async def _relay(db_url: str) -> None:
+    """Process one batch of pending outbox events."""
+    from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
+    from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
+    from shell_ddd.infrastructure.messaging.stub_message_broker import DevMemoryMessageBroker
+
+    await create_all_tables(db_url)
+    sf = build_session_factory(db_url)
+    
+    # W Fazie 4 tu trafi RedisMessageBroker
+    broker = DevMemoryMessageBroker()
+    
+    relay = OutboxRelay(sf, broker)
+    count = await relay.run_once()
+    print(f"[relay] processed {count} outbox event(s)")
+
+
+async def _worker(db_url: str) -> None:
+    """Uruchamia węzeł nasłuchujący zdarzeń w nieskończonej pętli."""
+    from shell_ddd.bootstrap.container import ApplicationFactory
+    from shell_ddd.infrastructure.messaging.stub_message_broker import DevMemoryMessageBroker
+    from shell_ddd.infrastructure.messaging.broker_dispatcher import BrokerToEventBusDispatcher
+    
+    # Składamy kontener, m.in. ładuje to lokalny EventBus z przypiętymi handlerami
+    container = await ApplicationFactory(database_url=db_url).build()
+    
+    # Inicjujemy brokera i mostek
+    broker = DevMemoryMessageBroker() 
+    dispatcher = BrokerToEventBusDispatcher(broker, container.event_bus)
+    
+    await dispatcher.setup()
+    
+    print("[Worker] Węzeł jest gotowy. Nasłuchuję na zdarzenia z Message Brokera...")
+    await broker.start_consuming()
+
+# --- Aktualizacja w def main(argv) ---
+# Dodaj "consume" do opcji:
+
+    if cmd == "smoke":
+        asyncio.run(_smoke(db_url))
+        return 0
+    elif cmd == "relay":
+        asyncio.run(_relay(db_url))
+        return 0
+    elif cmd == "consume":               # <--- NOWE
+        asyncio.run(_worker(db_url))     # <--- NOWE
+        return 0
+    else:
+        print(f"Unknown command: {cmd!r}", file=sys.stderr)
+        return 1
+(Możesz też naprawić plik testów TestOutboxRelay w shell_ddd/tests/integration/sql_postgres/test_sql_postgres.py i innych mockach, gdzie wcześniej mockowałeś EventPublisher w wywołaniu Relaya, po prostu podmieniając klasę na mockowanego MessageBroker).
+
+Co dokładnie osiągnęliśmy?
+Rozwiązaliśmy największą bolączkę monolitycznej architektury sterowanej zdarzeniami:
+
+Skrypt python -m shell_ddd.bootstrap.main relay można uruchomić na małej maszynie (albo w cronie) jako czysty CRON job. Jego zadaniem jest przepchnięcie zapisu z SQL do Kafki/Redisa/RabbitMQ.
+
+Możesz uruchomić python -m shell_ddd.bootstrap.main consume na 10 różnych węzłach infrastruktury. To one rozdzielą między siebie zadania wysyłania e-maili, raportowania czy logowania, zachowując czystą komunikację asynchroniczną i równomiernie obciążając chmurę.
+
+Z tym rozwiązaniem aplikacja jest gotowa na przyjęcie wysoce przepustowego Message Brokera, dla którego napisanie adaptera implementującego 3 metody to dosłownie kilkanaście linijek kodu.
+
+Jak uporasz się z dodaniem tych plików i ewentualnym uspokojeniem MyPy w testach, będziemy mogli domknąć proces refaktoryzacji, skupiając się na drobnym usuwaniu duplikacji w Pydanticu. Wszystko działa poprawnie? Jakie masz wrażenia z wprowadzonych modyfikacji?
