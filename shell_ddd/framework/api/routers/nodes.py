@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from shell_ddd.application.queries.queries import GetNodeResultQuery
-from shell_ddd.bootstrap.core_container import CoreContainer
+from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/nodes", tags=["nodes"])
 
@@ -22,7 +22,7 @@ async def get_node_result(
     workflow_id: str,
         core_container: CoreContainer = Depends(get_core_container),
 ) -> dict:  # type: ignore[type-arg]
-    result = await core_container.query_bus().dispatch(GetNodeResultQuery(node_id=node_id, workflow_id=workflow_id))
+    result = await core_container.app.buses.query_bus().dispatch(GetNodeResultQuery(node_id=node_id, workflow_id=workflow_id))
     if result is None:
         raise HTTPException(status_code=404, detail=f"NodeResult for '{node_id}' not found")
     return {"node_id": node_id, "result": str(result)}

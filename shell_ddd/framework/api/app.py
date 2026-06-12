@@ -1,12 +1,12 @@
 """FastAPI application factory for shell_ddd control plane."""
 from __future__ import annotations
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI
 
-from shell_ddd.bootstrap.core_container import CoreContainer
+from shell_ddd.bootstrap.container.core_container import CoreContainer
 from shell_ddd.bootstrap.setup_logging import setup_logging
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.framework.api.middleware.correlation_id import CorrelationIdMiddleware

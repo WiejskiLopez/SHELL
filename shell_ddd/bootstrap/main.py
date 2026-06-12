@@ -11,8 +11,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from shell_ddd.bootstrap.application_factory import ApplicationFactory
 from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
 from shell_ddd.bootstrap.setup_logging import setup_logging
 
 
@@ -41,7 +41,7 @@ async def _smoke(db_url: str) -> None:
         yaml = Path(tmp) / "smoke-task.yaml"
         yaml.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
-        task_id = await core_container.command_bus().dispatch(
+        task_id = await core_container.app.buses.command_bus().dispatch(
             ImportTaskCommand(
                 md_path=str(md),
                 task_name="smoke-task",
@@ -50,19 +50,19 @@ async def _smoke(db_url: str) -> None:
     print(f"[smoke] task imported: {task_id}")
 
     # --- 2. Start a workflow ---
-    workflow_id = await core_container.command_bus().dispatch(
+    workflow_id = await core_container.app.buses.command_bus().dispatch(
         StartWorkflowCommand(task_name="smoke-task")
     )
     print(f"[smoke] workflow started: {workflow_id}")
 
     # --- 3. Route (0 envelopes expected for empty graph) ---
-    routed = await core_container.command_bus().dispatch(
+    routed = await core_container.app.buses.command_bus().dispatch(
         RouteEnvelopesCommand(workflow_id=workflow_id)
     )
     print(f"[smoke] envelopes routed: {routed}")
 
     # --- 4. Query workflow status ---
-    dto = await core_container.query_bus().dispatch(GetWorkflowQuery(workflow_id))
+    dto = await core_container.app.buses.query_bus().dispatch(GetWorkflowQuery(workflow_id))
     print(f"[smoke] workflow status: {dto.status if dto else 'not found'}")
     print("[smoke] OK")
 
@@ -73,7 +73,7 @@ async def _relay(db_url: str) -> None:
     from shell_ddd.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
     from shell_ddd.infrastructure.logging.stdlib_logger import StdlibLogger
     from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
-    from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
+    from shell_ddd.infrastructure.persistence.sql import build_session_factory
 
     await bootstrap_database(db_url)
     sf = build_session_factory(db_url)

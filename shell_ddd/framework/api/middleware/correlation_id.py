@@ -1,7 +1,6 @@
 """Correlation-ID middleware — adds X-Correlation-ID header to every request."""
 from __future__ import annotations
 
-import uuid
 from contextvars import ContextVar
 
 from starlette.middleware.base import BaseHTTPMiddleware

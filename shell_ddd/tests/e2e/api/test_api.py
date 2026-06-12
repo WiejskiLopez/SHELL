@@ -5,7 +5,7 @@ import pathlib
 
 from httpx import ASGITransport, AsyncClient
 
-from shell_ddd.bootstrap.application_factory import ApplicationFactory
+from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
 
 
 async def _make_app(tmp_path: pathlib.Path):  # type: ignore[return]
