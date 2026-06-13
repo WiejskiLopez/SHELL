@@ -344,16 +344,16 @@ def _upsert_task(driver: SqliteDriver, work_dir: str) -> int:
         )
 
     driver.execute(
-        "INSERT INTO task (name, version, content_hash, body_md, body_yaml_raw, "
+        "INSERT INTO task (name, version, content_hash, body, "
         "source_md_uri, source_yaml_uri, is_current, created_at) "
         "VALUES (?, ?, ?, ?, ?, NULL, NULL, 1, ?)",
-        (_TASK_NAME, next_version, content_hash, _TASK_MD, body_yaml_raw, _now()),
+        (_TASK_NAME, next_version, content_hash, _TASK_MD, _now()),
     )
     task_id = driver.last_insert_id()
 
     driver.execute(
-        "INSERT INTO graph (task_id, yaml_dict_json, created_at) VALUES (?, ?, ?)",
-        (task_id, yaml_dict_json, _now()),
+        "INSERT INTO graph (task_id, created_at) VALUES (?, ?, ?)",
+        (task_id, _now()),
     )
     graph_id = driver.last_insert_id()
 

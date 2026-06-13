@@ -13,7 +13,7 @@ import os
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
@@ -46,7 +46,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeLogger,
     FakeTaskLoader,
 )
-from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
 
 _PG_URL = os.environ.get(
     "PG_TEST_URL", "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test"

@@ -373,3 +373,68 @@
 2026-06-11 10:41:37,714 WARNING test_stdlib_warn: watch out
 2026-06-11 10:41:37,715 ERROR test_stdlib_err: boom
 2026-06-11 10:41:37,716 DEBUG test_stdlib_dbg: trace
+2026-06-12 09:27:17,413 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:37:42,036 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:39:04,883 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:39:18,468 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:40:35,060 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:42:36,278 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:42:36,281 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=c86b4e39-3be3-4c7b-a930-313415e6084b name=smoke-task is_current=True
+2026-06-12 09:42:36,289 INFO shell_ddd: Event published
+2026-06-12 09:42:36,290 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:42:36,291 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=32d8248e-32c7-43fb-91c9-546308088c4a name=smoke-task is_current=True
+2026-06-12 09:56:50,173 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:56:50,177 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=32d8248e-32c7-43fb-91c9-546308088c4a name=smoke-task is_current=True
+2026-06-12 09:56:50,185 INFO shell_ddd: Event published
+2026-06-12 09:56:50,186 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:56:50,187 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=0f6880f2-1718-463e-8425-71171f108a83 name=smoke-task is_current=True
+2026-06-12 09:57:19,600 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:57:19,604 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=0f6880f2-1718-463e-8425-71171f108a83 name=smoke-task is_current=True
+2026-06-12 09:57:19,613 INFO shell_ddd: Event published
+2026-06-12 09:57:19,613 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 09:57:19,614 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=750cae59-7e8c-457a-b033-e5f27da740c8 name=smoke-task is_current=True
+2026-06-12 10:05:37,623 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:05:37,627 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=750cae59-7e8c-457a-b033-e5f27da740c8 name=smoke-task is_current=True
+2026-06-12 10:05:37,635 INFO shell_ddd: Event published
+2026-06-12 10:05:37,636 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:05:37,637 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=bb532271-897f-435f-a984-ea66ad3c1097 name=smoke-task is_current=True
+2026-06-12 10:07:07,561 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:07:07,564 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=bb532271-897f-435f-a984-ea66ad3c1097 name=smoke-task is_current=True
+2026-06-12 10:07:07,573 INFO shell_ddd: Event published
+2026-06-12 10:07:07,573 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:07:07,574 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=f324a6ea-13dd-4e8f-9a62-9acf464284fa name=smoke-task is_current=True
+2026-06-12 10:36:20,034 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:36:20,037 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=f324a6ea-13dd-4e8f-9a62-9acf464284fa name=smoke-task is_current=True
+2026-06-12 10:36:20,046 INFO shell_ddd: Event published
+2026-06-12 10:36:20,046 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:36:20,047 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=55bf8e56-d140-480e-896c-a70b3dfdfc5e name=smoke-task is_current=True
+2026-06-12 10:42:45,234 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:42:45,237 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=55bf8e56-d140-480e-896c-a70b3dfdfc5e name=smoke-task is_current=True
+2026-06-12 10:42:45,245 INFO shell_ddd: Event published
+2026-06-12 10:42:45,246 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:42:45,247 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=ce8c4f60-fb78-4e6b-a337-6d14d8cc8510 name=smoke-task is_current=True
+2026-06-12 10:55:29,852 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:55:29,856 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=ce8c4f60-fb78-4e6b-a337-6d14d8cc8510 name=smoke-task is_current=True
+2026-06-12 10:55:29,864 INFO shell_ddd: Event published
+2026-06-12 10:55:29,865 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 10:55:29,866 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=9727d23b-b395-4e5d-a785-1f7d1b79b36a name=smoke-task is_current=True
+2026-06-12 13:14:44,422 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 13:14:44,426 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=9727d23b-b395-4e5d-a785-1f7d1b79b36a name=smoke-task is_current=True
+2026-06-12 13:14:44,435 INFO shell_ddd: Event published
+2026-06-12 13:14:44,435 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 13:14:44,436 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=609dd358-8107-47a2-944a-4f3d161cf5cb name=smoke-task is_current=True
+2026-06-12 14:14:32,341 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:14:32,344 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=609dd358-8107-47a2-944a-4f3d161cf5cb name=smoke-task is_current=True
+2026-06-12 14:14:32,353 INFO shell_ddd: Event published
+2026-06-12 14:14:32,353 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:14:32,354 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=dd1f0381-d6cc-403e-bf42-2e305e782bb3 name=smoke-task is_current=True
+2026-06-12 14:16:07,681 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:16:07,684 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=dd1f0381-d6cc-403e-bf42-2e305e782bb3 name=smoke-task is_current=True
+2026-06-12 14:16:07,693 INFO shell_ddd: Event published
+2026-06-12 14:16:07,694 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:16:07,695 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=d88d5785-b562-4766-8ed0-626a47c9415f name=smoke-task is_current=True
+2026-06-12 14:26:45,921 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:26:45,924 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=d88d5785-b562-4766-8ed0-626a47c9415f name=smoke-task is_current=True
+2026-06-12 14:26:45,933 INFO shell_ddd: Event published
+2026-06-12 14:26:45,934 INFO shell_ddd.infrastructure.persistence.sql.repositories: Querying current Task by name=smoke-task
+2026-06-12 14:26:45,935 INFO shell_ddd.infrastructure.persistence.sql.repositories: TaskModel found: id=e80a96b6-ef43-4228-9954-b6988425ffa2 name=smoke-task is_current=True

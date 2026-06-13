@@ -59,25 +59,53 @@ async def seed_base_data(url: str) -> None:
 def _seed_sync(sync_conn) -> None:
     from sqlalchemy.orm import Session
     from sqlalchemy import select
-    from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel
+    from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel, TemplateGraphNodeModel
 
     session = Session(sync_conn)
 
-    exists = session.execute(
+    template = session.execute(
         select(TemplateGraphModel).where(
             TemplateGraphModel.name == "base_planner"
         )
     ).scalar_one_or_none()
 
-    if exists:
-        return
-
-    session.add(
-        TemplateGraphModel(
+    if template is None:
+        template = TemplateGraphModel(
             id="base-planner-id",
             name="base_planner",
             purpose="default_planning",
         )
-    )
+        session.add(template)
+        session.flush()
+
+    node_exists = session.execute(
+        select(TemplateGraphNodeModel).where(
+            TemplateGraphNodeModel.template_graph_id == template.id
+        )
+    ).scalar_one_or_none()
+
+    if node_exists is None:
+        session.add(
+            TemplateGraphNodeModel(
+                id="base-planner-node-1",
+                template_graph_id=template.id,
+                position=0,
+                mode="agent",
+                role="agent",
+                node_type="agent",
+                model="",
+                command="",
+                timeout=0,
+                retries=0,
+                log_level="INFO",
+                max_step=None,
+                no_ask_user=False,
+                autopilot=False,
+                status_initial="",
+                extra={},
+                script="",
+                script_type="",
+            )
+        )
 
     session.commit()

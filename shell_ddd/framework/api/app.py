@@ -7,7 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from shell_ddd.bootstrap.container.core_container import CoreContainer
-from shell_ddd.bootstrap.setup_logging import setup_logging
+from shell_ddd.bootstrap.config_logging.setup_logging import setup_logging
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell_ddd.framework.api.middleware.error_handler import domain_error_handler

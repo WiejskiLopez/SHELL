@@ -14,7 +14,7 @@ from shell_ddd.application.queries.queries import GetCurrentTaskQuery, GetWorkfl
     GetPromptQuery
 from shell_ddd.application.query_handlers.query_handlers import GetCurrentTaskHandler, GetWorkflowHandler, \
     GetNodeResultHandler, GetPromptHandler
-from shell_ddd.bootstrap.database_bootstrap import bootstrap_database
+from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
 
 from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.value_objects.ids import (
@@ -24,7 +24,7 @@ from shell_ddd.domain.value_objects.ids import (
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell_ddd.infrastructure.persistence.memory.memory import FakeClock, FakeTaskLoader, FakeEventPublisher, \
     FakeIdGenerator, FakeLogger
-from shell_ddd.infrastructure.persistence.sql import build_session_factory, create_all_tables
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 

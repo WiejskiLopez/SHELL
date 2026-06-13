@@ -7,7 +7,7 @@ import sys
 from collections.abc import Sequence
 
 from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
-from shell_ddd.bootstrap.setup_logging import setup_logging
+from shell_ddd.bootstrap.config_logging.setup_logging import setup_logging
 from shell_ddd.framework.cli.parser import build_parser
 
 # Map of mode-name → default runner root dir (relative to this file if available).

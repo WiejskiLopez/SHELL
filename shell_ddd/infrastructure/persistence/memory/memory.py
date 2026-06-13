@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from shell_ddd.domain.entities.template_graph import TemplateGraph
 from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
+from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
     GraphId,
@@ -278,6 +279,15 @@ class InMemoryUnitOfWork:
             id=TemplateGraphId("base-planner-id"),
             name="base_planner",
             purpose="default_planning",
+            nodes=[
+                TemplateGraphNode(
+                    id=TemplateGraphNodeId("base-planner-node-1"),
+                    position=0,
+                    mode=Mode("agent"),
+                    role="agent",
+                    node_type="agent",
+                ),
+            ],
         )
 
         self._committed = False
