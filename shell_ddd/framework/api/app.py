@@ -1,17 +1,21 @@
 """FastAPI application factory for shell_ddd control plane."""
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 
 from shell_ddd.bootstrap.config_logging.setup_logging import setup_logging
-from shell_ddd.bootstrap.container.core_container import CoreContainer
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell_ddd.framework.api.middleware.error_handler import domain_error_handler
 from shell_ddd.framework.api.routers import envelopes, nodes, tasks, workflows
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def create_app(core_container: CoreContainer) -> FastAPI:

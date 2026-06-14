@@ -4,12 +4,16 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from shell_ddd.application.queries.queries import GetEnvelopesByWorkflowQuery
-from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/envelopes", tags=["envelopes"])
 
 
+from typing import TYPE_CHECKING
+
 from fastapi import Request as _Request
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def get_core_container(request: _Request) -> CoreContainer:

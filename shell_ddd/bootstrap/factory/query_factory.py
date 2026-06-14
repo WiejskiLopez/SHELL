@@ -1,6 +1,8 @@
 """Rejestracja Query Handlers na QueryBus."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell_ddd.application.queries.queries import (
     GetCurrentTaskQuery,
     GetEnvelopesByWorkflowQuery,
@@ -12,7 +14,9 @@ from shell_ddd.application.queries.queries import (
     GetWorkflowQuery,
     SearchSimilarQuery,
 )
-from shell_ddd.bootstrap.container.core_container import CoreContainer
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def register_queries(core_container: CoreContainer) -> None:

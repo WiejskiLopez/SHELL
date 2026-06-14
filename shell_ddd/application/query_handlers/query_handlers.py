@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell_ddd.domain.services.rag_index_service import Embedder
-
 if TYPE_CHECKING:
     from shell_ddd.application.dto.dto import (
         EnvelopeDto,
@@ -37,6 +35,7 @@ if TYPE_CHECKING:
         GetWorkflowQuery,
         SearchSimilarQuery,
     )
+    from shell_ddd.domain.services.rag_index_service import Embedder
 
 
 class GetTaskByNameHandler:

@@ -1,11 +1,14 @@
 """E2E API tests — FastAPI control plane."""
 from __future__ import annotations
 
-import pathlib
+from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
 
 from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 async def _make_app(tmp_path: pathlib.Path):  # type: ignore[return]

@@ -71,7 +71,7 @@ class SubprocessNodeProcessRunner:
 
         mode = str(manifest.mode)
         entrypoint = str(_ENTRYPOINTS_DIR / f"{mode}_entrypoint.py")
-        workflow_id = env.get("SHELL_DDD_WORKFLOW_ID", "")
+        env.get("SHELL_DDD_WORKFLOW_ID", "")
         task_name = env.get("SHELL_DDD_TASK_NAME", "")
 
         return build_sub_node_command(

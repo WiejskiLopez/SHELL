@@ -4,11 +4,14 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from shell_ddd.bootstrap.config_logging.setup_logging import setup_logging
 from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
 from shell_ddd.framework.cli.parser import build_parser
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # Map of mode-name → default runner root dir (relative to this file if available).
 _MODE_RUNNER_ROOTS: dict[str, str] = {

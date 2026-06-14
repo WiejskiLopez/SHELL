@@ -16,7 +16,7 @@ class TestSubprocessNodeProcessRunner:
     async def test_echo_stdout(self, tmp_path: object) -> None:
         runner = SubprocessNodeProcessRunner()
         # Use python -c "print('ok')" so tests work on Windows and Linux
-        manifest = _make_manifest(name=sys.executable, mode=Mode.WORKER)
+        _make_manifest(name=sys.executable, mode=Mode.WORKER)
         result = await runner._run_argv(
             [sys.executable, "-c", "print('ok')"],
             cwd=str(tmp_path),

@@ -3,21 +3,13 @@ from __future__ import annotations
 
 import logging
 import struct
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from shell_ddd.domain.entities.envelope import Envelope
-from shell_ddd.domain.entities.graph import Graph
-from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.entities.rag_document import RagChunk, RagDocument
-from shell_ddd.domain.entities.runner_config import RunnerConfig
 from shell_ddd.domain.entities.session import Message, Session
-from shell_ddd.domain.entities.task import Task
-from shell_ddd.domain.entities.template_graph import TemplateGraph
-from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
-from shell_ddd.domain.entities.workflow import Workflow
 from shell_ddd.domain.services.rag_index_service import cosine_similarity
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
@@ -36,7 +28,6 @@ from shell_ddd.domain.value_objects.ids import (
     TemplateGraphNodeId,
     WorkflowId,
 )
-from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
     envelope_entity_to_model,
     envelope_model_to_entity,
@@ -69,6 +60,19 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     TemplateGraphNodeModel,
     WorkflowModel,
 )
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell_ddd.domain.entities.envelope import Envelope
+    from shell_ddd.domain.entities.graph import Graph
+    from shell_ddd.domain.entities.prompt import Prompt
+    from shell_ddd.domain.entities.runner_config import RunnerConfig
+    from shell_ddd.domain.entities.task import Task
+    from shell_ddd.domain.entities.template_graph import TemplateGraph
+    from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
+    from shell_ddd.domain.entities.workflow import Workflow
+    from shell_ddd.domain.value_objects.task_name import TaskName
 
 logger = logging.getLogger(__name__)
 

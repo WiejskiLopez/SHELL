@@ -1,7 +1,8 @@
 """Error handler middleware — maps DomainErrors to 4xx HTTP responses."""
 from __future__ import annotations
 
-from fastapi import Request
+from typing import TYPE_CHECKING
+
 from fastapi.responses import JSONResponse
 
 from shell_ddd.domain.exceptions import (
@@ -13,6 +14,9 @@ from shell_ddd.domain.exceptions import (
     TaskNotFound,
     WorkflowNotFound,
 )
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 _NOT_FOUND = {TaskNotFound, WorkflowNotFound, EnvelopeNotFound, NodeNotFound, PromptNotFound, RunnerConfigNotFound}
 

@@ -8,10 +8,11 @@ The navigator is a *pure* domain service — no I/O, no async — and lives in
 """
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from shell_ddd.domain.entities.graph import Graph
     from shell_ddd.domain.entities.graph_node import GraphNode
     from shell_ddd.domain.value_objects.ids import NodeId

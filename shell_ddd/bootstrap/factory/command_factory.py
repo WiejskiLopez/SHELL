@@ -1,6 +1,8 @@
 """Rejestracja Command Handlers na CommandBus."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell_ddd.application.commands.commands import (
     ArchiveEnvelopeCommand,
     BootstrapRunnerConfigCommand,
@@ -12,7 +14,9 @@ from shell_ddd.application.commands.commands import (
     SavePromptCommand,
     StartWorkflowCommand,
 )
-from shell_ddd.bootstrap.container.core_container import CoreContainer
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def register_commands(core_container: CoreContainer) -> None:

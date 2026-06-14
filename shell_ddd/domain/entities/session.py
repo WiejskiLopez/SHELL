@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from typing import TYPE_CHECKING
 
-from shell_ddd.domain.value_objects.ids import CorrelationId, MessageId, SessionId
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell_ddd.domain.value_objects.ids import CorrelationId, MessageId, SessionId
 
 
 @dataclass(frozen=True, slots=True)

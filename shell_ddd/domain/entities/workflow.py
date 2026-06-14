@@ -28,7 +28,6 @@ detected via ``WorkflowConcurrentlyModified``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.events.events import (
@@ -49,6 +48,8 @@ from shell_ddd.domain.value_objects.workflow_execution_context import (
 )
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell_ddd.domain.entities.node_result import NodeResult
     from shell_ddd.domain.services.compensation_handler import CompensationHandler
     from shell_ddd.domain.value_objects.ids import (

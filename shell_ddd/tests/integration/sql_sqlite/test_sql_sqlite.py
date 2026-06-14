@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
@@ -40,6 +40,9 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 # ---------------------------------------------------------------------------
 # Fixtures (module-scoped DB, function-scoped UoW)
@@ -512,7 +515,7 @@ class TestOutboxRelay:
 
         assert count >= 1
         async with session_factory() as session:
-            unpublished = (
+            (
                 await session.execute(
                     select(OutboxEventModel).where(OutboxEventModel.published_at.is_(None))
                 )

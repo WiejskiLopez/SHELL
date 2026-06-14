@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 from contextvars import ContextVar
+from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
+    from starlette.responses import Response
 
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default="")
 

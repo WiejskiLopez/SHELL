@@ -1,8 +1,9 @@
 """Implementacje portów odczytu przy użyciu SQLAlchemy."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import joinedload, selectinload
 
 from shell_ddd.application.dto.dto import (
@@ -30,6 +31,9 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     WorkflowModel,
 )
 
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
 
 class SqlQueryServices:
     """Zbiorcza klasa implementująca wszystkie interfejsy QueryService (Read Model)."""
@@ -43,7 +47,7 @@ class SqlQueryServices:
             stmt = (
                 select(TaskModel)
                 .where(TaskModel.name == name)
-                .where(TaskModel.is_current == True)
+                .where(TaskModel.is_current)
             )
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()

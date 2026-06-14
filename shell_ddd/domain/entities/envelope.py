@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.exceptions import InvalidEnvelopeTransition
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell_ddd.domain.value_objects.ids import EnvelopeEventId, EnvelopeId, NodeId, WorkflowId
 
 

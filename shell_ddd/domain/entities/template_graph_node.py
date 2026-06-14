@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-from shell_ddd.domain.value_objects.ids import TemplateGraphNodeId
-from shell_ddd.domain.value_objects.mode import Mode
+if TYPE_CHECKING:
+    from shell_ddd.domain.value_objects.ids import TemplateGraphNodeId
+    from shell_ddd.domain.value_objects.mode import Mode
 
 
 @dataclass(slots=True)

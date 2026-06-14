@@ -1,12 +1,16 @@
 """Tasks router — import and query tasks."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from shell_ddd.application.commands.commands import ImportTaskCommand
 from shell_ddd.application.queries.queries import GetTaskByNameQuery
-from shell_ddd.bootstrap.container.core_container import CoreContainer
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 

@@ -3,11 +3,14 @@ from __future__ import annotations
 
 import math
 import struct
-from datetime import datetime
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from shell_ddd.domain.entities.rag_document import RagDocument
-from shell_ddd.domain.value_objects.ids import RagChunkId, RagDocumentId
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell_ddd.domain.value_objects.ids import RagChunkId, RagDocumentId
 
 
 class Embedder(Protocol):
@@ -89,7 +92,7 @@ def build_rag_document(
 def cosine_similarity(a: list[float], b: list[float]) -> float:
     if len(a) != len(b) or not a:
         return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     na = math.sqrt(sum(x * x for x in a))
     nb = math.sqrt(sum(y * y for y in b))
     if na == 0.0 or nb == 0.0:

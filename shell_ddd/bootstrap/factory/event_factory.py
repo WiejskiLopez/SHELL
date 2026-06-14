@@ -1,7 +1,8 @@
 """Rejestracja Event Handlers na EventBus (subskrybenci zdarzeń domenowych)."""
 from __future__ import annotations
 
-from shell_ddd.bootstrap.container.core_container import CoreContainer
+from typing import TYPE_CHECKING
+
 from shell_ddd.domain.events.events import (
     EnvelopeExpired,
     EnvelopeRouted,
@@ -15,6 +16,9 @@ from shell_ddd.domain.events.events import (
     WorkflowFailed,
     WorkflowStarted,
 )
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def register_events(core_container: CoreContainer) -> None:

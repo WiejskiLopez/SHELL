@@ -4,7 +4,10 @@ while still validating the full stack: CLI → bus → handler → SQL → resul
 from __future__ import annotations
 
 import os
-import pathlib
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 def _db_url(tmp_path: pathlib.Path) -> str:

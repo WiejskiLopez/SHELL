@@ -5,8 +5,6 @@ import dataclasses
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 from shell_ddd.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
@@ -22,6 +20,8 @@ from shell_ddd.infrastructure.persistence.sql.repositories import (
 )
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
     from shell_ddd.application.ports.messaging import EventPublisher
     from shell_ddd.domain.events.events import DomainEvent
 

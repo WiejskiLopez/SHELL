@@ -25,7 +25,6 @@ Idempotency model (three-tier defence in depth)
 """
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.events.events import NodeExecutionRequested
@@ -44,12 +43,13 @@ from shell_ddd.domain.services.node_navigator import (
     LinearNodeNavigator,
     NodeNavigator,
 )
-from shell_ddd.domain.value_objects.ids import NodeId
 from shell_ddd.domain.value_objects.manifest import Manifest
 from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.status import Status
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell_ddd.application.ports.execution import NodeProcessRunner
     from shell_ddd.application.ports.identity import IdGenerator
     from shell_ddd.application.ports.logging import Logger
@@ -59,6 +59,7 @@ if TYPE_CHECKING:
     from shell_ddd.domain.entities.graph_node import GraphNode
     from shell_ddd.domain.entities.workflow import Workflow
     from shell_ddd.domain.value_objects.execution_result import ExecutionResult
+    from shell_ddd.domain.value_objects.ids import NodeId
 
 
 class NodeExecutionWorker:

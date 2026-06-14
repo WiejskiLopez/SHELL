@@ -1,15 +1,19 @@
 """OpenSessionHandler, CloseSessionHandler, AppendMessageHandler."""
 from __future__ import annotations
 
-from shell_ddd.application.commands.commands import (
-    AppendMessageCommand,
-    CloseSessionCommand,
-    OpenSessionCommand,
-)
-from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
+from typing import TYPE_CHECKING
+
 from shell_ddd.domain.entities.session import Session
 from shell_ddd.domain.exceptions import DomainError
 from shell_ddd.domain.value_objects.ids import CorrelationId, MessageId, SessionId
+
+if TYPE_CHECKING:
+    from shell_ddd.application.commands.commands import (
+        AppendMessageCommand,
+        CloseSessionCommand,
+        OpenSessionCommand,
+    )
+    from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
 class SessionNotFound(DomainError):

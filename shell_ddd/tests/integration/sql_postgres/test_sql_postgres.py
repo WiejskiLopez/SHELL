@@ -9,9 +9,9 @@ Start Postgres via docker-compose:
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
@@ -46,6 +46,9 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 _PG_URL = os.environ.get(
     "PG_TEST_URL", "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test"

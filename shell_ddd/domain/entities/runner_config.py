@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from shell_ddd.domain.value_objects.hash import Hash
-
 if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell_ddd.domain.value_objects.hash import Hash
     from shell_ddd.domain.value_objects.ids import RunnerConfigId
 
 

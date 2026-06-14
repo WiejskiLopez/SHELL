@@ -1,7 +1,7 @@
 """SQL persistence — session factory and UnitOfWork."""
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
@@ -11,6 +11,9 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 
 def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:

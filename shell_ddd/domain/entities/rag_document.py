@@ -2,9 +2,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from typing import TYPE_CHECKING
 
-from shell_ddd.domain.value_objects.ids import RagChunkId, RagDocumentId
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell_ddd.domain.value_objects.ids import RagChunkId, RagDocumentId
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,7 +71,7 @@ class RagDocument:
     ) -> None:
         if not (len(chunk_ids) == len(texts) == len(embeddings)):
             raise ValueError("chunk_ids, texts and embeddings must have equal length")
-        for i, (cid, text, emb) in enumerate(zip(chunk_ids, texts, embeddings)):
+        for i, (cid, text, emb) in enumerate(zip(chunk_ids, texts, embeddings, strict=False)):
             self.chunks.append(
                 RagChunk(
                     id=cid,

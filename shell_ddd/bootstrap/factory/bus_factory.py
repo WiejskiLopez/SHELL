@@ -1,10 +1,14 @@
 """Orkiestrator rejestracji szyn — łączy command, query i event registration."""
 from __future__ import annotations
 
-from shell_ddd.bootstrap.container.core_container import CoreContainer
+from typing import TYPE_CHECKING
+
 from shell_ddd.bootstrap.factory.command_factory import register_commands
 from shell_ddd.bootstrap.factory.event_factory import register_events
 from shell_ddd.bootstrap.factory.query_factory import register_queries
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def wire_buses(core_container: CoreContainer) -> None:

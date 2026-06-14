@@ -1,10 +1,14 @@
 """IndexDocumentHandler — chunk, embed, persist a RAG document."""
 from __future__ import annotations
 
-from shell_ddd.application.commands.commands import IndexDocumentCommand
-from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
+from typing import TYPE_CHECKING
+
 from shell_ddd.domain.services.rag_index_service import Embedder, build_rag_document
-from shell_ddd.domain.value_objects.ids import RagDocumentId
+
+if TYPE_CHECKING:
+    from shell_ddd.application.commands.commands import IndexDocumentCommand
+    from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
+    from shell_ddd.domain.value_objects.ids import RagDocumentId
 
 
 class IndexDocumentHandler:
