@@ -21,6 +21,7 @@ class EventContainer(containers.DeclarativeContainer):
     archive_on_delivered_handler_factory = providers.Factory(
         ArchiveOnDeliveredHandler,
         uow=buses.uow_factory,
+        clock=infra.clock_factory,
     )
     log_audit_handler_factory = providers.Factory(
         LogAuditHandler,

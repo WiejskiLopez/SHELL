@@ -7,7 +7,7 @@ which Graph realises it; the Graph holds the back-reference (``task_id``).
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 from shell_ddd.domain.entities.base import AggregateRoot
 from shell_ddd.domain.entities.graph_node import GraphNode
@@ -23,6 +23,12 @@ if TYPE_CHECKING:
         TaskId,
         TemplateGraphId,
     )
+
+
+class _NodeIdFactory(Protocol):
+    """Structural type for a callable that produces a fresh NodeId."""
+
+    def __call__(self) -> NodeId: ...
 
 
 class Graph(AggregateRoot["GraphId"]):
@@ -128,10 +134,4 @@ class Graph(AggregateRoot["GraphId"]):
 
     def add_node(self, node: GraphNode) -> None:
         self._nodes.append(node)
-
-
-# Type alias for a callable that produces a fresh NodeId.
-# Callable[[], NodeId] but kept loose to avoid extra imports at module top.
-class _NodeIdFactory:  # pragma: no cover - structural type alias
-    def __call__(self) -> NodeId: ...
 

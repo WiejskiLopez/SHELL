@@ -4,15 +4,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell_ddd.application.ports.ports import Logger, UnitOfWork
+    from shell_ddd.application.ports.ports import Clock, Logger, UnitOfWork
     from shell_ddd.domain.events.events import DomainEvent, EnvelopeRouted
 
 
 class ArchiveOnDeliveredHandler:
     """Subscribes to EnvelopeRouted and archives the envelope when it reaches DELIVERED stage."""
 
-    def __init__(self, uow: UnitOfWork) -> None:
+    def __init__(self, uow: UnitOfWork, clock: Clock) -> None:
         self._uow = uow
+        self._clock = clock
 
     async def handle(self, event: EnvelopeRouted) -> None:
         from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
@@ -26,7 +27,7 @@ class ArchiveOnDeliveredHandler:
                 return
             archive_uri = await uow.envelope_archive.archive(envelope)
             envelope.archive_uri = archive_uri
-            envelope.transition_stage(EnvelopeStage.ARCHIVED)
+            envelope.transition_stage(EnvelopeStage.ARCHIVED, self._clock.now())
             await uow.envelopes.save(envelope)
             await uow.commit()
 

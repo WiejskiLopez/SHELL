@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 from shell_ddd.domain.exceptions import RoleNotResolvable
 
 if TYPE_CHECKING:
-    from shell_ddd.domain.entities.task import Graph, GraphNode
+    from shell_ddd.domain.entities.graph import Graph
+    from shell_ddd.domain.entities.graph_node import GraphNode
     from shell_ddd.domain.value_objects.ids import NodeId
 
 

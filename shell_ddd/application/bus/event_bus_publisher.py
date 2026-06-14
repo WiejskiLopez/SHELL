@@ -1,4 +1,10 @@
-from shell_ddd.application.bus.event_bus import EventBus
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell_ddd.application.bus.event_bus import EventBus
+    from shell_ddd.domain.events.events import DomainEvent
 
 
 class EventBusPublisher:
@@ -7,5 +13,5 @@ class EventBusPublisher:
     def __init__(self, event_bus: EventBus) -> None:
         self._event_bus = event_bus
 
-    async def publish(self, events: list) -> None:
+    async def publish(self, events: list[DomainEvent]) -> None:
         await self._event_bus.publish(events)

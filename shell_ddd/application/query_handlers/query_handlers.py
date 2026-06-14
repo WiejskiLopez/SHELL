@@ -102,8 +102,11 @@ class SearchSimilarHandler:
         self._embedder = embedder
 
     async def handle(self, query: SearchSimilarQuery) -> list[RagChunkDto]:
+        import struct
+
         vector = self._embedder.embed_text(query.query_text)
-        return await self._queries.search_similar(vector, query.top_k, query.domain)
+        vector_bytes = struct.pack(f"{len(vector)}f", *vector)
+        return await self._queries.search_similar(vector_bytes, query.top_k, query.domain)
 
 
 class GetSessionHistoryHandler:

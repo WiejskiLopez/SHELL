@@ -45,7 +45,7 @@ class Entity(ABC, Generic[TId]):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Entity):
             return NotImplemented
-        return self._id == other._id
+        return bool(self._id == other._id)
 
     def __hash__(self) -> int:
         return hash(self._id)
