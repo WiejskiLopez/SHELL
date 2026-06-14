@@ -68,6 +68,24 @@ python_version = "3.11"
 strict = true
 exclude = []
 
+# Strict mode applies only to domain + application (Clean Architecture core).
+# Outer layers (infrastructure, framework, bootstrap, tests) use standard mypy
+# because they bridge dynamic libraries (dependency_injector providers,
+# argparse.Namespace, pytest fixtures) where strict checking would require
+# excessive type-ignore boilerplate without proportional value.
+[[tool.mypy.overrides]]
+module = [
+    "shell_ddd.infrastructure.*",
+    "shell_ddd.framework.*",
+    "shell_ddd.bootstrap.*",
+    "shell_ddd.tests.*",
+]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+disallow_any_generics = false
+warn_return_any = false
+
 [[tool.mypy.overrides]]
 module = [
     "motor.*",
