@@ -42,8 +42,16 @@ async def session_factory(tmp_path_factory: pytest.TempPathFactory) -> async_ses
 
 
 @pytest.fixture()
-def uow(session_factory: async_sessionmaker) -> SqlAlchemyUnitOfWork:  # type: ignore[type-arg]
-    return SqlAlchemyUnitOfWork(session_factory)
+def events() -> FakeEventPublisher:
+    return FakeEventPublisher()
+
+
+@pytest.fixture()
+def uow(
+    session_factory: async_sessionmaker,  # type: ignore[type-arg]
+    events: FakeEventPublisher,
+) -> SqlAlchemyUnitOfWork:
+    return SqlAlchemyUnitOfWork(session_factory, post_commit_publisher=events)
 
 
 @pytest.fixture()
@@ -84,11 +92,6 @@ def id_gen() -> FakeIdGenerator:
 
 
 @pytest.fixture()
-def events() -> FakeEventPublisher:
-    return FakeEventPublisher()
-
-
-@pytest.fixture()
 def task_loader() -> FakeTaskLoader:
     return FakeTaskLoader(md="# SQL Task")
 
@@ -108,7 +111,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -126,7 +129,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
@@ -146,10 +149,10 @@ class TestSqlWorkflowRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
-        start = StartWorkflowHandler(uow, clock, id_gen, events)
+        start = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
@@ -193,7 +196,7 @@ class TestSqlNodeResultRepository:
             )
             await u.commit()
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen, events)
+        handler = SaveNodeResultHandler(uow, clock, id_gen)
         await handler.handle(
             SaveNodeResultCommand(
                 workflow_id="wf-sql-1",

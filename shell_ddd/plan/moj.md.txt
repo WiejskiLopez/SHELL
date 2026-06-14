@@ -1,0 +1,283 @@
+Oto kompletny i elegancki projekt architektoniczny wprowadzający wzorce Transactional Outbox oraz Transactional Inbox do Twojej aplikacji opartej o DDD i Clean Architecture w Pythonie.
+
+Projekt realizuje Twoje wymagania: odseparowanie bazy danych od systemów kolejek (porty i adaptery) oraz zastosowanie profesjonalnego mechanizmu harmonogramowania procesów (np. Advanced Python Scheduler - APScheduler) jako dedykowanego procesu (wyizolowanego od synchronicznego wątku żądań HTTP/CLI).
+
+1. Architektura Rozwiązania (High-Level Design)
+Zamiast natychmiastowego publikowania zdarzeń bezpośrednio do pamięci (EventBus), modyfikujemy zachowanie UnitOfWork. Zdarzenia wyciągnięte z agregatów są atomowo (w tej samej transakcji SQL) zapisywane w tabeli outbox.
+
+Następnie dedykowane procesy backgroundowe (Shedulery) zarządzają przepływem:
+
+Scheduler 1 (Outbox-to-Inbox Exporter): Pobiera nieprzetworzone zdarzenia z tabeli outbox i wysyła je na zewnątrz przez abstrakcyjny port (MessagePublisher). Druga część tego portu/procesu (odbiornik) odbiera dane i zapisuje je atomowo do tabeli inbox systemu docelowego. Pozwala to w przyszłości na bezproblemową podmianę implementacji portu na Kafkę, RabbitMQ lub AWS SQS.
+
+Scheduler 2 (Inbox Processor): Cyklicznie skanuje tabelę inbox, deserializuje zdarzenia i przekazuje je do Twoich wewnętrznych, asynchronicznych handlerów aplikacji przy użyciu istniejącego EventBus.
+
+2. Warstwa Domenowa (Domain Layer)
+Tworzymy definicje encji dla rekordów Outbox i Inbox, gwarantując enkapsulację stanów wiadomości.
+
+Python
+# shell_ddd/domain/entities/message_relay.py
+from __future__ import annotations
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+import uuid
+
+class MessageStatus(Enum):
+    PENDING = "pending"
+    PROCESSED = "processed"
+    FAILED = "failed"
+
+@dataclass
+class OutboxMessage:
+    id: str
+    event_type: str
+    payload: str  # JSON string
+    status: MessageStatus
+    created_at: datetime
+    processed_at: datetime | None = None
+
+    @classmethod
+    def create(cls, event_type: str, payload_json: str, now: datetime) -> OutboxMessage:
+        return cls(
+            id=str(uuid.uuid4()),
+            event_type=event_type,
+            payload=payload_json,
+            status=MessageStatus.PENDING,
+            created_at=now
+        )
+
+@dataclass
+class InboxMessage:
+    id: str
+    event_type: str
+    payload: str  # JSON string
+    status: MessageStatus
+    created_at: datetime
+    processed_at: datetime | None = None
+Definiujemy interfejsy (Porty) dla repozytoriów oraz kluczowego elementu infrastruktury przesyłu danych:
+
+Python
+# shell_ddd/application/ports/message_relay_ports.py
+from typing import Protocol, list
+from shell_ddd.domain.entities.message_relay import OutboxMessage, InboxMessage
+
+class OutboxRepository(Protocol):
+    async def save(self, message: OutboxMessage) -> None: ...
+    async def get_unprocessed(self, limit: int) -> list[OutboxMessage]: ...
+    async def mark_as_processed(self, message_id: str) -> None: ...
+    async def mark_as_failed(self, message_id: str) -> None: ...
+
+class InboxRepository(Protocol):
+    async def save(self, message: InboxMessage) -> None: ...
+    async def get_unprocessed(self, limit: int) -> list[InboxMessage]: ...
+    async def mark_as_processed(self, message_id: str) -> None: ...
+
+# PORT, który pozwoli na dowolną wymianę (In-Memory, Kafka, RabbitMQ)
+class MessagePublisher(Protocol):
+    async def publish(self, event_type: str, payload: str) -> None: ...
+3. Warstwa Aplikacyjna (Application Layer)
+Modyfikujemy zachowanie interfejsu UnitOfWork. Zamiast trzymać zdarzenia w liście uow.events w pamięci, UnitOfWork serializuje je i zapisuje do OutboxRepository przed wywołaniem commit().
+
+Python
+# shell_ddd/infrastructure/persistence/sqlalchemy_uow.py (Koncepcja zmian)
+import json
+from shell_ddd.domain.entities.message_relay import OutboxMessage
+
+class SqlAlchemyUnitOfWork:
+    # ... dotychczasowa inicjalizacja sesji ...
+    
+    def stage_events(self, events: list) -> None:
+        self._staged_events.extend(events)
+
+    async def commit(self) -> None:
+        # Przed zatwierdzeniem transakcji SQL, zapisz zdarzenia do bazy jako OutboxMessage
+        now = self._clock.now()
+        for event in self._staged_events:
+            # Serializacja zdarzenia do JSON-a
+            payload = json.dumps(event.__dict__, default=str) 
+            outbox_msg = OutboxMessage.create(
+                event_type=event.__class__.__name__,
+                payload_json=payload,
+                now=now
+            )
+            await self.outbox.save(outbox_msg)
+            
+        await self._session.commit()
+        self._staged_events.clear()
+Tworzymy Handlery (Use Cases) wykonywane cyklicznie przez Schedulery:
+
+Python
+# shell_ddd/application/command_handlers/relay_handlers.py
+from shell_ddd.application.ports.message_relay_ports import OutboxRepository, MessagePublisher, InboxRepository
+from shell_ddd.application.bus.event_bus import EventBus
+import json
+
+class ExportOutboxToExternalPortHandler:
+    """Implementacja logiki Schedulera 1: outbox -> port zewnętrzny"""
+    def __init__(self, outbox_repo: OutboxRepository, publisher: MessagePublisher):
+        self._outbox_repo = outbox_repo
+        self._publisher = publisher
+
+    async def handle(self) -> None:
+        messages = await self._outbox_repo.get_unprocessed(limit=100)
+        for msg in messages:
+            try:
+                # Publikacja przez abstrakcyjny port (Kafka/RabbitMQ/Port lokalny)
+                await self._publisher.publish(msg.event_type, msg.payload)
+                await self._outbox_repo.mark_as_processed(msg.id)
+            except Exception:
+                await self._outbox_repo.mark_as_failed(msg.id)
+
+class ConsumeInboxToEventBusHandler:
+    """Implementacja logiki Schedulera 2: inbox -> wewnętrzny EventBus"""
+    def __init__(self, inbox_repo: InboxRepository, event_bus: EventBus):
+        self._inbox_repo = inbox_repo
+        self._event_bus = event_bus
+
+    async def handle(self) -> None:
+        messages = await self._inbox_repo.get_unprocessed(limit=100)
+        for msg in messages:
+            # 1. Rekonstrukcja obiektu Eventu z nazwy klasy i payloadu
+            event_cls = self._resolve_event_class(msg.event_type)
+            event_data = json.loads(msg.payload)
+            event_instance = event_cls(**event_data)
+            
+            # 2. Przekazanie do wewnętrznego EventBusa aplikacji
+            await self._event_bus.publish([event_instance])
+            await self._inbox_repo.mark_as_processed(msg.id)
+
+    def _resolve_event_class(self, type_name: str):
+        import shell_ddd.domain.events.events as domain_events
+        return getattr(domain_events, type_name)
+4. Warstwa Infrastruktury i Implementacja Portów (Infrastructure)
+Mapowanie tabel SQLAlchemy dla modeli Outbox i Inbox:
+
+Python
+# shell_ddd/infrastructure/persistence/sql/models/relay_models.py
+from sqlalchemy import String, Text, DateTime, Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column
+from shell_ddd.infrastructure.persistence.sql.models import Base
+from shell_ddd.domain.entities.message_relay import MessageStatus
+from datetime import datetime
+
+class OutboxModel(Base):
+    __tablename__ = "outbox_messages"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(255), nullable=False)
+    payload: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[MessageStatus] = mapped_column(SQLEnum(MessageStatus), default=MessageStatus.PENDING)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+# Analogicznie tworzymy InboxModel dla tabeli "inbox_messages"
+Wymienne implementacje portu MessagePublisher
+Domyślny, lokalny polimorficzny adapter łączący bezpośrednio eksport z zapisu do Inbox (gdy systemy działają w obrębie tej samej bazy, ale są logicznie rozdzielone):
+
+Python
+# shell_ddd/infrastructure/adapters/local_relay_publisher.py
+from shell_ddd.application.ports.message_relay_ports import MessagePublisher, InboxRepository
+from shell_ddd.domain.entities.message_relay import InboxMessage
+from datetime import datetime, timezone
+import uuid
+
+class LocalInboxPublisherAdapter(MessagePublisher):
+    """Port bezpośrednio przekazujący dane do Inbox (wersja monolityczna)"""
+    def __init__(self, inbox_repo: InboxRepository):
+        self._inbox_repo = inbox_repo
+
+    async def publish(self, event_type: str, payload: str) -> None:
+        inbox_msg = InboxMessage(
+            id=str(uuid.uuid4()),
+            event_type=event_type,
+            payload=payload,
+            status=MessageStatus.PENDING,
+            created_at=datetime.now(timezone.utc)
+        )
+        await self._inbox_repo.save(inbox_msg)
+Gdy będziesz chciał zmienić implementację portu na Kafkę lub RabbitMQ, po prostu napiszesz nowy adapter bez dotykania logiki biznesowej i schedulerów:
+
+Python
+# Przykład przyszłego adaptera dla Kafki:
+class KafkaMessagePublisherAdapter(MessagePublisher):
+    def __init__(self, producer: AioKafkaProducer, topic: str):
+        self._producer = producer
+        self._topic = topic
+
+    async def publish(self, event_type: str, payload: str) -> None:
+        await self._producer.send_and_wait(
+            self._topic, 
+            key=event_type.encode('utf-8'), 
+            value=payload.encode('utf-8')
+        )
+5. Konfiguracja Profesjonalnych Schedulerów (APScheduler)
+Tworzymy dedykowany skrypt startowy uruchamiający procesy schedulerów przy użyciu biblioteki APScheduler (wykorzystując asynchroniczny AsyncIOScheduler), który może działać jako osobny demon (np. w kontenerze Docker obok FastAPI/CLI).
+
+Python
+# shell_ddd/bootstrap/scheduler_bootstrap.py
+import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from shell_ddd.infrastructure.persistence.sql import build_session_factory
+from shell_ddd.infrastructure.persistence.sql.repositories import SqlOutboxRepository, SqlInboxRepository
+from shell_ddd.infrastructure.adapters.local_relay_publisher import LocalInboxPublisherAdapter
+from shell_ddd.application.command_handlers.relay_handlers import (
+    ExportOutboxToExternalPortHandler,
+    ConsumeInboxToEventBusHandler
+)
+from shell_ddd.application.bus.event_bus import EventBus
+
+async def run_outbox_exporter(session_factory, publisher_adapter):
+    """Zadanie dla Schedulera 1"""
+    async with session_factory() as session:
+        outbox_repo = SqlOutboxRepository(session)
+        handler = ExportOutboxToExternalPortHandler(outbox_repo, publisher_adapter)
+        await handler.handle()
+
+async def run_inbox_consumer(session_factory, event_bus):
+    """Zadanie dla Schedulera 2"""
+    async with session_factory() as session:
+        inbox_repo = SqlInboxRepository(session)
+        handler = ConsumeInboxToEventBusHandler(inbox_repo, event_bus)
+        await handler.handle()
+
+def start_background_schedulers():
+    # 1. Konfiguracja połączeń i zależności
+    session_factory = build_session_factory("postgresql+asyncpg://...")
+    event_bus = EventBus()
+    
+    # Inicjalizacja repozytoriów i adaptera portu
+    inbox_repo_setup = SqlInboxRepository(None) # Współdzielone repo domyślne
+    local_publisher = LocalInboxPublisherAdapter(inbox_repo_setup)
+    
+    # 2. Konfiguracja profesjonalnego Schedulera
+    scheduler = AsyncIOScheduler()
+    
+    # Scheduler 1: Co 2 sekundy eksportuje outbox -> do portu (inbox)
+    scheduler.add_job(
+        run_outbox_exporter, 
+        'interval', 
+        seconds=2, 
+        args=[session_factory, local_publisher],
+        name="outbox_to_inbox_exporter"
+    )
+    
+    # Scheduler 2: Co 1 sekundę przetwarza wiadomości z inbox -> EventBus
+    scheduler.add_job(
+        run_inbox_consumer, 
+        'interval', 
+        seconds=1, 
+        args=[session_factory, event_bus],
+        name="inbox_to_event_bus_processor"
+    )
+    
+    scheduler.start()
+    print("Profesjonalne Schedulery transakcyjne zostały uruchomione.")
+
+if __name__ == "__main__":
+    start_background_schedulers()
+    # Uruchomienie nieskończonej pętli asynchronicznej dla procesu backgroundowego
+    asyncio.get_event_loop().run_forever()
+Korzyści z takiej struktury zmian:
+Gwarancja Atowości (At-Least-Once Delivery): Zdarzenie nie zostanie utracone, jeśli proces bazy danych przejdzie pomyślnie, ponieważ zapis zdarzenia outbox współdzieli transakcję z logiką biznesową agregatów.
+
+Pełna izolacja infrastruktury komunikacyjnej: Zmiana przesyłu danych z obecnej implementacji lokalnej na Kafkę lub RabbitMQ wymaga wyłącznie dostarczenia nowej klasy implementującej MessagePublisher i podstawienia jej w bootstrapie (Shedulerze 1). Żadna linijka kodu domenowego lub aplikacyjnego nie ulegnie modyfikacji.

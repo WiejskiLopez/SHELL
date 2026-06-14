@@ -8,10 +8,12 @@ from shell_ddd.application.bus.event_bus import EventBus
 from shell_ddd.application.bus.event_bus_publisher import EventBusPublisher
 from shell_ddd.application.bus.query_bus import QueryBus
 from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
+from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
 
 
 class BusContainer(containers.DeclarativeContainer):
-    """Szyny komunikatów i kompozytowy publisher zdarzeń."""
+    """Szyny komunikatów, kompozytowy publisher zdarzeń oraz fabryka UoW
+    wstrzykująca publisher post-commit do każdej transakcji."""
 
     infra = providers.DependenciesContainer()
 
@@ -26,6 +28,16 @@ class BusContainer(containers.DeclarativeContainer):
         publishers=providers.List(
             infra.logging_publisher,
             infra.sql_audit_publisher,
-            bus_publisher
-        )
+            bus_publisher,
+        ),
+    )
+
+    # UoW factory wired with the post-commit publisher. Domain events are
+    # written to ``outbox_event`` atomically with state inside ``commit()``;
+    # the publisher below performs best-effort in-process fan-out *after*
+    # the transaction has been durably committed.
+    uow_factory = providers.Factory(
+        SqlAlchemyUnitOfWork,
+        session_factory=infra.session_factory,
+        post_commit_publisher=event_publisher,
     )

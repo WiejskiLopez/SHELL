@@ -34,8 +34,13 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
 
 
 @pytest.fixture()
-def uow() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def events() -> FakeEventPublisher:
+    return FakeEventPublisher()
+
+
+@pytest.fixture()
+def uow(events: FakeEventPublisher) -> InMemoryUnitOfWork:
+    return InMemoryUnitOfWork(post_commit_publisher=events)
 
 
 @pytest.fixture()
@@ -46,11 +51,6 @@ def clock() -> FakeClock:
 @pytest.fixture()
 def id_gen() -> FakeIdGenerator:
     return FakeIdGenerator()
-
-
-@pytest.fixture()
-def events() -> FakeEventPublisher:
-    return FakeEventPublisher()
 
 
 @pytest.fixture()
@@ -107,7 +107,7 @@ class TestBuildGraphOnTaskCreated:
         logger: FakeLogger,
     ) -> None:
         _seed_template(uow)
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, events, logger)
+        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         await handler.handle(_task_created_event(clock.now()))
 
@@ -127,7 +127,7 @@ class TestBuildGraphOnTaskCreated:
     ) -> None:
         # Replace seeded base_planner with nothing
         uow.template_graphs._store.clear()
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, events, logger)
+        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
@@ -141,7 +141,7 @@ class TestBuildGraphOnTaskCreated:
         logger: FakeLogger,
     ) -> None:
         _seed_template(uow)
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, events, logger)
+        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
@@ -168,7 +168,7 @@ class TestBuildGraphOnTaskCreated:
     ) -> None:
         # No template seeded — handler must NOT publish events when failing.
         uow.template_graphs._store.clear()
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, events, logger)
+        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):
             await handler.handle(_task_created_event(clock.now()))

@@ -71,8 +71,16 @@ async def session_factory() -> async_sessionmaker:  # type: ignore[type-arg]
 
 
 @pytest.fixture()
-def uow(session_factory: async_sessionmaker) -> SqlAlchemyUnitOfWork:  # type: ignore[type-arg]
-    return SqlAlchemyUnitOfWork(session_factory)
+def events() -> FakeEventPublisher:
+    return FakeEventPublisher()
+
+
+@pytest.fixture()
+def uow(
+    session_factory: async_sessionmaker,  # type: ignore[type-arg]
+    events: FakeEventPublisher,
+) -> SqlAlchemyUnitOfWork:
+    return SqlAlchemyUnitOfWork(session_factory, post_commit_publisher=events)
 
 
 @pytest.fixture()
@@ -83,11 +91,6 @@ def clock() -> FakeClock:
 @pytest.fixture()
 def id_gen() -> FakeIdGenerator:
     return FakeIdGenerator()
-
-
-@pytest.fixture()
-def events() -> FakeEventPublisher:
-    return FakeEventPublisher()
 
 
 @pytest.fixture()
@@ -109,7 +112,7 @@ class TestPgTaskRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -126,7 +129,7 @@ class TestPgTaskRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
 
@@ -150,10 +153,10 @@ class TestPgWorkflowRepository:
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))
 
-        start = StartWorkflowHandler(uow, clock, id_gen, events)
+        start = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand("pg-wf-task"))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
@@ -213,7 +216,7 @@ class TestPgNodeResultRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
     ) -> None:
-        handler = SaveNodeResultHandler(uow, clock, id_gen, events)
+        handler = SaveNodeResultHandler(uow, clock, id_gen)
         await handler.handle(
             SaveNodeResultCommand(
                 workflow_id="pg-wf-nr-1",

@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import ImportTaskCommand
     from shell_ddd.application.ports.ports import (
         Clock,
-        EventPublisher,
         IdGenerator,
         Logger,
         TaskLoader,
@@ -31,14 +30,12 @@ class ImportTaskHandler:
             clock: Clock,
             id_gen: IdGenerator,
             task_loader: TaskLoader,
-            event_publisher: EventPublisher,
             logger: Logger,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
         self._task_loader = task_loader
-        self._event_publisher = event_publisher
         self._logger = logger
 
     async def handle(self, cmd: ImportTaskCommand) -> str:
@@ -59,6 +56,4 @@ class ImportTaskHandler:
             await uow.tasks.save(task)
             uow.stage_events(task.pull_events())
             await uow.commit()
-        await self._event_publisher.publish(uow.events)
-        self._logger.info("Event published", task_id=task.id.value)
         return task.id.value

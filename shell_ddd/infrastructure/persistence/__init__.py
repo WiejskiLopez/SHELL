@@ -22,6 +22,7 @@ from shell_ddd.infrastructure.persistence.sql.repositories import (
 )
 
 if TYPE_CHECKING:
+    from shell_ddd.application.ports.messaging import EventPublisher
     from shell_ddd.domain.events.events import DomainEvent
 
 
@@ -30,11 +31,23 @@ class SqlAlchemyUnitOfWork:
 
     Works for both SQLite (sqlite+aiosqlite) and PostgreSQL (postgresql+asyncpg).
     Outbox events are written to the same session — atomically with domain state.
+
+    After a successful commit, ``__aexit__`` dispatches the staged events to the
+    optional ``post_commit_publisher`` (logger, audit, in-process EventBus). The
+    outbox row written inside ``commit()`` is the durable source of truth — the
+    post-commit publisher is best-effort fan-out for side effects only.
     """
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        post_commit_publisher: EventPublisher | None = None,
+    ) -> None:
         self._factory = session_factory
+        self._post_commit_publisher = post_commit_publisher
         self._staged_events: list[DomainEvent] = []
+        self._post_commit_buffer: list[DomainEvent] = []
+        self._committed = False
 
     # ------------------------------------------------------------------
     # Outbox staging — handlers call uow.stage_events() BEFORE commit
@@ -51,6 +64,8 @@ class SqlAlchemyUnitOfWork:
     async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
         self._session: AsyncSession = self._factory()
         self._staged_events = []
+        self._post_commit_buffer = []
+        self._committed = False
         self.tasks = SqlTaskRepository(self._session)
         self.graphs = SqlGraphRepository(self._session)
         self.workflows = SqlWorkflowRepository(self._session)
@@ -64,9 +79,17 @@ class SqlAlchemyUnitOfWork:
         return self
 
     async def __aexit__(self, exc_type: object, *args: object) -> None:
-        if exc_type:
-            await self.rollback()
-        await self._session.close()
+        try:
+            if exc_type:
+                await self.rollback()
+        finally:
+            await self._session.close()
+        # Best-effort post-commit fan-out. Outbox row is the durable source of
+        # truth and was already written in the same transaction as domain state.
+        if exc_type is None and self._committed and self._post_commit_publisher is not None:
+            buffered = self._post_commit_buffer
+            self._post_commit_buffer = []
+            await self._post_commit_publisher.publish(buffered)
 
     async def commit(self) -> None:
         """Write staged outbox events to DB and commit everything in one transaction."""
@@ -85,9 +108,13 @@ class SqlAlchemyUnitOfWork:
                     published_at=None,
                 )
             )
+        self._post_commit_buffer = list(self._staged_events)
         self._staged_events = []
         await self._session.commit()
+        self._committed = True
 
     async def rollback(self) -> None:
         self._staged_events = []
+        self._post_commit_buffer = []
+        self._committed = False
         await self._session.rollback()

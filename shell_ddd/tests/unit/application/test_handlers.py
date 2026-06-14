@@ -46,8 +46,13 @@ from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServ
 
 
 @pytest.fixture()
-def uow() -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork()
+def events() -> FakeEventPublisher:
+    return FakeEventPublisher()
+
+
+@pytest.fixture()
+def uow(events: FakeEventPublisher) -> InMemoryUnitOfWork:
+    return InMemoryUnitOfWork(post_commit_publisher=events)
 
 
 @pytest.fixture()
@@ -58,11 +63,6 @@ def clock() -> FakeClock:
 @pytest.fixture()
 def id_gen() -> FakeIdGenerator:
     return FakeIdGenerator()
-
-
-@pytest.fixture()
-def events() -> FakeEventPublisher:
-    return FakeEventPublisher()
 
 
 @pytest.fixture()
@@ -94,7 +94,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         task_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         assert task_id
@@ -109,7 +109,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         from shell_ddd.domain.value_objects.task_name import TaskName
@@ -126,7 +126,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         first_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
@@ -146,7 +146,7 @@ class TestImportTaskHandler:
             events: FakeEventPublisher,
             task_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         with pytest.raises(ValueError):
             await handler.handle(ImportTaskCommand("t.md", ""))
 
@@ -164,8 +164,7 @@ class TestStartWorkflowHandler:
             id_gen: FakeIdGenerator,
             task_loader: FakeTaskLoader,
     ) -> None:
-        pub = FakeEventPublisher()
-        h = ImportTaskHandler(uow, clock, id_gen, task_loader, pub, FakeLogger())
+        h = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await h.handle(ImportTaskCommand("t.md", "my-task"))
         await self._attach_graph(uow, "my-task")
 
@@ -208,7 +207,7 @@ class TestStartWorkflowHandler:
             task_loader: FakeTaskLoader,
     ) -> None:
         await self._import_task(uow, clock, id_gen, task_loader)
-        handler = StartWorkflowHandler(uow, clock, id_gen, events)
+        handler = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await handler.handle(StartWorkflowCommand("my-task"))
 
         assert wf_id
@@ -221,7 +220,7 @@ class TestStartWorkflowHandler:
             id_gen: FakeIdGenerator,
             events: FakeEventPublisher,
     ) -> None:
-        handler = StartWorkflowHandler(uow, clock, id_gen, events)
+        handler = StartWorkflowHandler(uow, clock, id_gen)
         with pytest.raises(TaskNotFound):
             await handler.handle(StartWorkflowCommand("nonexistent"))
 
@@ -235,7 +234,7 @@ class TestStartWorkflowHandler:
             queries: InMemoryQueryServices,
     ) -> None:
         await self._import_task(uow, clock, id_gen, task_loader)
-        handler = StartWorkflowHandler(uow, clock, id_gen, events)
+        handler = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await handler.handle(StartWorkflowCommand("my-task"))
 
         q_handler = GetWorkflowHandler(queries)
@@ -263,7 +262,7 @@ class TestSaveNodeResultHandler:
         wf = Workflow.new(id_=WorkflowId("wf-1"), task_name="t", now=clock.now())
         uow.workflows._store["wf-1"] = wf
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen, events)
+        handler = SaveNodeResultHandler(uow, clock, id_gen)
         result_id = await handler.handle(
             SaveNodeResultCommand(
                 workflow_id="wf-1",

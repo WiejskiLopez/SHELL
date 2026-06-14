@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import RunNodeCommand
     from shell_ddd.application.ports.ports import (
         Clock,
-        EventPublisher,
         IdGenerator,
         NodeProcessRunner,
         NodeWorkspace,
@@ -35,7 +34,6 @@ class RunNodeHandler:
         workspace: NodeWorkspace,
         runner: NodeProcessRunner,
         strategy: NodeExecutionStrategy,
-        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
@@ -43,7 +41,6 @@ class RunNodeHandler:
         self._workspace = workspace
         self._runner = runner
         self._strategy = strategy
-        self._event_publisher = event_publisher
 
     async def handle(self, cmd: RunNodeCommand) -> str:
         """Execute node and return NodeResult id."""
@@ -94,5 +91,4 @@ class RunNodeHandler:
             uow.stage_events(wf.pull_events())
             await uow.commit()
 
-        await self._event_publisher.publish(uow.events)
         return result.id.value

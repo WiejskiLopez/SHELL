@@ -59,8 +59,16 @@ async def session_factory(
 
 
 @pytest.fixture()
-def uow(session_factory: async_sessionmaker) -> SqlAlchemyUnitOfWork:  # type: ignore[type-arg]
-    return SqlAlchemyUnitOfWork(session_factory)
+def events() -> FakeEventPublisher:
+    return FakeEventPublisher()
+
+
+@pytest.fixture()
+def uow(
+    session_factory: async_sessionmaker,  # type: ignore[type-arg]
+    events: FakeEventPublisher,
+) -> SqlAlchemyUnitOfWork:
+    return SqlAlchemyUnitOfWork(session_factory, post_commit_publisher=events)
 
 
 @pytest.fixture()
@@ -71,11 +79,6 @@ def clock() -> FakeClock:
 @pytest.fixture()
 def id_gen() -> FakeIdGenerator:
     return FakeIdGenerator()
-
-
-@pytest.fixture()
-def events() -> FakeEventPublisher:
-    return FakeEventPublisher()
 
 
 @pytest.fixture()
@@ -98,7 +101,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -116,7 +119,7 @@ class TestSqlTaskRepository:
         task_loader: FakeTaskLoader,
         session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
@@ -141,7 +144,7 @@ class TestSqlWorkflowRepository:
         task_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
@@ -172,7 +175,7 @@ class TestSqlWorkflowRepository:
             await u.graphs.save(graph)
             await u.commit()
 
-        start = StartWorkflowHandler(uow, clock, id_gen, events)
+        start = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand("wf-task"))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
@@ -243,7 +246,7 @@ class TestSqlNodeResultRepository:
             )
             await u.commit()
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen, events)
+        handler = SaveNodeResultHandler(uow, clock, id_gen)
         await handler.handle(
             SaveNodeResultCommand(
                 workflow_id="wf-sql-nr-1",
@@ -560,7 +563,7 @@ class TestTransactionalOutbox:
 
         from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, events, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "atomic-task"))
 
         async with session_factory() as session:

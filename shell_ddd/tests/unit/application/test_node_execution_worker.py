@@ -107,27 +107,25 @@ async def _persist_running_workflow(
 def _make_worker(
     uow: InMemoryUnitOfWork,
     runner: FakeNodeProcessRunner,
-    publisher: FakeEventPublisher,
 ) -> NodeExecutionWorker:
     return NodeExecutionWorker(
         uow=uow,
         clock=FakeClock(_NOW),
         id_gen=FakeIdGenerator(),
         runner=runner,
-        event_publisher=publisher,
         logger=FakeLogger(),
     )
 
 
 class TestNodeExecutionWorkerHappyPath:
     async def test_first_node_success_advances_to_second(self) -> None:
-        uow = InMemoryUnitOfWork()
+        publisher = FakeEventPublisher()
+        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
         task, graph = _build_graph(uow, "happy", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
-        publisher = FakeEventPublisher()
-        worker = _make_worker(uow, runner, publisher)
+        worker = _make_worker(uow, runner)
 
         await worker.handle(
             NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
@@ -144,13 +142,13 @@ class TestNodeExecutionWorkerHappyPath:
         assert NodeExecutionRequested in types
 
     async def test_last_node_success_finishes_workflow(self) -> None:
-        uow = InMemoryUnitOfWork()
+        publisher = FakeEventPublisher()
+        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
         task, graph = _build_graph(uow, "single", ["agent"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
-        publisher = FakeEventPublisher()
-        worker = _make_worker(uow, runner, publisher)
+        worker = _make_worker(uow, runner)
 
         await worker.handle(
             NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
@@ -167,13 +165,13 @@ class TestNodeExecutionWorkerHappyPath:
 
 class TestNodeExecutionWorkerFailure:
     async def test_node_failure_aborts_under_fail_fast_policy(self) -> None:
-        uow = InMemoryUnitOfWork()
+        publisher = FakeEventPublisher()
+        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
         task, graph = _build_graph(uow, "fail", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
-        publisher = FakeEventPublisher()
-        worker = _make_worker(uow, runner, publisher)
+        worker = _make_worker(uow, runner)
 
         await worker.handle(
             NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
@@ -194,13 +192,13 @@ class TestNodeExecutionWorkerFailure:
 
 class TestNodeExecutionWorkerIdempotency:
     async def test_stale_cursor_event_is_dropped(self) -> None:
-        uow = InMemoryUnitOfWork()
+        publisher = FakeEventPublisher()
+        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
         task, graph = _build_graph(uow, "stale", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
-        publisher = FakeEventPublisher()
-        worker = _make_worker(uow, runner, publisher)
+        worker = _make_worker(uow, runner)
 
         # Worker is asked to process node[1] but the cursor still points at node[0].
         await worker.handle(
@@ -218,7 +216,8 @@ class TestNodeExecutionWorkerIdempotency:
         assert publisher.published == []
 
     async def test_terminal_workflow_ignores_event(self) -> None:
-        uow = InMemoryUnitOfWork()
+        publisher = FakeEventPublisher()
+        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
         task, graph = _build_graph(uow, "terminal", ["agent"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
@@ -235,8 +234,7 @@ class TestNodeExecutionWorkerIdempotency:
             await uow.commit()
 
         runner = FakeNodeProcessRunner(returncode=0)
-        publisher = FakeEventPublisher()
-        worker = _make_worker(uow, runner, publisher)
+        worker = _make_worker(uow, runner)
 
         await worker.handle(
             NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)

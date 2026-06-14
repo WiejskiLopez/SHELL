@@ -123,18 +123,21 @@ async def _run_tasker_full(
     from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
     composite = CompositeEventPublisher(publishers=[collector, bus_publisher])
 
+    # Wire the composite publisher into the UoW so domain events are dispatched
+    # to the in-process EventBus *after* each transaction commits.
+    uow._post_commit_publisher = composite
+
     worker_factory = lambda: NodeExecutionWorker(  # noqa: E731
         uow=uow,
         clock=clock,
         id_gen=id_gen,
         runner=runner,
-        event_publisher=composite,
         logger=FakeLogger(),
     )
     event_bus.subscribe(NodeExecutionRequested, worker_factory)
 
     handler = RunTaskerWorkflowHandler(
-        uow=uow, clock=clock, id_gen=id_gen, event_publisher=composite
+        uow=uow, clock=clock, id_gen=id_gen,
     )
     workflow_id = await handler.handle(
         RunTaskerWorkflowCommand(task_name=task_name, work_dir=work_dir)
@@ -284,7 +287,7 @@ class TestRunTaskerWorkflowEdgeCases:
 
         _make_task_with_graph("empty-task", [], uow)
         handler = RunTaskerWorkflowHandler(
-            uow=uow, clock=clock, id_gen=id_gen, event_publisher=events
+            uow=uow, clock=clock, id_gen=id_gen,
         )
         with pytest.raises(WorkflowHasNoNodes):
             await handler.handle(
@@ -300,7 +303,7 @@ class TestRunTaskerWorkflowEdgeCases:
     ) -> None:
         from shell_ddd.domain.exceptions import TaskNotFound
 
-        handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen, event_publisher=events)
+        handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
         with pytest.raises(TaskNotFound):
             await handler.handle(
                 RunTaskerWorkflowCommand(task_name="ghost-task", work_dir="/tmp")

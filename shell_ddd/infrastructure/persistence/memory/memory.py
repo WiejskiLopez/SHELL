@@ -24,6 +24,7 @@ from shell_ddd.domain.value_objects.ids import (
 )
 
 if TYPE_CHECKING:
+    from shell_ddd.application.ports.messaging import EventPublisher
     from shell_ddd.domain.entities.envelope import Envelope
     from shell_ddd.domain.entities.graph import Graph
     from shell_ddd.domain.entities.node_result import NodeResult
@@ -263,7 +264,11 @@ class InMemorySessionRepository:
 
 
 class InMemoryUnitOfWork:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        post_commit_publisher: EventPublisher | None = None,
+    ) -> None:
+        self._post_commit_publisher = post_commit_publisher
         self.tasks = InMemoryTaskRepository()
         self.graphs = InMemoryGraphRepository()
         self.workflows = InMemoryWorkflowRepository()
@@ -292,6 +297,7 @@ class InMemoryUnitOfWork:
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
+        self._post_commit_buffer: list[DomainEvent] = []
 
     # ------------------------------------------------------------------
     # Outbox staging — mirrors SqlAlchemyUnitOfWork interface
@@ -305,18 +311,28 @@ class InMemoryUnitOfWork:
         return list(self._staged_events)
 
     async def commit(self) -> None:
+        self._post_commit_buffer = list(self._staged_events)
+        self._staged_events = []
         self._committed = True
 
     async def rollback(self) -> None:
         self._staged_events = []
+        self._post_commit_buffer = []
+        self._committed = False
 
     async def __aenter__(self) -> InMemoryUnitOfWork:
         self._committed = False
         self._staged_events = []
+        self._post_commit_buffer = []
         return self
 
-    async def __aexit__(self, *args: object) -> None:
-        pass
+    async def __aexit__(self, exc_type: object, *args: object) -> None:
+        # Best-effort post-commit fan-out. Outbox staging happened atomically
+        # with state changes inside ``commit()`` (durable source of truth).
+        if exc_type is None and self._committed and self._post_commit_publisher is not None:
+            buffered = self._post_commit_buffer
+            self._post_commit_buffer = []
+            await self._post_commit_publisher.publish(buffered)
 
 
 # ---------------------------------------------------------------------------

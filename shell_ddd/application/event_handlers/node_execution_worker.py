@@ -53,7 +53,6 @@ if TYPE_CHECKING:
     from shell_ddd.application.ports.identity import IdGenerator
     from shell_ddd.application.ports.execution import NodeProcessRunner
     from shell_ddd.application.ports.logging import Logger
-    from shell_ddd.application.ports.messaging import EventPublisher
     from shell_ddd.application.ports.time import Clock
     from shell_ddd.application.ports.unit_of_work import UnitOfWork
     from shell_ddd.domain.entities.graph import Graph
@@ -71,7 +70,6 @@ class NodeExecutionWorker:
         clock: Clock,
         id_gen: IdGenerator,
         runner: NodeProcessRunner,
-        event_publisher: EventPublisher,
         logger: Logger,
         navigator: NodeNavigator | None = None,
         policy: NodeExecutionPolicy | None = None,
@@ -81,7 +79,6 @@ class NodeExecutionWorker:
         self._clock = clock
         self._id_gen = id_gen
         self._runner = runner
-        self._event_publisher = event_publisher
         self._logger = logger
         self._navigator: NodeNavigator = navigator or LinearNodeNavigator()
         self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
@@ -240,8 +237,6 @@ class NodeExecutionWorker:
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
             await uow.commit()
-
-        await self._event_publisher.publish(uow.events)
 
     def _advance_or_finish(
         self,

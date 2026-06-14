@@ -16,7 +16,6 @@ from shell_ddd.domain.entities.graph import Graph
 if TYPE_CHECKING:
     from shell_ddd.application.ports.ports import (
         Clock,
-        EventPublisher,
         IdGenerator,
         Logger,
         UnitOfWork,
@@ -35,14 +34,12 @@ class BuildGraphOnTaskCreated:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        event_publisher: EventPublisher,
         logger: Logger,
         template_name: str = DEFAULT_TEMPLATE_NAME,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._event_publisher = event_publisher
         self._logger = logger
         self._template_name = template_name
 
@@ -80,7 +77,6 @@ class BuildGraphOnTaskCreated:
             uow.stage_events(graph.pull_events())
             await uow.commit()
 
-        await self._event_publisher.publish(uow.events)
         self._logger.info(
             "Graph built for task",
             task_id=event.task_id.value,

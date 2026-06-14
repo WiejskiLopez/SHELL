@@ -9,7 +9,7 @@ from shell_ddd.domain.value_objects.status import Status
 
 if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import SaveNodeResultCommand
-    from shell_ddd.application.ports.ports import Clock, EventPublisher, IdGenerator, UnitOfWork
+    from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
 class SaveNodeResultHandler:
@@ -18,12 +18,10 @@ class SaveNodeResultHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._event_publisher = event_publisher
 
     async def handle(self, cmd: SaveNodeResultCommand) -> str:
         node_id = NodeId(cmd.node_id)
@@ -49,5 +47,4 @@ class SaveNodeResultHandler:
             uow.stage_events(workflow.pull_events())
             await uow.commit()
 
-        await self._event_publisher.publish(uow.events)
         return result.id.value

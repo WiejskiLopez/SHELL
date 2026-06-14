@@ -1,0 +1,26 @@
+Zgodnie z obecną konfiguracją w Twoim pliku bootstrap/factory/event_factory.py, na zdarzenie TaskCreated nasłuchują wewnątrzprocesowo dokładnie dwa handlery.
+
+Oto one i to, za co odpowiadają:
+
+1. BuildGraphOnTaskCreated (Główna logika biznesowa)
+To jest najważniejszy konsument tego zdarzenia. Zgodnie z założeniami Twojej architektury, sam agregat Task nie wie nic o tym, jaki graf (kroki wykonania) go realizuje.
+
+Gdy ten handler przechwyci TaskCreated, wykonuje następującą pracę:
+
+Sprawdza, czy dla tego zadania nie został już zbudowany graf (idempotentność).
+
+Pobiera z bazy szablon grafu (TemplateGraph) – domyślnie o nazwie base_planner.
+
+Na podstawie tego szablonu buduje i zapisuje w bazie nowy agregat Graph, przypisany do nowo utworzonego zadania.
+
+Na koniec ten handler sam generuje kolejne zdarzenie: GraphBuilt, które wypycha dalej w system.
+
+2. LogAuditHandler (Observability)
+To uniwersalny, techniczny handler, który nasłuchuje na większość zdarzeń w systemie (w tym na TaskCreated).
+
+Jego jedynym zadaniem jest zrzucenie ustrukturyzowanej informacji o zdarzeniu (tzw. audit log) do standardowego logera aplikacji (np. do konsoli lub pliku jako JSON).
+
+Pozwala to łatwo śledzić w logach (Kibana/Datadog/konsola), że zadanie o danym ID i nazwie zostało pomyślnie utworzone.
+
+Jak to się łączy z bazą danych (Outbox)?
+Warto pamiętać, że zanim te dwa handlery zostaną w ogóle wywołane w pamięci przez EventBus, surowe zdarzenie TaskCreated jest już bezpiecznie i atomowo zapisane w tabeli outbox_event w bazie danych (oraz w audit_event). Jeśli aplikacja padłaby ułamek sekundy po zapisie, a przed wywołaniem BuildGraphOnTaskCreated, Twój proces OutboxRelay podniósłby to zdarzenie z bazy i przepchnął je ponownie do tych samych dwóch handlerów.

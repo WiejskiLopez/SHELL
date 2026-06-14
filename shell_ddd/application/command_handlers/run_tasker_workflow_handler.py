@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
     from shell_ddd.application.ports.ports import (
         Clock,
-        EventPublisher,
         IdGenerator,
         UnitOfWork,
     )
@@ -52,13 +51,11 @@ class RunTaskerWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        event_publisher: EventPublisher,
         navigator: "NodeNavigator | None" = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._event_publisher = event_publisher
         self._navigator: NodeNavigator = navigator or LinearNodeNavigator()
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
@@ -99,5 +96,4 @@ class RunTaskerWorkflowHandler:
             )
             await uow.commit()
 
-        await self._event_publisher.publish(uow.events)
         return workflow.id.value

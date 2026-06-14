@@ -20,7 +20,7 @@ from shell_ddd.domain.value_objects.workflow_execution_context import (
 
 if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import StartWorkflowCommand
-    from shell_ddd.application.ports.ports import Clock, EventPublisher, IdGenerator, UnitOfWork
+    from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
     from shell_ddd.domain.services.node_navigator import NodeNavigator
 
 
@@ -30,13 +30,11 @@ class StartWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        event_publisher: EventPublisher,
         navigator: "NodeNavigator | None" = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._event_publisher = event_publisher
         self._navigator: NodeNavigator = navigator or LinearNodeNavigator()
 
     async def handle(self, cmd: StartWorkflowCommand) -> str:
@@ -64,5 +62,4 @@ class StartWorkflowHandler:
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
             await uow.commit()
-        await self._event_publisher.publish(uow.events)
         return workflow.id.value

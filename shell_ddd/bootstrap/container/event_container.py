@@ -20,7 +20,7 @@ class EventContainer(containers.DeclarativeContainer):
 
     archive_on_delivered_handler_factory = providers.Factory(
         ArchiveOnDeliveredHandler,
-        uow=infra.uow_factory,
+        uow=buses.uow_factory,
     )
     log_audit_handler_factory = providers.Factory(
         LogAuditHandler,
@@ -28,19 +28,17 @@ class EventContainer(containers.DeclarativeContainer):
     )
     build_graph_on_task_created_factory = providers.Factory(
         BuildGraphOnTaskCreated,
-        uow=infra.uow_factory,
+        uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
-        event_publisher=buses.event_publisher,
         logger=infra.stdlib_logger,
     )
     node_execution_worker_factory = providers.Factory(
         NodeExecutionWorker,
-        uow=infra.uow_factory,
+        uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         runner=infra.runner_factory,
-        event_publisher=buses.event_publisher,
         logger=infra.stdlib_logger,
         navigator=domain.node_navigator_factory,
         policy=domain.node_execution_policy_factory,

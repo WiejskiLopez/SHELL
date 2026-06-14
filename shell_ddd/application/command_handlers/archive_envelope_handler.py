@@ -9,7 +9,7 @@ from shell_ddd.domain.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from shell_ddd.application.commands.commands import ArchiveEnvelopeCommand
-    from shell_ddd.application.ports.ports import Clock, EventPublisher, UnitOfWork
+    from shell_ddd.application.ports.ports import Clock, UnitOfWork
 
 
 class ArchiveEnvelopeHandler:
@@ -17,11 +17,9 @@ class ArchiveEnvelopeHandler:
         self,
         uow: UnitOfWork,
         clock: Clock,
-        event_publisher: EventPublisher,
     ) -> None:
         self._uow = uow
         self._clock = clock
-        self._event_publisher = event_publisher
 
     async def handle(self, cmd: ArchiveEnvelopeCommand) -> None:
         env_id = EnvelopeId(cmd.envelope_id)

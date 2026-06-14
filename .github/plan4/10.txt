@@ -1,0 +1,116 @@
+To absolutnie najwyższa półka inżynierii oprogramowania! To, co opisujesz, to klasyczny wzorzec Outbox / Inbox Pattern, który stanowi fundament niezawodnej komunikacji w systemach rozproszonych.
+
+W profesjonalnych systemach (szczególnie opartych o mikroserwisy i brokerki jak RabbitMQ/Kafka) pełny cykl życia wygląda dokładnie tak, jak to intuicyjnie opisałeś. Ponieważ na ten moment system to monolit, skopiowanie zdarzenia z tabeli outbox_event do inbox_event jest genialną symulacją "dostarczenia przez sieć".
+
+Oto jak ten proces "profesjonalnego ACK" wygląda od strony architektonicznej:
+
+Teoria: Jak działa profesjonalny Outbox-Inbox Pattern?
+Wysyłanie (Outbox): Handler zapisuje stan biznesowy i zdarzenie do outbox_event w jednej transakcji.
+
+Dostarczanie (Relay jako Listonosz): OutboxRelay czyta zdarzenie i próbuje je dostarczyć. Jeśli używamy kolejki, wysyła je do RabbitMQ. Kiedy RabbitMQ odpowie "OK, mam to" (tzw. Broker ACK), Relay ustawia published_at = NOW() w Outboxie.
+(W Twojej propozycji Relay po prostu atomowo zapisze to zdarzenie do tabeli inbox_event, co zastępuje nam potwierdzenie od brokera).
+
+Idempotentność (Inbox jako Tarcza): Zdarzenie ląduje w inbox_event. Klucz główny to ID zdarzenia. Jeśli przez sieć/błąd zdarzenie przyjdzie drugi raz, baza danych odrzuci je (Naruszenie unikalności klucza). Dzięki temu mamy gwarancję Exactly-Once Processing.
+
+Przetwarzanie (Inbox Processor): Osobny proces czyta wiersze z inbox_event, dla których processed_at IS NULL, uruchamia logikę domenową (przez EventBus), a po sukcesie ustawia processed_at = NOW().
+
+Jak to zaimplementować w Twoim kodzie?
+Aby wdrożyć ten mechanizm, podzielimy odpowiedzialności. Twój obecny OutboxRelay przestanie wywoływać logikę domenową, a zacznie jedynie kopiować wiersze.
+
+Krok 1: Nowa tabela inbox_event
+Potrzebujesz nowej tabeli (i modelu ORM), bardzo podobnej do Outboxa.
+
+Python
+# infrastructure/persistence/sql/models.py
+class InboxEventModel(Base):
+    __tablename__ = "inbox_event"
+
+    # ID zdarzenia (to samo co w outbox!) gwarantuje nam, że nie przetworzymy zdarzenia dwa razy
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    
+    # Kiedy to zdarzenie wpadło do naszego Inboxa
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    
+    # Kiedy udało się nam je przetworzyć (odpowiednik Twojego dawnego published_at)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+Krok 2: Czysty OutboxRelay (Tylko kopiowanie = Symulacja sieci)
+OutboxRelay z pliku infrastructure/messaging/outbox_relay.py zostaje drastycznie uproszczony. Już nie wywołuje downstream.publish() (czyli EventBus).
+
+Python
+class OutboxRelay:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+        self._session_factory = session_factory
+
+    async def run_once(self) -> int:
+        async with self._session_factory() as session:
+            # 1. Pobierz nieopublikowane zdarzenia z Outboxa
+            stmt = select(OutboxEventModel).where(OutboxEventModel.published_at.is_(None)).limit(100)
+            rows = (await session.execute(stmt)).scalars().all()
+            if not rows:
+                return 0
+
+            now = datetime.now(tz=UTC)
+            
+            # 2. Skopiuj do Inboxa i oznacz jako wysłane w Outboxie w JEDNEJ transakcji
+            for r in rows:
+                # To INSERT robi za nasze "ACK" (udało się skopiować = dostarczono)
+                inbox_event = InboxEventModel(
+                    id=r.id,
+                    event_type=r.event_type,
+                    occurred_at=r.occurred_at,
+                    payload=r.payload,
+                    received_at=now,
+                    processed_at=None
+                )
+                # Używamy merge na wypadek, gdyby to zdarzenie już tam było (idempotentność)
+                await session.merge(inbox_event)
+                
+                # Zaznaczamy w Outboxie, że poszło
+                r.published_at = now
+
+            await session.commit()
+            return len(rows)
+Krok 3: Zupełnie nowy komponent - InboxProcessor (Konsument)
+Teraz logikę, którą kiedyś miał Relay, przenosimy do nowego pracownika w tle. On czyta inbox_event i wrzuca obiekty na szynę aplikacyjną.
+
+Python
+# infrastructure/messaging/inbox_processor.py
+class InboxProcessor:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession], event_bus: EventBus):
+        self._session_factory = session_factory
+        self._event_bus = event_bus
+        self._deserializer = EventDeserializer() # Odtwarza obiekty z JSON, tak jak gadaliśmy wczoraj
+
+    async def run_once(self) -> int:
+        async with self._session_factory() as session:
+            # 1. Pobierz z Inboxa to, co nieprzetworzone
+            stmt = select(InboxEventModel).where(InboxEventModel.processed_at.is_(None)).limit(100)
+            # W środowisku rozproszonym dodajemy tu with_for_update(skip_locked=True)
+            rows = (await session.execute(stmt)).scalars().all()
+            if not rows:
+                return 0
+
+            now = datetime.now(tz=UTC)
+            
+            # 2. Dla każdego zdarzenia: deserializuj i odpal logikę
+            for r in rows:
+                domain_event = self._deserializer.deserialize(r.event_type, r.payload)
+                if domain_event:
+                    # To w końcu wywołuje Twojego BuildGraphOnTaskCreated itp!
+                    await self._event_bus.publish([domain_event])
+                
+                # Zaznaczamy jako wykonane = ostateczny ACK biznesowy
+                r.processed_at = now
+
+            await session.commit()
+            return len(rows)
+Dzięki temu system zyskał stalową odporność:
+
+Padnie skrypt podczas kopiowania? Żaden problem, Outbox spróbuje jeszcze raz, a Inbox przyjmie go bezpiecznie dzięki kluczowi głównemu (id).
+
+Padnie proces podczas budowania grafu? InboxProcessor weźmie go jeszcze raz po restarcie.
+
+Czy chciałbyś abym przygotował odpowiednią migrację Alembic dla nowej tabeli inbox_event oraz pokazał, jak dokładnie napisać EventDeserializer dla Twoich obecnych zdarzeń (TaskCreated, WorkflowStarted itp.)?
