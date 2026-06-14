@@ -43,6 +43,16 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B", "SIM", "TCH"]
 ignore = ["E501"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI uses `Depends(...)` as default argument value — that's the supported idiom.
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+]
+
 [tool.ruff.lint.flake8-type-checking]
 # SQLAlchemy 2.x Mapped[X] / mapped_column() needs runtime types in DeclarativeBase
 # subclasses. Don't move these imports into TYPE_CHECKING blocks.

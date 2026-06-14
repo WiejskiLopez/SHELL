@@ -7,6 +7,8 @@ expose a small algebra (``empty``, ``at``, ``cleared``, ``points_to``,
 """
 from __future__ import annotations
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
 from shell_ddd.domain.value_objects.ids import NodeId
@@ -27,7 +29,7 @@ class TestWorkflowCursorConstruction:
 
     def test_cursor_is_immutable(self) -> None:
         cur = WorkflowCursor.at(NodeId("x"))
-        with pytest.raises(Exception):  # frozen dataclass → FrozenInstanceError
+        with pytest.raises(FrozenInstanceError):
             cur.current_node_id = NodeId("y")  # type: ignore[misc]
 
 

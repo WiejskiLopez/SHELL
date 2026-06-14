@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,

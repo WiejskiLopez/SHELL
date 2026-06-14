@@ -4,6 +4,18 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from shell_ddd.application.dto.dto import (
+    EnvelopeDto,
+    MessageDto,
+    NodeResultDto,
+    NodeStateDto,
+    PromptDto,
+    RagChunkDto,
+    RunnerConfigDto,
+    SessionDto,
+    TaskDto,
+    WorkflowDto,
+)
 from shell_ddd.domain.entities.template_graph import TemplateGraph
 from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
@@ -466,20 +478,6 @@ class FakeNodeWorkspace:
 
     async def cleanup(self, workspace_path: str) -> None:
         pass
-
-
-from shell_ddd.application.dto.dto import (
-    EnvelopeDto,
-    MessageDto,
-    NodeResultDto,
-    NodeStateDto,
-    PromptDto,
-    RagChunkDto,
-    RunnerConfigDto,
-    SessionDto,
-    TaskDto,
-    WorkflowDto,
-)
 
 
 class InMemoryQueryServices:

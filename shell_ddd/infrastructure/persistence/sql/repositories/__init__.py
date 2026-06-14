@@ -17,7 +17,6 @@ from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
     GraphId,
     MessageId,
-    NodeId,
     PromptId,
     RagChunkId,
     RagDocumentId,

@@ -1,11 +1,17 @@
 """Workflows router — start and query workflows."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Request as _Request
 from pydantic import BaseModel
 
 from shell_ddd.application.commands.commands import RouteEnvelopesCommand, StartWorkflowCommand
 from shell_ddd.application.queries.queries import GetWorkflowQuery
+
+if TYPE_CHECKING:
+    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
@@ -20,14 +26,6 @@ class StartWorkflowResponse(BaseModel):
 
 class RouteResponse(BaseModel):
     routed: int
-
-
-from typing import TYPE_CHECKING
-
-from fastapi import Request as _Request
-
-if TYPE_CHECKING:
-    from shell_ddd.bootstrap.container.core_container import CoreContainer
 
 
 def get_core_container(request: _Request) -> CoreContainer:

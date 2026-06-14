@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -20,6 +21,10 @@ from shell_ddd.domain.value_objects.ids import (
 from shell_ddd.domain.value_objects.task_body import TaskBody
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.domain.value_objects.version import Version
+
+if TYPE_CHECKING:
+    from shell_ddd.domain.entities.rag_document import RagDocument
+    from shell_ddd.domain.entities.session import Session
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 

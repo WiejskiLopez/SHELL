@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
-    from shell_ddd.domain.value_objects.ids import TemplateGraphId
+    from shell_ddd.domain.value_objects.ids import TemplateGraphId, TemplateGraphNodeId
 
 
 @dataclass(slots=True)

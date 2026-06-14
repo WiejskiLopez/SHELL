@@ -1,7 +1,7 @@
 """SQL ORM model <-> domain entity mappers."""
 from __future__ import annotations
 
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from shell_ddd.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell_ddd.domain.entities.graph import Graph

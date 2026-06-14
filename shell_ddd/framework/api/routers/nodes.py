@@ -1,19 +1,17 @@
 """Nodes router — query node execution results."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Request as _Request
 
 from shell_ddd.application.queries.queries import GetNodeResultQuery
 
-router = APIRouter(prefix="/nodes", tags=["nodes"])
-
-
-from typing import TYPE_CHECKING
-
-from fastapi import Request as _Request
-
 if TYPE_CHECKING:
     from shell_ddd.bootstrap.container.core_container import CoreContainer
+
+router = APIRouter(prefix="/nodes", tags=["nodes"])
 
 
 def get_core_container(request: _Request) -> CoreContainer:
