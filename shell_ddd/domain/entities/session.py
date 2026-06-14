@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from shell_ddd.domain.value_objects.ids import MessageId, SessionId, CorrelationId
+from shell_ddd.domain.value_objects.ids import CorrelationId, MessageId, SessionId
 
 
 @dataclass(frozen=True, slots=True)

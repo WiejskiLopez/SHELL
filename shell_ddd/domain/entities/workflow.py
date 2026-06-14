@@ -82,7 +82,7 @@ class Workflow:
     )
     version: int = 0
     node_states: dict[str, NodeState] = field(default_factory=dict)
-    node_results: dict[str, "NodeResult"] = field(default_factory=dict)
+    node_results: dict[str, NodeResult] = field(default_factory=dict)
     _events: list[DomainEvent] = field(default_factory=list, repr=False, compare=False)
 
     @classmethod
@@ -182,7 +182,7 @@ class Workflow:
         *,
         reason: str,
         now: datetime,
-        compensation: "CompensationHandler | None" = None,
+        compensation: CompensationHandler | None = None,
     ) -> None:
         """Mark the workflow as failed (terminal state).
 
@@ -225,7 +225,7 @@ class Workflow:
         stderr: str = "",
         artifact_uri: str = "",
         reason: str = "",
-    ) -> "NodeResult":
+    ) -> NodeResult:
         """Append a NodeResult, sync the matching NodeState and emit
         ``NodeCompleted`` or ``NodeFailed``.
 

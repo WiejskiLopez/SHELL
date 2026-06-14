@@ -58,8 +58,8 @@ async def seed_base_data(url: str) -> None:
 
 def _seed_sync(sync_conn) -> None:
     from sqlalchemy.orm import Session
-    from sqlalchemy import select
-    from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphModel, TemplateGraphNodeModel
+
+    from shell_ddd.infrastructure.persistence.sql.models import TemplateGraphNodeModel
 
     session = Session(sync_conn)
 

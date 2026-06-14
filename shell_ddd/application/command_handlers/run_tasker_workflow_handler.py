@@ -51,7 +51,7 @@ class RunTaskerWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        navigator: "NodeNavigator | None" = None,
+        navigator: NodeNavigator | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock

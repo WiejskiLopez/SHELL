@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from shell_ddd.application.dto.dto import (
     EnvelopeDto,
-    GraphNodeDto,
     NodeResultDto,
     NodeStateDto,
     PromptDto,

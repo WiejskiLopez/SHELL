@@ -34,7 +34,6 @@ class _BaseStrategy:
         workspace_path: str,
         runner: NodeProcessRunner,
     ) -> ExecutionResult:
-        from shell_ddd.domain.value_objects.execution_result import ExecutionResult
         from shell_ddd.domain.value_objects.manifest import Manifest
         from shell_ddd.domain.value_objects.mode import Mode
 

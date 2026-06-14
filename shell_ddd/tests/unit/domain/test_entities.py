@@ -11,10 +11,11 @@ from shell_ddd.domain.entities.workflow import Workflow
 from shell_ddd.domain.exceptions import InvalidEnvelopeTransition
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
+    CorrelationId,
     EnvelopeId,
     NodeId,
     TaskId,
-    WorkflowId, CorrelationId,
+    WorkflowId,
 )
 from shell_ddd.domain.value_objects.task_body import TaskBody
 from shell_ddd.domain.value_objects.task_name import TaskName
@@ -145,7 +146,7 @@ class TestRagDocument:
 
     _NOW = __import__("datetime").datetime(2025, 1, 1, tzinfo=__import__("datetime").timezone.utc)
 
-    def _make_doc(self) -> "RagDocument":
+    def _make_doc(self) -> RagDocument:
         from shell_ddd.domain.entities.rag_document import RagDocument
         from shell_ddd.domain.value_objects.ids import RagDocumentId
 
@@ -214,7 +215,7 @@ class TestSession:
     _NOW = __import__("datetime").datetime(2025, 1, 1, tzinfo=__import__("datetime").timezone.utc)
     _LATER = __import__("datetime").datetime(2025, 1, 2, tzinfo=__import__("datetime").timezone.utc)
 
-    def _make_session(self) -> "Session":
+    def _make_session(self) -> Session:
         from shell_ddd.domain.entities.session import Session
         from shell_ddd.domain.value_objects.ids import SessionId
 

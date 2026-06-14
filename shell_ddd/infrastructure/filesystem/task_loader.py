@@ -1,7 +1,6 @@
 """FileSystemTaskLoader — reads task.md + task.yaml from the filesystem."""
 from __future__ import annotations
 
-import asyncio
 from asyncio import to_thread
 from pathlib import Path
 

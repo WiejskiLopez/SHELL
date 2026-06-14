@@ -8,25 +8,39 @@ from shell_ddd.application.command_handlers.import_task_handler import ImportTas
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell_ddd.application.command_handlers.start_workflow_handler import StartWorkflowHandler
-from shell_ddd.application.commands.commands import ImportTaskCommand, StartWorkflowCommand, SaveNodeResultCommand, \
-    SavePromptCommand
-from shell_ddd.application.queries.queries import GetCurrentTaskQuery, GetWorkflowQuery, GetNodeResultQuery, \
-    GetPromptQuery
-from shell_ddd.application.query_handlers.query_handlers import GetCurrentTaskHandler, GetWorkflowHandler, \
-    GetNodeResultHandler, GetPromptHandler
+from shell_ddd.application.commands.commands import (
+    ImportTaskCommand,
+    SaveNodeResultCommand,
+    SavePromptCommand,
+    StartWorkflowCommand,
+)
+from shell_ddd.application.queries.queries import (
+    GetCurrentTaskQuery,
+    GetNodeResultQuery,
+    GetPromptQuery,
+    GetWorkflowQuery,
+)
+from shell_ddd.application.query_handlers.query_handlers import (
+    GetCurrentTaskHandler,
+    GetNodeResultHandler,
+    GetPromptHandler,
+    GetWorkflowHandler,
+)
 from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
-
 from shell_ddd.domain.entities.prompt import Prompt
 from shell_ddd.domain.value_objects.ids import (
     PromptId,
 )
-
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell_ddd.infrastructure.persistence.memory.memory import FakeClock, FakeTaskLoader, FakeEventPublisher, \
-    FakeIdGenerator, FakeLogger
+from shell_ddd.infrastructure.persistence.memory.memory import (
+    FakeClock,
+    FakeEventPublisher,
+    FakeIdGenerator,
+    FakeLogger,
+    FakeTaskLoader,
+)
 from shell_ddd.infrastructure.persistence.sql import build_session_factory
 from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

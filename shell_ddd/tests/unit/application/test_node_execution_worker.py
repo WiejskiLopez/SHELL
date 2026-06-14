@@ -51,7 +51,6 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     InMemoryUnitOfWork,
 )
 
-
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 

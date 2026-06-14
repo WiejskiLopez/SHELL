@@ -1,11 +1,23 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell_ddd.domain.value_objects.ids import (
-        EnvelopeId, GraphId, MessageId, NodeId, NodeResultId, PromptId,
-        RagChunkId, RagDocumentId, RunnerConfigId, SessionId,
-        TaskId, TemplateGraphId, TemplateGraphNodeId, WorkflowId,
+        EnvelopeId,
+        GraphId,
+        MessageId,
+        NodeId,
+        NodeResultId,
+        PromptId,
+        RagChunkId,
+        RagDocumentId,
+        RunnerConfigId,
+        SessionId,
+        TaskId,
+        TemplateGraphId,
+        TemplateGraphNodeId,
+        WorkflowId,
     )
 
 

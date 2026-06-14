@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from shell_ddd.domain.entities.template_graph import TemplateGraph
 from shell_ddd.domain.entities.template_graph_node import TemplateGraphNode
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
-from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
     GraphId,
@@ -20,14 +19,16 @@ from shell_ddd.domain.value_objects.ids import (
     RunnerConfigId,
     SessionId,
     TaskId,
-    WorkflowId, TemplateGraphId, TemplateGraphNodeId,
+    TemplateGraphId,
+    TemplateGraphNodeId,
+    WorkflowId,
 )
+from shell_ddd.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell_ddd.application.ports.messaging import EventPublisher
     from shell_ddd.domain.entities.envelope import Envelope
     from shell_ddd.domain.entities.graph import Graph
-    from shell_ddd.domain.entities.node_result import NodeResult
     from shell_ddd.domain.entities.prompt import Prompt
     from shell_ddd.domain.entities.rag_document import RagChunk, RagDocument
     from shell_ddd.domain.entities.runner_config import RunnerConfig
@@ -75,18 +76,18 @@ class InMemoryTaskRepository:
 
 class InMemoryGraphRepository:
     def __init__(self) -> None:
-        self._store: dict[str, "Graph"] = {}
+        self._store: dict[str, Graph] = {}
 
-    async def get_by_id(self, graph_id: GraphId) -> "Graph | None":
+    async def get_by_id(self, graph_id: GraphId) -> Graph | None:
         return self._store.get(graph_id.value)
 
-    async def get_by_task_id(self, task_id: TaskId) -> "Graph | None":
+    async def get_by_task_id(self, task_id: TaskId) -> Graph | None:
         for g in self._store.values():
             if g.task_id == task_id:
                 return g
         return None
 
-    async def save(self, graph: "Graph") -> None:
+    async def save(self, graph: Graph) -> None:
         self._store[graph.id.value] = graph
 
 
@@ -218,6 +219,7 @@ class InMemoryRagDocumentRepository:
             domain: str | None = None,
     ) -> list[RagChunk]:
         import struct
+
         from shell_ddd.domain.services.rag_index_service import cosine_similarity
 
         dim = len(query_embedding) // 4
@@ -467,9 +469,16 @@ class FakeNodeWorkspace:
 
 
 from shell_ddd.application.dto.dto import (
-    EnvelopeDto, NodeResultDto, PromptDto, RagChunkDto,
-    RunnerConfigDto, SessionDto, TaskDto, WorkflowDto,
-    NodeStateDto, MessageDto
+    EnvelopeDto,
+    MessageDto,
+    NodeResultDto,
+    NodeStateDto,
+    PromptDto,
+    RagChunkDto,
+    RunnerConfigDto,
+    SessionDto,
+    TaskDto,
+    WorkflowDto,
 )
 
 

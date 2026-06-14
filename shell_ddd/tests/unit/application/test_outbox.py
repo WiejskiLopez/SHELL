@@ -2,15 +2,11 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock
-
-import pytest
 
 from shell_ddd.domain.events.events import TaskCreated, WorkflowStarted
 from shell_ddd.domain.value_objects.ids import TaskId, WorkflowId
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.messaging.memory_outbox_store import InMemoryOutboxStore
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -42,7 +38,6 @@ class TestInMemoryOutboxStore:
         assert len(store.pending()) == 2
 
     async def test_marking_published_removes_from_pending(self) -> None:
-        from datetime import timezone
 
         store = InMemoryOutboxStore()
         await store.publish([_task_imported()])

@@ -1,9 +1,13 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell_ddd.domain.events.events import DomainEvent
-    from shell_ddd.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository
+    from shell_ddd.domain.repositories.envelope_repository import (
+        EnvelopeArchive,
+        EnvelopeRepository,
+    )
     from shell_ddd.domain.repositories.graph_repository import GraphRepository
     from shell_ddd.domain.repositories.prompt_repository import PromptRepository
     from shell_ddd.domain.repositories.rag_repository import RagDocumentRepository

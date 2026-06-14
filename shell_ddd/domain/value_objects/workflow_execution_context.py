@@ -23,5 +23,5 @@ class WorkflowExecutionContext:
             raise ValueError("correlation_id must be a string")
 
     @classmethod
-    def empty(cls) -> "WorkflowExecutionContext":
+    def empty(cls) -> WorkflowExecutionContext:
         return cls(work_dir="", correlation_id="")

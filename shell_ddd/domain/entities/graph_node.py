@@ -4,10 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from shell_ddd.domain.value_objects.hash import Hash
-
 if TYPE_CHECKING:
-    from shell_ddd.domain.value_objects.ids import  NodeId
+    from shell_ddd.domain.value_objects.ids import NodeId
     from shell_ddd.domain.value_objects.mode import Mode
 
 

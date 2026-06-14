@@ -50,8 +50,8 @@ from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from shell_ddd.application.ports.identity import IdGenerator
     from shell_ddd.application.ports.execution import NodeProcessRunner
+    from shell_ddd.application.ports.identity import IdGenerator
     from shell_ddd.application.ports.logging import Logger
     from shell_ddd.application.ports.time import Clock
     from shell_ddd.application.ports.unit_of_work import UnitOfWork

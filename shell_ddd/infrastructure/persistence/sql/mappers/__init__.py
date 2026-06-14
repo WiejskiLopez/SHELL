@@ -1,7 +1,7 @@
 """SQL ORM model <-> domain entity mappers."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from shell_ddd.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell_ddd.domain.entities.graph import Graph
@@ -25,7 +25,9 @@ from shell_ddd.domain.value_objects.ids import (
     PromptId,
     RunnerConfigId,
     TaskId,
-    WorkflowId, TemplateGraphNodeId, TemplateGraphId,
+    TemplateGraphId,
+    TemplateGraphNodeId,
+    WorkflowId,
 )
 from shell_ddd.domain.value_objects.mode import Mode
 from shell_ddd.domain.value_objects.status import Status
@@ -42,13 +44,15 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     PromptModel,
     RunnerConfigModel,
     TaskModel,
-    WorkflowModel, TemplateGraphModel, TemplateGraphNodeModel,
+    TemplateGraphModel,
+    TemplateGraphNodeModel,
+    WorkflowModel,
 )
 
 
 def _ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
-        return dt.replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=UTC)
     return dt
 
 

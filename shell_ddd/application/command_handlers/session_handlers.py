@@ -9,7 +9,7 @@ from shell_ddd.application.commands.commands import (
 from shell_ddd.application.ports.ports import Clock, IdGenerator, UnitOfWork
 from shell_ddd.domain.entities.session import Session
 from shell_ddd.domain.exceptions import DomainError
-from shell_ddd.domain.value_objects.ids import MessageId, SessionId, CorrelationId
+from shell_ddd.domain.value_objects.ids import CorrelationId, MessageId, SessionId
 
 
 class SessionNotFound(DomainError):

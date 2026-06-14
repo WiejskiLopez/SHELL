@@ -15,7 +15,7 @@ class ArchiveOnDeliveredHandler:
         self._uow = uow
 
     async def handle(self, event: EnvelopeRouted) -> None:
-        from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus, EnvelopeStage
+        from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
         from shell_ddd.domain.value_objects.ids import EnvelopeId
 
         async with self._uow as uow:

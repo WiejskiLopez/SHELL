@@ -34,11 +34,9 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeIdGenerator,
     FakeLogger,
     FakeTaskLoader,
+    InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
-
-from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServices
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -345,7 +343,9 @@ class TestIndexDocumentHandler:
             id_gen: FakeIdGenerator,
             queries: InMemoryQueryServices,
     ) -> None:
-        from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
+        from shell_ddd.application.command_handlers.index_document_handler import (
+            IndexDocumentHandler,
+        )
         from shell_ddd.application.commands.commands import IndexDocumentCommand
         from shell_ddd.application.queries.queries import SearchSimilarQuery
         from shell_ddd.application.query_handlers.query_handlers import SearchSimilarHandler
@@ -373,7 +373,9 @@ class TestIndexDocumentHandler:
             clock: FakeClock,
             id_gen: FakeIdGenerator,
     ) -> None:
-        from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
+        from shell_ddd.application.command_handlers.index_document_handler import (
+            IndexDocumentHandler,
+        )
         from shell_ddd.application.commands.commands import IndexDocumentCommand
         from shell_ddd.infrastructure.external.hash_embedder import HashEmbedder
 
@@ -420,7 +422,10 @@ class TestSessionHandlers:
             id_gen: FakeIdGenerator,
             queries: InMemoryQueryServices,
     ) -> None:
-        from shell_ddd.application.command_handlers.session_handlers import CloseSessionHandler, OpenSessionHandler
+        from shell_ddd.application.command_handlers.session_handlers import (
+            CloseSessionHandler,
+            OpenSessionHandler,
+        )
         from shell_ddd.application.commands.commands import CloseSessionCommand, OpenSessionCommand
         from shell_ddd.application.queries.queries import GetSessionHistoryQuery
         from shell_ddd.application.query_handlers.query_handlers import GetSessionHistoryHandler
@@ -438,7 +443,10 @@ class TestSessionHandlers:
             uow: InMemoryUnitOfWork,
             clock: FakeClock,
     ) -> None:
-        from shell_ddd.application.command_handlers.session_handlers import CloseSessionHandler, SessionNotFound
+        from shell_ddd.application.command_handlers.session_handlers import (
+            CloseSessionHandler,
+            SessionNotFound,
+        )
         from shell_ddd.application.commands.commands import CloseSessionCommand
 
         with pytest.raises(SessionNotFound):

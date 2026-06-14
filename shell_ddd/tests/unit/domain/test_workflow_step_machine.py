@@ -33,7 +33,6 @@ from shell_ddd.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
 
-
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 

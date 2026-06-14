@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class CompensationHandler(Protocol):
     """Synchronous compensation hook called from ``Workflow.abort``."""
 
-    def compensate(self, workflow: "Workflow", reason: str) -> None:
+    def compensate(self, workflow: Workflow, reason: str) -> None:
         """Run any cleanup/compensation needed for the aborted workflow."""
         ...
 
@@ -26,5 +26,5 @@ class CompensationHandler(Protocol):
 class NoOpCompensationHandler:
     """Default — performs no compensation."""
 
-    def compensate(self, workflow: "Workflow", reason: str) -> None:
+    def compensate(self, workflow: Workflow, reason: str) -> None:
         return None

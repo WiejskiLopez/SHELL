@@ -77,7 +77,7 @@ class Graph(AggregateRoot["GraphId"]):
         id_: GraphId,
         task_id: TaskId,
         template: TemplateGraph,
-        node_id_factory: "_NodeIdFactory",
+        node_id_factory: _NodeIdFactory,
         now: datetime,
     ) -> Graph:
         """Build a Graph from a TemplateGraph snapshot. Emits GraphBuilt."""

@@ -1,12 +1,9 @@
 """Integration tests for filesystem infrastructure (NodeWorkspace, TaskLoader, EnvelopeArchive)."""
 from __future__ import annotations
 
-import pytest
-
+from shell_ddd.infrastructure.filesystem.envelope_archive_fs import FileSystemEnvelopeArchive
 from shell_ddd.infrastructure.filesystem.node_workspace import NodeWorkspaceFs
 from shell_ddd.infrastructure.filesystem.task_loader import FileSystemTaskLoader
-from shell_ddd.infrastructure.filesystem.envelope_archive_fs import FileSystemEnvelopeArchive
-
 
 # ---------------------------------------------------------------------------
 # NodeWorkspaceFs
@@ -77,7 +74,6 @@ class TestFileSystemEnvelopeArchive:
         from datetime import UTC, datetime
 
         from shell_ddd.domain.entities.envelope import Envelope
-        from shell_ddd.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
         from shell_ddd.domain.value_objects.ids import EnvelopeId, NodeId, WorkflowId
 
         archive = FileSystemEnvelopeArchive(str(tmp_path))
@@ -94,7 +90,8 @@ class TestFileSystemEnvelopeArchive:
         uri = await archive.archive(envelope)
         assert uri.startswith("fs://archive/wf-arch-1/env-arch-1")
 
-        import json, pathlib
+        import json
+        import pathlib
         stored = json.loads((pathlib.Path(str(tmp_path)) / "wf-arch-1" / "env-arch-1.json").read_text())
         assert stored["id"] == "env-arch-1"
         assert stored["workflow_id"] == "wf-arch-1"

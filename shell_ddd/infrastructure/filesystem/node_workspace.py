@@ -4,7 +4,6 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-
 # Standard sub-directories inside .node/
 _NODE_SUBDIRS = [
     "input",

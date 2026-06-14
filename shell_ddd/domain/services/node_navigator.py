@@ -8,7 +8,8 @@ The navigator is a *pure* domain service — no I/O, no async — and lives in
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Protocol
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell_ddd.domain.entities.graph import Graph
@@ -19,11 +20,11 @@ if TYPE_CHECKING:
 class NodeNavigator(Protocol):
     """Decides the next node(s) to execute in a Graph."""
 
-    def first(self, graph: "Graph") -> "GraphNode | None":
+    def first(self, graph: Graph) -> GraphNode | None:
         """Return the first node to execute, or None if the graph has no nodes."""
         ...
 
-    def next_after(self, graph: "Graph", node_id: "NodeId") -> Iterable["GraphNode"]:
+    def next_after(self, graph: Graph, node_id: NodeId) -> Iterable[GraphNode]:
         """Return the node(s) that should follow ``node_id`` in execution order.
 
         Returning an empty iterable signals that no further node remains and the
@@ -40,11 +41,11 @@ class LinearNodeNavigator:
     Falls back to the original list order for nodes sharing the same position.
     """
 
-    def first(self, graph: "Graph") -> "GraphNode | None":
+    def first(self, graph: Graph) -> GraphNode | None:
         ordered = self._ordered(graph)
         return ordered[0] if ordered else None
 
-    def next_after(self, graph: "Graph", node_id: "NodeId") -> list["GraphNode"]:
+    def next_after(self, graph: Graph, node_id: NodeId) -> list[GraphNode]:
         ordered = self._ordered(graph)
         for idx, node in enumerate(ordered):
             if node.id == node_id:
@@ -52,5 +53,5 @@ class LinearNodeNavigator:
         return []
 
     @staticmethod
-    def _ordered(graph: "Graph") -> list["GraphNode"]:
+    def _ordered(graph: Graph) -> list[GraphNode]:
         return sorted(graph.nodes, key=lambda n: n.position)

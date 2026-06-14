@@ -41,8 +41,8 @@ class NodeExecutionPolicy(Protocol):
 
     def decide_after_failure(
         self,
-        workflow: "Workflow",
-        failed_node_id: "NodeId",
+        workflow: Workflow,
+        failed_node_id: NodeId,
         reason: str,
     ) -> PolicyDecision:
         """Return AbortDecision or ContinueDecision."""
@@ -54,8 +54,8 @@ class FailFastPolicy:
 
     def decide_after_failure(
         self,
-        workflow: "Workflow",
-        failed_node_id: "NodeId",
+        workflow: Workflow,
+        failed_node_id: NodeId,
         reason: str,
     ) -> PolicyDecision:
         return AbortDecision(reason=reason)

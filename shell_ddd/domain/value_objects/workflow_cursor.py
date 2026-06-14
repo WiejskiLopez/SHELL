@@ -17,21 +17,21 @@ if TYPE_CHECKING:
 class WorkflowCursor:
     """Immutable VO pointing to the node currently scheduled for execution."""
 
-    current_node_id: "NodeId | None" = None
+    current_node_id: NodeId | None = None
 
     @classmethod
-    def empty(cls) -> "WorkflowCursor":
+    def empty(cls) -> WorkflowCursor:
         return cls(current_node_id=None)
 
     @classmethod
-    def at(cls, node_id: "NodeId") -> "WorkflowCursor":
+    def at(cls, node_id: NodeId) -> WorkflowCursor:
         return cls(current_node_id=node_id)
 
     def is_active(self) -> bool:
         return self.current_node_id is not None
 
-    def points_to(self, node_id: "NodeId") -> bool:
+    def points_to(self, node_id: NodeId) -> bool:
         return self.current_node_id is not None and self.current_node_id == node_id
 
-    def cleared(self) -> "WorkflowCursor":
+    def cleared(self) -> WorkflowCursor:
         return WorkflowCursor(current_node_id=None)

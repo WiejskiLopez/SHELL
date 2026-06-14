@@ -17,8 +17,8 @@ from shell_ddd.infrastructure.persistence.sql.repositories import (
     SqlRunnerConfigRepository,
     SqlSessionRepository,
     SqlTaskRepository,
-    SqlWorkflowRepository,
     SqlTemplateGraphRepository,
+    SqlWorkflowRepository,
 )
 
 if TYPE_CHECKING:
@@ -61,7 +61,7 @@ class SqlAlchemyUnitOfWork:
     def events(self) -> list[DomainEvent]:
         return list(self._staged_events)
 
-    async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
+    async def __aenter__(self) -> SqlAlchemyUnitOfWork:
         self._session: AsyncSession = self._factory()
         self._staged_events = []
         self._post_commit_buffer = []

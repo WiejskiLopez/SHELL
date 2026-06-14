@@ -4,13 +4,10 @@ from __future__ import annotations
 import math
 import struct
 from datetime import datetime
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
 from shell_ddd.domain.entities.rag_document import RagDocument
 from shell_ddd.domain.value_objects.ids import RagChunkId, RagDocumentId
-
-if TYPE_CHECKING:
-    pass
 
 
 class Embedder(Protocol):

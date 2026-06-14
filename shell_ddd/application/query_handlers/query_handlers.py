@@ -1,5 +1,6 @@
 """Czyste handlery zapytań (CQRS) — omijają domenę i używają serwisów odczytu."""
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from shell_ddd.domain.services.rag_index_service import Embedder

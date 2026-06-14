@@ -1,11 +1,9 @@
 """Implementacje portów odczytu przy użyciu SQLAlchemy."""
 from __future__ import annotations
 
-from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.orm import selectinload
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
 from shell_ddd.application.dto.dto import (
     EnvelopeDto,
@@ -22,16 +20,16 @@ from shell_ddd.application.dto.dto import (
 )
 from shell_ddd.infrastructure.persistence.sql.models import (
     EnvelopeModel,
-    MessageModel,
-    NodeResultModel,
+    GraphModel,
     PromptModel,
     RagChunkModel,
     RagDocumentModel,
     RunnerConfigModel,
     SessionModel,
     TaskModel,
-    WorkflowModel, GraphModel, RagDocumentModel,
+    WorkflowModel,
 )
+
 
 class SqlQueryServices:
     """Zbiorcza klasa implementująca wszystkie interfejsy QueryService (Read Model)."""

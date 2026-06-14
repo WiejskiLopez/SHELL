@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import Sequence
+from collections.abc import Sequence
 
 
 def build_parser(prog: str = "shell_ddd") -> argparse.ArgumentParser:

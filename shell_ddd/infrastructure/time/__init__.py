@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from shell_ddd.domain.value_objects.ids import (
     EnvelopeId,
@@ -20,7 +20,7 @@ class SystemClock:
     """Real wall-clock implementation of Clock port."""
 
     def now(self) -> datetime:
-        return datetime.now(tz=timezone.utc)
+        return datetime.now(tz=UTC)
 
 
 class UuidIdGenerator:

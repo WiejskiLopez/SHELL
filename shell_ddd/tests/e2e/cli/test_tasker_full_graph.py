@@ -15,17 +15,17 @@ from __future__ import annotations
 
 import pytest
 
-from shell_ddd.domain.entities.graph import Graph
-from shell_ddd.domain.entities.graph_node import GraphNode
-from shell_ddd.infrastructure.persistence.memory.memory import InMemoryQueryServices
-
 from shell_ddd.application.bus.event_bus import EventBus
 from shell_ddd.application.bus.event_bus_publisher import EventBusPublisher
-from shell_ddd.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
+from shell_ddd.application.command_handlers.run_tasker_workflow_handler import (
+    RunTaskerWorkflowHandler,
+)
 from shell_ddd.application.commands.commands import RunTaskerWorkflowCommand
 from shell_ddd.application.event_handlers.node_execution_worker import NodeExecutionWorker
 from shell_ddd.application.queries.queries import GetWorkflowQuery
 from shell_ddd.application.query_handlers.query_handlers import GetWorkflowHandler
+from shell_ddd.domain.entities.graph import Graph
+from shell_ddd.domain.entities.graph_node import GraphNode
 from shell_ddd.domain.entities.task import Task
 from shell_ddd.domain.events.events import (
     NodeCompleted,
@@ -43,9 +43,9 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeIdGenerator,
     FakeLogger,
     FakeNodeProcessRunner,
+    InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers

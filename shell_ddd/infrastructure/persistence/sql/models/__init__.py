@@ -278,7 +278,7 @@ class TemplateGraphModel(Base):
     name: Mapped[str] = mapped_column(String(36), nullable=False)
     purpose: Mapped[str] = mapped_column(String(36), nullable=False)
 
-    nodes: Mapped[list["TemplateGraphNodeModel"]] = relationship(
+    nodes: Mapped[list[TemplateGraphNodeModel]] = relationship(
         "TemplateGraphNodeModel",
         back_populates="graph",
         cascade="all, delete-orphan",

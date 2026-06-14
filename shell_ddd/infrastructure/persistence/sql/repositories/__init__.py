@@ -1,6 +1,7 @@
 """SQL repository adapters (SQLite + PostgreSQL via SQLAlchemy 2.x async)."""
 from __future__ import annotations
 
+import logging
 import struct
 
 from sqlalchemy import select, update
@@ -20,6 +21,7 @@ from shell_ddd.domain.entities.workflow import Workflow
 from shell_ddd.domain.services.rag_index_service import cosine_similarity
 from shell_ddd.domain.value_objects.envelope_status import EnvelopeStatus
 from shell_ddd.domain.value_objects.ids import (
+    CorrelationId,
     EnvelopeId,
     GraphId,
     MessageId,
@@ -30,7 +32,9 @@ from shell_ddd.domain.value_objects.ids import (
     RunnerConfigId,
     SessionId,
     TaskId,
-    WorkflowId, CorrelationId, TemplateGraphId, TemplateGraphNodeId,
+    TemplateGraphId,
+    TemplateGraphNodeId,
+    WorkflowId,
 )
 from shell_ddd.domain.value_objects.task_name import TaskName
 from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
@@ -44,9 +48,12 @@ from shell_ddd.infrastructure.persistence.sql.mappers import (  # noqa: E501
     runner_config_model_to_entity,
     task_entity_to_model,
     task_model_to_entity,
+    template_graph_entity_to_model,
+    template_graph_model_to_entity,
+    template_graph_node_entity_to_model,
+    template_graph_node_model_to_entity,
     workflow_entity_to_model,
-    workflow_model_to_entity, template_graph_entity_to_model, template_graph_model_to_entity,
-    template_graph_node_model_to_entity, template_graph_node_entity_to_model,
+    workflow_model_to_entity,
 )
 from shell_ddd.infrastructure.persistence.sql.models import (
     EnvelopeModel,
@@ -58,10 +65,10 @@ from shell_ddd.infrastructure.persistence.sql.models import (
     RunnerConfigModel,
     SessionModel,
     TaskModel,
-    WorkflowModel, TemplateGraphModel, TemplateGraphNodeModel,
+    TemplateGraphModel,
+    TemplateGraphNodeModel,
+    WorkflowModel,
 )
-
-import logging
 
 logger = logging.getLogger(__name__)
 

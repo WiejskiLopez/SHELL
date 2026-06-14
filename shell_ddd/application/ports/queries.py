@@ -1,5 +1,6 @@
 """Porty dla ścieżki odczytu (CQRS). Zwracają bezpośrednio DTO."""
 from typing import Protocol
+
 from shell_ddd.application.dto.dto import (
     EnvelopeDto,
     NodeResultDto,
@@ -8,7 +9,8 @@ from shell_ddd.application.dto.dto import (
     RunnerConfigDto,
     SessionDto,
     TaskDto,
-    WorkflowDto, TemplateGraphDto,
+    TemplateGraphDto,
+    WorkflowDto,
 )
 
 

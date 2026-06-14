@@ -3,11 +3,9 @@ from __future__ import annotations
 
 import sys
 
-import pytest
-
-from shell_ddd.infrastructure.process.subprocess_runner import SubprocessNodeProcessRunner
 from shell_ddd.domain.value_objects.manifest import Manifest
 from shell_ddd.domain.value_objects.mode import Mode
+from shell_ddd.infrastructure.process.subprocess_runner import SubprocessNodeProcessRunner
 
 
 def _make_manifest(name: str, mode: Mode = Mode.WORKER) -> Manifest:

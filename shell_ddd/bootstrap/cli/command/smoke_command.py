@@ -1,12 +1,16 @@
 # shell_ddd/bootstrap/cli/commands/smoke_command.py
 import tempfile
-from pathlib import Path
 from argparse import Namespace
+from pathlib import Path
 
+from shell_ddd.application.commands.commands import (
+    ImportTaskCommand,
+    RouteEnvelopesCommand,
+    StartWorkflowCommand,
+)
+from shell_ddd.application.queries.queries import GetWorkflowQuery
 from shell_ddd.bootstrap.cli.command.command import RunnableCommand
 from shell_ddd.bootstrap.factory.application_factory import ApplicationFactory
-from shell_ddd.application.commands.commands import ImportTaskCommand, RouteEnvelopesCommand, StartWorkflowCommand
-from shell_ddd.application.queries.queries import GetWorkflowQuery
 
 
 class SmokeCommand(RunnableCommand):

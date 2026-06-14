@@ -6,10 +6,6 @@ from datetime import UTC, datetime
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
-from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
-
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
@@ -32,6 +28,8 @@ from shell_ddd.application.query_handlers.query_handlers import (
     GetPromptHandler,
     GetWorkflowHandler,
 )
+from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell_ddd.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeClock,
@@ -41,7 +39,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeTaskLoader,
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory
-
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 # ---------------------------------------------------------------------------
 # Fixtures (module-scoped DB, function-scoped UoW)
@@ -310,7 +308,9 @@ class TestSqlRagDocumentRepository:
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
+        from shell_ddd.application.command_handlers.index_document_handler import (
+            IndexDocumentHandler,
+        )
         from shell_ddd.application.commands.commands import IndexDocumentCommand
         from shell_ddd.application.queries.queries import SearchSimilarQuery
         from shell_ddd.application.query_handlers.query_handlers import SearchSimilarHandler
@@ -334,7 +334,9 @@ class TestSqlRagDocumentRepository:
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell_ddd.application.command_handlers.index_document_handler import IndexDocumentHandler
+        from shell_ddd.application.command_handlers.index_document_handler import (
+            IndexDocumentHandler,
+        )
         from shell_ddd.application.commands.commands import IndexDocumentCommand
         from shell_ddd.application.queries.queries import SearchSimilarQuery
         from shell_ddd.application.query_handlers.query_handlers import SearchSimilarHandler
@@ -495,8 +497,8 @@ class TestOutboxRelay:
         from shell_ddd.domain.value_objects.ids import WorkflowId
         from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
         from shell_ddd.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
-        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
         from shell_ddd.infrastructure.persistence.memory.memory import FakeEventPublisher
+        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 
         # Write an event to outbox
         outbox_pub = SqlOutboxPublisher(session_factory)
@@ -588,8 +590,8 @@ class TestTransactionalOutbox:
         """If the UoW transaction is rolled back, no outbox rows must be written."""
         from sqlalchemy import select
 
-        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
         from shell_ddd.domain.events.events import WorkflowStarted
+        from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
 
         async with session_factory() as s:
             before = len(

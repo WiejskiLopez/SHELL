@@ -1,6 +1,7 @@
-import asyncio
 import argparse
+import asyncio
 import sys
+
 from shell_ddd.bootstrap.cli.command.relay_command import RelayCommand
 from shell_ddd.bootstrap.cli.command.smoke_command import SmokeCommand
 from shell_ddd.bootstrap.config_logging.setup_logging import setup_logging

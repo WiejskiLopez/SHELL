@@ -3,11 +3,8 @@
 while still validating the full stack: CLI → bus → handler → SQL → result."""
 from __future__ import annotations
 
-import asyncio
 import os
 import pathlib
-
-import pytest
 
 
 def _db_url(tmp_path: pathlib.Path) -> str:

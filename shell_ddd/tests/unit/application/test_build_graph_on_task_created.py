@@ -1,7 +1,7 @@
 """Unit tests for ``BuildGraphOnTaskCreated`` event handler."""
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 import pytest
 
@@ -26,7 +26,6 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeLogger,
     InMemoryUnitOfWork,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

@@ -13,9 +13,6 @@ import os
 import pytest
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
-
 from shell_ddd.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell_ddd.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell_ddd.application.command_handlers.save_prompt_handler import SavePromptHandler
@@ -38,6 +35,7 @@ from shell_ddd.application.query_handlers.query_handlers import (
     GetPromptHandler,
     GetWorkflowHandler,
 )
+from shell_ddd.bootstrap.database_config.database_bootstrap import bootstrap_database
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeClock,
@@ -47,6 +45,7 @@ from shell_ddd.infrastructure.persistence.memory.memory import (
     FakeTaskLoader,
 )
 from shell_ddd.infrastructure.persistence.sql import build_session_factory
+from shell_ddd.infrastructure.persistence.sql.query_services import SqlQueryServices
 
 _PG_URL = os.environ.get(
     "PG_TEST_URL", "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test"
