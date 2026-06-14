@@ -66,8 +66,14 @@ runtime-evaluated-base-classes = [
 [tool.mypy]
 python_version = "3.11"
 strict = true
-exclude = ["shell_ddd/tests", "shell_ddd/infrastructure", "shell_ddd/framework", "shell_ddd/bootstrap"]
+exclude = []
 
 [[tool.mypy.overrides]]
-module = ["motor.*", "asyncpg.*", "aiosqlite.*"]
+module = [
+    "motor.*",
+    "asyncpg.*",
+    "aiosqlite.*",
+    "dependency_injector.*",
+    "alembic.*",
+]
 ignore_missing_imports = true

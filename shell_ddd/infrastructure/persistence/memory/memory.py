@@ -560,10 +560,20 @@ class InMemoryQueryServices:
 
         return [
             EnvelopeDto(
-                id=str(e.id), workflow_id=str(e.workflow_id),
-                destination_node=e.destination_node, status=e.status.value,
-                payload=e.payload
-            ) for e in envelopes
+                id=str(e.id),
+                workflow_id=str(e.workflow_id),
+                sender_node_id=str(e.sender_node_id),
+                receiver_node_id=str(e.receiver_node_id),
+                source_role=e.source_role,
+                target_role=e.target_role,
+                status=e.status.value,
+                stage=e.stage.value,
+                step=e.step,
+                payload=e.payload,
+                created_at=e.created_at,
+                updated_at=e.updated_at,
+            )
+            for e in envelopes
         ]
 
     async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
@@ -575,7 +585,7 @@ class InMemoryQueryServices:
             return None
         return NodeResultDto(
             id=str(res.id),
-            node_id=res.node_id,
+            node_id=str(res.node_id),
             workflow_id=str(res.workflow_id),
             status=res.status.value,
             stdout=res.stdout,
@@ -592,7 +602,7 @@ class InMemoryQueryServices:
             id=str(prompt.id),
             name=prompt.name,
             version=prompt.version,
-            hash=prompt.hash,
+            hash=str(prompt.hash),
             body=prompt.body,
             is_current=prompt.is_current,
             created_at=prompt.created_at)

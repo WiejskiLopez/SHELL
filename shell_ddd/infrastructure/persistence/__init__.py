@@ -96,7 +96,7 @@ class SqlAlchemyUnitOfWork:
         for event in self._staged_events:
             payload = {
                 f.name: str(getattr(event, f.name))
-                for f in dataclasses.fields(event)  # type: ignore[arg-type]
+                for f in dataclasses.fields(event)
                 if f.name != "occurred_at"
             }
             self._session.add(
