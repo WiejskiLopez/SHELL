@@ -13,7 +13,15 @@ class CoreContainer(containers.DeclarativeContainer):
     """Kompozytor wszystkich sub-kontenerów DI."""
 
     config = providers.Configuration()
-    config.messaging = providers.Configuration()  # nested config
+    config.override({
+        'messaging': {
+            'outbox_batch_size': 100,
+            'inbox_batch_size': 50,
+            'worker_poll_interval': 1.0,
+            'worker_backoff_factor': 2.0,
+            'worker_max_backoff': 30.0,
+        }
+    })
 
     infra = providers.Container(InfrastructureContainer, config=config)
     domain = providers.Container(DomainContainer)

@@ -278,11 +278,7 @@ class InMemorySessionRepository:
 
 
 class InMemoryUnitOfWork:
-    def __init__(
-        self,
-        post_commit_publisher: EventPublisher | None = None,
-    ) -> None:
-        self._post_commit_publisher = post_commit_publisher
+    def __init__(self) -> None:
         self.tasks = InMemoryTaskRepository()
         self.graphs = InMemoryGraphRepository()
         self.workflows = InMemoryWorkflowRepository()
@@ -309,6 +305,7 @@ class InMemoryUnitOfWork:
             ],
         )
 
+        self._post_commit_publisher = None
         self._committed = False
         self._staged_events: list[DomainEvent] = []
         self._post_commit_buffer: list[DomainEvent] = []
@@ -341,8 +338,6 @@ class InMemoryUnitOfWork:
         return self
 
     async def __aexit__(self, exc_type: object, *args: object) -> None:
-        # Best-effort post-commit fan-out. Outbox staging happened atomically
-        # with state changes inside ``commit()`` (durable source of truth).
         if exc_type is None and self._committed and self._post_commit_publisher is not None:
             buffered = self._post_commit_buffer
             self._post_commit_buffer = []

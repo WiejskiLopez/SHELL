@@ -33,12 +33,7 @@ class BusContainer(containers.DeclarativeContainer):
         ),
     )
 
-    # UoW factory wired with the post-commit publisher. Domain events are
-    # written to ``outbox_event`` atomically with state inside ``commit()``;
-    # the publisher below performs best-effort in-process fan-out *after*
-    # the transaction has been durably committed.
     uow_factory = providers.Factory(
         SqlAlchemyUnitOfWork,
         session_factory=infra.session_factory,
-        post_commit_publisher=messaging.event_publisher,  # from MessagingContainer
     )

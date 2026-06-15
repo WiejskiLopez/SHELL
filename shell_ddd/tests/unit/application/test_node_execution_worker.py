@@ -119,7 +119,9 @@ def _make_worker(
 class TestNodeExecutionWorkerHappyPath:
     async def test_first_node_success_advances_to_second(self) -> None:
         publisher = FakeEventPublisher()
-        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
+        uow = InMemoryUnitOfWork()
+        # Manually inject the publisher for testing event dispatch
+        uow._post_commit_publisher = publisher
         task, graph = _build_graph(uow, "happy", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
@@ -142,7 +144,8 @@ class TestNodeExecutionWorkerHappyPath:
 
     async def test_last_node_success_finishes_workflow(self) -> None:
         publisher = FakeEventPublisher()
-        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
+        uow = InMemoryUnitOfWork()
+        uow._post_commit_publisher = publisher
         task, graph = _build_graph(uow, "single", ["agent"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
@@ -165,7 +168,8 @@ class TestNodeExecutionWorkerHappyPath:
 class TestNodeExecutionWorkerFailure:
     async def test_node_failure_aborts_under_fail_fast_policy(self) -> None:
         publisher = FakeEventPublisher()
-        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
+        uow = InMemoryUnitOfWork()
+        uow._post_commit_publisher = publisher
         task, graph = _build_graph(uow, "fail", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
@@ -192,7 +196,8 @@ class TestNodeExecutionWorkerFailure:
 class TestNodeExecutionWorkerIdempotency:
     async def test_stale_cursor_event_is_dropped(self) -> None:
         publisher = FakeEventPublisher()
-        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
+        uow = InMemoryUnitOfWork()
+        uow._post_commit_publisher = publisher
         task, graph = _build_graph(uow, "stale", ["agent", "tool"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 
@@ -216,7 +221,8 @@ class TestNodeExecutionWorkerIdempotency:
 
     async def test_terminal_workflow_ignores_event(self) -> None:
         publisher = FakeEventPublisher()
-        uow = InMemoryUnitOfWork(post_commit_publisher=publisher)
+        uow = InMemoryUnitOfWork()
+        uow._post_commit_publisher = publisher
         task, graph = _build_graph(uow, "terminal", ["agent"])
         wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
 

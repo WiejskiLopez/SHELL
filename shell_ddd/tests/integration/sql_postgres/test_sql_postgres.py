@@ -82,7 +82,7 @@ def uow(
     session_factory: async_sessionmaker,  # type: ignore[type-arg]
     events: FakeEventPublisher,
 ) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory, post_commit_publisher=events)
+    return SqlAlchemyUnitOfWork(session_factory)
 
 
 @pytest.fixture()

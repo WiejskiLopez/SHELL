@@ -50,7 +50,9 @@ def events() -> FakeEventPublisher:
 
 @pytest.fixture()
 def uow(events: FakeEventPublisher) -> InMemoryUnitOfWork:
-    return InMemoryUnitOfWork(post_commit_publisher=events)
+    uow = InMemoryUnitOfWork()
+    uow._post_commit_publisher = events
+    return uow
 
 
 @pytest.fixture()
