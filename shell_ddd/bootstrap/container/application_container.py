@@ -15,10 +15,12 @@ class ApplicationContainer(containers.DeclarativeContainer):
     config = providers.Configuration()
     infra = providers.DependenciesContainer()
     domain = providers.DependenciesContainer()
+    messaging = providers.DependenciesContainer()  # NEW
 
     buses = providers.Container(
         BusContainer,
         infra=infra,
+        messaging=messaging,  # pass for event_publisher wiring
     )
 
     commands = providers.Container(

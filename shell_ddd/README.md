@@ -489,7 +489,7 @@ infrastructure/
 ├── messaging/
 │   ├── sql_outbox_publisher.py   Zapis do tabeli outbox_event
 │   ├── memory_outbox_store.py    InMemory outbox (testy)
-│   └── outbox_relay.py           Relay: czyta outbox → downstream publisher
+│   └── outbox_to_inbox_relay.py           Relay: czyta outbox → wysyla do inbox
 ├── rag/                          RAG repozytoria
 └── configuration/                Settings (pydantic-settings)
 ```

@@ -445,7 +445,7 @@ class TestSqlAuditPublisher:
 
 
 # ---------------------------------------------------------------------------
-# SqlOutboxPublisher + OutboxRelay
+# SqlOutboxPublisher + OutboxToInboxRelay
 # ---------------------------------------------------------------------------
 
 
@@ -489,7 +489,7 @@ class TestSqlOutboxPublisher:
         assert before == after
 
 
-class TestOutboxRelay:
+class TestOutboxToInboxRelay:
     async def test_relay_marks_rows_published(
         self,
         session_factory: async_sessionmaker,
@@ -498,7 +498,7 @@ class TestOutboxRelay:
 
         from shell_ddd.domain.events.events import WorkflowStarted
         from shell_ddd.domain.value_objects.ids import WorkflowId
-        from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
+        from shell_ddd.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
         from shell_ddd.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
         from shell_ddd.infrastructure.persistence.memory.memory import FakeEventPublisher
         from shell_ddd.infrastructure.persistence.sql.models import OutboxEventModel
@@ -510,7 +510,7 @@ class TestOutboxRelay:
 
         # Run relay — downstream captures events
         downstream = FakeEventPublisher()
-        relay = OutboxRelay(session_factory, downstream)
+        relay = OutboxToInboxRelay(session_factory, downstream)
         count = await relay.run_once()
 
         assert count >= 1
@@ -530,7 +530,7 @@ class TestOutboxRelay:
         from shell_ddd.domain.events.events import TaskCreated
         from shell_ddd.domain.value_objects.ids import TaskId
         from shell_ddd.domain.value_objects.task_name import TaskName
-        from shell_ddd.infrastructure.messaging.outbox_relay import OutboxRelay
+        from shell_ddd.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
         from shell_ddd.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
         from shell_ddd.infrastructure.persistence.memory.memory import FakeEventPublisher
 
@@ -540,7 +540,7 @@ class TestOutboxRelay:
         )
 
         downstream = FakeEventPublisher()
-        relay = OutboxRelay(session_factory, downstream)
+        relay = OutboxToInboxRelay(session_factory, downstream)
         first = await relay.run_once()
         second = await relay.run_once()
 

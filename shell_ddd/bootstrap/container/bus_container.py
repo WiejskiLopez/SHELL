@@ -9,13 +9,14 @@ from shell_ddd.application.bus.event_bus_publisher import EventBusPublisher
 from shell_ddd.application.bus.query_bus import QueryBus
 from shell_ddd.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell_ddd.infrastructure.persistence import SqlAlchemyUnitOfWork
-
+from .messaging_container import MessagingContainer
 
 class BusContainer(containers.DeclarativeContainer):
     """Szyny komunikatów, kompozytowy publisher zdarzeń oraz fabryka UoW
     wstrzykująca publisher post-commit do każdej transakcji."""
 
     infra = providers.DependenciesContainer()
+    messaging = providers.DependenciesContainer()  # NEW
 
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
@@ -39,5 +40,5 @@ class BusContainer(containers.DeclarativeContainer):
     uow_factory = providers.Factory(
         SqlAlchemyUnitOfWork,
         session_factory=infra.session_factory,
-        post_commit_publisher=event_publisher,
+        post_commit_publisher=messaging.event_publisher,  # from MessagingContainer
     )

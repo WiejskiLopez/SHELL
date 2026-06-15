@@ -260,6 +260,7 @@ class OutboxEventModel(Base):
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+
 class InboxEventModel(Base):
     __tablename__ = "inbox_event"
 
@@ -267,9 +268,8 @@ class InboxEventModel(Base):
     event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
 
 class TemplateGraphModel(Base):
     __tablename__ = "template_graph"
