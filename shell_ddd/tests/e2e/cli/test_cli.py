@@ -17,9 +17,7 @@ def _db_url(tmp_path: pathlib.Path) -> str:
 class TestCliImportTask:
     async def test_import_task_happy_path(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "my_task.md"
-        yaml_ = tmp_path / "my_task.yaml"
         md.write_text("# My Task", encoding="utf-8")
-        yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
         os.environ["SHELL_DDD_DATABASE_URL"] = _db_url(tmp_path)
         try:
@@ -53,9 +51,7 @@ class TestCliMain:
 
     async def test_main_import_task_end_to_end(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "e2e_task.md"
-        yaml_ = tmp_path / "e2e_task.yaml"
         md.write_text("# E2E Task", encoding="utf-8")
-        yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
         os.environ["SHELL_DDD_DATABASE_URL"] = _db_url(tmp_path)
         try:

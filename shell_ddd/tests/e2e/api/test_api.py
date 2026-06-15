@@ -31,9 +31,7 @@ class TestHealthEndpoint:
 class TestTasksRouter:
     async def test_import_task(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "api_task.md"
-        yaml_ = tmp_path / "api_task.yaml"
         md.write_text("# API Task", encoding="utf-8")
-        yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
         app = await _make_app(tmp_path)
 
@@ -74,9 +72,7 @@ class TestWorkflowsRouter:
 
     async def test_start_and_get_workflow(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "wf_task.md"
-        yaml_ = tmp_path / "wf_task.yaml"
         md.write_text("# WF Task", encoding="utf-8")
-        yaml_.write_text("graph:\n  nodes: []\n", encoding="utf-8")
 
         db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         core_container = await ApplicationFactory(database_url=db_url).build()
@@ -92,21 +88,20 @@ class TestWorkflowsRouter:
 
             # Attach a single-node Graph for the imported task so that
             # StartWorkflowHandler can anchor the cursor.
+            # Note: BuildGraphOnTaskCreated handler already creates a graph from template.
+            # We check if graph exists and add a node to it.
             from shell_ddd.domain.entities.graph import Graph, GraphNode
             from shell_ddd.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
             from shell_ddd.domain.value_objects.mode import Mode
             from shell_ddd.domain.value_objects.task_name import TaskName
 
-            uow_factory = core_container.uow_factory()
+            uow_factory = core_container.infra.uow_factory()
             async with uow_factory as uow:
                 task = await uow.tasks.get_current_by_name(TaskName("wf_task"))
                 assert task is not None
-                graph = Graph(
-                    id=GraphId.generate(),
-                    task_id=task.id,
-                    template_graph_id=TemplateGraphId("tpl"),
-                    raw_dict={},
-                    nodes=[
+                existing_graph = await uow.graphs.get_by_task_id(task.id)
+                if existing_graph:
+                    existing_graph.add_node(
                         GraphNode(
                             id=NodeId("wf_task-node-0"),
                             position=0,
@@ -115,10 +110,28 @@ class TestWorkflowsRouter:
                             role="agent",
                             node_type="agent",
                         )
-                    ],
-                )
-                await uow.graphs.save(graph)
-                await uow.commit()
+                    )
+                    await uow.graphs.save(existing_graph)
+                    await uow.commit()
+                else:
+                    graph = Graph(
+                        id=GraphId.generate(),
+                        task_id=task.id,
+                        template_graph_id=TemplateGraphId("tpl"),
+                        raw_dict={},
+                        nodes=[
+                            GraphNode(
+                                id=NodeId("wf_task-node-0"),
+                                position=0,
+                                node_dir="/fake/wf_task-0",
+                                mode=Mode("agent"),
+                                role="agent",
+                                node_type="agent",
+                            )
+                        ],
+                    )
+                    await uow.graphs.save(graph)
+                    await uow.commit()
 
             # start workflow
             resp = await client.post("/workflows", json={"task_name": "wf_task"})
