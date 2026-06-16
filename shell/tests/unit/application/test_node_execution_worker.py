@@ -64,7 +64,7 @@ def _build_graph(uow: InMemoryUnitOfWork, task_name: str, modes: list[str]) -> t
         is_current=True,
         created_at=_NOW,
     )
-    uow.tasks._store[task.id.value] = task
+    uow.tasks._store[task.id.value] = task  # type: ignore[attr-defined]
 
     nodes = [
         GraphNode(
@@ -84,7 +84,7 @@ def _build_graph(uow: InMemoryUnitOfWork, task_name: str, modes: list[str]) -> t
         raw_dict={},
         nodes=nodes,
     )
-    uow.graphs._store[graph.id.value] = graph
+    uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]
     return task, graph
 
 

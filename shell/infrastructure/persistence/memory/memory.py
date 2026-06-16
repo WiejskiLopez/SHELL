@@ -304,16 +304,16 @@ class InMemorySessionRepository(SessionRepository):
 
 class InMemoryUnitOfWork:
     def __init__(self) -> None:
-        self.tasks = InMemoryTaskRepository()
-        self.graphs = InMemoryGraphRepository()
-        self.workflows = InMemoryWorkflowRepository()
-        self.envelopes = InMemoryEnvelopeRepository()
-        self.prompts = InMemoryPromptRepository()
-        self.runner_configs = InMemoryRunnerConfigRepository()
-        self.envelope_archive = InMemoryEnvelopeArchive()
-        self.rag_documents = InMemoryRagDocumentRepository()
-        self.sessions = InMemorySessionRepository()
-        self.template_graphs = InMemoryTemplateGraphRepository()
+        self.tasks: TaskRepository = InMemoryTaskRepository()
+        self.graphs: GraphRepository = InMemoryGraphRepository()
+        self.workflows: WorkflowRepository = InMemoryWorkflowRepository()
+        self.envelopes: EnvelopeRepository = InMemoryEnvelopeRepository()
+        self.prompts: PromptRepository = InMemoryPromptRepository()
+        self.runner_configs: RunnerConfigRepository = InMemoryRunnerConfigRepository()
+        self.envelope_archive: EnvelopeArchive = InMemoryEnvelopeArchive()
+        self.rag_documents: RagDocumentRepository = InMemoryRagDocumentRepository()
+        self.sessions: SessionRepository = InMemorySessionRepository()
+        self.template_graphs: TemplateGraphRepository = InMemoryTemplateGraphRepository()
         # 🔥 SEED
         self.template_graphs._store["base_planner"] = TemplateGraph(
             id=TemplateGraphId("base-planner-id"),
@@ -517,7 +517,7 @@ class InMemoryQueryServices:
     async def get_task_by_name(self, name: str) -> TaskDto | None:
         # Przeszukujemy magazyn zadań w repozytorium in-memory
         task = next(
-            (t for t in self._uow.tasks._store.values() if t.name.value == name),
+            (t for t in self._uow.tasks._store.values() if t.name.value == name),  # type: ignore[attr-defined]
             None,
         )
         if not task:
@@ -556,7 +556,7 @@ class InMemoryQueryServices:
 
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
 
-        workflow = self._uow.workflows._store.get(workflow_id)
+        workflow = self._uow.workflows._store.get(workflow_id)  # type: ignore[attr-defined]
         if not workflow:
             return None
         return WorkflowDto(
@@ -579,7 +579,7 @@ class InMemoryQueryServices:
         self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
         envelopes = [
-            e for e in self._uow.envelopes._store.values() if str(e.workflow_id) == workflow_id
+            e for e in self._uow.envelopes._store.values() if str(e.workflow_id) == workflow_id  # type: ignore[attr-defined]
         ]
         if pending_only:
             envelopes = [e for e in envelopes if e.status.value == "pending"]
@@ -622,7 +622,7 @@ class InMemoryQueryServices:
 
     async def get_prompt(self, name: str) -> PromptDto | None:
         prompt = next(
-            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None
+            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None  # type: ignore[attr-defined]
         )
         if not prompt:
             return None
@@ -650,7 +650,7 @@ class InMemoryQueryServices:
         )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
-        session = self._uow.sessions._store.get(session_id)
+        session = self._uow.sessions._store.get(session_id)  # type: ignore[attr-defined]
 
         if session is None:
             return None
@@ -679,7 +679,7 @@ class InMemoryQueryServices:
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
         # Prosta implementacja dla testów
-        chunks = list(self._uow.rag_documents._store.values())
+        chunks = list(self._uow.rag_documents._store.values())  # type: ignore[attr-defined]
         return [
             RagChunkDto(
                 chunk_id=f"chunk-{i}",
@@ -698,6 +698,9 @@ class InMemoryQueryServices:
 class InMemoryTemplateGraphRepository(TemplateGraphRepository):
     def __init__(self) -> None:
         self._store: dict[str, TemplateGraph] = {}
+
+    async def get(self, graph_id: TemplateGraphId) -> TemplateGraph | None:
+        return self._store.get(graph_id.value)
 
     async def get_template_graph_by_name(self, name: str) -> TemplateGraph | None:
         for g in self._store.values():
