@@ -25,7 +25,7 @@ def _task_imported() -> TaskCreated:
 def _workflow_started() -> WorkflowStarted:
     return WorkflowStarted.now(
         workflow_id=WorkflowId.generate(),
-        task_id="task-id-t1",
+        task_id=TaskId("task-id-t1"),
         now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 

@@ -101,7 +101,7 @@ class TestWorkflow:
     def test_update_node_state(self) -> None:
         from shell.domain.value_objects.status import Status
 
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id="task-id", now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
         node_id = NodeId("node-1")
         wf.update_node_state(node_id, Status.running(), now=_NOW, step=2)
         assert wf.node_states["node-1"].step == 2

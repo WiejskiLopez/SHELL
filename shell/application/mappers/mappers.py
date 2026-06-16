@@ -48,7 +48,7 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
     }
     return WorkflowDto(
         id=workflow.id.value,
-        task_id=workflow.task_id,
+        task_id=workflow.task_id.value,
         status=workflow.status.value,
         created_at=workflow.created_at,
         node_states=states,
