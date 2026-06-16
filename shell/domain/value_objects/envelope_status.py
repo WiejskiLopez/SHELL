@@ -1,4 +1,5 @@
 """EnvelopeStatus and EnvelopeStage value objects."""
+
 from __future__ import annotations
 
 from enum import StrEnum

@@ -1,4 +1,5 @@
 """LoggingEventPublisher — publishes domain events via the Logger port."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

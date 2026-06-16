@@ -1,4 +1,5 @@
 """Rejestracja Event Handlers na EventBus (subskrybenci zdarzeń domenowych)."""
+
 # mypy: disable-error-code="attr-defined"
 # dependency_injector providers expose attributes dynamically via __getattr__.
 from __future__ import annotations
@@ -26,7 +27,9 @@ if TYPE_CHECKING:
 def register_events(core_container: CoreContainer) -> None:
     """Subskrybuje wszystkie Event Handlers na EventBus kontenera."""
     event_bus = core_container.app.buses.event_bus()
-    event_bus.subscribe(EnvelopeRouted, core_container.app.events.archive_on_delivered_handler_factory)
+    event_bus.subscribe(
+        EnvelopeRouted, core_container.app.events.archive_on_delivered_handler_factory
+    )
     event_bus.subscribe(EnvelopeRouted, core_container.app.events.log_audit_handler_factory)
     event_bus.subscribe(EnvelopeExpired, core_container.app.events.log_audit_handler_factory)
     event_bus.subscribe(NodeCompleted, core_container.app.events.log_audit_handler_factory)
@@ -38,4 +41,6 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowFailed, core_container.app.events.log_audit_handler_factory)
     event_bus.subscribe(NodeStarted, core_container.app.events.log_audit_handler_factory)
     event_bus.subscribe(NodeAdvanced, core_container.app.events.log_audit_handler_factory)
-    event_bus.subscribe(NodeExecutionRequested, core_container.app.events.node_execution_worker_factory)
+    event_bus.subscribe(
+        NodeExecutionRequested, core_container.app.events.node_execution_worker_factory
+    )

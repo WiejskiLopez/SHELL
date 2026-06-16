@@ -1,4 +1,5 @@
 """Application DTOs — read-side data transfer objects."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

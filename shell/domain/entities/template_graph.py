@@ -20,24 +20,16 @@ class TemplateGraph:
         self.nodes.sort(key=lambda n: n.position)
 
     def remove_node(
-            self,
-            node_id: TemplateGraphNodeId,
+        self,
+        node_id: TemplateGraphNodeId,
     ) -> None:
-        self.nodes = [
-            n
-            for n in self.nodes
-            if n.id != node_id
-        ]
+        self.nodes = [n for n in self.nodes if n.id != node_id]
 
     def get_node(
-            self,
-            position: int,
+        self,
+        position: int,
     ) -> TemplateGraphNode | None:
         return next(
-            (
-                n
-                for n in self.nodes
-                if n.position == position
-            ),
+            (n for n in self.nodes if n.position == position),
             None,
         )

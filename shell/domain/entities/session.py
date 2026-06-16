@@ -1,4 +1,5 @@
 """Session + Message — conversation session aggregate."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -31,7 +32,7 @@ class Message:
 class Session:
     id: SessionId
     goal: str
-    status: str               # "open" | "closed"
+    status: str  # "open" | "closed"
     opened_at: datetime
     closed_at: datetime | None
     messages: list[Message] = field(default_factory=list)

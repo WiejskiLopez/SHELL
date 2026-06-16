@@ -1,4 +1,5 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -140,13 +141,13 @@ class TestSqlTaskRepository:
 
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
-            self,
-            uow: SqlAlchemyUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
-            task_loader: FakeTaskLoader,
-            session_factory: async_sessionmaker,
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        events: FakeEventPublisher,
+        task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
@@ -250,6 +251,7 @@ class TestSqlNodeResultRepository:
         # Seed a Workflow first — NodeResult is owned by Workflow aggregate.
         from shell.domain.entities.workflow import Workflow
         from shell.domain.value_objects.ids import WorkflowId
+
         async with uow as u:
             await u.workflows.save(
                 Workflow.new(id_=WorkflowId("wf-sql-nr-1"), task_id="task-id", now=clock.now())
@@ -330,7 +332,9 @@ class TestSqlRagDocumentRepository:
 
         embedder = HashEmbedder(dim=64)
         text = "SQLite RAG integration test " * 30
-        cmd = IndexDocumentCommand(source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text)
+        cmd = IndexDocumentCommand(
+            source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text
+        )
         await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
 
         results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
@@ -356,7 +360,9 @@ class TestSqlRagDocumentRepository:
 
         embedder = HashEmbedder(dim=64)
         await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(
-            IndexDocumentCommand(source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20)
+            IndexDocumentCommand(
+                source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
+            )
         )
         results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="unique text x", top_k=5, domain="domain-y")
@@ -389,14 +395,30 @@ class TestSqlSessionRepository:
             OpenSessionCommand(goal="integration test")
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value, correlation_id=get_correlation_id(), sender="sql-agent", receiver="router", payload={"k": 1})
+            AppendMessageCommand(
+                session_id=session_id.value,
+                correlation_id=get_correlation_id(),
+                sender="sql-agent",
+                receiver="router",
+                payload={"k": 1},
+            )
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value, correlation_id=get_correlation_id(), sender="router", receiver="sql-agent", payload={"k": 2})
+            AppendMessageCommand(
+                session_id=session_id.value,
+                correlation_id=get_correlation_id(),
+                sender="router",
+                receiver="sql-agent",
+                payload={"k": 2},
+            )
         )
-        await CloseSessionHandler(uow, clock).handle(CloseSessionCommand(session_id=session_id.value))
+        await CloseSessionHandler(uow, clock).handle(
+            CloseSessionCommand(session_id=session_id.value)
+        )
 
-        dto = await GetSessionHistoryHandler(SqlQueryServices(session_factory)).handle(GetSessionHistoryQuery(session_id=session_id.value))
+        dto = await GetSessionHistoryHandler(SqlQueryServices(session_factory)).handle(
+            GetSessionHistoryQuery(session_id=session_id.value)
+        )
         assert dto is not None
         assert dto.status == "closed"
         assert len(dto.messages) == 2
@@ -422,8 +444,16 @@ class TestSqlAuditPublisher:
 
         pub = SqlAuditPublisher(session_factory)
         events = [
-            TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("audit-task"), now=datetime(2026, 1, 1, tzinfo=UTC)),
-            WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id=TaskId.generate(), now=datetime(2026, 1, 1, tzinfo=UTC)),
+            TaskCreated.now(
+                task_id=TaskId.generate(),
+                task_name=TaskName("audit-task"),
+                now=datetime(2026, 1, 1, tzinfo=UTC),
+            ),
+            WorkflowStarted.now(
+                workflow_id=WorkflowId.generate(),
+                task_id=TaskId.generate(),
+                now=datetime(2026, 1, 1, tzinfo=UTC),
+            ),
         ]
         await pub.publish(events)
 
@@ -472,7 +502,13 @@ class TestSqlOutboxPublisher:
         from shell.infrastructure.persistence.sql.models import OutboxEventModel
 
         pub = SqlOutboxPublisher(session_factory)
-        events = [TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("ob-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
+        events = [
+            TaskCreated.now(
+                task_id=TaskId.generate(),
+                task_name=TaskName("ob-task"),
+                now=datetime(2026, 1, 1, tzinfo=UTC),
+            )
+        ]
         await pub.publish(events)
 
         async with session_factory() as session:
@@ -514,7 +550,11 @@ class TestOutboxToInboxRelay:
 
         # Write an event to outbox
         outbox_pub = SqlOutboxPublisher(session_factory)
-        event = WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id=TaskId.generate(), now=datetime(2026, 1, 1, tzinfo=UTC))
+        event = WorkflowStarted.now(
+            workflow_id=WorkflowId.generate(),
+            task_id=TaskId.generate(),
+            now=datetime(2026, 1, 1, tzinfo=UTC),
+        )
         await outbox_pub.publish([event])
 
         # Run relay — downstream captures events
@@ -545,7 +585,13 @@ class TestOutboxToInboxRelay:
 
         outbox_pub = SqlOutboxPublisher(session_factory)
         await outbox_pub.publish(
-            [TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("idm-task"), now=datetime(2026, 1, 1, tzinfo=UTC))]
+            [
+                TaskCreated.now(
+                    task_id=TaskId.generate(),
+                    task_name=TaskName("idm-task"),
+                    now=datetime(2026, 1, 1, tzinfo=UTC),
+                )
+            ]
         )
 
         downstream = FakeEventPublisher()
@@ -582,36 +628,40 @@ class TestTransactionalOutbox:
 
         async with session_factory() as session:
             rows = (
-                await session.execute(
-                    select(OutboxEventModel).where(
-                        OutboxEventModel.event_type == "TaskCreated"
+                (
+                    await session.execute(
+                        select(OutboxEventModel).where(OutboxEventModel.event_type == "TaskCreated")
                     )
                 )
-            ).scalars().all()
+                .scalars()
+                .all()
+            )
 
         assert any(r.payload.get("task_name") is not None for r in rows), (
             "Outbox row must be written in same transaction as domain state"
         )
 
     async def test_rollback_removes_staged_outbox_events(
-            self,
-            uow: SqlAlchemyUnitOfWork,
-            clock: FakeClock,
-            session_factory: async_sessionmaker,
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        session_factory: async_sessionmaker,
     ) -> None:
         """If the UoW transaction is rolled back, no outbox rows must be written."""
 
         # 1. Czytelne wymuszenie i przechwycenie wyjątku za pomocą pytest
         with pytest.raises(RuntimeError, match="forced rollback"):
             async with uow as u:
-                u.stage_events([
-                    WorkflowStarted.now(
-                        workflow_id=WorkflowId("wf-rollback"),
-                        # POPRAWKA: Przekazujemy obiekt TaskId zamiast czystego stringa
-                        task_id=TaskId("rollback-task"),
-                        now=clock.now(),
-                    )
-                ])
+                u.stage_events(
+                    [
+                        WorkflowStarted.now(
+                            workflow_id=WorkflowId("wf-rollback"),
+                            # POPRAWKA: Przekazujemy obiekt TaskId zamiast czystego stringa
+                            task_id=TaskId("rollback-task"),
+                            now=clock.now(),
+                        )
+                    ]
+                )
                 raise RuntimeError("forced rollback")
 
         # 2. Bezpośrednia weryfikacja bazy — sprawdzamy tylko, czy nasz event NIE wyciekł

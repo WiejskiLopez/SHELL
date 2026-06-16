@@ -25,6 +25,7 @@ Every save through the repository increments ``Workflow.version`` atomically
 as part of the CAS (compare-and-swap) update so concurrent writers are
 detected via ``WorkflowConcurrentlyModified``.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -203,7 +204,9 @@ class Workflow:
 
     # ── Node-state / NodeResult management ─────────────────────────────────
 
-    def update_node_state(self, node_id: NodeId, status: Status, now: datetime, step: int = 0) -> None:
+    def update_node_state(
+        self, node_id: NodeId, status: Status, now: datetime, step: int = 0
+    ) -> None:
         from shell.domain.value_objects.ids import NodeStateId
 
         existing = self.node_states.get(node_id.value)
@@ -252,7 +255,5 @@ class Workflow:
         if status == Status.done():
             self.append_event(NodeCompleted.now(node_id, self.id, result_id, now=now))
         else:
-            self.append_event(
-                NodeFailed.now(node_id, self.id, reason or stderr, now=now)
-            )
+            self.append_event(NodeFailed.now(node_id, self.id, reason or stderr, now=now))
         return result

@@ -23,6 +23,7 @@ Idempotency model (three-tier defence in depth)
    save. A concurrent advance from another worker raises
    :class:`WorkflowConcurrentlyModified` which we log and swallow.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -83,9 +84,7 @@ class NodeExecutionWorker:
         self._logger = logger
         self._navigator: NodeNavigator = navigator or LinearNodeNavigator()
         self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
-        self._compensation: CompensationHandler = (
-            compensation or NoOpCompensationHandler()
-        )
+        self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
 
     async def handle(self, event: NodeExecutionRequested) -> None:
         """Handle exactly one ``NodeExecutionRequested``."""
@@ -143,9 +142,7 @@ class NodeExecutionWorker:
 
     # ── Step helpers ─────────────────────────────────────────────────────
 
-    def _is_event_relevant(
-        self, workflow: Workflow, event: NodeExecutionRequested
-    ) -> bool:
+    def _is_event_relevant(self, workflow: Workflow, event: NodeExecutionRequested) -> bool:
         """Three-tier idempotency: drop the event if the cursor or status moved on."""
         if workflow.status != Status.running():
             self._logger.debug(
@@ -224,7 +221,9 @@ class NodeExecutionWorker:
             )
 
             if success:
-                self._advance_or_finish(workflow=workflow, graph=graph, node_id=event.node_id, now=now)
+                self._advance_or_finish(
+                    workflow=workflow, graph=graph, node_id=event.node_id, now=now
+                )
             else:
                 self._handle_failure(
                     workflow=workflow,
@@ -252,9 +251,7 @@ class NodeExecutionWorker:
             return
         next_node = next_nodes[0]
         workflow.advance_to(next_node_id=next_node.id, now=now)
-        workflow.append_event(
-            NodeExecutionRequested.now(workflow.id, next_node.id, now=now)
-        )
+        workflow.append_event(NodeExecutionRequested.now(workflow.id, next_node.id, now=now))
 
     def _handle_failure(
         self,

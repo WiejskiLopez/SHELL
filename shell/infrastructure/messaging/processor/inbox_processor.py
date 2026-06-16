@@ -1,4 +1,5 @@
 """InboxProcessor — consumes Inbox events and triggers application logic via EventBus."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -17,10 +18,10 @@ if TYPE_CHECKING:
 
 class InboxProcessor:
     def __init__(
-            self,
-            session_factory: async_sessionmaker[AsyncSession],
-            event_bus: EventPublisher,  # In-memory EventBus
-            batch_size: int = 100,
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        event_bus: EventPublisher,  # In-memory EventBus
+        batch_size: int = 100,
     ) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
@@ -50,7 +51,9 @@ class InboxProcessor:
 
             for r in rows:
                 # Reconstruct full domain object from raw data
-                domain_event = self._deserializer.deserialize(r.event_type, r.occurred_at, r.payload)
+                domain_event = self._deserializer.deserialize(
+                    r.event_type, r.occurred_at, r.payload
+                )
                 if domain_event:
                     events_to_publish.append(domain_event)
 

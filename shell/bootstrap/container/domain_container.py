@@ -1,4 +1,5 @@
 """Kontener dla serwisów domenowych, strategii wykonania i polityk."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers

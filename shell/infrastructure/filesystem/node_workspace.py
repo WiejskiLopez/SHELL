@@ -1,4 +1,5 @@
 """NodeWorkspaceFs — filesystem implementation of the NodeWorkspace port."""
+
 from __future__ import annotations
 
 import shutil

@@ -1,4 +1,5 @@
 """SQLAlchemy 2.x ORM models — shared between SQLite and PostgreSQL."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -28,7 +29,11 @@ class GraphModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     task_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("task.id", ondelete="CASCADE"), nullable=False, index=True, unique=True
+        String(36),
+        ForeignKey("task.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+        unique=True,
     )
     template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     raw_dict: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
@@ -247,7 +252,9 @@ class AuditEventModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
 
@@ -269,7 +276,10 @@ class InboxEventModel(Base):
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
+    )
+
 
 class TemplateGraphModel(Base):
     __tablename__ = "template_graph"

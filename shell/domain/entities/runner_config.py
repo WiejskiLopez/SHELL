@@ -1,4 +1,5 @@
 """RunnerConfig aggregate — serialized runner/module configuration."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

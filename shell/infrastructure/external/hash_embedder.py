@@ -1,4 +1,5 @@
 """HashEmbedder — deterministic, dependency-free stub embedder (dev/test)."""
+
 from __future__ import annotations
 
 import hashlib

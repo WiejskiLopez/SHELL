@@ -23,9 +23,9 @@ class SmokeCommand(RunnableCommand):
         with tempfile.TemporaryDirectory() as tmp:
             md = Path(tmp) / "smoke-task.md"
             md.write_text("# Smoke task\nThis is a smoke-test task.", encoding="utf-8")
-            task_id = await command_bus.dispatch(ImportTaskCommand(md_path=str(md), task_name="smoke-task"))
-
-
+            task_id = await command_bus.dispatch(
+                ImportTaskCommand(md_path=str(md), task_name="smoke-task")
+            )
 
         print(f"[smoke] task imported: {task_id}")
         workflow_id = await command_bus.dispatch(StartWorkflowCommand(task_id=task_id))

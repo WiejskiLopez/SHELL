@@ -1,4 +1,5 @@
 """SqlAuditPublisher — persists domain events to the audit_event table."""
+
 from __future__ import annotations
 
 import dataclasses

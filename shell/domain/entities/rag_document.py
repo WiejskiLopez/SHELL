@@ -1,4 +1,5 @@
 """RagDocument — aggregate root for an indexed document and its chunks."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -16,7 +17,7 @@ class RagChunk:
     document_id: RagDocumentId
     chunk_index: int
     chunk_text: str
-    embedding: bytes          # raw little-endian float32 blob
+    embedding: bytes  # raw little-endian float32 blob
     embedding_model: str
 
     def __post_init__(self) -> None:

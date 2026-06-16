@@ -1,4 +1,5 @@
 """FileSystemEnvelopeArchive — filesystem-based EnvelopeArchive adapter."""
+
 from __future__ import annotations
 
 import json

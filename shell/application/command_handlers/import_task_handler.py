@@ -4,6 +4,7 @@ This handler is intentionally ignorant of the Graph aggregate: after a Task
 is persisted, the ``TaskCreated`` event triggers ``BuildGraphOnTaskCreated``
 which constructs the appropriate Graph from a TemplateGraph.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -25,12 +26,12 @@ if TYPE_CHECKING:
 
 class ImportTaskHandler:
     def __init__(
-            self,
-            uow: UnitOfWork,
-            clock: Clock,
-            id_gen: IdGenerator,
-            task_loader: TaskLoader,
-            logger: Logger,
+        self,
+        uow: UnitOfWork,
+        clock: Clock,
+        id_gen: IdGenerator,
+        task_loader: TaskLoader,
+        logger: Logger,
     ) -> None:
         self._uow = uow
         self._clock = clock

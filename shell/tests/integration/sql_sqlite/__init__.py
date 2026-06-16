@@ -1,4 +1,5 @@
 """SQLite integration test package."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -159,13 +160,13 @@ class TestSqlTaskRepository:
 
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
-            self,
-            uow: SqlAlchemyUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
-            task_loader: FakeTaskLoader,
-            session_factory: async_sessionmaker,
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        events: FakeEventPublisher,
+        task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
@@ -242,6 +243,7 @@ class TestSqlNodeResultRepository:
     ) -> None:
         from shell.domain.entities.workflow import Workflow
         from shell.domain.value_objects.ids import WorkflowId
+
         async with uow as u:
             await u.workflows.save(
                 Workflow.new(id_=WorkflowId("wf-sql-1"), task_id="task-id", now=clock.now())

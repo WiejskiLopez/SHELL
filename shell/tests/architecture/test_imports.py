@@ -4,6 +4,7 @@ Uses AST parsing (no imports executed) to check that:
 - domain/ does not import from application/, infrastructure/, framework/, bootstrap/
 - application/ does not import from infrastructure/, framework/, bootstrap/
 """
+
 from __future__ import annotations
 
 import ast

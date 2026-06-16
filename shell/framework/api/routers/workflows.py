@@ -1,4 +1,5 @@
 """Workflows router — start and query workflows."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -34,7 +35,8 @@ def get_core_container(request: _Request) -> CoreContainer:
 
 @router.post("", response_model=StartWorkflowResponse, status_code=201)
 async def start_workflow(
-    start_workflow_request: StartWorkflowRequest, core_container: CoreContainer = Depends(get_core_container)
+    start_workflow_request: StartWorkflowRequest,
+    core_container: CoreContainer = Depends(get_core_container),
 ) -> StartWorkflowResponse:
     cmd = StartWorkflowCommand(task_id=start_workflow_request.task_id)
     wf_id = await core_container.app.buses.command_bus().dispatch(cmd)
@@ -42,15 +44,21 @@ async def start_workflow(
 
 
 @router.get("/{workflow_id}")
-async def get_workflow(workflow_id: str, core_container: CoreContainer = Depends(get_core_container)) -> dict:  # type: ignore[type-arg]
-    result = await core_container.app.buses.query_bus().dispatch(GetWorkflowQuery(workflow_id=workflow_id))
+async def get_workflow(
+    workflow_id: str, core_container: CoreContainer = Depends(get_core_container)
+) -> dict:  # type: ignore[type-arg]
+    result = await core_container.app.buses.query_bus().dispatch(
+        GetWorkflowQuery(workflow_id=workflow_id)
+    )
     if result is None:
         raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
     return {"workflow_id": workflow_id, "workflow": str(result)}
 
 
 @router.post("/{workflow_id}/route", response_model=RouteResponse)
-async def route_envelopes(workflow_id: str, core_container: CoreContainer = Depends(get_core_container)) -> RouteResponse:
+async def route_envelopes(
+    workflow_id: str, core_container: CoreContainer = Depends(get_core_container)
+) -> RouteResponse:
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
     count = await core_container.app.buses.command_bus().dispatch(cmd)
     return RouteResponse(routed=count or 0)

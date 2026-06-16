@@ -1,6 +1,7 @@
 """E2E CLI tests — exercises the CLI main entry-point using an in-process call
 (asyncio.run + ApplicationFactory with temp SQLite DB) to avoid subprocess overhead
 while still validating the full stack: CLI → bus → handler → SQL → result."""
+
 from __future__ import annotations
 
 import os
@@ -22,10 +23,15 @@ class TestCliImportTask:
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
             from shell.framework.cli.main import _import_task
-            rc = await _import_task([
-                "--task-name", "my_task",
-                "--task-dir", str(tmp_path),
-            ])
+
+            rc = await _import_task(
+                [
+                    "--task-name",
+                    "my_task",
+                    "--task-dir",
+                    str(tmp_path),
+                ]
+            )
         finally:
             del os.environ["SHELL_DATABASE_URL"]
         assert rc == 0
@@ -34,6 +40,7 @@ class TestCliImportTask:
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
             from shell.framework.cli.main import _import_task
+
             rc = await _import_task([])
         finally:
             del os.environ["SHELL_DATABASE_URL"]
@@ -43,10 +50,12 @@ class TestCliImportTask:
 class TestCliMain:
     def test_main_no_args_returns_1(self) -> None:
         from shell.framework.cli.main import main
+
         assert main([]) == 1
 
     def test_main_unknown_mode_returns_1(self) -> None:
         from shell.framework.cli.main import main
+
         assert main(["unknown_mode"]) == 1
 
     async def test_main_import_task_end_to_end(self, tmp_path: pathlib.Path) -> None:
@@ -56,6 +65,7 @@ class TestCliMain:
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
             from shell.framework.cli.main import _import_task
+
             rc = await _import_task(["--task-name", "e2e_task", "--task-dir", str(tmp_path)])
         finally:
             del os.environ["SHELL_DATABASE_URL"]
@@ -65,6 +75,7 @@ class TestCliMain:
 class TestCliParser:
     def test_parser_defaults(self) -> None:
         from shell.framework.cli.parser import parse_args
+
         ns = parse_args([])
         assert ns.mode is None
         assert ns.node_dir is None
@@ -73,13 +84,20 @@ class TestCliParser:
 
     def test_parser_flags(self) -> None:
         from shell.framework.cli.parser import parse_args
-        ns = parse_args([
-            "--node-dir", "/tmp/node",
-            "--mode", "agent",
-            "--model", "gpt-4o",
-            "--max-step", "10",
-            "--dry-run",
-        ])
+
+        ns = parse_args(
+            [
+                "--node-dir",
+                "/tmp/node",
+                "--mode",
+                "agent",
+                "--model",
+                "gpt-4o",
+                "--max-step",
+                "10",
+                "--dry-run",
+            ]
+        )
         assert ns.node_dir == "/tmp/node"
         assert ns.mode == "agent"
         assert ns.model == "gpt-4o"

@@ -1,4 +1,5 @@
 """Main CLI entrypoint for shell — dispatches to per-mode command handlers."""
+
 from __future__ import annotations
 
 import asyncio
@@ -74,6 +75,7 @@ async def _import_task(argv: Sequence[str]) -> int:
         return 1
 
     import pathlib
+
     md_path = str(pathlib.Path(task_dir) / f"{task_name}.md")
 
     database_url = _get_database_url()
@@ -143,7 +145,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     setup_logging()
     if not args:
         print("Usage: shell <mode> [options]", file=sys.stderr)
-        print(f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task', 'route'])}", file=sys.stderr)
+        print(
+            f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task', 'route'])}",
+            file=sys.stderr,
+        )
         return 1
 
     mode = args[0]

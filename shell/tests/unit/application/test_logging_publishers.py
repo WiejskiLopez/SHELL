@@ -1,4 +1,5 @@
 """Unit tests — Faza 11 logging/observability publishers."""
+
 from __future__ import annotations
 
 import json
@@ -24,11 +25,17 @@ from shell.infrastructure.logging.stdlib_logger import (
 
 
 def _task_imported() -> TaskCreated:
-    return TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
+    return TaskCreated.now(
+        task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC)
+    )
 
 
 def _workflow_started() -> WorkflowStarted:
-    return WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id=TaskId.generate(), now=datetime(2026, 1, 1, tzinfo=UTC))
+    return WorkflowStarted.now(
+        workflow_id=WorkflowId.generate(),
+        task_id=TaskId.generate(),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +43,9 @@ def _workflow_started() -> WorkflowStarted:
 # ---------------------------------------------------------------------------
 
 
-def _spy_logger(name: str, level: int = logging.INFO) -> tuple[StdlibLogger, list[logging.LogRecord]]:
+def _spy_logger(
+    name: str, level: int = logging.INFO
+) -> tuple[StdlibLogger, list[logging.LogRecord]]:
     """Return (StdlibLogger, records_list) — records_list is populated on each emit."""
     records: list[logging.LogRecord] = []
 

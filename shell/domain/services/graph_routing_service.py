@@ -1,4 +1,5 @@
 """GraphRoutingService — pure domain routing logic."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -27,9 +28,7 @@ class GraphRoutingService:
         2. If target_role is None → pick first non-router node that is not the source.
         3. If nothing found → raise RoleNotResolvable.
         """
-        non_router: list[GraphNode] = [
-            n for n in graph.nodes if str(n.mode) != "router"
-        ]
+        non_router: list[GraphNode] = [n for n in graph.nodes if str(n.mode) != "router"]
 
         if target_role:
             matched = [n for n in non_router if n.role == target_role]

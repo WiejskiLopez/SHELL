@@ -1,4 +1,5 @@
 """Kontener obsługujący reakcje na zdarzenia (Event Handlers / subskrybenci EventBus)."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers

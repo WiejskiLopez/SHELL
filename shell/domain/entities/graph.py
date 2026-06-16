@@ -5,6 +5,7 @@ It is built from a TemplateGraph in reaction to the ``TaskCreated`` event
 (see ``BuildGraphOnTaskCreated`` event handler) — a Task does not know
 which Graph realises it; the Graph holds the back-reference (``task_id``).
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
@@ -134,4 +135,3 @@ class Graph(AggregateRoot["GraphId"]):
 
     def add_node(self, node: GraphNode) -> None:
         self._nodes.append(node)
-

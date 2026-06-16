@@ -1,4 +1,5 @@
 """Unit tests for Version value object."""
+
 from __future__ import annotations
 
 import pytest

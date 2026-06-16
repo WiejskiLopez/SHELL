@@ -1,4 +1,5 @@
 """CommandBuilder — builds subprocess argv per node execution mode."""
+
 from __future__ import annotations
 
 import sys
@@ -27,9 +28,7 @@ def build_agent_command(
 
     binary = shutil.which("copilot")
     if binary is None:
-        raise FileNotFoundError(
-            "copilot binary not found on PATH. Install GitHub Copilot CLI."
-        )
+        raise FileNotFoundError("copilot binary not found on PATH. Install GitHub Copilot CLI.")
 
     cmd: list[str] = []
 

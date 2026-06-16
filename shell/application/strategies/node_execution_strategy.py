@@ -1,4 +1,5 @@
 """NodeExecutionStrategy — port and 5 concrete implementations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
@@ -22,6 +23,7 @@ class NodeExecutionStrategy(Protocol):
 # ---------------------------------------------------------------------------
 # Base helper
 # ---------------------------------------------------------------------------
+
 
 class _BaseStrategy:
     """Shared logic: build argv, call runner, return result."""
@@ -50,6 +52,7 @@ class _BaseStrategy:
 # ---------------------------------------------------------------------------
 # Concrete strategies
 # ---------------------------------------------------------------------------
+
 
 class AgentStrategy(_BaseStrategy):
     mode = "agent"

@@ -1,4 +1,5 @@
 """Porty dla ścieżki odczytu (CQRS). Zwracają bezpośrednio DTO."""
+
 from typing import Protocol
 
 from shell.application.dto.dto import (
@@ -31,7 +32,9 @@ class WorkflowQueryService(Protocol):
 class EnvelopeQueryService(Protocol):
     """Port do listowania kopert (np. dla routera)."""
 
-    async def get_envelopes_by_workflow(self, workflow_id: str, pending_only: bool = False) -> list[EnvelopeDto]: ...
+    async def get_envelopes_by_workflow(
+        self, workflow_id: str, pending_only: bool = False
+    ) -> list[EnvelopeDto]: ...
 
 
 class NodeResultQueryService(Protocol):
@@ -55,8 +58,9 @@ class RunnerConfigQueryService(Protocol):
 class RagQueryService(Protocol):
     """Port do wyszukiwania semantycznego (RAG)."""
 
-    async def search_similar(self, query_embedding: bytes, top_k: int = 5, domain: str | None = None) -> list[
-        RagChunkDto]: ...
+    async def search_similar(
+        self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
+    ) -> list[RagChunkDto]: ...
 
 
 class SessionQueryService(Protocol):

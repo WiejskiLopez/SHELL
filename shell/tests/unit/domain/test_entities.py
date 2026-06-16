@@ -1,4 +1,5 @@
 """Unit tests for domain entities."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -193,7 +194,9 @@ class TestRagDocument:
         from shell.domain.value_objects.ids import RagDocumentId
 
         with pytest.raises(ValueError, match="source_uri"):
-            RagDocument.new(id_=RagDocumentId.generate(), source_uri="", title="T", domain="d", now=self._NOW)
+            RagDocument.new(
+                id_=RagDocumentId.generate(), source_uri="", title="T", domain="d", now=self._NOW
+            )
 
     def test_chunk_negative_index_raises(self) -> None:
         from shell.domain.entities.rag_document import RagChunk
@@ -248,7 +251,14 @@ class TestSession:
         from shell.domain.value_objects.ids import MessageId
 
         s = self._make_session()
-        msg = s.append_message(MessageId.generate(),CorrelationId.generate(), "agent-1", "router-1", {"text": "hi"}, self._NOW)
+        msg = s.append_message(
+            MessageId.generate(),
+            CorrelationId.generate(),
+            "agent-1",
+            "router-1",
+            {"text": "hi"},
+            self._NOW,
+        )
         assert msg.sender == "agent-1"
         assert len(s.messages) == 1
 
@@ -258,5 +268,6 @@ class TestSession:
         s = self._make_session()
         s.close(self._LATER)
         with pytest.raises(ValueError, match="closed"):
-            s.append_message(MessageId.generate(),CorrelationId.generate(), "a", "b", {}, self._NOW)
-
+            s.append_message(
+                MessageId.generate(), CorrelationId.generate(), "a", "b", {}, self._NOW
+            )

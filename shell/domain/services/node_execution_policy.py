@@ -7,6 +7,7 @@ The policy abstracts the failure handling rule for a workflow:
 
 A policy is a pure domain service (no I/O, no async).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

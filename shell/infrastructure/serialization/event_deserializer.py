@@ -38,11 +38,11 @@ class EventDeserializer:
         }
 
     def deserialize(
-            self,
-            event_type: str,
-            occurred_at: datetime,
-            payload: dict[str, Any],
-            schema_version: int = 1
+        self,
+        event_type: str,
+        occurred_at: datetime,
+        payload: dict[str, Any],
+        schema_version: int = 1,
     ) -> DomainEvent | None:
         event_cls = self._registry.get(event_type)
 
@@ -51,9 +51,7 @@ class EventDeserializer:
 
         try:
             return event_cls.from_payload(
-                occurred_at=occurred_at,
-                payload=payload,
-                schema_version=schema_version
+                occurred_at=occurred_at, payload=payload, schema_version=schema_version
             )
         except (KeyError, ValueError, TypeError) as e:
             print(f"Błąd deserializacji eventu {event_type}: {e}")

@@ -1,4 +1,5 @@
 """Application-level ports — re-exports from granular modules (backward compatibility)."""
+
 from __future__ import annotations
 
 from shell.application.ports.execution import NodeProcessRunner, NodeWorkspace

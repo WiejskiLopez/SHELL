@@ -1,4 +1,5 @@
 """SQL repository adapters (SQLite + PostgreSQL via SQLAlchemy 2.x async)."""
+
 from __future__ import annotations
 
 import logging
@@ -262,7 +263,9 @@ class SqlEnvelopeRepository:
         model = envelope_entity_to_model(envelope)
         await self._session.merge(model)
 
-    async def list_by_workflow(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+    async def list_by_workflow(
+        self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
+    ) -> list[Envelope]:
         q = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
@@ -274,7 +277,9 @@ class SqlEnvelopeRepository:
         rows = (await self._session.execute(q)).scalars().all()
         return [envelope_model_to_entity(r) for r in rows]
 
-    async def list_pending(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+    async def list_pending(
+        self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
+    ) -> list[Envelope]:
         q = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
@@ -300,9 +305,7 @@ class SqlPromptRepository:
         return prompt_model_to_entity(row) if row else None
 
     async def get_current_by_name(self, name: str) -> Prompt | None:
-        q = select(PromptModel).where(
-            PromptModel.name == name, PromptModel.is_current.is_(True)
-        )
+        q = select(PromptModel).where(PromptModel.name == name, PromptModel.is_current.is_(True))
         row = (await self._session.execute(q)).scalar_one_or_none()
         return prompt_model_to_entity(row) if row else None
 
@@ -321,9 +324,7 @@ class SqlRunnerConfigRepository:
         return runner_config_model_to_entity(row) if row else None
 
     async def get_by_package(self, package_name: str) -> RunnerConfig | None:
-        q = select(RunnerConfigModel).where(
-            RunnerConfigModel.package_name == package_name
-        )
+        q = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
         row = (await self._session.execute(q)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 
@@ -367,6 +368,7 @@ class SqlRagDocumentRepository:
         await self._session.merge(doc_model)
         # delete+re-insert chunks to keep them consistent
         from sqlalchemy import delete as sa_delete
+
         await self._session.execute(
             sa_delete(RagChunkModel).where(RagChunkModel.document_id == document.id.value)
         )
@@ -412,10 +414,10 @@ class SqlRagDocumentRepository:
         return doc
 
     async def search_similar(
-            self,
-            query_embedding: bytes,
-            top_k: int = 5,
-            domain: str | None = None,
+        self,
+        query_embedding: bytes,
+        top_k: int = 5,
+        domain: str | None = None,
     ) -> list[RagChunk]:
         """Cosine-similarity brute-force search (SQLite-compatible)."""
         q = select(RagChunkModel).options(selectinload(RagChunkModel.document))
@@ -515,10 +517,7 @@ class SqlTemplateGraphRepository:
         self._session = session
 
     async def get_by_id(self, template_graph_id: TemplateGraphId) -> TemplateGraph | None:
-        q = (
-            select(TemplateGraphModel)
-            .where(TemplateGraphModel.id == template_graph_id.value)
-        )
+        q = select(TemplateGraphModel).where(TemplateGraphModel.id == template_graph_id.value)
         row = (await self._session.execute(q)).scalar_one_or_none()
         return template_graph_model_to_entity(row) if row else None
 
@@ -540,18 +539,24 @@ class SqlTemplateGraphNodeRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, template_graph_node_id: TemplateGraphNodeId) -> TemplateGraphNode | None:
-        template_graph_node_query = (
-            select(TemplateGraphNodeModel)
-            .where(TemplateGraphNodeModel.id == template_graph_node_id.value)
+    async def get_by_id(
+        self, template_graph_node_id: TemplateGraphNodeId
+    ) -> TemplateGraphNode | None:
+        template_graph_node_query = select(TemplateGraphNodeModel).where(
+            TemplateGraphNodeModel.id == template_graph_node_id.value
         )
-        template_graph_node = (await self._session.execute(template_graph_node_query)).scalar_one_or_none()
-        return template_graph_node_model_to_entity(template_graph_node) if template_graph_node else None
+        template_graph_node = (
+            await self._session.execute(template_graph_node_query)
+        ).scalar_one_or_none()
+        return (
+            template_graph_node_model_to_entity(template_graph_node)
+            if template_graph_node
+            else None
+        )
 
     async def save(self, template_graph_node: TemplateGraphNode) -> None:
         await self._session.execute(
-            update(WorkflowModel)
-            .where(WorkflowModel.id == template_graph_node.id.value)
+            update(WorkflowModel).where(WorkflowModel.id == template_graph_node.id.value)
         )
         template_graph_node_model = template_graph_node_entity_to_model(template_graph_node)
         await self._session.merge(template_graph_node_model)

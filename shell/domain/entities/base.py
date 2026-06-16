@@ -11,6 +11,7 @@ Convention exception:
     of ``Entity`` / ``AggregateRoot``. Value Objects, Commands, Queries,
     DTOs and Domain Events remain plain ``@dataclass`` instances.
 """
+
 from __future__ import annotations
 
 from abc import ABC

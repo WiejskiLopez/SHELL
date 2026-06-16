@@ -4,6 +4,7 @@ Revision ID: 007
 Revises: 006
 Create Date: 2026-06-15
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -13,6 +14,7 @@ revision = "007"
 down_revision = "006"
 branch_labels = None
 depends_on = None
+
 
 def upgrade() -> None:
     op.create_table(
@@ -26,6 +28,7 @@ def upgrade() -> None:
     )
     op.create_index("ix_inbox_event_type", "inbox_event", ["event_type"])
     op.create_index("ix_inbox_event_processed_at", "inbox_event", ["processed_at"])
+
 
 def downgrade() -> None:
     op.drop_index("ix_inbox_event_processed_at", table_name="inbox_event")

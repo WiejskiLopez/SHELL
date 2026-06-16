@@ -1,4 +1,5 @@
 """Orkiestrator rejestracji szyn — łączy command, query i event registration."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

@@ -7,6 +7,7 @@ Intended as a one-shot or periodic background task:
 Concurrency safety: uses SELECT FOR UPDATE SKIP LOCKED on dialects that support
 it (PostgreSQL).  On SQLite (single-writer) the clause is omitted automatically.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -24,10 +25,11 @@ if TYPE_CHECKING:
 
 class OutboxToInboxRelay:
     def __init__(
-            self,
-            session_factory: async_sessionmaker[AsyncSession],
-            downstream: EventPublisher | None = None, # publisher zostaje bo potem bedziemy to wyrzucac na kolejke
-            batch_size: int = 100,
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        downstream: EventPublisher
+        | None = None,  # publisher zostaje bo potem bedziemy to wyrzucac na kolejke
+        batch_size: int = 100,
     ) -> None:
         self._session_factory = session_factory
         self._downstream = downstream  # zostawiamy bo potem to bedzie szlo na kolejke
@@ -62,7 +64,7 @@ class OutboxToInboxRelay:
                     occurred_at=r.occurred_at,
                     payload=r.payload,
                     received_at=now,
-                    processed_at=None
+                    processed_at=None,
                 )
                 await session.merge(inbox_event)  # merge protects against duplicate key
 

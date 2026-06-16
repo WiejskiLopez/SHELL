@@ -1,4 +1,5 @@
 """One-shot pipeline command: runs relay → processor once."""
+
 from argparse import Namespace
 
 from shell.bootstrap.cli.command.command import RunnableCommand

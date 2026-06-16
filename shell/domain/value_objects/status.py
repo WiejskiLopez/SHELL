@@ -1,4 +1,5 @@
 """Status value object — node/workflow/envelope runtime status string."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

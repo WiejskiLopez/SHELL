@@ -1,4 +1,5 @@
 """Application commands — re-exports from granular modules (backward compatibility)."""
+
 from __future__ import annotations
 
 from shell.application.commands.config_commands import BootstrapRunnerConfigCommand

@@ -1,4 +1,5 @@
 """SQL persistence — session factory and UnitOfWork."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -67,9 +68,7 @@ def _seed_sync(sync_conn) -> None:
     session = Session(sync_conn)
 
     template = session.execute(
-        select(TemplateGraphModel).where(
-            TemplateGraphModel.name == "base_planner"
-        )
+        select(TemplateGraphModel).where(TemplateGraphModel.name == "base_planner")
     ).scalar_one_or_none()
 
     if template is None:

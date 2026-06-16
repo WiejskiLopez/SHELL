@@ -1,4 +1,5 @@
 """Kontener aplikacyjny — orkiestruje szyny, komendy, zapytania i eventy."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers

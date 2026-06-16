@@ -1,4 +1,5 @@
 """InMemoryOutboxStore — in-process store for unit-testing the outbox pattern."""
+
 from __future__ import annotations
 
 import dataclasses

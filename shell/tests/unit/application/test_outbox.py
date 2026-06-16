@@ -1,4 +1,5 @@
 """Unit tests — Faza 12 outbox pattern."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -14,11 +15,19 @@ from shell.infrastructure.messaging.memory_outbox_store import InMemoryOutboxSto
 
 
 def _task_imported() -> TaskCreated:
-    return TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("task-name-t1"), now=datetime(2026, 1, 1, tzinfo=UTC))
+    return TaskCreated.now(
+        task_id=TaskId.generate(),
+        task_name=TaskName("task-name-t1"),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
+    )
 
 
 def _workflow_started() -> WorkflowStarted:
-    return WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id="task-id-t1", now=datetime(2026, 1, 1, tzinfo=UTC))
+    return WorkflowStarted.now(
+        workflow_id=WorkflowId.generate(),
+        task_id="task-id-t1",
+        now=datetime(2026, 1, 1, tzinfo=UTC),
+    )
 
 
 # ---------------------------------------------------------------------------

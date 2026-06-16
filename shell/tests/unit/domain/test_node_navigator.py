@@ -1,4 +1,5 @@
 """Unit tests for ``LinearNodeNavigator`` (and the ``NodeNavigator`` Protocol)."""
+
 from __future__ import annotations
 
 from shell.domain.entities.graph import Graph

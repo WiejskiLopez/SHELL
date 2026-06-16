@@ -1,4 +1,5 @@
 """Envelope aggregate with embedded EnvelopeEvents."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -101,6 +102,7 @@ class Envelope:
         self.status = new_status
         self.updated_at = now
         from shell.domain.value_objects.ids import EnvelopeEventId
+
         self.events.append(
             EnvelopeEvent(
                 id=EnvelopeEventId.generate(),

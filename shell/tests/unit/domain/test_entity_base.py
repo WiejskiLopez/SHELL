@@ -1,4 +1,5 @@
 """Unit tests for Entity / AggregateRoot base classes."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

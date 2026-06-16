@@ -7,6 +7,7 @@ default implementation is a no-op so the abort path stays clean for the PoC.
 This is a *driving* contract from the domain perspective; concrete
 implementations live in the infrastructure layer when real cleanup is needed.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol

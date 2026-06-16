@@ -9,6 +9,7 @@ node per invocation. These tests verify:
 * Stale-cursor idempotency — events for a node the cursor no longer points at are dropped.
 * Terminal-status idempotency — events delivered after ``done``/``failed`` are dropped.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -124,9 +125,7 @@ class TestNodeExecutionWorkerHappyPath:
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(
-            NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
-        )
+        await worker.handle(NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW))
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
@@ -146,9 +145,7 @@ class TestNodeExecutionWorkerHappyPath:
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(
-            NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
-        )
+        await worker.handle(NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW))
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
@@ -168,9 +165,7 @@ class TestNodeExecutionWorkerFailure:
         runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(uow, runner)
 
-        await worker.handle(
-            NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
-        )
+        await worker.handle(NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW))
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
@@ -195,9 +190,7 @@ class TestNodeExecutionWorkerIdempotency:
         worker = _make_worker(uow, runner)
 
         # Worker is asked to process node[1] but the cursor still points at node[0].
-        await worker.handle(
-            NodeExecutionRequested.now(wf.id, graph.nodes[1].id, now=_NOW)
-        )
+        await worker.handle(NodeExecutionRequested.now(wf.id, graph.nodes[1].id, now=_NOW))
 
         # Workflow state must be unchanged.
         stored = await uow.workflows.get_by_id(wf.id)
@@ -229,9 +222,7 @@ class TestNodeExecutionWorkerIdempotency:
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(
-            NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW)
-        )
+        await worker.handle(NodeExecutionRequested.now(wf.id, graph.nodes[0].id, now=_NOW))
 
         # Worker should silently ignore the re-delivery.
         assert runner.calls == []

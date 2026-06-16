@@ -6,6 +6,7 @@ Provides fixtures for all three persistence backends:
 - PostgreSQL (skipped unless POSTGRES_TEST_URL env var set)
 - MongoDB (skipped unless MONGO_TEST_URL env var set)
 """
+
 from __future__ import annotations
 
 import os
@@ -22,6 +23,7 @@ from shell.infrastructure.persistence.memory.memory import (
 # ---------------------------------------------------------------------------
 # Markers
 # ---------------------------------------------------------------------------
+
 
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "integration: integration tests requiring external services")
@@ -59,6 +61,7 @@ skip_no_mongo = pytest.mark.skipif(
 # ---------------------------------------------------------------------------
 # URL fixtures (for integration tests that need raw URLs)
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def sqlite_test_url(tmp_path_factory: pytest.TempPathFactory) -> str:

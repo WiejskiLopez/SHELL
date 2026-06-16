@@ -1,4 +1,5 @@
 """SaveNodeResultHandler — appends a NodeResult to the owning Workflow aggregate."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

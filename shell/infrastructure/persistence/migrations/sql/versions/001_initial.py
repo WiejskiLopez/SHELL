@@ -1,9 +1,10 @@
 """Initial migration — creates all shell tables.
 
 Revision ID: 001
-Revises: 
+Revises:
 Create Date: 2026-06-04
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa
@@ -197,8 +198,12 @@ def upgrade() -> None:
     op.create_table(
         "template_graph_node",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("template_graph_id", sa.String(36), sa.ForeignKey("template_graph.id", ondelete="CASCADE"),
-                  nullable=False),
+        sa.Column(
+            "template_graph_id",
+            sa.String(36),
+            sa.ForeignKey("template_graph.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("position", sa.Integer, nullable=False),
         sa.Column("mode", sa.String(32), nullable=False),
         sa.Column("role", sa.String(128), nullable=False),

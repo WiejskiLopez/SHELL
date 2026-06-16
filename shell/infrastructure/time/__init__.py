@@ -1,4 +1,5 @@
 """System clock and UUID-based ID generator."""
+
 from __future__ import annotations
 
 import uuid

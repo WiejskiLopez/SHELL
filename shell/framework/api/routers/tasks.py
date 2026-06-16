@@ -1,4 +1,5 @@
 """Tasks router — import and query tasks."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -29,7 +30,9 @@ def get_core_container(request: Request) -> CoreContainer:
 
 
 @router.post("/import", response_model=ImportTaskResponse, status_code=201)
-async def import_task(body: ImportTaskRequest, core_container: CoreContainer = Depends(get_core_container)) -> ImportTaskResponse:
+async def import_task(
+    body: ImportTaskRequest, core_container: CoreContainer = Depends(get_core_container)
+) -> ImportTaskResponse:
     cmd = ImportTaskCommand(md_path=body.md_path, task_name=body.task_name)
     task_id = await core_container.app.buses.command_bus().dispatch(cmd)
     return ImportTaskResponse(task_id=str(task_id))

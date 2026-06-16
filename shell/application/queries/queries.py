@@ -1,4 +1,5 @@
 """Application queries — re-exports from granular modules (backward compatibility)."""
+
 from __future__ import annotations
 
 from shell.application.queries.config_queries import GetRunnerConfigQuery

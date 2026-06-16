@@ -1,4 +1,5 @@
 """Shared argparse setup for all shell CLI entrypoints."""
+
 from __future__ import annotations
 
 import argparse

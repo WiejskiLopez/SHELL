@@ -4,6 +4,7 @@ A WorkflowCursor encapsulates ``current_node_id`` so the Workflow aggregate
 does not leak a bare ``str | None`` to the rest of the system. It is also the
 extension seam for future multi-cursor scenarios (parallel branches).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

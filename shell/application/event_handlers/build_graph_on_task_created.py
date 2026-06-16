@@ -6,6 +6,7 @@ Graph from a TemplateGraph (default name: ``base_planner``), persists it
 in its own transactional boundary, and forwards the resulting domain
 events (``GraphBuilt``) downstream.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

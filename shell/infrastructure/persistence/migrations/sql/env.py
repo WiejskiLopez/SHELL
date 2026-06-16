@@ -1,4 +1,5 @@
 """Alembic env.py for async SQLAlchemy migrations (SQLite + PostgreSQL)."""
+
 from __future__ import annotations
 
 import asyncio

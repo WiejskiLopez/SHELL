@@ -1,4 +1,5 @@
 """Mode — execution mode of a node (agent/router/tasker/tool/worker)."""
+
 from __future__ import annotations
 
 from enum import StrEnum

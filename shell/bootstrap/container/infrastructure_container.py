@@ -1,4 +1,5 @@
 """Kontener zarządzający adapterami wejścia/wyjścia, bazą danych i portami."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers

@@ -1,4 +1,5 @@
 """Hash value object — SHA-256 hex digest."""
+
 from __future__ import annotations
 
 import hashlib

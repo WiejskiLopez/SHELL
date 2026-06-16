@@ -1,4 +1,5 @@
 """SubprocessNodeProcessRunner — real NodeProcessRunner adapter using asyncio subprocess."""
+
 from __future__ import annotations
 
 import asyncio
@@ -122,7 +123,6 @@ class SubprocessNodeProcessRunner:
             stdout=stdout_bytes.decode("utf-8", errors="replace"),
             stderr=stderr_bytes.decode("utf-8", errors="replace"),
         )
-
 
     async def _run_argv(
         self,

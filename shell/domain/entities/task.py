@@ -5,6 +5,7 @@ After a Task is created (`Task.create`), it emits a ``TaskCreated`` event
 that other aggregates (notably ``Graph``) react to. Task does NOT know
 which graph realises it — that responsibility belongs to ``Graph``.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -114,4 +115,3 @@ class Task(AggregateRoot["TaskId"]):
 
     def rename(self, new_name: TaskName) -> None:
         self._name = new_name
-

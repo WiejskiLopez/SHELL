@@ -1,4 +1,5 @@
 """Version value object — monotonically increasing positive integer."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """RouteEnvelopesHandler — routes PENDING envelopes for a workflow."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -53,7 +54,9 @@ class RouteEnvelopesHandler:
                 if new_status == EnvelopeStatus.DEAD:
                     envelope.transition_status(EnvelopeStatus.DEAD, now)
                     await uow.envelopes.save(envelope)
-                    uow.stage_events([EnvelopeExpired.now(envelope.id, envelope.workflow_id, now=now)])
+                    uow.stage_events(
+                        [EnvelopeExpired.now(envelope.id, envelope.workflow_id, now=now)]
+                    )
                     continue
 
                 if graph is not None:

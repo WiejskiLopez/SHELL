@@ -5,6 +5,7 @@ should be processed next. The VO must be immutable, comparable by value, and
 expose a small algebra (``empty``, ``at``, ``cleared``, ``points_to``,
 ``is_active``).
 """
+
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError

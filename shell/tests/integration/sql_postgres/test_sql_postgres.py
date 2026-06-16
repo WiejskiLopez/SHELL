@@ -6,6 +6,7 @@ Skip all tests when PG_TEST_URL is not set:
 Start Postgres via docker-compose:
     docker compose -f shell/docker-compose.test.yml up -d postgres
 """
+
 from __future__ import annotations
 
 import os
@@ -67,7 +68,7 @@ pytestmark = pytest.mark.skipif(
 
 @pytest.fixture(scope="module")
 async def session_factory() -> async_sessionmaker:  # type: ignore[type-arg]
-    #await create_all_tables(_PG_URL)
+    # await create_all_tables(_PG_URL)
     await bootstrap_database(_PG_URL)
     return build_session_factory(_PG_URL)
 
@@ -148,13 +149,13 @@ class TestPgTaskRepository:
 
 class TestPgWorkflowRepository:
     async def test_start_and_query_workflow(
-            self,
-            uow: SqlAlchemyUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            events: FakeEventPublisher,
-            task_loader: FakeTaskLoader,
-            session_factory: async_sessionmaker,  # Dodane do argumentów fixtures
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        events: FakeEventPublisher,
+        task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,  # Dodane do argumentów fixtures
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))

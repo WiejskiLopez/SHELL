@@ -17,10 +17,7 @@ def main() -> int:
     args = parser.parse_args()
 
     # Rejestr poleceń (Command Registry)
-    commands = {
-        "smoke": SmokeCommand(),
-        "relay": RelayCommand()
-    }
+    commands = {"smoke": SmokeCommand(), "relay": RelayCommand()}
 
     command = commands.get(args.command)
     if not command:

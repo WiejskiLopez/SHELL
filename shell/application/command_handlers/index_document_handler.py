@@ -1,4 +1,5 @@
 """IndexDocumentHandler — chunk, embed, persist a RAG document."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

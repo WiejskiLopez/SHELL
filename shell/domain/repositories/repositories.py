@@ -1,4 +1,5 @@
 """Repository port interfaces — re-exports from granular modules (backward compatibility)."""
+
 from __future__ import annotations
 
 from shell.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository

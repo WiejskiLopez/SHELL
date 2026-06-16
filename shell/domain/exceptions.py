@@ -1,4 +1,5 @@
 """Domain exceptions for shell."""
+
 from __future__ import annotations
 
 
@@ -67,9 +68,7 @@ class WorkflowConcurrentlyModified(DomainError):
     """Raised when an optimistic-locking save fails (version mismatch)."""
 
     def __init__(self, workflow_id: str) -> None:
-        super().__init__(
-            f"Workflow was concurrently modified: id={workflow_id!r}"
-        )
+        super().__init__(f"Workflow was concurrently modified: id={workflow_id!r}")
 
 
 class InvalidWorkflowTransition(DomainError):

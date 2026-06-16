@@ -15,6 +15,7 @@ The actual subprocess orchestration is performed by ``NodeExecutionWorker``
 which subscribes to ``NodeExecutionRequested`` (Process Manager / Saga).
 This keeps the command handler fast and free of long-running side effects.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -91,9 +92,7 @@ class RunTaskerWorkflowHandler:
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
-            uow.stage_events(
-                [NodeExecutionRequested.now(workflow.id, first_node.id, now=now)]
-            )
+            uow.stage_events([NodeExecutionRequested.now(workflow.id, first_node.id, now=now)])
             await uow.commit()
 
         return workflow.id.value

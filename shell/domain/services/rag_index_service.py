@@ -1,4 +1,5 @@
 """RagIndexService — domain service: chunk text, embed, attach to RagDocument."""
+
 from __future__ import annotations
 
 import math
@@ -42,7 +43,7 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
     chunks: list[str] = []
     step = chunk_size - overlap
     for start in range(0, len(text), step):
-        chunk = text[start: start + chunk_size]
+        chunk = text[start : start + chunk_size]
         if not chunk:
             break
         chunks.append(chunk)
@@ -52,16 +53,16 @@ def chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]
 
 
 def build_rag_document(
-        doc_id: RagDocumentId,
-        chunk_ids: list[RagChunkId],
-        source_uri: str,
-        title: str,
-        domain: str,
-        text: str,
-        embedder: Embedder,
-        now: datetime,
-        chunk_size: int = 500,
-        overlap: int = 50,
+    doc_id: RagDocumentId,
+    chunk_ids: list[RagChunkId],
+    source_uri: str,
+    title: str,
+    domain: str,
+    text: str,
+    embedder: Embedder,
+    now: datetime,
+    chunk_size: int = 500,
+    overlap: int = 50,
 ) -> RagDocument:
     """Chunk *text*, embed each chunk, return a fully-built RagDocument aggregate."""
     doc = RagDocument.new(
@@ -75,9 +76,7 @@ def build_rag_document(
     if not chunks:
         return doc
     if len(chunk_ids) < len(chunks):
-        raise ValueError(
-            f"Not enough chunk_ids supplied: need {len(chunks)}, got {len(chunk_ids)}"
-        )
+        raise ValueError(f"Not enough chunk_ids supplied: need {len(chunks)}, got {len(chunk_ids)}")
     vectors = embedder.embed_batch(chunks)
     blobs = [_encode_vector(v) for v in vectors]
     doc.add_chunks(
@@ -98,5 +97,3 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     if na == 0.0 or nb == 0.0:
         return 0.0
     return dot / (na * nb)
-
-

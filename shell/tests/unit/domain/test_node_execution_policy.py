@@ -5,6 +5,7 @@ preserving the legacy "any failure aborts the whole workflow" semantics.
 The protocol allows future strategies (retry, continue-on-error, conditional
 branching) to be plugged in without touching the ``NodeExecutionWorker``.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime

@@ -6,6 +6,7 @@ conditional. The default ``LinearNodeNavigator`` orders nodes by ``GraphNode.pos
 The navigator is a *pure* domain service — no I/O, no async — and lives in
 ``domain/services/`` because it expresses business behaviour (graph traversal).
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol

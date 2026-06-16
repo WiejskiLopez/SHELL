@@ -4,6 +4,7 @@ Events are stored in a dedicated DB session so they survive even if the caller's
 transaction was already committed.  An OutboxToInboxRelay then reads them and fans them
 out to the EventBus.
 """
+
 from __future__ import annotations
 
 import dataclasses

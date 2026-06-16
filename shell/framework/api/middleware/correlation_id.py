@@ -1,4 +1,5 @@
 """Correlation-ID middleware — adds X-Correlation-ID header to every request."""
+
 from __future__ import annotations
 
 from contextvars import ContextVar
@@ -18,11 +19,11 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
         cid = request.headers.get("X-Correlation-ID")
         token = correlation_id_var.set(cid)
         try:
-          response: Response = await call_next(request)
-          if cid:
-             response.headers["X-Correlation-ID"] = cid
-             return response
+            response: Response = await call_next(request)
+            if cid:
+                response.headers["X-Correlation-ID"] = cid
+                return response
         finally:
-        # Ważne: Resetujemy kontekst po zakończeniu żądania
-           correlation_id_var.reset(token)
+            # Ważne: Resetujemy kontekst po zakończeniu żądania
+            correlation_id_var.reset(token)
         return response

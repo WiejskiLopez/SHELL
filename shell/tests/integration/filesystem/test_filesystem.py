@@ -1,4 +1,5 @@
 """Integration tests for filesystem infrastructure (NodeWorkspace, TaskLoader, EnvelopeArchive)."""
+
 from __future__ import annotations
 
 from shell.infrastructure.filesystem.envelope_archive_fs import FileSystemEnvelopeArchive
@@ -16,6 +17,7 @@ class TestNodeWorkspaceFs:
         path = await ws.prepare("my-node", str(tmp_path))
 
         import pathlib
+
         dot_node = pathlib.Path(path) / ".node"
         assert dot_node.exists()
         for subdir in ["input", "output", "logs", "temp", "prompt"]:
@@ -25,12 +27,14 @@ class TestNodeWorkspaceFs:
         ws = NodeWorkspaceFs()
         path = await ws.prepare("node-abc", str(tmp_path))
         import pathlib
+
         assert pathlib.Path(path).name == "node-abc"
 
     async def test_cleanup_removes_workspace(self, tmp_path: object) -> None:
         ws = NodeWorkspaceFs()
         path = await ws.prepare("node-to-clean", str(tmp_path))
         import pathlib
+
         assert pathlib.Path(path).exists()
         await ws.cleanup(path)
         assert not pathlib.Path(path).exists()
@@ -40,6 +44,7 @@ class TestNodeWorkspaceFs:
         path = await ws.prepare("node-io", str(tmp_path))
         out = await ws.write_output(path, "result.txt", "hello world")
         import pathlib
+
         assert pathlib.Path(out).read_text() == "hello world"
 
     async def test_read_input_missing_returns_empty(self, tmp_path: object) -> None:
@@ -57,6 +62,7 @@ class TestNodeWorkspaceFs:
 class TestFileSystemTaskLoader:
     async def test_load_reads_both_files(self, tmp_path: object) -> None:
         import pathlib
+
         md = pathlib.Path(str(tmp_path)) / "task.md"
         md.write_text("# My Task", encoding="utf-8")
         loader = FileSystemTaskLoader()
@@ -92,6 +98,9 @@ class TestFileSystemEnvelopeArchive:
 
         import json
         import pathlib
-        stored = json.loads((pathlib.Path(str(tmp_path)) / "wf-arch-1" / "env-arch-1.json").read_text())
+
+        stored = json.loads(
+            (pathlib.Path(str(tmp_path)) / "wf-arch-1" / "env-arch-1.json").read_text()
+        )
         assert stored["id"] == "env-arch-1"
         assert stored["workflow_id"] == "wf-arch-1"

@@ -1,4 +1,5 @@
 """Production background worker command."""
+
 import asyncio
 from argparse import Namespace
 
@@ -20,6 +21,7 @@ class WorkerCommand(RunnableCommand):
 
         # Handle shutdown signals
         import signal
+
         loop = asyncio.get_running_loop()
         for sig in (signal.SIGTERM, signal.SIGINT):
             loop.add_signal_handler(sig, worker.stop)

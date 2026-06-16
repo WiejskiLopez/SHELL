@@ -1,4 +1,5 @@
 """SQL ORM model <-> domain entity mappers."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -175,10 +176,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
         )
         for ns in m.node_states
     }
-    results = {
-        nr.node_id: node_result_model_to_entity(nr)
-        for nr in m.node_results
-    }
+    results = {nr.node_id: node_result_model_to_entity(nr) for nr in m.node_results}
     from shell.domain.value_objects.workflow_cursor import WorkflowCursor
     from shell.domain.value_objects.workflow_execution_context import (
         WorkflowExecutionContext,
@@ -228,10 +226,7 @@ def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
         )
         for ns in w.node_states.values()
     ]
-    m.node_results = [
-        node_result_entity_to_model(nr)
-        for nr in w.node_results.values()
-    ]
+    m.node_results = [node_result_entity_to_model(nr) for nr in w.node_results.values()]
     return m
 
 
@@ -400,21 +395,18 @@ def runner_config_entity_to_model(c: RunnerConfig) -> RunnerConfigModel:
 
 
 def template_graph_model_to_entity(
-        m: TemplateGraphModel,
+    m: TemplateGraphModel,
 ) -> TemplateGraph:
     return TemplateGraph(
         id=TemplateGraphId(m.id),
         name=m.name,
         purpose=m.purpose,
-        nodes=[
-            template_graph_node_model_to_entity(node)
-            for node in m.nodes
-        ],
+        nodes=[template_graph_node_model_to_entity(node) for node in m.nodes],
     )
 
 
 def template_graph_entity_to_model(
-        graph: TemplateGraph,
+    graph: TemplateGraph,
 ) -> TemplateGraphModel:
     m = TemplateGraphModel(
         id=graph.id,
@@ -432,7 +424,7 @@ def template_graph_entity_to_model(
 
 
 def template_graph_node_model_to_entity(
-        m: TemplateGraphNodeModel,
+    m: TemplateGraphNodeModel,
 ) -> TemplateGraphNode:
     return TemplateGraphNode(
         id=TemplateGraphNodeId(m.id),
@@ -456,8 +448,8 @@ def template_graph_node_model_to_entity(
 
 
 def template_graph_node_entity_to_model(
-        node: TemplateGraphNode,
-        template_graph_id: str,
+    node: TemplateGraphNode,
+    template_graph_id: str,
 ) -> TemplateGraphNodeModel:
     return TemplateGraphNodeModel(
         id=node.id.value,

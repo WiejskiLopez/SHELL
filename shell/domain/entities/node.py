@@ -1,4 +1,5 @@
 """Node entity — lightweight model of a running node instance."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """Kontener infrastruktury messaging (Outbox Relay, Inbox Processor, Publishers)."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers
@@ -36,8 +37,8 @@ class MessagingContainer(containers.DeclarativeContainer):
         publishers=providers.List(
             infra.logging_publisher,
             infra.sql_audit_publisher,
-            sql_outbox_publisher,      # writes to outbox_event
-            bus_publisher,             # fans out to in-memory EventBus
+            sql_outbox_publisher,  # writes to outbox_event
+            bus_publisher,  # fans out to in-memory EventBus
         ),
     )
 
@@ -57,7 +58,6 @@ class MessagingContainer(containers.DeclarativeContainer):
     )
 
     # 6. Background Worker (long-running loop for production)
-
 
     messaging_worker = providers.Factory(
         MessagingWorker,

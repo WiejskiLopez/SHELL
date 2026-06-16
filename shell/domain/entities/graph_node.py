@@ -1,4 +1,5 @@
 """Task aggregate root with embedded Graph and GraphNodes."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

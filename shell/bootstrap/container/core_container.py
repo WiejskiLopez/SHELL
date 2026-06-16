@@ -1,4 +1,5 @@
 """Główny kontener DI — składa infrastrukturę, domenę i warstwę aplikacyjną."""
+
 from __future__ import annotations
 
 from dependency_injector import containers, providers
@@ -13,15 +14,17 @@ class CoreContainer(containers.DeclarativeContainer):
     """Kompozytor wszystkich sub-kontenerów DI."""
 
     config = providers.Configuration()
-    config.override({
-        'messaging': {
-            'outbox_batch_size': 100,
-            'inbox_batch_size': 50,
-            'worker_poll_interval': 1.0,
-            'worker_backoff_factor': 2.0,
-            'worker_max_backoff': 30.0,
+    config.override(
+        {
+            "messaging": {
+                "outbox_batch_size": 100,
+                "inbox_batch_size": 50,
+                "worker_poll_interval": 1.0,
+                "worker_backoff_factor": 2.0,
+                "worker_max_backoff": 30.0,
+            }
         }
-    })
+    )
 
     infra = providers.Container(InfrastructureContainer, config=config)
     domain = providers.Container(DomainContainer)

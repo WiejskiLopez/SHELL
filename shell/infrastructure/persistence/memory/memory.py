@@ -1,4 +1,5 @@
 """InMemory persistence adapters for unit tests."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -153,14 +154,18 @@ class InMemoryEnvelopeRepository:
     async def save(self, envelope: Envelope) -> None:
         self._store[envelope.id.value] = envelope
 
-    async def list_by_workflow(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+    async def list_by_workflow(
+        self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
+    ) -> list[Envelope]:
         results = [e for e in self._store.values() if e.workflow_id == workflow_id]
         results = results[offset:]
         if limit is not None:
             results = results[:limit]
         return results
 
-    async def list_pending(self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0) -> list[Envelope]:
+    async def list_pending(
+        self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
+    ) -> list[Envelope]:
         results = [
             e
             for e in self._store.values()
@@ -230,10 +235,10 @@ class InMemoryRagDocumentRepository:
         return self._store.get(doc_id.value)
 
     async def search_similar(
-            self,
-            query_embedding: bytes,
-            top_k: int = 5,
-            domain: str | None = None,
+        self,
+        query_embedding: bytes,
+        top_k: int = 5,
+        domain: str | None = None,
     ) -> list[RagChunk]:
         import struct
 
@@ -246,9 +251,7 @@ class InMemoryRagDocumentRepository:
             if domain and doc.domain != domain:
                 continue
             for chunk in doc.chunks:
-                chunk_vec = list(
-                    struct.unpack(f"{len(chunk.embedding) // 4}f", chunk.embedding)
-                )
+                chunk_vec = list(struct.unpack(f"{len(chunk.embedding) // 4}f", chunk.embedding))
                 score = cosine_similarity(query_vec, chunk_vec)
                 scored.append((score, chunk))
         scored.sort(key=lambda t: t[0], reverse=True)
@@ -501,6 +504,7 @@ class InMemoryQueryServices:
         graph_nodes = []
         if graph is not None:
             from shell.application.dto.dto import GraphNodeDto
+
             graph_nodes = [
                 GraphNodeDto(
                     id=n.id.value,
@@ -543,18 +547,17 @@ class InMemoryQueryServices:
                     node_id=str(s.node_id),
                     status=s.status.value,
                     step=s.step,
-                    updated_at=s.updated_at
+                    updated_at=s.updated_at,
                 )
                 for node_id, s in workflow.node_states.items()
-            }
+            },
         )
 
     async def get_envelopes_by_workflow(
-            self, workflow_id: str, pending_only: bool = False
+        self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
         envelopes = [
-            e for e in self._uow.envelopes._store.values()
-            if str(e.workflow_id) == workflow_id
+            e for e in self._uow.envelopes._store.values() if str(e.workflow_id) == workflow_id
         ]
         if pending_only:
             envelopes = [e for e in envelopes if e.status.value == "pending"]
@@ -596,7 +599,9 @@ class InMemoryQueryServices:
         )
 
     async def get_prompt(self, name: str) -> PromptDto | None:
-        prompt = next((p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None)
+        prompt = next(
+            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None
+        )
         if not prompt:
             return None
         return PromptDto(
@@ -606,7 +611,8 @@ class InMemoryQueryServices:
             hash=str(prompt.hash),
             body=prompt.body,
             is_current=prompt.is_current,
-            created_at=prompt.created_at)
+            created_at=prompt.created_at,
+        )
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
         c = self._uow.runner_configs._store.get(package_name)
@@ -641,7 +647,7 @@ class InMemoryQueryServices:
         )
 
     async def search_similar(
-            self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
+        self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
         # Prosta implementacja dla testów
         chunks = list(self._uow.rag_documents._store.values())
@@ -654,8 +660,9 @@ class InMemoryQueryServices:
                 source_uri="file://test.md",
                 title="Test Doc",
                 domain=domain or "default",
-                score=1.0
-            ) for i in range(min(top_k, len(chunks)))
+                score=1.0,
+            )
+            for i in range(min(top_k, len(chunks)))
         ]
 
 

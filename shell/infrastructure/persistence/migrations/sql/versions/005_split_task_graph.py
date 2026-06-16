@@ -9,6 +9,7 @@ Create Date: 2026-06-15
 * Add ``graph.template_graph_id``
 * Make ``graph.task_id`` UNIQUE (1:1 with Task)
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

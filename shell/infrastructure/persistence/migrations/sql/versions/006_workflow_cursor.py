@@ -9,6 +9,7 @@ Create Date: 2026-06-11
 * Add ``workflow.correlation_id`` — captured execution context.
 * Add ``workflow.version`` — optimistic concurrency token (CAS).
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

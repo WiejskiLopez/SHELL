@@ -4,6 +4,7 @@ Captures the data that is constant across all node steps of a workflow
 (working directory, correlation id) so each node-execution event stays
 minimal and free from environmental concerns.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

@@ -1,4 +1,5 @@
 """Implementacje portów odczytu przy użyciu SQLAlchemy."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -44,11 +45,7 @@ class SqlQueryServices:
     # --- TaskQueryService ---
     async def get_task_by_name(self, name: str) -> TaskDto | None:
         async with self._session_factory() as session:
-            stmt = (
-                select(TaskModel)
-                .where(TaskModel.name == name)
-                .where(TaskModel.is_current)
-            )
+            stmt = select(TaskModel).where(TaskModel.name == name).where(TaskModel.is_current)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -123,7 +120,7 @@ class SqlQueryServices:
 
     # --- EnvelopeQueryService ---
     async def get_envelopes_by_workflow(
-            self, workflow_id: str, pending_only: bool = False
+        self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
         async with self._session_factory() as session:
             stmt = select(EnvelopeModel).where(EnvelopeModel.workflow_id == workflow_id)
@@ -182,7 +179,7 @@ class SqlQueryServices:
                 version=m.version,
                 hash=m.hash,
                 is_current=m.is_current,
-                created_at=m.created_at
+                created_at=m.created_at,
             )
 
     # --- RunnerConfigQueryService ---
@@ -193,11 +190,7 @@ class SqlQueryServices:
             m = res.scalar_one_or_none()
             if not m:
                 return None
-            return RunnerConfigDto(
-                package_name=m.package_name,
-                version=m.version,
-                config=m.config
-            )
+            return RunnerConfigDto(package_name=m.package_name, version=m.version, config=m.config)
 
     # --- SessionQueryService ---
     async def get_session_history(self, session_id: str) -> SessionDto | None:
@@ -218,36 +211,38 @@ class SqlQueryServices:
                 opened_at=session.opened_at,
                 closed_at=session.closed_at,
                 messages=[
-                    MessageDto(id=message.id,
-                               session_id=message.session_id,
-                               correlation_id=message.correlation_id,
-                               sender=message.sender,
-                               receiver=message.receiver,
-                               payload=message.payload,
-                               created_at=message.created_at)
+                    MessageDto(
+                        id=message.id,
+                        session_id=message.session_id,
+                        correlation_id=message.correlation_id,
+                        sender=message.sender,
+                        receiver=message.receiver,
+                        payload=message.payload,
+                        created_at=message.created_at,
+                    )
                     for message in session.messages
-                ]
+                ],
             )
 
     # --- RagQueryService ---
     async def search_similar(
-            self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
+        self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
         async with self._session_factory() as session:
             stmt = select(RagChunkModel).options(joinedload(RagChunkModel.document))
             if domain:
                 stmt = stmt.join(RagChunkModel.document).where(RagDocumentModel.domain == domain)
-            res = await session.execute(stmt.limit(100)) # Przykładowy limit
+            res = await session.execute(stmt.limit(100))  # Przykładowy limit
             return [
-                       RagChunkDto(
-                           chunk_id=str(c.id),
-                           document_id=str(c.document_id),
-                           chunk_index=c.chunk_index,
-                           chunk_text=c.chunk_text,    # Zmieniono z 'content' na 'chunk_text'
-                           source_uri=c.document.source_uri, # Dane pobrane przez relację z RagDocumentModel
-                           title=c.document.title,
-                           domain=c.document.domain,
-                           score=0.0 # Tu docelowo wynik z wyszukiwania wektorowego
-                       )
-                       for c in res.scalars()
-                   ][:top_k]
+                RagChunkDto(
+                    chunk_id=str(c.id),
+                    document_id=str(c.document_id),
+                    chunk_index=c.chunk_index,
+                    chunk_text=c.chunk_text,  # Zmieniono z 'content' na 'chunk_text'
+                    source_uri=c.document.source_uri,  # Dane pobrane przez relację z RagDocumentModel
+                    title=c.document.title,
+                    domain=c.document.domain,
+                    score=0.0,  # Tu docelowo wynik z wyszukiwania wektorowego
+                )
+                for c in res.scalars()
+            ][:top_k]

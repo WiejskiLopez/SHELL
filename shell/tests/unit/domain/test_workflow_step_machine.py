@@ -9,6 +9,7 @@ These tests assert:
 - the cursor is set/cleared at the right moments,
 - ``record_node_result`` does **not** move the cursor.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime

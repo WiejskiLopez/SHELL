@@ -1,4 +1,5 @@
 """TaskBody value object — text content of a task definition."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

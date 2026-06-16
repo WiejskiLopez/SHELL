@@ -1,4 +1,5 @@
 """FastAPI application factory for shell control plane."""
+
 from __future__ import annotations
 
 from contextlib import asynccontextmanager

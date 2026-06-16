@@ -1,4 +1,5 @@
 """Manifest value object — parsed manifest.yaml metadata."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

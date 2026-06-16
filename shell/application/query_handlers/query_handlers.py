@@ -1,4 +1,5 @@
 """Czyste handlery zapytań (CQRS) — omijają domenę i używają serwisów odczytu."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -67,9 +68,7 @@ class GetEnvelopesByWorkflowHandler:
         self._queries = queries
 
     async def handle(self, query: GetEnvelopesByWorkflowQuery) -> list[EnvelopeDto]:
-        return await self._queries.get_envelopes_by_workflow(
-            query.workflow_id, query.pending_only
-        )
+        return await self._queries.get_envelopes_by_workflow(query.workflow_id, query.pending_only)
 
 
 class GetNodeResultHandler:

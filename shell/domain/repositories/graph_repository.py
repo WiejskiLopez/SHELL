@@ -1,4 +1,5 @@
 """GraphRepository port — persistence boundary for the Graph aggregate."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol

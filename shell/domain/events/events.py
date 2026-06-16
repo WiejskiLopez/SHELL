@@ -1,4 +1,5 @@
 """Domain events for shell."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,7 +26,9 @@ class DomainEvent:
     schema_version: int = 1
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         """Metoda fabryczna wymuszona dla każdego eventu."""
         raise NotImplementedError
 
@@ -44,12 +47,14 @@ class TaskCreated(DomainEvent):
         )
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
             task_id=TaskId(payload["task_id"]),
-            task_name=TaskName(payload["task_name"])
+            task_name=TaskName(payload["task_name"]),
         )
 
 
@@ -75,7 +80,9 @@ class GraphBuilt(DomainEvent):
         )
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -91,7 +98,9 @@ class WorkflowStarted(DomainEvent):
     task_id: TaskId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -108,15 +117,15 @@ class WorkflowStarted(DomainEvent):
         )
 
 
-
-
 @dataclass(frozen=True, slots=True)
 class EnvelopeRouted(DomainEvent):
     envelope_id: EnvelopeId
     workflow_id: WorkflowId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -139,7 +148,9 @@ class EnvelopeExpired(DomainEvent):
     workflow_id: WorkflowId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -148,7 +159,9 @@ class EnvelopeExpired(DomainEvent):
         )
 
     @classmethod
-    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime) -> EnvelopeExpired:
+    def now(
+        cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime
+    ) -> EnvelopeExpired:
         return cls(
             occurred_at=now,
             envelope_id=envelope_id,
@@ -163,7 +176,9 @@ class NodeCompleted(DomainEvent):
     result_id: NodeResultId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -191,7 +206,9 @@ class NodeFailed(DomainEvent):
     reason: str
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -201,7 +218,9 @@ class NodeFailed(DomainEvent):
         )
 
     @classmethod
-    def now(cls, node_id: NodeId, workflow_id: WorkflowId, reason: str, now: datetime) -> NodeFailed:
+    def now(
+        cls, node_id: NodeId, workflow_id: WorkflowId, reason: str, now: datetime
+    ) -> NodeFailed:
         return cls(
             occurred_at=now,
             node_id=node_id,
@@ -216,7 +235,9 @@ class WorkflowCompleted(DomainEvent):
     task_id: TaskId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -239,7 +260,9 @@ class WorkflowFailed(DomainEvent):
     task_id: TaskId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -270,7 +293,9 @@ class NodeExecutionRequested(DomainEvent):
     node_id: NodeId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -280,16 +305,17 @@ class NodeExecutionRequested(DomainEvent):
 
     @classmethod
     def now(
-            cls,
-            workflow_id: WorkflowId,
-            node_id: NodeId,
-            now: datetime,
+        cls,
+        workflow_id: WorkflowId,
+        node_id: NodeId,
+        now: datetime,
     ) -> Self:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
             node_id=node_id,
         )
+
 
 @dataclass(frozen=True, slots=True)
 class NodeStarted(DomainEvent):
@@ -299,7 +325,9 @@ class NodeStarted(DomainEvent):
     node_id: NodeId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
@@ -330,7 +358,9 @@ class NodeAdvanced(DomainEvent):
     to_node_id: NodeId
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,

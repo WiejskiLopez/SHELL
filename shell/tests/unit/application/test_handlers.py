@@ -1,4 +1,5 @@
 """Unit tests for application command handlers (using InMemory adapters)."""
+
 from __future__ import annotations
 
 import pytest
@@ -79,11 +80,11 @@ def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
 
 class TestImportTaskHandler:
     async def test_happy_path(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         task_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
@@ -93,11 +94,11 @@ class TestImportTaskHandler:
         assert isinstance(uow.committed_events[0], TaskCreated)
 
     async def test_task_saved_as_current(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
@@ -109,30 +110,28 @@ class TestImportTaskHandler:
         assert task.is_current is True
 
     async def test_reimport_marks_previous_non_current(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         first_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
         await handler.handle(ImportTaskCommand("t.md", "my-task"))
 
         old = await uow.tasks.get_by_id(
-            __import__(
-                "shell.domain.value_objects.ids", fromlist=["TaskId"]
-            ).TaskId(first_id)
+            __import__("shell.domain.value_objects.ids", fromlist=["TaskId"]).TaskId(first_id)
         )
         assert old is not None
         assert old.is_current is False
 
     async def test_invalid_task_name_raises(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         with pytest.raises(ValueError):
@@ -146,11 +145,11 @@ class TestImportTaskHandler:
 
 class TestStartWorkflowHandler:
     async def _import_task(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> str:
         h = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         task_id = await h.handle(ImportTaskCommand("t.md", "my-task"))
@@ -188,11 +187,11 @@ class TestStartWorkflowHandler:
         uow.graphs._store[graph.id.value] = graph
 
     async def test_happy_path(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
     ) -> None:
         task_id = await self._import_task(uow, clock, id_gen, task_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
@@ -202,22 +201,22 @@ class TestStartWorkflowHandler:
         assert any(isinstance(e, WorkflowStarted) for e in uow.committed_events)
 
     async def test_task_not_found_raises(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
     ) -> None:
         handler = StartWorkflowHandler(uow, clock, id_gen)
         with pytest.raises(TaskNotFound):
             await handler.handle(StartWorkflowCommand("nonexistent"))
 
     async def test_workflow_persisted(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            task_loader: FakeTaskLoader,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        task_loader: FakeTaskLoader,
+        queries: InMemoryQueryServices,
     ) -> None:
         task_id = await self._import_task(uow, clock, id_gen, task_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
@@ -236,14 +235,15 @@ class TestStartWorkflowHandler:
 
 class TestSaveNodeResultHandler:
     async def test_happy_path(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         from shell.domain.entities.workflow import Workflow
         from shell.domain.value_objects.ids import TaskId, WorkflowId
+
         wf = Workflow.new(id_=WorkflowId("wf-1"), task_id=TaskId("task-1"), now=clock.now())
         uow.workflows._store["wf-1"] = wf
 
@@ -270,11 +270,11 @@ class TestSaveNodeResultHandler:
 
 class TestSavePromptHandler:
     async def test_happy_path(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("system", "You are a helpful assistant."))
@@ -286,11 +286,11 @@ class TestSavePromptHandler:
         assert dto.is_current is True
 
     async def test_re_save_marks_old_non_current(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("system", "v1"))
@@ -324,11 +324,11 @@ class TestQueryHandlersNotFound:
 
 class TestIndexDocumentHandler:
     async def test_index_and_search_returns_chunks(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         from shell.application.command_handlers.index_document_handler import (
             IndexDocumentHandler,
@@ -355,10 +355,10 @@ class TestIndexDocumentHandler:
         assert results[0].domain == "test"
 
     async def test_index_empty_text_creates_no_chunks(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
     ) -> None:
         from shell.application.command_handlers.index_document_handler import (
             IndexDocumentHandler,
@@ -367,7 +367,9 @@ class TestIndexDocumentHandler:
         from shell.infrastructure.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
-        cmd = IndexDocumentCommand(source_uri="file:///empty.md", title="Empty", domain="x", text="")
+        cmd = IndexDocumentCommand(
+            source_uri="file:///empty.md", title="Empty", domain="x", text=""
+        )
         doc_id = await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
         assert doc_id is not None
         doc = await uow.rag_documents.get_by_id(doc_id)
@@ -377,11 +379,11 @@ class TestIndexDocumentHandler:
 
 class TestSessionHandlers:
     async def test_open_and_get_history(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         from shell.application.command_handlers.session_handlers import (
             AppendMessageHandler,
@@ -395,19 +397,27 @@ class TestSessionHandlers:
             OpenSessionCommand(goal="do work")
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value,correlation_id=get_correlation_id(), sender="agent-1", receiver="router", payload={"x": 1})
+            AppendMessageCommand(
+                session_id=session_id.value,
+                correlation_id=get_correlation_id(),
+                sender="agent-1",
+                receiver="router",
+                payload={"x": 1},
+            )
         )
-        dto = await GetSessionHistoryHandler(queries).handle(GetSessionHistoryQuery(session_id=session_id.value))
+        dto = await GetSessionHistoryHandler(queries).handle(
+            GetSessionHistoryQuery(session_id=session_id.value)
+        )
         assert dto is not None
         assert dto.status == "open"
         assert len(dto.messages) == 1
 
     async def test_close_session(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
-            id_gen: FakeIdGenerator,
-            queries: InMemoryQueryServices,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
+        id_gen: FakeIdGenerator,
+        queries: InMemoryQueryServices,
     ) -> None:
         from shell.application.command_handlers.session_handlers import (
             CloseSessionHandler,
@@ -420,15 +430,19 @@ class TestSessionHandlers:
         session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
             OpenSessionCommand(goal="close test")
         )
-        await CloseSessionHandler(uow, clock).handle(CloseSessionCommand(session_id=session_id.value))
-        dto = await GetSessionHistoryHandler(queries).handle(GetSessionHistoryQuery(session_id=session_id.value))
+        await CloseSessionHandler(uow, clock).handle(
+            CloseSessionCommand(session_id=session_id.value)
+        )
+        dto = await GetSessionHistoryHandler(queries).handle(
+            GetSessionHistoryQuery(session_id=session_id.value)
+        )
         assert dto is not None
         assert dto.status == "closed"
 
     async def test_close_not_found_raises(
-            self,
-            uow: InMemoryUnitOfWork,
-            clock: FakeClock,
+        self,
+        uow: InMemoryUnitOfWork,
+        clock: FakeClock,
     ) -> None:
         from shell.application.command_handlers.session_handlers import (
             CloseSessionHandler,
@@ -437,11 +451,15 @@ class TestSessionHandlers:
         from shell.application.commands.commands import CloseSessionCommand
 
         with pytest.raises(SessionNotFound):
-            await CloseSessionHandler(uow, clock).handle(CloseSessionCommand(session_id="no-such-id"))
+            await CloseSessionHandler(uow, clock).handle(
+                CloseSessionCommand(session_id="no-such-id")
+            )
 
     async def test_get_history_not_found_returns_none(self, queries: InMemoryQueryServices) -> None:
         from shell.application.queries.queries import GetSessionHistoryQuery
         from shell.application.query_handlers.query_handlers import GetSessionHistoryHandler
 
-        dto = await GetSessionHistoryHandler(queries).handle(GetSessionHistoryQuery(session_id="ghost"))
+        dto = await GetSessionHistoryHandler(queries).handle(
+            GetSessionHistoryQuery(session_id="ghost")
+        )
         assert dto is None

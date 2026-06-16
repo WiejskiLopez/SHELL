@@ -1,4 +1,5 @@
 """Główna fabryka aplikacji — inicjalizuje bazę, buduje kontener i wdraża szyny."""
+
 from __future__ import annotations
 
 from shell.bootstrap.container.core_container import CoreContainer

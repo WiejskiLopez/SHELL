@@ -1,4 +1,5 @@
 """Long-running background worker for Outbox Relay + Inbox Processor."""
+
 from __future__ import annotations
 
 import asyncio
@@ -17,12 +18,12 @@ class MessagingWorker:
     """
 
     def __init__(
-            self,
-            outbox_to_inbox_relay: OutboxToInboxRelay,
-            inbox_processor: InboxProcessor,
-            poll_interval: float = 1.0,
-            backoff_factor: float = 2.0,
-            max_backoff: float = 30.0,
+        self,
+        outbox_to_inbox_relay: OutboxToInboxRelay,
+        inbox_processor: InboxProcessor,
+        poll_interval: float = 1.0,
+        backoff_factor: float = 2.0,
+        max_backoff: float = 30.0,
     ) -> None:
         self._outbox_to_inbox_relay = outbox_to_inbox_relay
         self._inbox_processor = inbox_processor
@@ -49,15 +50,13 @@ class MessagingWorker:
                     # Exponential backoff when idle
                     await asyncio.sleep(self._current_backoff)
                     self._current_backoff = min(
-                        self._current_backoff * self._backoff_factor,
-                        self._max_backoff
+                        self._current_backoff * self._backoff_factor, self._max_backoff
                     )
             except Exception:
                 # Log error, apply backoff, continue
                 await asyncio.sleep(self._current_backoff)
                 self._current_backoff = min(
-                    self._current_backoff * self._backoff_factor,
-                    self._max_backoff
+                    self._current_backoff * self._backoff_factor, self._max_backoff
                 )
 
     def stop(self) -> None:

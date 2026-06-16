@@ -1,4 +1,5 @@
 """E2E API tests — FastAPI control plane."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -48,10 +49,13 @@ class TestTasksRouter:
         # ---------------------------------------
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.post("/tasks/import", json={
-                "task_name": "api_task",
-                "md_path": str(md),
-            })
+            resp = await client.post(
+                "/tasks/import",
+                json={
+                    "task_name": "api_task",
+                    "md_path": str(md),
+                },
+            )
         assert resp.status_code == 201
         assert "task_id" in resp.json()
 
@@ -81,10 +85,13 @@ class TestWorkflowsRouter:
         app = create_app(core_container)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             # import task first
-            await client.post("/tasks/import", json={
-                "task_name": "wf_task",
-                "md_path": str(md),
-            })
+            await client.post(
+                "/tasks/import",
+                json={
+                    "task_name": "wf_task",
+                    "md_path": str(md),
+                },
+            )
 
             # Attach a single-node Graph for the imported task
             from shell.domain.entities.graph import Graph, GraphNode
@@ -212,7 +219,6 @@ class TestWorkflowsRouter:
 #        assert resp.status_code == 201
 #        wf_id = resp.json()["workflow_id"]
 #        assert wf_id
-
 
 
 class TestEnvelopesRouter:

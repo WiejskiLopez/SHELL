@@ -39,6 +39,7 @@ from shell.infrastructure.persistence.memory.memory import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_task_with_graph(
     uow: InMemoryUnitOfWork,
     task_name: str,
@@ -88,7 +89,7 @@ async def _run_tasker_full(
     runner: FakeNodeProcessRunner | None = None,
 ) -> list[Any]:
     """Zrefaktorowany symulator pętli outbox/event-loop.
-    
+
     Zamiast przetwarzać kaskadowo zdarzenia wewnątrz jednej transakcji,
     pętla czyta zdarzenia zakommitowane sekwencyjnie krok po kroku.
     """
@@ -126,6 +127,7 @@ async def _run_tasker_full(
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def uow() -> InMemoryUnitOfWork:
     return InMemoryUnitOfWork()
@@ -149,6 +151,7 @@ def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
 # ---------------------------------------------------------------------------
 # Integration Tests
 # ---------------------------------------------------------------------------
+
 
 class TestRunTaskerWorkflowHappyPath:
     async def test_all_nodes_complete_successfully(
@@ -233,6 +236,7 @@ class TestRunTaskerWorkflowEdgeCases:
     ) -> None:
         # Arrange
         from shell.domain.exceptions import TaskNotFound
+
         cmd = RunTaskerWorkflowCommand(task_id="ghost-task-id", work_dir="/fake/dir")
         handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
 
