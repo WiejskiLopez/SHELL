@@ -7,7 +7,7 @@ import logging
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from shell.domain.events.events import TaskCreated, WorkflowStarted
+from shell.domain.events.events import DomainEvent, TaskCreated, WorkflowStarted
 from shell.domain.value_objects.ids import TaskId, WorkflowId
 from shell.domain.value_objects.task_name import TaskName
 from shell.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
@@ -159,7 +159,7 @@ class TestCompositeEventPublisher:
         p2 = AsyncMock()
         p3 = AsyncMock()
         composite = CompositeEventPublisher([p1, p2, p3])
-        events = [_task_imported()]
+        events: list[DomainEvent] = [_task_imported()]
         await composite.publish(events)
         p1.publish.assert_awaited_once_with(events)
         p2.publish.assert_awaited_once_with(events)

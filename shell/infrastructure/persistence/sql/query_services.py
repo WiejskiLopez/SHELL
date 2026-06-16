@@ -131,9 +131,16 @@ class SqlQueryServices:
                 EnvelopeDto(
                     id=m.id,
                     workflow_id=m.workflow_id,
-                    destination_node=m.destination_node,
+                    sender_node_id=m.sender_node_id,
+                    receiver_node_id=m.receiver_node_id,
+                    source_role=m.source_role,
+                    target_role=m.target_role,
                     status=m.status,
+                    stage=m.stage,
+                    step=m.step,
                     payload=m.payload,
+                    created_at=m.created_at,
+                    updated_at=m.updated_at,
                 )
                 for m in res.scalars()
             ]
@@ -190,7 +197,14 @@ class SqlQueryServices:
             m = res.scalar_one_or_none()
             if not m:
                 return None
-            return RunnerConfigDto(package_name=m.package_name, version=m.version, config=m.config)
+            return RunnerConfigDto(
+                id=m.id,
+                package_name=m.package_name,
+                kind=m.kind,
+                hash=m.hash,
+                body=m.body,
+                created_at=m.created_at,
+            )
 
     # --- SessionQueryService ---
     async def get_session_history(self, session_id: str) -> SessionDto | None:
@@ -201,15 +215,15 @@ class SqlQueryServices:
                 .where(SessionModel.id == session_id)
             )
             res = await session.execute(stmt)
-            session = res.scalar_one_or_none()
-            if not session:
+            session_model = res.scalar_one_or_none()
+            if not session_model:
                 return None
             return SessionDto(
-                id=session.id,
-                goal=session.goal,
-                status=session.status,
-                opened_at=session.opened_at,
-                closed_at=session.closed_at,
+                id=session_model.id,
+                goal=session_model.goal,
+                status=session_model.status,
+                opened_at=session_model.opened_at,
+                closed_at=session_model.closed_at,
                 messages=[
                     MessageDto(
                         id=message.id,
@@ -220,7 +234,7 @@ class SqlQueryServices:
                         payload=message.payload,
                         created_at=message.created_at,
                     )
-                    for message in session.messages
+                    for message in session_model.messages
                 ],
             )
 

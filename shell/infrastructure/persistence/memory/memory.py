@@ -35,6 +35,7 @@ from shell.domain.repositories.template_graph_repository import (
 )
 from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
+from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.ids import (
     EnvelopeId,
     GraphId,
@@ -51,8 +52,6 @@ from shell.domain.value_objects.ids import (
     TemplateGraphNodeId,
     WorkflowId,
 )
-from shell.domain.value_objects.manifest import Manifest
-from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -65,6 +64,7 @@ if TYPE_CHECKING:
     from shell.domain.entities.task import Task
     from shell.domain.entities.workflow import Workflow
     from shell.domain.events.events import DomainEvent
+    from shell.domain.value_objects.manifest import Manifest
     from shell.domain.value_objects.task_name import TaskName
 
 import logging

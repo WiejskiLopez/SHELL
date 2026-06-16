@@ -416,7 +416,7 @@ def template_graph_entity_to_model(
     m.nodes = [
         template_graph_node_entity_to_model(
             node,
-            graph.id,
+            graph.id.value,
         )
         for node in graph.nodes
     ]
