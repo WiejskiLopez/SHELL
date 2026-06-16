@@ -8,8 +8,7 @@ from shell.domain.exceptions import WorkflowNotFound
 from shell.domain.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.services.graph_routing_service import GraphRoutingService
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
-from shell.domain.value_objects.ids import WorkflowId
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.ids import TaskId, WorkflowId
 
 if TYPE_CHECKING:
     from shell.application.commands.commands import RouteEnvelopesCommand
@@ -43,7 +42,7 @@ class RouteEnvelopesHandler:
                 raise WorkflowNotFound(cmd.workflow_id)
 
             pending = await uow.envelopes.list_pending(wf_id)
-            task = await uow.tasks.get_current_by_id(TaskName(workflow.task_id))
+            task = await uow.tasks.get_current_by_id(TaskId(workflow.task_id))
             graph = await uow.graphs.get_by_task_id(task.id) if task is not None else None
 
             now = self._clock.now()

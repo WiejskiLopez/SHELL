@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 import pytest
 
 from shell.domain.entities.workflow import Workflow
-from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.events.events import (
     NodeAdvanced,
     NodeStarted,
@@ -13,6 +12,7 @@ from shell.domain.events.events import (
     WorkflowFailed,
     WorkflowStarted,
 )
+from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import (
     NodeId,
     TaskId,
