@@ -1,2 +1,2 @@
-python -m shell_ddd.bootstrap.main smoke
+python -m shell.bootstrap.main smoke
 

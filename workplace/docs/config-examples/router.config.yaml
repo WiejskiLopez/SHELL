@@ -1,9 +1,0 @@
-name: default-router
-mode: router
-role: router
-type: base
-# Default configuration for router.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-log_level: INFO  # Default log level for router
-max_step: 20     # Maximum TTL step; message with step >= max_step is rejected immediately

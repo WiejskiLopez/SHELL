@@ -1,8 +1,0 @@
-name: default-tool
-mode: tool
-role: tool
-type: base
-# Default configuration for tool.
-# Values here are merged with node-level overrides defined in task.yaml.
-# Node-level values take priority over these defaults.
-log_level: INFO  # Default log level for tool

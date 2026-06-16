@@ -2,28 +2,28 @@
 Przed uruchomieniem upewnij się, że używasz środowiska z Pythonem w wersji 3.11 lub nowszej, i znajdujesz się w głównym katalogu projektu. Zainstaluj pakiet wraz z zależnościami deweloperskimi:
 
 Bash
-pip install -e ".[dev]"      wczesniej  byo: pip install -e "shell_ddd[dev]"
+pip install -e ".[dev]"      wczesniej  byo: pip install -e "shell[dev]"
 2. Uruchamianie aplikacji
-System shell_ddd posiada dwa główne interfejsy:
+System shell posiada dwa główne interfejsy:
 Command Line Interface (CLI) służący do bezpośredniego wywoływania procesów,
 oraz API (FastAPI) pełniące rolę control plane.
 
 Interfejs CLI
-Główny punkt wejścia to moduł shell_ddd.framework.cli.main.
+Główny punkt wejścia to moduł shell.framework.cli.main.
 Możesz go wywoływać z różnymi subkomendami w zależności od trybu pracy:
 
 Import zadania z plików .md i .yaml:
 
 Bash
-python -m shell_ddd.framework.cli.main import-task --task-name my-task --task-dir ./workplace/example_tasks/
+python -m shell.framework.cli.main import-task --task-name my-task --task-dir ./workplace/example_tasks/
 Orkiestracja całego cyklu (Tasker):
 
 Bash
-python -m shell_ddd.framework.cli.main run-tasker --task-name my-task --work-dir ./work/
+python -m shell.framework.cli.main run-tasker --task-name my-task --work-dir ./work/
 Uruchomienie specyficznego węzła (np. agent, router, worker):
 
 Bash
-python -m shell_ddd.framework.cli.main agent --node-dir ./work/agent-01 --workflow-id <uuid> --work-dir ./work/
+python -m shell.framework.cli.main agent --node-dir ./work/agent-01 --workflow-id <uuid> --work-dir ./work/
 Interfejs REST API (FastAPI)
 Aby uruchomić API zarządzające zadaniami i przepływami, użyj skryptu serwującego aplikację przez uvicorn. W terminalu uruchom poniższy kod Pythona:
 
@@ -38,7 +38,7 @@ Krok 1: Uruchomienie kontenerów testowych
 Włącz wymagane bazy danych za pomocą pliku docker-compose.test.yml:
 
 Bash
-docker compose -f shell_ddd/docker-compose.test.yml up -d postgres mongo
+docker compose -f shell/docker-compose.test.yml up -d postgres mongo
 Krok 2: Ustawienie zmiennych środowiskowych
 Zdefiniuj URL testowych baz danych, by pytest wiedział, gdzie ma się połączyć (przykład dla powłoki PowerShell):
 
@@ -51,19 +51,19 @@ Krok 3: Uruchomienie zestawu testów
 Teraz możesz uruchomić pełen zestaw testów (jednostkowe, integracyjne, E2E i architektoniczne) wraz z raportem pokrycia kodu:
 
 Bash
-python -m pytest shell_ddd/tests --cov=shell_ddd --cov-report=term-missing
+python -m pytest shell/tests --cov=shell --cov-report=term-missing
 Jeśli chcesz uruchamiać pakiety testów selektywnie, możesz to zrobić zawężając ścieżkę:
 
-Testy jednostkowe: python -m pytest shell_ddd/tests/unit
+Testy jednostkowe: python -m pytest shell/tests/unit
 
-Testy architektoniczne (weryfikacja granic DDD): python -m pytest shell_ddd/tests/architecture
+Testy architektoniczne (weryfikacja granic DDD): python -m pytest shell/tests/architecture
 
-Testy integracyjne SQL (Postgres): python -m pytest shell_ddd/tests/integration/sql_postgres
+Testy integracyjne SQL (Postgres): python -m pytest shell/tests/integration/sql_postgres
 
-Testy E2E (API oraz CLI): python -m pytest shell_ddd/tests/e2e
+Testy E2E (API oraz CLI): python -m pytest shell/tests/e2e
 
 Krok 4: Sprzątanie infrastruktury
 Po przejściu wszystkich testów możesz wyczyścić środowisko dockerowe, ubijając kontenery i usuwając ich wolumeny:
 
 Bash
-docker compose -f shell_ddd/docker-compose.test.yml down -v
+docker compose -f shell/docker-compose.test.yml down -v

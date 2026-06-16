@@ -1,12 +1,12 @@
-# AI Developer Instructions — Projekt SHELL_DDD
+# AI Developer Instructions — Projekt shell
 
-Te instrukcje obowiązują przy **każdym zadaniu, refaktoryzacji i rozbudowie kodu** w tym repozytorium. Ich nadrzędnym celem jest ochrona Czystej Architektury (Clean Architecture) i zasad DDD przed erozją. Jedynym źródłem prawdy dla struktury i zachowań systemu jest kod produkcyjny oraz testy zawarte w `shell_ddd/`.
+Te instrukcje obowiązują przy **każdym zadaniu, refaktoryzacji i rozbudowie kodu** w tym repozytorium. Ich nadrzędnym celem jest ochrona Czystej Architektury (Clean Architecture) i zasad DDD przed erozją. Jedynym źródłem prawdy dla struktury i zachowań systemu jest kod produkcyjny oraz testy zawarte w `shell/`.
 
 ## Topologia i Struktura Projektu
 
-Cały kod produkcyjny oraz testowy systemu znajduje się w katalogu `shell_ddd/`. Projekt jest zaprojektowany jako jeden spójny kontekst biznesowy (Single Bounded Context) z jawnym podziałem na warstwy architektury czystej.
+Cały kod produkcyjny oraz testowy systemu znajduje się w katalogu `shell/`. Projekt jest zaprojektowany jako jeden spójny kontekst biznesowy (Single Bounded Context) z jawnym podziałem na warstwy architektury czystej.
 
-shell_ddd/                  # Główny i jedyny katalog aplikacji
+shell/                  # Główny i jedyny katalog aplikacji
 ├── domain/                 # Czysta logika biznesowa, encje, Value Objects
 ├── application/            # Przypadki użycia: Commands, Queries, Handlers, Porty
 ├── infrastructure/         # Adaptery systemowe: persistence (SQL/Mongo), FS, messaging
@@ -17,13 +17,13 @@ shell_ddd/                  # Główny i jedyny katalog aplikacji
 workplace/                  # Notatki, dumpy kontekstu, przykłady zadań (read-only)
 
 
-**Reguła #1:** Wszystkie nowe funkcjonalności, modyfikacje oraz refaktoryzacje mogą być wprowadzane **wyłącznie** wewnątrz struktury warstwowej `shell_ddd/`. Tworzenie jakichkolwiek plików, skryptów czy katalogów w katalogu głównym repozytorium (poza `shell_ddd/`) jest zabronione.
+**Reguła #1:** Wszystkie nowe funkcjonalności, modyfikacje oraz refaktoryzacje mogą być wprowadzane **wyłącznie** wewnątrz struktury warstwowej `shell/`. Tworzenie jakichkolwiek plików, skryptów czy katalogów w katalogu głównym repozytorium (poza `shell/`) jest zabronione.
 
-**Reguła #2:** Każda warstwa w `shell_ddd/` ma ściśle określoną odpowiedzialność. Niedopuszczalne jest mieszanie odpowiedzialności (np. umieszczanie logiki biznesowej w `framework/` lub definicji tabel bazodanowych w `domain/`). Każdy komponent musi trafić do swojej dedykowanej podwarstwy.
+**Reguła #2:** Każda warstwa w `shell/` ma ściśle określoną odpowiedzialność. Niedopuszczalne jest mieszanie odpowiedzialności (np. umieszczanie logiki biznesowej w `framework/` lub definicji tabel bazodanowych w `domain/`). Każdy komponent musi trafić do swojej dedykowanej podwarstwy.
 
 ## Cykl Pracy Nad Zadaniem (Workflow)
 
-Każde nowe wymaganie biznesowe, modyfikacja czy refaktoryzacja w systemie `shell_ddd` musi być wdrażana według ścisłego, warstwowego cyklu. Pracę prowadzimy od wnętrza architektury na zewnątrz (Inside-Out).
+Każde nowe wymaganie biznesowe, modyfikacja czy refaktoryzacja w systemie `shell` musi być wdrażana według ścisłego, warstwowego cyklu. Pracę prowadzimy od wnętrza architektury na zewnątrz (Inside-Out).
 
 1. **Analiza Domenowa i Definicja Kontraktu:** Zanim powstanie jakikolwiek kod infrastruktury (baza danych, API), zdefiniuj encje, Value Objects lub reguły biznesowe w warstwie `domain/`. Jeśli zadanie realizuje przypadek użycia, stwórz niezmienny kontrakt wejściowy w `application/` w postaci `@dataclass(frozen=True)` jako `*Command` lub `*Query`.
 
@@ -56,7 +56,7 @@ Każde nowe wymaganie biznesowe, modyfikacja czy refaktoryzacja w systemie `shel
 
 ## Reguły Warstw (Twarde Strażniki Architektury — Łamanie = Błąd Krytyczny)
 
-Wszystkie komponenty w `shell_ddd/` muszą ściśle przestrzegać izolacji warstwowej. Kierunek zależności i dozwolonych importów jest wyłącznie jednostronny i biegnie od zewnątrz do wewnątrz:
+Wszystkie komponenty w `shell/` muszą ściśle przestrzegać izolacji warstwowej. Kierunek zależności i dozwolonych importów jest wyłącznie jednostronny i biegnie od zewnątrz do wewnątrz:
 
 domain ← application ← infrastructure ← framework ← bootstrap
 
@@ -96,13 +96,13 @@ Importy w kierunku przeciwnym lub pomijające sąsiednie warstwy są natychmiast
 
 Zasada czystości importów nie jest tylko zapisem tekstowym — jest bezwzględnie egzekwowana programistycznie.
 
-* **Strażnik AST:** Plik `shell_ddd/tests/architecture/test_imports.py` zawiera automatyczny skaner drzewa składniowego (AST). Sprawdza on każdy plik w projekcie pod kątem niedozwolonych importów wstecznych.
-* **Uruchamianie:** Test architektoniczny jest wykonywany w każdym lokalnym potoku testowym (`pytest shell_ddd/tests -x`) oraz w procesie CI/CD. Złamanie dowolnej z powyższych zasad warstw skutkuje natychmiastowym wyłożeniem się testów i odrzuceniem kodu.
+* **Strażnik AST:** Plik `shell/tests/architecture/test_imports.py` zawiera automatyczny skaner drzewa składniowego (AST). Sprawdza on każdy plik w projekcie pod kątem niedozwolonych importów wstecznych.
+* **Uruchamianie:** Test architektoniczny jest wykonywany w każdym lokalnym potoku testowym (`pytest shell/tests -x`) oraz w procesie CI/CD. Złamanie dowolnej z powyższych zasad warstw skutkuje natychmiastowym wyłożeniem się testów i odrzuceniem kodu.
 
 Markdown
 ## Konwencje Kodu i Standardy Implementacji
 
-Wszystkie pliki źródłowe w katalogu `shell_ddd/` muszą być zgodne z poniższymi standardami programistycznymi. Konwencje te są egzekwowane przez linter oraz statyczną analizę typów.
+Wszystkie pliki źródłowe w katalogu `shell/` muszą być zgodne z poniższymi standardami programistycznymi. Konwencje te są egzekwowane przez linter oraz statyczną analizę typów.
 
 ### 1. Podstawy Językowe i Asynchroniczność
 - **Wersja:** Python 3.11+.
@@ -127,11 +127,11 @@ Porty (Abstrakcje): Definiowane za pomocą typing.Protocol. Dekoratora @runtime_
 DTO / Konfiguracja / Modele Requestów: Do walidacji danych wejściowych na brzegu aplikacji (warstwa framework/ dla FastAPI) używamy wyłącznie Pydantic v2 (BaseModel, BaseSettings).
 
 3. Bezwzględne Zakazy Projektowe (Antywzorce)
-Zabrania się wprowadzania do kodu shell_ddd następujących mechanizmów (naruszenie skutkuje odrzuceniem kodu):
+Zabrania się wprowadzania do kodu shell następujących mechanizmów (naruszenie skutkuje odrzuceniem kodu):
 
 Zakaz sztucznych właściwości: NIE używamy konwencji prywatnych slotów połączonych z publicznymi property z podkreśleniem na końcu (np. slot _name + property name_). Stosujemy bezpośredni, czysty dostęp do pól dataclass dla **Value Objects, Commands, Queries, Domain Events, DTO oraz BaseSettings**.
 
-Wyjątek (DDD primitives): klasy dziedziczące po `shell_ddd.domain.entities.base.Entity` lub `shell_ddd.domain.entities.base.AggregateRoot` są pisane jako jawne klasy z `__slots__` (NIE jako dataclass) i używają wzorca prywatne pole `_pole` + publiczne `@property pole`. Wynika to z natury encji DDD: tożsamość niezmienna po konstrukcji, stan pól mutowalny TYLKO przez metody domenowe wyrażające reguły biznesowe (np. `task.supersede()`, `workflow.start()`). Bezpośredni publiczny dostęp do pól dataclass byłby tutaj antywzorcem (encja straciłaby kontrolę nad swoimi inwariantami). Wzorzec ten dotyczy WYŁĄCZNIE encji i agregatów.
+Wyjątek (DDD primitives): klasy dziedziczące po `shell.domain.entities.base.Entity` lub `shell.domain.entities.base.AggregateRoot` są pisane jako jawne klasy z `__slots__` (NIE jako dataclass) i używają wzorca prywatne pole `_pole` + publiczne `@property pole`. Wynika to z natury encji DDD: tożsamość niezmienna po konstrukcji, stan pól mutowalny TYLKO przez metody domenowe wyrażające reguły biznesowe (np. `task.supersede()`, `workflow.start()`). Bezpośredni publiczny dostęp do pól dataclass byłby tutaj antywzorcem (encja straciłaby kontrolę nad swoimi inwariantami). Wzorzec ten dotyczy WYŁĄCZNIE encji i agregatów.
 
 Zakaz rozproszonych plików funkcyjnych: NIE tworzymy katalogów strukturalnych typu internal/_init_*.py czy plików _assert_*.py zawierających pojedyncze funkcje. Kod grupujemy w czytelne moduły domenowe.
 
@@ -165,27 +165,27 @@ Zarządzanie Ścieżkami (FS): Bezpośrednie operacje na plikach i katalogach za
 
 ## Strategia i Architektura Testów
 
-W systemie `shell_ddd` testy automatyczne są integralną częścią kodu produkcyjnego. Obowiązuje rygorystyczna piramida testów zapewniająca pełną izolację warstwową.
+W systemie `shell` testy automatyczne są integralną częścią kodu produkcyjnego. Obowiązuje rygorystyczna piramida testów zapewniająca pełną izolację warstwową.
 
 ### 1. Środowisko i Framework
 - **Główny zestaw:** `pytest` + `pytest-asyncio`.
 - **Konfiguracja:** Zgoda z globalną flagą `asyncio_mode = "auto"` zdefiniowaną w `pyproject.toml`. Wszystkie testy asynchroniczne są automatycznie wykrywane i uruchamiane w pętli zdarzeń (event loop).
 
 ### 2. Typy i Lokalizacja Testów (Ścisła Izolacja)
-- **`shell_ddd/tests/unit/domain/` — Testy Jednostkowe Domeny:**
+- **`shell/tests/unit/domain/` — Testy Jednostkowe Domeny:**
   Testują czystą logikę biznesową i reguły encji/Value Objects. **Całkowity zakaz operacji I/O, dostępu do sieci czy systemów plików.** Nie używamy tu mocków ani dublerów portów aplikacji – domena jest testowana jako czysty Python (Pure Python).
-- **`shell_ddd/tests/unit/application/` — Testy Jednostkowe Aplikacji:**
+- **`shell/tests/unit/application/` — Testy Jednostkowe Aplikacji:**
   Testują handlery przypadków użycia (`*Handler`). Wszelkie zależności infrastrukturalne są wstrzykiwane w postaci szybkich dublerów in-memory (`InMemory*` adaptery) oraz obiektów kontrolowanych stanu (`FakeClock`, `FakeIdGenerator`, `FakeNodeProcessRunner`).
-- **`shell_ddd/tests/integration/` — Testy Integracyjne:**
+- **`shell/tests/integration/` — Testy Integracyjne:**
   Weryfikują poprawność działania realnych adapterów z warstwy infrastruktury. Podzielone na dedykowane katalogi technologiczne:
   - `sql_sqlite/` oraz `sql_postgres/` — operacje na bazach relacyjnych (SQLAlchemy Async).
   - `mongo/` — operacje na bazie dokumentowej.
   - `process/` — testy integracyjne runnerów systemowych.
   - `filesystem/` — testy fizycznych operacji dyskowych.
   *Zasada środowiskowa:* Testy postgres oraz mongo powinny automatycznie wykrywać brak środowiska docker-compose i nakładać dekorator `@pytest.mark.skipif`.
-- **`shell_ddd/tests/e2e/` — Testy End-to-End (Pełny Stack):**
+- **`shell/tests/e2e/` — Testy End-to-End (Pełny Stack):**
   Testują kompletną aplikację od zewnętrznego punktu wejścia aż po stan w bazie danych. Podzielone na testy interfejsu konsolowego (`cli/`) oraz API sieciowego (`api/`).
-- **`shell_ddd/tests/architecture/` — Testy Architektoniczne:**
+- **`shell/tests/architecture/` — Testy Architektoniczne:**
   Statyczna weryfikacja poprawności importów za pomocą skanera drzewa AST oraz lintera testów. Zapobiega wyciekom zależności między warstwami.
 
 ### 3. Wymagane Wskaźniki Pokrycia (Coverage Targets)
@@ -231,10 +231,10 @@ Każdy nowo implementowany handler aplikacyjny musi strukturalnie odpowiadać po
 Python
 from __future__ import annotations
 from dataclasses import dataclass
-from shell_ddd.domain.entities.task import Task
-from shell_ddd.domain.events.task import TaskImported
-from shell_ddd.domain.value_objects.id import TaskId
-from shell_ddd.application.ports.ports import (
+from shell.domain.entities.task import Task
+from shell.domain.events.task import TaskImported
+from shell.domain.value_objects.id import TaskId
+from shell.application.ports.ports import (
     UnitOfWork, 
     Clock, 
     IdGenerator, 
@@ -291,18 +291,18 @@ class ImportTaskHandler:
 
 ## Strategia Utrwalania Danych (Persistence — Spójność 2 Adapterów)
 
-System `shell_ddd` opiera się na strategii dwóch równorzędnych mechanizmów trwałości danych (Persistence). Każdy port repozytorium zdefiniowany w domenie lub aplikacji musi posiadać dokładnie dwie kompletne implementacje infrastrukturalne.
+System `shell` opiera się na strategii dwóch równorzędnych mechanizmów trwałości danych (Persistence). Każdy port repozytorium zdefiniowany w domenie lub aplikacji musi posiadać dokładnie dwie kompletne implementacje infrastrukturalne.
 
 ### 1. Relacyjne Bazy Danych (SQL: SQLite + PostgreSQL)
-- **Lokalizacja kodu:** `shell_ddd/infrastructure/persistence/sql/`
+- **Lokalizacja kodu:** `shell/infrastructure/persistence/sql/`
 - **Technologia:** SQLAlchemy 2.x w trybie w pełni asynchronicznym (`AsyncSession`).
 - **Zasada współdzielenia:** SQLite (używany lokalnie w szybkich testach integracyjnych) oraz PostgreSQL (używany produkcyjnie) współdzielą tę samą warstwę mapowania ORM oraz te same klasy repozytoriów.
 - **Różnice dialektów:** Różnice między bazami mogą dotyczyć wyłącznie fabryki sesji (`session_factory` w bootstrapie) oraz specyficznych typów kolumn (np. mapowanie generycznego pola JSON na natywny typ `JSON` w SQLite vs `JSONB` w PostgreSQL) na poziomie migracji.
 
 ### 2. Implementacja Pamięciowa (InMemory)
-- **Lokalizacja kodu:** `shell_ddd/infrastructure/persistence/memory/`
+- **Lokalizacja kodu:** `shell/infrastructure/persistence/memory/`
 - **Zasada działania:** Szybkie repozytoria i Unit of Work realizujące stan w czystej pamięci operacyjnej procesu (za pomocą natywnych słowników Pythona).
-- **Przeznaczenie:** Ta warstwa służy wyłącznie do błyskawicznego wykonywania testów jednostkowych warstwy aplikacji (`shell_ddd/tests/unit/application/`), całkowicie eliminując potrzebę dotykania dysku czy kontenerów podczas testów Use Case'ów.
+- **Przeznaczenie:** Ta warstwa służy wyłącznie do błyskawicznego wykonywania testów jednostkowych warstwy aplikacji (`shell/tests/unit/application/`), całkowicie eliminując potrzebę dotykania dysku czy kontenerów podczas testów Use Case'ów.
 
 ### 3. Bezwzględna Reguła Duetu Repozytoriów
 Wprowadzenie jakiejkolwiek zmiany w warstwie persystencji podlega zasadzie „wszystko albo nic”:
@@ -312,7 +312,7 @@ Wprowadzenie jakiejkolwiek zmiany w warstwie persystencji podlega zasadzie „ws
 ### 4. Zarządzanie Migracjami Schematów
 Ewolucja struktur danych w bazie danych jest w 100% relacyjna i kontrolowana centralnie:
 - **Narzędzie:** Wszystkie migracje są zarządzane wyłącznie przez framework `Alembic`.
-- **Lokalizacja:** Pliki migracji i wersje schematów muszą znajdować się w katalogu `shell_ddd/infrastructure/persistence/migrations/sql/versions/`.
+- **Lokalizacja:** Pliki migracji i wersje schematów muszą znajdować się w katalogu `shell/infrastructure/persistence/migrations/sql/versions/`.
 
 ## Interfejsy Wejściowe (Warstwa Framework: CLI & API)
 
@@ -321,11 +321,11 @@ Warstwa `framework/` odpowiada wyłącznie za obsługę punktów wejścia do apl
 ### 1. Interfejs Konsolowy (CLI)
 - **Technologia:** Używamy wyłącznie wbudowanej biblioteki standardowej Pythona `argparse`. Zabrania się wprowadzania zewnętrznych frameworków CLI (np. `Typer`, `Click`).
 - **Struktura komend:** Główny punkt wejścia konsoli zarządza dedykowanymi podkomendami (Subcommands): `agent`, `router`, `tasker`, `tool`, `worker`, `import-task`, `workflow`, `route`.
-- **Lokalizacja i wzorzec:** Oficjalne punkty wejścia znajdują się w `shell_ddd/framework/entrypoints/`. Odpowiadają one za sparsowanie tablicy `sys.argv`, pobranie instancji kontenera z bootstrapu i przekazanie intencji do szyny. Zero logiki warunkowej wewnątrz parserów.
+- **Lokalizacja i wzorzec:** Oficjalne punkty wejścia znajdują się w `shell/framework/entrypoints/`. Odpowiadają one za sparsowanie tablicy `sys.argv`, pobranie instancji kontenera z bootstrapu i przekazanie intencji do szyny. Zero logiki warunkowej wewnątrz parserów.
 
 ### 2. Interfejs Sieciowy (HTTP API)
 - **Technologia:** `FastAPI` w trybie asynchronicznym.
-- **Inicjalizacja aplikacji:** Cała aplikacja webowa jest tworzona za pomocą wzorca fabryki: pojedynczej funkcji `create_app(container: Container) -> FastAPI` zlokalizowanej w `shell_ddd/framework/api/app.py`. Kontener zależności z warstwy bootstrapu musi być jawnie przekazany podczas startu serwera.
+- **Inicjalizacja aplikacji:** Cała aplikacja webowa jest tworzona za pomocą wzorca fabryki: pojedynczej funkcji `create_app(container: Container) -> FastAPI` zlokalizowanej w `shell/framework/api/app.py`. Kontener zależności z warstwy bootstrapu musi być jawnie przekazany podczas startu serwera.
 - **Wstrzykiwanie Zależności (DI):** Endpointy (routery) FastAPI nie mogą bezpośrednio instancjonować ani importować adapterów infrastruktury. Dostęp do szyn aplikacyjnych lub globalnych usług uzyskują wyłącznie poprzez mechanizm FastAPI `Depends`, pobierając gotowy obiekt z kontenera (np. `Depends(get_container)`).
 
 ### 3. Globalne Mechanizmy Middleware i Obserwowalność
@@ -339,7 +339,7 @@ Zgłoszenie zmian (Pull Request) lub zadanie deweloperskie uznaje się za ukońc
 
 ### 1. Zgodność Architektoniczna i Izolacja Warstw
 - Kod został umieszczony w prawidłowych katalogach odpowiadających warstwom architektury.
-- Test architektoniczny oparty na skanerze AST (`pytest shell_ddd/tests/architecture/test_imports.py`) przechodzi pomyślnie, potwierdzając brak niedozwolonych importów wstecznych.
+- Test architektoniczny oparty na skanerze AST (`pytest shell/tests/architecture/test_imports.py`) przechodzi pomyślnie, potwierdzając brak niedozwolonych importów wstecznych.
 
 ### 2. Kompletność i Zielony Status Testów
 - Wszystkie testy automatyczne (jednostkowe, integracyjne oraz E2E) wykonują się pomyślnie i zwracają status zielony.
@@ -349,12 +349,12 @@ Zgłoszenie zmian (Pull Request) lub zadanie deweloperskie uznaje się za ukońc
 ### 3. Statyczna Analiza Jakości Kodu (Ruff)
 - Kod przeszedł pomyślnie weryfikację lintera oraz formatera. Narzędzie `ruff` nie zwraca żadnych błędów ani ostrzeżeń:
   ```bash
-  ruff check shell_ddd
+  ruff check shell
 4. Rygorystyczna Kontrola Typowania (Mypy)
 Warstwy rdzenia biznesowego aplikacji muszą być w 100% bezpieczne pod kątem typów. Kontrola typów w trybie --strict musi przechodzić bezbłędnie:
 
 Bash
-mypy --strict shell_ddd/domain shell_ddd/application
+mypy --strict shell/domain shell/application
 Warstwy zewnętrzne systemu (infrastructure oraz framework) muszą pomyślnie przechodzić standardową weryfikację typów (bez flagi --strict).
 
 5. Czystość Środowiska i Pracy z Bazą Danych
@@ -366,7 +366,7 @@ Zmiany zostały zaimplementowane w pełnym duecie repozytoriów (Sql* oraz InMem
 
 ## Bezwzględne Antywzorce i Zakazy (Czego NIE Robić)
 
-Poniższa lista określa praktyki programistyczne, które są kategorycznie zabronione w repozytorium `shell_ddd`. Wprowadzenie którejkolwiek z nich skutkuje natychmiastowym odrzuceniem kodu w procesie review.
+Poniższa lista określa praktyki programistyczne, które są kategorycznie zabronione w repozytorium `shell`. Wprowadzenie którejkolwiek z nich skutkuje natychmiastowym odrzuceniem kodu w procesie review.
 
 ### 1. Zakaz Automatycznych i Zewnętrznych Frameworków DI
 - **Reguła:** Obowiązuje bezwzględny zakaz wprowadzania i używania zewnętrznych kontenerów lub frameworków do wstrzykiwania zależności (takich jak `dependency-injector`, `punq`, `lagom`, `injector` itp.).
@@ -393,29 +393,29 @@ Poniższe skróty klawiszowe i komendy służą do szybkiego uruchamiania testó
 ### 1. Uruchamianie Testów (Pytest)
 ```pwsh
 # Wykonanie wszystkich testów w projekcie (zatrzymanie na pierwszym błędzie)
-pytest shell_ddd/tests -x
+pytest shell/tests -x
 
 # Uruchomienie wyłącznie szybkich testów jednostkowych (czysta domena i aplikacja)
-pytest shell_ddd/tests/unit -x
+pytest shell/tests/unit -x
 
 # Błyskawiczne testy integracyjne na lokalnej bazie SQLite (bez podnoszenia Dockera)
-pytest shell_ddd/tests/integration/sql_sqlite -x
+pytest shell/tests/integration/sql_sqlite -x
 2. Statyczna Analiza Jakości i Kontrola Typów
 Fragment kodu
 # Szybki lint oraz automatyczne formatowanie kodu
-ruff check shell_ddd
+ruff check shell
 
 # Rygorystyczna kontrola typów w rdzeniu biznesowym (Domain & Application)
-python -m mypy --strict shell_ddd/domain shell_ddd/application
+python -m mypy --strict shell/domain shell/application
 3. Pełne Testy Integracyjne (Wymaga Docker Compose)
 Fragment kodu
 # 1. Podniesienie lokalnej bazy testowej PostgreSQL w tle
-docker compose -f shell_ddd/docker-compose.test.yml up -d postgres
+docker compose -f shell/docker-compose.test.yml up -d postgres
 
 # 2. Uruchomienie pełnego zestawu testów integracyjnych (SQLite + Postgres + FS)
-python -m pytest shell_ddd/tests/integration -x
+python -m pytest shell/tests/integration -x
 
 # 3. Bezpieczne zatrzymanie kontenerów wraz z czyszczeniem wolumenów danych
-docker compose -f shell_ddd/docker-compose.test.yml down -v
+docker compose -f shell/docker-compose.test.yml down -v
 
 ---
