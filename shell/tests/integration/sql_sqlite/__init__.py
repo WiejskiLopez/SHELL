@@ -159,25 +159,59 @@ class TestSqlTaskRepository:
 
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
+        # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
+        from shell.domain.entities.graph import Graph, GraphNode
+        from shell.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+        from shell.domain.value_objects.mode import Mode
+        from shell.domain.value_objects.task_name import TaskName
+
+        async with uow as u:
+            task = await u.tasks.get_current_by_name(TaskName("wf-task"))
+            assert task is not None
+
+            # 1. Pobieramy prawdziwe ID przypisane do zaimportowanego zadania
+            real_task_id = task.id.value
+
+            graph = Graph(
+                id=GraphId.generate(),
+                task_id=task.id,
+                template_graph_id=TemplateGraphId("tpl"),
+                raw_dict={},
+                nodes=[
+                    GraphNode(
+                        id=NodeId("wf-task-node-0"),
+                        position=0,
+                        node_dir="/fake/wf-task-0",
+                        mode=Mode("agent"),
+                        role="agent",
+                        node_type="agent",
+                    )
+                ],
+            )
+            await u.graphs.save(graph)
+            await u.commit()
+
         start = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await start.handle(StartWorkflowCommand("wf-task"))
+        # 2. Przekazujemy poprawne real_task_id zamiast nazwy stringowej
+        wf_id = await start.handle(StartWorkflowCommand(real_task_id))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
-        assert dto.task_name == "wf-task"
+        # 3. Sprawdzamy identyfikator zadania w DTO zamiast nazwy tekstowej
+        assert dto.task_id == real_task_id
 
 
 class TestSqlPromptRepository:
@@ -210,7 +244,7 @@ class TestSqlNodeResultRepository:
         from shell.domain.value_objects.ids import WorkflowId
         async with uow as u:
             await u.workflows.save(
-                Workflow.new(id_=WorkflowId("wf-sql-1"), task_name="t", now=clock.now())
+                Workflow.new(id_=WorkflowId("wf-sql-1"), task_id="task-id", now=clock.now())
             )
             await u.commit()
 

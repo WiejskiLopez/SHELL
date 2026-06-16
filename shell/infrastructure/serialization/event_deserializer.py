@@ -1,9 +1,21 @@
 from datetime import datetime
 from typing import Any
 
-from shell.domain.events.events import DomainEvent, TaskCreated, GraphBuilt, WorkflowStarted, EnvelopeRouted, \
-    EnvelopeExpired, NodeCompleted, NodeFailed, WorkflowCompleted, WorkflowFailed, NodeExecutionRequested, NodeStarted, \
-    NodeAdvanced
+from shell.domain.events.events import (
+    DomainEvent,
+    EnvelopeExpired,
+    EnvelopeRouted,
+    GraphBuilt,
+    NodeAdvanced,
+    NodeCompleted,
+    NodeExecutionRequested,
+    NodeFailed,
+    NodeStarted,
+    TaskCreated,
+    WorkflowCompleted,
+    WorkflowFailed,
+    WorkflowStarted,
+)
 
 
 # 1. Tworzymy centralny deserializator z rejestrem Twoich eventów

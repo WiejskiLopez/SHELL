@@ -1,10 +1,10 @@
 """Production background worker command."""
+import asyncio
 from argparse import Namespace
 
 from shell.bootstrap.cli.command.command import RunnableCommand
 from shell.bootstrap.factory.application_factory import ApplicationFactory
 
-import asyncio
 
 class WorkerCommand(RunnableCommand):
     """Long-running worker: OutboxRelay → InboxProcessor loop."""

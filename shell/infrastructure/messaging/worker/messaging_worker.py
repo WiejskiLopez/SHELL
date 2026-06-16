@@ -2,15 +2,11 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.messaging.processor.inbox_processor import InboxProcessor
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
-    from shell.application.ports.ports import EventPublisher
     from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
 
 

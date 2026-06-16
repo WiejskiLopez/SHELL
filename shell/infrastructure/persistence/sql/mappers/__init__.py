@@ -195,7 +195,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
     )
     return Workflow(
         id=WorkflowId(m.id),
-        task_name=m.task_name,
+        task_id=m.task_id,
         status=Status(m.status),
         created_at=_ensure_utc(m.created_at),
         cursor=cursor,

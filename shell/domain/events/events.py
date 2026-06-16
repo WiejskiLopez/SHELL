@@ -244,11 +244,11 @@ class WorkflowFailed(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            task_id=str(payload["task_id"]),
+            task_id=TaskId(payload["task_id"]),
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_id: str, now: datetime) -> WorkflowFailed:
+    def now(cls, workflow_id: WorkflowId, task_id: TaskId, now: datetime) -> WorkflowFailed:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,

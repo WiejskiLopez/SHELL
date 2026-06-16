@@ -40,16 +40,16 @@ class ImportTaskHandler:
 
     async def handle(self, cmd: ImportTaskCommand) -> str:
         body = TaskBody(await self._task_loader.load(cmd.md_path))
-        name = TaskName(cmd.task_name)
+        task_name = TaskName(cmd.task_name)
         current_time = self._clock.now()
         async with self._uow as uow:
-            existing = await uow.tasks.get_current_by_name(name)
+            existing = await uow.tasks.get_current_by_name(task_name)
             if existing:
                 existing.supersede()
                 await uow.tasks.save(existing)
             task = Task.create(
                 id_=self._id_gen.new_task_id(),
-                name=name,
+                name=task_name,
                 body=body,
                 now=current_time,
             )

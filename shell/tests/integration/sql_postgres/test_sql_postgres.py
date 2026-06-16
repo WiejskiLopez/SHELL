@@ -148,18 +148,54 @@ class TestPgTaskRepository:
 
 class TestPgWorkflowRepository:
     async def test_start_and_query_workflow(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory: async_sessionmaker,  # Dodane do argumentów fixtures
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))
 
+        from shell.domain.value_objects.task_name import TaskName
+
+        # 1. Pobieramy zadanie z repozytorium, aby uzyskać jego prawdziwe ID
+        async with uow as u:
+            task = await u.tasks.get_current_by_name(TaskName("pg-wf-task"))
+            assert task is not None
+            real_task_id = task.id.value
+
+            # UWAGA: Jeśli Twój StartWorkflowHandler (tak jak w SQLite) wymaga
+            # istniejącego grafu (Graph) do zainicjalizowania kursora,
+            # odkomentuj poniższy blok:
+            #
+            # from shell.domain.entities.graph import Graph, GraphNode
+            # from shell.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+            # from shell.domain.value_objects.mode import Mode
+            # graph = Graph(
+            #     id=GraphId.generate(),
+            #     task_id=task.id,
+            #     template_graph_id=TemplateGraphId("tpl"),
+            #     raw_dict={},
+            #     nodes=[
+            #         GraphNode(
+            #             id=NodeId("pg-wf-task-node-0"),
+            #             position=0,
+            #             node_dir="/fake/pg-wf-task-0",
+            #             mode=Mode("agent"),
+            #             role="agent",
+            #             node_type="agent",
+            #         )
+            #     ],
+            # )
+            # await u.graphs.save(graph)
+            # await u.commit()
+
         start = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await start.handle(StartWorkflowCommand("pg-wf-task"))
+        # 2. Przekazujemy realne ID zadania zamiast nazwy tekstowej
+        wf_id = await start.handle(StartWorkflowCommand(real_task_id))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))

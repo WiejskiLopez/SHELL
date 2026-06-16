@@ -38,7 +38,6 @@ from shell.domain.value_objects.ids import (
 from shell.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
-    from shell.application.ports.messaging import EventPublisher
     from shell.domain.entities.envelope import Envelope
     from shell.domain.entities.graph import Graph
     from shell.domain.entities.prompt import Prompt

@@ -12,9 +12,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 
-from shell.infrastructure.persistence.sql.models import OutboxEventModel, InboxEventModel
+from shell.infrastructure.persistence.sql.models import InboxEventModel, OutboxEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

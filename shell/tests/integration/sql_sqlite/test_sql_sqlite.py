@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
+from sqlalchemy import select
 
 from shell.application.command_handlers.import_task_handler import ImportTaskHandler
 from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
@@ -29,8 +30,10 @@ from shell.application.query_handlers.query_handlers import (
     GetWorkflowHandler,
 )
 from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.domain.events.events import WorkflowStarted
+from shell.domain.value_objects.ids import TaskId, WorkflowId
 from shell.infrastructure.logging.stdlib_logger import get_correlation_id
-from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.persistence import OutboxEventModel, SqlAlchemyUnitOfWork
 from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -137,13 +140,13 @@ class TestSqlTaskRepository:
 
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
@@ -157,6 +160,10 @@ class TestSqlWorkflowRepository:
         async with uow as u:
             task = await u.tasks.get_current_by_name(TaskName("wf-task"))
             assert task is not None
+
+            # Pobieramy prawdziwe ID przypisane do zaimportowanego zadania
+            real_task_id = task.id.value
+
             graph = Graph(
                 id=GraphId.generate(),
                 task_id=task.id,
@@ -177,13 +184,15 @@ class TestSqlWorkflowRepository:
             await u.commit()
 
         start = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await start.handle(StartWorkflowCommand("wf-task"))
+        # Przekazujemy poprawne real_task_id zamiast nazwy stringowej
+        wf_id = await start.handle(StartWorkflowCommand(real_task_id))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
-        assert dto.task_name == "wf-task"
+        # POPRAWKA: Sprawdzamy identyfikator zadania zamiast nazwy tekstowej
+        assert dto.task_id == real_task_id
 
     async def test_workflow_not_found_returns_none(
         self,
@@ -243,7 +252,7 @@ class TestSqlNodeResultRepository:
         from shell.domain.value_objects.ids import WorkflowId
         async with uow as u:
             await u.workflows.save(
-                Workflow.new(id_=WorkflowId("wf-sql-nr-1"), task_name="t", now=clock.now())
+                Workflow.new(id_=WorkflowId("wf-sql-nr-1"), task_id="task-id", now=clock.now())
             )
             await u.commit()
 
@@ -380,10 +389,10 @@ class TestSqlSessionRepository:
             OpenSessionCommand(goal="integration test")
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value,correlation_id=get_correlation_id(), sender="sql-agent", receiver="router", payload={"k": 1})
+            AppendMessageCommand(session_id=session_id.value, correlation_id=get_correlation_id(), sender="sql-agent", receiver="router", payload={"k": 1})
         )
         await AppendMessageHandler(uow, clock, id_gen).handle(
-            AppendMessageCommand(session_id=session_id.value,correlation_id=get_correlation_id(), sender="router", receiver="sql-agent", payload={"k": 2})
+            AppendMessageCommand(session_id=session_id.value, correlation_id=get_correlation_id(), sender="router", receiver="sql-agent", payload={"k": 2})
         )
         await CloseSessionHandler(uow, clock).handle(CloseSessionCommand(session_id=session_id.value))
 
@@ -414,7 +423,7 @@ class TestSqlAuditPublisher:
         pub = SqlAuditPublisher(session_factory)
         events = [
             TaskCreated.now(task_id=TaskId.generate(), task_name=TaskName("audit-task"), now=datetime(2026, 1, 1, tzinfo=UTC)),
-            WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="audit-task", now=datetime(2026, 1, 1, tzinfo=UTC)),
+            WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id=TaskId.generate(), now=datetime(2026, 1, 1, tzinfo=UTC)),
         ]
         await pub.publish(events)
 
@@ -505,7 +514,7 @@ class TestOutboxToInboxRelay:
 
         # Write an event to outbox
         outbox_pub = SqlOutboxPublisher(session_factory)
-        event = WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_name="relay-task", now=datetime(2026, 1, 1, tzinfo=UTC))
+        event = WorkflowStarted.now(workflow_id=WorkflowId.generate(), task_id=TaskId.generate(), now=datetime(2026, 1, 1, tzinfo=UTC))
         await outbox_pub.publish([event])
 
         # Run relay — downstream captures events
@@ -585,38 +594,32 @@ class TestTransactionalOutbox:
         )
 
     async def test_rollback_removes_staged_outbox_events(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            session_factory: async_sessionmaker,
     ) -> None:
         """If the UoW transaction is rolled back, no outbox rows must be written."""
-        from sqlalchemy import select
 
-        from shell.domain.events.events import WorkflowStarted
-        from shell.infrastructure.persistence.sql.models import OutboxEventModel
-
-        async with session_factory() as s:
-            before = len(
-                (await s.execute(select(OutboxEventModel))).scalars().all()
-            )
-
-        try:
+        # 1. Czytelne wymuszenie i przechwycenie wyjątku za pomocą pytest
+        with pytest.raises(RuntimeError, match="forced rollback"):
             async with uow as u:
-                u.stage_events(
-                    [WorkflowStarted.now(
-                        workflow_id=__import__("shell.domain.value_objects.ids", fromlist=["WorkflowId"]).WorkflowId("wf-rollback"),
-                        task_name="rollback-task",
+                u.stage_events([
+                    WorkflowStarted.now(
+                        workflow_id=WorkflowId("wf-rollback"),
+                        # POPRAWKA: Przekazujemy obiekt TaskId zamiast czystego stringa
+                        task_id=TaskId("rollback-task"),
                         now=clock.now(),
-                    )]
-                )
+                    )
+                ])
                 raise RuntimeError("forced rollback")
-        except RuntimeError:
-            pass
 
-        async with session_factory() as s:
-            after = len(
-                (await s.execute(select(OutboxEventModel))).scalars().all()
-            )
+        # 2. Bezpośrednia weryfikacja bazy — sprawdzamy tylko, czy nasz event NIE wyciekł
+        async with session_factory() as session:
+            result = await session.execute(select(OutboxEventModel))
+            rows = result.scalars().all()
 
-        assert after == before, "Rolled-back transaction must not write outbox rows"
+        # POPRAWKA: Wyrównanie wcięć asercji na poziomie ciała metody (po wyjściu z async with)
+        assert not any(r.payload.get("workflow_id") == "wf-rollback" for r in rows), (
+            "Rolled-back transaction leaked outbox rows into the DB"
+        )

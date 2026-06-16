@@ -25,7 +25,6 @@ from shell.domain.events.events import NodeExecutionRequested
 from shell.domain.exceptions import TaskNotFound, WorkflowHasNoNodes
 from shell.domain.services.node_navigator import LinearNodeNavigator
 from shell.domain.value_objects.ids import TaskId
-from shell.domain.value_objects.task_name import TaskName
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -81,7 +80,7 @@ class RunTaskerWorkflowHandler:
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_id=cmd.task_id,
+                task_id=task_id,
                 now=now,
             )
             workflow.start_at(

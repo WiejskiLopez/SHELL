@@ -59,8 +59,8 @@ class InvalidNodeMode(DomainError):
 class WorkflowHasNoNodes(DomainError):
     """Raised when a workflow is started against a Task whose Graph is empty."""
 
-    def __init__(self, task_name: str) -> None:
-        super().__init__(f"Workflow has no nodes to execute (task={task_name!r})")
+    def __init__(self, task_id: str) -> None:
+        super().__init__(f"Workflow has no nodes to execute (task_id={task_id!r})")
 
 
 class WorkflowConcurrentlyModified(DomainError):

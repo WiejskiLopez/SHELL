@@ -8,6 +8,7 @@ from shell.application.bus.event_bus import EventBus
 from shell.application.bus.query_bus import QueryBus
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
 
+
 class BusContainer(containers.DeclarativeContainer):
     """Szyny komunikatów oraz fabryka UoW."""
 

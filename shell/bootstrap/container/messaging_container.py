@@ -3,11 +3,11 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
+from shell.application.bus.event_bus_publisher import EventBusPublisher
+from shell.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.infrastructure.messaging.processor.inbox_processor import InboxProcessor
 from shell.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
-from shell.application.bus.event_bus_publisher import EventBusPublisher
-from shell.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.messaging.worker.messaging_worker import MessagingWorker
 
 

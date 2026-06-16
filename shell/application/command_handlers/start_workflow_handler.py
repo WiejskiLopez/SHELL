@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from shell.domain.entities.workflow import Workflow
 from shell.domain.exceptions import TaskNotFound, WorkflowHasNoNodes
 from shell.domain.services.node_navigator import LinearNodeNavigator
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.ids import TaskId
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -40,7 +40,7 @@ class StartWorkflowHandler:
     async def handle(self, cmd: StartWorkflowCommand) -> str:
         now = self._clock.now()
         async with self._uow as uow:
-            task = await uow.tasks.get_current_by_id(TaskName(cmd.task_id))
+            task = await uow.tasks.get_current_by_id(TaskId(cmd.task_id))
             if task is None:
                 raise TaskNotFound(cmd.task_id)
 

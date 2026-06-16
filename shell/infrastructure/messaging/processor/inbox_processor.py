@@ -11,6 +11,7 @@ from shell.infrastructure.serialization.event_deserializer import EventDeseriali
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
     from shell.application.ports.ports import EventPublisher
 
 

@@ -151,10 +151,11 @@ class TestStartWorkflowHandler:
             clock: FakeClock,
             id_gen: FakeIdGenerator,
             task_loader: FakeTaskLoader,
-    ) -> None:
+    ) -> str:
         h = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await h.handle(ImportTaskCommand("t.md", "my-task"))
+        task_id = await h.handle(ImportTaskCommand("t.md", "my-task"))
         await self._attach_graph(uow, "my-task")
+        return task_id
 
     @staticmethod
     async def _attach_graph(uow: InMemoryUnitOfWork, task_name: str) -> None:
@@ -193,9 +194,9 @@ class TestStartWorkflowHandler:
             id_gen: FakeIdGenerator,
             task_loader: FakeTaskLoader,
     ) -> None:
-        await self._import_task(uow, clock, id_gen, task_loader)
+        task_id = await self._import_task(uow, clock, id_gen, task_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await handler.handle(StartWorkflowCommand("my-task"))
+        wf_id = await handler.handle(StartWorkflowCommand(task_id))
 
         assert wf_id
         assert any(isinstance(e, WorkflowStarted) for e in uow.committed_events)
@@ -218,9 +219,9 @@ class TestStartWorkflowHandler:
             task_loader: FakeTaskLoader,
             queries: InMemoryQueryServices,
     ) -> None:
-        await self._import_task(uow, clock, id_gen, task_loader)
+        task_id = await self._import_task(uow, clock, id_gen, task_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await handler.handle(StartWorkflowCommand("my-task"))
+        wf_id = await handler.handle(StartWorkflowCommand(task_id))
 
         q_handler = GetWorkflowHandler(queries)
         dto = await q_handler.handle(GetWorkflowQuery(wf_id))
@@ -242,8 +243,8 @@ class TestSaveNodeResultHandler:
             queries: InMemoryQueryServices,
     ) -> None:
         from shell.domain.entities.workflow import Workflow
-        from shell.domain.value_objects.ids import WorkflowId
-        wf = Workflow.new(id_=WorkflowId("wf-1"), task_name="t", now=clock.now())
+        from shell.domain.value_objects.ids import TaskId, WorkflowId
+        wf = Workflow.new(id_=WorkflowId("wf-1"), task_id=TaskId("task-1"), now=clock.now())
         uow.workflows._store["wf-1"] = wf
 
         handler = SaveNodeResultHandler(uow, clock, id_gen)

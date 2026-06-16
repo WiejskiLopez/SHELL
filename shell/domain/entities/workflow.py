@@ -56,8 +56,9 @@ if TYPE_CHECKING:
         NodeId,
         NodeResultId,
         NodeStateId,
-        WorkflowId, TaskId,
-)
+        TaskId,
+        WorkflowId,
+    )
 
 
 @dataclass(slots=True)

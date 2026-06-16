@@ -88,7 +88,7 @@ def _build_graph(uow: InMemoryUnitOfWork, task_name: str, modes: list[str]) -> t
 
 
 async def _persist_running_workflow(
-    uow: InMemoryUnitOfWork, task_id: str, first_node: NodeId
+    uow: InMemoryUnitOfWork, task_id: TaskId, first_node: NodeId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), task_id=task_id, now=_NOW)
     wf.start_at(
@@ -119,7 +119,7 @@ class TestNodeExecutionWorkerHappyPath:
     async def test_first_node_success_advances_to_second(self) -> None:
         uow = InMemoryUnitOfWork()
         task, graph = _build_graph(uow, "happy", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
+        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
         worker = _make_worker(uow, runner)
@@ -141,7 +141,7 @@ class TestNodeExecutionWorkerHappyPath:
     async def test_last_node_success_finishes_workflow(self) -> None:
         uow = InMemoryUnitOfWork()
         task, graph = _build_graph(uow, "single", ["agent"])
-        wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
+        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
@@ -163,7 +163,7 @@ class TestNodeExecutionWorkerFailure:
     async def test_node_failure_aborts_under_fail_fast_policy(self) -> None:
         uow = InMemoryUnitOfWork()
         task, graph = _build_graph(uow, "fail", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
+        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(uow, runner)
@@ -189,7 +189,7 @@ class TestNodeExecutionWorkerIdempotency:
     async def test_stale_cursor_event_is_dropped(self) -> None:
         uow = InMemoryUnitOfWork()
         task, graph = _build_graph(uow, "stale", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
+        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
@@ -212,7 +212,7 @@ class TestNodeExecutionWorkerIdempotency:
     async def test_terminal_workflow_ignores_event(self) -> None:
         uow = InMemoryUnitOfWork()
         task, graph = _build_graph(uow, "terminal", ["agent"])
-        wf = await _persist_running_workflow(uow, task.name.value, graph.nodes[0].id)
+        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
 
         # Force the workflow into ``done`` state directly.
         wf.record_node_result(

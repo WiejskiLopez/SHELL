@@ -170,9 +170,8 @@ class NodeExecutionWorker:
 
     @staticmethod
     async def _load_graph(uow: UnitOfWork, workflow: Workflow) -> Graph | None:
-        from shell.domain.value_objects.task_name import TaskName
 
-        task = await uow.tasks.get_current_by_id(TaskName(workflow.task_id))
+        task = await uow.tasks.get_current_by_id(workflow.task_id)
         if task is None:
             return None
         return await uow.graphs.get_by_task_id(task.id)
