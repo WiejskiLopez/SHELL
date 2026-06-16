@@ -69,8 +69,8 @@ elseif (-not $UnitOnly -and -not $hasPostgres) {
 
 # Lint (ruff) - only if not skipped
 if (-not $SkipLint) {
-    Run-Command "python -m ruff check shell tests" "Lint (ruff)" -AllowFailure
-    Run-Command "python -m ruff format --check shell tests" "Format Check (ruff)" -AllowFailure
+    Run-Command "python -m ruff check shell shell/tests" "Lint (ruff)" -AllowFailure
+    Run-Command "python -m ruff format --check  shell shell/tests" "Format Check (ruff)" -AllowFailure
 }
 
 # Type check (mypy) - only if not skipped

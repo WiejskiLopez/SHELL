@@ -4,10 +4,9 @@ from __future__ import annotations
 import asyncio
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.messaging.processor.inbox_processor import InboxProcessor
-
 if TYPE_CHECKING:
     from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
+    from shell.infrastructure.messaging.processor.inbox_processor import InboxProcessor
 
 
 class MessagingWorker:

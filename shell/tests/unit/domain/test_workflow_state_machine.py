@@ -1,30 +1,31 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
+
 import pytest
 
 from shell.domain.entities.workflow import Workflow
 from shell.domain.exceptions import InvalidWorkflowTransition
-from shell.domain.value_objects.status import Status
-from shell.domain.value_objects.workflow_cursor import WorkflowCursor
-from shell.domain.value_objects.workflow_execution_context import (
-    WorkflowExecutionContext,
+from shell.domain.events.events import (
+    NodeAdvanced,
+    NodeStarted,
+    WorkflowCompleted,
+    WorkflowFailed,
+    WorkflowStarted,
 )
 from shell.domain.value_objects.ids import (
     NodeId,
     TaskId,
     WorkflowId,
 )
-from shell.domain.events.events import (
-    WorkflowStarted,
-    NodeStarted,
-    NodeAdvanced,
-    WorkflowCompleted,
-    WorkflowFailed,
+from shell.domain.value_objects.status import Status
+from shell.domain.value_objects.workflow_cursor import WorkflowCursor
+from shell.domain.value_objects.workflow_execution_context import (
+    WorkflowExecutionContext,
 )
 
 # Definicja stałej czasowej zgodna z konwencją w dump_004.md
-_NOW = datetime(2026, 6, 16, 12, 0, 0, tzinfo=timezone.utc)
+_NOW = datetime(2026, 6, 16, 12, 0, 0, tzinfo=UTC)
 
 
 def _new_workflow() -> Workflow:

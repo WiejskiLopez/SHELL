@@ -7,16 +7,16 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.value_objects.ids import (
-        EnvelopeId,
-        GraphId,
-        NodeId,
-        NodeResultId,
-        TaskId,
-        TemplateGraphId,
-        WorkflowId,
-    )
-    from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.ids import (
+    EnvelopeId,
+    GraphId,
+    NodeId,
+    NodeResultId,
+    TaskId,
+    TemplateGraphId,
+    WorkflowId,
+)
+from shell.domain.value_objects.task_name import TaskName
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -328,16 +328,6 @@ class NodeAdvanced(DomainEvent):
     workflow_id: WorkflowId
     from_node_id: NodeId
     to_node_id: NodeId
-
-    @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
-        return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
-            workflow_id=WorkflowId(payload["workflow_id"]),
-            from_node_id=NodeId(payload["from_node_id"]),
-            to_node_id=NodeId(payload["to_node_id"]),
-        )
 
     @classmethod
     def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
