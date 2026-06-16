@@ -81,7 +81,7 @@ class TestTask:
 
 class TestWorkflow:
     def test_new_workflow_is_idle(self) -> None:
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id="my-task-id", now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
         assert wf.status.value == "idle"
 
     def test_start_at_sets_running(self) -> None:
@@ -89,7 +89,7 @@ class TestWorkflow:
             WorkflowExecutionContext,
         )
 
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id="task-id", now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
         wf.start_at(
             first_node_id=NodeId("n1"),
             context=WorkflowExecutionContext.empty(),
