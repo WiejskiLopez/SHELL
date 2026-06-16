@@ -1167,3 +1167,7 @@
 2026-06-17 01:15:17,932 WARNING test_stdlib_warn: watch out
 2026-06-17 01:15:17,933 ERROR test_stdlib_err: boom
 2026-06-17 01:15:17,934 DEBUG test_stdlib_dbg: trace
+2026-06-17 01:16:45,016 INFO shell.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-17 01:16:45,019 INFO shell.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-17 01:25:26,255 INFO shell.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-17 01:25:26,258 INFO shell.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
