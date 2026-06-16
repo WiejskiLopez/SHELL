@@ -295,6 +295,6 @@ class NodeExecutionWorker:
         return {
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_NODE_ID": node.id.value,
-            "SHELL_TASK_ID": workflow.task_id,
+            "SHELL_TASK_ID": workflow.task_id.value,
             "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
         }

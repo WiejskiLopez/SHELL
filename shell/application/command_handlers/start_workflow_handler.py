@@ -52,7 +52,7 @@ class StartWorkflowHandler:
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_id=cmd.task_id,
+                task_id=TaskId(cmd.task_id),
                 now=now,
             )
             workflow.start_at(

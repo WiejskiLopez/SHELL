@@ -43,7 +43,7 @@ class RouteEnvelopesHandler:
                 raise WorkflowNotFound(cmd.workflow_id)
 
             pending = await uow.envelopes.list_pending(wf_id)
-            task = await uow.tasks.get_current_by_id(TaskId(workflow.task_id))
+            task = await uow.tasks.get_current_by_id(workflow.task_id)
             graph = await uow.graphs.get_by_task_id(task.id) if task is not None else None
 
             now = self._clock.now()

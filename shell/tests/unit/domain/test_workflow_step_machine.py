@@ -27,7 +27,7 @@ from shell.domain.events.events import (
     WorkflowStarted,
 )
 from shell.domain.exceptions import InvalidWorkflowTransition
-from shell.domain.value_objects.ids import NodeId, NodeResultId, WorkflowId
+from shell.domain.value_objects.ids import NodeId, NodeResultId, TaskId, WorkflowId
 from shell.domain.value_objects.status import Status
 from shell.domain.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.value_objects.workflow_execution_context import (
@@ -38,7 +38,7 @@ _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 
 def _new_workflow() -> Workflow:
-    return Workflow.new(id_=WorkflowId.generate(), task_id="task-id", now=_NOW)
+    return Workflow.new(id_=WorkflowId.generate(), task_id=TaskId("task-id"), now=_NOW)
 
 
 def _ctx() -> WorkflowExecutionContext:

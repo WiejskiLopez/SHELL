@@ -16,13 +16,13 @@ from shell.domain.services.node_execution_policy import (
     ContinueDecision,
     FailFastPolicy,
 )
-from shell.domain.value_objects.ids import NodeId, WorkflowId
+from shell.domain.value_objects.ids import NodeId, TaskId, WorkflowId
 
 
 def _workflow() -> Workflow:
     return Workflow.new(
         id_=WorkflowId.generate(),
-        task_id="task_id",
+        task_id=TaskId("task_id"),
         now=datetime.now(tz=UTC),
     )
 

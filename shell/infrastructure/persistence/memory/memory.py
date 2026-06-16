@@ -19,6 +19,21 @@ from shell.application.dto.dto import (
 )
 from shell.domain.entities.template_graph import TemplateGraph
 from shell.domain.entities.template_graph_node import TemplateGraphNode
+from shell.domain.repositories.envelope_repository import (
+    EnvelopeArchive,
+    EnvelopeRepository,
+)
+from shell.domain.repositories.graph_repository import GraphRepository
+from shell.domain.repositories.prompt_repository import PromptRepository
+from shell.domain.repositories.rag_repository import RagDocumentRepository
+from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.repositories.session_repository import SessionRepository
+from shell.domain.repositories.task_repository import TaskRepository
+from shell.domain.repositories.template_graph_repository import (
+    TemplateGraphNodeRepository,
+    TemplateGraphRepository,
+)
+from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.ids import (
     EnvelopeId,
@@ -36,6 +51,8 @@ from shell.domain.value_objects.ids import (
     TemplateGraphNodeId,
     WorkflowId,
 )
+from shell.domain.value_objects.manifest import Manifest
+from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -60,7 +77,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class InMemoryTaskRepository:
+class InMemoryTaskRepository(TaskRepository):
     def __init__(self) -> None:
         self._store: dict[str, Task] = {}
 
@@ -92,7 +109,7 @@ class InMemoryTaskRepository:
         return [t for t in self._store.values() if t.is_current]
 
 
-class InMemoryGraphRepository:
+class InMemoryGraphRepository(GraphRepository):
     def __init__(self) -> None:
         self._store: dict[str, Graph] = {}
 
@@ -109,7 +126,7 @@ class InMemoryGraphRepository:
         self._store[graph.id.value] = graph
 
 
-class InMemoryWorkflowRepository:
+class InMemoryWorkflowRepository(WorkflowRepository):
     """In-memory ``WorkflowRepository`` with optimistic concurrency control.
 
     Mirrors :class:`SqlWorkflowRepository` semantics so unit tests behave the
@@ -144,7 +161,7 @@ class InMemoryWorkflowRepository:
         self._persisted_versions[workflow.id.value] = workflow.version
 
 
-class InMemoryEnvelopeRepository:
+class InMemoryEnvelopeRepository(EnvelopeRepository):
     def __init__(self) -> None:
         self._store: dict[str, Envelope] = {}
 
@@ -177,7 +194,7 @@ class InMemoryEnvelopeRepository:
         return results
 
 
-class InMemoryEnvelopeArchive:
+class InMemoryEnvelopeArchive(EnvelopeArchive):
     def __init__(self) -> None:
         self._store: dict[str, Envelope] = {}
 
@@ -190,7 +207,7 @@ class InMemoryEnvelopeArchive:
         return self._store.get(archive_uri)
 
 
-class InMemoryPromptRepository:
+class InMemoryPromptRepository(PromptRepository):
     def __init__(self) -> None:
         self._store: dict[str, Prompt] = {}
 
@@ -207,7 +224,7 @@ class InMemoryPromptRepository:
         self._store[prompt.id.value] = prompt
 
 
-class InMemoryRunnerConfigRepository:
+class InMemoryRunnerConfigRepository(RunnerConfigRepository):
     def __init__(self) -> None:
         self._store: dict[str, RunnerConfig] = {}
 
@@ -224,7 +241,7 @@ class InMemoryRunnerConfigRepository:
         self._store[config.id.value] = config
 
 
-class InMemoryRagDocumentRepository:
+class InMemoryRagDocumentRepository(RagDocumentRepository):
     def __init__(self) -> None:
         self._store: dict[str, RagDocument] = {}
 
@@ -258,7 +275,7 @@ class InMemoryRagDocumentRepository:
         return [c for _, c in scored[:top_k]]
 
 
-class InMemorySessionRepository:
+class InMemorySessionRepository(SessionRepository):
     def __init__(self) -> None:
         self._store: dict[str, Session] = {}
         self._messages: dict[str, list[Message]] = {}
@@ -348,7 +365,9 @@ class InMemoryUnitOfWork:
         self._committed_events = []
         return self
 
-    async def __aexit__(self, exc_type: object, *args: object) -> None:
+    async def __aexit__(
+        self, exc_type: object, exc_val: object, exc_tb: object
+    ) -> None:
         if exc_type is not None:
             await self.rollback()
 
@@ -463,9 +482,12 @@ class FakeNodeProcessRunner:
         self._returncode = returncode
         self.calls: list[dict[str, object]] = []
 
-    async def run(self, manifest: object, workspace_path: str, env: dict | None = None) -> object:
-        from shell.domain.value_objects.execution_result import ExecutionResult
-
+    async def run(
+        self,
+        manifest: Manifest,
+        workspace_path: str,
+        env: dict[str, str] | None = None,
+    ) -> ExecutionResult:
         self.calls.append({"manifest": manifest, "workspace_path": workspace_path})
         return ExecutionResult(
             stdout=self._stdout,
@@ -539,7 +561,7 @@ class InMemoryQueryServices:
             return None
         return WorkflowDto(
             id=str(workflow.id),
-            task_id=workflow.task_id,
+            task_id=str(workflow.task_id),
             status=workflow.status.value,
             created_at=workflow.created_at,
             node_states={
@@ -615,10 +637,17 @@ class InMemoryQueryServices:
         )
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        c = self._uow.runner_configs._store.get(package_name)
+        c = await self._uow.runner_configs.get_by_package(package_name)
         if not c:
             return None
-        return RunnerConfigDto(package_name=c.package_name, version=c.version, config=c.config)
+        return RunnerConfigDto(
+            id=str(c.id),
+            package_name=c.package_name,
+            kind=c.kind,
+            hash=str(c.hash),
+            body=c.body,
+            created_at=c.created_at,
+        )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
         session = self._uow.sessions._store.get(session_id)
@@ -666,7 +695,7 @@ class InMemoryQueryServices:
         ]
 
 
-class InMemoryTemplateGraphRepository:
+class InMemoryTemplateGraphRepository(TemplateGraphRepository):
     def __init__(self) -> None:
         self._store: dict[str, TemplateGraph] = {}
 
@@ -683,7 +712,7 @@ class InMemoryTemplateGraphRepository:
         self._store[graph.id.value] = graph
 
 
-class InMemoryTemplateGraphNodeRepository:
+class InMemoryTemplateGraphNodeRepository(TemplateGraphNodeRepository):
     def __init__(self) -> None:
         self._store: dict[str, TemplateGraphNode] = {}
 
