@@ -193,7 +193,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
     )
     return Workflow(
         id=WorkflowId(m.id),
-        task_id=m.task_id,
+        task_id=TaskId(m.task_id),
         status=Status(m.status),
         created_at=_ensure_utc(m.created_at),
         cursor=cursor,
@@ -207,7 +207,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
 def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
     m = WorkflowModel(
         id=w.id.value,
-        task_id=w.task_id,
+        task_id=w.task_id.value,
         status=w.status.value,
         current_node_id=w.cursor.current_node_id.value if w.cursor.current_node_id else None,
         work_dir=w.execution_context.work_dir,
