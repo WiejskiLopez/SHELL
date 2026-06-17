@@ -41,7 +41,7 @@ class JsonFormatter(logging.Formatter):
         if record.exc_info:
             data["exc_info"] = self.formatException(record.exc_info)
         # Include any extra fields attached by the caller
-        _std_keys = logging.LogRecord.__dict__.keys() | {"message", "asctime", "taskName"}
+        _std_keys = logging.LogRecord.__dict__.keys() | {"message", "asctime", "TaskExecutionName"}
         for k, v in record.__dict__.items():
             if k not in _std_keys and not k.startswith("_"):
                 data.setdefault("extra", {})[k] = v  # type: ignore[index]

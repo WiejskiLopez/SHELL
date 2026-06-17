@@ -6,24 +6,26 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell.application.command_handlers.import_task_execution_handler import (
+    ImportTaskExecutionHandler,
+)
 from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
-    ImportTaskCommand,
+    ImportTaskExecutionCommand,
     SaveNodeResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
-    GetCurrentTaskQuery,
+    GetCurrentTaskExecutionQuery,
     GetNodeResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
-    GetCurrentTaskHandler,
+    GetCurrentTaskExecutionHandler,
     GetNodeResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
@@ -32,7 +34,7 @@ from shell.bootstrap.database_config.database_bootstrap import bootstrap_databas
 from shell.domain.entities.prompt import Prompt
 from shell.domain.value_objects.ids import (
     PromptId,
-    TaskId,
+    TaskExecutionId,
 )
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.persistence.memory.memory import (
@@ -112,7 +114,7 @@ def id_gen() -> FakeIdGenerator:
 
 
 @pytest.fixture()
-def task_loader() -> FakeTaskLoader:
+def task_execution_loader() -> FakeTaskLoader:
     return FakeTaskLoader(md="# SQL Task")
 
 
@@ -121,21 +123,21 @@ def task_loader() -> FakeTaskLoader:
 # ---------------------------------------------------------------------------
 
 
-class TestSqlTaskRepository:
+class TestSqlTaskExecutionRepository:
     async def test_save_and_get_current(
         self,
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await handler.handle(ImportTaskCommand("t.md", "sql-task"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 
-        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetCurrentTaskQuery("sql-task"))
+        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task"))
         assert dto is not None
         assert dto.name == "sql-task"
         assert dto.is_current is True
@@ -146,15 +148,15 @@ class TestSqlTaskRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
-        await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
+        await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
 
-        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetCurrentTaskQuery("sql-task-v"))
+        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task-v"))
         assert dto is not None
         assert dto.is_current is True
 
@@ -166,29 +168,29 @@ class TestSqlWorkflowRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await imp.handle(ImportTaskCommand("t.md", "wf-task"))
+        imp = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
         from shell.domain.entities.graph import Graph, GraphNode
-        from shell.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+        from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId
         from shell.domain.value_objects.mode import Mode
-        from shell.domain.value_objects.task_name import TaskName
+        from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
         async with uow as u:
-            task = await u.tasks.get_current_by_name(TaskName("wf-task"))
-            assert task is not None
+            task_execution = await u.task_executions.get_current_by_name(TaskExecutionName("wf-task"))
+            assert task_execution is not None
 
             # 1. Pobieramy prawdziwe ID przypisane do zaimportowanego zadania
-            real_task_id = task.id.value
+            real_task_execution_id = task_execution.id.value
 
             graph = Graph(
                 id=GraphId.generate(),
-                task_id=task.id,
-                template_graph_id=TemplateGraphId("tpl"),
+                task_execution_id=task_execution.id,
+                graph_definition_id=GraphDefinitionId("tpl"),
                 nodes=[
                     GraphNode(
                         id=NodeId("wf-task-node-0"),
@@ -204,15 +206,15 @@ class TestSqlWorkflowRepository:
             await u.commit()
 
         start = StartWorkflowHandler(uow, clock, id_gen)
-        # 2. Przekazujemy poprawne real_task_id zamiast nazwy stringowej
-        wf_id = await start.handle(StartWorkflowCommand(real_task_id))
+        # 2. Przekazujemy poprawne real_task_execution_id zamiast nazwy stringowej
+        wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
         # 3. Sprawdzamy identyfikator zadania w DTO zamiast nazwy tekstowej
-        assert dto.task_id == real_task_id
+        assert dto.task_execution_id == real_task_execution_id
 
 
 class TestSqlPromptRepository:
@@ -246,7 +248,7 @@ class TestSqlNodeResultRepository:
 
         async with uow as u:
             await u.workflows.save(
-                Workflow.new(id_=WorkflowId("wf-sql-1"), task_id=TaskId("task-id"), now=clock.now())
+                Workflow.new(id_=WorkflowId("wf-sql-1"), task_execution_id=TaskExecutionId("task-id"), now=clock.now())
             )
             await u.commit()
 

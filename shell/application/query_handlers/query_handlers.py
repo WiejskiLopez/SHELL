@@ -12,7 +12,7 @@ if TYPE_CHECKING:
         RagChunkDto,
         RunnerConfigDto,
         SessionDto,
-        TaskDto,
+        TaskExecutionDto,
         WorkflowDto,
     )
     from shell.application.ports.queries import (
@@ -22,36 +22,36 @@ if TYPE_CHECKING:
         RagQueryService,
         RunnerConfigQueryService,
         SessionQueryService,
-        TaskQueryService,
+        TaskExecutionQueryService,
         WorkflowQueryService,
     )
     from shell.application.queries.queries import (
-        GetCurrentTaskQuery,
+        GetCurrentTaskExecutionQuery,
         GetEnvelopesByWorkflowQuery,
         GetNodeResultQuery,
         GetPromptQuery,
         GetRunnerConfigQuery,
         GetSessionHistoryQuery,
-        GetTaskByNameQuery,
+        GetTaskExecutionByNameQuery,
         GetWorkflowQuery,
         SearchSimilarQuery,
     )
     from shell.domain.services.rag_index_service import Embedder
 
 
-class GetTaskByNameHandler:
-    def __init__(self, queries: TaskQueryService) -> None:
+class GetTaskExecutionByNameHandler:
+    def __init__(self, queries: TaskExecutionQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetTaskByNameQuery) -> TaskDto | None:
-        return await self._queries.get_task_by_name(query.name)
+    async def handle(self, query: GetTaskExecutionByNameQuery) -> TaskExecutionDto | None:
+        return await self._queries.get_task_execution_by_name(query.name)
 
 
-class GetCurrentTaskHandler:
-    def __init__(self, queries: TaskQueryService) -> None:
+class GetCurrentTaskExecutionHandler:
+    def __init__(self, queries: TaskExecutionQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetCurrentTaskQuery) -> TaskDto | None:
+    async def handle(self, query: GetCurrentTaskExecutionQuery) -> TaskExecutionDto | None:
         return await self._queries.get_current_task(query.name)
 
 

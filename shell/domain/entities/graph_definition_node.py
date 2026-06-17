@@ -4,13 +4,13 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.value_objects.ids import TemplateGraphNodeId
+    from shell.domain.value_objects.ids import GraphDefinitionNodeId
     from shell.domain.value_objects.mode import Mode
 
 
 @dataclass(slots=True)
-class TemplateGraphNode:
-    id: TemplateGraphNodeId
+class GraphDefinitionNode:
+    id: GraphDefinitionNodeId
     position: int
     mode: Mode
     role: str

@@ -17,7 +17,7 @@ from shell.application.dto.dto import (
     RagChunkDto,
     RunnerConfigDto,
     SessionDto,
-    TaskDto,
+    TaskExecutionDto,
     WorkflowDto,
 )
 from shell.infrastructure.persistence.sql.models import (
@@ -28,7 +28,7 @@ from shell.infrastructure.persistence.sql.models import (
     RagDocumentModel,
     RunnerConfigModel,
     SessionModel,
-    TaskModel,
+    TaskExecutionModel,
     WorkflowModel,
 )
 
@@ -42,10 +42,10 @@ class SqlQueryServices:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    # --- TaskQueryService ---
-    async def get_task_by_name(self, name: str) -> TaskDto | None:
+    # --- TaskExecutionQueryService ---
+    async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(TaskModel).where(TaskModel.name == name).where(TaskModel.is_current)
+            stmt = select(TaskExecutionModel).where(TaskExecutionModel.name == name).where(TaskExecutionModel.is_current)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -54,7 +54,7 @@ class SqlQueryServices:
             graph_stmt = (
                 select(GraphModel)
                 .options(selectinload(GraphModel.nodes))
-                .where(GraphModel.task_id == model.id)
+                .where(GraphModel.task_execution_id == model.id)
             )
             graph_res = await session.execute(graph_stmt)
             graph_model = graph_res.scalar_one_or_none()
@@ -75,7 +75,7 @@ class SqlQueryServices:
                     for n in graph_model.nodes
                 ]
 
-            return TaskDto(
+            return TaskExecutionDto(
                 id=model.id,
                 name=model.name,
                 version=model.version,
@@ -86,9 +86,9 @@ class SqlQueryServices:
                 graph_nodes=graph_nodes,
             )
 
-    async def get_current_task(self, name: str) -> TaskDto | None:
+    async def get_current_task(self, name: str) -> TaskExecutionDto | None:
         # W tej implementacji current_task jest tożsamy z pobraniem po nazwie
-        return await self.get_task_by_name(name)
+        return await self.get_task_execution_by_name(name)
 
     # --- WorkflowQueryService ---
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
@@ -104,7 +104,7 @@ class SqlQueryServices:
                 return None
             return WorkflowDto(
                 id=model.id,
-                task_id=model.task_id,
+                task_execution_id=model.task_execution_id,
                 status=model.status,
                 created_at=model.created_at,
                 node_states={

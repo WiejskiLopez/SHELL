@@ -10,7 +10,7 @@ from shell.application.dto.dto import (
     NodeStateDto,
     PromptDto,
     RunnerConfigDto,
-    TaskDto,
+    TaskExecutionDto,
     WorkflowDto,
 )
 
@@ -19,19 +19,19 @@ if TYPE_CHECKING:
     from shell.domain.entities.node_result import NodeResult
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
-    from shell.domain.entities.task import Task
+    from shell.domain.entities.task_execution import TaskExecution
     from shell.domain.entities.workflow import Workflow
 
 
-def task_to_dto(task: Task) -> TaskDto:
-    return TaskDto(
-        id=task.id.value,
-        name=task.name.value,
-        version=task.version.value,
-        hash=task.hash.value,
-        is_current=task.is_current,
-        created_at=task.created_at,
-        body=task.body.value,
+def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
+    return TaskExecutionDto(
+        id=task_execution.id.value,
+        name=task_execution.name.value,
+        version=task_execution.version.value,
+        hash=task_execution.hash.value,
+        is_current=task_execution.is_current,
+        created_at=task_execution.created_at,
+        body=task_execution.body.value,
         graph_nodes=[],
     )
 
@@ -48,7 +48,7 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
     }
     return WorkflowDto(
         id=workflow.id.value,
-        task_id=workflow.task_id.value,
+        task_execution_id=workflow.task_execution_id.value,
         status=workflow.status.value,
         created_at=workflow.created_at,
         node_states=states,

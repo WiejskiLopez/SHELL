@@ -7,7 +7,7 @@ class DomainError(Exception):
     """Base class for all domain errors."""
 
 
-class TaskNotFound(DomainError):
+class TaskExecutionNotFound(DomainError):
     def __init__(self, id: str) -> None:
         super().__init__(f"Task not found: {id!r}")
 
@@ -60,8 +60,8 @@ class InvalidNodeMode(DomainError):
 class WorkflowHasNoNodes(DomainError):
     """Raised when a workflow is started against a Task whose Graph is empty."""
 
-    def __init__(self, task_id: str) -> None:
-        super().__init__(f"Workflow has no nodes to execute (task_id={task_id!r})")
+    def __init__(self, task_execution_id: str) -> None:
+        super().__init__(f"Workflow has no nodes to execute (task_execution_id={task_execution_id!r})")
 
 
 class WorkflowConcurrentlyModified(DomainError):

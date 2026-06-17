@@ -4,31 +4,31 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.entities.template_graph_node import TemplateGraphNode
-    from shell.domain.value_objects.ids import TemplateGraphId, TemplateGraphNodeId
+    from shell.domain.entities.graph_definition_node import GraphDefinitionNode
+    from shell.domain.value_objects.ids import GraphDefinitionId, GraphDefinitionNodeId
 
 
 @dataclass(slots=True)
-class TemplateGraph:
-    id: TemplateGraphId
+class GraphDefinition:
+    id: GraphDefinitionId
     name: str
     purpose: str
-    nodes: list[TemplateGraphNode] = field(default_factory=list)
+    nodes: list[GraphDefinitionNode] = field(default_factory=list)
 
-    def add_node(self, node: TemplateGraphNode) -> None:
+    def add_node(self, node: GraphDefinitionNode) -> None:
         self.nodes.append(node)
         self.nodes.sort(key=lambda n: n.position)
 
     def remove_node(
         self,
-        node_id: TemplateGraphNodeId,
+        node_id: GraphDefinitionNodeId,
     ) -> None:
         self.nodes = [n for n in self.nodes if n.id != node_id]
 
     def get_node(
         self,
         position: int,
-    ) -> TemplateGraphNode | None:
+    ) -> GraphDefinitionNode | None:
         return next(
             (n for n in self.nodes if n.position == position),
             None,

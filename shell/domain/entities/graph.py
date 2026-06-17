@@ -1,9 +1,9 @@
 """Graph aggregate root.
 
-A Graph is the concrete realisation of a workflow plan for a specific Task.
-It is built from a TemplateGraph in reaction to the ``TaskCreated`` event
-(see ``BuildGraphOnTaskCreated`` event handler) — a Task does not know
-which Graph realises it; the Graph holds the back-reference (``task_id``).
+A Graph is the concrete realisation of a workflow plan for a specific task_execution.
+It is built from a GraphDefinition in reaction to the ``TaskExecutionCreated`` event
+(see ``BuildGraphOnTaskExecutionCreated`` event handler) — a Task does not know
+which Graph realises it; the Graph holds the back-reference (``task_execution_id``).
 """
 
 from __future__ import annotations
@@ -17,12 +17,12 @@ from shell.domain.events.events import GraphBuilt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.entities.template_graph import TemplateGraph
+    from shell.domain.entities.graph_definition import GraphDefinition
     from shell.domain.value_objects.ids import (
+        GraphDefinitionId,
         GraphId,
         NodeId,
-        TaskId,
-        TemplateGraphId,
+        TaskExecutionId,
     )
 
 
@@ -36,54 +36,54 @@ class Graph(AggregateRoot["GraphId"]):
     """Graph aggregate root — owns its GraphNodes."""
 
     __slots__ = (
-        "_task_id",
-        "_template_graph_id",
+        "_task_execution_id",
+        "_graph_definition_id",
         "_nodes",
     )
 
-    _task_id: TaskId
-    _template_graph_id: TemplateGraphId
+    _task_execution_id: TaskExecutionId
+    _graph_definition_id: GraphDefinitionId
     _nodes: list[GraphNode]
 
     def __init__(
         self,
         id: GraphId,
-        task_id: TaskId,
-        template_graph_id: TemplateGraphId,
+        task_execution_id: TaskExecutionId,
+        graph_definition_id: GraphDefinitionId,
         nodes: list[GraphNode] | None = None,
     ) -> None:
         super().__init__(id)
-        self._task_id = task_id
-        self._template_graph_id = template_graph_id
+        self._task_execution_id = task_execution_id
+        self._graph_definition_id = graph_definition_id
         self._nodes = list(nodes) if nodes else []
 
     @property
-    def task_id(self) -> TaskId:
-        return self._task_id
+    def task_execution_id(self) -> TaskExecutionId:
+        return self._task_execution_id
 
     @property
-    def template_graph_id(self) -> TemplateGraphId:
-        return self._template_graph_id
+    def graph_definition_id(self) -> GraphDefinitionId:
+        return self._graph_definition_id
 
     @property
     def nodes(self) -> list[GraphNode]:
         return self._nodes
 
     @classmethod
-    def from_template(
+    def from_graph_definition(
         cls,
         *,
         id_: GraphId,
-        task_id: TaskId,
-        template: TemplateGraph,
+        task_execution_id: TaskExecutionId,
+        graph_definition: GraphDefinition,
         node_id_factory: _NodeIdFactory,
         now: datetime,
     ) -> Graph:
-        """Build a Graph from a TemplateGraph snapshot. Emits GraphBuilt."""
+        """Build a Graph from a GraphDefinition snapshot. Emits GraphBuilt."""
         from shell.domain.value_objects.mode import Mode
 
         nodes: list[GraphNode] = []
-        for tn in template.nodes:
+        for tn in graph_definition.nodes:
             mode = tn.mode if isinstance(tn.mode, Mode) else Mode(str(tn.mode))
             nodes.append(
                 GraphNode(
@@ -101,7 +101,7 @@ class Graph(AggregateRoot["GraphId"]):
                     max_step=tn.max_step or 0,
                     no_ask_user=tn.no_ask_user,
                     autopilot=tn.autopilot,
-                    task_id="",
+                    task_execution_id="",
                     source_dir="",
                     work_dir="",
                     status_initial=tn.status_initial,
@@ -110,15 +110,15 @@ class Graph(AggregateRoot["GraphId"]):
             )
         graph = cls(
             id=id_,
-            task_id=task_id,
-            template_graph_id=template.id,
+            task_execution_id=task_execution_id,
+            graph_definition_id=graph_definition.id,
             nodes=nodes,
         )
         graph.append_event(
             GraphBuilt.now(
                 graph_id=id_,
-                task_id=task_id,
-                template_graph_id=template.id,
+                task_execution_id=task_execution_id,
+                graph_definition_id=graph_definition.id,
                 now=now,
             )
         )

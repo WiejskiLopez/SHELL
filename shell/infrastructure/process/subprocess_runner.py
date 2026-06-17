@@ -73,14 +73,14 @@ class SubprocessNodeProcessRunner:
         mode = str(manifest.mode)
         entrypoint = str(_ENTRYPOINTS_DIR / f"{mode}_entrypoint.py")
         env.get("SHELL_WORKFLOW_ID", "")
-        task_id = env.get("SHELL_TASK_ID", "")
+        task_execution_id = env.get("SHELL_task_execution_id", "")
 
         return build_sub_node_command(
             entrypoint_path=entrypoint,
             node_dir=workspace_path,
             source_dir=workspace_path,
             work_dir=workspace_path,
-            task_id=task_id,
+            task_execution_id=task_execution_id,
             task_dir=workspace_path,
             mode=mode,
             role=manifest.role,

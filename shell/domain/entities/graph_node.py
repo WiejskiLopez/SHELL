@@ -28,7 +28,7 @@ class GraphNode:
     max_step: int = 0
     no_ask_user: bool = False
     autopilot: bool = False
-    task_id: str = ""
+    task_execution_id: str = ""
     source_dir: str = ""
     work_dir: str = ""
     status_initial: str = ""

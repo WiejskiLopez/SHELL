@@ -7,29 +7,29 @@ from datetime import UTC
 import pytest
 
 from shell.domain.value_objects.hash import Hash
-from shell.domain.value_objects.ids import EnvelopeId, TaskId, WorkflowId
+from shell.domain.value_objects.ids import EnvelopeId, TaskExecutionId, WorkflowId
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.timestamp import Timestamp
 
 
-class TestTaskName:
+class TestTaskExecutionName:
     def test_valid(self) -> None:
-        tn = TaskName("my-task")
+        tn = TaskExecutionName("my-task")
         assert str(tn) == "my-task"
 
     def test_empty_raises(self) -> None:
         with pytest.raises(ValueError):
-            TaskName("")
+            TaskExecutionName("")
 
     def test_whitespace_only_raises(self) -> None:
         with pytest.raises(ValueError):
-            TaskName("   ")
+            TaskExecutionName("   ")
 
     def test_too_long_raises(self) -> None:
         with pytest.raises(ValueError):
-            TaskName("x" * 256)
+            TaskExecutionName("x" * 256)
 
 
 class TestHash:
@@ -53,15 +53,15 @@ class TestHash:
 
 
 class TestIds:
-    def test_task_id_generate(self) -> None:
-        t1 = TaskId.generate()
-        t2 = TaskId.generate()
+    def test_task_execution_id_generate(self) -> None:
+        t1 = TaskExecutionId.generate()
+        t2 = TaskExecutionId.generate()
         assert t1 != t2
         assert len(t1.value) == 36  # UUID4
 
-    def test_task_id_empty_raises(self) -> None:
+    def test_task_execution_id_empty_raises(self) -> None:
         with pytest.raises(ValueError):
-            TaskId("")
+            TaskExecutionId("")
 
     def test_workflow_id_generate(self) -> None:
         w = WorkflowId.generate()

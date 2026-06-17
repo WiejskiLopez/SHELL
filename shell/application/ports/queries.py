@@ -4,23 +4,23 @@ from typing import Protocol
 
 from shell.application.dto.dto import (
     EnvelopeDto,
+    GraphDefinitionDto,
     NodeResultDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
     SessionDto,
-    TaskDto,
-    TemplateGraphDto,
+    TaskExecutionDto,
     WorkflowDto,
 )
 
 
-class TaskQueryService(Protocol):
+class TaskExecutionQueryService(Protocol):
     """Port do bezpośredniego odczytu DTO zadań (omija domenę)."""
 
-    async def get_task_by_name(self, name: str) -> TaskDto | None: ...
+    async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None: ...
 
-    async def get_current_task(self, name: str) -> TaskDto | None: ...
+    async def get_current_task(self, name: str) -> TaskExecutionDto | None: ...
 
 
 class WorkflowQueryService(Protocol):
@@ -69,7 +69,7 @@ class SessionQueryService(Protocol):
     async def get_session_history(self, session_id: str) -> SessionDto | None: ...
 
 
-class TemplateGraphQueryService(Protocol):
+class GraphDefinitionQueryService(Protocol):
     """Port do pobierania historii sesji/czatu."""
 
-    async def get_template_graph_by_name(self, name: str) -> TemplateGraphDto | None: ...
+    async def get_graph_definition_by_name(self, name: str) -> GraphDefinitionDto | None: ...

@@ -12,7 +12,7 @@ from shell.application.commands.session_commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.commands.task_commands import ImportTaskCommand
+from shell.application.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.application.commands.workflow_commands import (
     RouteEnvelopesCommand,
     RunTaskerWorkflowCommand,
@@ -24,7 +24,7 @@ __all__ = [
     "ArchiveEnvelopeCommand",
     "BootstrapRunnerConfigCommand",
     "CloseSessionCommand",
-    "ImportTaskCommand",
+    "ImportTaskExecutionCommand",
     "IndexDocumentCommand",
     "OpenSessionCommand",
     "RouteEnvelopesCommand",

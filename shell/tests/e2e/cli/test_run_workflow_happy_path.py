@@ -12,7 +12,7 @@ from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
 from shell.domain.entities.graph import Graph
 from shell.domain.entities.graph_node import GraphNode
-from shell.domain.entities.task import Task
+from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.events.events import (
     NodeCompleted,
     NodeExecutionRequested,
@@ -21,10 +21,10 @@ from shell.domain.events.events import (
     WorkflowFailed,
 )
 from shell.domain.value_objects.hash import Hash
-from shell.domain.value_objects.ids import GraphId, NodeId, TaskId, TemplateGraphId
+from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId, TaskExecutionId
 from shell.domain.value_objects.mode import Mode
-from shell.domain.value_objects.task_body import TaskBody
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
@@ -42,25 +42,25 @@ from shell.infrastructure.persistence.memory.memory import (
 
 def _make_task_with_graph(
     uow: InMemoryUnitOfWork,
-    task_name: str,
+    task_execution_name: str,
     modes: list[str],
     now: datetime,
-) -> tuple[Task, Graph]:
+) -> tuple[TaskExecution, Graph]:
     """Helper do przygotowania zadania wraz z powiązanym grafem wykonawczym."""
-    task = Task(
-        id=TaskId.generate(),
-        name=TaskName(task_name),
+    task_execution = TaskExecution(
+        id=TaskExecutionId.generate(),
+        name=TaskExecutionName(task_execution_name),
         version=Version.initial(),
         hash=Hash.of("x"),
-        body=TaskBody("# Task Body"),
+        body=TaskExecutionBody("# Task Body"),
         is_current=True,
         created_at=now,
     )
-    uow.tasks._store[task.id.value] = task  # type: ignore[attr-defined]
+    uow.task_executions._store[task_execution.id.value] = task_execution  # type: ignore[attr-defined]
 
     nodes = [
         GraphNode(
-            id=NodeId(f"{task.id.value}-n{i}"),
+            id=NodeId(f"{task_execution.id.value}-n{i}"),
             position=i,
             node_dir=f"/fake/{m}-{i}",
             mode=Mode(m),
@@ -72,12 +72,12 @@ def _make_task_with_graph(
 
     graph = Graph(
         id=GraphId.generate(),
-        task_id=task.id,
-        template_graph_id=TemplateGraphId("tpl"),
+        task_execution_id=task_execution.id,
+        graph_definition_id=GraphDefinitionId("tpl"),
         nodes=nodes,
     )
     uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]
-    return task, graph
+    return task_execution, graph
 
 
 async def _run_tasker_full(
@@ -161,10 +161,10 @@ class TestRunTaskerWorkflowHappyPath:
         queries: InMemoryQueryServices,
     ) -> None:
         # Arrange
-        task, _ = _make_task_with_graph(uow, "happy-path-task", ["agent", "tool"], clock.now())
+        task_execution, _ = _make_task_with_graph(uow, "happy-path-task", ["agent", "tool"], clock.now())
 
-        # Poprawne przekazanie task_id oraz work_dir zgodnie z Twoją sygnaturą
-        cmd = RunTaskerWorkflowCommand(task_id=task.id.value, work_dir="/fake/work/dir")
+        # Poprawne przekazanie task_execution_id oraz work_dir zgodnie z Twoją sygnaturą
+        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
 
         # Act
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
@@ -189,8 +189,8 @@ class TestRunTaskerWorkflowHappyPath:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task, _ = _make_task_with_graph(uow, "single-node-task", ["agent"], clock.now())
-        cmd = RunTaskerWorkflowCommand(task_id=task.id.value, work_dir="/fake/work/dir")
+        task_execution, _ = _make_task_with_graph(uow, "single-node-task", ["agent"], clock.now())
+        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
 
         # Act
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
@@ -209,8 +209,8 @@ class TestRunTaskerWorkflowPartialFailure:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task, _ = _make_task_with_graph(uow, "failing-task", ["agent", "tool"], clock.now())
-        cmd = RunTaskerWorkflowCommand(task_id=task.id.value, work_dir="/fake/work/dir")
+        task_execution, _ = _make_task_with_graph(uow, "failing-task", ["agent", "tool"], clock.now())
+        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
         failing_runner = FakeNodeProcessRunner(stdout="execution failed", returncode=1)
 
         # Act
@@ -234,13 +234,13 @@ class TestRunTaskerWorkflowEdgeCases:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        from shell.domain.exceptions import TaskNotFound
+        from shell.domain.exceptions import TaskExecutionNotFound
 
-        cmd = RunTaskerWorkflowCommand(task_id="ghost-task-id", work_dir="/fake/dir")
+        cmd = RunTaskerWorkflowCommand(task_execution_id="ghost-task-id", work_dir="/fake/dir")
         handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
 
         # Act & Assert
-        with pytest.raises(TaskNotFound):
+        with pytest.raises(TaskExecutionNotFound):
             await handler.handle(cmd)
 
         assert uow.committed_events == []

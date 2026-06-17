@@ -22,7 +22,7 @@ router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 
 class StartWorkflowRequest(BaseModel):
-    task_id: str
+    task_execution_id: str
 
 
 class StartWorkflowResponse(BaseModel):
@@ -62,7 +62,7 @@ async def start_workflow(
     start_workflow_request: StartWorkflowRequest,
     command_bus: CommandBus = Depends(get_command_bus),  # Wstrzykujemy konkret!
 ) -> StartWorkflowResponse:
-    cmd = StartWorkflowCommand(task_id=start_workflow_request.task_id)
+    cmd = StartWorkflowCommand(task_execution_id=start_workflow_request.task_execution_id)
     wf_id = await command_bus.dispatch(cmd)
     return StartWorkflowResponse(workflow_id=str(wf_id))
 

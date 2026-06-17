@@ -34,8 +34,8 @@ def build_parser(prog: str = "shell") -> argparse.ArgumentParser:
     parser.add_argument("--prompt-dir", dest="prompt_dir", metavar="PATH", default=None)
     # ---- task/source ----
     parser.add_argument("--source-dir", dest="source_dir", metavar="PATH", default=None)
-    parser.add_argument("--task-name", dest="task_name", metavar="NAME", default=None)
-    parser.add_argument("--task-id", dest="task_id", type=int, metavar="ID", default=None)
+    parser.add_argument("--task-name", dest="task_execution_name", metavar="NAME", default=None)
+    parser.add_argument("--task-id", dest="task_execution_id", type=int, metavar="ID", default=None)
     parser.add_argument("--task-dir", dest="task_dir", metavar="PATH", default=None)
     parser.add_argument("--work-dir", dest="work_dir", metavar="PATH", default=None)
     # ---- routing ----

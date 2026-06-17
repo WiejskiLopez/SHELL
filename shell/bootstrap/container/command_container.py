@@ -8,7 +8,9 @@ from shell.application.command_handlers.archive_envelope_handler import ArchiveE
 from shell.application.command_handlers.bootstrap_runner_config_handler import (
     BootstrapRunnerConfigHandler,
 )
-from shell.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell.application.command_handlers.import_task_execution_handler import (
+    ImportTaskExecutionHandler,
+)
 from shell.application.command_handlers.route_envelopes_handler import RouteEnvelopesHandler
 from shell.application.command_handlers.run_node_handler import RunNodeHandler
 from shell.application.command_handlers.run_tasker_workflow_handler import (
@@ -27,12 +29,12 @@ class CommandContainer(containers.DeclarativeContainer):
     domain = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    import_task_handler_factory = providers.Factory(
-        ImportTaskHandler,
+    import_task_execution_handler_factory = providers.Factory(
+        ImportTaskExecutionHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
-        task_loader=infra.task_loader_factory,
+        task_execution_loader=infra.task_execution_loader_factory,
         logger=infra.stdlib_logger,
     )
     start_workflow_handler_factory = providers.Factory(

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class GetTaskByNameQuery:
+class GetTaskExecutionByNameQuery:
     name: str
 
 
 @dataclass(frozen=True, slots=True)
-class GetCurrentTaskQuery:
+class GetCurrentTaskExecutionQuery:
     name: str

@@ -1,4 +1,4 @@
-"""Tasks router — import and query tasks."""
+"""task_executions router — import and query task_executions."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
-from shell.application.commands.commands import ImportTaskCommand
-from shell.application.queries.queries import GetTaskByNameQuery
+from shell.application.commands.commands import ImportTaskExecutionCommand
+from shell.application.queries.queries import GetTaskExecutionByNameQuery
 
 if TYPE_CHECKING:
     from shell.application.bus.command_bus import CommandBus
@@ -16,16 +16,16 @@ if TYPE_CHECKING:
     from shell.bootstrap.container.core_container import CoreContainer
     # Dopasuj ścieżki importu szyn do swojej struktury projektu:
 
-router = APIRouter(prefix="/tasks", tags=["tasks"])
+router = APIRouter(prefix="/task_executions", tags=["task_executions"])
 
 
 class ImportTaskRequest(BaseModel):
-    task_name: str
+    task_execution_name: str
     md_path: str
 
 
 class ImportTaskResponse(BaseModel):
-    task_id: str
+    task_execution_id: str
 
 
 # ------------------------------------------------------------------
@@ -57,9 +57,9 @@ async def import_task(
     body: ImportTaskRequest,
     command_bus: CommandBus = Depends(get_command_bus),  # Wstrzyknięty konkret
 ) -> ImportTaskResponse:
-    cmd = ImportTaskCommand(md_path=body.md_path, task_name=body.task_name)
-    task_id = await command_bus.dispatch(cmd)
-    return ImportTaskResponse(task_id=str(task_id))
+    cmd = ImportTaskExecutionCommand(md_path=body.md_path, task_execution_name=body.task_execution_name)
+    task_execution_id = await command_bus.dispatch(cmd)
+    return ImportTaskResponse(task_execution_id=str(task_execution_id))
 
 
 @router.get("/{name}")
@@ -67,7 +67,7 @@ async def get_task(
     name: str,
     query_bus: QueryBus = Depends(get_query_bus),  # Wstrzyknięty konkret
 ) -> dict:  # type: ignore[type-arg]
-    result = await query_bus.dispatch(GetTaskByNameQuery(name=name))
+    result = await query_bus.dispatch(GetTaskExecutionByNameQuery(name=name))
     if result is None:
         raise HTTPException(status_code=404, detail=f"Task '{name}' not found")
     return {"name": name, "task": str(result)}

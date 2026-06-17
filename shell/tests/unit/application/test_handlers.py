@@ -4,30 +4,32 @@ from __future__ import annotations
 
 import pytest
 
-from shell.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell.application.command_handlers.import_task_execution_handler import (
+    ImportTaskExecutionHandler,
+)
 from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
-    ImportTaskCommand,
+    ImportTaskExecutionCommand,
     SaveNodeResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
-    GetCurrentTaskQuery,
+    GetCurrentTaskExecutionQuery,
     GetNodeResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
-    GetCurrentTaskHandler,
+    GetCurrentTaskExecutionHandler,
     GetNodeResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
 )
-from shell.domain.events.events import TaskCreated, WorkflowStarted
-from shell.domain.exceptions import TaskNotFound
+from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
+from shell.domain.exceptions import TaskExecutionNotFound
 from shell.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
@@ -59,7 +61,7 @@ def id_gen() -> FakeIdGenerator:
 
 
 @pytest.fixture()
-def task_loader() -> FakeTaskLoader:
+def task_execution_loader() -> FakeTaskLoader:
     return FakeTaskLoader(md="# My Task")
 
 
@@ -74,68 +76,68 @@ def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
 
 
 # ---------------------------------------------------------------------------
-# ImportTaskHandler
+# ImportTaskExecutionHandler
 # ---------------------------------------------------------------------------
 
 
-class TestImportTaskHandler:
+class TestImportTaskExecutionHandler:
     async def test_happy_path(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        task_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        assert task_id
+        assert task_execution_id
         assert len(uow.committed_events) == 1
-        assert isinstance(uow.committed_events[0], TaskCreated)
+        assert isinstance(uow.committed_events[0], TaskExecutionCreated)
 
     async def test_task_saved_as_current(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await handler.handle(ImportTaskCommand("t.md", "my-task"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        from shell.domain.value_objects.task_name import TaskName
+        from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
-        task = await uow.tasks.get_current_by_name(TaskName("my-task"))
-        assert task is not None
-        assert task.is_current is True
+        task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName("my-task"))
+        assert task_execution is not None
+        assert task_execution.is_current is True
 
     async def test_reimport_marks_previous_non_current(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        first_id = await handler.handle(ImportTaskCommand("t.md", "my-task"))
-        await handler.handle(ImportTaskCommand("t.md", "my-task"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        first_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
+        await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        old = await uow.tasks.get_by_id(
-            __import__("shell.domain.value_objects.ids", fromlist=["TaskId"]).TaskId(first_id)
+        old = await uow.task_executions.get_by_id(
+            __import__("shell.domain.value_objects.ids", fromlist=["TaskExecutionId"]).TaskExecutionId(first_id)
         )
         assert old is not None
         assert old.is_current is False
 
-    async def test_invalid_task_name_raises(
+    async def test_invalid_task_execution_name_raises(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
         with pytest.raises(ValueError):
-            await handler.handle(ImportTaskCommand("t.md", ""))
+            await handler.handle(ImportTaskExecutionCommand("t.md", ""))
 
 
 # ---------------------------------------------------------------------------
@@ -144,39 +146,39 @@ class TestImportTaskHandler:
 
 
 class TestStartWorkflowHandler:
-    async def _import_task(
+    async def _import_task_execution(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> str:
-        h = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        task_id = await h.handle(ImportTaskCommand("t.md", "my-task"))
+        h = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        task_execution_id = await h.handle(ImportTaskExecutionCommand("t.md", "my-task"))
         await self._attach_graph(uow, "my-task")
-        return task_id
+        return task_execution_id
 
     @staticmethod
-    async def _attach_graph(uow: InMemoryUnitOfWork, task_name: str) -> None:
+    async def _attach_graph(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
         """Persist a single-node Graph for the imported task so that
         ``StartWorkflowHandler`` can anchor the cursor on a first node.
         """
         from shell.domain.entities.graph import Graph, GraphNode
-        from shell.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+        from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId
         from shell.domain.value_objects.mode import Mode
-        from shell.domain.value_objects.task_name import TaskName
+        from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
-        task = await uow.tasks.get_current_by_name(TaskName(task_name))
-        assert task is not None
+        task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName(task_execution_name))
+        assert task_execution is not None
         graph = Graph(
             id=GraphId.generate(),
-            task_id=task.id,
-            template_graph_id=TemplateGraphId("tpl"),
+            task_execution_id=task_execution.id,
+            graph_definition_id=GraphDefinitionId("tpl"),
             nodes=[
                 GraphNode(
-                    id=NodeId(f"{task_name}-node-0"),
+                    id=NodeId(f"{task_execution_name}-node-0"),
                     position=0,
-                    node_dir=f"/fake/{task_name}-0",
+                    node_dir=f"/fake/{task_execution_name}-0",
                     mode=Mode("agent"),
                     role="agent",
                     node_type="agent",
@@ -190,11 +192,11 @@ class TestStartWorkflowHandler:
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
     ) -> None:
-        task_id = await self._import_task(uow, clock, id_gen, task_loader)
+        task_execution_id = await self._import_task_execution(uow, clock, id_gen, task_execution_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await handler.handle(StartWorkflowCommand(task_id))
+        wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
         assert wf_id
         assert any(isinstance(e, WorkflowStarted) for e in uow.committed_events)
@@ -206,7 +208,7 @@ class TestStartWorkflowHandler:
         id_gen: FakeIdGenerator,
     ) -> None:
         handler = StartWorkflowHandler(uow, clock, id_gen)
-        with pytest.raises(TaskNotFound):
+        with pytest.raises(TaskExecutionNotFound):
             await handler.handle(StartWorkflowCommand("nonexistent"))
 
     async def test_workflow_persisted(
@@ -214,12 +216,12 @@ class TestStartWorkflowHandler:
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         queries: InMemoryQueryServices,
     ) -> None:
-        task_id = await self._import_task(uow, clock, id_gen, task_loader)
+        task_execution_id = await self._import_task_execution(uow, clock, id_gen, task_execution_loader)
         handler = StartWorkflowHandler(uow, clock, id_gen)
-        wf_id = await handler.handle(StartWorkflowCommand(task_id))
+        wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
         q_handler = GetWorkflowHandler(queries)
         dto = await q_handler.handle(GetWorkflowQuery(wf_id))
@@ -241,9 +243,9 @@ class TestSaveNodeResultHandler:
         queries: InMemoryQueryServices,
     ) -> None:
         from shell.domain.entities.workflow import Workflow
-        from shell.domain.value_objects.ids import TaskId, WorkflowId
+        from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 
-        wf = Workflow.new(id_=WorkflowId("wf-1"), task_id=TaskId("task-1"), now=clock.now())
+        wf = Workflow.new(id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now())
         await uow.workflows.save(wf)
 
         handler = SaveNodeResultHandler(uow, clock, id_gen)
@@ -308,7 +310,7 @@ class TestSavePromptHandler:
 
 class TestQueryHandlersNotFound:
     async def test_get_task_not_found(self, queries: InMemoryQueryServices) -> None:
-        dto = await GetCurrentTaskHandler(queries).handle(GetCurrentTaskQuery("missing"))
+        dto = await GetCurrentTaskExecutionHandler(queries).handle(GetCurrentTaskExecutionQuery("missing"))
         assert dto is None
 
     async def test_get_workflow_not_found(self, queries: InMemoryQueryServices) -> None:

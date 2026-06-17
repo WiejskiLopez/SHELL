@@ -7,5 +7,5 @@ class ApplicationError(Exception):
     """Base class for all domain errors."""
 
 
-class TemplateGraphNotFoundException(ApplicationError):
+class GraphDefinitionNotFoundException(ApplicationError):
     """Raised when task markdown/yaml has invalid structure."""

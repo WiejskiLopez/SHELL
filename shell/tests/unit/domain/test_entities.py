@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from shell.domain.entities.envelope import Envelope
-from shell.domain.entities.task import Task
+from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.entities.workflow import Workflow
 from shell.domain.exceptions import InvalidEnvelopeTransition
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
@@ -16,11 +16,11 @@ from shell.domain.value_objects.ids import (
     CorrelationId,
     EnvelopeId,
     NodeId,
-    TaskId,
+    TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.value_objects.task_body import TaskBody
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 
 if TYPE_CHECKING:
@@ -30,58 +30,58 @@ if TYPE_CHECKING:
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 
-class TestTask:
+class TestTaskExecution:
     def test_create_yields_initial_task(self) -> None:
-        task = Task.create(
-            id_=TaskId.generate(),
-            name=TaskName("task-name"),
-            body=TaskBody("task-body"),
+        task_execution = TaskExecution.create(
+            id_=TaskExecutionId.generate(),
+            name=TaskExecutionName("task-name"),
+            body=TaskExecutionBody("task-body"),
             now=_NOW,
         )
-        assert task.is_current is True
-        assert task.version == Version.initial()
-        assert len(task.hash.value) == 64
+        assert task_execution.is_current is True
+        assert task_execution.version == Version.initial()
+        assert len(task_execution.hash.value) == 64
 
     def test_create_emits_task_created_event(self) -> None:
-        task = Task.create(
-            id_=TaskId.generate(),
-            name=TaskName("my-task"),
-            body=TaskBody("task-body"),
+        task_execution = TaskExecution.create(
+            id_=TaskExecutionId.generate(),
+            name=TaskExecutionName("my-task"),
+            body=TaskExecutionBody("task-body"),
             now=_NOW,
         )
-        events = task.pull_events()
+        events = task_execution.pull_events()
         assert len(events) == 1
-        assert type(events[0]).__name__ == "TaskCreated"
+        assert type(events[0]).__name__ == "TaskExecutionCreated"
 
     def test_hash_changes_with_content(self) -> None:
-        t1 = Task.create(
-            id_=TaskId.generate(),
-            name=TaskName("task-name"),
-            body=TaskBody("task-body-a"),
+        t1 = TaskExecution.create(
+            id_=TaskExecutionId.generate(),
+            name=TaskExecutionName("task-name"),
+            body=TaskExecutionBody("task-body-a"),
             now=_NOW,
         )
-        t2 = Task.create(
-            id_=TaskId.generate(),
-            name=TaskName("task-name"),
-            body=TaskBody("task-body-b"),
+        t2 = TaskExecution.create(
+            id_=TaskExecutionId.generate(),
+            name=TaskExecutionName("task-name"),
+            body=TaskExecutionBody("task-body-b"),
             now=_NOW,
         )
         assert t1.hash != t2.hash
 
     def test_supersede_marks_not_current(self) -> None:
-        task = Task.create(
-            id_=TaskId.generate(),
-            name=TaskName("task-name"),
-            body=TaskBody("task-body"),
+        task_execution = TaskExecution.create(
+            id_=TaskExecutionId.generate(),
+            name=TaskExecutionName("task-name"),
+            body=TaskExecutionBody("task-body"),
             now=_NOW,
         )
-        task.supersede()
-        assert task.is_current is False
+        task_execution.supersede()
+        assert task_execution.is_current is False
 
 
 class TestWorkflow:
     def test_new_workflow_is_idle(self) -> None:
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=TaskExecutionId.generate(), now=_NOW)
         assert wf.status.value == "idle"
 
     def test_start_at_sets_running(self) -> None:
@@ -89,7 +89,7 @@ class TestWorkflow:
             WorkflowExecutionContext,
         )
 
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=TaskExecutionId.generate(), now=_NOW)
         wf.start_at(
             first_node_id=NodeId("n1"),
             context=WorkflowExecutionContext.empty(),
@@ -101,7 +101,7 @@ class TestWorkflow:
     def test_update_node_state(self) -> None:
         from shell.domain.value_objects.status import Status
 
-        wf = Workflow.new(id_=WorkflowId.generate(), task_id=TaskId.generate(), now=_NOW)
+        wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=TaskExecutionId.generate(), now=_NOW)
         node_id = NodeId("node-1")
         wf.update_node_state(node_id, Status.running(), now=_NOW, step=2)
         assert wf.node_states["node-1"].step == 2

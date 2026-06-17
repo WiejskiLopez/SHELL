@@ -465,7 +465,7 @@ infrastructure/
 │   ├── sql/
 │   │   ├── __init__.py           build_session_factory(), create_all_tables()
 │   │   ├── models/               SQLAlchemy ORM modele (TaskModel, WorkflowModel, ...)
-│   │   ├── repositories/         SqlTaskRepository, SqlWorkflowRepository, ...
+│   │   ├── repositories/         SqlTaskExecutionRepository, SqlWorkflowRepository, ...
 │   │   └── unit_of_work.py       SqlAlchemyUnitOfWork
 │   ├── memory/
 │   │   └── memory.py             InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeEventPublisher, FakeTaskLoader

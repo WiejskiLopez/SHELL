@@ -10,14 +10,14 @@ if TYPE_CHECKING:
 
 from shell.domain.value_objects.ids import (
     EnvelopeId,
+    GraphDefinitionId,
     GraphId,
     NodeId,
     NodeResultId,
-    TaskId,
-    TemplateGraphId,
+    TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -34,16 +34,16 @@ class DomainEvent:
 
 
 @dataclass(frozen=True, slots=True)
-class TaskCreated(DomainEvent):
-    task_id: TaskId
-    task_name: TaskName
+class TaskExecutionCreated(DomainEvent):
+    task_execution_id: TaskExecutionId
+    task_execution_name: TaskExecutionName
 
     @classmethod
-    def now(cls, task_id: TaskId, task_name: TaskName, now: datetime) -> TaskCreated:
+    def now(cls, task_execution_id: TaskExecutionId, task_execution_name: TaskExecutionName, now: datetime) -> TaskExecutionCreated:
         return cls(
             occurred_at=now,
-            task_id=task_id,
-            task_name=task_name,
+            task_execution_id=task_execution_id,
+            task_execution_name=task_execution_name,
         )
 
     @classmethod
@@ -53,30 +53,30 @@ class TaskCreated(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            task_id=TaskId(payload["task_id"]),
-            task_name=TaskName(payload["task_name"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
+            task_execution_name=TaskExecutionName(payload["task_execution_name"]),
         )
 
 
 @dataclass(frozen=True, slots=True)
 class GraphBuilt(DomainEvent):
     graph_id: GraphId
-    task_id: TaskId
-    template_graph_id: TemplateGraphId
+    task_execution_id: TaskExecutionId
+    graph_definition_id: GraphDefinitionId
 
     @classmethod
     def now(
         cls,
         graph_id: GraphId,
-        task_id: TaskId,
-        template_graph_id: TemplateGraphId,
+        task_execution_id: TaskExecutionId,
+        graph_definition_id: GraphDefinitionId,
         now: datetime,
     ) -> GraphBuilt:
         return cls(
             occurred_at=now,
             graph_id=graph_id,
-            task_id=task_id,
-            template_graph_id=template_graph_id,
+            task_execution_id=task_execution_id,
+            graph_definition_id=graph_definition_id,
         )
 
     @classmethod
@@ -87,15 +87,15 @@ class GraphBuilt(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             graph_id=GraphId(payload["graph_id"]),
-            task_id=TaskId(payload["task_id"]),
-            template_graph_id=TemplateGraphId(payload["template_graph_id"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
+            graph_definition_id=GraphDefinitionId(payload["graph_definition_id"]),
         )
 
 
 @dataclass(frozen=True, slots=True)
 class WorkflowStarted(DomainEvent):
     workflow_id: WorkflowId
-    task_id: TaskId
+    task_execution_id: TaskExecutionId
 
     @classmethod
     def from_payload(
@@ -105,15 +105,15 @@ class WorkflowStarted(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            task_id=TaskId(payload["task_id"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_id: TaskId, now: datetime) -> WorkflowStarted:
+    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowStarted:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            task_id=task_id,
+            task_execution_id=task_execution_id,
         )
 
 
@@ -232,7 +232,7 @@ class NodeFailed(DomainEvent):
 @dataclass(frozen=True, slots=True)
 class WorkflowCompleted(DomainEvent):
     workflow_id: WorkflowId
-    task_id: TaskId
+    task_execution_id: TaskExecutionId
 
     @classmethod
     def from_payload(
@@ -242,22 +242,22 @@ class WorkflowCompleted(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            task_id=TaskId(payload["task_id"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_id: TaskId, now: datetime) -> WorkflowCompleted:
+    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowCompleted:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            task_id=task_id,
+            task_execution_id=task_execution_id,
         )
 
 
 @dataclass(frozen=True, slots=True)
 class WorkflowFailed(DomainEvent):
     workflow_id: WorkflowId
-    task_id: TaskId
+    task_execution_id: TaskExecutionId
 
     @classmethod
     def from_payload(
@@ -267,15 +267,15 @@ class WorkflowFailed(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            task_id=TaskId(payload["task_id"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_id: TaskId, now: datetime) -> WorkflowFailed:
+    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowFailed:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            task_id=task_id,
+            task_execution_id=task_execution_id,
         )
 
 

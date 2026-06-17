@@ -23,9 +23,9 @@ from typing import TYPE_CHECKING
 
 from shell.domain.entities.workflow import Workflow
 from shell.domain.events.events import NodeExecutionRequested
-from shell.domain.exceptions import TaskNotFound, WorkflowHasNoNodes
+from shell.domain.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
 from shell.domain.services.node_navigator import LinearNodeNavigator
-from shell.domain.value_objects.ids import TaskId
+from shell.domain.value_objects.ids import TaskExecutionId
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -43,7 +43,7 @@ if TYPE_CHECKING:
 class RunTaskerWorkflowHandler:
     """Creates a Workflow in RUNNING state and emits the first NodeExecutionRequested.
 
-    Throws ``TaskNotFound`` if the task does not exist and
+    Throws ``TaskExecutionNotFound`` if the task does not exist and
     ``WorkflowHasNoNodes`` if its Graph has no executable nodes.
     """
 
@@ -61,18 +61,18 @@ class RunTaskerWorkflowHandler:
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow and request execution; return the workflow id."""
-        task_id = TaskId(cmd.task_id)
+        task_execution_id = TaskExecutionId(cmd.task_execution_id)
         now = self._clock.now()
 
         async with self._uow as uow:
-            task = await uow.tasks.get_current_by_id(task_id)
-            if task is None:
-                raise TaskNotFound(cmd.task_id)
+            task_execution = await uow.task_executions.get_current_by_id(task_execution_id)
+            if task_execution is None:
+                raise TaskExecutionNotFound(cmd.task_execution_id)
 
-            graph = await uow.graphs.get_by_task_id(task.id)
+            graph = await uow.graphs.get_by_task_execution_id(task_execution.id)
             first_node = self._navigator.first(graph) if graph is not None else None
             if first_node is None:
-                raise WorkflowHasNoNodes(cmd.task_id)
+                raise WorkflowHasNoNodes(cmd.task_execution_id)
 
             context = WorkflowExecutionContext(
                 work_dir=cmd.work_dir,
@@ -81,7 +81,7 @@ class RunTaskerWorkflowHandler:
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_id=task_id,
+                task_execution_id=task_execution_id,
                 now=now,
             )
             workflow.start_at(

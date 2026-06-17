@@ -10,20 +10,20 @@ if TYPE_CHECKING:
     from dependency_injector.providers import Factory
 
     from shell.application.query_handlers.query_handlers import (
-        GetCurrentTaskHandler,
+        GetCurrentTaskExecutionHandler,
         GetEnvelopesByWorkflowHandler,
         GetNodeResultHandler,
         GetPromptHandler,
         GetRunnerConfigHandler,
         GetSessionHistoryHandler,
-        GetTaskByNameHandler,
+        GetTaskExecutionByNameHandler,
         GetWorkflowHandler,
         SearchSimilarHandler,
     )
 
     class _QueryContainerProtocol(Protocol):
-        get_task_by_name_handler_factory: Factory[GetTaskByNameHandler]
-        get_current_task_handler_factory: Factory[GetCurrentTaskHandler]
+        get_task_execution_by_name_handler_factory: Factory[GetTaskExecutionByNameHandler]
+        get_current_task_execution_handler_factory: Factory[GetCurrentTaskExecutionHandler]
         get_workflow_handler_factory: Factory[GetWorkflowHandler]
         get_envelopes_by_workflow_handler_factory: Factory[GetEnvelopesByWorkflowHandler]
         get_node_result_handler_factory: Factory[GetNodeResultHandler]
@@ -34,13 +34,13 @@ if TYPE_CHECKING:
 
 
 from shell.application.query_handlers.query_handlers import (
-    GetCurrentTaskHandler,
+    GetCurrentTaskExecutionHandler,
     GetEnvelopesByWorkflowHandler,
     GetNodeResultHandler,
     GetPromptHandler,
     GetRunnerConfigHandler,
     GetSessionHistoryHandler,
-    GetTaskByNameHandler,
+    GetTaskExecutionByNameHandler,
     GetWorkflowHandler,
     SearchSimilarHandler,
 )
@@ -51,11 +51,11 @@ class QueryContainer(containers.DeclarativeContainer):
 
     infra = providers.DependenciesContainer()
 
-    get_task_by_name_handler_factory = providers.Factory(
-        GetTaskByNameHandler, queries=infra.query_services
+    get_task_execution_by_name_handler_factory = providers.Factory(
+        GetTaskExecutionByNameHandler, queries=infra.query_services
     )
-    get_current_task_handler_factory = providers.Factory(
-        GetCurrentTaskHandler, queries=infra.query_services
+    get_current_task_execution_handler_factory = providers.Factory(
+        GetCurrentTaskExecutionHandler, queries=infra.query_services
     )
     get_workflow_handler_factory = providers.Factory(
         GetWorkflowHandler, queries=infra.query_services

@@ -11,7 +11,7 @@ from shell.domain.value_objects.ids import (
     NodeResultId,
     PromptId,
     RunnerConfigId,
-    TaskId,
+    TaskExecutionId,
     WorkflowId,
 )
 
@@ -19,8 +19,8 @@ from shell.domain.value_objects.ids import (
 class UuidIdGenerator:
     """Generates real UUID-based IDs."""
 
-    def new_task_id(self) -> TaskId:
-        return TaskId(str(uuid.uuid4()))
+    def new_task_execution_id(self) -> TaskExecutionId:
+        return TaskExecutionId(str(uuid.uuid4()))
 
     def new_workflow_id(self) -> WorkflowId:
         return WorkflowId(str(uuid.uuid4()))

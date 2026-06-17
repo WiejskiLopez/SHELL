@@ -7,18 +7,18 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class TaskId:
+class TaskExecutionId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("TaskId cannot be empty")
+            raise ValueError("TaskExecutionId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> TaskId:
+    def generate(cls) -> TaskExecutionId:
         return cls(str(uuid.uuid4()))
 
 
@@ -211,34 +211,34 @@ class CorrelationId:
 
 
 @dataclass(frozen=True, slots=True)
-class TemplateGraphId:
+class GraphDefinitionId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("TemplateGraphId cannot be empty")
+            raise ValueError("GraphDefinitionId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> TemplateGraphId:
+    def generate(cls) -> GraphDefinitionId:
         return cls(str(uuid.uuid4()))
 
 
 @dataclass(frozen=True, slots=True)
-class TemplateGraphNodeId:
+class GraphDefinitionNodeId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("TemplateGraphNodeId cannot be empty")
+            raise ValueError("GraphDefinitionNodeId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> TemplateGraphNodeId:
+    def generate(cls) -> GraphDefinitionNodeId:
         return cls(str(uuid.uuid4()))
 
 

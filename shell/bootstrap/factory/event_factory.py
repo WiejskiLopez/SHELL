@@ -12,7 +12,7 @@ from shell.domain.events.events import (
     NodeExecutionRequested,
     NodeFailed,
     NodeStarted,
-    TaskCreated,
+    TaskExecutionCreated,
     WorkflowCompleted,
     WorkflowFailed,
     WorkflowStarted,
@@ -38,8 +38,8 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(EnvelopeExpired, events.log_audit_handler_factory)
     event_bus.subscribe(NodeCompleted, events.log_audit_handler_factory)
     event_bus.subscribe(NodeFailed, events.log_audit_handler_factory)
-    event_bus.subscribe(TaskCreated, events.log_audit_handler_factory)
-    event_bus.subscribe(TaskCreated, events.build_graph_on_task_created_factory)
+    event_bus.subscribe(TaskExecutionCreated, events.log_audit_handler_factory)
+    event_bus.subscribe(TaskExecutionCreated, events.build_graph_on_task_execution_created_factory)
     event_bus.subscribe(WorkflowStarted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowCompleted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailed, events.log_audit_handler_factory)

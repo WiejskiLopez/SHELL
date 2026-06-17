@@ -57,7 +57,7 @@ if TYPE_CHECKING:
         NodeId,
         NodeResultId,
         NodeStateId,
-        TaskId,
+        TaskExecutionId,
         WorkflowId,
     )
 
@@ -76,7 +76,7 @@ class Workflow:
     """Workflow aggregate root — owns NodeStates, NodeResults and the cursor."""
 
     id: WorkflowId
-    task_id: TaskId
+    task_execution_id: TaskExecutionId
     status: Status
     created_at: datetime
     cursor: WorkflowCursor = field(default_factory=WorkflowCursor.empty)
@@ -93,12 +93,12 @@ class Workflow:
         cls,
         *,
         id_: WorkflowId,
-        task_id: TaskId,
+        task_execution_id: TaskExecutionId,
         now: datetime,
     ) -> Workflow:
         return cls(
             id=id_,
-            task_id=task_id,
+            task_execution_id=task_execution_id,
             status=Status.idle(),
             created_at=now,
         )
@@ -142,7 +142,7 @@ class Workflow:
         self.execution_context = context
         self.cursor = WorkflowCursor.at(first_node_id)
         self.update_node_state(first_node_id, Status.running(), now=now)
-        self.append_event(WorkflowStarted.now(self.id, self.task_id, now=now))
+        self.append_event(WorkflowStarted.now(self.id, self.task_execution_id, now=now))
         self.append_event(NodeStarted.now(self.id, first_node_id, now=now))
 
     def advance_to(self, *, next_node_id: NodeId, now: datetime) -> None:
@@ -178,7 +178,7 @@ class Workflow:
             )
         self.status = Status.done()
         self.cursor = self.cursor.cleared()
-        self.append_event(WorkflowCompleted.now(self.id, self.task_id, now=now))
+        self.append_event(WorkflowCompleted.now(self.id, self.task_execution_id, now=now))
 
     def abort(
         self,
@@ -198,7 +198,7 @@ class Workflow:
             )
         self.status = Status.failed()
         self.cursor = self.cursor.cleared()
-        self.append_event(WorkflowFailed.now(self.id, self.task_id, now=now))
+        self.append_event(WorkflowFailed.now(self.id, self.task_execution_id, now=now))
         if compensation is not None:
             compensation.compensate(self, reason)
 

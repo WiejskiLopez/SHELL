@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.application.commands.commands import (
     ArchiveEnvelopeCommand,
     BootstrapRunnerConfigCommand,
-    ImportTaskCommand,
+    ImportTaskExecutionCommand,
     RouteEnvelopesCommand,
     RunNodeCommand,
     RunTaskerWorkflowCommand,
@@ -31,7 +31,7 @@ def register_commands(core_container: CoreContainer) -> None:
     commands = app_ctx.commands
 
     # Rejestracja handlerów staje się czysta, krótka i w pełni czytelna:
-    cmd_bus.register(ImportTaskCommand, commands.import_task_handler_factory)
+    cmd_bus.register(ImportTaskExecutionCommand, commands.import_task_execution_handler_factory)
     cmd_bus.register(StartWorkflowCommand, commands.start_workflow_handler_factory)
     cmd_bus.register(RouteEnvelopesCommand, commands.route_envelopes_handler_factory)
     cmd_bus.register(RunNodeCommand, commands.run_node_handler_factory)

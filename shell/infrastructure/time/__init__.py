@@ -12,7 +12,7 @@ from shell.domain.value_objects.ids import (
     NodeResultId,
     PromptId,
     RunnerConfigId,
-    TaskId,
+    TaskExecutionId,
     WorkflowId,
 )
 
@@ -27,8 +27,8 @@ class SystemClock:
 class UuidIdGenerator:
     """UUID4-based implementation of IdGenerator port."""
 
-    def new_task_id(self) -> TaskId:
-        return TaskId(str(uuid.uuid4()))
+    def new_task_execution_id(self) -> TaskExecutionId:
+        return TaskExecutionId(str(uuid.uuid4()))
 
     def new_workflow_id(self) -> WorkflowId:
         return WorkflowId(str(uuid.uuid4()))

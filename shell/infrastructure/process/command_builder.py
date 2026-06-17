@@ -64,7 +64,7 @@ def build_sub_node_command(
     node_dir: str,
     source_dir: str,
     work_dir: str,
-    task_id: str,
+    task_execution_id: str,
     task_dir: str,
     mode: str = "",
     model: str = "",
@@ -79,7 +79,7 @@ def build_sub_node_command(
     cmd += ["--node-dir", node_dir]
     cmd += ["--source-dir", source_dir]
     cmd += ["--work-dir", work_dir]
-    cmd += ["--task-id", task_id]
+    cmd += ["--task-id", task_execution_id]
     cmd += ["--task-dir", task_dir]
     if parent_node_dir:
         cmd += ["--parent-node-dir", parent_node_dir]

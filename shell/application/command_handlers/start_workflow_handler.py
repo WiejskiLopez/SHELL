@@ -1,4 +1,4 @@
-"""StartWorkflowHandler — creates a new Workflow for a task.
+"""StartWorkflowHandler — creates a new Workflow for a task_execution.
 
 Loads the task's Graph, transitions the Workflow to ``running`` via
 ``Workflow.start_at`` (anchoring the cursor on the first graph node), and
@@ -12,9 +12,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.workflow import Workflow
-from shell.domain.exceptions import TaskNotFound, WorkflowHasNoNodes
+from shell.domain.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
 from shell.domain.services.node_navigator import LinearNodeNavigator
-from shell.domain.value_objects.ids import TaskId
+from shell.domain.value_objects.ids import TaskExecutionId
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -41,18 +41,18 @@ class StartWorkflowHandler:
     async def handle(self, cmd: StartWorkflowCommand) -> str:
         now = self._clock.now()
         async with self._uow as uow:
-            task = await uow.tasks.get_current_by_id(TaskId(cmd.task_id))
-            if task is None:
-                raise TaskNotFound(cmd.task_id)
+            task_execution = await uow.task_executions.get_current_by_id(TaskExecutionId(cmd.task_execution_id))
+            if task_execution is None:
+                raise TaskExecutionNotFound(cmd.task_execution_id)
 
-            graph = await uow.graphs.get_by_task_id(task.id)
+            graph = await uow.graphs.get_by_task_execution_id(task_execution.id)
             first_node = self._navigator.first(graph) if graph is not None else None
             if first_node is None:
-                raise WorkflowHasNoNodes(cmd.task_id)
+                raise WorkflowHasNoNodes(cmd.task_execution_id)
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_id=TaskId(cmd.task_id),
+                task_execution_id=TaskExecutionId(cmd.task_execution_id),
                 now=now,
             )
             workflow.start_at(

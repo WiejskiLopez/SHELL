@@ -148,9 +148,9 @@ Commands & Handlers: Komenda to intencja zmiany stanu: *Command (np. ImportTaskC
 
 Queries & Handlers: Zapytanie o dane (tylko odczyt): *Query (np. GetWorkflowQuery). Jej wykonawca to: *Handler (np. GetWorkflowHandler).
 
-Porty Repozytoriów: Zawsze kończą się sufiksem *Repository (np. TaskRepository).
+Porty Repozytoriów: Zawsze kończą się sufiksem *Repository (np. TaskExecutionRepository).
 
-Adaptery Infrastruktury: Zawsze wskazują na technologię: <Technologia><Nazwa>Repository (np. SqlTaskRepository, MongoTaskRepository, InMemoryTaskRepository).
+Adaptery Infrastruktury: Zawsze wskazują na technologię: <Technologia><Nazwa>Repository (np. SqlTaskExecutionRepository, MongoTaskExecutionRepository, InMemoryTaskExecutionRepository).
 
 Unit of Work: Klasy zarządzające transakcjami nazywamy <Technologia}UnitOfWork (np. SqlAlchemyUnitOfWork).
 
@@ -306,7 +306,7 @@ System `shell` opiera się na strategii dwóch równorzędnych mechanizmów trwa
 
 ### 3. Bezwzględna Reguła Duetu Repozytoriów
 Wprowadzenie jakiejkolwiek zmiany w warstwie persystencji podlega zasadzie „wszystko albo nic”:
-- **Zasada rozszerzania:** Dodanie nowego portu repozytorium lub rozszerzenie istniejącego o nową metodę (np. dodanie `find_by_status` do `TaskRepository`) wymaga **natychmiastowej i jednoczesnej** implementacji tej metody w dwóch klasach adapterów: `Sql*Repository` oraz `InMemory*Repository`.
+- **Zasada rozszerzania:** Dodanie nowego portu repozytorium lub rozszerzenie istniejącego o nową metodę (np. dodanie `find_by_status` do `TaskExecutionRepository`) wymaga **natychmiastowej i jednoczesnej** implementacji tej metody w dwóch klasach adapterów: `Sql*Repository` oraz `InMemory*Repository`.
 - **Wymóg testowy:** Oba adaptery oraz powiązany z nimi `UnitOfWork` muszą posiadać dedykowane testy (odpowiednio: integracyjne dla SQL i jednostkowe dla aplikacji korzystające z wersji InMemory).
 
 ### 4. Zarządzanie Migracjami Schematów

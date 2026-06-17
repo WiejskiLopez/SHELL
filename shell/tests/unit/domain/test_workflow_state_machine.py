@@ -15,7 +15,7 @@ from shell.domain.events.events import (
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import (
     NodeId,
-    TaskId,
+    TaskExecutionId,
     WorkflowId,
 )
 from shell.domain.value_objects.status import Status
@@ -32,7 +32,7 @@ def _new_workflow() -> Workflow:
     """Pomocnicza fabryka agregatu Workflow oparta o sygnaturę z dump_002.md."""
     return Workflow.new(
         id_=WorkflowId("wf-123"),
-        task_id=TaskId("task-456"),
+        task_execution_id=TaskExecutionId("task-456"),
         now=_NOW,
     )
 

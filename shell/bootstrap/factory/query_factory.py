@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.application.queries.queries import (
-    GetCurrentTaskQuery,
+    GetCurrentTaskExecutionQuery,
     GetEnvelopesByWorkflowQuery,
     GetNodeResultQuery,
     GetPromptQuery,
     GetRunnerConfigQuery,
     GetSessionHistoryQuery,
-    GetTaskByNameQuery,
+    GetTaskExecutionByNameQuery,
     GetWorkflowQuery,
     SearchSimilarQuery,
 )
@@ -32,8 +32,8 @@ def register_queries(core_container: CoreContainer) -> None:
 
     # Dzięki temu, że 'app_ctx' i jego dzieci są traktowane jako Any,
     # mypy pozwala na pełny dynamiczny dostęp bez zgłaszania błędów:
-    q_bus.register(GetTaskByNameQuery, queries.get_task_by_name_handler_factory)
-    q_bus.register(GetCurrentTaskQuery, queries.get_current_task_handler_factory)
+    q_bus.register(GetTaskExecutionByNameQuery, queries.get_task_execution_by_name_handler_factory)
+    q_bus.register(GetCurrentTaskExecutionQuery, queries.get_current_task_execution_handler_factory)
     q_bus.register(GetWorkflowQuery, queries.get_workflow_handler_factory)
     q_bus.register(
         GetEnvelopesByWorkflowQuery,

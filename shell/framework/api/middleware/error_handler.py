@@ -12,7 +12,7 @@ from shell.domain.exceptions import (
     NodeNotFound,
     PromptNotFound,
     RunnerConfigNotFound,
-    TaskNotFound,
+    TaskExecutionNotFound,
     WorkflowNotFound,
 )
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from fastapi import Request
 
 _NOT_FOUND = {
-    TaskNotFound,
+    TaskExecutionNotFound,
     WorkflowNotFound,
     EnvelopeNotFound,
     NodeNotFound,

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from shell.infrastructure.persistence.sql.models import TemplateGraphModel
+from shell.infrastructure.persistence.sql.models import GraphDefinitionModel
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -63,34 +63,34 @@ async def seed_base_data(url: str) -> None:
 def _seed_sync(sync_conn) -> None:
     from sqlalchemy.orm import Session
 
-    from shell.infrastructure.persistence.sql.models import TemplateGraphNodeModel
+    from shell.infrastructure.persistence.sql.models import GraphDefinitionNodeModel
 
     session = Session(sync_conn)
 
-    template = session.execute(
-        select(TemplateGraphModel).where(TemplateGraphModel.name == "base_planner")
+    graph_definition_model = session.execute(
+        select(GraphDefinitionModel).where(GraphDefinitionModel.name == "base_planner")
     ).scalar_one_or_none()
 
-    if template is None:
-        template = TemplateGraphModel(
+    if graph_definition_model is None:
+        graph_definition_model = GraphDefinitionModel(
             id="base-planner-id",
             name="base_planner",
             purpose="default_planning",
         )
-        session.add(template)
+        session.add(graph_definition_model)
         session.flush()
 
     node_exists = session.execute(
-        select(TemplateGraphNodeModel).where(
-            TemplateGraphNodeModel.template_graph_id == template.id
+        select(GraphDefinitionNodeModel).where(
+            GraphDefinitionNodeModel.graph_definition_id == graph_definition_model.id
         )
     ).scalar_one_or_none()
 
     if node_exists is None:
         session.add(
-            TemplateGraphNodeModel(
+            GraphDefinitionNodeModel(
                 id="base-planner-node-1",
-                template_graph_id=template.id,
+                graph_definition_id=graph_definition_model.id,
                 position=0,
                 mode="agent",
                 role="agent",

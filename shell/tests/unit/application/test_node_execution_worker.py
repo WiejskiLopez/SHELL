@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 from shell.application.event_handlers.node_execution_worker import NodeExecutionWorker
 from shell.domain.entities.graph import Graph
 from shell.domain.entities.graph_node import GraphNode
-from shell.domain.entities.task import Task
+from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.entities.workflow import Workflow
 from shell.domain.events.events import (
     NodeAdvanced,
@@ -29,16 +29,16 @@ from shell.domain.events.events import (
 )
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
+    GraphDefinitionId,
     GraphId,
     NodeId,
-    TaskId,
-    TemplateGraphId,
+    TaskExecutionId,
     WorkflowId,
 )
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
-from shell.domain.value_objects.task_body import TaskBody
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
@@ -54,21 +54,21 @@ from shell.infrastructure.persistence.memory.memory import (
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 
-def _build_graph(uow: InMemoryUnitOfWork, task_name: str, modes: list[str]) -> tuple[Task, Graph]:
-    task = Task(
-        id=TaskId.generate(),
-        name=TaskName(task_name),
+def _build_graph(uow: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]) -> tuple[TaskExecution, Graph]:
+    task_execution = TaskExecution(
+        id=TaskExecutionId.generate(),
+        name=TaskExecutionName(task_execution_name),
         version=Version.initial(),
         hash=Hash.of("x"),
-        body=TaskBody("# Task"),
+        body=TaskExecutionBody("# Task"),
         is_current=True,
         created_at=_NOW,
     )
-    uow.tasks._store[task.id.value] = task  # type: ignore[attr-defined]
+    uow.task_executions._store[task_execution.id.value] = task_execution  # type: ignore[attr-defined]
 
     nodes = [
         GraphNode(
-            id=NodeId(f"{task.id.value}-n{i}"),
+            id=NodeId(f"{task_execution.id.value}-n{i}"),
             position=i,
             node_dir=f"/fake/{m}-{i}",
             mode=Mode(m),
@@ -79,18 +79,18 @@ def _build_graph(uow: InMemoryUnitOfWork, task_name: str, modes: list[str]) -> t
     ]
     graph = Graph(
         id=GraphId.generate(),
-        task_id=task.id,
-        template_graph_id=TemplateGraphId("tpl"),
+        task_execution_id=task_execution.id,
+        graph_definition_id=GraphDefinitionId("tpl"),
         nodes=nodes,
     )
     uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]
-    return task, graph
+    return task_execution, graph
 
 
 async def _persist_running_workflow(
-    uow: InMemoryUnitOfWork, task_id: TaskId, first_node: NodeId
+    uow: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: NodeId
 ) -> Workflow:
-    wf = Workflow.new(id_=WorkflowId.generate(), task_id=task_id, now=_NOW)
+    wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=task_execution_id, now=_NOW)
     wf.start_at(
         first_node_id=first_node,
         context=WorkflowExecutionContext(work_dir="/tmp", correlation_id="cid"),
@@ -118,8 +118,8 @@ def _make_worker(
 class TestNodeExecutionWorkerHappyPath:
     async def test_first_node_success_advances_to_second(self) -> None:
         uow = InMemoryUnitOfWork()
-        task, graph = _build_graph(uow, "happy", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
+        task_execution, graph = _build_graph(uow, "happy", ["agent", "tool"])
+        wf = await _persist_running_workflow(uow, task_execution.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
         worker = _make_worker(uow, runner)
@@ -138,8 +138,8 @@ class TestNodeExecutionWorkerHappyPath:
 
     async def test_last_node_success_finishes_workflow(self) -> None:
         uow = InMemoryUnitOfWork()
-        task, graph = _build_graph(uow, "single", ["agent"])
-        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
+        task_execution, graph = _build_graph(uow, "single", ["agent"])
+        wf = await _persist_running_workflow(uow, task_execution.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
@@ -158,8 +158,8 @@ class TestNodeExecutionWorkerHappyPath:
 class TestNodeExecutionWorkerFailure:
     async def test_node_failure_aborts_under_fail_fast_policy(self) -> None:
         uow = InMemoryUnitOfWork()
-        task, graph = _build_graph(uow, "fail", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
+        task_execution, graph = _build_graph(uow, "fail", ["agent", "tool"])
+        wf = await _persist_running_workflow(uow, task_execution.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(uow, runner)
@@ -182,8 +182,8 @@ class TestNodeExecutionWorkerFailure:
 class TestNodeExecutionWorkerIdempotency:
     async def test_stale_cursor_event_is_dropped(self) -> None:
         uow = InMemoryUnitOfWork()
-        task, graph = _build_graph(uow, "stale", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
+        task_execution, graph = _build_graph(uow, "stale", ["agent", "tool"])
+        wf = await _persist_running_workflow(uow, task_execution.id, graph.nodes[0].id)
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
@@ -203,8 +203,8 @@ class TestNodeExecutionWorkerIdempotency:
 
     async def test_terminal_workflow_ignores_event(self) -> None:
         uow = InMemoryUnitOfWork()
-        task, graph = _build_graph(uow, "terminal", ["agent"])
-        wf = await _persist_running_workflow(uow, task.id, graph.nodes[0].id)
+        task_execution, graph = _build_graph(uow, "terminal", ["agent"])
+        wf = await _persist_running_workflow(uow, task_execution.id, graph.nodes[0].id)
 
         # Force the workflow into ``done`` state directly.
         wf.record_node_result(

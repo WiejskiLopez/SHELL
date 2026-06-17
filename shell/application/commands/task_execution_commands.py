@@ -4,6 +4,6 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class ImportTaskCommand:
+class ImportTaskExecutionCommand:
     md_path: str
-    task_name: str
+    task_execution_name: str

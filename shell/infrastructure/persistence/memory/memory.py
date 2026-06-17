@@ -14,31 +14,33 @@ from shell.application.dto.dto import (
     RagChunkDto,
     RunnerConfigDto,
     SessionDto,
-    TaskDto,
+    TaskExecutionDto,
     WorkflowDto,
 )
 from shell.application.ports.unit_of_work import UnitOfWork
-from shell.domain.entities.template_graph import TemplateGraph
-from shell.domain.entities.template_graph_node import TemplateGraphNode
+from shell.domain.entities.graph_definition import GraphDefinition
+from shell.domain.entities.graph_definition_node import GraphDefinitionNode
 from shell.domain.repositories.envelope_repository import (
     EnvelopeArchive,
     EnvelopeRepository,
+)
+from shell.domain.repositories.graph_definition_repository import (
+    GraphDefinitionNodeRepository,
+    GraphDefinitionRepository,
 )
 from shell.domain.repositories.graph_repository import GraphRepository
 from shell.domain.repositories.prompt_repository import PromptRepository
 from shell.domain.repositories.rag_repository import RagDocumentRepository
 from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
 from shell.domain.repositories.session_repository import SessionRepository
-from shell.domain.repositories.task_repository import TaskRepository
-from shell.domain.repositories.template_graph_repository import (
-    TemplateGraphNodeRepository,
-    TemplateGraphRepository,
-)
+from shell.domain.repositories.task_execution_repository import TaskExecutionRepository
 from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.ids import (
     EnvelopeId,
+    GraphDefinitionId,
+    GraphDefinitionNodeId,
     GraphId,
     MessageId,
     NodeId,
@@ -48,9 +50,7 @@ from shell.domain.value_objects.ids import (
     RagDocumentId,
     RunnerConfigId,
     SessionId,
-    TaskId,
-    TemplateGraphId,
-    TemplateGraphNodeId,
+    TaskExecutionId,
     WorkflowId,
 )
 from shell.domain.value_objects.mode import Mode
@@ -62,11 +62,11 @@ if TYPE_CHECKING:
     from shell.domain.entities.rag_document import RagChunk, RagDocument
     from shell.domain.entities.runner_config import RunnerConfig
     from shell.domain.entities.session import Message, Session
-    from shell.domain.entities.task import Task
+    from shell.domain.entities.task_execution import TaskExecution
     from shell.domain.entities.workflow import Workflow
     from shell.domain.events.events import DomainEvent
     from shell.domain.value_objects.manifest import Manifest
-    from shell.domain.value_objects.task_name import TaskName
+    from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 import logging
 
@@ -78,35 +78,35 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class InMemoryTaskRepository(TaskRepository):
+class InMemoryTaskExecutionRepository(TaskExecutionRepository):
     def __init__(self) -> None:
-        self._store: dict[str, Task] = {}
+        self._store: dict[str, TaskExecution] = {}
 
-    async def get_by_id(self, task_id: TaskId) -> Task | None:
-        return self._store.get(task_id.value)
+    async def get_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
+        return self._store.get(task_execution_id.value)
 
-    async def get_by_name(self, name: TaskName) -> Task | None:
+    async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         for t in self._store.values():
             if t.name == name:
                 return t
         return None
 
-    async def get_current_by_id(self, task_id: TaskId) -> Task | None:
-        task = self._store.get(task_id.value)
-        if task and task.is_current:
-            return task
+    async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
+        task_execution = self._store.get(task_execution_id.value)
+        if task_execution and task_execution.is_current:
+            return task_execution
         return None
 
-    async def get_current_by_name(self, name: TaskName) -> Task | None:
+    async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         for t in self._store.values():
             if t.name == name and t.is_current:
                 return t
         return None
 
-    async def save(self, task: Task) -> None:
-        self._store[task.id.value] = task
+    async def save(self, task_execution: TaskExecution) -> None:
+        self._store[task_execution.id.value] = task_execution
 
-    async def list_current(self) -> list[Task]:
+    async def list_current(self) -> list[TaskExecution]:
         return [t for t in self._store.values() if t.is_current]
 
 
@@ -117,9 +117,9 @@ class InMemoryGraphRepository(GraphRepository):
     async def get_by_id(self, graph_id: GraphId) -> Graph | None:
         return self._store.get(graph_id.value)
 
-    async def get_by_task_id(self, task_id: TaskId) -> Graph | None:
+    async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> Graph | None:
         for g in self._store.values():
-            if g.task_id == task_id:
+            if g.task_execution_id == task_execution_id:
                 return g
         return None
 
@@ -314,7 +314,7 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
 
     def __init__(self) -> None:
         # Private repository instances
-        self._tasks = InMemoryTaskRepository()
+        self._task_executions = InMemoryTaskExecutionRepository()
         self._graphs = InMemoryGraphRepository()
         self._workflows = InMemoryWorkflowRepository()
         self._envelopes = InMemoryEnvelopeRepository()
@@ -323,7 +323,7 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
         self._envelope_archive = InMemoryEnvelopeArchive()
         self._rag_documents = InMemoryRagDocumentRepository()
         self._sessions = InMemorySessionRepository()
-        self._template_graphs = InMemoryTemplateGraphRepository()
+        self._graph_definitions = InMemoryGraphDefinitionRepository()
 
         # Stan transakcyjny
         self._committed = False
@@ -338,13 +338,13 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
         """Helper method to inject a base planner for tests that require it.
         Keeps the default __init__ clean and maintains test isolation.
         """
-        self._template_graphs._store["base_planner"] = TemplateGraph(
-            id=TemplateGraphId("base-planner-id"),
+        self._graph_definitions._store["base_planner"] = GraphDefinition(
+            id=GraphDefinitionId("base-planner-id"),
             name="base_planner",
             purpose="default_planning",
             nodes=[
-                TemplateGraphNode(
-                    id=TemplateGraphNodeId("base-planner-node-1"),
+                GraphDefinitionNode(
+                    id=GraphDefinitionNodeId("base-planner-node-1"),
                     position=0,
                     mode=Mode("agent"),
                     role="agent",
@@ -358,8 +358,8 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
     # ------------------------------------------------------------------
 
     @property
-    def tasks(self) -> InMemoryTaskRepository:
-        return self._tasks
+    def task_executions(self) -> InMemoryTaskExecutionRepository:
+        return self._task_executions
 
     @property
     def graphs(self) -> InMemoryGraphRepository:
@@ -394,8 +394,8 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
         return self._sessions
 
     @property
-    def template_graphs(self) -> InMemoryTemplateGraphRepository:
-        return self._template_graphs
+    def graph_definitions(self) -> InMemoryGraphDefinitionRepository:
+        return self._graph_definitions
 
     # ------------------------------------------------------------------
     # Outbox staging — mirrors SqlAlchemyUnitOfWork interface
@@ -458,8 +458,8 @@ class FakeIdGenerator:
         self._counter += 1
         return f"00000000-0000-0000-0000-{self._counter:012d}"
 
-    def new_task_id(self) -> TaskId:
-        return TaskId(self._next())
+    def new_task_execution_id(self) -> TaskExecutionId:
+        return TaskExecutionId(self._next())
 
     def new_workflow_id(self) -> WorkflowId:
         return WorkflowId(self._next())
@@ -488,11 +488,11 @@ class FakeIdGenerator:
     def new_message_id(self) -> MessageId:
         return MessageId(self._next())
 
-    def new_template_graph_id(self) -> TemplateGraphId:
-        return TemplateGraphId(self._next())
+    def new_graph_definition_id(self) -> GraphDefinitionId:
+        return GraphDefinitionId(self._next())
 
-    def new_template_graph_node_id(self) -> TemplateGraphNodeId:
-        return TemplateGraphNodeId(self._next())
+    def new_graph_definition_node_id(self) -> GraphDefinitionNodeId:
+        return GraphDefinitionNodeId(self._next())
 
     def new_graph_id(self) -> GraphId:
         return GraphId(self._next())
@@ -579,15 +579,15 @@ class InMemoryQueryServices:
     def __init__(self, uow: InMemoryUnitOfWork) -> None:
         self._uow = uow
 
-    async def get_task_by_name(self, name: str) -> TaskDto | None:
+    async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         # Przeszukujemy magazyn zadań w repozytorium in-memory
-        task = next(
-            (t for t in self._uow.tasks._store.values() if t.name.value == name),  # type: ignore[attr-defined]
+        task_execution = next(
+            (t for t in self._uow.task_executions._store.values() if t.name.value == name),  # type: ignore[attr-defined]
             None,
         )
-        if not task:
+        if not task_execution:
             return None
-        graph = await self._uow.graphs.get_by_task_id(task.id)
+        graph = await self._uow.graphs.get_by_task_execution_id(task_execution.id)
         graph_nodes = []
         if graph is not None:
             from shell.application.dto.dto import GraphNodeDto
@@ -605,19 +605,19 @@ class InMemoryQueryServices:
                 )
                 for n in graph.nodes
             ]
-        return TaskDto(
-            id=task.id.value,
-            name=task.name.value,
-            version=task.version.value,
-            hash=task.hash.value,
-            is_current=task.is_current,
-            created_at=task.created_at,
-            body=task.body.value,
+        return TaskExecutionDto(
+            id=task_execution.id.value,
+            name=task_execution.name.value,
+            version=task_execution.version.value,
+            hash=task_execution.hash.value,
+            is_current=task_execution.is_current,
+            created_at=task_execution.created_at,
+            body=task_execution.body.value,
             graph_nodes=graph_nodes,
         )
 
-    async def get_current_task(self, name: str) -> TaskDto | None:
-        return await self.get_task_by_name(name)
+    async def get_current_task(self, name: str) -> TaskExecutionDto | None:
+        return await self.get_task_execution_by_name(name)
 
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
 
@@ -626,7 +626,7 @@ class InMemoryQueryServices:
             return None
         return WorkflowDto(
             id=str(workflow.id),
-            task_id=str(workflow.task_id),
+            task_execution_id=str(workflow.task_execution_id),
             status=workflow.status.value,
             created_at=workflow.created_at,
             node_states={
@@ -763,32 +763,32 @@ class InMemoryQueryServices:
         ]
 
 
-class InMemoryTemplateGraphRepository(TemplateGraphRepository):
+class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self) -> None:
-        self._store: dict[str, TemplateGraph] = {}
+        self._store: dict[str, GraphDefinition] = {}
 
-    async def get(self, graph_id: TemplateGraphId) -> TemplateGraph | None:
+    async def get(self, graph_id: GraphDefinitionId) -> GraphDefinition | None:
         return self._store.get(graph_id.value)
 
-    async def get_template_graph_by_name(self, name: str) -> TemplateGraph | None:
+    async def get_graph_definition_by_name(self, name: str) -> GraphDefinition | None:
         for g in self._store.values():
             if g.name == name:
                 return g
         return None
 
-    async def get_by_id(self, id_: TemplateGraphId) -> TemplateGraph | None:
+    async def get_by_id(self, id_: GraphDefinitionId) -> GraphDefinition | None:
         return self._store.get(id_.value)
 
-    async def save(self, graph: TemplateGraph) -> None:
+    async def save(self, graph: GraphDefinition) -> None:
         self._store[graph.id.value] = graph
 
 
-class InMemoryTemplateGraphNodeRepository(TemplateGraphNodeRepository):
+class InMemoryGraphDefinitionNodeRepository(GraphDefinitionNodeRepository):
     def __init__(self) -> None:
-        self._store: dict[str, TemplateGraphNode] = {}
+        self._store: dict[str, GraphDefinitionNode] = {}
 
-    async def get_by_id(self, node_id: TemplateGraphNodeId) -> TemplateGraphNode | None:
+    async def get_by_id(self, node_id: GraphDefinitionNodeId) -> GraphDefinitionNode | None:
         return self._store.get(node_id.value)
 
-    async def save(self, node: TemplateGraphNode) -> None:
+    async def save(self, node: GraphDefinitionNode) -> None:
         self._store[node.id.value] = node

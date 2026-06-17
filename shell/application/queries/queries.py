@@ -8,17 +8,20 @@ from shell.application.queries.node_queries import GetNodeResultQuery
 from shell.application.queries.prompt_queries import GetPromptQuery
 from shell.application.queries.rag_queries import SearchSimilarQuery
 from shell.application.queries.session_queries import GetSessionHistoryQuery
-from shell.application.queries.task_queries import GetCurrentTaskQuery, GetTaskByNameQuery
+from shell.application.queries.task_execution_queries import (
+    GetCurrentTaskExecutionQuery,
+    GetTaskExecutionByNameQuery,
+)
 from shell.application.queries.workflow_queries import GetWorkflowQuery
 
 __all__ = [
-    "GetCurrentTaskQuery",
+    "GetCurrentTaskExecutionQuery",
     "GetEnvelopesByWorkflowQuery",
     "GetNodeResultQuery",
     "GetPromptQuery",
     "GetRunnerConfigQuery",
     "GetSessionHistoryQuery",
-    "GetTaskByNameQuery",
+    "GetTaskExecutionByNameQuery",
     "GetWorkflowQuery",
     "SearchSimilarQuery",
 ]

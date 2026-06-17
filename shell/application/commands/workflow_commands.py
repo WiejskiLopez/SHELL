@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
 class StartWorkflowCommand:
-    task_id: str
+    task_execution_id: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,5 +15,5 @@ class RouteEnvelopesCommand:
 
 @dataclass(frozen=True, slots=True)
 class RunTaskerWorkflowCommand:
-    task_id: str
+    task_execution_id: str
     work_dir: str

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any  # Dodano import Any
 
 from shell.application.commands.commands import (
-    ImportTaskCommand,
+    ImportTaskExecutionCommand,
     RouteEnvelopesCommand,
     StartWorkflowCommand,
 )
@@ -25,14 +25,14 @@ class SmokeCommand(RunnableCommand):
         query_bus = app_ctx.buses.query_bus()
 
         with tempfile.TemporaryDirectory() as tmp:
-            md = Path(tmp) / "smoke-task.md"
-            md.write_text("# Smoke task\nThis is a smoke-test task.", encoding="utf-8")
-            task_id = await command_bus.dispatch(
-                ImportTaskCommand(md_path=str(md), task_name="smoke-task")
+            md = Path(tmp) / "smoke-task_execution.md"
+            md.write_text("# Smoke task\nThis is a smoke-test task_execution.", encoding="utf-8")
+            task_execution_id = await command_bus.dispatch(
+                ImportTaskExecutionCommand(md_path=str(md), task_execution_name="smoke-task")
             )
 
-        print(f"[smoke] task imported: {task_id}")
-        workflow_id = await command_bus.dispatch(StartWorkflowCommand(task_id=task_id))
+        print(f"[smoke] task imported: {task_execution_id}")
+        workflow_id = await command_bus.dispatch(StartWorkflowCommand(task_execution_id=task_execution_id))
         print(f"[smoke] workflow started: {workflow_id}")
 
         routed = await command_bus.dispatch(RouteEnvelopesCommand(workflow_id=workflow_id))

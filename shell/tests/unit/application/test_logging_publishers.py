@@ -7,9 +7,9 @@ import logging
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
-from shell.domain.events.events import DomainEvent, TaskCreated, WorkflowStarted
-from shell.domain.value_objects.ids import TaskId, WorkflowId
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.events.events import DomainEvent, TaskExecutionCreated, WorkflowStarted
+from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.logging.stdlib_logger import (
@@ -24,16 +24,16 @@ from shell.infrastructure.logging.stdlib_logger import (
 # ---------------------------------------------------------------------------
 
 
-def _task_imported() -> TaskCreated:
-    return TaskCreated.now(
-        task_id=TaskId.generate(), task_name=TaskName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC)
+def _task_imported() -> TaskExecutionCreated:
+    return TaskExecutionCreated.now(
+        task_execution_id=TaskExecutionId.generate(), task_execution_name=TaskExecutionName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC)
     )
 
 
 def _workflow_started() -> WorkflowStarted:
     return WorkflowStarted.now(
         workflow_id=WorkflowId.generate(),
-        task_id=TaskId.generate(),
+        task_execution_id=TaskExecutionId.generate(),
         now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
@@ -139,7 +139,7 @@ class TestLoggingEventPublisher:
         event = _task_imported()
         await pub.publish([event])
         call_kwargs = spy.info.call_args
-        assert call_kwargs.kwargs.get("event_type") == "TaskCreated"
+        assert call_kwargs.kwargs.get("event_type") == "TaskExecutionCreated"
 
     async def test_empty_events_no_log(self) -> None:
         spy = MagicMock()

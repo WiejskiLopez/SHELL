@@ -5,7 +5,7 @@ from __future__ import annotations
 from shell.domain.entities.graph import Graph
 from shell.domain.entities.graph_node import GraphNode
 from shell.domain.services.node_navigator import LinearNodeNavigator
-from shell.domain.value_objects.ids import GraphId, NodeId, TaskId, TemplateGraphId
+from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId, TaskExecutionId
 from shell.domain.value_objects.mode import Mode
 
 
@@ -23,8 +23,8 @@ def _node(node_id: str, position: int, mode: str = "agent") -> GraphNode:
 def _graph(*nodes: GraphNode) -> Graph:
     return Graph(
         id=GraphId.generate(),
-        task_id=TaskId.generate(),
-        template_graph_id=TemplateGraphId("tpl"),
+        task_execution_id=TaskExecutionId.generate(),
+        graph_definition_id=GraphDefinitionId("tpl"),
         nodes=list(nodes),
     )
 

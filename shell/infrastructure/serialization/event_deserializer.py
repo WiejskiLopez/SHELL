@@ -11,7 +11,7 @@ from shell.domain.events.events import (
     NodeExecutionRequested,
     NodeFailed,
     NodeStarted,
-    TaskCreated,
+    TaskExecutionCreated,
     WorkflowCompleted,
     WorkflowFailed,
     WorkflowStarted,
@@ -23,7 +23,7 @@ class EventDeserializer:
     def __init__(self) -> None:
         # Mapowanie nazwy tekstowej (z bazy/szyny) na konkretną klasę
         self._registry: dict[str, type[DomainEvent]] = {
-            "TaskCreated": TaskCreated,
+            "TaskExecutionCreated": TaskExecutionCreated,
             "GraphBuilt": GraphBuilt,
             "WorkflowStarted": WorkflowStarted,
             "EnvelopeRouted": EnvelopeRouted,

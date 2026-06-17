@@ -6,47 +6,47 @@ from datetime import UTC, datetime
 
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell.domain.entities.graph import Graph
+from shell.domain.entities.graph_definition import GraphDefinition
+from shell.domain.entities.graph_definition_node import GraphDefinitionNode
 from shell.domain.entities.graph_node import GraphNode
 from shell.domain.entities.node_result import NodeResult
 from shell.domain.entities.prompt import Prompt
 from shell.domain.entities.runner_config import RunnerConfig
-from shell.domain.entities.task import Task
-from shell.domain.entities.template_graph import TemplateGraph
-from shell.domain.entities.template_graph_node import TemplateGraphNode
+from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.entities.workflow import NodeState, Workflow
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
+    GraphDefinitionId,
+    GraphDefinitionNodeId,
     GraphId,
     NodeId,
     NodeResultId,
     NodeStateId,
     PromptId,
     RunnerConfigId,
-    TaskId,
-    TemplateGraphId,
-    TemplateGraphNodeId,
+    TaskExecutionId,
     WorkflowId,
 )
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
-from shell.domain.value_objects.task_body import TaskBody
-from shell.domain.value_objects.task_name import TaskName
+from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 from shell.infrastructure.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
+    GraphDefinitionModel,
+    GraphDefinitionNodeModel,
     GraphModel,
     GraphNodeModel,
     NodeResultModel,
     NodeStateModel,
     PromptModel,
     RunnerConfigModel,
-    TaskModel,
-    TemplateGraphModel,
-    TemplateGraphNodeModel,
+    TaskExecutionModel,
     WorkflowModel,
 )
 
@@ -62,27 +62,27 @@ def _ensure_utc(dt: datetime) -> datetime:
 # ---------------------------------------------------------------------------
 
 
-def task_model_to_entity(m: TaskModel) -> Task:
-    return Task(
-        id=TaskId(m.id),
-        name=TaskName(m.name),
+def task_model_to_entity(m: TaskExecutionModel) -> TaskExecution:
+    return TaskExecution(
+        id=TaskExecutionId(m.id),
+        name=TaskExecutionName(m.name),
         version=Version(m.version),
         hash=Hash(m.hash),
-        body=TaskBody(m.body),
+        body=TaskExecutionBody(m.body),
         is_current=m.is_current,
         created_at=_ensure_utc(m.created_at),
     )
 
 
-def task_entity_to_model(task: Task) -> TaskModel:
-    return TaskModel(
-        id=task.id.value,
-        name=task.name.value,
-        version=task.version.value,
-        hash=task.hash.value,
-        body=task.body.value,
-        is_current=task.is_current,
-        created_at=task.created_at,
+def task_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
+    return TaskExecutionModel(
+        id=task_execution.id.value,
+        name=task_execution.name.value,
+        version=task_execution.version.value,
+        hash=task_execution.hash.value,
+        body=task_execution.body.value,
+        is_current=task_execution.is_current,
+        created_at=task_execution.created_at,
     )
 
 
@@ -108,7 +108,7 @@ def graph_model_to_entity(m: GraphModel) -> Graph:
             max_step=n.max_step,
             no_ask_user=n.no_ask_user,
             autopilot=n.autopilot,
-            task_id=n.task_id,
+            task_execution_id=n.task_execution_id,
             source_dir=n.source_dir,
             work_dir=n.work_dir,
             status_initial=n.status_initial,
@@ -118,8 +118,8 @@ def graph_model_to_entity(m: GraphModel) -> Graph:
     ]
     return Graph(
         id=GraphId(m.id),
-        task_id=TaskId(m.task_id),
-        template_graph_id=TemplateGraphId(m.template_graph_id),
+        task_execution_id=TaskExecutionId(m.task_execution_id),
+        graph_definition_id=GraphDefinitionId(m.graph_definition_id),
         nodes=nodes,
     )
 
@@ -127,8 +127,8 @@ def graph_model_to_entity(m: GraphModel) -> Graph:
 def graph_entity_to_model(graph: Graph) -> GraphModel:
     m = GraphModel(
         id=graph.id.value,
-        task_id=graph.task_id.value,
-        template_graph_id=str(graph.template_graph_id),
+        task_execution_id=graph.task_execution_id.value,
+        graph_definition_id=str(graph.graph_definition_id),
     )
     m.nodes = [
         GraphNodeModel(
@@ -147,7 +147,7 @@ def graph_entity_to_model(graph: Graph) -> GraphModel:
             max_step=n.max_step,
             no_ask_user=n.no_ask_user,
             autopilot=n.autopilot,
-            task_id=n.task_id,
+            task_execution_id=n.task_execution_id,
             source_dir=n.source_dir,
             work_dir=n.work_dir,
             status_initial=n.status_initial,
@@ -191,7 +191,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
     )
     return Workflow(
         id=WorkflowId(m.id),
-        task_id=TaskId(m.task_id),
+        task_execution_id=TaskExecutionId(m.task_execution_id),
         status=Status(m.status),
         created_at=_ensure_utc(m.created_at),
         cursor=cursor,
@@ -205,7 +205,7 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
 def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
     m = WorkflowModel(
         id=w.id.value,
-        task_id=w.task_id.value,
+        task_execution_id=w.task_execution_id.value,
         status=w.status.value,
         current_node_id=w.cursor.current_node_id.value if w.cursor.current_node_id else None,
         work_dir=w.execution_context.work_dir,
@@ -388,31 +388,31 @@ def runner_config_entity_to_model(c: RunnerConfig) -> RunnerConfigModel:
 
 
 # ---------------------------------------------------------------------------
-# TemplateGraph
+# GraphDefinition
 # ---------------------------------------------------------------------------
 
 
-def template_graph_model_to_entity(
-    m: TemplateGraphModel,
-) -> TemplateGraph:
-    return TemplateGraph(
-        id=TemplateGraphId(m.id),
+def graph_definition_model_to_entity(
+    m: GraphDefinitionModel,
+) -> GraphDefinition:
+    return GraphDefinition(
+        id=GraphDefinitionId(m.id),
         name=m.name,
         purpose=m.purpose,
-        nodes=[template_graph_node_model_to_entity(node) for node in m.nodes],
+        nodes=[graph_definition_node_model_to_entity(node) for node in m.nodes],
     )
 
 
-def template_graph_entity_to_model(
-    graph: TemplateGraph,
-) -> TemplateGraphModel:
-    m = TemplateGraphModel(
+def graph_definition_entity_to_model(
+    graph: GraphDefinition,
+) -> GraphDefinitionModel:
+    m = GraphDefinitionModel(
         id=graph.id,
         name=graph.name,
         purpose=graph.purpose,
     )
     m.nodes = [
-        template_graph_node_entity_to_model(
+        graph_definition_node_entity_to_model(
             node,
             graph.id.value,
         )
@@ -421,11 +421,11 @@ def template_graph_entity_to_model(
     return m
 
 
-def template_graph_node_model_to_entity(
-    m: TemplateGraphNodeModel,
-) -> TemplateGraphNode:
-    return TemplateGraphNode(
-        id=TemplateGraphNodeId(m.id),
+def graph_definition_node_model_to_entity(
+    m: GraphDefinitionNodeModel,
+) -> GraphDefinitionNode:
+    return GraphDefinitionNode(
+        id=GraphDefinitionNodeId(m.id),
         position=m.position,
         mode=Mode(m.mode),
         role=m.role,
@@ -445,13 +445,13 @@ def template_graph_node_model_to_entity(
     )
 
 
-def template_graph_node_entity_to_model(
-    node: TemplateGraphNode,
-    template_graph_id: str,
-) -> TemplateGraphNodeModel:
-    return TemplateGraphNodeModel(
+def graph_definition_node_entity_to_model(
+    node: GraphDefinitionNode,
+    graph_definition_id: str,
+) -> GraphDefinitionNodeModel:
+    return GraphDefinitionNodeModel(
         id=node.id.value,
-        template_graph_id=template_graph_id,
+        graph_definition_id=graph_definition_id,
         position=node.position,
         mode=node.mode.value,
         role=node.role,

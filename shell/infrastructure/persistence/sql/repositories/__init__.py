@@ -12,19 +12,21 @@ from sqlalchemy.orm import selectinload
 from shell.domain.entities.rag_document import RagChunk, RagDocument
 from shell.domain.entities.session import Message, Session
 from shell.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository
+from shell.domain.repositories.graph_definition_repository import GraphDefinitionRepository
 from shell.domain.repositories.graph_repository import GraphRepository
 from shell.domain.repositories.prompt_repository import PromptRepository
 from shell.domain.repositories.rag_repository import RagDocumentRepository
 from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
 from shell.domain.repositories.session_repository import SessionRepository
-from shell.domain.repositories.task_repository import TaskRepository
-from shell.domain.repositories.template_graph_repository import TemplateGraphRepository
+from shell.domain.repositories.task_execution_repository import TaskExecutionRepository
 from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.services.rag_index_service import cosine_similarity
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.ids import (
     CorrelationId,
     EnvelopeId,
+    GraphDefinitionId,
+    GraphDefinitionNodeId,
     GraphId,
     MessageId,
     PromptId,
@@ -32,9 +34,7 @@ from shell.domain.value_objects.ids import (
     RagDocumentId,
     RunnerConfigId,
     SessionId,
-    TaskId,
-    TemplateGraphId,
-    TemplateGraphNodeId,
+    TaskExecutionId,
     WorkflowId,
 )
 
@@ -46,10 +46,10 @@ __all__ = [
     "RagDocumentRepository",
     "RunnerConfigRepository",
     "SessionRepository",
-    "TaskRepository",
-    "TemplateGraphRepository",
+    "TaskExecutionRepository",
+    "GraphDefinitionRepository",
     "WorkflowRepository",
-    "SqlTaskRepository",
+    "SqlTaskExecutionRepository",
     "SqlGraphRepository",
     "SqlWorkflowRepository",
     "SqlEnvelopeRepository",
@@ -58,12 +58,16 @@ __all__ = [
     "SqlEnvelopeArchiveStub",
     "SqlRagDocumentRepository",
     "SqlSessionRepository",
-    "SqlTemplateGraphRepository",
-    "SqlTemplateGraphNodeRepository",
+    "SqlGraphDefinitionRepository",
+    "SqlGraphDefinitionNodeRepository",
 ]
 from shell.infrastructure.persistence.sql.mappers import (  # noqa: E501
     envelope_entity_to_model,
     envelope_model_to_entity,
+    graph_definition_entity_to_model,
+    graph_definition_model_to_entity,
+    graph_definition_node_entity_to_model,
+    graph_definition_node_model_to_entity,
     graph_entity_to_model,
     graph_model_to_entity,
     prompt_entity_to_model,
@@ -72,15 +76,13 @@ from shell.infrastructure.persistence.sql.mappers import (  # noqa: E501
     runner_config_model_to_entity,
     task_entity_to_model,
     task_model_to_entity,
-    template_graph_entity_to_model,
-    template_graph_model_to_entity,
-    template_graph_node_entity_to_model,
-    template_graph_node_model_to_entity,
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
 from shell.infrastructure.persistence.sql.models import (
     EnvelopeModel,
+    GraphDefinitionModel,
+    GraphDefinitionNodeModel,
     GraphModel,
     MessageModel,
     PromptModel,
@@ -88,9 +90,7 @@ from shell.infrastructure.persistence.sql.models import (
     RagDocumentModel,
     RunnerConfigModel,
     SessionModel,
-    TaskModel,
-    TemplateGraphModel,
-    TemplateGraphNodeModel,
+    TaskExecutionModel,
     WorkflowModel,
 )
 
@@ -99,61 +99,61 @@ if TYPE_CHECKING:
 
     from shell.domain.entities.envelope import Envelope
     from shell.domain.entities.graph import Graph
+    from shell.domain.entities.graph_definition import GraphDefinition
+    from shell.domain.entities.graph_definition_node import GraphDefinitionNode
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
-    from shell.domain.entities.task import Task
-    from shell.domain.entities.template_graph import TemplateGraph
-    from shell.domain.entities.template_graph_node import TemplateGraphNode
+    from shell.domain.entities.task_execution import TaskExecution
     from shell.domain.entities.workflow import Workflow
-    from shell.domain.value_objects.task_name import TaskName
+    from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 logger = logging.getLogger(__name__)
 
 
-class SqlTaskRepository(TaskRepository):
+class SqlTaskExecutionRepository(TaskExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, task_id: TaskId) -> Task | None:
-        q = select(TaskModel).where(TaskModel.id == task_id.value)
+    async def get_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
+        q = select(TaskExecutionModel).where(TaskExecutionModel.id == task_execution_id.value)
         row = (await self._session.execute(q)).scalar_one_or_none()
         return task_model_to_entity(row) if row else None
 
-    async def get_by_name(self, name: TaskName) -> Task | None:
+    async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         q = (
-            select(TaskModel)
-            .where(TaskModel.name == name.value)
-            .order_by(TaskModel.version.desc())
+            select(TaskExecutionModel)
+            .where(TaskExecutionModel.name == name.value)
+            .order_by(TaskExecutionModel.version.desc())
             .limit(1)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
         return task_model_to_entity(row) if row else None
 
-    async def get_current_by_id(self, task_id: TaskId) -> Task | None:
-        logger.info("Querying current Task by id=%s", task_id.value)
+    async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
+        logger.info("Querying current Task by id=%s", task_execution_id.value)
         q = (
-            select(TaskModel)
-            .where(TaskModel.id == task_id.value, TaskModel.is_current.is_(True))
+            select(TaskExecutionModel)
+            .where(TaskExecutionModel.id == task_execution_id.value, TaskExecutionModel.is_current.is_(True))
             .limit(1)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
         if not row:
-            logger.info("No current Task found for id=%s", task_id.value)
+            logger.info("No current Task found for id=%s", task_execution_id.value)
             return None
 
         logger.info(
-            "TaskModel found: id=%s name=%s is_current=%s",
+            "TaskExecutionModel found: id=%s name=%s is_current=%s",
             row.id,
             row.name,
             row.is_current,
         )
         return task_model_to_entity(row)
 
-    async def get_current_by_name(self, name: TaskName) -> Task | None:
+    async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         logger.info("Querying current Task by name=%s", name.value)
         q = (
-            select(TaskModel)
-            .where(TaskModel.name == name.value, TaskModel.is_current.is_(True))
+            select(TaskExecutionModel)
+            .where(TaskExecutionModel.name == name.value, TaskExecutionModel.is_current.is_(True))
             .limit(1)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
@@ -162,19 +162,19 @@ class SqlTaskRepository(TaskRepository):
             return None
 
         logger.info(
-            "TaskModel found: id=%s name=%s is_current=%s",
+            "TaskExecutionModel found: id=%s name=%s is_current=%s",
             row.id,
             row.name,
             row.is_current,
         )
         return task_model_to_entity(row)
 
-    async def save(self, task: Task) -> None:
-        model = task_entity_to_model(task)
+    async def save(self, task_execution: TaskExecution) -> None:
+        model = task_entity_to_model(task_execution)
         await self._session.merge(model)
 
-    async def list_current(self) -> list[Task]:
-        q = select(TaskModel).where(TaskModel.is_current.is_(True))
+    async def list_current(self) -> list[TaskExecution]:
+        q = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))
         rows = (await self._session.execute(q)).scalars().all()
         return [task_model_to_entity(r) for r in rows]
 
@@ -192,11 +192,11 @@ class SqlGraphRepository:
         row = (await self._session.execute(q)).scalar_one_or_none()
         return graph_model_to_entity(row) if row else None
 
-    async def get_by_task_id(self, task_id: TaskId) -> Graph | None:
+    async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> Graph | None:
         q = (
             select(GraphModel)
             .options(selectinload(GraphModel.nodes))
-            .where(GraphModel.task_id == task_id.value)
+            .where(GraphModel.task_execution_id == task_execution_id.value)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
         return graph_model_to_entity(row) if row else None
@@ -545,56 +545,56 @@ class SqlSessionRepository:
         ]
 
 
-class SqlTemplateGraphRepository:
+class SqlGraphDefinitionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get(self, template_graph_id: TemplateGraphId) -> TemplateGraph | None:
-        q = select(TemplateGraphModel).where(TemplateGraphModel.id == template_graph_id.value)
+    async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
+        q = select(GraphDefinitionModel).where(GraphDefinitionModel.id == graph_definition_id.value)
         row = (await self._session.execute(q)).scalar_one_or_none()
-        return template_graph_model_to_entity(row) if row else None
+        return graph_definition_model_to_entity(row) if row else None
 
-    async def get_template_graph_by_name(self, template_graph_by_name: str) -> TemplateGraph | None:
+    async def get_graph_definition_by_name(self, graph_definition_by_name: str) -> GraphDefinition | None:
         q = (
-            select(TemplateGraphModel)
-            .options(selectinload(TemplateGraphModel.nodes))
-            .where(TemplateGraphModel.name == template_graph_by_name)
+            select(GraphDefinitionModel)
+            .options(selectinload(GraphDefinitionModel.nodes))
+            .where(GraphDefinitionModel.name == graph_definition_by_name)
         )
         row = (await self._session.execute(q)).scalar_one_or_none()
-        return template_graph_model_to_entity(row) if row else None
+        return graph_definition_model_to_entity(row) if row else None
 
-    async def save(self, template_graph: TemplateGraph) -> None:
-        template_graph_model = template_graph_entity_to_model(template_graph)
-        await self._session.merge(template_graph_model)
+    async def save(self, graph_definition: GraphDefinition) -> None:
+        graph_definition_model = graph_definition_entity_to_model(graph_definition)
+        await self._session.merge(graph_definition_model)
 
 
-class SqlTemplateGraphNodeRepository:
+class SqlGraphDefinitionNodeRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
     async def get_by_id(
-        self, template_graph_node_id: TemplateGraphNodeId
-    ) -> TemplateGraphNode | None:
-        template_graph_node_query = select(TemplateGraphNodeModel).where(
-            TemplateGraphNodeModel.id == template_graph_node_id.value
+        self, graph_definition_node_id: GraphDefinitionNodeId
+    ) -> GraphDefinitionNode | None:
+        graph_definition_node_query = select(GraphDefinitionNodeModel).where(
+            GraphDefinitionNodeModel.id == graph_definition_node_id.value
         )
-        template_graph_node = (
-            await self._session.execute(template_graph_node_query)
+        graph_definition_node = (
+            await self._session.execute(graph_definition_node_query)
         ).scalar_one_or_none()
         return (
-            template_graph_node_model_to_entity(template_graph_node)
-            if template_graph_node
+            graph_definition_node_model_to_entity(graph_definition_node)
+            if graph_definition_node
             else None
         )
 
     async def save(
-        self, template_graph_node: TemplateGraphNode, template_graph_id: TemplateGraphId
+        self, graph_definition_node: GraphDefinitionNode, graph_definition_id: GraphDefinitionId
     ) -> None:
-        template_graph = await self._session.get(TemplateGraphModel, template_graph_id.value)
-        if not template_graph:
-            raise ValueError(f"TemplateGraph {template_graph_id.value} not found")
+        graph_definition = await self._session.get(GraphDefinitionModel, graph_definition_id.value)
+        if not graph_definition:
+            raise ValueError(f"GraphDefinition {graph_definition_id.value} not found")
 
-        template_graph_node_model = template_graph_node_entity_to_model(
-            template_graph_node, template_graph_id.value
+        graph_definition_node_model = graph_definition_node_entity_to_model(
+            graph_definition_node, graph_definition_id.value
         )
-        await self._session.merge(template_graph_node_model)
+        await self._session.merge(graph_definition_node_model)

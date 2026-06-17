@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.event_handlers.build_graph_on_task_created import BuildGraphOnTaskCreated
+from shell.application.event_handlers.build_graph_on_task_execution_created import (
+    BuildGraphOnTaskExecutionCreated,
+)
 from shell.application.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
     LogAuditHandler,
@@ -28,8 +30,8 @@ class EventContainer(containers.DeclarativeContainer):
         LogAuditHandler,
         logger=infra.stdlib_logger,
     )
-    build_graph_on_task_created_factory = providers.Factory(
-        BuildGraphOnTaskCreated,
+    build_graph_on_task_execution_created_factory = providers.Factory(
+        BuildGraphOnTaskExecutionCreated,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,

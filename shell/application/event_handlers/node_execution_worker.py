@@ -168,10 +168,10 @@ class NodeExecutionWorker:
     @staticmethod
     async def _load_graph(uow: UnitOfWork, workflow: Workflow) -> Graph | None:
 
-        task = await uow.tasks.get_current_by_id(workflow.task_id)
-        if task is None:
+        task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
+        if task_execution is None:
             return None
-        return await uow.graphs.get_by_task_id(task.id)
+        return await uow.graphs.get_by_task_execution_id(task_execution.id)
 
     async def _run_node(
         self,
@@ -295,6 +295,6 @@ class NodeExecutionWorker:
         return {
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_NODE_ID": node.id.value,
-            "SHELL_TASK_ID": workflow.task_id.value,
+            "SHELL_task_execution_id": workflow.task_execution_id.value,
             "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
         }

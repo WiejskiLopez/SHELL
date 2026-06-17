@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True)
-class TaskDto:
+class TaskExecutionDto:
     id: str
     name: str
     version: int
@@ -36,7 +36,7 @@ class GraphNodeDto:
 @dataclass(frozen=True, slots=True)
 class WorkflowDto:
     id: str
-    task_id: str
+    task_execution_id: str
     status: str
     created_at: datetime
     node_states: dict[str, NodeStateDto] = field(default_factory=dict)
@@ -135,19 +135,19 @@ class SessionDto:
 @dataclass(frozen=True, slots=True)
 class GraphDto:
     id: str
-    graph_template_id: str
-    task_id: str
+    graph_definition_id: str
+    task_execution_id: str
 
 
 @dataclass(frozen=True, slots=True)
-class TemplateGraphDto:
+class GraphDefinitionDto:
     id: str
     name: str
     purpose: str
 
 
 @dataclass(frozen=True, slots=True)
-class TemplateGraphNodeDto:
+class GraphDefinitionNodeDto:
     id: str
     position: int
     node_dir: str

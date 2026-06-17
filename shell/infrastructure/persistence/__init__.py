@@ -11,13 +11,13 @@ from shell.infrastructure.persistence.sql.models import OutboxEventModel
 from shell.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
+    SqlGraphDefinitionRepository,
     SqlGraphRepository,
     SqlPromptRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
     SqlSessionRepository,
-    SqlTaskRepository,
-    SqlTemplateGraphRepository,
+    SqlTaskExecutionRepository,
     SqlWorkflowRepository,
 )
 
@@ -62,8 +62,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     # o ile Twoje repozytoria SQLAlchemy są bezstanowymi fasadami na sesję.
 
     @property
-    def tasks(self) -> SqlTaskRepository:
-        return SqlTaskRepository(self._active_session)
+    def task_executions(self) -> SqlTaskExecutionRepository:
+        return SqlTaskExecutionRepository(self._active_session)
 
     @property
     def graphs(self) -> SqlGraphRepository:
@@ -98,8 +98,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSessionRepository(self._active_session)
 
     @property
-    def template_graphs(self) -> SqlTemplateGraphRepository:
-        return SqlTemplateGraphRepository(self._active_session)
+    def graph_definitions(self) -> SqlGraphDefinitionRepository:
+        return SqlGraphDefinitionRepository(self._active_session)
 
     # ------------------------------------------------------------------
     # Outbox staging — handlers call uow.stage_events() BEFORE commit

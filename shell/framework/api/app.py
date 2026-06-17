@@ -11,7 +11,7 @@ from shell.bootstrap.config_logging.setup_logging import setup_logging
 from shell.domain.exceptions import DomainError
 from shell.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.framework.api.middleware.error_handler import domain_error_handler
-from shell.framework.api.routers import envelopes, nodes, tasks, workflows
+from shell.framework.api.routers import envelopes, nodes, task_executions, workflows
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -39,7 +39,7 @@ def create_app(core_container: CoreContainer) -> FastAPI:
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     # Routers
-    app.include_router(tasks.router)
+    app.include_router(task_executions.router)
     app.include_router(workflows.router)
     app.include_router(envelopes.router)
     app.include_router(nodes.router)

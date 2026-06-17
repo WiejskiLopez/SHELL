@@ -8,19 +8,19 @@ if TYPE_CHECKING:
         EnvelopeArchive,
         EnvelopeRepository,
     )
+    from shell.domain.repositories.graph_definition_repository import GraphDefinitionRepository
     from shell.domain.repositories.graph_repository import GraphRepository
     from shell.domain.repositories.prompt_repository import PromptRepository
     from shell.domain.repositories.rag_repository import RagDocumentRepository
     from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
     from shell.domain.repositories.session_repository import SessionRepository
-    from shell.domain.repositories.task_repository import TaskRepository
-    from shell.domain.repositories.template_graph_repository import TemplateGraphRepository
+    from shell.domain.repositories.task_execution_repository import TaskExecutionRepository
     from shell.domain.repositories.workflow_repository import WorkflowRepository
 
 
 class UnitOfWork(Protocol):
     @property
-    def tasks(self) -> TaskRepository: ...
+    def task_executions(self) -> TaskExecutionRepository: ...
 
     @property
     def graphs(self) -> GraphRepository: ...
@@ -47,7 +47,7 @@ class UnitOfWork(Protocol):
     def sessions(self) -> SessionRepository: ...
 
     @property
-    def template_graphs(self) -> TemplateGraphRepository: ...
+    def graph_definitions(self) -> GraphDefinitionRepository: ...
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
 

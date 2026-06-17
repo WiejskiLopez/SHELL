@@ -12,8 +12,8 @@ class Base(DeclarativeBase):
     pass
 
 
-class TaskModel(Base):
-    __tablename__ = "task"
+class TaskExecutionModel(Base):
+    __tablename__ = "task_execution"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
@@ -28,14 +28,14 @@ class GraphModel(Base):
     __tablename__ = "graph"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    task_id: Mapped[str] = mapped_column(
+    task_execution_id: Mapped[str] = mapped_column(
         String(36),
-        ForeignKey("task.id", ondelete="CASCADE"),
+        ForeignKey("task_execution.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
         unique=True,
     )
-    template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    graph_definition_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
 
     nodes: Mapped[list[GraphNodeModel]] = relationship(
         "GraphNodeModel", back_populates="graph", cascade="all, delete-orphan"
@@ -62,7 +62,7 @@ class GraphNodeModel(Base):
     max_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     no_ask_user: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     autopilot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    task_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    task_execution_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     source_dir: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     work_dir: Mapped[str] = mapped_column(String(512), nullable=False, default="")
     status_initial: Mapped[str] = mapped_column(String(64), nullable=False, default="")
@@ -75,7 +75,7 @@ class WorkflowModel(Base):
     __tablename__ = "workflow"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    task_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    task_execution_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
     current_node_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None, index=True
@@ -280,28 +280,28 @@ class InboxEventModel(Base):
     )
 
 
-class TemplateGraphModel(Base):
-    __tablename__ = "template_graph"
+class GraphDefinitionModel(Base):
+    __tablename__ = "graph_definition"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     name: Mapped[str] = mapped_column(String(36), nullable=False)
     purpose: Mapped[str] = mapped_column(String(36), nullable=False)
 
-    nodes: Mapped[list[TemplateGraphNodeModel]] = relationship(
-        "TemplateGraphNodeModel",
+    nodes: Mapped[list[GraphDefinitionNodeModel]] = relationship(
+        "GraphDefinitionNodeModel",
         back_populates="graph",
         cascade="all, delete-orphan",
-        order_by="TemplateGraphNodeModel.position",
+        order_by="GraphDefinitionNodeModel.position",
     )
 
 
-class TemplateGraphNodeModel(Base):
-    __tablename__ = "template_graph_node"
+class GraphDefinitionNodeModel(Base):
+    __tablename__ = "graph_definition_node"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    template_graph_id: Mapped[str] = mapped_column(
+    graph_definition_id: Mapped[str] = mapped_column(
         String(36),
-        ForeignKey("template_graph.id", ondelete="CASCADE"),
+        ForeignKey("graph_definition.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -339,7 +339,7 @@ class TemplateGraphNodeModel(Base):
         String(16),
         nullable=True,
     )
-    graph: Mapped[TemplateGraphModel] = relationship(
-        "TemplateGraphModel",
+    graph: Mapped[GraphDefinitionModel] = relationship(
+        "GraphDefinitionModel",
         back_populates="nodes",
     )

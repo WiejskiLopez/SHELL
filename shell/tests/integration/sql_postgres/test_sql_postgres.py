@@ -14,24 +14,26 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.command_handlers.import_task_handler import ImportTaskHandler
+from shell.application.command_handlers.import_task_execution_handler import (
+    ImportTaskExecutionHandler,
+)
 from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
-    ImportTaskCommand,
+    ImportTaskExecutionCommand,
     SaveNodeResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
-    GetCurrentTaskQuery,
+    GetCurrentTaskExecutionQuery,
     GetNodeResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
-    GetCurrentTaskHandler,
+    GetCurrentTaskExecutionHandler,
     GetNodeResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
@@ -97,7 +99,7 @@ def id_gen() -> FakeIdGenerator:
 
 
 @pytest.fixture()
-def task_loader() -> FakeTaskLoader:
+def task_execution_loader() -> FakeTaskLoader:
     return FakeTaskLoader(md="# PG Task")
 
 
@@ -106,21 +108,21 @@ def task_loader() -> FakeTaskLoader:
 # ---------------------------------------------------------------------------
 
 
-class TestPgTaskRepository:
+class TestPgTaskExecutionRepository:
     async def test_import_and_get_current(
         self,
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await handler.handle(ImportTaskCommand("t.md", "pg-task"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task"))
 
-        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetCurrentTaskQuery("pg-task"))
+        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetCurrentTaskExecutionQuery("pg-task"))
         assert dto is not None
         assert dto.name == "pg-task"
         assert dto.is_current is True
@@ -131,15 +133,15 @@ class TestPgTaskRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
-        await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
+        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
+        await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
 
-        q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetCurrentTaskQuery("pg-task-v"))
+        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetCurrentTaskExecutionQuery("pg-task-v"))
         assert dto is not None
         assert dto.is_current is True
 
@@ -156,31 +158,31 @@ class TestPgWorkflowRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
+        task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,  # Dodane do argumentów fixtures
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
-        await imp.handle(ImportTaskCommand("t.md", "pg-wf-task"))
+        imp = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        await imp.handle(ImportTaskExecutionCommand("t.md", "pg-wf-task"))
 
-        from shell.domain.value_objects.task_name import TaskName
+        from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
         # 1. Pobieramy zadanie z repozytorium, aby uzyskać jego prawdziwe ID
         async with uow as u:
-            task = await u.tasks.get_current_by_name(TaskName("pg-wf-task"))
-            assert task is not None
-            real_task_id = task.id.value
+            task_execution = await u.task_executions.get_current_by_name(TaskExecutionName("pg-wf-task"))
+            assert task_execution is not None
+            real_task_execution_id = task_execution.id.value
 
             # UWAGA: Jeśli Twój StartWorkflowHandler (tak jak w SQLite) wymaga
             # istniejącego grafu (Graph) do zainicjalizowania kursora,
             # odkomentuj poniższy blok:
             #
             # from shell.domain.entities.graph import Graph, GraphNode
-            # from shell.domain.value_objects.ids import GraphId, NodeId, TemplateGraphId
+            # from shell.domain.value_objects.ids import GraphId, NodeId, GraphDefinitionId
             # from shell.domain.value_objects.mode import Mode
             # graph = Graph(
             #     id=GraphId.generate(),
-            #     task_id=task.id,
-            #     template_graph_id=TemplateGraphId("tpl"),
+            #     task_execution_id=task_execution.id,
+            #     graph_definition_id=GraphDefinitionId("tpl"),
             #     nodes=[
             #         GraphNode(
             #             id=NodeId("pg-wf-task-node-0"),
@@ -197,7 +199,7 @@ class TestPgWorkflowRepository:
 
         start = StartWorkflowHandler(uow, clock, id_gen)
         # 2. Przekazujemy realne ID zadania zamiast nazwy tekstowej
-        wf_id = await start.handle(StartWorkflowCommand(real_task_id))
+        wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))

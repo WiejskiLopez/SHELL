@@ -6,7 +6,7 @@ from dependency_injector import containers, providers
 
 from shell.infrastructure.external.hash_embedder import HashEmbedder
 from shell.infrastructure.filesystem.node_workspace import NodeWorkspaceFs
-from shell.infrastructure.filesystem.task_loader import FileSystemTaskLoader
+from shell.infrastructure.filesystem.task_execution_loader import FileSystemTaskLoader
 from shell.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.logging.stdlib_logger import StdlibLogger
@@ -33,7 +33,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     embedder = providers.Singleton(HashEmbedder)
     clock_factory = providers.Factory(SystemClock)
     id_gen_factory = providers.Factory(UuidIdGenerator)
-    task_loader_factory = providers.Factory(FileSystemTaskLoader)
+    task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
     workspace_factory = providers.Factory(NodeWorkspaceFs)
     runner_factory = providers.Factory(SubprocessNodeProcessRunner)
 

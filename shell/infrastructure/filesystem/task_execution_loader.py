@@ -1,4 +1,4 @@
-"""FileSystemTaskLoader — reads task.md + task.yaml from the filesystem."""
+"""FileSystemTaskLoader — reads task_execution.md + task_execution.yaml from the filesystem."""
 
 from __future__ import annotations
 
