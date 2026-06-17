@@ -39,7 +39,6 @@ def upgrade() -> None:
             sa.ForeignKey("task.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("raw_dict", sa.JSON, nullable=False, server_default="{}"),
     )
     op.create_index("ix_graph_task_id", "graph", ["task_id"])
 

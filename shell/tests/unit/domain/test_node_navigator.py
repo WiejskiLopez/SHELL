@@ -25,7 +25,6 @@ def _graph(*nodes: GraphNode) -> Graph:
         id=GraphId.generate(),
         task_id=TaskId.generate(),
         template_graph_id=TemplateGraphId("tpl"),
-        raw_dict={},
         nodes=list(nodes),
     )
 

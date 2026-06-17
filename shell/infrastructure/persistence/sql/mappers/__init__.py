@@ -120,7 +120,6 @@ def graph_model_to_entity(m: GraphModel) -> Graph:
         id=GraphId(m.id),
         task_id=TaskId(m.task_id),
         template_graph_id=TemplateGraphId(m.template_graph_id),
-        raw_dict=dict(m.raw_dict),
         nodes=nodes,
     )
 
@@ -130,7 +129,6 @@ def graph_entity_to_model(graph: Graph) -> GraphModel:
         id=graph.id.value,
         task_id=graph.task_id.value,
         template_graph_id=str(graph.template_graph_id),
-        raw_dict=dict(graph.raw_dict),
     )
     m.nodes = [
         GraphNodeModel(

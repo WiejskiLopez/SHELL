@@ -36,7 +36,6 @@ class GraphModel(Base):
         unique=True,
     )
     template_graph_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    raw_dict: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
     nodes: Mapped[list[GraphNodeModel]] = relationship(
         "GraphNodeModel", back_populates="graph", cascade="all, delete-orphan"

@@ -38,13 +38,11 @@ class Graph(AggregateRoot["GraphId"]):
     __slots__ = (
         "_task_id",
         "_template_graph_id",
-        "_raw_dict",
         "_nodes",
     )
 
     _task_id: TaskId
     _template_graph_id: TemplateGraphId
-    _raw_dict: dict[str, object]
     _nodes: list[GraphNode]
 
     def __init__(
@@ -52,13 +50,11 @@ class Graph(AggregateRoot["GraphId"]):
         id: GraphId,
         task_id: TaskId,
         template_graph_id: TemplateGraphId,
-        raw_dict: dict[str, object] | None = None,
         nodes: list[GraphNode] | None = None,
     ) -> None:
         super().__init__(id)
         self._task_id = task_id
         self._template_graph_id = template_graph_id
-        self._raw_dict = dict(raw_dict) if raw_dict else {}
         self._nodes = list(nodes) if nodes else []
 
     @property
@@ -68,10 +64,6 @@ class Graph(AggregateRoot["GraphId"]):
     @property
     def template_graph_id(self) -> TemplateGraphId:
         return self._template_graph_id
-
-    @property
-    def raw_dict(self) -> dict[str, object]:
-        return self._raw_dict
 
     @property
     def nodes(self) -> list[GraphNode]:
@@ -120,7 +112,6 @@ class Graph(AggregateRoot["GraphId"]):
             id=id_,
             task_id=task_id,
             template_graph_id=template.id,
-            raw_dict={},
             nodes=nodes,
         )
         graph.append_event(

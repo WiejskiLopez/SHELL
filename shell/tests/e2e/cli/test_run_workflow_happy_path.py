@@ -74,7 +74,6 @@ def _make_task_with_graph(
         id=GraphId.generate(),
         task_id=task.id,
         template_graph_id=TemplateGraphId("tpl"),
-        raw_dict={},
         nodes=nodes,
     )
     uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]

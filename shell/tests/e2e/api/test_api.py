@@ -126,7 +126,6 @@ class TestWorkflowsRouter:
                         id=GraphId.generate(),
                         task_id=task.id,
                         template_graph_id=TemplateGraphId("tpl"),
-                        raw_dict={},
                         nodes=[
                             GraphNode(
                                 id=NodeId("wf_task-node-0"),
@@ -199,7 +198,6 @@ class TestWorkflowsRouter:
 #                        id=GraphId.generate(),
 #                        task_id=task.id,
 #                        template_graph_id=TemplateGraphId("tpl"),
-#                        raw_dict={},
 #                        nodes=[
 #                            GraphNode(
 #                                id=NodeId("wf_task-node-0"),

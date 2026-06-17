@@ -181,7 +181,6 @@ class TestPgWorkflowRepository:
             #     id=GraphId.generate(),
             #     task_id=task.id,
             #     template_graph_id=TemplateGraphId("tpl"),
-            #     raw_dict={},
             #     nodes=[
             #         GraphNode(
             #             id=NodeId("pg-wf-task-node-0"),
