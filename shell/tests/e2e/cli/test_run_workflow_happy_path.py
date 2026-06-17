@@ -56,7 +56,7 @@ def _make_task_with_graph(
         is_current=True,
         created_at=now,
     )
-    uow.tasks._store[task.id.value] = task
+    uow.tasks._store[task.id.value] = task  # type: ignore[attr-defined]
 
     nodes = [
         GraphNode(
@@ -77,7 +77,7 @@ def _make_task_with_graph(
         raw_dict={},
         nodes=nodes,
     )
-    uow.graphs._store[graph.id.value] = graph
+    uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]
     return task, graph
 
 
@@ -175,7 +175,7 @@ class TestRunTaskerWorkflowHappyPath:
         assert any(isinstance(e, WorkflowCompleted) for e in events)
         assert not any(isinstance(e, WorkflowFailed) for e in events)
 
-        workflows = list(uow.workflows._store.values())
+        workflows = list(uow.workflows._store.values())  # type: ignore[attr-defined]
         assert len(workflows) == 1
 
         get_wf = GetWorkflowHandler(queries)
@@ -198,7 +198,7 @@ class TestRunTaskerWorkflowHappyPath:
 
         # Assert
         assert any(isinstance(e, WorkflowCompleted) for e in events)
-        workflows = list(uow.workflows._store.values())
+        workflows = list(uow.workflows._store.values())  # type: ignore[attr-defined]
         assert workflows[0].status.value == "done"
 
 
@@ -222,7 +222,7 @@ class TestRunTaskerWorkflowPartialFailure:
         assert any(isinstance(e, WorkflowFailed) for e in events)
         assert not any(isinstance(e, WorkflowCompleted) for e in events)
 
-        workflows = list(uow.workflows._store.values())
+        workflows = list(uow.workflows._store.values())  # type: ignore[attr-defined]
         assert len(workflows) == 1
         assert workflows[0].status.value == "failed"
 

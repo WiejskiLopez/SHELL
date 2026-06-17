@@ -39,6 +39,8 @@ def do_run_migrations(connection) -> None:  # type: ignore[no-untyped-def]
 
 async def run_async_migrations() -> None:
     url = config.get_main_option("sqlalchemy.url")
+    if url is None:
+        raise ValueError("sqlalchemy.url not configured in alembic.ini")
     connectable = create_async_engine(url)
     async with connectable.connect() as conn:
         await conn.run_sync(do_run_migrations)

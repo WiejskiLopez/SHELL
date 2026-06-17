@@ -184,7 +184,7 @@ class TestStartWorkflowHandler:
                 )
             ],
         )
-        uow.graphs._store[graph.id.value] = graph
+        await uow.graphs.save(graph)
 
     async def test_happy_path(
         self,
@@ -245,7 +245,7 @@ class TestSaveNodeResultHandler:
         from shell.domain.value_objects.ids import TaskId, WorkflowId
 
         wf = Workflow.new(id_=WorkflowId("wf-1"), task_id=TaskId("task-1"), now=clock.now())
-        uow.workflows._store["wf-1"] = wf
+        await uow.workflows.save(wf)
 
         handler = SaveNodeResultHandler(uow, clock, id_gen)
         result_id = await handler.handle(

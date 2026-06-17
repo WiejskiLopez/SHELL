@@ -34,9 +34,13 @@ class CoreContainer(containers.DeclarativeContainer):
         infra=infra,
     )
 
-    app = providers.Container(
+    app: providers.Container[ApplicationContainer] = providers.Container(
         ApplicationContainer,
         config=config,
         infra=infra,
         domain=domain,
     )
+
+    @property
+    def app_container(self) -> ApplicationContainer:
+        return self.app()

@@ -11,6 +11,15 @@ from sqlalchemy.orm import selectinload
 
 from shell.domain.entities.rag_document import RagChunk, RagDocument
 from shell.domain.entities.session import Message, Session
+from shell.domain.repositories.envelope_repository import EnvelopeArchive, EnvelopeRepository
+from shell.domain.repositories.graph_repository import GraphRepository
+from shell.domain.repositories.prompt_repository import PromptRepository
+from shell.domain.repositories.rag_repository import RagDocumentRepository
+from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.repositories.session_repository import SessionRepository
+from shell.domain.repositories.task_repository import TaskRepository
+from shell.domain.repositories.template_graph_repository import TemplateGraphRepository
+from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.services.rag_index_service import cosine_similarity
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.ids import (
@@ -28,6 +37,30 @@ from shell.domain.value_objects.ids import (
     TemplateGraphNodeId,
     WorkflowId,
 )
+
+__all__ = [
+    "EnvelopeArchive",
+    "EnvelopeRepository",
+    "GraphRepository",
+    "PromptRepository",
+    "RagDocumentRepository",
+    "RunnerConfigRepository",
+    "SessionRepository",
+    "TaskRepository",
+    "TemplateGraphRepository",
+    "WorkflowRepository",
+    "SqlTaskRepository",
+    "SqlGraphRepository",
+    "SqlWorkflowRepository",
+    "SqlEnvelopeRepository",
+    "SqlPromptRepository",
+    "SqlRunnerConfigRepository",
+    "SqlEnvelopeArchiveStub",
+    "SqlRagDocumentRepository",
+    "SqlSessionRepository",
+    "SqlTemplateGraphRepository",
+    "SqlTemplateGraphNodeRepository",
+]
 from shell.infrastructure.persistence.sql.mappers import (  # noqa: E501
     envelope_entity_to_model,
     envelope_model_to_entity,
@@ -77,7 +110,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class SqlTaskRepository:
+class SqlTaskRepository(TaskRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -238,7 +271,7 @@ class SqlWorkflowRepository:
             )
         )
         result = await self._session.execute(cas_stmt)
-        if (result.rowcount or 0) == 0:
+        if (result.rowcount if hasattr(result, 'rowcount') else 0) == 0:
             raise WorkflowConcurrentlyModified(workflow.id.value)
 
         workflow.version = new_version
@@ -554,9 +587,14 @@ class SqlTemplateGraphNodeRepository:
             else None
         )
 
-    async def save(self, template_graph_node: TemplateGraphNode) -> None:
-        await self._session.execute(
-            update(WorkflowModel).where(WorkflowModel.id == template_graph_node.id.value)
+    async def save(
+        self, template_graph_node: TemplateGraphNode, template_graph_id: TemplateGraphId
+    ) -> None:
+        template_graph = await self._session.get(TemplateGraphModel, template_graph_id.value)
+        if not template_graph:
+            raise ValueError(f"TemplateGraph {template_graph_id.value} not found")
+
+        template_graph_node_model = template_graph_node_entity_to_model(
+            template_graph_node, template_graph_id.value
         )
-        template_graph_node_model = template_graph_node_entity_to_model(template_graph_node)
         await self._session.merge(template_graph_node_model)

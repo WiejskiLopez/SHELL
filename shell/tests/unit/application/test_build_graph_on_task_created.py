@@ -55,7 +55,7 @@ def logger() -> FakeLogger:
     return FakeLogger()
 
 
-def _seed_template(uow: InMemoryUnitOfWork, name: str = "base_planner") -> TemplateGraph:
+async def _seed_template(uow: InMemoryUnitOfWork, name: str = "base_planner") -> TemplateGraph:
     template = TemplateGraph(
         id=TemplateGraphId(f"{name}-id"),
         name=name,
@@ -77,7 +77,12 @@ def _seed_template(uow: InMemoryUnitOfWork, name: str = "base_planner") -> Templ
             ),
         ],
     )
-    uow.template_graphs._store[name] = template
+    # Clear any existing template with the same name (constructor seeds one)
+    repo = uow.template_graphs
+    keys_to_remove = [k for k, v in repo._store.items() if v.name == name]  # type: ignore[attr-defined]
+    for k in keys_to_remove:
+        del repo._store[k]  # type: ignore[attr-defined]
+    await repo.save(template)
     return template
 
 
@@ -102,7 +107,7 @@ class TestBuildGraphOnTaskCreated:
         id_gen: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
-        _seed_template(uow)
+        await _seed_template(uow)
         handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         await handler.handle(_task_created_event(clock.now()))
@@ -120,9 +125,12 @@ class TestBuildGraphOnTaskCreated:
         id_gen: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
-        # Replace seeded base_planner with nothing
-        uow.template_graphs._store.clear()
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
+        # Use a fresh UoW without seeded template
+        from shell.infrastructure.persistence.memory.memory import InMemoryTemplateGraphRepository
+
+        fresh_uow = InMemoryUnitOfWork()
+        fresh_uow.template_graphs = InMemoryTemplateGraphRepository()
+        handler = BuildGraphOnTaskCreated(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
@@ -134,7 +142,7 @@ class TestBuildGraphOnTaskCreated:
         id_gen: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
-        _seed_template(uow)
+        await _seed_template(uow)
         handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
 
         # First call builds the graph.
@@ -160,12 +168,15 @@ class TestBuildGraphOnTaskCreated:
         logger: FakeLogger,
     ) -> None:
         # No template seeded — handler must NOT publish events when failing.
-        uow.template_graphs._store.clear()
-        handler = BuildGraphOnTaskCreated(uow, clock, id_gen, logger)
+        from shell.infrastructure.persistence.memory.memory import InMemoryTemplateGraphRepository
+
+        fresh_uow = InMemoryUnitOfWork()
+        fresh_uow.template_graphs = InMemoryTemplateGraphRepository()
+        handler = BuildGraphOnTaskCreated(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
 
-        assert uow.committed_events == []
+        assert fresh_uow.committed_events == []
         # Graph must not exist either.
-        assert await uow.graphs.get_by_task_id(TaskId("task-abc")) is None
+        assert await fresh_uow.graphs.get_by_task_id(TaskId("task-abc")) is None

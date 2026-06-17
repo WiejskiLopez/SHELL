@@ -3,6 +3,32 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from shell.application.query_handlers.query_handlers import (
+        GetCurrentTaskHandler,
+        GetEnvelopesByWorkflowHandler,
+        GetNodeResultHandler,
+        GetPromptHandler,
+        GetRunnerConfigHandler,
+        GetSessionHistoryHandler,
+        GetTaskByNameHandler,
+        GetWorkflowHandler,
+        SearchSimilarHandler,
+    )
+    from dependency_injector.providers import Factory
+
+    class _QueryContainerProtocol(Protocol):
+        get_task_by_name_handler_factory: Factory[GetTaskByNameHandler]
+        get_current_task_handler_factory: Factory[GetCurrentTaskHandler]
+        get_workflow_handler_factory: Factory[GetWorkflowHandler]
+        get_envelopes_by_workflow_handler_factory: Factory[GetEnvelopesByWorkflowHandler]
+        get_node_result_handler_factory: Factory[GetNodeResultHandler]
+        get_prompt_handler_factory: Factory[GetPromptHandler]
+        get_runner_config_handler_factory: Factory[GetRunnerConfigHandler]
+        get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
+        search_similar_handler_factory: Factory[SearchSimilarHandler]
 
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskHandler,

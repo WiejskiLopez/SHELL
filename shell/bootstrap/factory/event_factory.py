@@ -1,7 +1,5 @@
 """Rejestracja Event Handlers na EventBus (subskrybenci zdarzeń domenowych)."""
 
-# mypy: disable-error-code="attr-defined"
-# dependency_injector providers expose attributes dynamically via __getattr__.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

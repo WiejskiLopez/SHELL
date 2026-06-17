@@ -3,6 +3,19 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from .bus_container import BusContainer
+    from .command_container import CommandContainer
+    from .event_container import EventContainer
+    from .query_container import QueryContainer
+
+    class _ApplicationContainerProtocol(Protocol):
+        buses: providers.Container[BusContainer]
+        commands: providers.Container[CommandContainer]
+        queries: providers.Container[QueryContainer]
+        events: providers.Container[EventContainer]
 
 from .bus_container import BusContainer
 from .command_container import CommandContainer
@@ -17,12 +30,12 @@ class ApplicationContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
     domain = providers.DependenciesContainer()
 
-    buses = providers.Container(
+    buses: providers.Container[BusContainer] = providers.Container(
         BusContainer,
         infra=infra,
     )
 
-    commands = providers.Container(
+    commands: providers.Container[CommandContainer] = providers.Container(
         CommandContainer,
         config=config,
         infra=infra,
@@ -30,12 +43,12 @@ class ApplicationContainer(containers.DeclarativeContainer):
         buses=buses,
     )
 
-    queries = providers.Container(
+    queries: providers.Container[QueryContainer] = providers.Container(
         QueryContainer,
         infra=infra,
     )
 
-    events = providers.Container(
+    events: providers.Container[EventContainer] = providers.Container(
         EventContainer,
         infra=infra,
         domain=domain,
