@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING
 from shell.infrastructure.persistence.sql.models import OutboxEventModel
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.domain.events.events import DomainEvent
@@ -25,7 +27,7 @@ class SqlOutboxPublisher:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def publish(self, events: list[DomainEvent]) -> None:
+    async def publish(self, events: Sequence[DomainEvent]) -> None:
         if not events:
             return
         async with self._session_factory() as session:

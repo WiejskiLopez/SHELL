@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from dependency_injector import containers, providers
 from typing import TYPE_CHECKING, Protocol
+
+from dependency_injector import containers, providers
 
 if TYPE_CHECKING:
     from .bus_container import BusContainer

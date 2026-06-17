@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from dependency_injector import containers, providers
 from typing import TYPE_CHECKING, Protocol
 
+from dependency_injector import containers, providers
+
 if TYPE_CHECKING:
+    from dependency_injector.providers import Factory
+
     from shell.application.query_handlers.query_handlers import (
         GetCurrentTaskHandler,
         GetEnvelopesByWorkflowHandler,
@@ -17,7 +20,6 @@ if TYPE_CHECKING:
         GetWorkflowHandler,
         SearchSimilarHandler,
     )
-    from dependency_injector.providers import Factory
 
     class _QueryContainerProtocol(Protocol):
         get_task_by_name_handler_factory: Factory[GetTaskByNameHandler]

@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from dependency_injector import containers, providers
 from typing import TYPE_CHECKING, Protocol
 
+from dependency_injector import containers, providers
+
 if TYPE_CHECKING:
+    from dependency_injector.providers import Singleton
+
     from shell.application.bus.command_bus import CommandBus
     from shell.application.bus.event_bus import EventBus
     from shell.application.bus.query_bus import QueryBus
-    from dependency_injector.providers import Singleton
 
     class _BusContainerProtocol(Protocol):
         command_bus: Singleton[CommandBus]

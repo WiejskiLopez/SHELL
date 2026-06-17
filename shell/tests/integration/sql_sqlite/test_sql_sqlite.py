@@ -55,7 +55,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture(scope="module")
 async def session_factory(
-    tmp_path_factory: pytest.TempPathFactory,
+        tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:  # type: ignore[type-arg]
     db = tmp_path_factory.mktemp("sqlite") / "test.db"
     url = f"sqlite+aiosqlite:///{db}"
@@ -70,8 +70,8 @@ def events() -> FakeEventPublisher:
 
 @pytest.fixture()
 def uow(
-    session_factory: async_sessionmaker,  # type: ignore[type-arg]
-    events: FakeEventPublisher,
+        session_factory: async_sessionmaker,  # type: ignore[type-arg]
+        events: FakeEventPublisher,
 ) -> SqlAlchemyUnitOfWork:
     return SqlAlchemyUnitOfWork(session_factory)
 
@@ -98,15 +98,15 @@ def task_loader() -> FakeTaskLoader:
 
 class TestSqlTaskRepository:
     async def test_import_and_get_current(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())  # type: ignore[arg-type]
         await handler.handle(ImportTaskCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskHandler(SqlQueryServices(session_factory))
@@ -116,15 +116,15 @@ class TestSqlTaskRepository:
         assert dto.is_current is True
 
     async def test_reimport_marks_old_non_current(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory,
     ) -> None:
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())  # type: ignore[arg-type]
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskCommand("t.md", "sql-task-v"))
 
@@ -141,15 +141,15 @@ class TestSqlTaskRepository:
 
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
+        imp = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())  # type: ignore[arg-type]
         await imp.handle(ImportTaskCommand("t.md", "wf-task"))
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
@@ -184,7 +184,7 @@ class TestSqlWorkflowRepository:
             await u.graphs.save(graph)
             await u.commit()
 
-        start = StartWorkflowHandler(uow, clock, id_gen)
+        start = StartWorkflowHandler(uow, clock, id_gen)  # type: ignore[arg-type]
         # Przekazujemy poprawne real_task_id zamiast nazwy stringowej
         wf_id = await start.handle(StartWorkflowCommand(real_task_id))
 
@@ -196,8 +196,8 @@ class TestSqlWorkflowRepository:
         assert dto.task_id == real_task_id
 
     async def test_workflow_not_found_returns_none(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery("no-such-wf"))
@@ -211,13 +211,13 @@ class TestSqlWorkflowRepository:
 
 class TestSqlPromptRepository:
     async def test_save_and_get_prompt(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            session_factory: async_sessionmaker,
     ) -> None:
-        handler = SavePromptHandler(uow, clock, id_gen)
+        handler = SavePromptHandler(uow, clock, id_gen)  # type: ignore[arg-type]
         await handler.handle(SavePromptCommand("sys-prompt", "You are helpful."))
 
         q = GetPromptHandler(SqlQueryServices(session_factory))
@@ -226,8 +226,8 @@ class TestSqlPromptRepository:
         assert dto.body == "You are helpful."
 
     async def test_prompt_not_found_returns_none(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("missing-prompt"))
@@ -241,12 +241,12 @@ class TestSqlPromptRepository:
 
 class TestSqlNodeResultRepository:
     async def test_save_and_get_result(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            session_factory: async_sessionmaker,
     ) -> None:
         # Seed a Workflow first — NodeResult is owned by Workflow aggregate.
         from shell.domain.entities.workflow import Workflow
@@ -258,7 +258,7 @@ class TestSqlNodeResultRepository:
             )
             await u.commit()
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen)
+        handler = SaveNodeResultHandler(uow, clock, id_gen)  # type: ignore[arg-type]
         await handler.handle(
             SaveNodeResultCommand(
                 workflow_id="wf-sql-nr-1",
@@ -282,10 +282,10 @@ class TestSqlNodeResultRepository:
 
 class TestSqlUnitOfWorkRollback:
     async def test_rollback_on_exception_leaves_db_clean(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            session_factory: async_sessionmaker,
     ) -> None:
         try:
             async with uow as u:
@@ -316,11 +316,11 @@ class TestSqlUnitOfWorkRollback:
 
 class TestSqlRagDocumentRepository:
     async def test_index_and_search_similar(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.command_handlers.index_document_handler import (
             IndexDocumentHandler,
@@ -335,7 +335,7 @@ class TestSqlRagDocumentRepository:
         cmd = IndexDocumentCommand(
             source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text
         )
-        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
+        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)  # type: ignore[arg-type]
 
         results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
@@ -344,11 +344,11 @@ class TestSqlRagDocumentRepository:
         assert all(r.domain == "sql-test" for r in results)
 
     async def test_search_domain_filter_excludes_other_domains(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.command_handlers.index_document_handler import (
             IndexDocumentHandler,
@@ -359,7 +359,7 @@ class TestSqlRagDocumentRepository:
         from shell.infrastructure.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
-        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(
+        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(  # type: ignore[arg-type]
             IndexDocumentCommand(
                 source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
             )
@@ -372,11 +372,11 @@ class TestSqlRagDocumentRepository:
 
 class TestSqlSessionRepository:
     async def test_open_append_close_and_history(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.command_handlers.session_handlers import (
             AppendMessageHandler,
@@ -391,10 +391,10 @@ class TestSqlSessionRepository:
         from shell.application.queries.queries import GetSessionHistoryQuery
         from shell.application.query_handlers.query_handlers import GetSessionHistoryHandler
 
-        session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
+        session_id = await OpenSessionHandler(uow, clock, id_gen).handle(  # type: ignore[arg-type]
             OpenSessionCommand(goal="integration test")
         )
-        await AppendMessageHandler(uow, clock, id_gen).handle(
+        await AppendMessageHandler(uow, clock, id_gen).handle(  # type: ignore[arg-type]
             AppendMessageCommand(
                 session_id=session_id.value,
                 correlation_id=get_correlation_id(),
@@ -403,7 +403,7 @@ class TestSqlSessionRepository:
                 payload={"k": 1},
             )
         )
-        await AppendMessageHandler(uow, clock, id_gen).handle(
+        await AppendMessageHandler(uow, clock, id_gen).handle(  # type: ignore[arg-type]
             AppendMessageCommand(
                 session_id=session_id.value,
                 correlation_id=get_correlation_id(),
@@ -412,7 +412,7 @@ class TestSqlSessionRepository:
                 payload={"k": 2},
             )
         )
-        await CloseSessionHandler(uow, clock).handle(
+        await CloseSessionHandler(uow, clock).handle(  # type: ignore[arg-type]
             CloseSessionCommand(session_id=session_id.value)
         )
 
@@ -431,8 +431,8 @@ class TestSqlSessionRepository:
 
 class TestSqlAuditPublisher:
     async def test_persists_audit_rows(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from sqlalchemy import select
 
@@ -465,8 +465,8 @@ class TestSqlAuditPublisher:
         assert "WorkflowStarted" in types
 
     async def test_empty_events_writes_nothing(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from sqlalchemy import select
 
@@ -490,8 +490,8 @@ class TestSqlAuditPublisher:
 
 class TestSqlOutboxPublisher:
     async def test_writes_outbox_rows(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from sqlalchemy import select
 
@@ -517,8 +517,8 @@ class TestSqlOutboxPublisher:
         assert all(r.published_at is None for r in rows)
 
     async def test_empty_publish_noop(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from sqlalchemy import select
 
@@ -536,8 +536,8 @@ class TestSqlOutboxPublisher:
 
 class TestOutboxToInboxRelay:
     async def test_relay_marks_rows_published(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from sqlalchemy import select
 
@@ -564,17 +564,17 @@ class TestOutboxToInboxRelay:
 
         assert count >= 1
         async with session_factory() as session:
-            (
+            rows = (
                 await session.execute(
                     select(OutboxEventModel).where(OutboxEventModel.published_at.is_(None))
                 )
             ).scalars().all()
         # all rows that were pending are now published
-        assert all(r.published_at is not None for r in [])  # placeholder: rows were updated
+        assert all(r.published_at is not None for r in rows)
 
     async def test_relay_run_twice_idempotent(
-        self,
-        session_factory: async_sessionmaker,
+            self,
+            session_factory: async_sessionmaker,
     ) -> None:
         from shell.domain.events.events import TaskCreated
         from shell.domain.value_objects.ids import TaskId
@@ -610,20 +610,20 @@ class TestOutboxToInboxRelay:
 
 class TestTransactionalOutbox:
     async def test_outbox_written_atomically_with_domain_state(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_loader: FakeTaskLoader,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            id_gen: FakeIdGenerator,
+            events: FakeEventPublisher,
+            task_loader: FakeTaskLoader,
+            session_factory: async_sessionmaker,
     ) -> None:
         """Outbox rows must be present after UoW commit without a separate publish step."""
         from sqlalchemy import select
 
         from shell.infrastructure.persistence.sql.models import OutboxEventModel
 
-        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
+        handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())  # type: ignore[arg-type]
         await handler.handle(ImportTaskCommand("t.md", "atomic-task"))
 
         async with session_factory() as session:
@@ -642,10 +642,10 @@ class TestTransactionalOutbox:
         )
 
     async def test_rollback_removes_staged_outbox_events(
-        self,
-        uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        session_factory: async_sessionmaker,
+            self,
+            uow: SqlAlchemyUnitOfWork,
+            clock: FakeClock,
+            session_factory: async_sessionmaker,
     ) -> None:
         """If the UoW transaction is rolled back, no outbox rows must be written."""
 

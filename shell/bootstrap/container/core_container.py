@@ -41,6 +41,3 @@ class CoreContainer(containers.DeclarativeContainer):
         domain=domain,
     )
 
-    @property
-    def app_container(self) -> ApplicationContainer:
-        return self.app()
