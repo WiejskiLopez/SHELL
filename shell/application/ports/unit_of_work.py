@@ -19,23 +19,45 @@ if TYPE_CHECKING:
 
 
 class UnitOfWork(Protocol):
-    tasks: TaskRepository
-    graphs: GraphRepository
-    workflows: WorkflowRepository
-    envelopes: EnvelopeRepository
-    prompts: PromptRepository
-    runner_configs: RunnerConfigRepository
-    envelope_archive: EnvelopeArchive
-    rag_documents: RagDocumentRepository
-    sessions: SessionRepository
-    template_graphs: TemplateGraphRepository
+    @property
+    def tasks(self) -> TaskRepository: ...
+
+    @property
+    def graphs(self) -> GraphRepository: ...
+
+    @property
+    def workflows(self) -> WorkflowRepository: ...
+
+    @property
+    def envelopes(self) -> EnvelopeRepository: ...
+
+    @property
+    def prompts(self) -> PromptRepository: ...
+
+    @property
+    def runner_configs(self) -> RunnerConfigRepository: ...
+
+    @property
+    def envelope_archive(self) -> EnvelopeArchive: ...
+
+    @property
+    def rag_documents(self) -> RagDocumentRepository: ...
+
+    @property
+    def sessions(self) -> SessionRepository: ...
+
+    @property
+    def template_graphs(self) -> TemplateGraphRepository: ...
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
+
     @property
     def events(self) -> list[DomainEvent]: ...
+
     async def commit(self) -> None: ...
+
     async def rollback(self) -> None: ...
+
     async def __aenter__(self) -> UnitOfWork: ...
-    async def __aexit__(
-        self, exc_type: object, exc_val: object, exc_tb: object
-    ) -> None: ...
+
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None: ...

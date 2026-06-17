@@ -129,7 +129,7 @@ class TestBuildGraphOnTaskCreated:
         from shell.infrastructure.persistence.memory.memory import InMemoryTemplateGraphRepository
 
         fresh_uow = InMemoryUnitOfWork()
-        fresh_uow.template_graphs = InMemoryTemplateGraphRepository()
+        fresh_uow._template_graphs = InMemoryTemplateGraphRepository()
         handler = BuildGraphOnTaskCreated(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):
@@ -171,7 +171,7 @@ class TestBuildGraphOnTaskCreated:
         from shell.infrastructure.persistence.memory.memory import InMemoryTemplateGraphRepository
 
         fresh_uow = InMemoryUnitOfWork()
-        fresh_uow.template_graphs = InMemoryTemplateGraphRepository()
+        fresh_uow._template_graphs = InMemoryTemplateGraphRepository()
         handler = BuildGraphOnTaskCreated(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(TemplateGraphNotFoundException):

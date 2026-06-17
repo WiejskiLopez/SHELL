@@ -32,6 +32,7 @@ from shell.bootstrap.database_config.database_bootstrap import bootstrap_databas
 from shell.domain.entities.prompt import Prompt
 from shell.domain.value_objects.ids import (
     PromptId,
+    TaskId,
 )
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.persistence.memory.memory import (
@@ -246,7 +247,7 @@ class TestSqlNodeResultRepository:
 
         async with uow as u:
             await u.workflows.save(
-                Workflow.new(id_=WorkflowId("wf-sql-1"), task_id="task-id", now=clock.now())
+                Workflow.new(id_=WorkflowId("wf-sql-1"), task_id=TaskId("task-id"), now=clock.now())
             )
             await u.commit()
 

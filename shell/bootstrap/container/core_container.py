@@ -40,4 +40,3 @@ class CoreContainer(containers.DeclarativeContainer):
         infra=infra,
         domain=domain,
     )
-

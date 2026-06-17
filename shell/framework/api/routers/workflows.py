@@ -12,7 +12,11 @@ from shell.application.commands.commands import RouteEnvelopesCommand, StartWork
 from shell.application.queries.queries import GetWorkflowQuery
 
 if TYPE_CHECKING:
+    from shell.application.bus.command_bus import CommandBus
+    from shell.application.bus.query_bus import QueryBus
     from shell.bootstrap.container.core_container import CoreContainer
+    # Zastąp poniższe importy właściwymi ścieżkami w Twoim projekcie:
+
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
@@ -29,27 +33,46 @@ class RouteResponse(BaseModel):
     routed: int
 
 
+# ------------------------------------------------------------------
+# FastAPI Dependencies (Inversion of Control)
+# ------------------------------------------------------------------
+
+
 def get_core_container(request: _Request) -> CoreContainer:
     return request.app.state.core_container
+
+
+def get_command_bus(container: CoreContainer = Depends(get_core_container)) -> CommandBus:
+    """Ekstrahuje CommandBus. Wyciszamy mypy wyłącznie tutaj, na granicy infrastruktury."""
+    return container.app.buses.command_bus()  # type: ignore[attr-defined, no-any-return]
+
+
+def get_query_bus(container: CoreContainer = Depends(get_core_container)) -> QueryBus:
+    """Ekstrahuje QueryBus."""
+    return container.app.buses.query_bus()  # type: ignore[attr-defined, no-any-return]
+
+
+# ------------------------------------------------------------------
+# Endpoints
+# ------------------------------------------------------------------
 
 
 @router.post("", response_model=StartWorkflowResponse, status_code=201)
 async def start_workflow(
     start_workflow_request: StartWorkflowRequest,
-    core_container: CoreContainer = Depends(get_core_container),
+    command_bus: CommandBus = Depends(get_command_bus),  # Wstrzykujemy konkret!
 ) -> StartWorkflowResponse:
     cmd = StartWorkflowCommand(task_id=start_workflow_request.task_id)
-    wf_id = await core_container.app.buses.command_bus().dispatch(cmd)
+    wf_id = await command_bus.dispatch(cmd)
     return StartWorkflowResponse(workflow_id=str(wf_id))
 
 
 @router.get("/{workflow_id}")
 async def get_workflow(
-    workflow_id: str, core_container: CoreContainer = Depends(get_core_container)
+    workflow_id: str,
+    query_bus: QueryBus = Depends(get_query_bus),  # Wstrzykujemy konkret!
 ) -> dict:  # type: ignore[type-arg]
-    result = await core_container.app.buses.query_bus().dispatch(
-        GetWorkflowQuery(workflow_id=workflow_id)
-    )
+    result = await query_bus.dispatch(GetWorkflowQuery(workflow_id=workflow_id))
     if result is None:
         raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
     return {"workflow_id": workflow_id, "workflow": str(result)}
@@ -57,8 +80,8 @@ async def get_workflow(
 
 @router.post("/{workflow_id}/route", response_model=RouteResponse)
 async def route_envelopes(
-    workflow_id: str, core_container: CoreContainer = Depends(get_core_container)
+    workflow_id: str, command_bus: CommandBus = Depends(get_command_bus)
 ) -> RouteResponse:
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
-    count = await core_container.app.buses.command_bus().dispatch(cmd)
+    count = await command_bus.dispatch(cmd)
     return RouteResponse(routed=count or 0)

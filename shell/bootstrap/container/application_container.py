@@ -18,6 +18,7 @@ if TYPE_CHECKING:
         queries: providers.Container[QueryContainer]
         events: providers.Container[EventContainer]
 
+
 from .bus_container import BusContainer
 from .command_container import CommandContainer
 from .event_container import EventContainer

@@ -18,6 +18,7 @@ if TYPE_CHECKING:
         query_bus: Singleton[QueryBus]
         event_bus: Singleton[EventBus]
 
+
 from shell.application.bus.command_bus import CommandBus
 from shell.application.bus.event_bus import EventBus
 from shell.application.bus.query_bus import QueryBus

@@ -12,6 +12,8 @@ param(
     [switch]$IntegrationOnly,
     [switch]$SkipLint,
     [switch]$SkipTypeCheck,
+    [switch]$SkipSecurity,       
+    [switch]$SkipArchCheck,      
     [switch]$Verbose
 )
 
@@ -78,4 +80,25 @@ if (-not $SkipTypeCheck) {
     Run-Command "python -m mypy shell" "Type Check (mypy)" -AllowFailure
 }
 
+if (-not $SkipArchCheck) {
+    Run-Command "$projectRoot\venv\Scripts\import-linter.exe" "Architecture Boundary Check"
+}
+
+if (-not $SkipSecurity) {
+    Run-Command "$projectRoot\venv\Scripts\pip-audit.exe" "Dependency Vulnerability Audit"
+}
+
+if (-not $SkipSecurity) {
+    Run-Command "bandit -r shell -ll" "Security Code Scanning (Bandit)"
+}
+
+if ($hasPostgres) {
+    Run-Command "alembic check" "Database Schema Sync Check"
+}
+
+Run-Command "python -m pytest shell/tests/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
+
+
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green
+
+

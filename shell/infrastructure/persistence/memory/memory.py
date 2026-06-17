@@ -17,6 +17,7 @@ from shell.application.dto.dto import (
     TaskDto,
     WorkflowDto,
 )
+from shell.application.ports.unit_of_work import UnitOfWork
 from shell.domain.entities.template_graph import TemplateGraph
 from shell.domain.entities.template_graph_node import TemplateGraphNode
 from shell.domain.repositories.envelope_repository import (
@@ -302,20 +303,42 @@ class InMemorySessionRepository(SessionRepository):
 # ---------------------------------------------------------------------------
 
 
-class InMemoryUnitOfWork:
+class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
+    """InMemory UnitOfWork for fast unit and integration testing.
+
+    Note on rollback: This implementation clears staged events and resets
+    commit flags, but DOES NOT rollback the internal state of the
+    InMemory repositories (dictionaries/lists). For pure unit tests,
+    this is usually sufficient.
+    """
+
     def __init__(self) -> None:
-        self.tasks: TaskRepository = InMemoryTaskRepository()
-        self.graphs: GraphRepository = InMemoryGraphRepository()
-        self.workflows: WorkflowRepository = InMemoryWorkflowRepository()
-        self.envelopes: EnvelopeRepository = InMemoryEnvelopeRepository()
-        self.prompts: PromptRepository = InMemoryPromptRepository()
-        self.runner_configs: RunnerConfigRepository = InMemoryRunnerConfigRepository()
-        self.envelope_archive: EnvelopeArchive = InMemoryEnvelopeArchive()
-        self.rag_documents: RagDocumentRepository = InMemoryRagDocumentRepository()
-        self.sessions: SessionRepository = InMemorySessionRepository()
-        self.template_graphs: TemplateGraphRepository = InMemoryTemplateGraphRepository()
-        # 🔥 SEED
-        self.template_graphs._store["base_planner"] = TemplateGraph(
+        # Private repository instances
+        self._tasks = InMemoryTaskRepository()
+        self._graphs = InMemoryGraphRepository()
+        self._workflows = InMemoryWorkflowRepository()
+        self._envelopes = InMemoryEnvelopeRepository()
+        self._prompts = InMemoryPromptRepository()
+        self._runner_configs = InMemoryRunnerConfigRepository()
+        self._envelope_archive = InMemoryEnvelopeArchive()
+        self._rag_documents = InMemoryRagDocumentRepository()
+        self._sessions = InMemorySessionRepository()
+        self._template_graphs = InMemoryTemplateGraphRepository()
+
+        # Stan transakcyjny
+        self._committed = False
+        self._staged_events: list[DomainEvent] = []
+        self._committed_events: list[DomainEvent] = []
+
+    # ------------------------------------------------------------------
+    # Test Helpers (Seeders)
+    # ------------------------------------------------------------------
+
+    def seed_base_planner(self) -> None:
+        """Helper method to inject a base planner for tests that require it.
+        Keeps the default __init__ clean and maintains test isolation.
+        """
+        self._template_graphs._store["base_planner"] = TemplateGraph(
             id=TemplateGraphId("base-planner-id"),
             name="base_planner",
             purpose="default_planning",
@@ -330,9 +353,49 @@ class InMemoryUnitOfWork:
             ],
         )
 
-        self._committed = False
-        self._staged_events: list[DomainEvent] = []
-        self._committed_events: list[DomainEvent] = []
+    # ------------------------------------------------------------------
+    # Repository properties (covariant return types — mypy-friendly)
+    # ------------------------------------------------------------------
+
+    @property
+    def tasks(self) -> InMemoryTaskRepository:
+        return self._tasks
+
+    @property
+    def graphs(self) -> InMemoryGraphRepository:
+        return self._graphs
+
+    @property
+    def workflows(self) -> InMemoryWorkflowRepository:
+        return self._workflows
+
+    @property
+    def envelopes(self) -> InMemoryEnvelopeRepository:
+        return self._envelopes
+
+    @property
+    def prompts(self) -> InMemoryPromptRepository:
+        return self._prompts
+
+    @property
+    def runner_configs(self) -> InMemoryRunnerConfigRepository:
+        return self._runner_configs
+
+    @property
+    def envelope_archive(self) -> InMemoryEnvelopeArchive:
+        return self._envelope_archive
+
+    @property
+    def rag_documents(self) -> InMemoryRagDocumentRepository:
+        return self._rag_documents
+
+    @property
+    def sessions(self) -> InMemorySessionRepository:
+        return self._sessions
+
+    @property
+    def template_graphs(self) -> InMemoryTemplateGraphRepository:
+        return self._template_graphs
 
     # ------------------------------------------------------------------
     # Outbox staging — mirrors SqlAlchemyUnitOfWork interface
@@ -349,6 +412,20 @@ class InMemoryUnitOfWork:
     def committed_events(self) -> list[DomainEvent]:
         return list(self._committed_events)
 
+    # ------------------------------------------------------------------
+    # Context Management & Transaction Control
+    # ------------------------------------------------------------------
+
+    async def __aenter__(self) -> InMemoryUnitOfWork:
+        self._committed = False
+        self._staged_events = []
+        self._committed_events = []
+        return self
+
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
+        if exc_type is not None:
+            await self.rollback()
+
     async def commit(self) -> None:
         self._committed_events = list(self._staged_events)
         self._staged_events = []
@@ -358,18 +435,6 @@ class InMemoryUnitOfWork:
         self._staged_events = []
         self._committed_events = []
         self._committed = False
-
-    async def __aenter__(self) -> InMemoryUnitOfWork:
-        self._committed = False
-        self._staged_events = []
-        self._committed_events = []
-        return self
-
-    async def __aexit__(
-        self, exc_type: object, exc_val: object, exc_tb: object
-    ) -> None:
-        if exc_type is not None:
-            await self.rollback()
 
 
 # ---------------------------------------------------------------------------
@@ -579,7 +644,9 @@ class InMemoryQueryServices:
         self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
         envelopes = [
-            e for e in self._uow.envelopes._store.values() if str(e.workflow_id) == workflow_id  # type: ignore[attr-defined]
+            e
+            for e in self._uow.envelopes._store.values()
+            if str(e.workflow_id) == workflow_id  # type: ignore[attr-defined]
         ]
         if pending_only:
             envelopes = [e for e in envelopes if e.status.value == "pending"]
@@ -622,7 +689,8 @@ class InMemoryQueryServices:
 
     async def get_prompt(self, name: str) -> PromptDto | None:
         prompt = next(
-            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current), None  # type: ignore[attr-defined]
+            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current),
+            None,  # type: ignore[attr-defined]
         )
         if not prompt:
             return None

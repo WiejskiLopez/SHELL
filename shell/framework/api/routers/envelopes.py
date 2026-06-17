@@ -10,22 +10,39 @@ from fastapi import Request as _Request
 from shell.application.queries.queries import GetEnvelopesByWorkflowQuery
 
 if TYPE_CHECKING:
+    from shell.application.bus.query_bus import QueryBus
     from shell.bootstrap.container.core_container import CoreContainer
+    # Dopasuj ścieżkę importu QueryBus do struktury swojego projektu:
 
 router = APIRouter(prefix="/envelopes", tags=["envelopes"])
+
+
+# ------------------------------------------------------------------
+# FastAPI Dependencies (Inversion of Control)
+# ------------------------------------------------------------------
 
 
 def get_core_container(request: _Request) -> CoreContainer:
     return request.app.state.core_container
 
 
+def get_query_bus(container: CoreContainer = Depends(get_core_container)) -> QueryBus:
+    """Ekstrahuje QueryBus i izoluje dynamiczne typowanie na granicy infrastruktury."""
+    return container.app.buses.query_bus()  # type: ignore[attr-defined, no-any-return]
+
+
+# ------------------------------------------------------------------
+# Endpoints
+# ------------------------------------------------------------------
+
+
 @router.get("/workflow/{workflow_id}")
 async def list_by_workflow(
     workflow_id: str,
     pending_only: bool = False,
-    core_container: CoreContainer = Depends(get_core_container),
+    query_bus: QueryBus = Depends(get_query_bus),  # Wstrzyknięty czysty konkret
 ) -> dict:  # type: ignore[type-arg]
-    result = await core_container.app.buses.query_bus().dispatch(
+    result = await query_bus.dispatch(
         GetEnvelopesByWorkflowQuery(workflow_id=workflow_id, pending_only=pending_only)
     )
     envelopes = result if result is not None else []

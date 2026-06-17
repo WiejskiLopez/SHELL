@@ -114,6 +114,7 @@ class TestPgTaskRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task"))
@@ -131,6 +132,7 @@ class TestPgTaskRepository:
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_loader: FakeTaskLoader,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskHandler(uow, clock, id_gen, task_loader, FakeLogger())
         await handler.handle(ImportTaskCommand("t.md", "pg-task-v"))
@@ -206,6 +208,7 @@ class TestPgWorkflowRepository:
     async def test_workflow_not_found_returns_none(
         self,
         uow: SqlAlchemyUnitOfWork,
+        session_factory: async_sessionmaker,
     ) -> None:
         q = GetWorkflowHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetWorkflowQuery("pg-no-such-wf"))
@@ -223,6 +226,7 @@ class TestPgPromptRepository:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("pg-sys-prompt", "You are a pg helper."))
@@ -235,6 +239,7 @@ class TestPgPromptRepository:
     async def test_prompt_not_found_returns_none(
         self,
         uow: SqlAlchemyUnitOfWork,
+        session_factory: async_sessionmaker,
     ) -> None:
         q = GetPromptHandler(SqlQueryServices(session_factory))
         dto = await q.handle(GetPromptQuery("pg-missing-prompt"))
@@ -253,6 +258,7 @@ class TestPgNodeResultRepository:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
+        session_factory: async_sessionmaker,
     ) -> None:
         handler = SaveNodeResultHandler(uow, clock, id_gen)
         await handler.handle(
@@ -282,6 +288,7 @@ class TestPgUnitOfWorkRollback:
         uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
+        session_factory: async_sessionmaker,
     ) -> None:
         try:
             async with uow as u:

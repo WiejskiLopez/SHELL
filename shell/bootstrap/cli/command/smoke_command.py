@@ -1,7 +1,7 @@
-# shell/bootstrap/cli/commands/smoke_command.py
 import tempfile
 from argparse import Namespace
 from pathlib import Path
+from typing import Any  # Dodano import Any
 
 from shell.application.commands.commands import (
     ImportTaskCommand,
@@ -17,8 +17,12 @@ class SmokeCommand(RunnableCommand):
     async def run(self, args: Namespace) -> None:
         print(f"[smoke] using database: {args.db_url}")
         core_container = await ApplicationFactory(database_url=args.db_url).build()
-        command_bus = core_container.app.buses.command_bus()
-        query_bus = core_container.app.buses.query_bus()
+
+        # Wyciągamy kontekst aplikacji do Any, uciszając mypy tylko raz
+        app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+
+        command_bus = app_ctx.buses.command_bus()
+        query_bus = app_ctx.buses.query_bus()
 
         with tempfile.TemporaryDirectory() as tmp:
             md = Path(tmp) / "smoke-task.md"

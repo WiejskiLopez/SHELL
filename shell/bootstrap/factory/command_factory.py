@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.application.commands.commands import (
     ArchiveEnvelopeCommand,
@@ -22,26 +22,24 @@ if TYPE_CHECKING:
 
 def register_commands(core_container: CoreContainer) -> None:
     """Rejestruje wszystkie Command Handlers na CommandBus kontenera."""
-    cmd_bus = core_container.app.buses.command_bus()
-    cmd_bus.register(ImportTaskCommand, core_container.app.commands.import_task_handler_factory)
-    cmd_bus.register(
-        StartWorkflowCommand, core_container.app.commands.start_workflow_handler_factory
-    )
-    cmd_bus.register(
-        RouteEnvelopesCommand, core_container.app.commands.route_envelopes_handler_factory
-    )
-    cmd_bus.register(RunNodeCommand, core_container.app.commands.run_node_handler_factory)
-    cmd_bus.register(
-        ArchiveEnvelopeCommand, core_container.app.commands.archive_envelope_handler_factory
-    )
-    cmd_bus.register(
-        SaveNodeResultCommand, core_container.app.commands.save_node_result_handler_factory
-    )
-    cmd_bus.register(SavePromptCommand, core_container.app.commands.save_prompt_handler_factory)
+
+    # Wyciągamy podkontener do zmiennej typu Any.
+    # Uciszamy mypy tylko RAZ w tym miejscu.
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+
+    cmd_bus = app_ctx.buses.command_bus()
+    commands = app_ctx.commands
+
+    # Rejestracja handlerów staje się czysta, krótka i w pełni czytelna:
+    cmd_bus.register(ImportTaskCommand, commands.import_task_handler_factory)
+    cmd_bus.register(StartWorkflowCommand, commands.start_workflow_handler_factory)
+    cmd_bus.register(RouteEnvelopesCommand, commands.route_envelopes_handler_factory)
+    cmd_bus.register(RunNodeCommand, commands.run_node_handler_factory)
+    cmd_bus.register(ArchiveEnvelopeCommand, commands.archive_envelope_handler_factory)
+    cmd_bus.register(SaveNodeResultCommand, commands.save_node_result_handler_factory)
+    cmd_bus.register(SavePromptCommand, commands.save_prompt_handler_factory)
     cmd_bus.register(
         BootstrapRunnerConfigCommand,
-        core_container.app.commands.bootstrap_runner_config_handler_factory,
+        commands.bootstrap_runner_config_handler_factory,
     )
-    cmd_bus.register(
-        RunTaskerWorkflowCommand, core_container.app.commands.run_tasker_workflow_handler_factory
-    )
+    cmd_bus.register(RunTaskerWorkflowCommand, commands.run_tasker_workflow_handler_factory)

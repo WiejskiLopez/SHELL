@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.application.queries.queries import (
     GetCurrentTaskQuery,
@@ -22,20 +22,25 @@ if TYPE_CHECKING:
 
 def register_queries(core_container: CoreContainer) -> None:
     """Rejestruje wszystkie Query Handlers na QueryBus kontenera."""
-    q_bus = core_container.app.buses.query_bus()
-    q_bus.register(GetTaskByNameQuery, core_container.app.queries.get_task_by_name_handler_factory)
-    q_bus.register(GetCurrentTaskQuery, core_container.app.queries.get_current_task_handler_factory)
-    q_bus.register(GetWorkflowQuery, core_container.app.queries.get_workflow_handler_factory)
+
+    # Wyciągamy podkontener do zmiennej typu Any.
+    # Uciszamy mypy tylko RAZ w tym miejscu.
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+
+    q_bus = app_ctx.buses.query_bus()
+    queries = app_ctx.queries
+
+    # Dzięki temu, że 'app_ctx' i jego dzieci są traktowane jako Any,
+    # mypy pozwala na pełny dynamiczny dostęp bez zgłaszania błędów:
+    q_bus.register(GetTaskByNameQuery, queries.get_task_by_name_handler_factory)
+    q_bus.register(GetCurrentTaskQuery, queries.get_current_task_handler_factory)
+    q_bus.register(GetWorkflowQuery, queries.get_workflow_handler_factory)
     q_bus.register(
         GetEnvelopesByWorkflowQuery,
-        core_container.app.queries.get_envelopes_by_workflow_handler_factory,
+        queries.get_envelopes_by_workflow_handler_factory,
     )
-    q_bus.register(GetNodeResultQuery, core_container.app.queries.get_node_result_handler_factory)
-    q_bus.register(GetPromptQuery, core_container.app.queries.get_prompt_handler_factory)
-    q_bus.register(
-        GetRunnerConfigQuery, core_container.app.queries.get_runner_config_handler_factory
-    )
-    q_bus.register(
-        GetSessionHistoryQuery, core_container.app.queries.get_session_history_handler_factory
-    )
-    q_bus.register(SearchSimilarQuery, core_container.app.queries.search_similar_handler_factory)
+    q_bus.register(GetNodeResultQuery, queries.get_node_result_handler_factory)
+    q_bus.register(GetPromptQuery, queries.get_prompt_handler_factory)
+    q_bus.register(GetRunnerConfigQuery, queries.get_runner_config_handler_factory)
+    q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)
+    q_bus.register(SearchSimilarQuery, queries.search_similar_handler_factory)

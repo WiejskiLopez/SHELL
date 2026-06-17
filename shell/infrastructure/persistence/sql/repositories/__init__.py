@@ -271,7 +271,7 @@ class SqlWorkflowRepository:
             )
         )
         result = await self._session.execute(cas_stmt)
-        if (result.rowcount if hasattr(result, 'rowcount') else 0) == 0:
+        if (result.rowcount if hasattr(result, "rowcount") else 0) == 0:
             raise WorkflowConcurrentlyModified(workflow.id.value)
 
         workflow.version = new_version
@@ -549,7 +549,7 @@ class SqlTemplateGraphRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, template_graph_id: TemplateGraphId) -> TemplateGraph | None:
+    async def get(self, template_graph_id: TemplateGraphId) -> TemplateGraph | None:
         q = select(TemplateGraphModel).where(TemplateGraphModel.id == template_graph_id.value)
         row = (await self._session.execute(q)).scalar_one_or_none()
         return template_graph_model_to_entity(row) if row else None

@@ -32,6 +32,7 @@ if TYPE_CHECKING:
         get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
         search_similar_handler_factory: Factory[SearchSimilarHandler]
 
+
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskHandler,
     GetEnvelopesByWorkflowHandler,

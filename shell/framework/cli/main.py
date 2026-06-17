@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.bootstrap.config_logging.setup_logging import setup_logging
 from shell.bootstrap.factory.application_factory import ApplicationFactory
@@ -54,8 +54,11 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
         workflow_id=workflow_id,
         workspace_path=work_dir,
     )
+
+    # Rzutowanie na Any wycisza błąd dynamicznego providera w jednym miejscu
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
     try:
-        await core_container.app.buses.command_bus().dispatch(cmd)
+        await app_ctx.buses.command_bus().dispatch(cmd)
         return 0
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {exc}", file=sys.stderr)
@@ -81,8 +84,10 @@ async def _import_task(argv: Sequence[str]) -> int:
     database_url = _get_database_url()
     core_container = await ApplicationFactory(database_url=database_url).build()
     cmd = ImportTaskCommand(md_path=md_path, task_name=task_name)
+
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
     try:
-        task_id = await core_container.app.buses.command_bus().dispatch(cmd)
+        task_id = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Imported task '{task_name}' with id={task_id}")
         return 0
     except Exception as exc:  # noqa: BLE001
@@ -102,8 +107,10 @@ async def _route(argv: Sequence[str]) -> int:
 
     workflow_id = ns.workflow_id or "default"
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
+
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
     try:
-        count = await core_container.app.buses.command_bus().dispatch(cmd)
+        count = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Routed {count} envelopes.")
         return 0
     except Exception as exc:  # noqa: BLE001
@@ -130,8 +137,10 @@ async def _run_tasker(argv: Sequence[str]) -> int:
         task_id=task_id,
         work_dir=work_dir,
     )
+
+    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
     try:
-        workflow_id = await core_container.app.buses.command_bus().dispatch(cmd)
+        workflow_id = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Tasker workflow completed: workflow_id={workflow_id}")
         return 0
     except Exception as exc:  # noqa: BLE001
