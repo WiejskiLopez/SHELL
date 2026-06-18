@@ -36,7 +36,9 @@ class TestCliImportTaskExecution:
             del os.environ["SHELL_DATABASE_URL"]
         assert rc == 0
 
-    async def test_import_task_execution_missing_args_returns_1(self, tmp_path: pathlib.Path) -> None:
+    async def test_import_task_execution_missing_args_returns_1(
+        self, tmp_path: pathlib.Path
+    ) -> None:
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
             from shell.framework.cli.main import _import_task_execution
@@ -66,7 +68,9 @@ class TestCliMain:
         try:
             from shell.framework.cli.main import _import_task_execution
 
-            rc = await _import_task_execution(["--task-name", "e2e_task", "--task-dir", str(tmp_path)])
+            rc = await _import_task_execution(
+                ["--task-name", "e2e_task", "--task-dir", str(tmp_path)]
+            )
         finally:
             del os.environ["SHELL_DATABASE_URL"]
         assert rc == 0

@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
-from shell.domain.entities.graph_execution import GraphExecution
 from shell.domain.entities.graph_definition import GraphDefinition
+from shell.domain.entities.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
@@ -20,8 +20,8 @@ from shell.domain.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
     GraphDefinitionId,
-    GraphNodeDefinitionId,
     GraphExecutionId,
+    GraphNodeDefinitionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
@@ -39,8 +39,8 @@ from shell.infrastructure.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
     GraphDefinitionModel,
-    GraphNodeDefinitionModel,
     GraphExecutionModel,
+    GraphNodeDefinitionModel,
     GraphNodeExecutionModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateModel,
@@ -174,7 +174,10 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
         )
         for ns in m.graph_node_execution_state_models
     }
-    graph_node_execution_results = {nr.graph_node_execution_id: graph_node_execution_result_model_to_entity(nr) for nr in m.graph_node_execution_result_models}
+    graph_node_execution_results = {
+        nr.graph_node_execution_id: graph_node_execution_result_model_to_entity(nr)
+        for nr in m.graph_node_execution_result_models
+    }
     from shell.domain.value_objects.workflow_cursor import WorkflowCursor
     from shell.domain.value_objects.workflow_execution_context import (
         WorkflowExecutionContext,
@@ -207,7 +210,9 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
         id=work_flow.id.value,
         task_execution_id=work_flow.task_execution_id.value,
         status=work_flow.status.value,
-        current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value if work_flow.cursor.current_graph_node_execution_id else None,
+        current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value
+        if work_flow.cursor.current_graph_node_execution_id
+        else None,
         work_dir=work_flow.execution_context.work_dir,
         correlation_id=work_flow.execution_context.correlation_id,
         version=work_flow.version,
@@ -339,7 +344,9 @@ def prompt_entity_to_model(p: Prompt) -> PromptModel:
 # ---------------------------------------------------------------------------
 
 
-def graph_node_execution_result_model_to_entity(m: GraphNodeExecutionResultModel) -> GraphNodeExecutionResult:
+def graph_node_execution_result_model_to_entity(
+    m: GraphNodeExecutionResultModel,
+) -> GraphNodeExecutionResult:
     return GraphNodeExecutionResult(
         id=GraphNodeExecutionResultId(m.id),
         graph_node_execution_id=GraphNodeExecutionId(m.graph_node_execution_id),
@@ -352,7 +359,9 @@ def graph_node_execution_result_model_to_entity(m: GraphNodeExecutionResultModel
     )
 
 
-def graph_node_execution_result_entity_to_model(graph_node_execution_result: GraphNodeExecutionResult) -> GraphNodeExecutionResultModel:
+def graph_node_execution_result_entity_to_model(
+    graph_node_execution_result: GraphNodeExecutionResult,
+) -> GraphNodeExecutionResultModel:
     return GraphNodeExecutionResultModel(
         id=graph_node_execution_result.id.value,
         graph_node_execution_id=graph_node_execution_result.graph_node_execution_id.value,
@@ -404,7 +413,10 @@ def graph_definition_model_to_entity(
         id=GraphDefinitionId(graph_definition_model.id),
         name=graph_definition_model.name,
         purpose=graph_definition_model.purpose,
-        graph_node_definitions=[graph_node_definition_model_to_entity(node) for node in graph_definition_model.graph_node_execution_models],
+        graph_node_definitions=[
+            graph_node_definition_model_to_entity(node)
+            for node in graph_definition_model.graph_node_execution_models
+        ],
     )
 
 

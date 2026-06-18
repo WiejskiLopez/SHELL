@@ -222,7 +222,11 @@ def upgrade() -> None:
     )
 
     # Indeks dla klucza obcego (zgodnie z wzorcem ix_envelope_workflow_id)
-    op.create_index("ix_graph_node_definition_graph_execution_id", "graph_node_definition", ["graph_definition_id"])
+    op.create_index(
+        "ix_graph_node_definition_graph_execution_id",
+        "graph_node_definition",
+        ["graph_definition_id"],
+    )
 
 
 def downgrade() -> None:

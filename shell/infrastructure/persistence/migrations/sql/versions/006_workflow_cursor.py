@@ -24,7 +24,12 @@ depends_on = None
 def upgrade() -> None:
     with op.batch_alter_table("workflow") as batch:
         batch.add_column(
-            sa.Column("current_graph_node_execution_id", sa.String(255), nullable=True, server_default=None)
+            sa.Column(
+                "current_graph_node_execution_id",
+                sa.String(255),
+                nullable=True,
+                server_default=None,
+            )
         )
         batch.add_column(
             sa.Column(

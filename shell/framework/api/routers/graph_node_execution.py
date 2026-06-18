@@ -42,7 +42,13 @@ async def get_graph_node_execution_result(
     workflow_id: str,
     query_bus: QueryBus = Depends(get_query_bus),  # Wstrzyknięty czysty konkret
 ) -> dict:  # type: ignore[type-arg]
-    result = await query_bus.dispatch(GetGraphNodeExecutionResultQuery(graph_node_execution_id=graph_node_execution_id, workflow_id=workflow_id))
+    result = await query_bus.dispatch(
+        GetGraphNodeExecutionResultQuery(
+            graph_node_execution_id=graph_node_execution_id, workflow_id=workflow_id
+        )
+    )
     if result is None:
-        raise HTTPException(status_code=404, detail=f"NodeResult for '{graph_node_execution_id}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"NodeResult for '{graph_node_execution_id}' not found"
+        )
     return {"node_execution_id": graph_node_execution_id, "result": str(result)}

@@ -10,9 +10,9 @@ from sqlalchemy.orm import joinedload, selectinload
 from shell.application.dto.dto import (
     EnvelopeDto,
     GraphNodeExecutionDto,
-    MessageDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
+    MessageDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
@@ -45,7 +45,11 @@ class SqlQueryServices:
     # --- TaskExecutionQueryService ---
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(TaskExecutionModel).where(TaskExecutionModel.name == name).where(TaskExecutionModel.is_current)
+            stmt = (
+                select(TaskExecutionModel)
+                .where(TaskExecutionModel.name == name)
+                .where(TaskExecutionModel.is_current)
+            )
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -146,7 +150,9 @@ class SqlQueryServices:
             ]
 
     # --- NodeResultQueryService ---
-    async def get_graph_node_execution_result(self, graph_node_execution_id: str, workflow_id: str) -> GraphNodeExecutionResultDto | None:
+    async def get_graph_node_execution_result(
+        self, graph_node_execution_id: str, workflow_id: str
+    ) -> GraphNodeExecutionResultDto | None:
         async with self._session_factory() as session:
             stmt = (
                 select(WorkflowModel)
@@ -157,7 +163,14 @@ class SqlQueryServices:
             wf = res.scalar_one_or_none()
             if not wf:
                 return None
-            m = next((nr for nr in wf.graph_node_execution_result_models if nr.graph_node_execution_id == graph_node_execution_id), None)
+            m = next(
+                (
+                    nr
+                    for nr in wf.graph_node_execution_result_models
+                    if nr.graph_node_execution_id == graph_node_execution_id
+                ),
+                None,
+            )
             if not m:
                 return None
             return GraphNodeExecutionResultDto(

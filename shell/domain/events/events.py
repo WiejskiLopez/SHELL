@@ -39,7 +39,12 @@ class TaskExecutionCreated(DomainEvent):
     task_execution_name: TaskExecutionName
 
     @classmethod
-    def now(cls, task_execution_id: TaskExecutionId, task_execution_name: TaskExecutionName, now: datetime) -> TaskExecutionCreated:
+    def now(
+        cls,
+        task_execution_id: TaskExecutionId,
+        task_execution_name: TaskExecutionName,
+        now: datetime,
+    ) -> TaskExecutionCreated:
         return cls(
             occurred_at=now,
             task_execution_id=task_execution_id,
@@ -109,7 +114,9 @@ class WorkflowStarted(DomainEvent):
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowStarted:
+    def now(
+        cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime
+    ) -> WorkflowStarted:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
@@ -184,12 +191,18 @@ class GraphNodeExecutionCompleted(DomainEvent):
             schema_version=schema_version,
             graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             workflow_id=WorkflowId(payload["workflow_id"]),
-            graph_node_execution_result_id=GraphNodeExecutionResultId(payload["graph_node_execution_result_id"]),
+            graph_node_execution_result_id=GraphNodeExecutionResultId(
+                payload["graph_node_execution_result_id"]
+            ),
         )
 
     @classmethod
     def now(
-        cls, graph_node_execution_id: GraphNodeExecutionId, workflow_id: WorkflowId, graph_node_execution_result_id: GraphNodeExecutionResultId, now: datetime
+        cls,
+        graph_node_execution_id: GraphNodeExecutionId,
+        workflow_id: WorkflowId,
+        graph_node_execution_result_id: GraphNodeExecutionResultId,
+        now: datetime,
     ) -> GraphNodeExecutionCompleted:
         return cls(
             occurred_at=now,
@@ -219,7 +232,11 @@ class GraphNodeExecutionFailed(DomainEvent):
 
     @classmethod
     def now(
-        cls, graph_node_execution_id: GraphNodeExecutionId, workflow_id: WorkflowId, reason: str, now: datetime
+        cls,
+        graph_node_execution_id: GraphNodeExecutionId,
+        workflow_id: WorkflowId,
+        reason: str,
+        now: datetime,
     ) -> GraphNodeExecutionFailed:
         return cls(
             occurred_at=now,
@@ -246,7 +263,9 @@ class WorkflowCompleted(DomainEvent):
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowCompleted:
+    def now(
+        cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime
+    ) -> WorkflowCompleted:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
@@ -271,7 +290,9 @@ class WorkflowFailed(DomainEvent):
         )
 
     @classmethod
-    def now(cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime) -> WorkflowFailed:
+    def now(
+        cls, workflow_id: WorkflowId, task_execution_id: TaskExecutionId, now: datetime
+    ) -> WorkflowFailed:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
@@ -365,7 +386,9 @@ class GraphNodeExecutionAdvanced(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            from_graph_node_execution_id=GraphNodeExecutionId(payload["from_graph_node_execution_id"]),
+            from_graph_node_execution_id=GraphNodeExecutionId(
+                payload["from_graph_node_execution_id"]
+            ),
             to_graph_node_execution_id=GraphNodeExecutionId(payload["to_graph_node_execution_id"]),
         )
 

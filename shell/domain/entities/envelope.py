@@ -11,7 +11,12 @@ from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeSt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.value_objects.ids import EnvelopeEventId, EnvelopeId, GraphNodeExecutionId, WorkflowId
+    from shell.domain.value_objects.ids import (
+        EnvelopeEventId,
+        EnvelopeId,
+        GraphNodeExecutionId,
+        WorkflowId,
+    )
 
 
 @dataclass(slots=True)

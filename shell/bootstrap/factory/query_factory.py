@@ -39,7 +39,9 @@ def register_queries(core_container: CoreContainer) -> None:
         GetEnvelopesByWorkflowQuery,
         queries.get_envelopes_by_workflow_handler_factory,
     )
-    q_bus.register(GetGraphNodeExecutionResultQuery, queries.get_graph_node_execution_result_handler_factory)
+    q_bus.register(
+        GetGraphNodeExecutionResultQuery, queries.get_graph_node_execution_result_handler_factory
+    )
     q_bus.register(GetPromptQuery, queries.get_prompt_handler_factory)
     q_bus.register(GetRunnerConfigQuery, queries.get_runner_config_handler_factory)
     q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)

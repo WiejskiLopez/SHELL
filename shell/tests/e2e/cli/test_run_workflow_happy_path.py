@@ -15,13 +15,18 @@ from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.events.events import (
     GraphNodeExecutionCompleted,
-    GraphNodeExecutionRequested,
     GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
     WorkflowCompleted,
     WorkflowFailed,
 )
 from shell.domain.value_objects.hash import Hash
-from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId, TaskExecutionId
+from shell.domain.value_objects.ids import (
+    GraphDefinitionId,
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    TaskExecutionId,
+)
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
@@ -161,10 +166,14 @@ class TestRunTaskerWorkflowHappyPath:
         queries: InMemoryQueryServices,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph_execution(uow, "happy-path-task", ["agent", "tool"], clock.now())
+        task_execution, _ = _make_task_with_graph_execution(
+            uow, "happy-path-task", ["agent", "tool"], clock.now()
+        )
 
         # Poprawne przekazanie task_execution_id oraz work_dir zgodnie z Twoją sygnaturą
-        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
+        cmd = RunTaskerWorkflowCommand(
+            task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
+        )
 
         # Act
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
@@ -189,8 +198,12 @@ class TestRunTaskerWorkflowHappyPath:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph_execution(uow, "single-node-task", ["agent"], clock.now())
-        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
+        task_execution, _ = _make_task_with_graph_execution(
+            uow, "single-node-task", ["agent"], clock.now()
+        )
+        cmd = RunTaskerWorkflowCommand(
+            task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
+        )
 
         # Act
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
@@ -209,8 +222,12 @@ class TestRunTaskerWorkflowPartialFailure:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph_execution(uow, "failing-task", ["agent", "tool"], clock.now())
-        cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
+        task_execution, _ = _make_task_with_graph_execution(
+            uow, "failing-task", ["agent", "tool"], clock.now()
+        )
+        cmd = RunTaskerWorkflowCommand(
+            task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
+        )
         failing_runner = FakeNodeProcessRunner(stdout="execution failed", returncode=1)
 
         # Act

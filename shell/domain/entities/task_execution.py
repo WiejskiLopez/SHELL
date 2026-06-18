@@ -103,7 +103,9 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
             is_current=True,
             created_at=now,
         )
-        task_execution.append_event(TaskExecutionCreated.now(task_execution_id=id_, task_execution_name=name, now=now))
+        task_execution.append_event(
+            TaskExecutionCreated.now(task_execution_id=id_, task_execution_name=name, now=now)
+        )
         return task_execution
 
     def supersede(self) -> None:

@@ -19,6 +19,8 @@ class GraphDefinitionRepository(Protocol):
 
 
 class GraphNodeDefinitionRepository(Protocol):
-    async def get_by_id(self, graph_node_execution_id: GraphNodeDefinitionId) -> GraphNodeDefinition | None: ...
+    async def get_by_id(
+        self, graph_node_execution_id: GraphNodeDefinitionId
+    ) -> GraphNodeDefinition | None: ...
 
     async def save(self, node: GraphNodeDefinition) -> None: ...

@@ -1,5 +1,9 @@
-from datetime import datetime
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 from shell.domain.events.events import (
     DomainEvent,
@@ -8,8 +12,8 @@ from shell.domain.events.events import (
     GraphExecutionBuilt,
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionCompleted,
-    GraphNodeExecutionRequested,
     GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
     GraphNodeExecutionStarted,
     TaskExecutionCreated,
     WorkflowCompleted,

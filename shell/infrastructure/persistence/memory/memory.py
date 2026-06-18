@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from shell.application.dto.dto import (
     EnvelopeDto,
-    MessageDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
+    MessageDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
@@ -25,8 +26,8 @@ from shell.domain.repositories.envelope_repository import (
     EnvelopeRepository,
 )
 from shell.domain.repositories.graph_definition_repository import (
-    GraphNodeDefinitionRepository,
     GraphDefinitionRepository,
+    GraphNodeDefinitionRepository,
 )
 from shell.domain.repositories.graph_execution_repository import GraphExecutionRepository
 from shell.domain.repositories.prompt_repository import PromptRepository
@@ -40,11 +41,11 @@ from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.ids import (
     EnvelopeId,
     GraphDefinitionId,
-    GraphNodeDefinitionId,
     GraphExecutionId,
-    MessageId,
+    GraphNodeDefinitionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
+    MessageId,
     PromptId,
     RagChunkId,
     RagDocumentId,
@@ -67,8 +68,6 @@ if TYPE_CHECKING:
     from shell.domain.events.events import DomainEvent
     from shell.domain.value_objects.manifest import Manifest
     from shell.domain.value_objects.task_execution_name import TaskExecutionName
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +116,9 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
         return self._store.get(graph_execution_id.value)
 
-    async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> GraphExecution | None:
+    async def get_by_task_execution_id(
+        self, task_execution_id: TaskExecutionId
+    ) -> GraphExecution | None:
         for g in self._store.values():
             if g.task_execution_id == task_execution_id:
                 return g
@@ -587,7 +588,9 @@ class InMemoryQueryServices:
         )
         if not task_execution:
             return None
-        graph_execution = await self._uow.graph_executions.get_by_task_execution_id(task_execution.id)
+        graph_execution = await self._uow.graph_executions.get_by_task_execution_id(
+            task_execution.id
+        )
         graph_node_executions = []
         if graph_execution is not None:
             from shell.application.dto.dto import GraphNodeExecutionDto
@@ -669,7 +672,9 @@ class InMemoryQueryServices:
             for e in envelopes
         ]
 
-    async def get_graph_node_execution_result(self, graph_node_execution_id: str, workflow_id: str) -> GraphNodeExecutionResultDto | None:
+    async def get_graph_node_execution_result(
+        self, graph_node_execution_id: str, workflow_id: str
+    ) -> GraphNodeExecutionResultDto | None:
         wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
         if wf is None:
             return None
@@ -787,7 +792,9 @@ class InMemoryGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphNodeDefinition] = {}
 
-    async def get_by_id(self, graph_node_definition_id: GraphNodeDefinitionId) -> GraphNodeDefinition | None:
+    async def get_by_id(
+        self, graph_node_definition_id: GraphNodeDefinitionId
+    ) -> GraphNodeDefinition | None:
         return self._store.get(graph_node_definition_id.value)
 
     async def save(self, node: GraphNodeDefinition) -> None:

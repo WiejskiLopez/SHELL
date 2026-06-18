@@ -5,8 +5,8 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from shell.infrastructure.external.hash_embedder import HashEmbedder
-from shell.infrastructure.filesystem.workspace import Workspace
 from shell.infrastructure.filesystem.task_execution_loader import FileSystemTaskLoader
+from shell.infrastructure.filesystem.workspace import Workspace
 from shell.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.logging.stdlib_logger import StdlibLogger

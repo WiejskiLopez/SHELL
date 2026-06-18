@@ -6,11 +6,11 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import (
         EnvelopeId,
         GraphDefinitionId,
-        GraphNodeDefinitionId,
         GraphExecutionId,
-        MessageId,
+        GraphNodeDefinitionId,
         GraphNodeExecutionId,
         GraphNodeExecutionResultId,
+        MessageId,
         PromptId,
         RagChunkId,
         RagDocumentId,

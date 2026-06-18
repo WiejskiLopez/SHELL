@@ -44,7 +44,11 @@ class RouteEnvelopesHandler:
 
             pending = await uow.envelopes.list_pending(wf_id)
             task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
-            graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id) if task_execution is not None else None
+            graph_execution = (
+                await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+                if task_execution is not None
+                else None
+            )
 
             now = self._clock.now()
             routed = 0
@@ -61,10 +65,12 @@ class RouteEnvelopesHandler:
 
                 if graph_execution is not None:
                     try:
-                        target_graph_node_execution_id = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
-                            graph_execution,
-                            envelope.sender_graph_node_execution_id,
-                            envelope.target_role or None,
+                        target_graph_node_execution_id = (
+                            GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+                                graph_execution,
+                                envelope.sender_graph_node_execution_id,
+                                envelope.target_role or None,
+                            )
                         )
                         envelope.receiver_graph_node_execution_id = target_graph_node_execution_id
                     except Exception:

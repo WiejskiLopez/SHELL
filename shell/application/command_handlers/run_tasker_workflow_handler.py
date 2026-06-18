@@ -70,7 +70,9 @@ class RunTaskerWorkflowHandler:
                 raise TaskExecutionNotFound(cmd.task_execution_id)
 
             graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
-            first_graph_node_execution = self._navigator.first(graph_execution) if graph_execution is not None else None
+            first_graph_node_execution = (
+                self._navigator.first(graph_execution) if graph_execution is not None else None
+            )
             if first_graph_node_execution is None:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)
 
@@ -92,7 +94,13 @@ class RunTaskerWorkflowHandler:
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
-            uow.stage_events([GraphNodeExecutionRequested.now(workflow.id, first_graph_node_execution.id, now=now)])
+            uow.stage_events(
+                [
+                    GraphNodeExecutionRequested.now(
+                        workflow.id, first_graph_node_execution.id, now=now
+                    )
+                ]
+            )
             await uow.commit()
 
         return workflow.id.value

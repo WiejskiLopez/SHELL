@@ -28,11 +28,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from datetime import datetime
+
 from shell.domain.events.events import GraphNodeExecutionRequested
 from shell.domain.exceptions import WorkflowConcurrentlyModified
 from shell.domain.services.compensation_handler import (
     CompensationHandler,
     NoOpCompensationHandler,
+)
+from shell.domain.services.graph_node_execution_navigator import (
+    LinearGraphNodeExecutionNavigator,
+    NodeNavigator,
 )
 from shell.domain.services.graph_node_execution_policy import (
     AbortDecision,
@@ -40,17 +47,11 @@ from shell.domain.services.graph_node_execution_policy import (
     FailFastPolicy,
     NodeExecutionPolicy,
 )
-from shell.domain.services.graph_node_execution_navigator import (
-    LinearGraphNodeExecutionNavigator,
-    NodeNavigator,
-)
 from shell.domain.value_objects.manifest import Manifest
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.application.ports.execution import NodeProcessRunner
     from shell.application.ports.identity import IdGenerator
     from shell.application.ports.logging import Logger
@@ -222,7 +223,10 @@ class GraphNodeExecutionWorker:
 
             if success:
                 self._advance_or_finish(
-                    workflow=workflow, graph_execution=graph_execution, graph_node_execution_id=event.graph_node_execution_id, now=now
+                    workflow=workflow,
+                    graph_execution=graph_execution,
+                    graph_node_execution_id=event.graph_node_execution_id,
+                    now=now,
                 )
             else:
                 self._handle_failure(
@@ -245,13 +249,17 @@ class GraphNodeExecutionWorker:
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
     ) -> None:
-        next_graph_node_executions = list(self._navigator.next_after(graph_execution, graph_node_execution_id))
+        next_graph_node_executions = list(
+            self._navigator.next_after(graph_execution, graph_node_execution_id)
+        )
         if not next_graph_node_executions:
             workflow.finish(now)
             return
         next_graph_node_execution = next_graph_node_executions[0]
         workflow.advance_to(next_graph_node_execution_id=next_graph_node_execution.id, now=now)
-        workflow.append_event(GraphNodeExecutionRequested.now(workflow.id, next_graph_node_execution.id, now=now))
+        workflow.append_event(
+            GraphNodeExecutionRequested.now(workflow.id, next_graph_node_execution.id, now=now)
+        )
 
     def _handle_failure(
         self,
@@ -264,7 +272,12 @@ class GraphNodeExecutionWorker:
     ) -> None:
         decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)
         if isinstance(decision, ContinueDecision):
-            self._advance_or_finish(workflow=workflow, graph_execution=graph_execution, graph_node_execution_id=graph_node_execution_id, now=now)
+            self._advance_or_finish(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+            )
             return
 
         abort_reason = decision.reason if isinstance(decision, AbortDecision) else reason
@@ -273,7 +286,9 @@ class GraphNodeExecutionWorker:
     # ── Pure helpers ─────────────────────────────────────────────────────
 
     @staticmethod
-    def _find_graph_node_execution(graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId) -> GraphNodeExecution | None:
+    def _find_graph_node_execution(
+        graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
+    ) -> GraphNodeExecution | None:
         for n in graph_execution.graph_node_executions:
             if n.id == graph_node_execution_id:
                 return n
@@ -281,7 +296,11 @@ class GraphNodeExecutionWorker:
 
     @staticmethod
     def _build_manifest(graph_node_execution: GraphNodeExecution) -> Manifest:
-        mode = graph_node_execution.mode if isinstance(graph_node_execution.mode, Mode) else Mode(graph_node_execution.mode.value)
+        mode = (
+            graph_node_execution.mode
+            if isinstance(graph_node_execution.mode, Mode)
+            else Mode(graph_node_execution.mode.value)
+        )
         return Manifest(
             name=graph_node_execution.id.value,
             mode=mode,

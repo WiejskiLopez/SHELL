@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from shell.infrastructure.filesystem.envelope_archive_fs import FileSystemEnvelopeArchive
-from shell.infrastructure.filesystem.workspace import Workspace
 from shell.infrastructure.filesystem.task_execution_loader import FileSystemTaskLoader
+from shell.infrastructure.filesystem.workspace import Workspace
 
 # ---------------------------------------------------------------------------
 # Workspace

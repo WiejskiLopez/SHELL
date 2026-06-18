@@ -55,7 +55,9 @@ def logger() -> FakeLogger:
     return FakeLogger()
 
 
-async def _seed_graph_definition(uow: InMemoryUnitOfWork, name: str = "base_planner") -> GraphDefinition:
+async def _seed_graph_definition(
+    uow: InMemoryUnitOfWork, name: str = "base_planner"
+) -> GraphDefinition:
     graph_definition = GraphDefinition(
         id=GraphDefinitionId(f"{name}-id"),
         name=name,
@@ -112,7 +114,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+        graph_execution = await uow.graph_executions.get_by_task_execution_id(
+            TaskExecutionId("task-abc")
+        )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         assert len(graph_execution.graph_node_executions) == 2
@@ -147,7 +151,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+        first_graph = await uow.graph_executions.get_by_task_execution_id(
+            TaskExecutionId("task-abc")
+        )
         assert first_graph is not None
         first_graph_execution_id = first_graph.id
 
@@ -155,7 +161,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+        second_graph = await uow.graph_executions.get_by_task_execution_id(
+            TaskExecutionId("task-abc")
+        )
         assert second_graph is not None
         assert second_graph.id == first_graph_execution_id
         assert uow.committed_events == []
@@ -179,4 +187,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
 
         assert fresh_uow.committed_events == []
         # Graph must not exist either.
-        assert await fresh_uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc")) is None
+        assert (
+            await fresh_uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+            is None
+        )

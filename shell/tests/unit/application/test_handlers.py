@@ -7,7 +7,9 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import (
+    SaveGraphNodeExecutionResultHandler,
+)
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
@@ -88,7 +90,9 @@ class TestImportTaskExecutionHandler:
         id_gen: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
         assert task_execution_id
@@ -102,7 +106,9 @@ class TestImportTaskExecutionHandler:
         id_gen: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
         from shell.domain.value_objects.task_execution_name import TaskExecutionName
@@ -118,12 +124,16 @@ class TestImportTaskExecutionHandler:
         id_gen: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         first_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
         old = await uow.task_executions.get_by_id(
-            __import__("shell.domain.value_objects.ids", fromlist=["TaskExecutionId"]).TaskExecutionId(first_id)
+            __import__(
+                "shell.domain.value_objects.ids", fromlist=["TaskExecutionId"]
+            ).TaskExecutionId(first_id)
         )
         assert old is not None
         assert old.is_current is False
@@ -135,7 +145,9 @@ class TestImportTaskExecutionHandler:
         id_gen: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         with pytest.raises(ValueError):
             await handler.handle(ImportTaskExecutionCommand("t.md", ""))
 
@@ -164,11 +176,17 @@ class TestStartWorkflowHandler:
         ``StartWorkflowHandler`` can anchor the cursor on a first node.
         """
         from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
-        from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
+        from shell.domain.value_objects.ids import (
+            GraphDefinitionId,
+            GraphExecutionId,
+            GraphNodeExecutionId,
+        )
         from shell.domain.value_objects.mode import Mode
         from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
-        task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName(task_execution_name))
+        task_execution = await uow.task_executions.get_current_by_name(
+            TaskExecutionName(task_execution_name)
+        )
         assert task_execution is not None
         graph_execution = GraphExecution(
             id=GraphExecutionId.generate(),
@@ -194,7 +212,9 @@ class TestStartWorkflowHandler:
         id_gen: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
-        task_execution_id = await self._import_task_execution(uow, clock, id_gen, task_execution_loader)
+        task_execution_id = await self._import_task_execution(
+            uow, clock, id_gen, task_execution_loader
+        )
         handler = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
@@ -219,7 +239,9 @@ class TestStartWorkflowHandler:
         task_execution_loader: FakeTaskLoader,
         queries: InMemoryQueryServices,
     ) -> None:
-        task_execution_id = await self._import_task_execution(uow, clock, id_gen, task_execution_loader)
+        task_execution_id = await self._import_task_execution(
+            uow, clock, id_gen, task_execution_loader
+        )
         handler = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
@@ -245,7 +267,9 @@ class TestSaveGraphNodeExecutionResultHandler:
         from shell.domain.entities.workflow import Workflow
         from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 
-        wf = Workflow.new(id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now())
+        wf = Workflow.new(
+            id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now()
+        )
         await uow.workflows.save(wf)
 
         handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
@@ -310,7 +334,9 @@ class TestSavePromptHandler:
 
 class TestQueryHandlersNotFound:
     async def test_get_task_not_found(self, queries: InMemoryQueryServices) -> None:
-        dto = await GetCurrentTaskExecutionHandler(queries).handle(GetCurrentTaskExecutionQuery("missing"))
+        dto = await GetCurrentTaskExecutionHandler(queries).handle(
+            GetCurrentTaskExecutionQuery("missing")
+        )
         assert dto is None
 
     async def test_get_workflow_not_found(self, queries: InMemoryQueryServices) -> None:

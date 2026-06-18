@@ -57,7 +57,9 @@ async def import_task(
     body: ImportTaskRequest,
     command_bus: CommandBus = Depends(get_command_bus),  # Wstrzyknięty konkret
 ) -> ImportTaskResponse:
-    cmd = ImportTaskExecutionCommand(md_path=body.md_path, task_execution_name=body.task_execution_name)
+    cmd = ImportTaskExecutionCommand(
+        md_path=body.md_path, task_execution_name=body.task_execution_name
+    )
     task_execution_id = await command_bus.dispatch(cmd)
     return ImportTaskResponse(task_execution_id=str(task_execution_id))
 

@@ -32,7 +32,9 @@ class SmokeCommand(RunnableCommand):
             )
 
         print(f"[smoke] task imported: {task_execution_id}")
-        workflow_id = await command_bus.dispatch(StartWorkflowCommand(task_execution_id=task_execution_id))
+        workflow_id = await command_bus.dispatch(
+            StartWorkflowCommand(task_execution_id=task_execution_id)
+        )
         print(f"[smoke] workflow started: {workflow_id}")
 
         routed = await command_bus.dispatch(RouteEnvelopesCommand(workflow_id=workflow_id))

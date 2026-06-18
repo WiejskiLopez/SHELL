@@ -17,7 +17,9 @@ if TYPE_CHECKING:
         NodeWorkspace,
         UnitOfWork,
     )
-    from shell.application.strategies.graph_node_execution_strategy import GraphNodeExecutionStrategy
+    from shell.application.strategies.graph_node_execution_strategy import (
+        GraphNodeExecutionStrategy,
+    )
 
 
 class RunGraphNodeExecutionHandler:
@@ -54,7 +56,9 @@ class RunGraphNodeExecutionHandler:
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
 
-            workflow.update_graph_node_execution_state(graph_node_execution_id, Status.running(), now=now)
+            workflow.update_graph_node_execution_state(
+                graph_node_execution_id, Status.running(), now=now
+            )
             await uow.workflows.save(workflow)
             await uow.commit()
 

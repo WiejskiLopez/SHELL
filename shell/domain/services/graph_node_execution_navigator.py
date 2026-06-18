@@ -26,7 +26,9 @@ class NodeNavigator(Protocol):
         """Return the first node to execute, or None if the graph has no nodes."""
         ...
 
-    def next_after(self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId) -> Iterable[GraphNodeExecution]:
+    def next_after(
+        self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
+    ) -> Iterable[GraphNodeExecution]:
         """Return the node(s) that should follow ``node_execution_id`` in execution order.
 
         Returning an empty iterable signals that no further node remains and the
@@ -47,7 +49,9 @@ class LinearGraphNodeExecutionNavigator:
         ordered = self._ordered(graph_execution)
         return ordered[0] if ordered else None
 
-    def next_after(self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId) -> list[GraphNodeExecution]:
+    def next_after(
+        self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
+    ) -> list[GraphNodeExecution]:
         ordered = self._ordered(graph_execution)
         for idx, node in enumerate(ordered):
             if node.id == graph_node_execution_id:

@@ -50,7 +50,7 @@ def do_run_migrations(connection: object) -> None:  # type: ignore[no-untyped-de
 
 async def run_async_migrations() -> None:
     url = _get_url()
-    connectable = create_async_engine(url, echo=True, future=True)
+    connectable = create_async_engine(url, echo=False, future=True)
     async with connectable.connect() as conn:
         await conn.run_sync(do_run_migrations)
     await connectable.dispose()

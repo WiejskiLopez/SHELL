@@ -25,7 +25,7 @@ def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
     """
     engine = create_async_engine(
         url,
-        echo=True,
+        echo=False,
         future=True,
         # SQLite-specific: allow same connection across threads (needed by aiosqlite)
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
@@ -37,7 +37,7 @@ async def create_all_tables(url: str) -> None:
     """Create all tables (dev/test helper — production uses alembic)."""
     from shell.infrastructure.persistence.sql.models import Base
 
-    engine = create_async_engine(url, echo=True, future=True)
+    engine = create_async_engine(url, echo=False, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
@@ -52,7 +52,7 @@ async def get_session(
 
 
 async def seed_base_data(url: str) -> None:
-    engine = create_async_engine(url, echo=True, future=True)
+    engine = create_async_engine(url, echo=False, future=True)
 
     async with engine.begin() as conn:
         await conn.run_sync(_seed_sync)

@@ -9,8 +9,8 @@ from shell.domain.events.events import (
     EnvelopeRouted,
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionCompleted,
-    GraphNodeExecutionRequested,
     GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
     GraphNodeExecutionStarted,
     TaskExecutionCreated,
     WorkflowCompleted,
@@ -39,10 +39,12 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(GraphNodeExecutionCompleted, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionFailed, events.log_audit_handler_factory)
     event_bus.subscribe(TaskExecutionCreated, events.log_audit_handler_factory)
-    event_bus.subscribe(TaskExecutionCreated, events.build_graph_execution_on_task_execution_created_factory)
+    event_bus.subscribe(
+        TaskExecutionCreated, events.build_graph_execution_on_task_execution_created_factory
+    )
     event_bus.subscribe(WorkflowStarted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowCompleted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailed, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionStarted, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionAdvanced, events.log_audit_handler_factory)
-    event_bus.subscribe( GraphNodeExecutionRequested, events.graph_node_execution_worker_factory)
+    event_bus.subscribe(GraphNodeExecutionRequested, events.graph_node_execution_worker_factory)

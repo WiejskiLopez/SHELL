@@ -59,12 +59,17 @@ class TestWorkflowStateMachine:
         wf = _new_workflow()
         first_graph_node_execution_id = GraphNodeExecutionId("node-start")
 
-        wf.start_at(first_graph_node_execution_id=first_graph_node_execution_id, context=_ctx(), now=_NOW)
+        wf.start_at(
+            first_graph_node_execution_id=first_graph_node_execution_id, context=_ctx(), now=_NOW
+        )
 
         assert wf.status == Status.running()
         assert wf.cursor == WorkflowCursor.at(first_graph_node_execution_id)
         assert first_graph_node_execution_id.value in wf.graph_node_execution_states
-        assert wf.graph_node_execution_states[first_graph_node_execution_id.value].status == Status.running()
+        assert (
+            wf.graph_node_execution_states[first_graph_node_execution_id.value].status
+            == Status.running()
+        )
 
         # Sprawdzenie akumulacji zdarzeń domenowych
         events = wf.pull_events()
@@ -74,10 +79,16 @@ class TestWorkflowStateMachine:
     def test_start_at_raises_invalid_transition_if_not_idle(self) -> None:
         """Próba ponownego wystartowania uruchomionego workflow rzuca wyjątek."""
         wf = _new_workflow()
-        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW)
+        wf.start_at(
+            first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW
+        )
 
         with pytest.raises(InvalidWorkflowTransition):
-            wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("node-2"), context=_ctx(), now=_NOW)
+            wf.start_at(
+                first_graph_node_execution_id=GraphNodeExecutionId("node-2"),
+                context=_ctx(),
+                now=_NOW,
+            )
 
     def test_advance_to_moves_cursor_to_next_node(self) -> None:
         """Weryfikuje poprawne przesunięcie cursora do kolejnego węzła."""
@@ -107,7 +118,9 @@ class TestWorkflowStateMachine:
     def test_finish_transitions_to_done_and_clears_cursor(self) -> None:
         """Weryfikuje poprawne zakończenie workflow i przejście w stan terminalny done."""
         wf = _new_workflow()
-        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW)
+        wf.start_at(
+            first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW
+        )
         wf.pull_events()
 
         wf.finish(now=_NOW)
@@ -121,7 +134,9 @@ class TestWorkflowStateMachine:
     def test_abort_transitions_to_failed_and_clears_cursor(self) -> None:
         """Weryfikuje zachowanie metody abort na podstawie struktury TestAbort z dump_004.md."""
         wf = _new_workflow()
-        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW)
+        wf.start_at(
+            first_graph_node_execution_id=GraphNodeExecutionId("node-1"), context=_ctx(), now=_NOW
+        )
         wf.pull_events()
 
         wf.abort(reason="Wymuszone zatrzymanie awaryjne", now=_NOW)

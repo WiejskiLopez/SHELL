@@ -141,11 +141,17 @@ class Workflow:
         self.status = Status.running()
         self.execution_context = context
         self.cursor = WorkflowCursor.at(first_graph_node_execution_id)
-        self.update_graph_node_execution_state(first_graph_node_execution_id, Status.running(), now=now)
+        self.update_graph_node_execution_state(
+            first_graph_node_execution_id, Status.running(), now=now
+        )
         self.append_event(WorkflowStarted.now(self.id, self.task_execution_id, now=now))
-        self.append_event(GraphNodeExecutionStarted.now(self.id, first_graph_node_execution_id, now=now))
+        self.append_event(
+            GraphNodeExecutionStarted.now(self.id, first_graph_node_execution_id, now=now)
+        )
 
-    def advance_to(self, *, next_graph_node_execution_id: GraphNodeExecutionId, now: datetime) -> None:
+    def advance_to(
+        self, *, next_graph_node_execution_id: GraphNodeExecutionId, now: datetime
+    ) -> None:
         """Move the cursor from the current node to ``next_graph_node_execution_id``.
 
         Emits ``GraphNodeExecutionAdvanced`` and ``GraphNodeExecutionStarted``. Caller is responsible for
@@ -159,7 +165,9 @@ class Workflow:
         if previous is None:
             raise InvalidWorkflowTransition("advance_to requires an active cursor")
         self.cursor = WorkflowCursor.at(next_graph_node_execution_id)
-        self.update_graph_node_execution_state(next_graph_node_execution_id, Status.running(), now=now)
+        self.update_graph_node_execution_state(
+            next_graph_node_execution_id, Status.running(), now=now
+        )
         self.append_event(
             GraphNodeExecutionAdvanced.now(
                 workflow_id=self.id,
@@ -168,7 +176,9 @@ class Workflow:
                 now=now,
             )
         )
-        self.append_event(GraphNodeExecutionStarted.now(self.id, next_graph_node_execution_id, now=now))
+        self.append_event(
+            GraphNodeExecutionStarted.now(self.id, next_graph_node_execution_id, now=now)
+        )
 
     def finish(self, now: datetime) -> None:
         """Mark the workflow as completed (terminal state)."""
@@ -205,7 +215,11 @@ class Workflow:
     # ── Node-state / NodeResult management ─────────────────────────────────
 
     def update_graph_node_execution_state(
-        self, graph_node_execution_id: GraphNodeExecutionId, status: Status, now: datetime, step: int = 0
+        self,
+        graph_node_execution_id: GraphNodeExecutionId,
+        status: Status,
+        now: datetime,
+        step: int = 0,
     ) -> None:
         from shell.domain.value_objects.ids import GraphNodeExecutionStateId
 
@@ -253,7 +267,15 @@ class Workflow:
         self.graph_node_execution_results[graph_node_execution_id.value] = result
         self.update_graph_node_execution_state(graph_node_execution_id, status, now=now)
         if status == Status.done():
-            self.append_event(GraphNodeExecutionCompleted.now(graph_node_execution_id, self.id, result_id, now=now))
+            self.append_event(
+                GraphNodeExecutionCompleted.now(
+                    graph_node_execution_id, self.id, result_id, now=now
+                )
+            )
         else:
-            self.append_event(GraphNodeExecutionFailed.now(graph_node_execution_id, self.id, reason or stderr, now=now))
+            self.append_event(
+                GraphNodeExecutionFailed.now(
+                    graph_node_execution_id, self.id, reason or stderr, now=now
+                )
+            )
         return result

@@ -22,8 +22,8 @@ from shell.domain.entities.workflow import Workflow
 from shell.domain.events.events import (
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionCompleted,
-    GraphNodeExecutionRequested,
     GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
     WorkflowCompleted,
     WorkflowFailed,
 )
@@ -54,7 +54,9 @@ from shell.infrastructure.persistence.memory.memory import (
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 
-def _build_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]) -> tuple[TaskExecution, Graph]:
+def _build_graph_execution(
+    uow: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]
+) -> tuple[TaskExecution, GraphExecution]:
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskExecutionName(task_execution_name),
@@ -119,17 +121,26 @@ class TestGraphNodeExecutionWorkerHappyPath:
     async def test_first_node_success_advances_to_second(self) -> None:
         uow = InMemoryUnitOfWork()
         task_execution, graph_execution = _build_graph_execution(uow, "happy", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task_execution.id, graph_execution.graph_node_executions[0].id)
+        wf = await _persist_running_workflow(
+            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+        )
 
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(GraphNodeExecutionRequested.now(wf.id, graph_execution.graph_node_executions[0].id, now=_NOW))
+        await worker.handle(
+            GraphNodeExecutionRequested.now(
+                wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
+            )
+        )
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
-        assert stored.cursor.current_graph_node_execution_id == graph_execution.graph_node_executions[1].id
+        assert (
+            stored.cursor.current_graph_node_execution_id
+            == graph_execution.graph_node_executions[1].id
+        )
 
         types = [type(e) for e in uow.committed_events]
         assert GraphNodeExecutionCompleted in types
@@ -139,12 +150,18 @@ class TestGraphNodeExecutionWorkerHappyPath:
     async def test_last_node_success_finishes_workflow(self) -> None:
         uow = InMemoryUnitOfWork()
         task_execution, graph_execution = _build_graph_execution(uow, "single", ["agent"])
-        wf = await _persist_running_workflow(uow, task_execution.id, graph_execution.graph_node_executions[0].id)
+        wf = await _persist_running_workflow(
+            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+        )
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(GraphNodeExecutionRequested.now(wf.id, graph_execution.graph_node_executions[0].id, now=_NOW))
+        await worker.handle(
+            GraphNodeExecutionRequested.now(
+                wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
+            )
+        )
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
@@ -159,12 +176,18 @@ class TestGraphNodeExecutionWorkerFailure:
     async def test_node_failure_aborts_under_fail_fast_policy(self) -> None:
         uow = InMemoryUnitOfWork()
         task_execution, graph_execution = _build_graph_execution(uow, "fail", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task_execution.id, graph_execution.graph_node_executions[0].id)
+        wf = await _persist_running_workflow(
+            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+        )
 
         runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(uow, runner)
 
-        await worker.handle(GraphNodeExecutionRequested.now(wf.id, graph_execution.graph_node_executions[0].id, now=_NOW))
+        await worker.handle(
+            GraphNodeExecutionRequested.now(
+                wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
+            )
+        )
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
@@ -183,19 +206,28 @@ class TestGraphNodeExecutionWorkerIdempotency:
     async def test_stale_cursor_event_is_dropped(self) -> None:
         uow = InMemoryUnitOfWork()
         task_execution, graph_execution = _build_graph_execution(uow, "stale", ["agent", "tool"])
-        wf = await _persist_running_workflow(uow, task_execution.id, graph_execution.graph_node_executions[0].id)
+        wf = await _persist_running_workflow(
+            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+        )
 
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
         # Worker is asked to process node[1] but the cursor still points at node[0].
-        await worker.handle(GraphNodeExecutionRequested.now(wf.id, graph_execution.graph_node_executions[1].id, now=_NOW))
+        await worker.handle(
+            GraphNodeExecutionRequested.now(
+                wf.id, graph_execution.graph_node_executions[1].id, now=_NOW
+            )
+        )
 
         # Workflow state must be unchanged.
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
-        assert stored.cursor.current_graph_node_execution_id == graph_execution.graph_node_executions[0].id
+        assert (
+            stored.cursor.current_graph_node_execution_id
+            == graph_execution.graph_node_executions[0].id
+        )
         # Runner was not called (early return).
         assert runner.calls == []
         # No domain events were published.
@@ -204,7 +236,9 @@ class TestGraphNodeExecutionWorkerIdempotency:
     async def test_terminal_workflow_ignores_event(self) -> None:
         uow = InMemoryUnitOfWork()
         task_execution, graph_execution = _build_graph_execution(uow, "terminal", ["agent"])
-        wf = await _persist_running_workflow(uow, task_execution.id, graph_execution.graph_node_executions[0].id)
+        wf = await _persist_running_workflow(
+            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+        )
 
         # Force the workflow into ``done`` state directly.
         wf.record_graph_node_execution_result(
@@ -221,7 +255,11 @@ class TestGraphNodeExecutionWorkerIdempotency:
         runner = FakeNodeProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
-        await worker.handle(GraphNodeExecutionRequested.now(wf.id, graph_execution.graph_node_executions[0].id, now=_NOW))
+        await worker.handle(
+            GraphNodeExecutionRequested.now(
+                wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
+            )
+        )
 
         # Worker should silently ignore the re-delivery.
         assert runner.calls == []

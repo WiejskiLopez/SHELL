@@ -32,7 +32,10 @@ class WorkflowCursor:
         return self.current_graph_node_execution_id is not None
 
     def points_to(self, graph_node_execution_id: GraphNodeExecutionId) -> bool:
-        return self.current_graph_node_execution_id is not None and self.current_graph_node_execution_id == graph_node_execution_id
+        return (
+            self.current_graph_node_execution_id is not None
+            and self.current_graph_node_execution_id == graph_node_execution_id
+        )
 
     def cleared(self) -> WorkflowCursor:
         return WorkflowCursor(current_graph_node_execution_id=None)

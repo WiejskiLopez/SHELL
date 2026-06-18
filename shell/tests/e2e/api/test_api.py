@@ -7,6 +7,10 @@ from typing import TYPE_CHECKING
 from httpx import ASGITransport, AsyncClient
 
 from shell.bootstrap.factory.application_factory import ApplicationFactory
+from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
+from shell.domain.value_objects.mode import Mode
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 if TYPE_CHECKING:
     import pathlib
@@ -94,20 +98,19 @@ class TestWorkflowsRouter:
             )
 
             # Attach a single-node GraphExecution for the imported task
-            from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
-            from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
-            from shell.domain.value_objects.mode import Mode
-            from shell.domain.value_objects.task_execution_name import TaskExecutionName
-
             uow_factory = core_container.infra.uow_factory()
             async with uow_factory as uow:
-                task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName("wf_task"))
+                task_execution = await uow.task_executions.get_current_by_name(
+                    TaskExecutionName("wf_task")
+                )
                 assert task_execution is not None
 
                 # Zapisujemy ID wygenerowane przez system do użycia w requescie
                 actual_task_execution_id = task_execution.id.value
 
-                existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+                existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(
+                    task_execution.id
+                )
                 if existing_graph_execution:
                     existing_graph_execution.add_node(
                         GraphNodeExecution(
@@ -142,7 +145,9 @@ class TestWorkflowsRouter:
 
             # start workflow - Używamy poprawnego endpointu oraz wyciągniętego actual_task_execution_id
             # JEŻELI TWÓJ ROUTER MA ENDPOINT: POST /workflows
-            resp = await client.post("/workflows", json={"task_execution_id": actual_task_execution_id})
+            resp = await client.post(
+                "/workflows", json={"task_execution_id": actual_task_execution_id}
+            )
 
             # JEŻELI TWÓJ ROUTER MA ENDPOINT: POST /task_executions/{task_execution_id}/workflows
             # resp = await client.post(f"/task_executions/{actual_task_execution_id}/workflows")

@@ -23,13 +23,21 @@ class GraphDefinition:
         self,
         graph_node_definition_id: GraphNodeDefinitionId,
     ) -> None:
-        self.graph_node_definitions = [graph_node_definition for graph_node_definition in self.graph_node_definitions if graph_node_definition.id != graph_node_definition_id]
+        self.graph_node_definitions = [
+            graph_node_definition
+            for graph_node_definition in self.graph_node_definitions
+            if graph_node_definition.id != graph_node_definition_id
+        ]
 
     def get_graph_node_definition(
         self,
         position: int,
     ) -> GraphNodeDefinition | None:
         return next(
-            (graph_node_definition for graph_node_definition in self.graph_node_definitions if graph_node_definition.position == position),
+            (
+                graph_node_definition
+                for graph_node_definition in self.graph_node_definitions
+                if graph_node_definition.position == position
+            ),
             None,
         )

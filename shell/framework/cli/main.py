@@ -74,7 +74,10 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
     task_execution_name = ns.task_execution_name
     task_dir = ns.task_dir
     if not task_execution_name or not task_dir:
-        print("ERROR: --task-name and --task-dir are required for import-task_execution.", file=sys.stderr)
+        print(
+            "ERROR: --task-name and --task-dir are required for import-task_execution.",
+            file=sys.stderr,
+        )
         return 1
 
     import pathlib

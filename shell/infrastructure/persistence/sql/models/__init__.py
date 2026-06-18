@@ -38,7 +38,9 @@ class GraphExecutionModel(Base):
     graph_definition_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
 
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
-        "GraphNodeExecutionModel", back_populates="graph_execution_model", cascade="all, delete-orphan"
+        "GraphNodeExecutionModel",
+        back_populates="graph_execution_model",
+        cascade="all, delete-orphan",
     )
 
 
@@ -72,6 +74,7 @@ class GraphNodeExecutionModel(Base):
         "GraphExecutionModel", back_populates="graph_node_execution_models"
     )
 
+
 class WorkflowModel(Base):
     __tablename__ = "workflow"
 
@@ -87,7 +90,9 @@ class WorkflowModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     graph_node_execution_state_models: Mapped[list[GraphNodeExecutionStateModel]] = relationship(
-        "GraphNodeExecutionStateModel", back_populates="workflow_model", cascade="all, delete-orphan"
+        "GraphNodeExecutionStateModel",
+        back_populates="workflow_model",
+        cascade="all, delete-orphan",
     )
 
     graph_node_execution_result_models: Mapped[list[GraphNodeExecutionResultModel]] = relationship(
@@ -110,8 +115,9 @@ class GraphNodeExecutionStateModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     workflow_model: Mapped[WorkflowModel] = relationship(
-    "WorkflowModel", back_populates="graph_node_execution_state_models"
-)
+        "WorkflowModel", back_populates="graph_node_execution_state_models"
+    )
+
 
 class EnvelopeModel(Base):
     __tablename__ = "envelope"

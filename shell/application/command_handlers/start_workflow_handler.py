@@ -41,12 +41,16 @@ class StartWorkflowHandler:
     async def handle(self, cmd: StartWorkflowCommand) -> str:
         now = self._clock.now()
         async with self._uow as uow:
-            task_execution = await uow.task_executions.get_current_by_id(TaskExecutionId(cmd.task_execution_id))
+            task_execution = await uow.task_executions.get_current_by_id(
+                TaskExecutionId(cmd.task_execution_id)
+            )
             if task_execution is None:
                 raise TaskExecutionNotFound(cmd.task_execution_id)
 
             graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
-            first_graph_node_execution = self._navigator.first(graph_execution) if graph_execution is not None else None
+            first_graph_node_execution = (
+                self._navigator.first(graph_execution) if graph_execution is not None else None
+            )
             if first_graph_node_execution is None:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)
 

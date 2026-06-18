@@ -9,7 +9,9 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import (
+    SaveGraphNodeExecutionResultHandler,
+)
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
@@ -31,7 +33,6 @@ from shell.application.query_handlers.query_handlers import (
     GetWorkflowHandler,
 )
 from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.prompt import Prompt
 from shell.domain.value_objects.ids import (
     PromptId,
@@ -134,7 +135,9 @@ class TestSqlTaskExecutionRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 
         q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
@@ -152,7 +155,9 @@ class TestSqlTaskExecutionRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
 
@@ -177,12 +182,18 @@ class TestSqlWorkflowRepository:
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
         from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
-        from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
+        from shell.domain.value_objects.ids import (
+            GraphDefinitionId,
+            GraphExecutionId,
+            GraphNodeExecutionId,
+        )
         from shell.domain.value_objects.mode import Mode
         from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
         async with uow as u:
-            task_execution = await u.task_executions.get_current_by_name(TaskExecutionName("wf-task"))
+            task_execution = await u.task_executions.get_current_by_name(
+                TaskExecutionName("wf-task")
+            )
             assert task_execution is not None
 
             # 1. Pobieramy prawdziwe ID przypisane do zaimportowanego zadania
@@ -249,7 +260,11 @@ class TestSqlNodeResultRepository:
 
         async with uow as u:
             await u.workflows.save(
-                Workflow.new(id_=WorkflowId("wf-sql-1"), task_execution_id=TaskExecutionId("task-id"), now=clock.now())
+                Workflow.new(
+                    id_=WorkflowId("wf-sql-1"),
+                    task_execution_id=TaskExecutionId("task-id"),
+                    now=clock.now(),
+                )
             )
             await u.commit()
 

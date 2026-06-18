@@ -17,7 +17,9 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import (
+    SaveGraphNodeExecutionResultHandler,
+)
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
@@ -118,7 +120,9 @@ class TestPgTaskExecutionRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task"))
 
         q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
@@ -136,7 +140,9 @@ class TestPgTaskExecutionRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        handler = ImportTaskExecutionHandler(
+            uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
 
@@ -168,7 +174,9 @@ class TestPgWorkflowRepository:
 
         # 1. Pobieramy zadanie z repozytorium, aby uzyskać jego prawdziwe ID
         async with uow as u:
-            task_execution = await u.task_executions.get_current_by_name(TaskExecutionName("pg-wf-task"))
+            task_execution = await u.task_executions.get_current_by_name(
+                TaskExecutionName("pg-wf-task")
+            )
             assert task_execution is not None
             real_task_execution_id = task_execution.id.value
 

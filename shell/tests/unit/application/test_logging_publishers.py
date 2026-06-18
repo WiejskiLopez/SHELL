@@ -26,7 +26,9 @@ from shell.infrastructure.logging.stdlib_logger import (
 
 def _task_imported() -> TaskExecutionCreated:
     return TaskExecutionCreated.now(
-        task_execution_id=TaskExecutionId.generate(), task_execution_name=TaskExecutionName("t1"), now=datetime(2026, 1, 1, tzinfo=UTC)
+        task_execution_id=TaskExecutionId.generate(),
+        task_execution_name=TaskExecutionName("t1"),
+        now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
