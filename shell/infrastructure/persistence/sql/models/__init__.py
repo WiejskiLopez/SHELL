@@ -213,8 +213,7 @@ class RagChunkModel(Base):
     __tablename__ = "rag_chunk"
 
     id: Mapped[str] = mapped_column( primary_key=True)
-    document_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False, index=True
+    document_id: Mapped[str] = mapped_column(ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False, index=True
     )
     chunk_index: Mapped[int] = mapped_column(nullable=False, default=0)
     chunk_text: Mapped[str] = mapped_column(nullable=False)
@@ -242,8 +241,7 @@ class MessageModel(Base):
     __tablename__ = "message"
 
     id: Mapped[str] = mapped_column( primary_key=True)
-    session_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
+    session_id: Mapped[str] = mapped_column(ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
     )
     correlation_id: Mapped[str] = mapped_column( nullable=False, default="")
     sender: Mapped[str] = mapped_column( nullable=False)
@@ -313,7 +311,7 @@ class GraphNodeDefinitionModel(Base):
         index=True,
     )
     position: Mapped[int] = mapped_column(nullable=False)
-    mode: Mapped[str] = mapped_column(String(32), nullable=False)
+    mode: Mapped[str] = mapped_column(nullable=False)
     role: Mapped[str] = mapped_column( nullable=False)
     node_type: Mapped[str] = mapped_column( nullable=False)
     model: Mapped[str | None] = mapped_column( nullable=True)
