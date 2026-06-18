@@ -53,6 +53,34 @@ class TaskExecutionOutputPayloadModel(Base):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
+class GraphNodeExecutionInputPayloadModel(Base):
+    __tablename__ = "graph_node_execution_input_payload"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    graph_node_execution_id: Mapped[str] = mapped_column(
+        ForeignKey("graph_node_execution.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+
+class GraphNodeExecutionOutputPayloadModel(Base):
+    __tablename__ = "graph_node_execution_output_payload"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    graph_node_execution_id: Mapped[str] = mapped_column(
+        ForeignKey("graph_node_execution.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+
 class GraphExecutionModel(Base):
     __tablename__ = "graph"
 

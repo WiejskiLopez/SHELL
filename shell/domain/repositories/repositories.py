@@ -8,6 +8,12 @@ from shell.domain.repositories.prompt_repository import PromptRepository
 from shell.domain.repositories.rag_repository import RagDocumentRepository
 from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
 from shell.domain.repositories.session_repository import SessionRepository
+from shell.domain.repositories.graph_node_execution_input_payload_repository import (
+    GraphNodeExecutionInputPayloadRepository,
+)
+from shell.domain.repositories.graph_node_execution_output_payload_repository import (
+    GraphNodeExecutionOutputPayloadRepository,
+)
 from shell.domain.repositories.task_execution_input_payload_repository import (
     TaskExecutionInputPayloadRepository,
 )
@@ -21,6 +27,8 @@ __all__ = [
     "EnvelopeArchive",
     "EnvelopeRepository",
     "GraphDefinitionRepository",
+    "GraphNodeExecutionInputPayloadRepository",
+    "GraphNodeExecutionOutputPayloadRepository",
     "PromptRepository",
     "RagDocumentRepository",
     "RunnerConfigRepository",

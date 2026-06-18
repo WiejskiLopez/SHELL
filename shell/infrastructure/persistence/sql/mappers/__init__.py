@@ -7,6 +7,12 @@ from datetime import UTC, datetime
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell.domain.entities.graph_definition import GraphDefinition
 from shell.domain.aggregates.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_node_execution_input_payload import (
+    GraphNodeExecutionInputPayload,
+)
+from shell.domain.aggregates.graph_node_execution_output_payload import (
+    GraphNodeExecutionOutputPayload,
+)
 from shell.domain.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
@@ -29,6 +35,8 @@ from shell.domain.value_objects.ids import (
     GraphExecutionId,
     GraphNodeDefinitionId,
     GraphNodeExecutionId,
+    GraphNodeExecutionInputPayloadId,
+    GraphNodeExecutionOutputPayloadId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
     PromptId,
@@ -49,7 +57,9 @@ from shell.infrastructure.persistence.sql.models import (
     GraphDefinitionModel,
     GraphExecutionModel,
     GraphNodeDefinitionModel,
+    GraphNodeExecutionInputPayloadModel,
     GraphNodeExecutionModel,
+    GraphNodeExecutionOutputPayloadModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateModel,
     PromptModel,
@@ -148,6 +158,64 @@ def task_execution_output_payload_entity_to_model(
     return TaskExecutionOutputPayloadModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GraphNodeExecution Input Payload
+# ---------------------------------------------------------------------------
+
+
+def graph_node_execution_input_payload_model_to_entity(
+    model: GraphNodeExecutionInputPayloadModel,
+) -> GraphNodeExecutionInputPayload:
+    return GraphNodeExecutionInputPayload(
+        id=GraphNodeExecutionInputPayloadId(model.id),
+        graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
+        payload=dict(model.payload),
+        is_current=model.is_current,
+        created_at=_ensure_utc(model.created_at),
+    )
+
+
+def graph_node_execution_input_payload_entity_to_model(
+    entity: GraphNodeExecutionInputPayload,
+) -> GraphNodeExecutionInputPayloadModel:
+    return GraphNodeExecutionInputPayloadModel(
+        id=entity.id.value,
+        graph_node_execution_id=entity.graph_node_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# GraphNodeExecution Output Payload
+# ---------------------------------------------------------------------------
+
+
+def graph_node_execution_output_payload_model_to_entity(
+    model: GraphNodeExecutionOutputPayloadModel,
+) -> GraphNodeExecutionOutputPayload:
+    return GraphNodeExecutionOutputPayload(
+        id=GraphNodeExecutionOutputPayloadId(model.id),
+        graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
+        payload=dict(model.payload),
+        is_current=model.is_current,
+        created_at=_ensure_utc(model.created_at),
+    )
+
+
+def graph_node_execution_output_payload_entity_to_model(
+    entity: GraphNodeExecutionOutputPayload,
+) -> GraphNodeExecutionOutputPayloadModel:
+    return GraphNodeExecutionOutputPayloadModel(
+        id=entity.id.value,
+        graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,
         is_current=entity.is_current,
         created_at=entity.created_at,

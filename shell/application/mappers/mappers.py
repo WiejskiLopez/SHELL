@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 from shell.application.dto.dto import (
     EnvelopeDto,
+    GraphNodeExecutionInputPayloadDto,
+    GraphNodeExecutionOutputPayloadDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
     PromptDto,
@@ -21,6 +23,12 @@ if TYPE_CHECKING:
     from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
+    from shell.domain.aggregates.graph_node_execution_input_payload import (
+        GraphNodeExecutionInputPayload,
+    )
+    from shell.domain.aggregates.graph_node_execution_output_payload import (
+        GraphNodeExecutionOutputPayload,
+    )
     from shell.domain.aggregates.task_execution import TaskExecution
     from shell.domain.aggregates.task_execution_input_payload import (
         TaskExecutionInputPayload,
@@ -134,6 +142,30 @@ def task_execution_output_payload_to_dto(
     return TaskExecutionOutputPayloadDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+def graph_node_execution_input_payload_to_dto(
+    entity: GraphNodeExecutionInputPayload,
+) -> GraphNodeExecutionInputPayloadDto:
+    return GraphNodeExecutionInputPayloadDto(
+        id=entity.id.value,
+        graph_node_execution_id=entity.graph_node_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+def graph_node_execution_output_payload_to_dto(
+    entity: GraphNodeExecutionOutputPayload,
+) -> GraphNodeExecutionOutputPayloadDto:
+    return GraphNodeExecutionOutputPayloadDto(
+        id=entity.id.value,
+        graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,
         is_current=entity.is_current,
         created_at=entity.created_at,

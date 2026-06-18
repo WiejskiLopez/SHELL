@@ -159,6 +159,24 @@ class GraphNodeDefinitionDto:
 
 
 @dataclass(frozen=True, slots=True)
+class GraphNodeExecutionInputPayloadDto:
+    id: str
+    graph_node_execution_id: str
+    payload: dict
+    is_current: bool
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class GraphNodeExecutionOutputPayloadDto:
+    id: str
+    graph_node_execution_id: str
+    payload: dict
+    is_current: bool
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
 class TaskExecutionInputPayloadDto:
     id: str
     task_execution_id: str

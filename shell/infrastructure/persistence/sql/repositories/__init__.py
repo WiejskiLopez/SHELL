@@ -28,6 +28,7 @@ from shell.domain.value_objects.ids import (
     GraphDefinitionId,
     GraphExecutionId,
     GraphNodeDefinitionId,
+    GraphNodeExecutionId,
     MessageId,
     PromptId,
     RagChunkId,
@@ -52,6 +53,8 @@ __all__ = [
     "SqlTaskExecutionRepository",
     "SqlTaskExecutionInputPayloadRepository",
     "SqlTaskExecutionOutputPayloadRepository",
+    "SqlGraphNodeExecutionInputPayloadRepository",
+    "SqlGraphNodeExecutionOutputPayloadRepository",
     "SqlGraphExecutionRepository",
     "SqlWorkflowRepository",
     "SqlEnvelopeRepository",
@@ -73,6 +76,10 @@ from shell.infrastructure.persistence.sql.mappers import (  # noqa: E501
     graph_execution_model_to_entity,
     graph_node_definition_entity_to_model,
     graph_node_definition_model_to_entity,
+    graph_node_execution_input_payload_entity_to_model,
+    graph_node_execution_input_payload_model_to_entity,
+    graph_node_execution_output_payload_entity_to_model,
+    graph_node_execution_output_payload_model_to_entity,
     prompt_entity_to_model,
     prompt_model_to_entity,
     runner_config_entity_to_model,
@@ -91,6 +98,8 @@ from shell.infrastructure.persistence.sql.models import (
     GraphDefinitionModel,
     GraphExecutionModel,
     GraphNodeDefinitionModel,
+    GraphNodeExecutionInputPayloadModel,
+    GraphNodeExecutionOutputPayloadModel,
     MessageModel,
     PromptModel,
     RagChunkModel,
@@ -113,6 +122,12 @@ if TYPE_CHECKING:
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
     from shell.domain.aggregates.task_execution import TaskExecution
+    from shell.domain.aggregates.graph_node_execution_input_payload import (
+        GraphNodeExecutionInputPayload,
+    )
+    from shell.domain.aggregates.graph_node_execution_output_payload import (
+        GraphNodeExecutionOutputPayload,
+    )
     from shell.domain.aggregates.task_execution_input_payload import (
         TaskExecutionInputPayload,
     )
@@ -240,6 +255,52 @@ class SqlTaskExecutionOutputPayloadRepository:
 
     async def save(self, payload: TaskExecutionOutputPayload) -> None:
         model = task_execution_output_payload_entity_to_model(payload)
+        await self._session.merge(model)
+
+
+class SqlGraphNodeExecutionInputPayloadRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_latest_by_node_id(
+        self, graph_node_execution_id: GraphNodeExecutionId
+    ) -> GraphNodeExecutionInputPayload | None:
+        query = (
+            select(GraphNodeExecutionInputPayloadModel)
+            .where(
+                GraphNodeExecutionInputPayloadModel.graph_node_execution_id == graph_node_execution_id.value,
+                GraphNodeExecutionInputPayloadModel.is_current.is_(True),
+            )
+            .limit(1)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return graph_node_execution_input_payload_model_to_entity(row) if row else None
+
+    async def save(self, payload: GraphNodeExecutionInputPayload) -> None:
+        model = graph_node_execution_input_payload_entity_to_model(payload)
+        await self._session.merge(model)
+
+
+class SqlGraphNodeExecutionOutputPayloadRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_latest_by_node_id(
+        self, graph_node_execution_id: GraphNodeExecutionId
+    ) -> GraphNodeExecutionOutputPayload | None:
+        query = (
+            select(GraphNodeExecutionOutputPayloadModel)
+            .where(
+                GraphNodeExecutionOutputPayloadModel.graph_node_execution_id == graph_node_execution_id.value,
+                GraphNodeExecutionOutputPayloadModel.is_current.is_(True),
+            )
+            .limit(1)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return graph_node_execution_output_payload_model_to_entity(row) if row else None
+
+    async def save(self, payload: GraphNodeExecutionOutputPayload) -> None:
+        model = graph_node_execution_output_payload_entity_to_model(payload)
         await self._session.merge(model)
 
 

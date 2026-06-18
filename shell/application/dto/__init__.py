@@ -3,6 +3,12 @@ from shell.application.dto.graph_definition import GraphDefinitionDto
 from shell.application.dto.graph_execution import GraphExecutionDto
 from shell.application.dto.graph_node_definition import GraphNodeDefinitionDto
 from shell.application.dto.graph_node_execution import GraphNodeExecutionDto
+from shell.application.dto.graph_node_execution_input_payload import (
+    GraphNodeExecutionInputPayloadDto,
+)
+from shell.application.dto.graph_node_execution_output_payload import (
+    GraphNodeExecutionOutputPayloadDto,
+)
 from shell.application.dto.graph_node_execution_result import (
     GraphNodeExecutionResultDto,
 )
@@ -29,6 +35,8 @@ __all__ = [
     "GraphExecutionDto",
     "GraphNodeDefinitionDto",
     "GraphNodeExecutionDto",
+    "GraphNodeExecutionInputPayloadDto",
+    "GraphNodeExecutionOutputPayloadDto",
     "GraphNodeExecutionResultDto",
     "GraphNodeExecutionStateDto",
     "MessageDto",
