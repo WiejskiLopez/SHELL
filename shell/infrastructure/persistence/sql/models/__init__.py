@@ -180,8 +180,8 @@ class GraphNodeExecutionResultModel(Base):
     status: Mapped[str] = mapped_column( nullable=False)
     stdout: Mapped[str] = mapped_column(nullable=False, default="")
     stderr: Mapped[str] = mapped_column(nullable=False, default="")
-    artifact_uri: Mapped[str] = mapped_column( nullable=False, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    artifact_uri: Mapped[str] = mapped_column(nullable=False, default="")
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
 class RunnerConfigModel(Base):
@@ -192,7 +192,7 @@ class RunnerConfigModel(Base):
     kind: Mapped[str] = mapped_column( nullable=False)
     hash: Mapped[str] = mapped_column( nullable=False)
     body: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
 class RagDocumentModel(Base):
@@ -202,7 +202,7 @@ class RagDocumentModel(Base):
     source_uri: Mapped[str] = mapped_column( nullable=False, index=True)
     title: Mapped[str] = mapped_column( nullable=False)
     domain: Mapped[str] = mapped_column( nullable=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     chunks: Mapped[list[RagChunkModel]] = relationship(
         "RagChunkModel", back_populates="document", cascade="all, delete-orphan"
@@ -228,9 +228,9 @@ class SessionModel(Base):
 
     id: Mapped[str] = mapped_column( primary_key=True)
     goal: Mapped[str] = mapped_column(nullable=False)
-    status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
-    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    status: Mapped[str] = mapped_column(nullable=False, default="open")
+    opened_at: Mapped[datetime] = mapped_column(nullable=False)
+    closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     messages: Mapped[list[MessageModel]] = relationship(
         "MessageModel", back_populates="session", cascade="all, delete-orphan"
@@ -247,7 +247,7 @@ class MessageModel(Base):
     sender: Mapped[str] = mapped_column( nullable=False)
     receiver: Mapped[str] = mapped_column( nullable=False)
     payload: Mapped[dict] = mapped_column("payload_json", JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     session: Mapped[SessionModel] = relationship("SessionModel", back_populates="messages")
 
@@ -257,8 +257,7 @@ class AuditEventModel(Base):
 
     id: Mapped[str] = mapped_column( primary_key=True)
     event_type: Mapped[str] = mapped_column( nullable=False, index=True)
-    occurred_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, index=True
+    occurred_at: Mapped[datetime] = mapped_column(nullable=False, index=True
     )
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
@@ -268,9 +267,9 @@ class OutboxEventModel(Base):
 
     id: Mapped[str] = mapped_column( primary_key=True)
     event_type: Mapped[str] = mapped_column( nullable=False, index=True)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    published_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
 
 class InboxEventModel(Base):
@@ -278,11 +277,10 @@ class InboxEventModel(Base):
 
     id: Mapped[str] = mapped_column( primary_key=True)
     event_type: Mapped[str] = mapped_column( nullable=False, index=True)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    processed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, index=True
+    received_at: Mapped[datetime] = mapped_column(nullable=False)
+    processed_at: Mapped[datetime | None] = mapped_column(nullable=True, index=True
     )
 
 
