@@ -6,7 +6,7 @@ from shell.application.command_handlers.save_prompt_handler import SavePromptHan
 from shell.application.commands.commands import SavePromptCommand
 from shell.application.queries.queries import GetPromptQuery
 from shell.application.query_handlers.query_handlers import GetPromptHandler
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import PromptQueryService
 
 
 
@@ -21,7 +21,7 @@ class TestPgPromptRepository:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("pg-sys-prompt", "You are a pg helper."))
 
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("pg-sys-prompt"))
         assert dto is not None
         assert dto.body == "You are a pg helper."
@@ -31,6 +31,6 @@ class TestPgPromptRepository:
         uow,
         session_factory,
     ) -> None:
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("pg-missing-prompt"))
         assert dto is None

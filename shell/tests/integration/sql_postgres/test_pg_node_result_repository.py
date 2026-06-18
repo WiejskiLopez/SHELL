@@ -10,7 +10,7 @@ from shell.application.queries.queries import GetGraphNodeExecutionResultQuery
 from shell.application.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import NodeResultQueryService
 
 
 
@@ -33,7 +33,7 @@ class TestPgNodeResultRepository:
             )
         )
 
-        q = GetGraphNodeExecutionResultHandler(SqlQueryServices(session_factory))
+        q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
         dto = await q.handle(GetGraphNodeExecutionResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
         assert dto is not None
         assert dto.stdout == "pg success"

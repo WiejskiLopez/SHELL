@@ -13,7 +13,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeIdGenerator,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import PromptQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -30,7 +30,7 @@ class TestSqlPromptRepository:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("sys-prompt", "You are helpful."))
 
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("sys-prompt"))
         assert dto is not None
         assert dto.body == "You are helpful."
@@ -39,6 +39,6 @@ class TestSqlPromptRepository:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("missing-prompt"))
         assert dto is None

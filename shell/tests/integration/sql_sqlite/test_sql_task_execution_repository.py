@@ -22,7 +22,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeLogger,
     FakeTaskLoader,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import TaskExecutionQueryService
 
 
 class TestSqlTaskExecutionRepository:
@@ -40,7 +40,7 @@ class TestSqlTaskExecutionRepository:
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task"))
         assert dto is not None
         assert dto.name == "sql-task"
@@ -61,7 +61,7 @@ class TestSqlTaskExecutionRepository:
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task-v"))
         assert dto is not None
         assert dto.is_current is True

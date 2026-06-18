@@ -42,6 +42,11 @@ if TYPE_CHECKING:
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
     return TaskExecutionDto(
         id=task_execution.id.value,
+        parent_task_execution_id=(
+            task_execution.parent_task_execution_id.value
+            if task_execution.parent_task_execution_id
+            else None
+        ),
         name=task_execution.name.value,
         version=task_execution.version.value,
         hash=task_execution.hash.value,

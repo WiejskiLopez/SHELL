@@ -52,27 +52,27 @@ class QueryContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
 
     get_task_execution_by_name_handler_factory = providers.Factory(
-        GetTaskExecutionByNameHandler, queries=infra.query_services
+        GetTaskExecutionByNameHandler, queries=infra.task_execution_query_service
     )
     get_current_task_execution_handler_factory = providers.Factory(
-        GetCurrentTaskExecutionHandler, queries=infra.query_services
+        GetCurrentTaskExecutionHandler, queries=infra.task_execution_query_service
     )
     get_workflow_handler_factory = providers.Factory(
-        GetWorkflowHandler, queries=infra.query_services
+        GetWorkflowHandler, queries=infra.workflow_query_service
     )
     get_envelopes_by_workflow_handler_factory = providers.Factory(
-        GetEnvelopesByWorkflowHandler, queries=infra.query_services
+        GetEnvelopesByWorkflowHandler, queries=infra.envelope_query_service
     )
     get_graph_node_execution_result_handler_factory = providers.Factory(
-        GetGraphNodeExecutionResultHandler, queries=infra.query_services
+        GetGraphNodeExecutionResultHandler, queries=infra.node_result_query_service
     )
-    get_prompt_handler_factory = providers.Factory(GetPromptHandler, queries=infra.query_services)
+    get_prompt_handler_factory = providers.Factory(GetPromptHandler, queries=infra.prompt_query_service)
     get_runner_config_handler_factory = providers.Factory(
-        GetRunnerConfigHandler, queries=infra.query_services
+        GetRunnerConfigHandler, queries=infra.runner_config_query_service
     )
     get_session_history_handler_factory = providers.Factory(
-        GetSessionHistoryHandler, queries=infra.query_services
+        GetSessionHistoryHandler, queries=infra.session_query_service
     )
     search_similar_handler_factory = providers.Factory(
-        SearchSimilarHandler, queries=infra.query_services, embedder=infra.embedder
+        SearchSimilarHandler, queries=infra.rag_query_service, embedder=infra.embedder
     )

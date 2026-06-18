@@ -85,6 +85,11 @@ def _ensure_utc(dt: datetime) -> datetime:
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
+        parent_task_execution_id=(
+            TaskExecutionId(task_execution_model.parent_task_execution_id)
+            if task_execution_model.parent_task_execution_id
+            else None
+        ),
         name=TaskExecutionName(task_execution_model.name),
         version=Version(task_execution_model.version),
         hash=Hash(task_execution_model.hash),
@@ -97,6 +102,11 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
 def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
     return TaskExecutionModel(
         id=task_execution.id.value,
+        parent_task_execution_id=(
+            task_execution.parent_task_execution_id.value
+            if task_execution.parent_task_execution_id
+            else None
+        ),
         name=task_execution.name.value,
         version=task_execution.version.value,
         hash=task_execution.hash.value,

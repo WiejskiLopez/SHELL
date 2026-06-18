@@ -23,7 +23,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeEventPublisher,
     FakeIdGenerator,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import NodeResultQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -61,7 +61,7 @@ class TestSqlNodeResultRepository:
             )
         )
 
-        q = GetGraphNodeExecutionResultHandler(SqlQueryServices(session_factory))
+        q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
         dto = await q.handle(GetGraphNodeExecutionResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
         assert dto is not None
         assert dto.stdout == "success"

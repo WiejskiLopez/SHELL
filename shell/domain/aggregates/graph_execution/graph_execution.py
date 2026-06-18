@@ -10,9 +10,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.entities.graph_definition import GraphDefinition
-    from shell.domain.aggregates.graph_execution._graph_node_execution_id_factory import (
-        _GraphNodeExecutionIdFactory,
-    )
+    from shell.domain.ports.identity import IdGenerator
     from shell.domain.value_objects.ids import (
         GraphDefinitionId,
         GraphExecutionId,
@@ -65,7 +63,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition: GraphDefinition,
-        graph_node_execution_id_factory: _GraphNodeExecutionIdFactory,
+        id_gen: IdGenerator,
         now: datetime,
     ) -> GraphExecution:
         from shell.domain.value_objects.mode import Mode
@@ -79,7 +77,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             )
             graph_node_executions.append(
                 GraphNodeExecution(
-                    id=graph_node_execution_id_factory(),
+                    id=id_gen.new_graph_node_execution_id(),
                     position=graph_node_definition.position,
                     node_dir="",
                     mode=mode,

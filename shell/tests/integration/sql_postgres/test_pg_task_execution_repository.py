@@ -15,7 +15,7 @@ from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
 )
 from shell.infrastructure.persistence.memory.memory import FakeLogger
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import TaskExecutionQueryService
 
 
 
@@ -34,7 +34,7 @@ class TestPgTaskExecutionRepository:
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("pg-task"))
         assert dto is not None
         assert dto.name == "pg-task"
@@ -55,7 +55,7 @@ class TestPgTaskExecutionRepository:
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "pg-task-v"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("pg-task-v"))
         assert dto is not None
         assert dto.is_current is True

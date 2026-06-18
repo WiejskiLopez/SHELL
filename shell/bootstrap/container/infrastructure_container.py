@@ -12,7 +12,16 @@ from shell.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.persistence.sql import build_session_factory
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import (
+    EnvelopeQueryService,
+    NodeResultQueryService,
+    PromptQueryService,
+    RagQueryService,
+    RunnerConfigQueryService,
+    SessionQueryService,
+    TaskExecutionQueryService,
+    WorkflowQueryService,
+)
 from shell.infrastructure.process.subprocess_runner import SubprocessNodeProcessRunner
 from shell.infrastructure.time.system_clock import SystemClock
 from shell.shared.ids import UuidIdGenerator
@@ -25,7 +34,30 @@ class InfrastructureContainer(containers.DeclarativeContainer):
 
     # 1. Baza danych i UoW
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
-    query_services = providers.Singleton(SqlQueryServices, session_factory=session_factory)
+    task_execution_query_service = providers.Singleton(
+        TaskExecutionQueryService, session_factory=session_factory
+    )
+    workflow_query_service = providers.Singleton(
+        WorkflowQueryService, session_factory=session_factory
+    )
+    envelope_query_service = providers.Singleton(
+        EnvelopeQueryService, session_factory=session_factory
+    )
+    node_result_query_service = providers.Singleton(
+        NodeResultQueryService, session_factory=session_factory
+    )
+    prompt_query_service = providers.Singleton(
+        PromptQueryService, session_factory=session_factory
+    )
+    runner_config_query_service = providers.Singleton(
+        RunnerConfigQueryService, session_factory=session_factory
+    )
+    session_query_service = providers.Singleton(
+        SessionQueryService, session_factory=session_factory
+    )
+    rag_query_service = providers.Singleton(
+        RagQueryService, session_factory=session_factory
+    )
     uow_factory = providers.Factory(SqlAlchemyUnitOfWork, session_factory=session_factory)
 
     # 2. Narzędzia i adaptery portów

@@ -71,7 +71,7 @@ class BuildGraphExecutionOnTaskExecutionCreated:
                 id_=self._id_gen.new_graph_execution_id(),
                 task_execution_id=event.task_execution_id,
                 graph_definition=graph_definition,
-                graph_node_execution_id_factory=self._id_gen.new_graph_node_execution_id,
+                id_gen=self._id_gen,
                 now=now,
             )
             await uow.graph_executions.save(graph_execution)

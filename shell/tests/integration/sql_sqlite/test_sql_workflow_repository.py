@@ -22,7 +22,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeLogger,
     FakeTaskLoader,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import WorkflowQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -77,7 +77,7 @@ class TestSqlWorkflowRepository:
         start = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
-        q = GetWorkflowHandler(SqlQueryServices(session_factory))
+        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
@@ -87,6 +87,6 @@ class TestSqlWorkflowRepository:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        q = GetWorkflowHandler(SqlQueryServices(session_factory))
+        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery("no-such-wf"))
         assert dto is None

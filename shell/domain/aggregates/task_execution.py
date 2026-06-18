@@ -8,25 +8,25 @@ which graph_execution realises it — that responsibility belongs to ``Graph``.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base import AggregateRoot
 from shell.domain.events.events import TaskExecutionCreated
 from shell.domain.value_objects.hash import Hash
+from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.value_objects.ids import TaskExecutionId
-    from shell.domain.value_objects.task_execution_body import TaskExecutionBody
-    from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 
 class TaskExecution(AggregateRoot["TaskExecutionId"]):
     """TaskExecution aggregate root."""
 
     __slots__ = (
+        "_parent_task_execution_id",
         "_name",
         "_version",
         "_hash",
@@ -35,6 +35,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         "_created_at",
     )
 
+    _parent_task_execution_id: TaskExecutionId | None
     _name: TaskExecutionName
     _version: Version
     _hash: Hash
@@ -45,20 +46,26 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     def __init__(
         self,
         id: TaskExecutionId,
-        name: TaskExecutionName,
-        version: Version,
-        hash: Hash,
-        body: TaskExecutionBody,
-        is_current: bool,
-        created_at: datetime,
+        parent_task_execution_id: TaskExecutionId | None = None,
+        name: TaskExecutionName | None = None,
+        version: Version | None = None,
+        hash: Hash | None = None,
+        body: TaskExecutionBody | None = None,
+        is_current: bool = True,
+        created_at: datetime | None = None,
     ) -> None:
         super().__init__(id)
-        self._name = name
-        self._version = version
-        self._hash = hash
-        self._body = body
+        self._parent_task_execution_id = parent_task_execution_id
+        self._name = name or TaskExecutionName("")
+        self._version = version or Version.initial()
+        self._hash = hash or Hash.of("")
+        self._body = body or TaskExecutionBody("")
         self._is_current = is_current
-        self._created_at = created_at
+        self._created_at = created_at or datetime.min
+
+    @property
+    def parent_task_execution_id(self) -> TaskExecutionId | None:
+        return self._parent_task_execution_id
 
     @property
     def name(self) -> TaskExecutionName:
@@ -92,10 +99,12 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         name: TaskExecutionName,
         body: TaskExecutionBody,
         now: datetime,
+        parent_task_execution_id: TaskExecutionId | None = None,
     ) -> TaskExecution:
         """Factory for a brand-new Task (version 1, current). Emits TaskExecutionCreated."""
         task_execution = cls(
             id=id_,
+            parent_task_execution_id=parent_task_execution_id,
             name=name,
             version=Version.initial(),
             hash=Hash.of(body.value),

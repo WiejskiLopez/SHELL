@@ -17,6 +17,11 @@ class TaskExecutionModel(Base):
     __tablename__ = "task_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
+    parent_task_execution_id: Mapped[str | None] = mapped_column(
+        ForeignKey("task_execution.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     name: Mapped[str] = mapped_column(nullable=False, index=True)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)

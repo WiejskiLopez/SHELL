@@ -15,7 +15,7 @@ from shell.application.query_handlers.query_handlers import (
     GetWorkflowHandler,
 )
 from shell.infrastructure.persistence.memory.memory import FakeLogger
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import WorkflowQueryService
 
 
 
@@ -44,7 +44,7 @@ class TestPgWorkflowRepository:
         start = StartWorkflowHandler(uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
-        q = GetWorkflowHandler(SqlQueryServices(session_factory))
+        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
@@ -54,6 +54,6 @@ class TestPgWorkflowRepository:
         uow,
         session_factory,
     ) -> None:
-        q = GetWorkflowHandler(SqlQueryServices(session_factory))
+        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery("pg-no-such-wf"))
         assert dto is None

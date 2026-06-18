@@ -12,12 +12,13 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class TaskExecutionDto:
     id: str
-    name: str
-    version: int
-    hash: str
-    is_current: bool
-    created_at: datetime
-    body: str
+    parent_task_execution_id: str | None = None
+    name: str = ""
+    version: int = 0
+    hash: str = ""
+    is_current: bool = True
+    created_at: datetime | None = None
+    body: str = ""
     graph_node_executions: list[GraphNodeExecutionDto] = field(default_factory=list)
 
 

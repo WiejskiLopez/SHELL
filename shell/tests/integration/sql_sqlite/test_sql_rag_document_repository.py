@@ -9,7 +9,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeIdGenerator,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import RagQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -38,7 +38,7 @@ class TestSqlRagDocumentRepository:
         )
         await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
 
-        results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
+        results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
         )
         assert len(results) > 0
@@ -65,7 +65,7 @@ class TestSqlRagDocumentRepository:
                 source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
             )
         )
-        results = await SearchSimilarHandler(SqlQueryServices(session_factory), embedder).handle(
+        results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="unique text x", top_k=5, domain="domain-y")
         )
         assert results == []

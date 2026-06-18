@@ -47,7 +47,12 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeTaskLoader,
 )
 from shell.infrastructure.persistence.sql import build_session_factory
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import (
+    NodeResultQueryService,
+    PromptQueryService,
+    TaskExecutionQueryService,
+    WorkflowQueryService,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -140,7 +145,7 @@ class TestSqlTaskExecutionRepository:
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task"))
         assert dto is not None
         assert dto.name == "sql-task"
@@ -161,7 +166,7 @@ class TestSqlTaskExecutionRepository:
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
 
-        q = GetCurrentTaskExecutionHandler(SqlQueryServices(session_factory))
+        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
         dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task-v"))
         assert dto is not None
         assert dto.is_current is True
@@ -221,7 +226,7 @@ class TestSqlWorkflowRepository:
         # 2. Przekazujemy poprawne real_task_execution_id zamiast nazwy stringowej
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
-        q = GetWorkflowHandler(SqlQueryServices(session_factory))
+        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
@@ -240,7 +245,7 @@ class TestSqlPromptRepository:
         handler = SavePromptHandler(uow, clock, id_gen)
         await handler.handle(SavePromptCommand("sys-prompt", "You are helpful."))
 
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("sys-prompt"))
         assert dto is not None
         assert dto.body == "You are helpful."
@@ -278,7 +283,7 @@ class TestSqlNodeResultRepository:
             )
         )
 
-        q = GetGraphNodeExecutionResultHandler(SqlQueryServices(session_factory))
+        q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
         dto = await q.handle(GetGraphNodeExecutionResultQuery("node-sql-1", "wf-sql-1"))
         assert dto is not None
         assert dto.stdout == "success"
@@ -307,6 +312,6 @@ class TestSqlCommitRollback:
         except RuntimeError:
             pass
 
-        q = GetPromptHandler(SqlQueryServices(session_factory))
+        q = GetPromptHandler(PromptQueryService(session_factory))
         dto = await q.handle(GetPromptQuery("rollback-prompt"))
         assert dto is None

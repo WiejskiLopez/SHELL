@@ -10,7 +10,7 @@ from shell.infrastructure.persistence.memory.memory import (
     FakeClock,
     FakeIdGenerator,
 )
-from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
+from shell.infrastructure.persistence.sql.services import SessionQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -62,7 +62,7 @@ class TestSqlSessionRepository:
             CloseSessionCommand(session_id=session_id.value)
         )
 
-        dto = await GetSessionHistoryHandler(SqlQueryServices(session_factory)).handle(
+        dto = await GetSessionHistoryHandler(SessionQueryService(session_factory)).handle(
             GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
