@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -19,8 +19,8 @@ class TaskExecutionModel(Base):
     name: Mapped[str] = mapped_column(nullable=False, index=True)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    body: Mapped[str] = mapped_column(nullable=False, default="")
+    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -56,7 +56,7 @@ class GraphNodeExecutionModel(Base):
     role: Mapped[str] = mapped_column(nullable=False, default="")
     node_type: Mapped[str] = mapped_column(nullable=False, default="")
     model: Mapped[str] = mapped_column(nullable=False, default="")
-    command: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    command: Mapped[str] = mapped_column(nullable=False, default="")
     timeout: Mapped[int] = mapped_column(nullable=False, default=0)
     retries: Mapped[int] = mapped_column(nullable=False, default=0)
     log_level: Mapped[str] = mapped_column(nullable=False, default="INFO")
@@ -165,9 +165,9 @@ class PromptModel(Base):
     name: Mapped[str] = mapped_column(nullable=False, index=True)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    body: Mapped[str] = mapped_column(nullable=False, default="")
     source_uri: Mapped[str] = mapped_column(nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
@@ -178,8 +178,8 @@ class GraphNodeExecutionResultModel(Base):
     graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     workflow_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
-    stdout: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    stderr: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    stdout: Mapped[str] = mapped_column(nullable=False, default="")
+    stderr: Mapped[str] = mapped_column(nullable=False, default="")
     artifact_uri: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -216,9 +216,9 @@ class RagChunkModel(Base):
     document_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
-    embedding: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    chunk_index: Mapped[int] = mapped_column(nullable=False, default=0)
+    chunk_text: Mapped[str] = mapped_column(nullable=False)
+    embedding: Mapped[bytes] = mapped_column(nullable=False)
     embedding_model: Mapped[str] = mapped_column(String(128), nullable=False)
 
     document: Mapped[RagDocumentModel] = relationship("RagDocumentModel", back_populates="chunks")
@@ -228,7 +228,7 @@ class SessionModel(Base):
     __tablename__ = "session"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    goal: Mapped[str] = mapped_column(Text, nullable=False)
+    goal: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -313,22 +313,20 @@ class GraphNodeDefinitionModel(Base):
         nullable=False,
         index=True,
     )
-    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    position: Mapped[int] = mapped_column(nullable=False)
     mode: Mapped[str] = mapped_column(String(32), nullable=False)
     role: Mapped[str] = mapped_column(String(128), nullable=False)
     node_type: Mapped[str] = mapped_column(String(64), nullable=False)
     model: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    command: Mapped[str] = mapped_column(Text, nullable=False)
-    timeout: Mapped[int] = mapped_column(Integer, nullable=False)
-    retries: Mapped[int] = mapped_column(Integer, nullable=False)
+    command: Mapped[str] = mapped_column(nullable=False)
+    timeout: Mapped[int] = mapped_column(nullable=False)
+    retries: Mapped[int] = mapped_column(nullable=False)
     log_level: Mapped[str] = mapped_column(String(16), nullable=False)
-    max_step: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_step: Mapped[int | None] = mapped_column(nullable=True)
     no_ask_user: Mapped[bool | None] = mapped_column(
-        Boolean,
         nullable=True,
     )
     autopilot: Mapped[bool | None] = mapped_column(
-        Boolean,
         nullable=True,
     )
     status_initial: Mapped[str] = mapped_column(
@@ -336,11 +334,9 @@ class GraphNodeDefinitionModel(Base):
         nullable=False,
     )
     extra: Mapped[dict | None] = mapped_column(
-        JSON,
         nullable=True,
     )  # type: ignore[type-arg]
     script: Mapped[str | None] = mapped_column(
-        Text,
         nullable=True,
     )
     script_type: Mapped[str | None] = mapped_column(
