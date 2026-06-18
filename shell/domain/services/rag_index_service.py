@@ -78,7 +78,7 @@ def build_rag_document(
     if len(chunk_ids) < len(chunks):
         raise ValueError(f"Not enough chunk_ids supplied: need {len(chunks)}, got {len(chunk_ids)}")
     vectors = embedder.embed_batch(chunks)
-    blobs = [_encode_vector(v) for v in vectors]
+    blobs = [_encode_vector(vector) for vector in vectors]
     doc.add_chunks(
         chunk_ids=chunk_ids[: len(chunks)],
         texts=chunks,
@@ -88,12 +88,12 @@ def build_rag_document(
     return doc
 
 
-def cosine_similarity(a: list[float], b: list[float]) -> float:
-    if len(a) != len(b) or not a:
+def cosine_similarity(vector_a: list[float], vector_b: list[float]) -> float:
+    if len(vector_a) != len(vector_b) or not vector_a:
         return 0.0
-    dot = sum(x * y for x, y in zip(a, b, strict=False))
-    na = math.sqrt(sum(x * x for x in a))
-    nb = math.sqrt(sum(y * y for y in b))
-    if na == 0.0 or nb == 0.0:
+    dot = sum(component_a * component_b for component_a, component_b in zip(vector_a, vector_b, strict=False))
+    norm_a = math.sqrt(sum(component * component for component in vector_a))
+    norm_b = math.sqrt(sum(component * component for component in vector_b))
+    if norm_a == 0.0 or norm_b == 0.0:
         return 0.0
-    return dot / (na * nb)
+    return dot / (norm_a * norm_b)

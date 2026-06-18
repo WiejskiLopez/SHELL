@@ -138,9 +138,9 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 
         for event in self._staged_events:
             payload = {
-                f.name: str(getattr(event, f.name))
-                for f in dataclasses.fields(event)
-                if f.name != "occurred_at"
+                field.name: str(getattr(event, field.name))
+                for field in dataclasses.fields(event)
+                if field.name != "occurred_at"
             }
             session.add(
                 OutboxEventModel(

@@ -163,20 +163,20 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
 # ---------------------------------------------------------------------------
 
 
-def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
+def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     graph_node_execution_states = {
-        ns.graph_node_execution_id: GraphNodeExecutionState(
-            id=GraphNodeExecutionStateId(ns.id),
-            graph_node_execution_id=GraphNodeExecutionId(ns.graph_node_execution_id),
-            status=Status(ns.status),
-            step=ns.step,
-            updated_at=_ensure_utc(ns.updated_at),
+        state_model.graph_node_execution_id: GraphNodeExecutionState(
+            id=GraphNodeExecutionStateId(state_model.id),
+            graph_node_execution_id=GraphNodeExecutionId(state_model.graph_node_execution_id),
+            status=Status(state_model.status),
+            step=state_model.step,
+            updated_at=_ensure_utc(state_model.updated_at),
         )
-        for ns in m.graph_node_execution_state_models
+        for state_model in workflow_model.graph_node_execution_state_models
     }
     graph_node_execution_results = {
-        nr.graph_node_execution_id: graph_node_execution_result_model_to_entity(nr)
-        for nr in m.graph_node_execution_result_models
+        result_model.graph_node_execution_id: graph_node_execution_result_model_to_entity(result_model)
+        for result_model in workflow_model.graph_node_execution_result_models
     }
     from shell.domain.value_objects.workflow_cursor import WorkflowCursor
     from shell.domain.value_objects.workflow_execution_context import (
@@ -184,22 +184,22 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
     )
 
     cursor = (
-        WorkflowCursor.at(GraphNodeExecutionId(m.current_graph_node_execution_id))
-        if m.current_graph_node_execution_id
+        WorkflowCursor.at(GraphNodeExecutionId(workflow_model.current_graph_node_execution_id))
+        if workflow_model.current_graph_node_execution_id
         else WorkflowCursor.empty()
     )
     context = WorkflowExecutionContext(
-        work_dir=m.work_dir or "",
-        correlation_id=m.correlation_id or "",
+        work_dir=workflow_model.work_dir or "",
+        correlation_id=workflow_model.correlation_id or "",
     )
     return Workflow(
-        id=WorkflowId(m.id),
-        task_execution_id=TaskExecutionId(m.task_execution_id),
-        status=Status(m.status),
-        created_at=_ensure_utc(m.created_at),
+        id=WorkflowId(workflow_model.id),
+        task_execution_id=TaskExecutionId(workflow_model.task_execution_id),
+        status=Status(workflow_model.status),
+        created_at=_ensure_utc(workflow_model.created_at),
         cursor=cursor,
         execution_context=context,
-        version=m.version,
+        version=workflow_model.version,
         graph_node_execution_states=graph_node_execution_states,
         graph_node_execution_results=graph_node_execution_results,
     )
@@ -221,19 +221,19 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     # POPRAWKA: Zmiana nazwy na graph_node_execution_state_models
     work_flow_model.graph_node_execution_state_models = [
         GraphNodeExecutionStateModel(
-            id=ns.id.value,
+            id=node_state.id.value,
             workflow_id=work_flow.id.value,
-            graph_node_execution_id=ns.graph_node_execution_id.value,
-            status=ns.status.value,
-            step=ns.step,
-            updated_at=ns.updated_at,
+            graph_node_execution_id=node_state.graph_node_execution_id.value,
+            status=node_state.status.value,
+            step=node_state.step,
+            updated_at=node_state.updated_at,
         )
-        for ns in work_flow.graph_node_execution_states.values()
+        for node_state in work_flow.graph_node_execution_states.values()
     ]
     # POPRAWKA: Zmiana nazwy na graph_node_execution_result_models
     work_flow_model.graph_node_execution_result_models = [
-        graph_node_execution_result_entity_to_model(nr)
-        for nr in work_flow.graph_node_execution_results.values()
+        graph_node_execution_result_entity_to_model(node_result)
+        for node_result in work_flow.graph_node_execution_results.values()
     ]
     return work_flow_model
 
@@ -243,69 +243,69 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
 # ---------------------------------------------------------------------------
 
 
-def envelope_model_to_entity(m: EnvelopeModel) -> Envelope:
-    evts = [
+def envelope_model_to_entity(envelope_model: EnvelopeModel) -> Envelope:
+    events = [
         EnvelopeEvent(
-            id=EnvelopeEventId(e.id),
-            kind=e.kind,
-            payload=dict(e.payload),
-            created_at=_ensure_utc(e.created_at),
+            id=EnvelopeEventId(event_model.id),
+            kind=event_model.kind,
+            payload=dict(event_model.payload),
+            created_at=_ensure_utc(event_model.created_at),
         )
-        for e in m.events
+        for event_model in envelope_model.events
     ]
     return Envelope(
-        id=EnvelopeId(m.id),
-        workflow_id=WorkflowId(m.workflow_id),
-        parent_id=EnvelopeId(m.parent_id) if m.parent_id else None,
-        correlation_id=m.correlation_id,
-        sender_graph_node_execution_id=GraphNodeExecutionId(m.sender_graph_node_execution_id),
-        receiver_graph_node_execution_id=GraphNodeExecutionId(m.receiver_graph_node_execution_id),
-        source_role=m.source_role,
-        target_role=m.target_role,
-        sequence_id=m.sequence_id,
-        step=m.step,
-        status=EnvelopeStatus(m.status),
-        stage=EnvelopeStage(m.stage),
-        payload=dict(m.payload),
-        artifact_uri=m.artifact_uri,
-        archive_uri=m.archive_uri,
-        created_at=_ensure_utc(m.created_at),
-        updated_at=_ensure_utc(m.updated_at),
-        events=evts,
+        id=EnvelopeId(envelope_model.id),
+        workflow_id=WorkflowId(envelope_model.workflow_id),
+        parent_id=EnvelopeId(envelope_model.parent_id) if envelope_model.parent_id else None,
+        correlation_id=envelope_model.correlation_id,
+        sender_graph_node_execution_id=GraphNodeExecutionId(envelope_model.sender_graph_node_execution_id),
+        receiver_graph_node_execution_id=GraphNodeExecutionId(envelope_model.receiver_graph_node_execution_id),
+        source_role=envelope_model.source_role,
+        target_role=envelope_model.target_role,
+        sequence_id=envelope_model.sequence_id,
+        step=envelope_model.step,
+        status=EnvelopeStatus(envelope_model.status),
+        stage=EnvelopeStage(envelope_model.stage),
+        payload=dict(envelope_model.payload),
+        artifact_uri=envelope_model.artifact_uri,
+        archive_uri=envelope_model.archive_uri,
+        created_at=_ensure_utc(envelope_model.created_at),
+        updated_at=_ensure_utc(envelope_model.updated_at),
+        events=events,
     )
 
 
-def envelope_entity_to_model(e: Envelope) -> EnvelopeModel:
-    m = EnvelopeModel(
-        id=e.id.value,
-        workflow_id=e.workflow_id.value,
-        parent_id=e.parent_id.value if e.parent_id else None,
-        correlation_id=e.correlation_id,
-        sender_graph_node_execution_id=e.sender_graph_node_execution_id.value,
-        receiver_graph_node_execution_id=e.receiver_graph_node_execution_id.value,
-        source_role=e.source_role,
-        target_role=e.target_role,
-        sequence_id=e.sequence_id,
-        step=e.step,
-        status=e.status.value,
-        stage=e.stage.value,
-        payload=e.payload,
-        artifact_uri=e.artifact_uri,
-        archive_uri=e.archive_uri,
-        created_at=e.created_at,
-        updated_at=e.updated_at,
+def envelope_entity_to_model(envelope: Envelope) -> EnvelopeModel:
+    envelope_model = EnvelopeModel(
+        id=envelope.id.value,
+        workflow_id=envelope.workflow_id.value,
+        parent_id=envelope.parent_id.value if envelope.parent_id else None,
+        correlation_id=envelope.correlation_id,
+        sender_graph_node_execution_id=envelope.sender_graph_node_execution_id.value,
+        receiver_graph_node_execution_id=envelope.receiver_graph_node_execution_id.value,
+        source_role=envelope.source_role,
+        target_role=envelope.target_role,
+        sequence_id=envelope.sequence_id,
+        step=envelope.step,
+        status=envelope.status.value,
+        stage=envelope.stage.value,
+        payload=envelope.payload,
+        artifact_uri=envelope.artifact_uri,
+        archive_uri=envelope.archive_uri,
+        created_at=envelope.created_at,
+        updated_at=envelope.updated_at,
     )
-    m.events = [
+    envelope_model.events = [
         EnvelopeEventModel(
-            id=ev.id.value,
-            envelope_id=e.id.value,
-            kind=ev.kind,
-            payload=ev.payload,
-            created_at=ev.created_at,
+            id=envelope_event.id.value,
+            envelope_id=envelope.id.value,
+            kind=envelope_event.kind,
+            payload=envelope_event.payload,
+            created_at=envelope_event.created_at,
         )
-        for ev in e.events
+        for envelope_event in envelope.events
     ]
-    return m
+    return envelope_model
 
 
 # ---------------------------------------------------------------------------
@@ -313,29 +313,29 @@ def envelope_entity_to_model(e: Envelope) -> EnvelopeModel:
 # ---------------------------------------------------------------------------
 
 
-def prompt_model_to_entity(m: PromptModel) -> Prompt:
+def prompt_model_to_entity(prompt_model: PromptModel) -> Prompt:
     return Prompt(
-        id=PromptId(m.id),
-        name=m.name,
-        version=m.version,
-        hash=Hash(m.hash),
-        body=m.body,
-        source_uri=m.source_uri,
-        is_current=m.is_current,
-        created_at=_ensure_utc(m.created_at),
+        id=PromptId(prompt_model.id),
+        name=prompt_model.name,
+        version=prompt_model.version,
+        hash=Hash(prompt_model.hash),
+        body=prompt_model.body,
+        source_uri=prompt_model.source_uri,
+        is_current=prompt_model.is_current,
+        created_at=_ensure_utc(prompt_model.created_at),
     )
 
 
-def prompt_entity_to_model(p: Prompt) -> PromptModel:
+def prompt_entity_to_model(prompt: Prompt) -> PromptModel:
     return PromptModel(
-        id=p.id.value,
-        name=p.name,
-        version=p.version,
-        hash=p.hash.value,
-        body=p.body,
-        source_uri=p.source_uri,
-        is_current=p.is_current,
-        created_at=p.created_at,
+        id=prompt.id.value,
+        name=prompt.name,
+        version=prompt.version,
+        hash=prompt.hash.value,
+        body=prompt.body,
+        source_uri=prompt.source_uri,
+        is_current=prompt.is_current,
+        created_at=prompt.created_at,
     )
 
 
@@ -345,17 +345,17 @@ def prompt_entity_to_model(p: Prompt) -> PromptModel:
 
 
 def graph_node_execution_result_model_to_entity(
-    m: GraphNodeExecutionResultModel,
+    result_model: GraphNodeExecutionResultModel,
 ) -> GraphNodeExecutionResult:
     return GraphNodeExecutionResult(
-        id=GraphNodeExecutionResultId(m.id),
-        graph_node_execution_id=GraphNodeExecutionId(m.graph_node_execution_id),
-        workflow_id=WorkflowId(m.workflow_id),
-        status=Status(m.status),
-        stdout=m.stdout,
-        stderr=m.stderr,
-        artifact_uri=m.artifact_uri,
-        created_at=_ensure_utc(m.created_at),
+        id=GraphNodeExecutionResultId(result_model.id),
+        graph_node_execution_id=GraphNodeExecutionId(result_model.graph_node_execution_id),
+        workflow_id=WorkflowId(result_model.workflow_id),
+        status=Status(result_model.status),
+        stdout=result_model.stdout,
+        stderr=result_model.stderr,
+        artifact_uri=result_model.artifact_uri,
+        created_at=_ensure_utc(result_model.created_at),
     )
 
 
@@ -379,25 +379,25 @@ def graph_node_execution_result_entity_to_model(
 # ---------------------------------------------------------------------------
 
 
-def runner_config_model_to_entity(m: RunnerConfigModel) -> RunnerConfig:
+def runner_config_model_to_entity(runner_config_model: RunnerConfigModel) -> RunnerConfig:
     return RunnerConfig(
-        id=RunnerConfigId(m.id),
-        package_name=m.package_name,
-        kind=m.kind,
-        hash=Hash(m.hash),
-        body=dict(m.body),
-        created_at=_ensure_utc(m.created_at),
+        id=RunnerConfigId(runner_config_model.id),
+        package_name=runner_config_model.package_name,
+        kind=runner_config_model.kind,
+        hash=Hash(runner_config_model.hash),
+        body=dict(runner_config_model.body),
+        created_at=_ensure_utc(runner_config_model.created_at),
     )
 
 
-def runner_config_entity_to_model(c: RunnerConfig) -> RunnerConfigModel:
+def runner_config_entity_to_model(runner_config: RunnerConfig) -> RunnerConfigModel:
     return RunnerConfigModel(
-        id=c.id.value,
-        package_name=c.package_name,
-        kind=c.kind,
-        hash=c.hash.value,
-        body=c.body,
-        created_at=c.created_at,
+        id=runner_config.id.value,
+        package_name=runner_config.package_name,
+        kind=runner_config.kind,
+        hash=runner_config.hash.value,
+        body=runner_config.body,
+        created_at=runner_config.created_at,
     )
 
 
@@ -423,19 +423,19 @@ def graph_definition_model_to_entity(
 def graph_definition_entity_to_model(
     graph_definition: GraphDefinition,
 ) -> GraphDefinitionModel:
-    m = GraphDefinitionModel(
+    graph_definition_model = GraphDefinitionModel(
         id=graph_definition.id,
         name=graph_definition.name,
         purpose=graph_definition.purpose,
     )
-    m.graph_node_execution_models = [
+    graph_definition_model.graph_node_execution_models = [
         graph_node_definition_entity_to_model(
             node,
             graph_definition.id.value,
         )
         for node in graph_definition.graph_node_definitions
     ]
-    return m
+    return graph_definition_model
 
 
 def graph_node_definition_model_to_entity(

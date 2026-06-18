@@ -38,13 +38,13 @@ def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
 
 def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
     graph_node_execution_states = {
-        k: GraphNodeExecutionStateDto(
-            graph_node_execution_id=v.graph_node_execution_id.value,
-            status=v.status.value,
-            step=v.step,
-            updated_at=v.updated_at,
+        state_id: GraphNodeExecutionStateDto(
+            graph_node_execution_id=state.graph_node_execution_id.value,
+            status=state.status.value,
+            step=state.step,
+            updated_at=state.updated_at,
         )
-        for k, v in workflow.graph_node_execution_states.items()
+        for state_id, state in workflow.graph_node_execution_states.items()
     }
     return WorkflowDto(
         id=workflow.id.value,

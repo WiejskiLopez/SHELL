@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
-from sqlalchemy import JSON, DateTime, ForeignKey, String
+from sqlalchemy import JSON, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -327,9 +328,7 @@ class GraphNodeDefinitionModel(Base):
     status_initial: Mapped[str] = mapped_column(
         nullable=False,
     )
-    extra: Mapped[dict | None] = mapped_column(
-        nullable=True,
-    )  # type: ignore[type-arg]
+    extra: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     script: Mapped[str | None] = mapped_column(
         nullable=True,
     )

@@ -57,18 +57,18 @@ class OutboxToInboxRelay:
             now = datetime.now(tz=UTC)
 
             # In one transaction: mark Outbox as sent AND write to Inbox!
-            for r in rows:
+            for row in rows:
                 inbox_event = InboxEventModel(
-                    id=r.id,
-                    event_type=r.event_type,
-                    occurred_at=r.occurred_at,
-                    payload=r.payload,
+                    id=row.id,
+                    event_type=row.event_type,
+                    occurred_at=row.occurred_at,
+                    payload=row.payload,
                     received_at=now,
                     processed_at=None,
                 )
                 await session.merge(inbox_event)  # merge protects against duplicate key
 
-                r.published_at = now
+                row.published_at = now
 
             await session.commit()
             return len(rows)

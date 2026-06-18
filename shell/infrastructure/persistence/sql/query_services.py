@@ -67,16 +67,16 @@ class SqlQueryServices:
             if graph_model is not None:
                 graph_node_executions = [
                     GraphNodeExecutionDto(
-                        id=n.id,
-                        position=n.position,
-                        node_dir=n.node_dir,
-                        mode=n.mode,
-                        role=n.role,
-                        node_type=n.node_type,
-                        model=n.model,
-                        command=n.command,
+                        id=graph_node_execution_model.id,
+                        position=graph_node_execution_model.position,
+                        node_dir=graph_node_execution_model.node_dir,
+                        mode=graph_node_execution_model.mode,
+                        role=graph_node_execution_model.role,
+                        node_type=graph_node_execution_model.node_type,
+                        model=graph_node_execution_model.model,
+                        command=graph_node_execution_model.command,
                     )
-                    for n in graph_model.graph_node_execution_models
+                    for graph_node_execution_model in graph_model.graph_node_execution_models
                 ]
 
             return TaskExecutionDto(
@@ -112,13 +112,13 @@ class SqlQueryServices:
                 status=model.status,
                 created_at=model.created_at,
                 graph_node_execution_states={
-                    n.graph_node_execution_id: GraphNodeExecutionStateDto(
-                        graph_node_execution_id=n.graph_node_execution_id,
-                        status=n.status,
-                        step=n.step,
-                        updated_at=n.updated_at,
+                    state_model.graph_node_execution_id: GraphNodeExecutionStateDto(
+                        graph_node_execution_id=state_model.graph_node_execution_id,
+                        status=state_model.status,
+                        step=state_model.step,
+                        updated_at=state_model.updated_at,
                     )
-                    for n in model.graph_node_execution_state_models
+                    for state_model in model.graph_node_execution_state_models
                 },
             )
 
@@ -133,20 +133,20 @@ class SqlQueryServices:
             res = await session.execute(stmt)
             return [
                 EnvelopeDto(
-                    id=m.id,
-                    workflow_id=m.workflow_id,
-                    sender_graph_node_execution_id=m.sender_graph_node_execution_id,
-                    receiver_graph_node_execution_id=m.receiver_graph_node_execution_id,
-                    source_role=m.source_role,
-                    target_role=m.target_role,
-                    status=m.status,
-                    stage=m.stage,
-                    step=m.step,
-                    payload=m.payload,
-                    created_at=m.created_at,
-                    updated_at=m.updated_at,
+                    id=envelope_model.id,
+                    workflow_id=envelope_model.workflow_id,
+                    sender_graph_node_execution_id=envelope_model.sender_graph_node_execution_id,
+                    receiver_graph_node_execution_id=envelope_model.receiver_graph_node_execution_id,
+                    source_role=envelope_model.source_role,
+                    target_role=envelope_model.target_role,
+                    status=envelope_model.status,
+                    stage=envelope_model.stage,
+                    step=envelope_model.step,
+                    payload=envelope_model.payload,
+                    created_at=envelope_model.created_at,
+                    updated_at=envelope_model.updated_at,
                 )
-                for m in res.scalars()
+                for envelope_model in res.scalars()
             ]
 
     # --- NodeResultQueryService ---
@@ -163,25 +163,25 @@ class SqlQueryServices:
             wf = res.scalar_one_or_none()
             if not wf:
                 return None
-            m = next(
+            result_model = next(
                 (
-                    nr
-                    for nr in wf.graph_node_execution_result_models
-                    if nr.graph_node_execution_id == graph_node_execution_id
+                    node_result_model
+                    for node_result_model in wf.graph_node_execution_result_models
+                    if node_result_model.graph_node_execution_id == graph_node_execution_id
                 ),
                 None,
             )
-            if not m:
+            if not result_model:
                 return None
             return GraphNodeExecutionResultDto(
-                id=m.id,
-                graph_node_execution_id=m.graph_node_execution_id,
-                workflow_id=m.workflow_id,
-                status=m.status,
-                stdout=m.stdout,
-                stderr=m.stderr,
-                artifact_uri=m.artifact_uri,
-                created_at=m.created_at,
+                id=result_model.id,
+                graph_node_execution_id=result_model.graph_node_execution_id,
+                workflow_id=result_model.workflow_id,
+                status=result_model.status,
+                stdout=result_model.stdout,
+                stderr=result_model.stderr,
+                artifact_uri=result_model.artifact_uri,
+                created_at=result_model.created_at,
             )
 
     # --- PromptQueryService ---
@@ -189,17 +189,17 @@ class SqlQueryServices:
         async with self._session_factory() as session:
             stmt = select(PromptModel).where(PromptModel.name == name)
             res = await session.execute(stmt)
-            m = res.scalar_one_or_none()
-            if not m:
+            prompt_model = res.scalar_one_or_none()
+            if not prompt_model:
                 return None
             return PromptDto(
-                id=m.id,
-                name=m.name,
-                body=m.body,
-                version=m.version,
-                hash=m.hash,
-                is_current=m.is_current,
-                created_at=m.created_at,
+                id=prompt_model.id,
+                name=prompt_model.name,
+                body=prompt_model.body,
+                version=prompt_model.version,
+                hash=prompt_model.hash,
+                is_current=prompt_model.is_current,
+                created_at=prompt_model.created_at,
             )
 
     # --- RunnerConfigQueryService ---
@@ -207,16 +207,16 @@ class SqlQueryServices:
         async with self._session_factory() as session:
             stmt = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
             res = await session.execute(stmt)
-            m = res.scalar_one_or_none()
-            if not m:
+            runner_config_model = res.scalar_one_or_none()
+            if not runner_config_model:
                 return None
             return RunnerConfigDto(
-                id=m.id,
-                package_name=m.package_name,
-                kind=m.kind,
-                hash=m.hash,
-                body=m.body,
-                created_at=m.created_at,
+                id=runner_config_model.id,
+                package_name=runner_config_model.package_name,
+                kind=runner_config_model.kind,
+                hash=runner_config_model.hash,
+                body=runner_config_model.body,
+                created_at=runner_config_model.created_at,
             )
 
     # --- SessionQueryService ---
@@ -262,14 +262,14 @@ class SqlQueryServices:
             res = await session.execute(stmt.limit(100))  # Przykładowy limit
             return [
                 RagChunkDto(
-                    chunk_id=str(c.id),
-                    document_id=str(c.document_id),
-                    chunk_index=c.chunk_index,
-                    chunk_text=c.chunk_text,  # Zmieniono z 'content' na 'chunk_text'
-                    source_uri=c.document.source_uri,  # Dane pobrane przez relację z RagDocumentModel
-                    title=c.document.title,
-                    domain=c.document.domain,
-                    score=0.0,  # Tu docelowo wynik z wyszukiwania wektorowego
+                    chunk_id=str(rag_chunk_model.id),
+                    document_id=str(rag_chunk_model.document_id),
+                    chunk_index=rag_chunk_model.chunk_index,
+                    chunk_text=rag_chunk_model.chunk_text,
+                    source_uri=rag_chunk_model.document.source_uri,
+                    title=rag_chunk_model.document.title,
+                    domain=rag_chunk_model.document.domain,
+                    score=0.0,
                 )
-                for c in res.scalars()
+                for rag_chunk_model in res.scalars()
             ][:top_k]

@@ -289,9 +289,9 @@ class GraphNodeExecutionWorker:
     def _find_graph_node_execution(
         graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
     ) -> GraphNodeExecution | None:
-        for n in graph_execution.graph_node_executions:
-            if n.id == graph_node_execution_id:
-                return n
+        for graph_node_execution in graph_execution.graph_node_executions:
+            if graph_node_execution.id == graph_node_execution_id:
+                return graph_node_execution
         return None
 
     @staticmethod

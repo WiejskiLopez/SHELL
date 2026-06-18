@@ -46,4 +46,4 @@ async def list_by_workflow(
         GetEnvelopesByWorkflowQuery(workflow_id=workflow_id, pending_only=pending_only)
     )
     envelopes = result if result is not None else []
-    return {"workflow_id": workflow_id, "envelopes": [str(e) for e in envelopes]}
+    return {"workflow_id": workflow_id, "envelopes": [str(envelope) for envelope in envelopes]}

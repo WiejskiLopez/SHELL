@@ -35,9 +35,9 @@ class InMemoryOutboxStore:
 
         for event in events:
             payload = {
-                f.name: str(getattr(event, f.name))
-                for f in dataclasses.fields(event)  # type: ignore[arg-type]
-                if f.name != "occurred_at"
+                field.name: str(getattr(event, field.name))
+                for field in dataclasses.fields(event)  # type: ignore[arg-type]
+                if field.name != "occurred_at"
             }
             self.records.append(
                 OutboxRecord(
@@ -49,4 +49,4 @@ class InMemoryOutboxStore:
             )
 
     def pending(self) -> list[OutboxRecord]:
-        return [r for r in self.records if not r.is_published]
+        return [record for record in self.records if not record.is_published]

@@ -49,16 +49,16 @@ class InboxProcessor:
 
             events_to_publish = []
 
-            for r in rows:
+            for row in rows:
                 # Reconstruct full domain object from raw data
                 domain_event = self._deserializer.deserialize(
-                    r.event_type, r.occurred_at, r.payload
+                    row.event_type, row.occurred_at, row.payload
                 )
                 if domain_event:
                     events_to_publish.append(domain_event)
 
                 # Mark in Inbox as processed (our ACK!)
-                r.processed_at = datetime.now(tz=UTC)
+                row.processed_at = datetime.now(tz=UTC)
 
             # Pass reconstructed events to application internals
             if events_to_publish:

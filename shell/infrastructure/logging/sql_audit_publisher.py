@@ -26,9 +26,9 @@ class SqlAuditPublisher:
         async with self._session_factory() as session:
             for event in events:
                 payload = {
-                    f.name: str(getattr(event, f.name))
-                    for f in dataclasses.fields(event)  # type: ignore[arg-type]
-                    if f.name != "occurred_at"
+                    field.name: str(getattr(event, field.name))
+                    for field in dataclasses.fields(event)  # type: ignore[arg-type]
+                    if field.name != "occurred_at"
                 }
                 session.add(
                     AuditEventModel(

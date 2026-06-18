@@ -45,15 +45,15 @@ def build_agent_command(
 
     import pathlib
 
-    ws = pathlib.Path(workspace_path)
-    output_dir = ws / _DOT_NODE / DIR_OUTPUT
-    logs_dir = ws / _DOT_NODE / DIR_LOGS
+    workspace_path_obj = pathlib.Path(workspace_path)
+    output_dir = workspace_path_obj / _DOT_NODE / DIR_OUTPUT
+    logs_dir = workspace_path_obj / _DOT_NODE / DIR_LOGS
 
     cmd += ["--add-dir", str(output_dir)]
     if extra_add_dirs:
-        for d in extra_add_dirs:
-            cmd += ["--add-dir", d]
-    cmd += ["--add-dir", str(ws)]
+        for extra_dir in extra_add_dirs:
+            cmd += ["--add-dir", extra_dir]
+    cmd += ["--add-dir", str(workspace_path_obj)]
     cmd += ["--log-dir", str(logs_dir)]
 
     return cmd

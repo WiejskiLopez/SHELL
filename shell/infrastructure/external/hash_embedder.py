@@ -33,9 +33,9 @@ class HashEmbedder:
         repeats = (self._dim * 4 + len(digest) - 1) // len(digest)
         raw = (digest * repeats)[: self._dim * 4]
         ints = struct.unpack(f"{self._dim}I", raw)
-        floats = [(v / 0xFFFFFFFF) * 2.0 - 1.0 for v in ints]
-        norm = math.sqrt(sum(x * x for x in floats)) or 1.0
-        return [x / norm for x in floats]
+        floats = [(value / 0xFFFFFFFF) * 2.0 - 1.0 for value in ints]
+        norm = math.sqrt(sum(float_value * float_value for float_value in floats)) or 1.0
+        return [float_value / norm for float_value in floats]
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        return [self.embed_text(t) for t in texts]
+        return [self.embed_text(text) for text in texts]

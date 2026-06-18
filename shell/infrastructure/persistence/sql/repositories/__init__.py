@@ -116,23 +116,23 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         self._session = session
 
     async def get_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
-        q = select(TaskExecutionModel).where(TaskExecutionModel.id == task_execution_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(TaskExecutionModel).where(TaskExecutionModel.id == task_execution_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_model_to_entity(row) if row else None
 
     async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        q = (
+        query = (
             select(TaskExecutionModel)
             .where(TaskExecutionModel.name == name.value)
             .order_by(TaskExecutionModel.version.desc())
             .limit(1)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_model_to_entity(row) if row else None
 
     async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
         logger.info("Querying current Task by id=%s", task_execution_id.value)
-        q = (
+        query = (
             select(TaskExecutionModel)
             .where(
                 TaskExecutionModel.id == task_execution_id.value,
@@ -140,7 +140,7 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
             )
             .limit(1)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         if not row:
             logger.info("No current Task found for id=%s", task_execution_id.value)
             return None
@@ -155,12 +155,12 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
 
     async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         logger.info("Querying current Task by name=%s", name.value)
-        q = (
+        query = (
             select(TaskExecutionModel)
             .where(TaskExecutionModel.name == name.value, TaskExecutionModel.is_current.is_(True))
             .limit(1)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         if not row:
             logger.info("No current Task found for name=%s", name.value)
             return None
@@ -178,9 +178,9 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         await self._session.merge(model)
 
     async def list_current(self) -> list[TaskExecution]:
-        q = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))
-        rows = (await self._session.execute(q)).scalars().all()
-        return [task_execution_model_to_entity(r) for r in rows]
+        query = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))
+        rows = (await self._session.execute(query)).scalars().all()
+        return [task_execution_model_to_entity(row) for row in rows]
 
 
 class SqlGraphExecutionRepository:
@@ -188,23 +188,23 @@ class SqlGraphExecutionRepository:
         self._session = session
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
-        q = (
+        query = (
             select(GraphExecutionModel)
             .options(selectinload(GraphExecutionModel.graph_node_execution_models))
             .where(GraphExecutionModel.id == graph_execution_id.value)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None
 
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> GraphExecution | None:
-        q = (
+        query = (
             select(GraphExecutionModel)
             .options(selectinload(GraphExecutionModel.graph_node_execution_models))
             .where(GraphExecutionModel.task_execution_id == task_execution_id.value)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None
 
     async def save(self, graph_execution: GraphExecution) -> None:
@@ -217,7 +217,7 @@ class SqlWorkflowRepository:
         self._session = session
 
     async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None:
-        q = (
+        query = (
             select(WorkflowModel)
             .options(
                 selectinload(WorkflowModel.graph_node_execution_state_models),
@@ -225,16 +225,16 @@ class SqlWorkflowRepository:
             )
             .where(WorkflowModel.id == workflow_id.value)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return workflow_model_to_entity(row) if row else None
 
     async def save(self, workflow: Workflow) -> None:
         """Persist the workflow with optimistic concurrency control (CAS).
 
         On first save (no row exists yet) the aggregate's ``version`` is
-        bumped from 0 to 1 and the row is inserted via merge. On subsequent
+        bumped from 0 to 1 and the row is inserted via merge. On subsequeryuent
         saves a CAS UPDATE asserts that the persisted ``version`` still
-        equals the aggregate's loaded version; on success the persisted
+        equeryuals the aggregate's loaded version; on success the persisted
         version is bumped to ``version + 1`` and mirrored on the aggregate.
         On mismatch :class:`WorkflowConcurrentlyModified` is raised.
         """
@@ -253,7 +253,7 @@ class SqlWorkflowRepository:
             await self._session.merge(model)
             return
 
-        # Subsequent save — CAS on persisted version.
+        # Subsequeryuent save — CAS on persisted version.
         if existing_version != workflow.version:
             raise WorkflowConcurrentlyModified(workflow.id.value)
 
@@ -290,12 +290,12 @@ class SqlEnvelopeRepository:
         self._session = session
 
     async def get_by_id(self, envelope_id: EnvelopeId) -> Envelope | None:
-        q = (
+        query = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
             .where(EnvelopeModel.id == envelope_id.value)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return envelope_model_to_entity(row) if row else None
 
     async def save(self, envelope: Envelope) -> None:
@@ -305,21 +305,21 @@ class SqlEnvelopeRepository:
     async def list_by_workflow(
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
     ) -> list[Envelope]:
-        q = (
+        query = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
             .where(EnvelopeModel.workflow_id == workflow_id.value)
             .offset(offset)
         )
         if limit is not None:
-            q = q.limit(limit)
-        rows = (await self._session.execute(q)).scalars().all()
-        return [envelope_model_to_entity(r) for r in rows]
+            query = query.limit(limit)
+        rows = (await self._session.execute(query)).scalars().all()
+        return [envelope_model_to_entity(row) for row in rows]
 
     async def list_pending(
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
     ) -> list[Envelope]:
-        q = (
+        query = (
             select(EnvelopeModel)
             .options(selectinload(EnvelopeModel.events))
             .where(
@@ -329,9 +329,9 @@ class SqlEnvelopeRepository:
             .offset(offset)
         )
         if limit is not None:
-            q = q.limit(limit)
-        rows = (await self._session.execute(q)).scalars().all()
-        return [envelope_model_to_entity(r) for r in rows]
+            query = query.limit(limit)
+        rows = (await self._session.execute(query)).scalars().all()
+        return [envelope_model_to_entity(row) for row in rows]
 
 
 class SqlPromptRepository:
@@ -339,13 +339,13 @@ class SqlPromptRepository:
         self._session = session
 
     async def get_by_id(self, prompt_id: PromptId) -> Prompt | None:
-        q = select(PromptModel).where(PromptModel.id == prompt_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(PromptModel).where(PromptModel.id == prompt_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return prompt_model_to_entity(row) if row else None
 
     async def get_current_by_name(self, name: str) -> Prompt | None:
-        q = select(PromptModel).where(PromptModel.name == name, PromptModel.is_current.is_(True))
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(PromptModel).where(PromptModel.name == name, PromptModel.is_current.is_(True))
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return prompt_model_to_entity(row) if row else None
 
     async def save(self, prompt: Prompt) -> None:
@@ -358,13 +358,13 @@ class SqlRunnerConfigRepository:
         self._session = session
 
     async def get_by_id(self, config_id: RunnerConfigId) -> RunnerConfig | None:
-        q = select(RunnerConfigModel).where(RunnerConfigModel.id == config_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(RunnerConfigModel).where(RunnerConfigModel.id == config_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 
     async def get_by_package(self, package_name: str) -> RunnerConfig | None:
-        q = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 
     async def save(self, config: RunnerConfig) -> None:
@@ -424,12 +424,12 @@ class SqlRagDocumentRepository:
             )
 
     async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None:
-        q = (
+        query = (
             select(RagDocumentModel)
             .options(selectinload(RagDocumentModel.chunks))
             .where(RagDocumentModel.id == doc_id.value)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         if row is None:
             return None
         doc = RagDocument(
@@ -439,15 +439,15 @@ class SqlRagDocumentRepository:
             domain=row.domain,
             created_at=row.created_at,
         )
-        for c in sorted(row.chunks, key=lambda x: x.chunk_index):
+        for chunk in sorted(row.chunks, key=lambda chunk_entry: chunk_entry.chunk_index):
             doc.chunks.append(
                 RagChunk(
-                    id=RagChunkId(c.id),
-                    document_id=RagDocumentId(c.document_id),
-                    chunk_index=c.chunk_index,
-                    chunk_text=c.chunk_text,
-                    embedding=c.embedding,
-                    embedding_model=c.embedding_model,
+                    id=RagChunkId(chunk.id),
+                    document_id=RagDocumentId(chunk.document_id),
+                    chunk_index=chunk.chunk_index,
+                    chunk_text=chunk.chunk_text,
+                    embedding=chunk.embedding,
+                    embedding_model=chunk.embedding_model,
                 )
             )
         return doc
@@ -459,30 +459,30 @@ class SqlRagDocumentRepository:
         domain: str | None = None,
     ) -> list[RagChunk]:
         """Cosine-similarity brute-force search (SQLite-compatible)."""
-        q = select(RagChunkModel).options(selectinload(RagChunkModel.document))
+        query = select(RagChunkModel).options(selectinload(RagChunkModel.document))
         if domain:
-            q = q.join(RagDocumentModel).where(RagDocumentModel.domain == domain)
-        rows = (await self._session.execute(q)).scalars().all()
+            query = query.join(RagDocumentModel).where(RagDocumentModel.domain == domain)
+        rows = (await self._session.execute(query)).scalars().all()
         if not rows:
             return []
         dim = len(query_embedding) // 4
         query_vec = list(struct.unpack(f"{dim}f", query_embedding))
         scored: list[tuple[float, RagChunkModel]] = []
-        for row in rows:
-            chunk_vec = list(struct.unpack(f"{len(row.embedding) // 4}f", row.embedding))
+        for rag_chunk_model in rows:
+            chunk_vec = list(struct.unpack(f"{len(rag_chunk_model.embedding) // 4}f", rag_chunk_model.embedding))
             score = cosine_similarity(query_vec, chunk_vec)
-            scored.append((score, row))
+            scored.append((score, rag_chunk_model))
         scored.sort(key=lambda t: t[0], reverse=True)
         return [
             RagChunk(
-                id=RagChunkId(r.id),
-                document_id=RagDocumentId(r.document_id),
-                chunk_index=r.chunk_index,
-                chunk_text=r.chunk_text,
-                embedding=r.embedding,
-                embedding_model=r.embedding_model,
+                id=RagChunkId(rag_chunk_model.id),
+                document_id=RagDocumentId(rag_chunk_model.document_id),
+                chunk_index=rag_chunk_model.chunk_index,
+                chunk_text=rag_chunk_model.chunk_text,
+                embedding=rag_chunk_model.embedding,
+                embedding_model=rag_chunk_model.embedding_model,
             )
-            for _, r in scored[:top_k]
+            for _, rag_chunk_model in scored[:top_k]
         ]
 
 
@@ -518,8 +518,8 @@ class SqlSessionRepository:
             )
 
     async def get_by_id(self, session_id: SessionId) -> Session | None:
-        q = select(SessionModel).where(SessionModel.id == session_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(SessionModel).where(SessionModel.id == session_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         if row is None:
             return None
         return Session(
@@ -531,23 +531,23 @@ class SqlSessionRepository:
         )
 
     async def get_messages(self, session_id: SessionId) -> list[Message]:
-        q = (
+        query = (
             select(MessageModel)
             .where(MessageModel.session_id == session_id.value)
             .order_by(MessageModel.created_at)
         )
-        rows = (await self._session.execute(q)).scalars().all()
+        rows = (await self._session.execute(query)).scalars().all()
         return [
             Message(
-                id=MessageId(r.id),
-                session_id=SessionId(r.session_id),
-                correlation_id=CorrelationId(r.correlation_id),
-                sender=r.sender,
-                receiver=r.receiver,
-                payload=r.payload,
-                created_at=r.created_at,
+                id=MessageId(message_model.id),
+                session_id=SessionId(message_model.session_id),
+                correlation_id=CorrelationId(message_model.correlation_id),
+                sender=message_model.sender,
+                receiver=message_model.receiver,
+                payload=message_model.payload,
+                created_at=message_model.created_at,
             )
-            for r in rows
+            for message_model in rows
         ]
 
 
@@ -556,19 +556,19 @@ class SqlGraphDefinitionRepository:
         self._session = session
 
     async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
-        q = select(GraphDefinitionModel).where(GraphDefinitionModel.id == graph_definition_id.value)
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        query = select(GraphDefinitionModel).where(GraphDefinitionModel.id == graph_definition_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None
 
     async def get_graph_definition_by_name(
         self, graph_definition_by_name: str
     ) -> GraphDefinition | None:
-        q = (
+        query = (
             select(GraphDefinitionModel)
             .options(selectinload(GraphDefinitionModel.graph_node_execution_models))
             .where(GraphDefinitionModel.name == graph_definition_by_name)
         )
-        row = (await self._session.execute(q)).scalar_one_or_none()
+        row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None
 
     async def save(self, graph_definition: GraphDefinition) -> None:

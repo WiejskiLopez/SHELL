@@ -29,18 +29,28 @@ class GraphExcetutionRoutingService:
         3. If nothing found → raise RoleNotResolvable.
         """
         non_router: list[GraphNodeExecution] = [
-            n for n in graph_execution.graph_node_executions if str(n.mode) != "router"
+            graph_node_execution
+            for graph_node_execution in graph_execution.graph_node_executions
+            if str(graph_node_execution.mode) != "router"
         ]
 
         if target_role:
-            matched = [n for n in non_router if n.role == target_role]
+            matched = [
+                graph_node_execution
+                for graph_node_execution in non_router
+                if graph_node_execution.role == target_role
+            ]
             if not matched:
                 raise RoleNotResolvable(
                     f"No graph node with role={target_role!r} found in graph_execution {graph_execution.id}"
                 )
             return matched[0].id
 
-        candidates = [n for n in non_router if n.id != source_node_execution_id]
+        candidates = [
+            graph_node_execution
+            for graph_node_execution in non_router
+            if graph_node_execution.id != source_node_execution_id
+        ]
         if not candidates and non_router:
             candidates = non_router  # fallback: send to first non-router even if same
         if not candidates:

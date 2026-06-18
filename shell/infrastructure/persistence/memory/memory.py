@@ -85,9 +85,9 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return self._store.get(task_execution_id.value)
 
     async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        for t in self._store.values():
-            if t.name == name:
-                return t
+        for task_execution in self._store.values():
+            if task_execution.name == name:
+                return task_execution
         return None
 
     async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
@@ -97,16 +97,16 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return None
 
     async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        for t in self._store.values():
-            if t.name == name and t.is_current:
-                return t
+        for task_execution in self._store.values():
+            if task_execution.name == name and task_execution.is_current:
+                return task_execution
         return None
 
     async def save(self, task_execution: TaskExecution) -> None:
         self._store[task_execution.id.value] = task_execution
 
     async def list_current(self) -> list[TaskExecution]:
-        return [t for t in self._store.values() if t.is_current]
+        return [task_execution for task_execution in self._store.values() if task_execution.is_current]
 
 
 class InMemoryGraphExecutionRepository(GraphExecutionRepository):
@@ -119,9 +119,9 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> GraphExecution | None:
-        for g in self._store.values():
-            if g.task_execution_id == task_execution_id:
-                return g
+        for graph_execution in self._store.values():
+            if graph_execution.task_execution_id == task_execution_id:
+                return graph_execution
         return None
 
     async def save(self, graph_execution: GraphExecution) -> None:
@@ -176,7 +176,7 @@ class InMemoryEnvelopeRepository(EnvelopeRepository):
     async def list_by_workflow(
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
     ) -> list[Envelope]:
-        results = [e for e in self._store.values() if e.workflow_id == workflow_id]
+        results = [envelope for envelope in self._store.values() if envelope.workflow_id == workflow_id]
         results = results[offset:]
         if limit is not None:
             results = results[:limit]
@@ -186,9 +186,9 @@ class InMemoryEnvelopeRepository(EnvelopeRepository):
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
     ) -> list[Envelope]:
         results = [
-            e
-            for e in self._store.values()
-            if e.workflow_id == workflow_id and e.status == EnvelopeStatus.PENDING
+            envelope
+            for envelope in self._store.values()
+            if envelope.workflow_id == workflow_id and envelope.status == EnvelopeStatus.PENDING
         ]
         results = results[offset:]
         if limit is not None:
@@ -217,9 +217,9 @@ class InMemoryPromptRepository(PromptRepository):
         return self._store.get(prompt_id.value)
 
     async def get_current_by_name(self, name: str) -> Prompt | None:
-        for p in self._store.values():
-            if p.name == name and p.is_current:
-                return p
+        for prompt in self._store.values():
+            if prompt.name == name and prompt.is_current:
+                return prompt
         return None
 
     async def save(self, prompt: Prompt) -> None:
@@ -234,9 +234,9 @@ class InMemoryRunnerConfigRepository(RunnerConfigRepository):
         return self._store.get(config_id.value)
 
     async def get_by_package(self, package_name: str) -> RunnerConfig | None:
-        for c in self._store.values():
-            if c.package_name == package_name:
-                return c
+        for runner_config in self._store.values():
+            if runner_config.package_name == package_name:
+                return runner_config
         return None
 
     async def save(self, config: RunnerConfig) -> None:
@@ -273,8 +273,8 @@ class InMemoryRagDocumentRepository(RagDocumentRepository):
                 chunk_vec = list(struct.unpack(f"{len(chunk.embedding) // 4}f", chunk.embedding))
                 score = cosine_similarity(query_vec, chunk_vec)
                 scored.append((score, chunk))
-        scored.sort(key=lambda t: t[0], reverse=True)
-        return [c for _, c in scored[:top_k]]
+        scored.sort(key=lambda tuple_item: tuple_item[0], reverse=True)
+        return [chunk for _, chunk in scored[:top_k]]
 
 
 class InMemorySessionRepository(SessionRepository):
@@ -286,7 +286,7 @@ class InMemorySessionRepository(SessionRepository):
         self._store[session.id.value] = session
         # persist messages accumulated on the entity
         existing = self._messages.get(session.id.value, [])
-        existing_ids = {m.id.value for m in existing}
+        existing_ids = {message.id.value for message in existing}
         for msg in session.messages:
             if msg.id.value not in existing_ids:
                 existing.append(msg)
@@ -583,7 +583,7 @@ class InMemoryQueryServices:
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         # Przeszukujemy magazyn zadań w repozytorium in-memory
         task_execution = next(
-            (t for t in self._uow.task_executions._store.values() if t.name.value == name),  # type: ignore[attr-defined]
+            (task_execution for task_execution in self._uow.task_executions._store.values() if task_execution.name.value == name),  # type: ignore[attr-defined]
             None,
         )
         if not task_execution:
@@ -597,16 +597,16 @@ class InMemoryQueryServices:
 
             graph_node_executions = [
                 GraphNodeExecutionDto(
-                    id=n.id.value,
-                    position=n.position,
-                    node_dir=n.node_dir,
-                    mode=n.mode.value,
-                    role=n.role,
-                    node_type=n.node_type,
-                    model=n.model,
-                    command=n.command,
+                    id=graph_node_execution.id.value,
+                    position=graph_node_execution.position,
+                    node_dir=graph_node_execution.node_dir,
+                    mode=graph_node_execution.mode.value,
+                    role=graph_node_execution.role,
+                    node_type=graph_node_execution.node_type,
+                    model=graph_node_execution.model,
+                    command=graph_node_execution.command,
                 )
-                for n in graph_execution.graph_node_executions
+                for graph_node_execution in graph_execution.graph_node_executions
             ]
         return TaskExecutionDto(
             id=task_execution.id.value,
@@ -633,13 +633,13 @@ class InMemoryQueryServices:
             status=workflow.status.value,
             created_at=workflow.created_at,
             graph_node_execution_states={
-                str(graph_node_execution_id): GraphNodeExecutionStateDto(
-                    graph_node_execution_id=str(s.graph_node_execution_id),
-                    status=s.status.value,
-                    step=s.step,
-                    updated_at=s.updated_at,
+                str(state_id): GraphNodeExecutionStateDto(
+                    graph_node_execution_id=str(state.graph_node_execution_id),
+                    status=state.status.value,
+                    step=state.step,
+                    updated_at=state.updated_at,
                 )
-                for graph_node_execution_id, s in workflow.graph_node_execution_states.items()
+                for state_id, state in workflow.graph_node_execution_states.items()
             },
         )
 
@@ -647,29 +647,29 @@ class InMemoryQueryServices:
         self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
         envelopes = [
-            e
-            for e in self._uow.envelopes._store.values()
-            if str(e.workflow_id) == workflow_id  # type: ignore[attr-defined]
+            envelope
+            for envelope in self._uow.envelopes._store.values()
+            if str(envelope.workflow_id) == workflow_id  # type: ignore[attr-defined]
         ]
         if pending_only:
-            envelopes = [e for e in envelopes if e.status.value == "pending"]
+            envelopes = [envelope for envelope in envelopes if envelope.status.value == "pending"]
 
         return [
             EnvelopeDto(
-                id=str(e.id),
-                workflow_id=str(e.workflow_id),
-                sender_graph_node_execution_id=str(e.sender_graph_node_execution_id),
-                receiver_graph_node_execution_id=str(e.receiver_graph_node_execution_id),
-                source_role=e.source_role,
-                target_role=e.target_role,
-                status=e.status.value,
-                stage=e.stage.value,
-                step=e.step,
-                payload=e.payload,
-                created_at=e.created_at,
-                updated_at=e.updated_at,
+                id=str(envelope.id),
+                workflow_id=str(envelope.workflow_id),
+                sender_graph_node_execution_id=str(envelope.sender_graph_node_execution_id),
+                receiver_graph_node_execution_id=str(envelope.receiver_graph_node_execution_id),
+                source_role=envelope.source_role,
+                target_role=envelope.target_role,
+                status=envelope.status.value,
+                stage=envelope.stage.value,
+                step=envelope.step,
+                payload=envelope.payload,
+                created_at=envelope.created_at,
+                updated_at=envelope.updated_at,
             )
-            for e in envelopes
+            for envelope in envelopes
         ]
 
     async def get_graph_node_execution_result(
@@ -694,7 +694,7 @@ class InMemoryQueryServices:
 
     async def get_prompt(self, name: str) -> PromptDto | None:
         prompt = next(
-            (p for p in self._uow.prompts._store.values() if p.name == name and p.is_current),
+            (prompt for prompt in self._uow.prompts._store.values() if prompt.name == name and prompt.is_current),
             None,  # type: ignore[attr-defined]
         )
         if not prompt:
@@ -755,16 +755,16 @@ class InMemoryQueryServices:
         chunks = list(self._uow.rag_documents._store.values())  # type: ignore[attr-defined]
         return [
             RagChunkDto(
-                chunk_id=f"chunk-{i}",
+                chunk_id=f"chunk-{index}",
                 document_id="doc-1",
-                chunk_index=i,
+                chunk_index=index,
                 chunk_text="test content",
                 source_uri="file://test.md",
                 title="Test Doc",
                 domain=domain or "default",
                 score=1.0,
             )
-            for i in range(min(top_k, len(chunks)))
+            for index in range(min(top_k, len(chunks)))
         ]
 
 
@@ -776,9 +776,9 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
         return self._store.get(graph_definition_id.value)
 
     async def get_graph_definition_by_name(self, name: str) -> GraphDefinition | None:
-        for g in self._store.values():
-            if g.name == name:
-                return g
+        for graph_definition in self._store.values():
+            if graph_definition.name == name:
+                return graph_definition
         return None
 
     async def get_by_id(self, id_: GraphDefinitionId) -> GraphDefinition | None:

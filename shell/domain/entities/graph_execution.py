@@ -83,29 +83,33 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         from shell.domain.value_objects.mode import Mode
 
         graph_node_executions: list[GraphNodeExecution] = []
-        for tn in graph_definition.graph_node_definitions:
-            mode = tn.mode if isinstance(tn.mode, Mode) else Mode(str(tn.mode))
+        for graph_node_definition in graph_definition.graph_node_definitions:
+            mode = (
+                graph_node_definition.mode
+                if isinstance(graph_node_definition.mode, Mode)
+                else Mode(str(graph_node_definition.mode))
+            )
             graph_node_executions.append(
                 GraphNodeExecution(
                     id=graph_node_execution_id_factory(),
-                    position=tn.position,
+                    position=graph_node_definition.position,
                     node_dir="",
                     mode=mode,
-                    role=tn.role,
-                    node_type=tn.node_type,
-                    model=tn.model,
-                    command=tn.command,
-                    timeout=tn.timeout,
-                    retries=tn.retries,
-                    log_level=tn.log_level,
-                    max_step=tn.max_step or 0,
-                    no_ask_user=tn.no_ask_user,
-                    autopilot=tn.autopilot,
+                    role=graph_node_definition.role,
+                    node_type=graph_node_definition.node_type,
+                    model=graph_node_definition.model,
+                    command=graph_node_definition.command,
+                    timeout=graph_node_definition.timeout,
+                    retries=graph_node_definition.retries,
+                    log_level=graph_node_definition.log_level,
+                    max_step=graph_node_definition.max_step or 0,
+                    no_ask_user=graph_node_definition.no_ask_user,
+                    autopilot=graph_node_definition.autopilot,
                     task_execution_id="",
                     source_dir="",
                     work_dir="",
-                    status_initial=tn.status_initial,
-                    extra=dict(tn.extra),
+                    status_initial=graph_node_definition.status_initial,
+                    extra=dict(graph_node_definition.extra),
                 )
             )
         graph_execution = cls(
