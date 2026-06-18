@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
@@ -19,8 +17,6 @@ from shell.application.query_handlers.query_handlers import (
 from shell.infrastructure.persistence.memory.memory import FakeLogger
 from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 class TestPgWorkflowRepository:

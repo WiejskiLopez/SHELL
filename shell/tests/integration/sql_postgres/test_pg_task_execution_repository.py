@@ -17,8 +17,6 @@ from shell.application.query_handlers.query_handlers import (
 from shell.infrastructure.persistence.memory.memory import FakeLogger
 from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 class TestPgTaskExecutionRepository:

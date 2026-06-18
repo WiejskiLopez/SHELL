@@ -8,6 +8,7 @@ import pathlib
 import pytest
 
 from shell.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
+from shell.application.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.domain.entities.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution

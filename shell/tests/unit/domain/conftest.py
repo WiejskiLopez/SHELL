@@ -3,12 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-import pytest
 
 from shell.domain.entities.base import AggregateRoot, Entity
 from shell.domain.entities.workflow import Workflow
 from shell.domain.events.events import DomainEvent
-from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.value_objects.ids import WorkflowId
 from shell.domain.entities.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.value_objects.ids import (

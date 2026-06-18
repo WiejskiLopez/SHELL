@@ -8,8 +8,6 @@ from shell.application.queries.queries import GetPromptQuery
 from shell.application.query_handlers.query_handlers import GetPromptHandler
 from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 class TestPgPromptRepository:

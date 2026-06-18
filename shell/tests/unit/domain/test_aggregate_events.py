@@ -11,8 +11,11 @@ class TestAggregateEvents:
 
         events = agg.pull_events()
         assert len(events) == 2
-        assert all(isinstance(e, _SampleEvent) for e in events)
-        assert [e.payload for e in events] == ["p1", "p2"]
+        payloads = []
+        for e in events:
+            assert isinstance(e, _SampleEvent)
+            payloads.append(e.payload)
+        assert payloads == ["p1", "p2"]
 
     def test_pull_events_clears_buffer(self) -> None:
         agg = _SampleAggregate(_SampleId("agg-2"), "x")

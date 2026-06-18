@@ -24,9 +24,6 @@ from shell.infrastructure.persistence.memory.memory import (
 )
 from shell.infrastructure.persistence.sql.query_services import SqlQueryServices
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
-
 
 class TestSqlTaskExecutionRepository:
     async def test_import_and_get_current(
