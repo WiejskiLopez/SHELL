@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
 from shell.domain.services.graph_node_execution_navigator import LinearGraphNodeExecutionNavigator
 from shell.domain.value_objects.ids import TaskExecutionId

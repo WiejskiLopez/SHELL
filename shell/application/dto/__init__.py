@@ -15,6 +15,12 @@ from shell.application.dto.rag_chunk import RagChunkDto
 from shell.application.dto.runner_config import RunnerConfigDto
 from shell.application.dto.session import SessionDto
 from shell.application.dto.task_execution import TaskExecutionDto
+from shell.application.dto.task_execution_input_payload import (
+    TaskExecutionInputPayloadDto,
+)
+from shell.application.dto.task_execution_output_payload import (
+    TaskExecutionOutputPayloadDto,
+)
 from shell.application.dto.workflow import WorkflowDto
 
 __all__ = [
@@ -31,5 +37,7 @@ __all__ = [
     "RunnerConfigDto",
     "SessionDto",
     "TaskExecutionDto",
+    "TaskExecutionInputPayloadDto",
+    "TaskExecutionOutputPayloadDto",
     "WorkflowDto",
 ]

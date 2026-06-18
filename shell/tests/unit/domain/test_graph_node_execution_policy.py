@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.services.graph_node_execution_policy import (
     AbortDecision,
     ContinueDecision,

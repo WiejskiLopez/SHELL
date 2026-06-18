@@ -25,6 +25,34 @@ class TaskExecutionModel(Base):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
+class TaskExecutionInputPayloadModel(Base):
+    __tablename__ = "task_execution_input_payload"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    task_execution_id: Mapped[str] = mapped_column(
+        ForeignKey("task_execution.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+
+class TaskExecutionOutputPayloadModel(Base):
+    __tablename__ = "task_execution_output_payload"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    task_execution_id: Mapped[str] = mapped_column(
+        ForeignKey("task_execution.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+
 class GraphExecutionModel(Base):
     __tablename__ = "graph"
 

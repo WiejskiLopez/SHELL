@@ -24,7 +24,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         id_gen: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        from shell.domain.entities.workflow import Workflow
+        from shell.domain.aggregates.workflow import Workflow
         from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 
         wf = Workflow.new(

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from httpx import ASGITransport, AsyncClient
 
 from shell.bootstrap.factory.application_factory import ApplicationFactory
-from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+from shell.domain.aggregates.graph_execution import GraphExecution, GraphNodeExecution
 from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.task_execution_name import TaskExecutionName

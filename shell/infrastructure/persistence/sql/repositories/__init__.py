@@ -50,6 +50,8 @@ __all__ = [
     "GraphDefinitionRepository",
     "WorkflowRepository",
     "SqlTaskExecutionRepository",
+    "SqlTaskExecutionInputPayloadRepository",
+    "SqlTaskExecutionOutputPayloadRepository",
     "SqlGraphExecutionRepository",
     "SqlWorkflowRepository",
     "SqlEnvelopeRepository",
@@ -76,7 +78,11 @@ from shell.infrastructure.persistence.sql.mappers import (  # noqa: E501
     runner_config_entity_to_model,
     runner_config_model_to_entity,
     task_execution_entity_to_model,
+    task_execution_input_payload_entity_to_model,
+    task_execution_input_payload_model_to_entity,
     task_execution_model_to_entity,
+    task_execution_output_payload_entity_to_model,
+    task_execution_output_payload_model_to_entity,
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
@@ -91,7 +97,9 @@ from shell.infrastructure.persistence.sql.models import (
     RagDocumentModel,
     RunnerConfigModel,
     SessionModel,
+    TaskExecutionInputPayloadModel,
     TaskExecutionModel,
+    TaskExecutionOutputPayloadModel,
     WorkflowModel,
 )
 
@@ -100,12 +108,18 @@ if TYPE_CHECKING:
 
     from shell.domain.entities.envelope import Envelope
     from shell.domain.entities.graph_definition import GraphDefinition
-    from shell.domain.entities.graph_execution import GraphExecution
+    from shell.domain.aggregates.graph_execution import GraphExecution
     from shell.domain.entities.graph_node_definition import GraphNodeDefinition
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
-    from shell.domain.entities.task_execution import TaskExecution
-    from shell.domain.entities.workflow import Workflow
+    from shell.domain.aggregates.task_execution import TaskExecution
+    from shell.domain.aggregates.task_execution_input_payload import (
+        TaskExecutionInputPayload,
+    )
+    from shell.domain.aggregates.task_execution_output_payload import (
+        TaskExecutionOutputPayload,
+    )
+    from shell.domain.aggregates.workflow import Workflow
     from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
 logger = logging.getLogger(__name__)
@@ -181,6 +195,52 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         query = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))
         rows = (await self._session.execute(query)).scalars().all()
         return [task_execution_model_to_entity(row) for row in rows]
+
+
+class SqlTaskExecutionInputPayloadRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_latest_by_task_id(
+        self, task_execution_id: TaskExecutionId
+    ) -> TaskExecutionInputPayload | None:
+        query = (
+            select(TaskExecutionInputPayloadModel)
+            .where(
+                TaskExecutionInputPayloadModel.task_execution_id == task_execution_id.value,
+                TaskExecutionInputPayloadModel.is_current.is_(True),
+            )
+            .limit(1)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return task_execution_input_payload_model_to_entity(row) if row else None
+
+    async def save(self, payload: TaskExecutionInputPayload) -> None:
+        model = task_execution_input_payload_entity_to_model(payload)
+        await self._session.merge(model)
+
+
+class SqlTaskExecutionOutputPayloadRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_latest_by_task_id(
+        self, task_execution_id: TaskExecutionId
+    ) -> TaskExecutionOutputPayload | None:
+        query = (
+            select(TaskExecutionOutputPayloadModel)
+            .where(
+                TaskExecutionOutputPayloadModel.task_execution_id == task_execution_id.value,
+                TaskExecutionOutputPayloadModel.is_current.is_(True),
+            )
+            .limit(1)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return task_execution_output_payload_model_to_entity(row) if row else None
+
+    async def save(self, payload: TaskExecutionOutputPayload) -> None:
+        model = task_execution_output_payload_entity_to_model(payload)
+        await self._session.merge(model)
 
 
 class SqlGraphExecutionRepository:

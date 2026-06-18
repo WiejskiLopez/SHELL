@@ -38,7 +38,7 @@ class TestStartWorkflowHandler:
 
     @staticmethod
     async def _attach_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
-        from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+        from shell.domain.aggregates.graph_execution import GraphExecution, GraphNodeExecution
         from shell.domain.value_objects.ids import (
             GraphDefinitionId,
             GraphExecutionId,

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from shell.domain.entities.workflow.graph_node_execution_state import (
+from shell.domain.aggregates.workflow.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
+from shell.domain.entities.base import AggregateRoot
 from shell.domain.events.events import (
-    DomainEvent,
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionCompleted,
     GraphNodeExecutionFailed,
@@ -39,22 +38,101 @@ if TYPE_CHECKING:
     )
 
 
-@dataclass(slots=True)
-class Workflow:
+class Workflow(AggregateRoot["WorkflowId"]):
     """Workflow aggregate root — owns GraphNodeExecutionStates, NodeResults and the cursor."""
 
-    id: WorkflowId
-    task_execution_id: TaskExecutionId
-    status: Status
-    created_at: datetime
-    cursor: WorkflowCursor = field(default_factory=WorkflowCursor.empty)
-    execution_context: WorkflowExecutionContext = field(
-        default_factory=WorkflowExecutionContext.empty
+    __slots__ = (
+        "_task_execution_id",
+        "_status",
+        "_created_at",
+        "_cursor",
+        "_execution_context",
+        "_version",
+        "_graph_node_execution_states",
+        "_graph_node_execution_results",
     )
-    version: int = 0
-    graph_node_execution_states: dict[str, GraphNodeExecutionState] = field(default_factory=dict)
-    graph_node_execution_results: dict[str, GraphNodeExecutionResult] = field(default_factory=dict)
-    _events: list[DomainEvent] = field(default_factory=list, repr=False, compare=False)
+
+    _task_execution_id: TaskExecutionId
+    _status: Status
+    _created_at: datetime
+    _cursor: WorkflowCursor
+    _execution_context: WorkflowExecutionContext
+    _version: int
+    _graph_node_execution_states: dict[str, GraphNodeExecutionState]
+    _graph_node_execution_results: dict[str, GraphNodeExecutionResult]
+
+    def __init__(
+        self,
+        *,
+        id: WorkflowId,
+        task_execution_id: TaskExecutionId,
+        status: Status,
+        created_at: datetime,
+        cursor: WorkflowCursor | None = None,
+        execution_context: WorkflowExecutionContext | None = None,
+        version: int = 0,
+        graph_node_execution_states: dict[str, GraphNodeExecutionState] | None = None,
+        graph_node_execution_results: dict[str, GraphNodeExecutionResult] | None = None,
+    ) -> None:
+        super().__init__(id)
+        self._task_execution_id = task_execution_id
+        self._status = status
+        self._created_at = created_at
+        self._cursor = cursor if cursor is not None else WorkflowCursor.empty()
+        self._execution_context = (
+            execution_context if execution_context is not None else WorkflowExecutionContext.empty()
+        )
+        self._version = version
+        self._graph_node_execution_states = graph_node_execution_states or {}
+        self._graph_node_execution_results = graph_node_execution_results or {}
+
+    @property
+    def task_execution_id(self) -> TaskExecutionId:
+        return self._task_execution_id
+
+    @property
+    def status(self) -> Status:
+        return self._status
+
+    @status.setter
+    def status(self, value: Status) -> None:
+        self._status = value
+
+    @property
+    def created_at(self) -> datetime:
+        return self._created_at
+
+    @property
+    def cursor(self) -> WorkflowCursor:
+        return self._cursor
+
+    @cursor.setter
+    def cursor(self, value: WorkflowCursor) -> None:
+        self._cursor = value
+
+    @property
+    def execution_context(self) -> WorkflowExecutionContext:
+        return self._execution_context
+
+    @execution_context.setter
+    def execution_context(self, value: WorkflowExecutionContext) -> None:
+        self._execution_context = value
+
+    @property
+    def version(self) -> int:
+        return self._version
+
+    @version.setter
+    def version(self, value: int) -> None:
+        self._version = value
+
+    @property
+    def graph_node_execution_states(self) -> dict[str, GraphNodeExecutionState]:
+        return self._graph_node_execution_states
+
+    @property
+    def graph_node_execution_results(self) -> dict[str, GraphNodeExecutionResult]:
+        return self._graph_node_execution_results
 
     @classmethod
     def new(
@@ -70,14 +148,6 @@ class Workflow:
             status=Status.idle(),
             created_at=now,
         )
-
-    def append_event(self, event: DomainEvent) -> None:
-        self._events.append(event)
-
-    def pull_events(self) -> list[DomainEvent]:
-        events = list(self._events)
-        self._events.clear()
-        return events
 
     def start_at(
         self,

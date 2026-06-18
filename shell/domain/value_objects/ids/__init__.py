@@ -20,6 +20,12 @@ from shell.domain.value_objects.ids.rag_document_id import RagDocumentId
 from shell.domain.value_objects.ids.runner_config_id import RunnerConfigId
 from shell.domain.value_objects.ids.session_id import SessionId
 from shell.domain.value_objects.ids.task_execution_id import TaskExecutionId
+from shell.domain.value_objects.ids.task_execution_input_payload_id import (
+    TaskExecutionInputPayloadId,
+)
+from shell.domain.value_objects.ids.task_execution_output_payload_id import (
+    TaskExecutionOutputPayloadId,
+)
 from shell.domain.value_objects.ids.workflow_id import WorkflowId
 
 __all__ = [
@@ -39,5 +45,7 @@ __all__ = [
     "RunnerConfigId",
     "SessionId",
     "TaskExecutionId",
+    "TaskExecutionInputPayloadId",
+    "TaskExecutionOutputPayloadId",
     "WorkflowId",
 ]

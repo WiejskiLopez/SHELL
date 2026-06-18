@@ -41,7 +41,7 @@ class TestSqlWorkflowRepository:
         imp = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
-        from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+        from shell.domain.aggregates.graph_execution import GraphExecution, GraphNodeExecution
         from shell.domain.value_objects.ids import (
             GraphDefinitionId,
             GraphExecutionId,

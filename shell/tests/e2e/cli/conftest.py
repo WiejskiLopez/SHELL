@@ -10,9 +10,9 @@ import pytest
 from shell.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell.application.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
-from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
-from shell.domain.entities.task_execution import TaskExecution
+from shell.domain.aggregates.task_execution import TaskExecution
 from shell.domain.events.events import GraphNodeExecutionRequested
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (

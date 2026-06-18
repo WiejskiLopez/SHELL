@@ -5,10 +5,10 @@ from datetime import UTC, datetime
 
 
 from shell.domain.entities.base import AggregateRoot, Entity
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.events.events import DomainEvent
 from shell.domain.value_objects.ids import WorkflowId
-from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.value_objects.ids import (
     GraphDefinitionId,

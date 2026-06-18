@@ -12,7 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.exceptions import GraphDefinitionNotFoundException
-from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_execution import GraphExecution
 
 if TYPE_CHECKING:
     from shell.application.ports.ports import (

@@ -11,6 +11,8 @@ from shell.application.dto.dto import (
     PromptDto,
     RunnerConfigDto,
     TaskExecutionDto,
+    TaskExecutionInputPayloadDto,
+    TaskExecutionOutputPayloadDto,
     WorkflowDto,
 )
 
@@ -19,8 +21,14 @@ if TYPE_CHECKING:
     from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.runner_config import RunnerConfig
-    from shell.domain.entities.task_execution import TaskExecution
-    from shell.domain.entities.workflow import Workflow
+    from shell.domain.aggregates.task_execution import TaskExecution
+    from shell.domain.aggregates.task_execution_input_payload import (
+        TaskExecutionInputPayload,
+    )
+    from shell.domain.aggregates.task_execution_output_payload import (
+        TaskExecutionOutputPayload,
+    )
+    from shell.domain.aggregates.workflow import Workflow
 
 
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
@@ -105,4 +113,28 @@ def runner_config_to_dto(config: RunnerConfig) -> RunnerConfigDto:
         hash=config.hash.value,
         body=config.body,
         created_at=config.created_at,
+    )
+
+
+def task_execution_input_payload_to_dto(
+    entity: TaskExecutionInputPayload,
+) -> TaskExecutionInputPayloadDto:
+    return TaskExecutionInputPayloadDto(
+        id=entity.id.value,
+        task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+def task_execution_output_payload_to_dto(
+    entity: TaskExecutionOutputPayload,
+) -> TaskExecutionOutputPayloadDto:
+    return TaskExecutionOutputPayloadDto(
+        id=entity.id.value,
+        task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
     )

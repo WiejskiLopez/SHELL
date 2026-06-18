@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.entities.graph_definition import GraphDefinition
-    from shell.domain.entities.graph_execution._graph_node_execution_id_factory import (
+    from shell.domain.aggregates.graph_execution._graph_node_execution_id_factory import (
         _GraphNodeExecutionIdFactory,
     )
     from shell.domain.value_objects.ids import (

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.value_objects.ids import (
     GraphNodeExecutionId,
     TaskExecutionId,

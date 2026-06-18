@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.entities.task_execution import TaskExecution
+from shell.domain.aggregates.task_execution import TaskExecution
 from shell.domain.value_objects.ids import TaskExecutionId
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName

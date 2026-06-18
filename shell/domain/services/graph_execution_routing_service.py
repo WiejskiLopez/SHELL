@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.domain.exceptions import RoleNotResolvable
 
 if TYPE_CHECKING:
-    from shell.domain.entities.graph_execution import GraphExecution
+    from shell.domain.aggregates.graph_execution import GraphExecution
     from shell.domain.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.value_objects.ids import GraphNodeExecutionId
 

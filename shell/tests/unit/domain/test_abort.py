@@ -8,7 +8,7 @@ from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecut
 from shell.domain.value_objects.status import Status
 from shell.domain.value_objects.workflow_cursor import WorkflowCursor
 from shell.tests.unit.domain.conftest import _ctx, _new_workflow, _NOW
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 
 
 class TestAbort:

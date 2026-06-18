@@ -6,10 +6,10 @@ from datetime import UTC, datetime
 import pytest
 
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
-from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
-from shell.domain.entities.task_execution import TaskExecution
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.task_execution import TaskExecution
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (

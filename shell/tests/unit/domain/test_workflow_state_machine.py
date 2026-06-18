@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from shell.domain.entities.workflow import Workflow
+from shell.domain.aggregates.workflow import Workflow
 from shell.domain.events.events import (
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionStarted,

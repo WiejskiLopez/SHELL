@@ -6,7 +6,7 @@ from shell.domain.repositories.graph_execution_repository import GraphExecutionR
 from shell.domain.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
-    from shell.domain.entities.graph_execution import GraphExecution
+    from shell.domain.aggregates.graph_execution import GraphExecution
     from shell.domain.value_objects.ids import TaskExecutionId
 
 

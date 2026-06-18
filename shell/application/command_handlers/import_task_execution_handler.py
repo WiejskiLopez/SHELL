@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.entities.task_execution import TaskExecution
+from shell.domain.aggregates.task_execution import TaskExecution
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 

@@ -181,7 +181,7 @@ class TestSqlWorkflowRepository:
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
-        from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+        from shell.domain.aggregates.graph_execution import GraphExecution, GraphNodeExecution
         from shell.domain.value_objects.ids import (
             GraphDefinitionId,
             GraphExecutionId,
@@ -255,7 +255,7 @@ class TestSqlNodeResultRepository:
         events: FakeEventPublisher,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.domain.entities.workflow import Workflow
+        from shell.domain.aggregates.workflow import Workflow
         from shell.domain.value_objects.ids import WorkflowId
 
         async with uow as u:

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.entities.workflow import Workflow
+    from shell.domain.aggregates.workflow import Workflow
     from shell.domain.value_objects.ids import WorkflowId
 
 

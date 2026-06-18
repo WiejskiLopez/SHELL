@@ -6,14 +6,20 @@ from datetime import UTC, datetime
 
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell.domain.entities.graph_definition import GraphDefinition
-from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
 from shell.domain.entities.prompt import Prompt
 from shell.domain.entities.runner_config import RunnerConfig
-from shell.domain.entities.task_execution import TaskExecution
-from shell.domain.entities.workflow import GraphNodeExecutionState, Workflow
+from shell.domain.aggregates.task_execution import TaskExecution
+from shell.domain.aggregates.task_execution_input_payload import (
+    TaskExecutionInputPayload,
+)
+from shell.domain.aggregates.task_execution_output_payload import (
+    TaskExecutionOutputPayload,
+)
+from shell.domain.aggregates.workflow import GraphNodeExecutionState, Workflow
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
@@ -28,6 +34,8 @@ from shell.domain.value_objects.ids import (
     PromptId,
     RunnerConfigId,
     TaskExecutionId,
+    TaskExecutionInputPayloadId,
+    TaskExecutionOutputPayloadId,
     WorkflowId,
 )
 from shell.domain.value_objects.mode import Mode
@@ -46,7 +54,9 @@ from shell.infrastructure.persistence.sql.models import (
     GraphNodeExecutionStateModel,
     PromptModel,
     RunnerConfigModel,
+    TaskExecutionInputPayloadModel,
     TaskExecutionModel,
+    TaskExecutionOutputPayloadModel,
     WorkflowModel,
 )
 
@@ -83,6 +93,64 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         body=task_execution.body.value,
         is_current=task_execution.is_current,
         created_at=task_execution.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# TaskExecution Input Payload
+# ---------------------------------------------------------------------------
+
+
+def task_execution_input_payload_model_to_entity(
+    model: TaskExecutionInputPayloadModel,
+) -> TaskExecutionInputPayload:
+    return TaskExecutionInputPayload(
+        id=TaskExecutionInputPayloadId(model.id),
+        task_execution_id=TaskExecutionId(model.task_execution_id),
+        payload=dict(model.payload),
+        is_current=model.is_current,
+        created_at=_ensure_utc(model.created_at),
+    )
+
+
+def task_execution_input_payload_entity_to_model(
+    entity: TaskExecutionInputPayload,
+) -> TaskExecutionInputPayloadModel:
+    return TaskExecutionInputPayloadModel(
+        id=entity.id.value,
+        task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# TaskExecution Output Payload
+# ---------------------------------------------------------------------------
+
+
+def task_execution_output_payload_model_to_entity(
+    model: TaskExecutionOutputPayloadModel,
+) -> TaskExecutionOutputPayload:
+    return TaskExecutionOutputPayload(
+        id=TaskExecutionOutputPayloadId(model.id),
+        task_execution_id=TaskExecutionId(model.task_execution_id),
+        payload=dict(model.payload),
+        is_current=model.is_current,
+        created_at=_ensure_utc(model.created_at),
+    )
+
+
+def task_execution_output_payload_entity_to_model(
+    entity: TaskExecutionOutputPayload,
+) -> TaskExecutionOutputPayloadModel:
+    return TaskExecutionOutputPayloadModel(
+        id=entity.id.value,
+        task_execution_id=entity.task_execution_id.value,
+        payload=entity.payload,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
     )
 
 
