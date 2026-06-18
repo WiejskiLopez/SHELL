@@ -31,8 +31,8 @@ class InvalidEnvelopeTransition(DomainError):
 
 
 class NodeNotFound(DomainError):
-    def __init__(self, node_id: str) -> None:
-        super().__init__(f"Node not found: {node_id!r}")
+    def __init__(self, graph_node_execution_id: str) -> None:
+        super().__init__(f"Node not found: {graph_node_execution_id!r}")
 
 
 class PromptNotFound(DomainError):

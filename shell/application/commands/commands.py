@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from shell.application.commands.config_commands import BootstrapRunnerConfigCommand
 from shell.application.commands.envelope_commands import ArchiveEnvelopeCommand
-from shell.application.commands.node_commands import RunNodeCommand, SaveNodeResultCommand
+from shell.application.commands.graph_node_execution_commands import RunGraphNodeExecutionCommand, SaveGraphNodeExecutionResultCommand
 from shell.application.commands.prompt_commands import SavePromptCommand
 from shell.application.commands.rag_commands import IndexDocumentCommand
 from shell.application.commands.session_commands import (
@@ -28,9 +28,9 @@ __all__ = [
     "IndexDocumentCommand",
     "OpenSessionCommand",
     "RouteEnvelopesCommand",
-    "RunNodeCommand",
+    "RunGraphNodeExecutionCommand",
     "RunTaskerWorkflowCommand",
-    "SaveNodeResultCommand",
+    "SaveGraphNodeExecutionResultCommand",
     "SavePromptCommand",
     "StartWorkflowCommand",
 ]

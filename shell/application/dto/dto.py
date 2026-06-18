@@ -18,11 +18,11 @@ class TaskExecutionDto:
     is_current: bool
     created_at: datetime
     body: str
-    graph_nodes: list[GraphNodeDto] = field(default_factory=list)
+    graph_node_executions: list[GraphNodeExecutionDto] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)
-class GraphNodeDto:
+class GraphNodeExecutionDto:
     id: str
     position: int
     node_dir: str
@@ -39,12 +39,12 @@ class WorkflowDto:
     task_execution_id: str
     status: str
     created_at: datetime
-    node_states: dict[str, NodeStateDto] = field(default_factory=dict)
+    graph_node_execution_states: dict[str, GraphNodeExecutionStateDto] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)
-class NodeStateDto:
-    node_id: str
+class GraphNodeExecutionStateDto:
+    graph_node_execution_id: str
     status: str
     step: int
     updated_at: datetime
@@ -54,8 +54,8 @@ class NodeStateDto:
 class EnvelopeDto:
     id: str
     workflow_id: str
-    sender_node_id: str
-    receiver_node_id: str
+    sender_graph_node_execution_id: str
+    receiver_graph_node_execution_id: str
     source_role: str
     target_role: str
     status: str
@@ -67,9 +67,9 @@ class EnvelopeDto:
 
 
 @dataclass(frozen=True, slots=True)
-class NodeResultDto:
+class GraphNodeExecutionResultDto:
     id: str
-    node_id: str
+    graph_node_execution_id: str
     workflow_id: str
     status: str
     stdout: str
@@ -133,7 +133,7 @@ class SessionDto:
 
 
 @dataclass(frozen=True, slots=True)
-class GraphDto:
+class GraphExecutionDto:
     id: str
     graph_definition_id: str
     task_execution_id: str
@@ -147,7 +147,7 @@ class GraphDefinitionDto:
 
 
 @dataclass(frozen=True, slots=True)
-class GraphDefinitionNodeDto:
+class GraphNodeDefinitionDto:
     id: str
     position: int
     node_dir: str

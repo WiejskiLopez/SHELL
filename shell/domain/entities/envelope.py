@@ -11,7 +11,7 @@ from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeSt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.value_objects.ids import EnvelopeEventId, EnvelopeId, NodeId, WorkflowId
+    from shell.domain.value_objects.ids import EnvelopeEventId, EnvelopeId, GraphNodeExecutionId, WorkflowId
 
 
 @dataclass(slots=True)
@@ -40,8 +40,8 @@ class Envelope:
     workflow_id: WorkflowId
     parent_id: EnvelopeId | None
     correlation_id: str
-    sender_node_id: NodeId
-    receiver_node_id: NodeId
+    sender_graph_node_execution_id: GraphNodeExecutionId
+    receiver_graph_node_execution_id: GraphNodeExecutionId
     source_role: str
     target_role: str
     sequence_id: int
@@ -61,8 +61,8 @@ class Envelope:
         *,
         id_: EnvelopeId,
         workflow_id: WorkflowId,
-        sender_node_id: NodeId,
-        receiver_node_id: NodeId,
+        sender_graph_node_execution_id: GraphNodeExecutionId,
+        receiver_graph_node_execution_id: GraphNodeExecutionId,
         source_role: str,
         target_role: str,
         correlation_id: str = "",
@@ -77,8 +77,8 @@ class Envelope:
             workflow_id=workflow_id,
             parent_id=parent_id,
             correlation_id=correlation_id or str(id_),
-            sender_node_id=sender_node_id,
-            receiver_node_id=receiver_node_id,
+            sender_graph_node_execution_id=sender_graph_node_execution_id,
+            receiver_graph_node_execution_id=receiver_graph_node_execution_id,
             source_role=source_role,
             target_role=target_role,
             sequence_id=sequence_id,

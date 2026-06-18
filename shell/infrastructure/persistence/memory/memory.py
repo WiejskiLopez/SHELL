@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 from shell.application.dto.dto import (
     EnvelopeDto,
     MessageDto,
-    NodeResultDto,
-    NodeStateDto,
+    GraphNodeExecutionResultDto,
+    GraphNodeExecutionStateDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
@@ -19,16 +19,16 @@ from shell.application.dto.dto import (
 )
 from shell.application.ports.unit_of_work import UnitOfWork
 from shell.domain.entities.graph_definition import GraphDefinition
-from shell.domain.entities.graph_definition_node import GraphDefinitionNode
+from shell.domain.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.repositories.envelope_repository import (
     EnvelopeArchive,
     EnvelopeRepository,
 )
 from shell.domain.repositories.graph_definition_repository import (
-    GraphDefinitionNodeRepository,
+    GraphNodeDefinitionRepository,
     GraphDefinitionRepository,
 )
-from shell.domain.repositories.graph_repository import GraphRepository
+from shell.domain.repositories.graph_execution_repository import GraphExecutionRepository
 from shell.domain.repositories.prompt_repository import PromptRepository
 from shell.domain.repositories.rag_repository import RagDocumentRepository
 from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
@@ -40,11 +40,11 @@ from shell.domain.value_objects.execution_result import ExecutionResult
 from shell.domain.value_objects.ids import (
     EnvelopeId,
     GraphDefinitionId,
-    GraphDefinitionNodeId,
-    GraphId,
+    GraphNodeDefinitionId,
+    GraphExecutionId,
     MessageId,
-    NodeId,
-    NodeResultId,
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
     PromptId,
     RagChunkId,
     RagDocumentId,
@@ -57,7 +57,7 @@ from shell.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.domain.entities.envelope import Envelope
-    from shell.domain.entities.graph import Graph
+    from shell.domain.entities.graph_execution import GraphExecution
     from shell.domain.entities.prompt import Prompt
     from shell.domain.entities.rag_document import RagChunk, RagDocument
     from shell.domain.entities.runner_config import RunnerConfig
@@ -110,21 +110,21 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return [t for t in self._store.values() if t.is_current]
 
 
-class InMemoryGraphRepository(GraphRepository):
+class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self) -> None:
-        self._store: dict[str, Graph] = {}
+        self._store: dict[str, GraphExecution] = {}
 
-    async def get_by_id(self, graph_id: GraphId) -> Graph | None:
-        return self._store.get(graph_id.value)
+    async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
+        return self._store.get(graph_execution_id.value)
 
-    async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> Graph | None:
+    async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> GraphExecution | None:
         for g in self._store.values():
             if g.task_execution_id == task_execution_id:
                 return g
         return None
 
-    async def save(self, graph: Graph) -> None:
-        self._store[graph.id.value] = graph
+    async def save(self, graph_execution: GraphExecution) -> None:
+        self._store[graph_execution.id.value] = graph_execution
 
 
 class InMemoryWorkflowRepository(WorkflowRepository):
@@ -315,7 +315,7 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
     def __init__(self) -> None:
         # Private repository instances
         self._task_executions = InMemoryTaskExecutionRepository()
-        self._graphs = InMemoryGraphRepository()
+        self._graph_executions = InMemoryGraphExecutionRepository()
         self._workflows = InMemoryWorkflowRepository()
         self._envelopes = InMemoryEnvelopeRepository()
         self._prompts = InMemoryPromptRepository()
@@ -342,9 +342,9 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
             id=GraphDefinitionId("base-planner-id"),
             name="base_planner",
             purpose="default_planning",
-            nodes=[
-                GraphDefinitionNode(
-                    id=GraphDefinitionNodeId("base-planner-node-1"),
+            graph_node_definitions=[
+                GraphNodeDefinition(
+                    id=GraphNodeDefinitionId("base-planner-node-1"),
                     position=0,
                     mode=Mode("agent"),
                     role="agent",
@@ -362,8 +362,8 @@ class InMemoryUnitOfWork(UnitOfWork):  # Jawne dziedziczenie (kontrakt)
         return self._task_executions
 
     @property
-    def graphs(self) -> InMemoryGraphRepository:
-        return self._graphs
+    def graph_executions(self) -> InMemoryGraphExecutionRepository:
+        return self._graph_executions
 
     @property
     def workflows(self) -> InMemoryWorkflowRepository:
@@ -470,8 +470,8 @@ class FakeIdGenerator:
     def new_prompt_id(self) -> PromptId:
         return PromptId(self._next())
 
-    def new_node_result_id(self) -> NodeResultId:
-        return NodeResultId(self._next())
+    def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
+        return GraphNodeExecutionResultId(self._next())
 
     def new_runner_config_id(self) -> RunnerConfigId:
         return RunnerConfigId(self._next())
@@ -491,14 +491,14 @@ class FakeIdGenerator:
     def new_graph_definition_id(self) -> GraphDefinitionId:
         return GraphDefinitionId(self._next())
 
-    def new_graph_definition_node_id(self) -> GraphDefinitionNodeId:
-        return GraphDefinitionNodeId(self._next())
+    def new_graph_node_definition_id(self) -> GraphNodeDefinitionId:
+        return GraphNodeDefinitionId(self._next())
 
-    def new_graph_id(self) -> GraphId:
-        return GraphId(self._next())
+    def new_graph_execution_id(self) -> GraphExecutionId:
+        return GraphExecutionId(self._next())
 
-    def new_node_id(self) -> NodeId:
-        return NodeId(self._next())
+    def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
+        return GraphNodeExecutionId(self._next())
 
 
 class FakeEventPublisher:
@@ -564,8 +564,8 @@ class FakeNodeProcessRunner:
 class FakeNodeWorkspace:
     """Fake workspace that performs no filesystem operations."""
 
-    async def prepare(self, node_id: str, work_dir: str) -> str:
-        return f"/fake/workspace/{node_id}"
+    async def prepare(self, graph_node_execution_id: str, work_dir: str) -> str:
+        return f"/fake/workspace/{graph_node_execution_id}"
 
     async def cleanup(self, workspace_path: str) -> None:
         pass
@@ -587,13 +587,13 @@ class InMemoryQueryServices:
         )
         if not task_execution:
             return None
-        graph = await self._uow.graphs.get_by_task_execution_id(task_execution.id)
-        graph_nodes = []
-        if graph is not None:
-            from shell.application.dto.dto import GraphNodeDto
+        graph_execution = await self._uow.graph_executions.get_by_task_execution_id(task_execution.id)
+        graph_node_executions = []
+        if graph_execution is not None:
+            from shell.application.dto.dto import GraphNodeExecutionDto
 
-            graph_nodes = [
-                GraphNodeDto(
+            graph_node_executions = [
+                GraphNodeExecutionDto(
                     id=n.id.value,
                     position=n.position,
                     node_dir=n.node_dir,
@@ -603,7 +603,7 @@ class InMemoryQueryServices:
                     model=n.model,
                     command=n.command,
                 )
-                for n in graph.nodes
+                for n in graph_execution.graph_node_executions
             ]
         return TaskExecutionDto(
             id=task_execution.id.value,
@@ -613,7 +613,7 @@ class InMemoryQueryServices:
             is_current=task_execution.is_current,
             created_at=task_execution.created_at,
             body=task_execution.body.value,
-            graph_nodes=graph_nodes,
+            graph_node_executions=graph_node_executions,
         )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:
@@ -629,14 +629,14 @@ class InMemoryQueryServices:
             task_execution_id=str(workflow.task_execution_id),
             status=workflow.status.value,
             created_at=workflow.created_at,
-            node_states={
-                str(node_id): NodeStateDto(
-                    node_id=str(s.node_id),
+            graph_node_execution_states={
+                str(graph_node_execution_id): GraphNodeExecutionStateDto(
+                    graph_node_execution_id=str(s.graph_node_execution_id),
                     status=s.status.value,
                     step=s.step,
                     updated_at=s.updated_at,
                 )
-                for node_id, s in workflow.node_states.items()
+                for graph_node_execution_id, s in workflow.graph_node_execution_states.items()
             },
         )
 
@@ -655,8 +655,8 @@ class InMemoryQueryServices:
             EnvelopeDto(
                 id=str(e.id),
                 workflow_id=str(e.workflow_id),
-                sender_node_id=str(e.sender_node_id),
-                receiver_node_id=str(e.receiver_node_id),
+                sender_graph_node_execution_id=str(e.sender_graph_node_execution_id),
+                receiver_graph_node_execution_id=str(e.receiver_graph_node_execution_id),
                 source_role=e.source_role,
                 target_role=e.target_role,
                 status=e.status.value,
@@ -669,16 +669,16 @@ class InMemoryQueryServices:
             for e in envelopes
         ]
 
-    async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
+    async def get_graph_node_execution_result(self, graph_node_execution_id: str, workflow_id: str) -> GraphNodeExecutionResultDto | None:
         wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
         if wf is None:
             return None
-        res = wf.node_results.get(node_id)
+        res = wf.graph_node_execution_results.get(graph_node_execution_id)
         if not res:
             return None
-        return NodeResultDto(
+        return GraphNodeExecutionResultDto(
             id=str(res.id),
-            node_id=str(res.node_id),
+            graph_node_execution_id=str(res.graph_node_execution_id),
             workflow_id=str(res.workflow_id),
             status=res.status.value,
             stdout=res.stdout,
@@ -767,8 +767,8 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphDefinition] = {}
 
-    async def get(self, graph_id: GraphDefinitionId) -> GraphDefinition | None:
-        return self._store.get(graph_id.value)
+    async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
+        return self._store.get(graph_definition_id.value)
 
     async def get_graph_definition_by_name(self, name: str) -> GraphDefinition | None:
         for g in self._store.values():
@@ -783,12 +783,12 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
         self._store[graph.id.value] = graph
 
 
-class InMemoryGraphDefinitionNodeRepository(GraphDefinitionNodeRepository):
+class InMemoryGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
     def __init__(self) -> None:
-        self._store: dict[str, GraphDefinitionNode] = {}
+        self._store: dict[str, GraphNodeDefinition] = {}
 
-    async def get_by_id(self, node_id: GraphDefinitionNodeId) -> GraphDefinitionNode | None:
-        return self._store.get(node_id.value)
+    async def get_by_id(self, graph_node_definition_id: GraphNodeDefinitionId) -> GraphNodeDefinition | None:
+        return self._store.get(graph_node_definition_id.value)
 
-    async def save(self, node: GraphDefinitionNode) -> None:
+    async def save(self, node: GraphNodeDefinition) -> None:
         self._store[node.id.value] = node

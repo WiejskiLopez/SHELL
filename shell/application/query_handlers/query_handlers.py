@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from shell.application.dto.dto import (
         EnvelopeDto,
-        NodeResultDto,
+        GraphNodeExecutionResultDto,
         PromptDto,
         RagChunkDto,
         RunnerConfigDto,
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     )
     from shell.application.ports.queries import (
         EnvelopeQueryService,
-        NodeResultQueryService,
+        GraphNodeExecutionResultQueryService,
         PromptQueryService,
         RagQueryService,
         RunnerConfigQueryService,
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from shell.application.queries.queries import (
         GetCurrentTaskExecutionQuery,
         GetEnvelopesByWorkflowQuery,
-        GetNodeResultQuery,
+        GetGraphNodeExecutionResultQuery,
         GetPromptQuery,
         GetRunnerConfigQuery,
         GetSessionHistoryQuery,
@@ -71,12 +71,12 @@ class GetEnvelopesByWorkflowHandler:
         return await self._queries.get_envelopes_by_workflow(query.workflow_id, query.pending_only)
 
 
-class GetNodeResultHandler:
-    def __init__(self, queries: NodeResultQueryService) -> None:
+class GetGraphNodeExecutionResultHandler:
+    def __init__(self, queries: GraphNodeExecutionResultQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetNodeResultQuery) -> NodeResultDto | None:
-        return await self._queries.get_node_result(query.node_id, query.workflow_id)
+    async def handle(self, query: GetGraphNodeExecutionResultQuery) -> GraphNodeExecutionResultDto | None:
+        return await self._queries.get_graph_node_execution_result(query.graph_node_execution_id, query.workflow_id)
 
 
 class GetPromptHandler:

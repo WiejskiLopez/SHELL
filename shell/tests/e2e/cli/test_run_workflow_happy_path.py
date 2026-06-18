@@ -7,21 +7,21 @@ import pytest
 
 from shell.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell.application.commands.commands import RunTaskerWorkflowCommand
-from shell.application.event_handlers.node_execution_worker import NodeExecutionWorker
+from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
-from shell.domain.entities.graph import Graph
-from shell.domain.entities.graph_node import GraphNode
+from shell.domain.entities.graph_execution import GraphExecution
+from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.task_execution import TaskExecution
 from shell.domain.events.events import (
-    NodeCompleted,
-    NodeExecutionRequested,
-    NodeFailed,
+    GraphNodeExecutionCompleted,
+    GraphNodeExecutionRequested,
+    GraphNodeExecutionFailed,
     WorkflowCompleted,
     WorkflowFailed,
 )
 from shell.domain.value_objects.hash import Hash
-from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId, TaskExecutionId
+from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId, TaskExecutionId
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
@@ -40,12 +40,12 @@ from shell.infrastructure.persistence.memory.memory import (
 # ---------------------------------------------------------------------------
 
 
-def _make_task_with_graph(
+def _make_task_with_graph_execution(
     uow: InMemoryUnitOfWork,
     task_execution_name: str,
     modes: list[str],
     now: datetime,
-) -> tuple[TaskExecution, Graph]:
+) -> tuple[TaskExecution, GraphExecution]:
     """Helper do przygotowania zadania wraz z powiązanym grafem wykonawczym."""
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
@@ -58,9 +58,9 @@ def _make_task_with_graph(
     )
     uow.task_executions._store[task_execution.id.value] = task_execution  # type: ignore[attr-defined]
 
-    nodes = [
-        GraphNode(
-            id=NodeId(f"{task_execution.id.value}-n{i}"),
+    graph_node_executions = [
+        GraphNodeExecution(
+            id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=i,
             node_dir=f"/fake/{m}-{i}",
             mode=Mode(m),
@@ -70,14 +70,14 @@ def _make_task_with_graph(
         for i, m in enumerate(modes)
     ]
 
-    graph = Graph(
-        id=GraphId.generate(),
+    graph_execution = GraphExecution(
+        id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
         graph_definition_id=GraphDefinitionId("tpl"),
-        nodes=nodes,
+        graph_node_executions=graph_node_executions,
     )
-    uow.graphs._store[graph.id.value] = graph  # type: ignore[attr-defined]
-    return task_execution, graph
+    uow.graph_executions._store[graph_execution.id.value] = graph_execution  # type: ignore[attr-defined]
+    return task_execution, graph_execution
 
 
 async def _run_tasker_full(
@@ -96,7 +96,7 @@ async def _run_tasker_full(
     if runner is None:
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
 
-    worker = NodeExecutionWorker(
+    worker = GraphNodeExecutionWorker(
         uow=uow,
         clock=clock,
         id_gen=id_gen,
@@ -116,7 +116,7 @@ async def _run_tasker_full(
         event = uow.committed_events[processed_count]
         processed_count += 1
 
-        if isinstance(event, NodeExecutionRequested):
+        if isinstance(event, GraphNodeExecutionRequested):
             await worker.handle(event)
 
     return uow.committed_events
@@ -161,7 +161,7 @@ class TestRunTaskerWorkflowHappyPath:
         queries: InMemoryQueryServices,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph(uow, "happy-path-task", ["agent", "tool"], clock.now())
+        task_execution, _ = _make_task_with_graph_execution(uow, "happy-path-task", ["agent", "tool"], clock.now())
 
         # Poprawne przekazanie task_execution_id oraz work_dir zgodnie z Twoją sygnaturą
         cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
@@ -170,7 +170,7 @@ class TestRunTaskerWorkflowHappyPath:
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
 
         # Assert
-        assert any(isinstance(e, NodeCompleted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionCompleted) for e in events)
         assert any(isinstance(e, WorkflowCompleted) for e in events)
         assert not any(isinstance(e, WorkflowFailed) for e in events)
 
@@ -189,7 +189,7 @@ class TestRunTaskerWorkflowHappyPath:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph(uow, "single-node-task", ["agent"], clock.now())
+        task_execution, _ = _make_task_with_graph_execution(uow, "single-node-task", ["agent"], clock.now())
         cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
 
         # Act
@@ -209,7 +209,7 @@ class TestRunTaskerWorkflowPartialFailure:
         id_gen: FakeIdGenerator,
     ) -> None:
         # Arrange
-        task_execution, _ = _make_task_with_graph(uow, "failing-task", ["agent", "tool"], clock.now())
+        task_execution, _ = _make_task_with_graph_execution(uow, "failing-task", ["agent", "tool"], clock.now())
         cmd = RunTaskerWorkflowCommand(task_execution_id=task_execution.id.value, work_dir="/fake/work/dir")
         failing_runner = FakeNodeProcessRunner(stdout="execution failed", returncode=1)
 
@@ -217,7 +217,7 @@ class TestRunTaskerWorkflowPartialFailure:
         events = await _run_tasker_full(uow, clock, id_gen, cmd, runner=failing_runner)
 
         # Assert
-        assert any(isinstance(e, NodeFailed) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionFailed) for e in events)
         assert any(isinstance(e, WorkflowFailed) for e in events)
         assert not any(isinstance(e, WorkflowCompleted) for e in events)
 

@@ -6,9 +6,9 @@ import uuid
 
 from shell.domain.value_objects.ids import (
     EnvelopeId,
-    GraphId,
-    NodeId,
-    NodeResultId,
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
     PromptId,
     RunnerConfigId,
     TaskExecutionId,
@@ -31,14 +31,14 @@ class UuidIdGenerator:
     def new_prompt_id(self) -> PromptId:
         return PromptId(str(uuid.uuid4()))
 
-    def new_node_result_id(self) -> NodeResultId:
-        return NodeResultId(str(uuid.uuid4()))
+    def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
+        return GraphNodeExecutionResultId(str(uuid.uuid4()))
 
     def new_runner_config_id(self) -> RunnerConfigId:
         return RunnerConfigId(str(uuid.uuid4()))
 
-    def new_graph_id(self) -> GraphId:
-        return GraphId(str(uuid.uuid4()))
+    def new_graph_execution_id(self) -> GraphExecutionId:
+        return GraphExecutionId(str(uuid.uuid4()))
 
-    def new_node_id(self) -> NodeId:
-        return NodeId(str(uuid.uuid4()))
+    def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
+        return GraphNodeExecutionId(str(uuid.uuid4()))

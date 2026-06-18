@@ -55,30 +55,30 @@ class EnvelopeId:
 
 
 @dataclass(frozen=True, slots=True)
-class NodeId:
+class GraphNodeExecutionId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("NodeId cannot be empty")
+            raise ValueError("GraphNodeExecutionId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
 
 @dataclass(frozen=True, slots=True)
-class GraphId:
+class GraphExecutionId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("GraphId cannot be empty")
+            raise ValueError("GraphExecutionId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> GraphId:
+    def generate(cls) -> GraphExecutionId:
         return cls(str(uuid.uuid4()))
 
 
@@ -99,18 +99,18 @@ class PromptId:
 
 
 @dataclass(frozen=True, slots=True)
-class NodeResultId:
+class GraphNodeExecutionResultId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("NodeResultId cannot be empty")
+            raise ValueError("GraphNodeExecutionResultId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> NodeResultId:
+    def generate(cls) -> GraphNodeExecutionResultId:
         return cls(str(uuid.uuid4()))
 
 
@@ -227,18 +227,18 @@ class GraphDefinitionId:
 
 
 @dataclass(frozen=True, slots=True)
-class GraphDefinitionNodeId:
+class GraphNodeDefinitionId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("GraphDefinitionNodeId cannot be empty")
+            raise ValueError("GraphNodeDefinitionId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> GraphDefinitionNodeId:
+    def generate(cls) -> GraphNodeDefinitionId:
         return cls(str(uuid.uuid4()))
 
 
@@ -259,16 +259,16 @@ class EnvelopeEventId:
 
 
 @dataclass(frozen=True, slots=True)
-class NodeStateId:
+class GraphNodeExecutionStateId:
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("NodeStateId cannot be empty")
+            raise ValueError("GraphNodeExecutionStateId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> NodeStateId:
+    def generate(cls) -> GraphNodeExecutionStateId:
         return cls(str(uuid.uuid4()))

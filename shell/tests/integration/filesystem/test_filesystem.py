@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from shell.infrastructure.filesystem.envelope_archive_fs import FileSystemEnvelopeArchive
-from shell.infrastructure.filesystem.node_workspace import NodeWorkspaceFs
+from shell.infrastructure.filesystem.workspace import Workspace
 from shell.infrastructure.filesystem.task_execution_loader import FileSystemTaskLoader
 
 # ---------------------------------------------------------------------------
-# NodeWorkspaceFs
+# Workspace
 # ---------------------------------------------------------------------------
 
 
-class TestNodeWorkspaceFs:
+class TestWorkspace:
     async def test_prepare_creates_dot_node_subdirs(self, tmp_path: object) -> None:
-        ws = NodeWorkspaceFs()
+        ws = Workspace()
         path = await ws.prepare("my-node", str(tmp_path))
 
         import pathlib
@@ -24,14 +24,14 @@ class TestNodeWorkspaceFs:
             assert (dot_node / subdir).is_dir(), f".node/{subdir} should be a directory"
 
     async def test_prepare_returns_workspace_path(self, tmp_path: object) -> None:
-        ws = NodeWorkspaceFs()
+        ws = Workspace()
         path = await ws.prepare("node-abc", str(tmp_path))
         import pathlib
 
         assert pathlib.Path(path).name == "node-abc"
 
     async def test_cleanup_removes_workspace(self, tmp_path: object) -> None:
-        ws = NodeWorkspaceFs()
+        ws = Workspace()
         path = await ws.prepare("node-to-clean", str(tmp_path))
         import pathlib
 
@@ -40,7 +40,7 @@ class TestNodeWorkspaceFs:
         assert not pathlib.Path(path).exists()
 
     async def test_write_and_read_output(self, tmp_path: object) -> None:
-        ws = NodeWorkspaceFs()
+        ws = Workspace()
         path = await ws.prepare("node-io", str(tmp_path))
         out = await ws.write_output(path, "result.txt", "hello world")
         import pathlib
@@ -48,7 +48,7 @@ class TestNodeWorkspaceFs:
         assert pathlib.Path(out).read_text() == "hello world"
 
     async def test_read_input_missing_returns_empty(self, tmp_path: object) -> None:
-        ws = NodeWorkspaceFs()
+        ws = Workspace()
         path = await ws.prepare("node-empty-input", str(tmp_path))
         content = await ws.read_input(path)
         assert content == ""
@@ -80,15 +80,15 @@ class TestFileSystemEnvelopeArchive:
         from datetime import UTC, datetime
 
         from shell.domain.entities.envelope import Envelope
-        from shell.domain.value_objects.ids import EnvelopeId, NodeId, WorkflowId
+        from shell.domain.value_objects.ids import EnvelopeId, GraphNodeExecutionId, WorkflowId
 
         archive = FileSystemEnvelopeArchive(str(tmp_path))
         now = datetime.now(tz=UTC)
         envelope = Envelope.new(
             id_=EnvelopeId("env-arch-1"),
             workflow_id=WorkflowId("wf-arch-1"),
-            sender_node_id=NodeId("node-s"),
-            receiver_node_id=NodeId("node-r"),
+            sender_graph_node_execution_id=GraphNodeExecutionId("node-s"),
+            receiver_graph_node_execution_id=GraphNodeExecutionId("node-r"),
             source_role="agent",
             target_role="worker",
             now=now,

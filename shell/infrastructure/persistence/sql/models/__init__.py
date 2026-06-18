@@ -24,7 +24,7 @@ class TaskExecutionModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class GraphModel(Base):
+class GraphExecutionModel(Base):
     __tablename__ = "graph"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
@@ -37,16 +37,16 @@ class GraphModel(Base):
     )
     graph_definition_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
 
-    nodes: Mapped[list[GraphNodeModel]] = relationship(
-        "GraphNodeModel", back_populates="graph", cascade="all, delete-orphan"
+    graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
+        "GraphNodeExecutionModel", back_populates="graph_execution_model", cascade="all, delete-orphan"
     )
 
 
-class GraphNodeModel(Base):
-    __tablename__ = "graph_node"
+class GraphNodeExecutionModel(Base):
+    __tablename__ = "graph_node_execution"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    graph_id: Mapped[str] = mapped_column(
+    graph_execution_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("graph.id", ondelete="CASCADE"), nullable=False, index=True
     )
     position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -68,8 +68,9 @@ class GraphNodeModel(Base):
     status_initial: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     extra: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
-    graph: Mapped[GraphModel] = relationship("GraphModel", back_populates="nodes")
-
+    graph_execution_model: Mapped[GraphExecutionModel] = relationship(
+        "GraphExecutionModel", back_populates="graph_node_execution_models"
+    )
 
 class WorkflowModel(Base):
     __tablename__ = "workflow"
@@ -77,7 +78,7 @@ class WorkflowModel(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     task_execution_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
-    current_node_id: Mapped[str | None] = mapped_column(
+    current_graph_node_execution_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None, index=True
     )
     work_dir: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
@@ -85,30 +86,32 @@ class WorkflowModel(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    node_states: Mapped[list[NodeStateModel]] = relationship(
-        "NodeStateModel", back_populates="workflow", cascade="all, delete-orphan"
+    graph_node_execution_state_models: Mapped[list[GraphNodeExecutionStateModel]] = relationship(
+        "GraphNodeExecutionStateModel", back_populates="workflow_model", cascade="all, delete-orphan"
     )
-    node_results: Mapped[list[NodeResultModel]] = relationship(
-        "NodeResultModel",
-        primaryjoin="WorkflowModel.id == foreign(NodeResultModel.workflow_id)",
+
+    graph_node_execution_result_models: Mapped[list[GraphNodeExecutionResultModel]] = relationship(
+        "GraphNodeExecutionResultModel",
+        primaryjoin="WorkflowModel.id == foreign(GraphNodeExecutionResultModel.workflow_id)",
         cascade="all, delete-orphan",
     )
 
 
-class NodeStateModel(Base):
+class GraphNodeExecutionStateModel(Base):
     __tablename__ = "node_state"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     workflow_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    node_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
     step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    workflow: Mapped[WorkflowModel] = relationship("WorkflowModel", back_populates="node_states")
-
+    workflow_model: Mapped[WorkflowModel] = relationship(
+    "WorkflowModel", back_populates="graph_node_execution_state_models"
+)
 
 class EnvelopeModel(Base):
     __tablename__ = "envelope"
@@ -117,8 +120,8 @@ class EnvelopeModel(Base):
     workflow_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     parent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    sender_node_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    receiver_node_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    sender_graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    receiver_graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
     source_role: Mapped[str] = mapped_column(String(128), nullable=False, default="")
     target_role: Mapped[str] = mapped_column(String(128), nullable=False, default="")
     sequence_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
@@ -163,11 +166,11 @@ class PromptModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class NodeResultModel(Base):
-    __tablename__ = "node_result"
+class GraphNodeExecutionResultModel(Base):
+    __tablename__ = "graph_node_execution_result"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    node_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     workflow_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False)
     stdout: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -287,16 +290,16 @@ class GraphDefinitionModel(Base):
     name: Mapped[str] = mapped_column(String(36), nullable=False)
     purpose: Mapped[str] = mapped_column(String(36), nullable=False)
 
-    nodes: Mapped[list[GraphDefinitionNodeModel]] = relationship(
-        "GraphDefinitionNodeModel",
-        back_populates="graph",
+    graph_node_execution_models: Mapped[list[GraphNodeDefinitionModel]] = relationship(
+        "GraphNodeDefinitionModel",
+        back_populates="graph_definition_model",
         cascade="all, delete-orphan",
-        order_by="GraphDefinitionNodeModel.position",
+        order_by="GraphNodeDefinitionModel.position",
     )
 
 
-class GraphDefinitionNodeModel(Base):
-    __tablename__ = "graph_definition_node"
+class GraphNodeDefinitionModel(Base):
+    __tablename__ = "graph_node_definition"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     graph_definition_id: Mapped[str] = mapped_column(
@@ -339,7 +342,8 @@ class GraphDefinitionNodeModel(Base):
         String(16),
         nullable=True,
     )
-    graph: Mapped[GraphDefinitionModel] = relationship(
+
+    graph_definition_model: Mapped[GraphDefinitionModel] = relationship(
         "GraphDefinitionModel",
-        back_populates="nodes",
+        back_populates="graph_node_execution_models",
     )

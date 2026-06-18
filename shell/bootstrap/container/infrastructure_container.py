@@ -5,7 +5,7 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from shell.infrastructure.external.hash_embedder import HashEmbedder
-from shell.infrastructure.filesystem.node_workspace import NodeWorkspaceFs
+from shell.infrastructure.filesystem.workspace import Workspace
 from shell.infrastructure.filesystem.task_execution_loader import FileSystemTaskLoader
 from shell.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
@@ -34,7 +34,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     clock_factory = providers.Factory(SystemClock)
     id_gen_factory = providers.Factory(UuidIdGenerator)
     task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
-    workspace_factory = providers.Factory(NodeWorkspaceFs)
+    workspace_factory = providers.Factory(Workspace)
     runner_factory = providers.Factory(SubprocessNodeProcessRunner)
 
     # 3. Publikatory zdarzeń (warstwa IO)

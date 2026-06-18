@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.event_handlers.build_graph_on_task_execution_created import (
-    BuildGraphOnTaskExecutionCreated,
+from shell.application.event_handlers.build_graph_execution_on_task_execution_created import (
+    BuildGraphExecutionOnTaskExecutionCreated,
 )
 from shell.application.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
     LogAuditHandler,
 )
-from shell.application.event_handlers.node_execution_worker import NodeExecutionWorker
+from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 
 
 class EventContainer(containers.DeclarativeContainer):
@@ -30,21 +30,21 @@ class EventContainer(containers.DeclarativeContainer):
         LogAuditHandler,
         logger=infra.stdlib_logger,
     )
-    build_graph_on_task_execution_created_factory = providers.Factory(
-        BuildGraphOnTaskExecutionCreated,
+    build_graph_execution_on_task_execution_created_factory = providers.Factory(
+        BuildGraphExecutionOnTaskExecutionCreated,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
     )
-    node_execution_worker_factory = providers.Factory(
-        NodeExecutionWorker,
+    graph_node_execution_worker_factory = providers.Factory(
+        GraphNodeExecutionWorker,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         runner=infra.runner_factory,
         logger=infra.stdlib_logger,
         navigator=domain.node_navigator_factory,
-        policy=domain.node_execution_policy_factory,
+        policy=domain.graph_node_execution_policy_factory,
         compensation=domain.compensation_handler_factory,
     )

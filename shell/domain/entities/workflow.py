@@ -1,22 +1,22 @@
 """Workflow aggregate.
 
-A Workflow owns its NodeStates, NodeResults and the **execution cursor**
+A Workflow owns its GraphNodeExecutions, GraphNodeExecutionResults and the **execution cursor**
 (``WorkflowCursor``) that points to the node currently being executed.
 
 State machine (see ``docs/dokumentacja/workflow-execution-flow.md``)::
 
     new() -> idle
-       │ start_at(first, ctx)         WorkflowStarted + NodeStarted
+       │ start_at(first, ctx)         WorkflowStarted + GraphNodeExecutionStarted
        ▼
     running ────────────────────────┐
-       │ record_node_result(ok)    │ NodeCompleted
-       │ advance_to(next)           │ NodeAdvanced + NodeStarted
+       │ record_graph_node_execution_result(ok)    │ GraphNodeExecutionCompleted
+       │ advance_to(next)           │ GraphNodeExecutionAdvanced + GraphNodeExecutionStarted
        └──── back to running ───────┘
-       │ record_node_result(ok) + finish()      WorkflowCompleted
+       │ record_graph_node_execution_result(ok) + finish()      WorkflowCompleted
        ▼
     done
 
-       record_node_result(failed) + abort()     WorkflowFailed
+       record_graph_node_execution_result(failed) + abort()     WorkflowFailed
        │
        ▼
     failed
@@ -33,10 +33,10 @@ from typing import TYPE_CHECKING
 
 from shell.domain.events.events import (
     DomainEvent,
-    NodeAdvanced,
-    NodeCompleted,
-    NodeFailed,
-    NodeStarted,
+    GraphNodeExecutionAdvanced,
+    GraphNodeExecutionCompleted,
+    GraphNodeExecutionFailed,
+    GraphNodeExecutionStarted,
     WorkflowCompleted,
     WorkflowFailed,
     WorkflowStarted,
@@ -51,21 +51,21 @@ from shell.domain.value_objects.workflow_execution_context import (
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.entities.node_result import NodeResult
+    from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
     from shell.domain.services.compensation_handler import CompensationHandler
     from shell.domain.value_objects.ids import (
-        NodeId,
-        NodeResultId,
-        NodeStateId,
+        GraphNodeExecutionId,
+        GraphNodeExecutionResultId,
+        GraphNodeExecutionStateId,
         TaskExecutionId,
         WorkflowId,
     )
 
 
 @dataclass(slots=True)
-class NodeState:
-    id: NodeStateId
-    node_id: NodeId
+class GraphNodeExecutionState:
+    id: GraphNodeExecutionStateId
+    graph_node_execution_id: GraphNodeExecutionId
     status: Status
     updated_at: datetime
     step: int = 0
@@ -73,7 +73,7 @@ class NodeState:
 
 @dataclass(slots=True)
 class Workflow:
-    """Workflow aggregate root — owns NodeStates, NodeResults and the cursor."""
+    """Workflow aggregate root — owns GraphNodeExecutionStates, NodeResults and the cursor."""
 
     id: WorkflowId
     task_execution_id: TaskExecutionId
@@ -84,8 +84,8 @@ class Workflow:
         default_factory=WorkflowExecutionContext.empty
     )
     version: int = 0
-    node_states: dict[str, NodeState] = field(default_factory=dict)
-    node_results: dict[str, NodeResult] = field(default_factory=dict)
+    graph_node_execution_states: dict[str, GraphNodeExecutionState] = field(default_factory=dict)
+    graph_node_execution_results: dict[str, GraphNodeExecutionResult] = field(default_factory=dict)
     _events: list[DomainEvent] = field(default_factory=list, repr=False, compare=False)
 
     @classmethod
@@ -125,14 +125,14 @@ class Workflow:
     def start_at(
         self,
         *,
-        first_node_id: NodeId,
+        first_graph_node_execution_id: GraphNodeExecutionId,
         context: WorkflowExecutionContext,
         now: datetime,
     ) -> None:
-        """Begin execution and place the cursor on ``first_node_id``.
+        """Begin execution and place the cursor on ``first_graph_node_execution_id``.
 
-        Emits ``WorkflowStarted`` (idle → running) and ``NodeStarted``
-        (cursor entered ``first_node_id``).
+        Emits ``WorkflowStarted`` (idle → running) and ``GraphNodeExecutionStarted``
+        (cursor entered ``first_graph_node_execution_id``).
         """
         if self.status != Status.idle():
             raise InvalidWorkflowTransition(
@@ -140,35 +140,35 @@ class Workflow:
             )
         self.status = Status.running()
         self.execution_context = context
-        self.cursor = WorkflowCursor.at(first_node_id)
-        self.update_node_state(first_node_id, Status.running(), now=now)
+        self.cursor = WorkflowCursor.at(first_graph_node_execution_id)
+        self.update_graph_node_execution_state(first_graph_node_execution_id, Status.running(), now=now)
         self.append_event(WorkflowStarted.now(self.id, self.task_execution_id, now=now))
-        self.append_event(NodeStarted.now(self.id, first_node_id, now=now))
+        self.append_event(GraphNodeExecutionStarted.now(self.id, first_graph_node_execution_id, now=now))
 
-    def advance_to(self, *, next_node_id: NodeId, now: datetime) -> None:
-        """Move the cursor from the current node to ``next_node_id``.
+    def advance_to(self, *, next_graph_node_execution_id: GraphNodeExecutionId, now: datetime) -> None:
+        """Move the cursor from the current node to ``next_graph_node_execution_id``.
 
-        Emits ``NodeAdvanced`` and ``NodeStarted``. Caller is responsible for
+        Emits ``GraphNodeExecutionAdvanced`` and ``GraphNodeExecutionStarted``. Caller is responsible for
         having already recorded the result of the previous node.
         """
         if self.status != Status.running():
             raise InvalidWorkflowTransition(
                 f"advance_to requires status=running, got {self.status.value!r}"
             )
-        previous = self.cursor.current_node_id
+        previous = self.cursor.current_graph_node_execution_id
         if previous is None:
             raise InvalidWorkflowTransition("advance_to requires an active cursor")
-        self.cursor = WorkflowCursor.at(next_node_id)
-        self.update_node_state(next_node_id, Status.running(), now=now)
+        self.cursor = WorkflowCursor.at(next_graph_node_execution_id)
+        self.update_graph_node_execution_state(next_graph_node_execution_id, Status.running(), now=now)
         self.append_event(
-            NodeAdvanced.now(
+            GraphNodeExecutionAdvanced.now(
                 workflow_id=self.id,
-                from_node_id=previous,
-                to_node_id=next_node_id,
+                from_graph_node_execution_id=previous,
+                to_graph_node_execution_id=next_graph_node_execution_id,
                 now=now,
             )
         )
-        self.append_event(NodeStarted.now(self.id, next_node_id, now=now))
+        self.append_event(GraphNodeExecutionStarted.now(self.id, next_graph_node_execution_id, now=now))
 
     def finish(self, now: datetime) -> None:
         """Mark the workflow as completed (terminal state)."""
@@ -204,45 +204,45 @@ class Workflow:
 
     # ── Node-state / NodeResult management ─────────────────────────────────
 
-    def update_node_state(
-        self, node_id: NodeId, status: Status, now: datetime, step: int = 0
+    def update_graph_node_execution_state(
+        self, graph_node_execution_id: GraphNodeExecutionId, status: Status, now: datetime, step: int = 0
     ) -> None:
-        from shell.domain.value_objects.ids import NodeStateId
+        from shell.domain.value_objects.ids import GraphNodeExecutionStateId
 
-        existing = self.node_states.get(node_id.value)
-        state_id = existing.id if existing else NodeStateId.generate()
-        self.node_states[node_id.value] = NodeState(
+        existing = self.graph_node_execution_states.get(graph_node_execution_id.value)
+        state_id = existing.id if existing else GraphNodeExecutionStateId.generate()
+        self.graph_node_execution_states[graph_node_execution_id.value] = GraphNodeExecutionState(
             id=state_id,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
             status=status,
             updated_at=now,
             step=step,
         )
 
-    def record_node_result(
+    def record_graph_node_execution_result(
         self,
         *,
-        result_id: NodeResultId,
-        node_id: NodeId,
+        result_id: GraphNodeExecutionResultId,
+        graph_node_execution_id: GraphNodeExecutionId,
         status: Status,
         now: datetime,
         stdout: str = "",
         stderr: str = "",
         artifact_uri: str = "",
         reason: str = "",
-    ) -> NodeResult:
-        """Append a NodeResult, sync the matching NodeState and emit
-        ``NodeCompleted`` or ``NodeFailed``.
+    ) -> GraphNodeExecutionResult:
+        """Append a NodeResult, sync the matching GraphNodeExecutionState and emit
+        ``GraphNodeExecutionCompleted`` or ``GraphNodeExecutionFailed``.
 
         Records the outcome of a node execution but does **not** move the
         cursor — call :meth:`advance_to` / :meth:`finish` / :meth:`abort`
         afterwards to perform the next state transition.
         """
-        from shell.domain.entities.node_result import NodeResult
+        from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
 
-        result = NodeResult.new(
+        result = GraphNodeExecutionResult.new(
             id_=result_id,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
             workflow_id=self.id,
             status=status,
             stdout=stdout,
@@ -250,10 +250,10 @@ class Workflow:
             artifact_uri=artifact_uri,
             now=now,
         )
-        self.node_results[node_id.value] = result
-        self.update_node_state(node_id, status, now=now)
+        self.graph_node_execution_results[graph_node_execution_id.value] = result
+        self.update_graph_node_execution_state(graph_node_execution_id, status, now=now)
         if status == Status.done():
-            self.append_event(NodeCompleted.now(node_id, self.id, result_id, now=now))
+            self.append_event(GraphNodeExecutionCompleted.now(graph_node_execution_id, self.id, result_id, now=now))
         else:
-            self.append_event(NodeFailed.now(node_id, self.id, reason or stderr, now=now))
+            self.append_event(GraphNodeExecutionFailed.now(graph_node_execution_id, self.id, reason or stderr, now=now))
         return result

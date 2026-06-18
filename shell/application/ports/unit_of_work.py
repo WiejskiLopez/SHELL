@@ -9,7 +9,7 @@ if TYPE_CHECKING:
         EnvelopeRepository,
     )
     from shell.domain.repositories.graph_definition_repository import GraphDefinitionRepository
-    from shell.domain.repositories.graph_repository import GraphRepository
+    from shell.domain.repositories.graph_execution_repository import GraphExecutionRepository
     from shell.domain.repositories.prompt_repository import PromptRepository
     from shell.domain.repositories.rag_repository import RagDocumentRepository
     from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
@@ -23,7 +23,7 @@ class UnitOfWork(Protocol):
     def task_executions(self) -> TaskExecutionRepository: ...
 
     @property
-    def graphs(self) -> GraphRepository: ...
+    def graph_executions(self) -> GraphExecutionRepository: ...
 
     @property
     def workflows(self) -> WorkflowRepository: ...

@@ -31,7 +31,7 @@ def upgrade() -> None:
     op.create_index("ix_task_execution_name", "task", ["name"])
 
     op.create_table(
-        "graph",
+        "graph_execution",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
             "task_execution_id",
@@ -40,13 +40,13 @@ def upgrade() -> None:
             nullable=False,
         ),
     )
-    op.create_index("ix_graph_task_execution_id", "graph", ["task_execution_id"])
+    op.create_index("ix_graph_task_execution_id", "graph_execution", ["task_execution_id"])
 
     op.create_table(
-        "graph_node",
+        "graph_node_execution",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
-            "graph_id",
+            "graph_execution_id",
             sa.String(36),
             sa.ForeignKey("graph.id", ondelete="CASCADE"),
             nullable=False,
@@ -70,7 +70,7 @@ def upgrade() -> None:
         sa.Column("status_initial", sa.String(64), nullable=False, server_default=""),
         sa.Column("extra", sa.JSON, nullable=False, server_default="{}"),
     )
-    op.create_index("ix_graph_node_graph_id", "graph_node", ["graph_id"])
+    op.create_index("ix_graph_node_graph_execution_id", "graph_node", ["graph_execution_id"])
 
     op.create_table(
         "workflow",
@@ -90,7 +90,7 @@ def upgrade() -> None:
             sa.ForeignKey("workflow.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("node_id", sa.String(255), nullable=False),
+        sa.Column("node_execution_id", sa.String(255), nullable=False),
         sa.Column("status", sa.String(32), nullable=False, server_default="idle"),
         sa.Column("step", sa.Integer, nullable=False, server_default="0"),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
@@ -103,8 +103,8 @@ def upgrade() -> None:
         sa.Column("workflow_id", sa.String(36), nullable=False),
         sa.Column("parent_id", sa.String(36), nullable=True),
         sa.Column("correlation_id", sa.String(36), nullable=False, server_default=""),
-        sa.Column("sender_node_id", sa.String(255), nullable=False),
-        sa.Column("receiver_node_id", sa.String(255), nullable=False),
+        sa.Column("sender_graph_node_execution_id", sa.String(255), nullable=False),
+        sa.Column("receiver_graph_node_execution_id", sa.String(255), nullable=False),
         sa.Column("source_role", sa.String(128), nullable=False, server_default=""),
         sa.Column("target_role", sa.String(128), nullable=False, server_default=""),
         sa.Column("sequence_id", sa.Integer, nullable=False, server_default="0"),
@@ -137,7 +137,7 @@ def upgrade() -> None:
     op.create_table(
         "node_result",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("node_id", sa.String(255), nullable=False),
+        sa.Column("node_execution_id", sa.String(255), nullable=False),
         sa.Column("workflow_id", sa.String(36), nullable=False),
         sa.Column("status", sa.String(32), nullable=False),
         sa.Column("stdout", sa.Text, nullable=False, server_default=""),
@@ -145,7 +145,7 @@ def upgrade() -> None:
         sa.Column("artifact_uri", sa.String(1024), nullable=False, server_default=""),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_node_result_node_id", "node_result", ["node_id"])
+    op.create_index("ix_node_result_node_execution_id", "node_result", ["node_execution_id"])
     op.create_index("ix_node_result_workflow_id", "node_result", ["workflow_id"])
 
     op.create_table(
@@ -193,9 +193,9 @@ def upgrade() -> None:
         sa.Column("purpose", sa.String(36), nullable=False),
     )
 
-    # Tabela graph_definition_node
+    # Tabela graph_node_definition
     op.create_table(
-        "graph_definition_node",
+        "graph_node_definition",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
             "graph_definition_id",
@@ -222,7 +222,7 @@ def upgrade() -> None:
     )
 
     # Indeks dla klucza obcego (zgodnie z wzorcem ix_envelope_workflow_id)
-    op.create_index("ix_graph_definition_node_graph_id", "graph_definition_node", ["graph_definition_id"])
+    op.create_index("ix_graph_node_definition_graph_execution_id", "graph_node_definition", ["graph_definition_id"])
 
 
 def downgrade() -> None:
@@ -234,8 +234,8 @@ def downgrade() -> None:
     op.drop_table("envelope")
     op.drop_table("node_state")
     op.drop_table("workflow")
-    op.drop_table("graph_node")
-    op.drop_table("graph")
-    op.drop_table("task")
+    op.drop_table("graph_node_execution")
+    op.drop_table("graph_execution")
+    op.drop_table("task_execution")
     op.drop_table("graph_definition")
-    op.drop_table("graph_definition_node")
+    op.drop_table("graph_node_definition")

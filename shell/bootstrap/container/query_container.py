@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.application.query_handlers.query_handlers import (
         GetCurrentTaskExecutionHandler,
         GetEnvelopesByWorkflowHandler,
-        GetNodeResultHandler,
+        GetGraphNodeExecutionResultHandler,
         GetPromptHandler,
         GetRunnerConfigHandler,
         GetSessionHistoryHandler,
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
         get_current_task_execution_handler_factory: Factory[GetCurrentTaskExecutionHandler]
         get_workflow_handler_factory: Factory[GetWorkflowHandler]
         get_envelopes_by_workflow_handler_factory: Factory[GetEnvelopesByWorkflowHandler]
-        get_node_result_handler_factory: Factory[GetNodeResultHandler]
+        get_graph_node_execution_result_handler_factory: Factory[GetGraphNodeExecutionResultHandler]
         get_prompt_handler_factory: Factory[GetPromptHandler]
         get_runner_config_handler_factory: Factory[GetRunnerConfigHandler]
         get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
     GetEnvelopesByWorkflowHandler,
-    GetNodeResultHandler,
+    GetGraphNodeExecutionResultHandler,
     GetPromptHandler,
     GetRunnerConfigHandler,
     GetSessionHistoryHandler,
@@ -63,8 +63,8 @@ class QueryContainer(containers.DeclarativeContainer):
     get_envelopes_by_workflow_handler_factory = providers.Factory(
         GetEnvelopesByWorkflowHandler, queries=infra.query_services
     )
-    get_node_result_handler_factory = providers.Factory(
-        GetNodeResultHandler, queries=infra.query_services
+    get_graph_node_execution_result_handler_factory = providers.Factory(
+        GetGraphNodeExecutionResultHandler, queries=infra.query_services
     )
     get_prompt_handler_factory = providers.Factory(GetPromptHandler, queries=infra.query_services)
     get_runner_config_handler_factory = providers.Factory(

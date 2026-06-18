@@ -29,7 +29,7 @@ class TestHealthEndpoint:
         assert resp.json()["status"] == "ok"
 
 
-class Testtask_executionsRouter:
+class TestTaskExecutionsRouter:
     async def test_import_task_execution(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "api_task_execution.md"
         md.write_text("# API Task", encoding="utf-8")
@@ -93,9 +93,9 @@ class TestWorkflowsRouter:
                 },
             )
 
-            # Attach a single-node Graph for the imported task
-            from shell.domain.entities.graph import Graph, GraphNode
-            from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId
+            # Attach a single-node GraphExecution for the imported task
+            from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+            from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
             from shell.domain.value_objects.mode import Mode
             from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
@@ -107,11 +107,11 @@ class TestWorkflowsRouter:
                 # Zapisujemy ID wygenerowane przez system do użycia w requescie
                 actual_task_execution_id = task_execution.id.value
 
-                existing_graph = await uow.graphs.get_by_task_execution_id(task_execution.id)
-                if existing_graph:
-                    existing_graph.add_node(
-                        GraphNode(
-                            id=NodeId("wf_task-node-0"),
+                existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+                if existing_graph_execution:
+                    existing_graph_execution.add_node(
+                        GraphNodeExecution(
+                            id=GraphNodeExecutionId("wf_task-node-0"),
                             position=0,
                             node_dir="/fake/wf_task-0",
                             mode=Mode("agent"),
@@ -119,16 +119,16 @@ class TestWorkflowsRouter:
                             node_type="agent",
                         )
                     )
-                    await uow.graphs.save(existing_graph)
+                    await uow.graph_executions.save(existing_graph_execution)
                     await uow.commit()
                 else:
-                    graph = Graph(
-                        id=GraphId.generate(),
+                    graph_execution = GraphExecution(
+                        id=GraphExecutionId.generate(),
                         task_execution_id=task_execution.id,
                         graph_definition_id=GraphDefinitionId("tpl"),
-                        nodes=[
-                            GraphNode(
-                                id=NodeId("wf_task-node-0"),
+                        graph_node_executions=[
+                            GraphNodeExecution(
+                                id=GraphNodeExecutionId("wf_task-node-0"),
                                 position=0,
                                 node_dir="/fake/wf_task-0",
                                 mode=Mode("agent"),
@@ -137,7 +137,7 @@ class TestWorkflowsRouter:
                             )
                         ],
                     )
-                    await uow.graphs.save(graph)
+                    await uow.graph_executions.save(graph_execution)
                     await uow.commit()
 
             # start workflow - Używamy poprawnego endpointu oraz wyciągniętego actual_task_execution_id
@@ -168,10 +168,10 @@ class TestWorkflowsRouter:
 
 #            # Attach a single-node Graph for the imported task so that
 #            # StartWorkflowHandler can anchor the cursor.
-#            # Note: BuildGraphOnTaskExecutionCreated handler already creates a graph from graph_definition.
+#            # Note: BuildGraphExecutionOnTaskExecutionCreated handler already creates a graph from graph_definition.
 #            # We check if graph exists and add a node to it.
-#            from shell.domain.entities.graph import Graph, GraphNode
-#            from shell.domain.value_objects.ids import GraphId, NodeId, GraphDefinitionId
+#            from shell.domain.entities.graph_execution import GraphExecution, GraphNode
+#            from shell.domain.value_objects.ids import GraphExecutionId, GraphNodeExecutionId, GraphDefinitionId
 #            from shell.domain.value_objects.mode import Mode
 #            from shell.domain.value_objects.task_execution_name import TaskExecutionName
 #
@@ -179,11 +179,11 @@ class TestWorkflowsRouter:
 #            async with uow_factory as uow:
 #                task_executions = await uow.task_executions.get_current_by_name(TaskExecutionName("wf_task"))
 #                assert task is not None
-#                existing_graph = await uow.graphs.get_by_task_execution_id(task_execution.id)
+#                existing_graph = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
 #                if existing_graph:
 #                    existing_graph.add_node(
-#                        GraphNode(
-#                            id=NodeId("wf_task-node-0"),
+#                        GraphNodeExecution(
+#                            id=GraphNodeExecutionId("wf_task-node-0"),
 #                            position=0,
 #                            node_dir="/fake/wf_task-0",
 #                            mode=Mode("agent"),
@@ -191,16 +191,16 @@ class TestWorkflowsRouter:
 #                            node_type="agent",
 #                        )
 #                    )
-#                    await uow.graphs.save(existing_graph)
+#                    await uow.graph_executions.save(existing_graph)
 #                    await uow.commit()
 #                else:
-#                    graph = Graph(
-#                        id=GraphId.generate(),
+#                    graph = GraphExecution(
+#                        id=GraphExecutionId.generate(),
 #                        task_execution_id=task_execution.id,
 #                        graph_definition_id=GraphDefinitionId("tpl"),
 #                        nodes=[
-#                            GraphNode(
-#                                id=NodeId("wf_task-node-0"),
+#                            GraphNodeExecution(
+#                                id=GraphNodeExecutionId("wf_task-node-0"),
 #                                position=0,
 #                                node_dir="/fake/wf_task-0",
 #                                mode=Mode("agent"),
@@ -209,7 +209,7 @@ class TestWorkflowsRouter:
 #                            )
 #                        ],
 #                    )
-#                    await uow.graphs.save(graph)
+#                    await uow.graph_executions.save(graph)
 #                    await uow.commit()
 #
 #            # start workflow
@@ -229,7 +229,7 @@ class TestEnvelopesRouter:
 
 
 class TestNodesRouter:
-    async def test_get_node_result_not_found(self, tmp_path: pathlib.Path) -> None:
+    async def test_get_graph_node_execution_result_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/nodes/nonexistent-node/result?workflow_id=wf-x")

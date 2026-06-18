@@ -25,7 +25,7 @@ def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
     """
     engine = create_async_engine(
         url,
-        echo=False,
+        echo=True,
         future=True,
         # SQLite-specific: allow same connection across threads (needed by aiosqlite)
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
@@ -37,7 +37,7 @@ async def create_all_tables(url: str) -> None:
     """Create all tables (dev/test helper — production uses alembic)."""
     from shell.infrastructure.persistence.sql.models import Base
 
-    engine = create_async_engine(url, echo=False, future=True)
+    engine = create_async_engine(url, echo=True, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await engine.dispose()
@@ -52,7 +52,7 @@ async def get_session(
 
 
 async def seed_base_data(url: str) -> None:
-    engine = create_async_engine(url, echo=False, future=True)
+    engine = create_async_engine(url, echo=True, future=True)
 
     async with engine.begin() as conn:
         await conn.run_sync(_seed_sync)
@@ -63,7 +63,7 @@ async def seed_base_data(url: str) -> None:
 def _seed_sync(sync_conn) -> None:
     from sqlalchemy.orm import Session
 
-    from shell.infrastructure.persistence.sql.models import GraphDefinitionNodeModel
+    from shell.infrastructure.persistence.sql.models import GraphNodeDefinitionModel
 
     session = Session(sync_conn)
 
@@ -81,14 +81,14 @@ def _seed_sync(sync_conn) -> None:
         session.flush()
 
     node_exists = session.execute(
-        select(GraphDefinitionNodeModel).where(
-            GraphDefinitionNodeModel.graph_definition_id == graph_definition_model.id
+        select(GraphNodeDefinitionModel).where(
+            GraphNodeDefinitionModel.graph_definition_id == graph_definition_model.id
         )
     ).scalar_one_or_none()
 
     if node_exists is None:
         session.add(
-            GraphDefinitionNodeModel(
+            GraphNodeDefinitionModel(
                 id="base-planner-node-1",
                 graph_definition_id=graph_definition_model.id,
                 position=0,

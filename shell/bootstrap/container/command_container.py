@@ -12,11 +12,11 @@ from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
 from shell.application.command_handlers.route_envelopes_handler import RouteEnvelopesHandler
-from shell.application.command_handlers.run_node_handler import RunNodeHandler
+from shell.application.command_handlers.run_graph_node_execution_handler import RunGraphNodeExecutionHandler
 from shell.application.command_handlers.run_tasker_workflow_handler import (
     RunTaskerWorkflowHandler,
 )
-from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 
@@ -50,8 +50,8 @@ class CommandContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         max_step=config.max_step,
     )
-    run_node_handler_factory = providers.Factory(
-        RunNodeHandler,
+    run_graph_node_execution_handler_factory = providers.Factory(
+        RunGraphNodeExecutionHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
@@ -64,8 +64,8 @@ class CommandContainer(containers.DeclarativeContainer):
         uow=buses.uow_factory,
         clock=infra.clock_factory,
     )
-    save_node_result_handler_factory = providers.Factory(
-        SaveNodeResultHandler,
+    save_graph_node_execution_result_handler_factory = providers.Factory(
+        SaveGraphNodeExecutionResultHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,

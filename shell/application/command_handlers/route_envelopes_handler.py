@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.domain.events.events import EnvelopeExpired, EnvelopeRouted
 from shell.domain.exceptions import WorkflowNotFound
 from shell.domain.services.envelope_lifecycle_service import EnvelopeLifecycleService
-from shell.domain.services.graph_routing_service import GraphRoutingService
+from shell.domain.services.graph_execution_routing_service import GraphExcetutionRoutingService
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.value_objects.ids import WorkflowId
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class RouteEnvelopesHandler:
-    """Routes PENDING envelopes to the correct receiver_node_id using the task graph.
+    """Routes PENDING envelopes to the correct receiver_graph_node_execution_id using the task graph.
 
     - Envelopes exceeding max_step are expired (DEAD).
     - Remaining PENDING envelopes are resolved to a receiver and moved to ACTIVE.
@@ -44,7 +44,7 @@ class RouteEnvelopesHandler:
 
             pending = await uow.envelopes.list_pending(wf_id)
             task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
-            graph = await uow.graphs.get_by_task_execution_id(task_execution.id) if task_execution is not None else None
+            graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id) if task_execution is not None else None
 
             now = self._clock.now()
             routed = 0
@@ -59,14 +59,14 @@ class RouteEnvelopesHandler:
                     )
                     continue
 
-                if graph is not None:
+                if graph_execution is not None:
                     try:
-                        target_node_id = GraphRoutingService.resolve_target_node(
-                            graph,
-                            envelope.sender_node_id,
+                        target_graph_node_execution_id = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+                            graph_execution,
+                            envelope.sender_graph_node_execution_id,
                             envelope.target_role or None,
                         )
-                        envelope.receiver_node_id = target_node_id
+                        envelope.receiver_graph_node_execution_id = target_graph_node_execution_id
                     except Exception:
                         continue  # Unresolvable — leave PENDING
 

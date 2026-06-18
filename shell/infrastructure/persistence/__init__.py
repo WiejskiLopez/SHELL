@@ -12,7 +12,7 @@ from shell.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
     SqlGraphDefinitionRepository,
-    SqlGraphRepository,
+    SqlGraphExecutionRepository,
     SqlPromptRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
@@ -66,8 +66,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlTaskExecutionRepository(self._active_session)
 
     @property
-    def graphs(self) -> SqlGraphRepository:
-        return SqlGraphRepository(self._active_session)
+    def graph_executions(self) -> SqlGraphExecutionRepository:
+        return SqlGraphExecutionRepository(self._active_session)
 
     @property
     def workflows(self) -> SqlWorkflowRepository:

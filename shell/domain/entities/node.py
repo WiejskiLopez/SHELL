@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.value_objects.ids import NodeId
+    from shell.domain.value_objects.ids import GraphNodeExecutionId
     from shell.domain.value_objects.mode import Mode
 
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class Node:
     """Represents a running node instance (not a graph definition node)."""
 
-    id: NodeId
+    id: GraphNodeExecutionId
     mode: Mode
     role: str
     node_type: str

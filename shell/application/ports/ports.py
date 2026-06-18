@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from shell.application.ports.execution import NodeProcessRunner, NodeWorkspace
-from shell.application.ports.filesystem import TaskLoader
+from shell.application.ports.filesystem import TaskExecutionLoader
 from shell.application.ports.identity import IdGenerator
 from shell.application.ports.logging import Logger
 from shell.application.ports.messaging import EventPublisher
@@ -17,6 +17,6 @@ __all__ = [
     "Logger",
     "NodeProcessRunner",
     "NodeWorkspace",
-    "TaskLoader",
+    "TaskExecutionLoader",
     "UnitOfWork",
 ]

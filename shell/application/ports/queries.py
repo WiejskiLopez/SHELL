@@ -5,7 +5,7 @@ from typing import Protocol
 from shell.application.dto.dto import (
     EnvelopeDto,
     GraphDefinitionDto,
-    NodeResultDto,
+    GraphNodeExecutionResultDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
@@ -37,10 +37,10 @@ class EnvelopeQueryService(Protocol):
     ) -> list[EnvelopeDto]: ...
 
 
-class NodeResultQueryService(Protocol):
+class GraphNodeExecutionResultQueryService(Protocol):
     """Port do sprawdzania wyników wykonania konkretnych węzłów."""
 
-    async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None: ...
+    async def get_graph_node_execution_result(self, graph_node_execution_id: str, workflow_id: str) -> GraphNodeExecutionResultDto | None: ...
 
 
 class PromptQueryService(Protocol):

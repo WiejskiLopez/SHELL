@@ -1,7 +1,7 @@
 """ImportTaskExecutionHandler — imports a task from a markdown file.
 
-This handler is intentionally ignorant of the Graph aggregate: after a Task
-is persisted, the ``TaskExecutionCreated`` event triggers ``BuildGraphOnTaskExecutionCreated``
+This handler is intentionally ignorant of the GraphExcecution aggregate: after a Task
+is persisted, the ``TaskExecutionCreated`` event triggers ``BuildGraphExecutionOnTaskExecutionCreated``
 which constructs the appropriate Graph from a GraphDefinition.
 """
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         Clock,
         IdGenerator,
         Logger,
-        TaskLoader,
+        TaskExecutionLoader,
         UnitOfWork,
     )
 
@@ -30,7 +30,7 @@ class ImportTaskExecutionHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        task_execution_loader: TaskLoader,
+        task_execution_loader: TaskExecutionLoader,
         logger: Logger,
     ) -> None:
         self._uow = uow

@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.entities.graph_definition import GraphDefinition
-    from shell.domain.entities.graph_definition_node import GraphDefinitionNode
-    from shell.domain.value_objects.ids import GraphDefinitionId, GraphDefinitionNodeId
+    from shell.domain.entities.graph_node_definition import GraphNodeDefinition
+    from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 
 class GraphDefinitionRepository(Protocol):
-    async def get(self, graph_id: GraphDefinitionId) -> GraphDefinition | None: ...
+    async def get(self, graph_execution_id: GraphDefinitionId) -> GraphDefinition | None: ...
 
     async def get_graph_definition_by_name(
         self, graph_definition_by_name: str
@@ -18,7 +18,7 @@ class GraphDefinitionRepository(Protocol):
     async def save(self, graph: GraphDefinition) -> None: ...
 
 
-class GraphDefinitionNodeRepository(Protocol):
-    async def get_by_id(self, node_id: GraphDefinitionNodeId) -> GraphDefinitionNode | None: ...
+class GraphNodeDefinitionRepository(Protocol):
+    async def get_by_id(self, graph_node_execution_id: GraphNodeDefinitionId) -> GraphNodeDefinition | None: ...
 
-    async def save(self, node: GraphDefinitionNode) -> None: ...
+    async def save(self, node: GraphNodeDefinition) -> None: ...

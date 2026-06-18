@@ -6,7 +6,7 @@ from enum import StrEnum
 
 
 class Mode(StrEnum):
-    """Execution mode of a node."""
+    """Execution mode of a graph_node."""
 
     AGENT = "agent"
     ROUTER = "router"

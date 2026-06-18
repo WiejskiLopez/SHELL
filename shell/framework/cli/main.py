@@ -36,7 +36,7 @@ def _get_max_step() -> int:
 
 
 async def _run_node(mode: str, argv: Sequence[str]) -> int:
-    from shell.application.commands.commands import RunNodeCommand
+    from shell.application.commands.commands import RunGraphNodeExecutionCommand
 
     parser = build_parser(prog=f"shell {mode}")
     ns = parser.parse_args(list(argv))
@@ -45,12 +45,12 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     max_step = ns.max_step if ns.max_step is not None else _get_max_step()
     core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
 
-    node_id = ns.node_dir or mode
+    graph_node_execution_id = ns.node_dir or mode
     workflow_id = ns.workflow_id or "default"
     work_dir = ns.work_dir or os.getcwd()
 
-    cmd = RunNodeCommand(
-        node_id=node_id,
+    cmd = RunGraphNodeExecutionCommand(
+        graph_node_execution_id=graph_node_execution_id,
         workflow_id=workflow_id,
         workspace_path=work_dir,
     )

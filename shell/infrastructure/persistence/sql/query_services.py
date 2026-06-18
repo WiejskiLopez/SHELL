@@ -9,10 +9,10 @@ from sqlalchemy.orm import joinedload, selectinload
 
 from shell.application.dto.dto import (
     EnvelopeDto,
-    GraphNodeDto,
+    GraphNodeExecutionDto,
     MessageDto,
-    NodeResultDto,
-    NodeStateDto,
+    GraphNodeExecutionResultDto,
+    GraphNodeExecutionStateDto,
     PromptDto,
     RagChunkDto,
     RunnerConfigDto,
@@ -22,7 +22,7 @@ from shell.application.dto.dto import (
 )
 from shell.infrastructure.persistence.sql.models import (
     EnvelopeModel,
-    GraphModel,
+    GraphExecutionModel,
     PromptModel,
     RagChunkModel,
     RagDocumentModel,
@@ -52,17 +52,17 @@ class SqlQueryServices:
                 return None
 
             graph_stmt = (
-                select(GraphModel)
-                .options(selectinload(GraphModel.nodes))
-                .where(GraphModel.task_execution_id == model.id)
+                select(GraphExecutionModel)
+                .options(selectinload(GraphExecutionModel.graph_node_execution_models))
+                .where(GraphExecutionModel.task_execution_id == model.id)
             )
             graph_res = await session.execute(graph_stmt)
             graph_model = graph_res.scalar_one_or_none()
 
-            graph_nodes: list[GraphNodeDto] = []
+            graph_node_executions: list[GraphNodeExecutionDto] = []
             if graph_model is not None:
-                graph_nodes = [
-                    GraphNodeDto(
+                graph_node_executions = [
+                    GraphNodeExecutionDto(
                         id=n.id,
                         position=n.position,
                         node_dir=n.node_dir,
@@ -72,7 +72,7 @@ class SqlQueryServices:
                         model=n.model,
                         command=n.command,
                     )
-                    for n in graph_model.nodes
+                    for n in graph_model.graph_node_execution_models
                 ]
 
             return TaskExecutionDto(
@@ -83,7 +83,7 @@ class SqlQueryServices:
                 is_current=model.is_current,
                 created_at=model.created_at,
                 body=model.body,
-                graph_nodes=graph_nodes,
+                graph_node_executions=graph_node_executions,
             )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:
@@ -95,7 +95,7 @@ class SqlQueryServices:
         async with self._session_factory() as session:
             stmt = (
                 select(WorkflowModel)
-                .options(selectinload(WorkflowModel.node_states))
+                .options(selectinload(WorkflowModel.graph_node_execution_state_models))
                 .where(WorkflowModel.id == workflow_id)
             )
             res = await session.execute(stmt)
@@ -107,14 +107,14 @@ class SqlQueryServices:
                 task_execution_id=model.task_execution_id,
                 status=model.status,
                 created_at=model.created_at,
-                node_states={
-                    n.node_id: NodeStateDto(
-                        node_id=n.node_id,
+                graph_node_execution_states={
+                    n.graph_node_execution_id: GraphNodeExecutionStateDto(
+                        graph_node_execution_id=n.graph_node_execution_id,
                         status=n.status,
                         step=n.step,
                         updated_at=n.updated_at,
                     )
-                    for n in model.node_states
+                    for n in model.graph_node_execution_state_models
                 },
             )
 
@@ -131,8 +131,8 @@ class SqlQueryServices:
                 EnvelopeDto(
                     id=m.id,
                     workflow_id=m.workflow_id,
-                    sender_node_id=m.sender_node_id,
-                    receiver_node_id=m.receiver_node_id,
+                    sender_graph_node_execution_id=m.sender_graph_node_execution_id,
+                    receiver_graph_node_execution_id=m.receiver_graph_node_execution_id,
                     source_role=m.source_role,
                     target_role=m.target_role,
                     status=m.status,
@@ -146,23 +146,23 @@ class SqlQueryServices:
             ]
 
     # --- NodeResultQueryService ---
-    async def get_node_result(self, node_id: str, workflow_id: str) -> NodeResultDto | None:
+    async def get_graph_node_execution_result(self, graph_node_execution_id: str, workflow_id: str) -> GraphNodeExecutionResultDto | None:
         async with self._session_factory() as session:
             stmt = (
                 select(WorkflowModel)
-                .options(selectinload(WorkflowModel.node_results))
+                .options(selectinload(WorkflowModel.graph_node_execution_result_models))
                 .where(WorkflowModel.id == workflow_id)
             )
             res = await session.execute(stmt)
             wf = res.scalar_one_or_none()
             if not wf:
                 return None
-            m = next((nr for nr in wf.node_results if nr.node_id == node_id), None)
+            m = next((nr for nr in wf.graph_node_execution_result_models if nr.graph_node_execution_id == graph_node_execution_id), None)
             if not m:
                 return None
-            return NodeResultDto(
+            return GraphNodeExecutionResultDto(
                 id=m.id,
-                node_id=m.node_id,
+                graph_node_execution_id=m.graph_node_execution_id,
                 workflow_id=m.workflow_id,
                 status=m.status,
                 stdout=m.stdout,

@@ -7,24 +7,24 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
     ImportTaskExecutionCommand,
-    SaveNodeResultCommand,
+    SaveGraphNodeExecutionResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
     GetCurrentTaskExecutionQuery,
-    GetNodeResultQuery,
+    GetGraphNodeExecutionResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
-    GetNodeResultHandler,
+    GetGraphNodeExecutionResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
 )
@@ -155,28 +155,28 @@ class TestStartWorkflowHandler:
     ) -> str:
         h = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
         task_execution_id = await h.handle(ImportTaskExecutionCommand("t.md", "my-task"))
-        await self._attach_graph(uow, "my-task")
+        await self._attach_graph_execution(uow, "my-task")
         return task_execution_id
 
     @staticmethod
-    async def _attach_graph(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
+    async def _attach_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
         """Persist a single-node Graph for the imported task so that
         ``StartWorkflowHandler`` can anchor the cursor on a first node.
         """
-        from shell.domain.entities.graph import Graph, GraphNode
-        from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId
+        from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+        from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
         from shell.domain.value_objects.mode import Mode
         from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
         task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName(task_execution_name))
         assert task_execution is not None
-        graph = Graph(
-            id=GraphId.generate(),
+        graph_execution = GraphExecution(
+            id=GraphExecutionId.generate(),
             task_execution_id=task_execution.id,
             graph_definition_id=GraphDefinitionId("tpl"),
-            nodes=[
-                GraphNode(
-                    id=NodeId(f"{task_execution_name}-node-0"),
+            graph_node_executions=[
+                GraphNodeExecution(
+                    id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
                     position=0,
                     node_dir=f"/fake/{task_execution_name}-0",
                     mode=Mode("agent"),
@@ -185,7 +185,7 @@ class TestStartWorkflowHandler:
                 )
             ],
         )
-        await uow.graphs.save(graph)
+        await uow.graph_executions.save(graph_execution)
 
     async def test_happy_path(
         self,
@@ -230,11 +230,11 @@ class TestStartWorkflowHandler:
 
 
 # ---------------------------------------------------------------------------
-# SaveNodeResultHandler
+# SaveGraphNodeExecutionResultHandler
 # ---------------------------------------------------------------------------
 
 
-class TestSaveNodeResultHandler:
+class TestSaveGraphNodeExecutionResultHandler:
     async def test_happy_path(
         self,
         uow: InMemoryUnitOfWork,
@@ -248,18 +248,18 @@ class TestSaveNodeResultHandler:
         wf = Workflow.new(id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now())
         await uow.workflows.save(wf)
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
         result_id = await handler.handle(
-            SaveNodeResultCommand(
+            SaveGraphNodeExecutionResultCommand(
                 workflow_id="wf-1",
-                node_id="node-1",
+                graph_node_execution_id="node-1",
                 status="done",
                 stdout="ok",
             )
         )
         assert result_id
-        q_handler = GetNodeResultHandler(queries)
-        dto = await q_handler.handle(GetNodeResultQuery("node-1", "wf-1"))
+        q_handler = GetGraphNodeExecutionResultHandler(queries)
+        dto = await q_handler.handle(GetGraphNodeExecutionResultQuery("node-1", "wf-1"))
         assert dto is not None
         assert dto.stdout == "ok"
 

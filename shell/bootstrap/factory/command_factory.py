@@ -9,9 +9,9 @@ from shell.application.commands.commands import (
     BootstrapRunnerConfigCommand,
     ImportTaskExecutionCommand,
     RouteEnvelopesCommand,
-    RunNodeCommand,
+    RunGraphNodeExecutionCommand,
     RunTaskerWorkflowCommand,
-    SaveNodeResultCommand,
+    SaveGraphNodeExecutionResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
@@ -34,9 +34,9 @@ def register_commands(core_container: CoreContainer) -> None:
     cmd_bus.register(ImportTaskExecutionCommand, commands.import_task_execution_handler_factory)
     cmd_bus.register(StartWorkflowCommand, commands.start_workflow_handler_factory)
     cmd_bus.register(RouteEnvelopesCommand, commands.route_envelopes_handler_factory)
-    cmd_bus.register(RunNodeCommand, commands.run_node_handler_factory)
+    cmd_bus.register(RunGraphNodeExecutionCommand, commands.run_graph_node_execution_handler_factory)
     cmd_bus.register(ArchiveEnvelopeCommand, commands.archive_envelope_handler_factory)
-    cmd_bus.register(SaveNodeResultCommand, commands.save_node_result_handler_factory)
+    cmd_bus.register(SaveGraphNodeExecutionResultCommand, commands.save_graph_node_execution_result_handler_factory)
     cmd_bus.register(SavePromptCommand, commands.save_prompt_handler_factory)
     cmd_bus.register(
         BootstrapRunnerConfigCommand,

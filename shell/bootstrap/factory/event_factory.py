@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.domain.events.events import (
     EnvelopeExpired,
     EnvelopeRouted,
-    NodeAdvanced,
-    NodeCompleted,
-    NodeExecutionRequested,
-    NodeFailed,
-    NodeStarted,
+    GraphNodeExecutionAdvanced,
+    GraphNodeExecutionCompleted,
+    GraphNodeExecutionRequested,
+    GraphNodeExecutionFailed,
+    GraphNodeExecutionStarted,
     TaskExecutionCreated,
     WorkflowCompleted,
     WorkflowFailed,
@@ -36,13 +36,13 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(EnvelopeRouted, events.archive_on_delivered_handler_factory)
     event_bus.subscribe(EnvelopeRouted, events.log_audit_handler_factory)
     event_bus.subscribe(EnvelopeExpired, events.log_audit_handler_factory)
-    event_bus.subscribe(NodeCompleted, events.log_audit_handler_factory)
-    event_bus.subscribe(NodeFailed, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionCompleted, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionFailed, events.log_audit_handler_factory)
     event_bus.subscribe(TaskExecutionCreated, events.log_audit_handler_factory)
-    event_bus.subscribe(TaskExecutionCreated, events.build_graph_on_task_execution_created_factory)
+    event_bus.subscribe(TaskExecutionCreated, events.build_graph_execution_on_task_execution_created_factory)
     event_bus.subscribe(WorkflowStarted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowCompleted, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailed, events.log_audit_handler_factory)
-    event_bus.subscribe(NodeStarted, events.log_audit_handler_factory)
-    event_bus.subscribe(NodeAdvanced, events.log_audit_handler_factory)
-    event_bus.subscribe(NodeExecutionRequested, events.node_execution_worker_factory)
+    event_bus.subscribe(GraphNodeExecutionStarted, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionAdvanced, events.log_audit_handler_factory)
+    event_bus.subscribe( GraphNodeExecutionRequested, events.graph_node_execution_worker_factory)

@@ -5,14 +5,14 @@ Lifecycle (command side):
 1. Validate the task exists and its Graph has nodes.
 2. Compute the *first* node via the configured ``NodeNavigator``.
 3. Create a ``Workflow`` and call ``Workflow.start_at(first, context, now)``
-   which emits ``WorkflowStarted`` + ``NodeStarted``.
+   which emits ``WorkflowStarted`` + ``GraphNodeExecutionStarted``.
 4. Persist the workflow (CAS bumps version 0→1) and stage:
    - the workflow's own events (``pull_events``)
-   - a kickoff ``NodeExecutionRequested(workflow_id, first_node.id)``
+   - a kickoff ``GraphNodeExecutionRequested(workflow_id, first_graph_node_execution.id)``
 5. Commit and publish.
 
-The actual subprocess orchestration is performed by ``NodeExecutionWorker``
-which subscribes to ``NodeExecutionRequested`` (Process Manager / Saga).
+The actual subprocess orchestration is performed by ``GraphNodeExecutionWorker``
+which subscribes to ``GraphNodeExecutionRequested`` (Process Manager / Saga).
 This keeps the command handler fast and free of long-running side effects.
 """
 
@@ -22,9 +22,9 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.workflow import Workflow
-from shell.domain.events.events import NodeExecutionRequested
+from shell.domain.events.events import GraphNodeExecutionRequested
 from shell.domain.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
-from shell.domain.services.node_navigator import LinearNodeNavigator
+from shell.domain.services.graph_node_execution_navigator import LinearGraphNodeExecutionNavigator
 from shell.domain.value_objects.ids import TaskExecutionId
 from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
@@ -37,14 +37,14 @@ if TYPE_CHECKING:
         IdGenerator,
         UnitOfWork,
     )
-    from shell.domain.services.node_navigator import NodeNavigator
+    from shell.domain.services.graph_node_execution_navigator import NodeNavigator
 
 
 class RunTaskerWorkflowHandler:
-    """Creates a Workflow in RUNNING state and emits the first NodeExecutionRequested.
+    """Creates a Workflow in RUNNING state and emits the first GraphNodeExecutionRequested.
 
     Throws ``TaskExecutionNotFound`` if the task does not exist and
-    ``WorkflowHasNoNodes`` if its Graph has no executable nodes.
+    ``WorkflowHasNoNodes`` if its GraphExecution has no executable nodes.
     """
 
     def __init__(
@@ -57,7 +57,7 @@ class RunTaskerWorkflowHandler:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._navigator: NodeNavigator = navigator or LinearNodeNavigator()
+        self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow and request execution; return the workflow id."""
@@ -69,9 +69,9 @@ class RunTaskerWorkflowHandler:
             if task_execution is None:
                 raise TaskExecutionNotFound(cmd.task_execution_id)
 
-            graph = await uow.graphs.get_by_task_execution_id(task_execution.id)
-            first_node = self._navigator.first(graph) if graph is not None else None
-            if first_node is None:
+            graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+            first_graph_node_execution = self._navigator.first(graph_execution) if graph_execution is not None else None
+            if first_graph_node_execution is None:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)
 
             context = WorkflowExecutionContext(
@@ -85,14 +85,14 @@ class RunTaskerWorkflowHandler:
                 now=now,
             )
             workflow.start_at(
-                first_node_id=first_node.id,
+                first_graph_node_execution_id=first_graph_node_execution.id,
                 context=context,
                 now=now,
             )
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
-            uow.stage_events([NodeExecutionRequested.now(workflow.id, first_node.id, now=now)])
+            uow.stage_events([GraphNodeExecutionRequested.now(workflow.id, first_graph_node_execution.id, now=now)])
             await uow.commit()
 
         return workflow.id.value

@@ -9,28 +9,29 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
     ImportTaskExecutionCommand,
-    SaveNodeResultCommand,
+    SaveGraphNodeExecutionResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
     GetCurrentTaskExecutionQuery,
-    GetNodeResultQuery,
+    GetGraphNodeExecutionResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
-    GetNodeResultHandler,
+    GetGraphNodeExecutionResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
 )
 from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.prompt import Prompt
 from shell.domain.value_objects.ids import (
     PromptId,
@@ -175,8 +176,8 @@ class TestSqlWorkflowRepository:
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         # Persist a single-node Graph so StartWorkflowHandler can anchor the cursor.
-        from shell.domain.entities.graph import Graph, GraphNode
-        from shell.domain.value_objects.ids import GraphDefinitionId, GraphId, NodeId
+        from shell.domain.entities.graph_execution import GraphExecution, GraphNodeExecution
+        from shell.domain.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
         from shell.domain.value_objects.mode import Mode
         from shell.domain.value_objects.task_execution_name import TaskExecutionName
 
@@ -187,13 +188,13 @@ class TestSqlWorkflowRepository:
             # 1. Pobieramy prawdziwe ID przypisane do zaimportowanego zadania
             real_task_execution_id = task_execution.id.value
 
-            graph = Graph(
-                id=GraphId.generate(),
+            graph_execution = GraphExecution(
+                id=GraphExecutionId.generate(),
                 task_execution_id=task_execution.id,
                 graph_definition_id=GraphDefinitionId("tpl"),
-                nodes=[
-                    GraphNode(
-                        id=NodeId("wf-task-node-0"),
+                graph_node_executions=[
+                    GraphNodeExecution(
+                        id=GraphNodeExecutionId("wf-task-node-0"),
                         position=0,
                         node_dir="/fake/wf-task-0",
                         mode=Mode("agent"),
@@ -202,7 +203,7 @@ class TestSqlWorkflowRepository:
                     )
                 ],
             )
-            await u.graphs.save(graph)
+            await u.graph_executions.save(graph_execution)
             await u.commit()
 
         start = StartWorkflowHandler(uow, clock, id_gen)
@@ -252,18 +253,18 @@ class TestSqlNodeResultRepository:
             )
             await u.commit()
 
-        handler = SaveNodeResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
         await handler.handle(
-            SaveNodeResultCommand(
+            SaveGraphNodeExecutionResultCommand(
                 workflow_id="wf-sql-1",
-                node_id="node-sql-1",
+                graph_node_execution_id="node-sql-1",
                 status="done",
                 stdout="success",
             )
         )
 
-        q = GetNodeResultHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetNodeResultQuery("node-sql-1", "wf-sql-1"))
+        q = GetGraphNodeExecutionResultHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetGraphNodeExecutionResultQuery("node-sql-1", "wf-sql-1"))
         assert dto is not None
         assert dto.stdout == "success"
         assert dto.status == "done"

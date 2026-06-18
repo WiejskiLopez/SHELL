@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 from shell.domain.value_objects.ids import (
     EnvelopeId,
     GraphDefinitionId,
-    GraphId,
-    NodeId,
-    NodeResultId,
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
     TaskExecutionId,
     WorkflowId,
 )
@@ -59,22 +59,22 @@ class TaskExecutionCreated(DomainEvent):
 
 
 @dataclass(frozen=True, slots=True)
-class GraphBuilt(DomainEvent):
-    graph_id: GraphId
+class GraphExecutionBuilt(DomainEvent):
+    graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
     graph_definition_id: GraphDefinitionId
 
     @classmethod
     def now(
         cls,
-        graph_id: GraphId,
+        graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition_id: GraphDefinitionId,
         now: datetime,
-    ) -> GraphBuilt:
+    ) -> GraphExecutionBuilt:
         return cls(
             occurred_at=now,
-            graph_id=graph_id,
+            graph_execution_id=graph_execution_id,
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition_id,
         )
@@ -86,7 +86,7 @@ class GraphBuilt(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_id=GraphId(payload["graph_id"]),
+            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             graph_definition_id=GraphDefinitionId(payload["graph_definition_id"]),
         )
@@ -170,10 +170,10 @@ class EnvelopeExpired(DomainEvent):
 
 
 @dataclass(frozen=True, slots=True)
-class NodeCompleted(DomainEvent):
-    node_id: NodeId
+class GraphNodeExecutionCompleted(DomainEvent):
+    graph_node_execution_id: GraphNodeExecutionId
     workflow_id: WorkflowId
-    result_id: NodeResultId
+    graph_node_execution_result_id: GraphNodeExecutionResultId
 
     @classmethod
     def from_payload(
@@ -182,26 +182,26 @@ class NodeCompleted(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            node_id=NodeId(payload["node_id"]),
+            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             workflow_id=WorkflowId(payload["workflow_id"]),
-            result_id=NodeResultId(payload["result_id"]),
+            graph_node_execution_result_id=GraphNodeExecutionResultId(payload["graph_node_execution_result_id"]),
         )
 
     @classmethod
     def now(
-        cls, node_id: NodeId, workflow_id: WorkflowId, result_id: NodeResultId, now: datetime
-    ) -> NodeCompleted:
+        cls, graph_node_execution_id: GraphNodeExecutionId, workflow_id: WorkflowId, graph_node_execution_result_id: GraphNodeExecutionResultId, now: datetime
+    ) -> GraphNodeExecutionCompleted:
         return cls(
             occurred_at=now,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
             workflow_id=workflow_id,
-            result_id=result_id,
+            graph_node_execution_result_id=graph_node_execution_result_id,
         )
 
 
 @dataclass(frozen=True, slots=True)
-class NodeFailed(DomainEvent):
-    node_id: NodeId
+class GraphNodeExecutionFailed(DomainEvent):
+    graph_node_execution_id: GraphNodeExecutionId
     workflow_id: WorkflowId
     reason: str
 
@@ -212,18 +212,18 @@ class NodeFailed(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            node_id=NodeId(payload["node_id"]),
+            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             workflow_id=WorkflowId(payload["workflow_id"]),
             reason=str(payload["reason"]),
         )
 
     @classmethod
     def now(
-        cls, node_id: NodeId, workflow_id: WorkflowId, reason: str, now: datetime
-    ) -> NodeFailed:
+        cls, graph_node_execution_id: GraphNodeExecutionId, workflow_id: WorkflowId, reason: str, now: datetime
+    ) -> GraphNodeExecutionFailed:
         return cls(
             occurred_at=now,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
             workflow_id=workflow_id,
             reason=reason,
         )
@@ -280,17 +280,17 @@ class WorkflowFailed(DomainEvent):
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class NodeExecutionRequested(DomainEvent):
-    """Request to execute exactly one node identified by ``node_id``.
+class GraphNodeExecutionRequested(DomainEvent):
+    """Request to execute exactly one node identified by ``node_execution_id``.
 
     Emitted by the Workflow aggregate (start_at / advance_to) and dispatched
-    via the EventBus to ``NodeExecutionWorker``. The worker is expected to be
+    via the EventBus to ``GraphNodeExecutionWorker``. The worker is expected to be
     idempotent: it must compare the request against ``Workflow.cursor`` and
     no-op if they do not match (re-delivery / out-of-order delivery).
     """
 
     workflow_id: WorkflowId
-    node_id: NodeId
+    graph_node_execution_id: GraphNodeExecutionId
 
     @classmethod
     def from_payload(
@@ -300,29 +300,29 @@ class NodeExecutionRequested(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            node_id=NodeId(payload["node_id"]),
+            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
         )
 
     @classmethod
     def now(
         cls,
         workflow_id: WorkflowId,
-        node_id: NodeId,
+        graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
     ) -> Self:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
         )
 
 
 @dataclass(frozen=True, slots=True)
-class NodeStarted(DomainEvent):
+class GraphNodeExecutionStarted(DomainEvent):
     """A node became the workflow cursor and is now ``running``."""
 
     workflow_id: WorkflowId
-    node_id: NodeId
+    graph_node_execution_id: GraphNodeExecutionId
 
     @classmethod
     def from_payload(
@@ -332,30 +332,30 @@ class NodeStarted(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            node_id=NodeId(payload["node_id"]),
+            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
         )
 
     @classmethod
     def now(
         cls,
         workflow_id: WorkflowId,
-        node_id: NodeId,
+        graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-    ) -> NodeStarted:
+    ) -> GraphNodeExecutionStarted:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            node_id=node_id,
+            graph_node_execution_id=graph_node_execution_id,
         )
 
 
 @dataclass(frozen=True, slots=True)
-class NodeAdvanced(DomainEvent):
+class GraphNodeExecutionAdvanced(DomainEvent):
     """Workflow cursor moved from one node to another (audit trail)."""
 
     workflow_id: WorkflowId
-    from_node_id: NodeId
-    to_node_id: NodeId
+    from_graph_node_execution_id: GraphNodeExecutionId
+    to_graph_node_execution_id: GraphNodeExecutionId
 
     @classmethod
     def from_payload(
@@ -365,21 +365,21 @@ class NodeAdvanced(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            from_node_id=NodeId(payload["from_node_id"]),
-            to_node_id=NodeId(payload["to_node_id"]),
+            from_graph_node_execution_id=GraphNodeExecutionId(payload["from_graph_node_execution_id"]),
+            to_graph_node_execution_id=GraphNodeExecutionId(payload["to_graph_node_execution_id"]),
         )
 
     @classmethod
     def now(
         cls,
         workflow_id: WorkflowId,
-        from_node_id: NodeId,
-        to_node_id: NodeId,
+        from_graph_node_execution_id: GraphNodeExecutionId,
+        to_graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-    ) -> NodeAdvanced:
+    ) -> GraphNodeExecutionAdvanced:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
-            from_node_id=from_node_id,
-            to_node_id=to_node_id,
+            from_graph_node_execution_id=from_graph_node_execution_id,
+            to_graph_node_execution_id=to_graph_node_execution_id,
         )

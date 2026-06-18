@@ -1,13 +1,13 @@
 """Unit tests for the ``Workflow`` step-by-step state machine.
 
 The aggregate exposes four primary state-changing methods:
-``start_at`` → ``record_node_result`` → (``advance_to`` | ``finish`` | ``abort``)
+``start_at`` → ``record_graph_node_execution_result`` → (``advance_to`` | ``finish`` | ``abort``)
 
 These tests assert:
 - valid transitions emit the correct event sequence,
 - invalid transitions raise :class:`InvalidWorkflowTransition`,
 - the cursor is set/cleared at the right moments,
-- ``record_node_result`` does **not** move the cursor.
+- ``record_graph_node_execution_result`` does **not** move the cursor.
 """
 
 from __future__ import annotations
@@ -18,16 +18,16 @@ import pytest
 
 from shell.domain.entities.workflow import Workflow
 from shell.domain.events.events import (
-    NodeAdvanced,
-    NodeCompleted,
-    NodeFailed,
-    NodeStarted,
+    GraphNodeExecutionAdvanced,
+    GraphNodeExecutionCompleted,
+    GraphNodeExecutionFailed,
+    GraphNodeExecutionStarted,
     WorkflowCompleted,
     WorkflowFailed,
     WorkflowStarted,
 )
 from shell.domain.exceptions import InvalidWorkflowTransition
-from shell.domain.value_objects.ids import NodeId, NodeResultId, TaskExecutionId, WorkflowId
+from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId, TaskExecutionId, WorkflowId
 from shell.domain.value_objects.status import Status
 from shell.domain.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.value_objects.workflow_execution_context import (
@@ -48,49 +48,49 @@ def _ctx() -> WorkflowExecutionContext:
 class TestStartAt:
     def test_idle_to_running_sets_cursor_and_emits_events(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
 
         assert wf.status == Status.running()
-        assert wf.cursor == WorkflowCursor.at(NodeId("n1"))
+        assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n1"))
         assert wf.execution_context == _ctx()
 
         events = wf.pull_events()
         assert any(isinstance(e, WorkflowStarted) for e in events)
-        assert any(isinstance(e, NodeStarted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
 
     def test_double_start_raises(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
         with pytest.raises(InvalidWorkflowTransition):
-            wf.start_at(first_node_id=NodeId("n2"), context=_ctx(), now=_NOW)
+            wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n2"), context=_ctx(), now=_NOW)
 
 
-class TestRecordNodeResult:
+class TestRecordGraphNodeExecutionResult:
     def test_recording_does_not_move_cursor(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
         wf.pull_events()
 
-        wf.record_node_result(
-            result_id=NodeResultId.generate(),
-            node_id=NodeId("n1"),
+        wf.record_graph_node_execution_result(
+            result_id=GraphNodeExecutionResultId.generate(),
+            graph_node_execution_id=GraphNodeExecutionId("n1"),
             status=Status.done(),
             now=_NOW,
             stdout="ok",
         )
 
-        assert wf.cursor == WorkflowCursor.at(NodeId("n1"))
+        assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n1"))
         events = wf.pull_events()
-        assert any(isinstance(e, NodeCompleted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionCompleted) for e in events)
 
     def test_recording_failure_emits_node_failed(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
         wf.pull_events()
 
-        wf.record_node_result(
-            result_id=NodeResultId.generate(),
-            node_id=NodeId("n1"),
+        wf.record_graph_node_execution_result(
+            result_id=GraphNodeExecutionResultId.generate(),
+            graph_node_execution_id=GraphNodeExecutionId("n1"),
             status=Status.failed(),
             now=_NOW,
             stderr="boom",
@@ -98,32 +98,32 @@ class TestRecordNodeResult:
         )
 
         events = wf.pull_events()
-        assert any(isinstance(e, NodeFailed) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionFailed) for e in events)
 
 
 class TestAdvanceTo:
     def test_advance_moves_cursor_and_emits_events(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
-        wf.record_node_result(
-            result_id=NodeResultId.generate(),
-            node_id=NodeId("n1"),
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
+        wf.record_graph_node_execution_result(
+            result_id=GraphNodeExecutionResultId.generate(),
+            graph_node_execution_id=GraphNodeExecutionId("n1"),
             status=Status.done(),
             now=_NOW,
         )
         wf.pull_events()
 
-        wf.advance_to(next_node_id=NodeId("n2"), now=_NOW)
+        wf.advance_to(next_graph_node_execution_id=GraphNodeExecutionId("n2"), now=_NOW)
 
-        assert wf.cursor == WorkflowCursor.at(NodeId("n2"))
+        assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n2"))
         events = wf.pull_events()
-        assert any(isinstance(e, NodeAdvanced) for e in events)
-        assert any(isinstance(e, NodeStarted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionAdvanced) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
 
     def test_advance_requires_running_status(self) -> None:
         wf = _new_workflow()
         with pytest.raises(InvalidWorkflowTransition):
-            wf.advance_to(next_node_id=NodeId("n2"), now=_NOW)
+            wf.advance_to(next_graph_node_execution_id=GraphNodeExecutionId("n2"), now=_NOW)
 
     def test_advance_requires_active_cursor(self) -> None:
         wf = _new_workflow()
@@ -133,16 +133,16 @@ class TestAdvanceTo:
         wf.status = Status.running()
         wf.cursor = WorkflowCursor.empty()
         with pytest.raises(InvalidWorkflowTransition):
-            wf.advance_to(next_node_id=NodeId("n2"), now=_NOW)
+            wf.advance_to(next_graph_node_execution_id=GraphNodeExecutionId("n2"), now=_NOW)
 
 
 class TestFinish:
     def test_finish_transitions_to_done_and_clears_cursor(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
-        wf.record_node_result(
-            result_id=NodeResultId.generate(),
-            node_id=NodeId("n1"),
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
+        wf.record_graph_node_execution_result(
+            result_id=GraphNodeExecutionResultId.generate(),
+            graph_node_execution_id=GraphNodeExecutionId("n1"),
             status=Status.done(),
             now=_NOW,
         )
@@ -164,7 +164,7 @@ class TestFinish:
 class TestAbort:
     def test_abort_transitions_to_failed_and_clears_cursor(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
         wf.pull_events()
 
         wf.abort(reason="boom", now=_NOW)
@@ -176,10 +176,10 @@ class TestAbort:
 
     def test_abort_from_done_raises(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
-        wf.record_node_result(
-            result_id=NodeResultId.generate(),
-            node_id=NodeId("n1"),
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
+        wf.record_graph_node_execution_result(
+            result_id=GraphNodeExecutionResultId.generate(),
+            graph_node_execution_id=GraphNodeExecutionId("n1"),
             status=Status.done(),
             now=_NOW,
         )
@@ -191,7 +191,7 @@ class TestAbort:
 
     def test_abort_invokes_compensation_handler(self) -> None:
         wf = _new_workflow()
-        wf.start_at(first_node_id=NodeId("n1"), context=_ctx(), now=_NOW)
+        wf.start_at(first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW)
         wf.pull_events()
 
         called: list[tuple[Workflow, str]] = []

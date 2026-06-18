@@ -3,7 +3,7 @@
 Task represents a versioned, named definition of work to be performed.
 After a Task is created (`task_execution.create`), it emits a ``TaskExecutionCreated`` event
 that other aggregates (notably ``Graph``) react to. Task does NOT know
-which graph realises it — that responsibility belongs to ``Graph``.
+which graph_execution realises it — that responsibility belongs to ``Graph``.
 """
 
 from __future__ import annotations

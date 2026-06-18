@@ -5,26 +5,26 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
-from shell.domain.entities.graph import Graph
+from shell.domain.entities.graph_execution import GraphExecution
 from shell.domain.entities.graph_definition import GraphDefinition
-from shell.domain.entities.graph_definition_node import GraphDefinitionNode
-from shell.domain.entities.graph_node import GraphNode
-from shell.domain.entities.node_result import NodeResult
+from shell.domain.entities.graph_node_definition import GraphNodeDefinition
+from shell.domain.entities.graph_node_execution import GraphNodeExecution
+from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
 from shell.domain.entities.prompt import Prompt
 from shell.domain.entities.runner_config import RunnerConfig
 from shell.domain.entities.task_execution import TaskExecution
-from shell.domain.entities.workflow import NodeState, Workflow
+from shell.domain.entities.workflow import GraphNodeExecutionState, Workflow
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
     GraphDefinitionId,
-    GraphDefinitionNodeId,
-    GraphId,
-    NodeId,
-    NodeResultId,
-    NodeStateId,
+    GraphNodeDefinitionId,
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
+    GraphNodeExecutionStateId,
     PromptId,
     RunnerConfigId,
     TaskExecutionId,
@@ -39,11 +39,11 @@ from shell.infrastructure.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
     GraphDefinitionModel,
-    GraphDefinitionNodeModel,
-    GraphModel,
-    GraphNodeModel,
-    NodeResultModel,
-    NodeStateModel,
+    GraphNodeDefinitionModel,
+    GraphExecutionModel,
+    GraphNodeExecutionModel,
+    GraphNodeExecutionResultModel,
+    GraphNodeExecutionStateModel,
     PromptModel,
     RunnerConfigModel,
     TaskExecutionModel,
@@ -62,19 +62,19 @@ def _ensure_utc(dt: datetime) -> datetime:
 # ---------------------------------------------------------------------------
 
 
-def task_model_to_entity(m: TaskExecutionModel) -> TaskExecution:
+def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
     return TaskExecution(
-        id=TaskExecutionId(m.id),
-        name=TaskExecutionName(m.name),
-        version=Version(m.version),
-        hash=Hash(m.hash),
-        body=TaskExecutionBody(m.body),
-        is_current=m.is_current,
-        created_at=_ensure_utc(m.created_at),
+        id=TaskExecutionId(task_execution_model.id),
+        name=TaskExecutionName(task_execution_model.name),
+        version=Version(task_execution_model.version),
+        hash=Hash(task_execution_model.hash),
+        body=TaskExecutionBody(task_execution_model.body),
+        is_current=task_execution_model.is_current,
+        created_at=_ensure_utc(task_execution_model.created_at),
     )
 
 
-def task_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
+def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
     return TaskExecutionModel(
         id=task_execution.id.value,
         name=task_execution.name.value,
@@ -91,71 +91,71 @@ def task_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
 # ---------------------------------------------------------------------------
 
 
-def graph_model_to_entity(m: GraphModel) -> Graph:
-    nodes = [
-        GraphNode(
-            id=NodeId(n.id),
-            position=n.position,
-            node_dir=n.node_dir,
-            mode=Mode(n.mode),
-            role=n.role,
-            node_type=n.node_type,
-            model=n.model,
-            command=n.command,
-            timeout=n.timeout,
-            retries=n.retries,
-            log_level=n.log_level,
-            max_step=n.max_step,
-            no_ask_user=n.no_ask_user,
-            autopilot=n.autopilot,
-            task_execution_id=n.task_execution_id,
-            source_dir=n.source_dir,
-            work_dir=n.work_dir,
-            status_initial=n.status_initial,
-            extra=dict(n.extra),
+def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
+    graph_node_executions = [
+        GraphNodeExecution(
+            id=GraphNodeExecutionId(graph_node_execution_model.id),
+            position=graph_node_execution_model.position,
+            node_dir=graph_node_execution_model.node_dir,
+            mode=Mode(graph_node_execution_model.mode),
+            role=graph_node_execution_model.role,
+            node_type=graph_node_execution_model.node_type,
+            model=graph_node_execution_model.model,
+            command=graph_node_execution_model.command,
+            timeout=graph_node_execution_model.timeout,
+            retries=graph_node_execution_model.retries,
+            log_level=graph_node_execution_model.log_level,
+            max_step=graph_node_execution_model.max_step,
+            no_ask_user=graph_node_execution_model.no_ask_user,
+            autopilot=graph_node_execution_model.autopilot,
+            task_execution_id=graph_node_execution_model.task_execution_id,
+            source_dir=graph_node_execution_model.source_dir,
+            work_dir=graph_node_execution_model.work_dir,
+            status_initial=graph_node_execution_model.status_initial,
+            extra=dict(graph_node_execution_model.extra),
         )
-        for n in m.nodes
+        for graph_node_execution_model in graph_execution_model.graph_node_execution_models
     ]
-    return Graph(
-        id=GraphId(m.id),
-        task_execution_id=TaskExecutionId(m.task_execution_id),
-        graph_definition_id=GraphDefinitionId(m.graph_definition_id),
-        nodes=nodes,
+    return GraphExecution(
+        id=GraphExecutionId(graph_execution_model.id),
+        task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
+        graph_definition_id=GraphDefinitionId(graph_execution_model.graph_definition_id),
+        graph_node_executions=graph_node_executions,
     )
 
 
-def graph_entity_to_model(graph: Graph) -> GraphModel:
-    m = GraphModel(
-        id=graph.id.value,
-        task_execution_id=graph.task_execution_id.value,
-        graph_definition_id=str(graph.graph_definition_id),
+def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExecutionModel:
+    graph_execution_model = GraphExecutionModel(
+        id=graph_execution.id.value,
+        task_execution_id=graph_execution.task_execution_id.value,
+        graph_definition_id=str(graph_execution.graph_definition_id),
     )
-    m.nodes = [
-        GraphNodeModel(
-            id=n.id.value,
-            graph_id=graph.id.value,
-            position=n.position,
-            node_dir=n.node_dir,
-            mode=n.mode.value,
-            role=n.role,
-            node_type=n.node_type,
-            model=n.model,
-            command=n.command,
-            timeout=n.timeout,
-            retries=n.retries,
-            log_level=n.log_level,
-            max_step=n.max_step,
-            no_ask_user=n.no_ask_user,
-            autopilot=n.autopilot,
-            task_execution_id=n.task_execution_id,
-            source_dir=n.source_dir,
-            work_dir=n.work_dir,
-            status_initial=n.status_initial,
-            extra=n.extra,
+    graph_execution_model.graph_node_execution_models = [
+        GraphNodeExecutionModel(
+            id=graph_node_execution.id.value,
+            graph_execution_id=graph_execution.id.value,
+            position=graph_node_execution.position,
+            node_dir=graph_node_execution.node_dir,
+            mode=graph_node_execution.mode.value,
+            role=graph_node_execution.role,
+            node_type=graph_node_execution.node_type,
+            model=graph_node_execution.model,
+            command=graph_node_execution.command,
+            timeout=graph_node_execution.timeout,
+            retries=graph_node_execution.retries,
+            log_level=graph_node_execution.log_level,
+            max_step=graph_node_execution.max_step,
+            no_ask_user=graph_node_execution.no_ask_user,
+            autopilot=graph_node_execution.autopilot,
+            task_execution_id=graph_node_execution.task_execution_id,
+            source_dir=graph_node_execution.source_dir,
+            work_dir=graph_node_execution.work_dir,
+            status_initial=graph_node_execution.status_initial,
+            extra=graph_node_execution.extra,
         )
-        for n in graph.nodes
+        for graph_node_execution in graph_execution.graph_node_executions
     ]
-    return m
+    return graph_execution_model
 
 
 # ---------------------------------------------------------------------------
@@ -164,25 +164,25 @@ def graph_entity_to_model(graph: Graph) -> GraphModel:
 
 
 def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
-    states = {
-        ns.node_id: NodeState(
-            id=NodeStateId(ns.id),
-            node_id=NodeId(ns.node_id),
+    graph_node_execution_states = {
+        ns.graph_node_execution_id: GraphNodeExecutionState(
+            id=GraphNodeExecutionStateId(ns.id),
+            graph_node_execution_id=GraphNodeExecutionId(ns.graph_node_execution_id),
             status=Status(ns.status),
             step=ns.step,
             updated_at=_ensure_utc(ns.updated_at),
         )
-        for ns in m.node_states
+        for ns in m.graph_node_execution_state_models
     }
-    results = {nr.node_id: node_result_model_to_entity(nr) for nr in m.node_results}
+    graph_node_execution_results = {nr.graph_node_execution_id: graph_node_execution_result_model_to_entity(nr) for nr in m.graph_node_execution_result_models}
     from shell.domain.value_objects.workflow_cursor import WorkflowCursor
     from shell.domain.value_objects.workflow_execution_context import (
         WorkflowExecutionContext,
     )
 
     cursor = (
-        WorkflowCursor.at(NodeId(m.current_node_id))
-        if m.current_node_id
+        WorkflowCursor.at(GraphNodeExecutionId(m.current_graph_node_execution_id))
+        if m.current_graph_node_execution_id
         else WorkflowCursor.empty()
     )
     context = WorkflowExecutionContext(
@@ -197,35 +197,40 @@ def workflow_model_to_entity(m: WorkflowModel) -> Workflow:
         cursor=cursor,
         execution_context=context,
         version=m.version,
-        node_states=states,
-        node_results=results,
+        graph_node_execution_states=graph_node_execution_states,
+        graph_node_execution_results=graph_node_execution_results,
     )
 
 
-def workflow_entity_to_model(w: Workflow) -> WorkflowModel:
-    m = WorkflowModel(
-        id=w.id.value,
-        task_execution_id=w.task_execution_id.value,
-        status=w.status.value,
-        current_node_id=w.cursor.current_node_id.value if w.cursor.current_node_id else None,
-        work_dir=w.execution_context.work_dir,
-        correlation_id=w.execution_context.correlation_id,
-        version=w.version,
-        created_at=w.created_at,
+def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
+    work_flow_model = WorkflowModel(
+        id=work_flow.id.value,
+        task_execution_id=work_flow.task_execution_id.value,
+        status=work_flow.status.value,
+        current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value if work_flow.cursor.current_graph_node_execution_id else None,
+        work_dir=work_flow.execution_context.work_dir,
+        correlation_id=work_flow.execution_context.correlation_id,
+        version=work_flow.version,
+        created_at=work_flow.created_at,
     )
-    m.node_states = [
-        NodeStateModel(
+    # POPRAWKA: Zmiana nazwy na graph_node_execution_state_models
+    work_flow_model.graph_node_execution_state_models = [
+        GraphNodeExecutionStateModel(
             id=ns.id.value,
-            workflow_id=w.id.value,
-            node_id=ns.node_id.value,
+            workflow_id=work_flow.id.value,
+            graph_node_execution_id=ns.graph_node_execution_id.value,
             status=ns.status.value,
             step=ns.step,
             updated_at=ns.updated_at,
         )
-        for ns in w.node_states.values()
+        for ns in work_flow.graph_node_execution_states.values()
     ]
-    m.node_results = [node_result_entity_to_model(nr) for nr in w.node_results.values()]
-    return m
+    # POPRAWKA: Zmiana nazwy na graph_node_execution_result_models
+    work_flow_model.graph_node_execution_result_models = [
+        graph_node_execution_result_entity_to_model(nr)
+        for nr in work_flow.graph_node_execution_results.values()
+    ]
+    return work_flow_model
 
 
 # ---------------------------------------------------------------------------
@@ -248,8 +253,8 @@ def envelope_model_to_entity(m: EnvelopeModel) -> Envelope:
         workflow_id=WorkflowId(m.workflow_id),
         parent_id=EnvelopeId(m.parent_id) if m.parent_id else None,
         correlation_id=m.correlation_id,
-        sender_node_id=NodeId(m.sender_node_id),
-        receiver_node_id=NodeId(m.receiver_node_id),
+        sender_graph_node_execution_id=GraphNodeExecutionId(m.sender_graph_node_execution_id),
+        receiver_graph_node_execution_id=GraphNodeExecutionId(m.receiver_graph_node_execution_id),
         source_role=m.source_role,
         target_role=m.target_role,
         sequence_id=m.sequence_id,
@@ -271,8 +276,8 @@ def envelope_entity_to_model(e: Envelope) -> EnvelopeModel:
         workflow_id=e.workflow_id.value,
         parent_id=e.parent_id.value if e.parent_id else None,
         correlation_id=e.correlation_id,
-        sender_node_id=e.sender_node_id.value,
-        receiver_node_id=e.receiver_node_id.value,
+        sender_graph_node_execution_id=e.sender_graph_node_execution_id.value,
+        receiver_graph_node_execution_id=e.receiver_graph_node_execution_id.value,
         source_role=e.source_role,
         target_role=e.target_role,
         sequence_id=e.sequence_id,
@@ -330,14 +335,14 @@ def prompt_entity_to_model(p: Prompt) -> PromptModel:
 
 
 # ---------------------------------------------------------------------------
-# NodeResult
+# GraphNodeExecutionResult
 # ---------------------------------------------------------------------------
 
 
-def node_result_model_to_entity(m: NodeResultModel) -> NodeResult:
-    return NodeResult(
-        id=NodeResultId(m.id),
-        node_id=NodeId(m.node_id),
+def graph_node_execution_result_model_to_entity(m: GraphNodeExecutionResultModel) -> GraphNodeExecutionResult:
+    return GraphNodeExecutionResult(
+        id=GraphNodeExecutionResultId(m.id),
+        graph_node_execution_id=GraphNodeExecutionId(m.graph_node_execution_id),
         workflow_id=WorkflowId(m.workflow_id),
         status=Status(m.status),
         stdout=m.stdout,
@@ -347,16 +352,16 @@ def node_result_model_to_entity(m: NodeResultModel) -> NodeResult:
     )
 
 
-def node_result_entity_to_model(r: NodeResult) -> NodeResultModel:
-    return NodeResultModel(
-        id=r.id.value,
-        node_id=r.node_id.value,
-        workflow_id=r.workflow_id.value,
-        status=r.status.value,
-        stdout=r.stdout,
-        stderr=r.stderr,
-        artifact_uri=r.artifact_uri,
-        created_at=r.created_at,
+def graph_node_execution_result_entity_to_model(graph_node_execution_result: GraphNodeExecutionResult) -> GraphNodeExecutionResultModel:
+    return GraphNodeExecutionResultModel(
+        id=graph_node_execution_result.id.value,
+        graph_node_execution_id=graph_node_execution_result.graph_node_execution_id.value,
+        workflow_id=graph_node_execution_result.workflow_id.value,
+        status=graph_node_execution_result.status.value,
+        stdout=graph_node_execution_result.stdout,
+        stderr=graph_node_execution_result.stderr,
+        artifact_uri=graph_node_execution_result.artifact_uri,
+        created_at=graph_node_execution_result.created_at,
     )
 
 
@@ -393,79 +398,79 @@ def runner_config_entity_to_model(c: RunnerConfig) -> RunnerConfigModel:
 
 
 def graph_definition_model_to_entity(
-    m: GraphDefinitionModel,
+    graph_definition_model: GraphDefinitionModel,
 ) -> GraphDefinition:
     return GraphDefinition(
-        id=GraphDefinitionId(m.id),
-        name=m.name,
-        purpose=m.purpose,
-        nodes=[graph_definition_node_model_to_entity(node) for node in m.nodes],
+        id=GraphDefinitionId(graph_definition_model.id),
+        name=graph_definition_model.name,
+        purpose=graph_definition_model.purpose,
+        graph_node_definitions=[graph_node_definition_model_to_entity(node) for node in graph_definition_model.graph_node_execution_models],
     )
 
 
 def graph_definition_entity_to_model(
-    graph: GraphDefinition,
+    graph_definition: GraphDefinition,
 ) -> GraphDefinitionModel:
     m = GraphDefinitionModel(
-        id=graph.id,
-        name=graph.name,
-        purpose=graph.purpose,
+        id=graph_definition.id,
+        name=graph_definition.name,
+        purpose=graph_definition.purpose,
     )
-    m.nodes = [
-        graph_definition_node_entity_to_model(
+    m.graph_node_execution_models = [
+        graph_node_definition_entity_to_model(
             node,
-            graph.id.value,
+            graph_definition.id.value,
         )
-        for node in graph.nodes
+        for node in graph_definition.graph_node_definitions
     ]
     return m
 
 
-def graph_definition_node_model_to_entity(
-    m: GraphDefinitionNodeModel,
-) -> GraphDefinitionNode:
-    return GraphDefinitionNode(
-        id=GraphDefinitionNodeId(m.id),
-        position=m.position,
-        mode=Mode(m.mode),
-        role=m.role,
-        node_type=m.node_type,
-        model=m.model or "",
-        command=m.command,
-        timeout=m.timeout,
-        retries=m.retries,
-        log_level=m.log_level,
-        max_step=m.max_step,
-        no_ask_user=bool(m.no_ask_user),
-        autopilot=bool(m.autopilot),
-        status_initial=m.status_initial,
-        extra=dict(m.extra or {}),
-        script=m.script or "",
-        script_type=m.script_type or "",
+def graph_node_definition_model_to_entity(
+    graph_node_definition_model: GraphNodeDefinitionModel,
+) -> GraphNodeDefinition:
+    return GraphNodeDefinition(
+        id=GraphNodeDefinitionId(graph_node_definition_model.id),
+        position=graph_node_definition_model.position,
+        mode=Mode(graph_node_definition_model.mode),
+        role=graph_node_definition_model.role,
+        node_type=graph_node_definition_model.node_type,
+        model=graph_node_definition_model.model or "",
+        command=graph_node_definition_model.command,
+        timeout=graph_node_definition_model.timeout,
+        retries=graph_node_definition_model.retries,
+        log_level=graph_node_definition_model.log_level,
+        max_step=graph_node_definition_model.max_step,
+        no_ask_user=bool(graph_node_definition_model.no_ask_user),
+        autopilot=bool(graph_node_definition_model.autopilot),
+        status_initial=graph_node_definition_model.status_initial,
+        extra=dict(graph_node_definition_model.extra or {}),
+        script=graph_node_definition_model.script or "",
+        script_type=graph_node_definition_model.script_type or "",
     )
 
 
-def graph_definition_node_entity_to_model(
-    node: GraphDefinitionNode,
+def graph_node_definition_entity_to_model(
+    graph_node_definition: GraphNodeDefinition,
     graph_definition_id: str,
-) -> GraphDefinitionNodeModel:
-    return GraphDefinitionNodeModel(
-        id=node.id.value,
+) -> GraphNodeDefinitionModel:
+    return GraphNodeDefinitionModel(
+        id=graph_node_definition.id.value,
         graph_definition_id=graph_definition_id,
-        position=node.position,
-        mode=node.mode.value,
-        role=node.role,
-        node_type=node.node_type,
-        model=node.model,
-        command=node.command,
-        timeout=node.timeout,
-        retries=node.retries,
-        log_level=node.log_level,
-        max_step=node.max_step,
-        no_ask_user=node.no_ask_user,
-        autopilot=node.autopilot,
-        status_initial=node.status_initial,
-        extra=node.extra,
-        script=node.script,
-        script_type=node.script_type,
+        position=graph_node_definition.position,
+        mode=graph_node_definition.mode.value,
+        role=graph_node_definition.role,
+        node_type=graph_node_definition.node_type,
+        model=graph_node_definition.model,
+        command=graph_node_definition.command,
+        timeout=graph_node_definition.timeout,
+        retries=graph_node_definition.retries,
+        log_level=graph_node_definition.log_level,
+        max_step=graph_node_definition.max_step,
+        no_ask_user=graph_node_definition.no_ask_user,
+        autopilot=graph_node_definition.autopilot,
+        status_initial=graph_node_definition.status_initial,
+        extra=graph_node_definition.extra,
+        script=graph_node_definition.script,
+        script_type=graph_node_definition.script_type,
     )

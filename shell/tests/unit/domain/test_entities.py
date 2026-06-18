@@ -15,7 +15,7 @@ from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeSt
 from shell.domain.value_objects.ids import (
     CorrelationId,
     EnvelopeId,
-    NodeId,
+    GraphNodeExecutionId,
     TaskExecutionId,
     WorkflowId,
 )
@@ -91,20 +91,20 @@ class TestWorkflow:
 
         wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=TaskExecutionId.generate(), now=_NOW)
         wf.start_at(
-            first_node_id=NodeId("n1"),
+            first_graph_node_execution_id=GraphNodeExecutionId("n1"),
             context=WorkflowExecutionContext.empty(),
             now=_NOW,
         )
         assert wf.status.value == "running"
-        assert wf.cursor.current_node_id == NodeId("n1")
+        assert wf.cursor.current_graph_node_execution_id == GraphNodeExecutionId("n1")
 
-    def test_update_node_state(self) -> None:
+    def test_update_graph_node_execution_state(self) -> None:
         from shell.domain.value_objects.status import Status
 
         wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=TaskExecutionId.generate(), now=_NOW)
-        node_id = NodeId("node-1")
-        wf.update_node_state(node_id, Status.running(), now=_NOW, step=2)
-        assert wf.node_states["node-1"].step == 2
+        graph_node_execution_id = GraphNodeExecutionId("node-1")
+        wf.update_graph_node_execution_state(graph_node_execution_id, Status.running(), now=_NOW, step=2)
+        assert wf.graph_node_execution_states["node-1"].step == 2
 
 
 class TestEnvelope:
@@ -112,8 +112,8 @@ class TestEnvelope:
         return Envelope.new(
             id_=EnvelopeId.generate(),
             workflow_id=WorkflowId.generate(),
-            sender_node_id=NodeId("sender"),
-            receiver_node_id=NodeId("receiver"),
+            sender_graph_node_execution_id=GraphNodeExecutionId("sender"),
+            receiver_graph_node_execution_id=GraphNodeExecutionId("receiver"),
             source_role="agent",
             target_role="router",
             now=_NOW,

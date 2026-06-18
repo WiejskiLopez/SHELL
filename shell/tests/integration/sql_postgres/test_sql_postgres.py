@@ -17,24 +17,24 @@ import pytest
 from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.command_handlers.save_node_result_handler import SaveNodeResultHandler
+from shell.application.command_handlers.save_graph_node_execution_result_handler import SaveGraphNodeExecutionResultHandler
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.command_handlers.start_workflow_handler import StartWorkflowHandler
 from shell.application.commands.commands import (
     ImportTaskExecutionCommand,
-    SaveNodeResultCommand,
+    SaveGraphNodeExecutionResultCommand,
     SavePromptCommand,
     StartWorkflowCommand,
 )
 from shell.application.queries.queries import (
     GetCurrentTaskExecutionQuery,
-    GetNodeResultQuery,
+    GetGraphNodeExecutionResultQuery,
     GetPromptQuery,
     GetWorkflowQuery,
 )
 from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
-    GetNodeResultHandler,
+    GetGraphNodeExecutionResultHandler,
     GetPromptHandler,
     GetWorkflowHandler,
 )
@@ -173,19 +173,19 @@ class TestPgWorkflowRepository:
             real_task_execution_id = task_execution.id.value
 
             # UWAGA: Jeśli Twój StartWorkflowHandler (tak jak w SQLite) wymaga
-            # istniejącego grafu (Graph) do zainicjalizowania kursora,
+            # istniejącego grafu (GraphExecution) do zainicjalizowania kursora,
             # odkomentuj poniższy blok:
             #
-            # from shell.domain.entities.graph import Graph, GraphNode
-            # from shell.domain.value_objects.ids import GraphId, NodeId, GraphDefinitionId
+            # from shell.domain.entities.graph_execution import GraphExecution, GraphNode
+            # from shell.domain.value_objects.ids import GraphExecutionId, GraphNodeExecutionId, GraphDefinitionId
             # from shell.domain.value_objects.mode import Mode
-            # graph = Graph(
-            #     id=GraphId.generate(),
+            # graph = GraphExecution(
+            #     id=GraphExecutionId.generate(),
             #     task_execution_id=task_execution.id,
             #     graph_definition_id=GraphDefinitionId("tpl"),
             #     nodes=[
             #         GraphNode(
-            #             id=NodeId("pg-wf-task-node-0"),
+            #             id=GraphNodeExecutionId("pg-wf-task-node-0"),
             #             position=0,
             #             node_dir="/fake/pg-wf-task-0",
             #             mode=Mode("agent"),
@@ -194,7 +194,7 @@ class TestPgWorkflowRepository:
             #         )
             #     ],
             # )
-            # await u.graphs.save(graph)
+            # await u.graph_executions.save(graph)
             # await u.commit()
 
         start = StartWorkflowHandler(uow, clock, id_gen)
@@ -261,18 +261,18 @@ class TestPgNodeResultRepository:
         events: FakeEventPublisher,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = SaveNodeResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
         await handler.handle(
-            SaveNodeResultCommand(
+            SaveGraphNodeExecutionResultCommand(
                 workflow_id="pg-wf-nr-1",
-                node_id="pg-node-nr-1",
+                graph_node_execution_id="pg-node-nr-1",
                 status="done",
                 stdout="pg success",
             )
         )
 
-        q = GetNodeResultHandler(SqlQueryServices(session_factory))
-        dto = await q.handle(GetNodeResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
+        q = GetGraphNodeExecutionResultHandler(SqlQueryServices(session_factory))
+        dto = await q.handle(GetGraphNodeExecutionResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
         assert dto is not None
         assert dto.stdout == "pg success"
         assert dto.status == "done"
