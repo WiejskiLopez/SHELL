@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -20,8 +20,8 @@ class TaskExecutionModel(Base):
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
 class GraphExecutionModel(Base):
@@ -86,7 +86,7 @@ class WorkflowModel(Base):
     work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     version: Mapped[int] = mapped_column(nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     graph_node_execution_state_models: Mapped[list[GraphNodeExecutionStateModel]] = relationship(
         "GraphNodeExecutionStateModel",
@@ -111,7 +111,7 @@ class GraphNodeExecutionStateModel(Base):
     graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=False, default="idle")
     step: Mapped[int] = mapped_column(nullable=False, default=0)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
     workflow_model: Mapped[WorkflowModel] = relationship(
         "WorkflowModel", back_populates="graph_node_execution_state_models"
@@ -136,8 +136,8 @@ class EnvelopeModel(Base):
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     artifact_uri: Mapped[str] = mapped_column(nullable=False, default="")
     archive_uri: Mapped[str] = mapped_column(nullable=False, default="")
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
     events: Mapped[list[EnvelopeEventModel]] = relationship(
         "EnvelopeEventModel", back_populates="envelope", cascade="all, delete-orphan"
@@ -153,7 +153,7 @@ class EnvelopeEventModel(Base):
     )
     kind: Mapped[str] = mapped_column(nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     envelope: Mapped[EnvelopeModel] = relationship("EnvelopeModel", back_populates="events")
 
@@ -167,8 +167,8 @@ class PromptModel(Base):
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(nullable=False, default="")
     source_uri: Mapped[str] = mapped_column(nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
 
 
 class GraphNodeExecutionResultModel(Base):
