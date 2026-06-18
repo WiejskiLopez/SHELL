@@ -174,23 +174,23 @@ class PromptModel(Base):
 class GraphNodeExecutionResultModel(Base):
     __tablename__ = "graph_node_execution_result"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    workflow_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    graph_node_execution_id: Mapped[str] = mapped_column( nullable=False, index=True)
+    workflow_id: Mapped[str] = mapped_column( nullable=False, index=True)
+    status: Mapped[str] = mapped_column( nullable=False)
     stdout: Mapped[str] = mapped_column(nullable=False, default="")
     stderr: Mapped[str] = mapped_column(nullable=False, default="")
-    artifact_uri: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    artifact_uri: Mapped[str] = mapped_column( nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class RunnerConfigModel(Base):
     __tablename__ = "runner_config"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    package_name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    kind: Mapped[str] = mapped_column(String(64), nullable=False)
-    hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    package_name: Mapped[str] = mapped_column( nullable=False, index=True)
+    kind: Mapped[str] = mapped_column( nullable=False)
+    hash: Mapped[str] = mapped_column( nullable=False)
     body: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -198,10 +198,10 @@ class RunnerConfigModel(Base):
 class RagDocumentModel(Base):
     __tablename__ = "rag_document"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    source_uri: Mapped[str] = mapped_column(String(1024), nullable=False, index=True)
-    title: Mapped[str] = mapped_column(String(512), nullable=False)
-    domain: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    source_uri: Mapped[str] = mapped_column( nullable=False, index=True)
+    title: Mapped[str] = mapped_column( nullable=False)
+    domain: Mapped[str] = mapped_column( nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     chunks: Mapped[list[RagChunkModel]] = relationship(
@@ -212,14 +212,14 @@ class RagDocumentModel(Base):
 class RagChunkModel(Base):
     __tablename__ = "rag_chunk"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
     document_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False, index=True
     )
     chunk_index: Mapped[int] = mapped_column(nullable=False, default=0)
     chunk_text: Mapped[str] = mapped_column(nullable=False)
     embedding: Mapped[bytes] = mapped_column(nullable=False)
-    embedding_model: Mapped[str] = mapped_column(String(128), nullable=False)
+    embedding_model: Mapped[str] = mapped_column( nullable=False)
 
     document: Mapped[RagDocumentModel] = relationship("RagDocumentModel", back_populates="chunks")
 
@@ -227,7 +227,7 @@ class RagChunkModel(Base):
 class SessionModel(Base):
     __tablename__ = "session"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
     goal: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="open")
     opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -241,13 +241,13 @@ class SessionModel(Base):
 class MessageModel(Base):
     __tablename__ = "message"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
     session_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    sender: Mapped[str] = mapped_column(String(255), nullable=False)
-    receiver: Mapped[str] = mapped_column(String(255), nullable=False)
+    correlation_id: Mapped[str] = mapped_column( nullable=False, default="")
+    sender: Mapped[str] = mapped_column( nullable=False)
+    receiver: Mapped[str] = mapped_column( nullable=False)
     payload: Mapped[dict] = mapped_column("payload_json", JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -257,8 +257,8 @@ class MessageModel(Base):
 class AuditEventModel(Base):
     __tablename__ = "audit_event"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    event_type: Mapped[str] = mapped_column( nullable=False, index=True)
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, index=True
     )
@@ -268,8 +268,8 @@ class AuditEventModel(Base):
 class OutboxEventModel(Base):
     __tablename__ = "outbox_event"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    event_type: Mapped[str] = mapped_column( nullable=False, index=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -278,8 +278,8 @@ class OutboxEventModel(Base):
 class InboxEventModel(Base):
     __tablename__ = "inbox_event"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    event_type: Mapped[str] = mapped_column(String(128), nullable=False, index=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    event_type: Mapped[str] = mapped_column( nullable=False, index=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -291,9 +291,9 @@ class InboxEventModel(Base):
 class GraphDefinitionModel(Base):
     __tablename__ = "graph_definition"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    name: Mapped[str] = mapped_column(String(36), nullable=False)
-    purpose: Mapped[str] = mapped_column(String(36), nullable=False)
+    id: Mapped[str] = mapped_column( primary_key=True)
+    name: Mapped[str] = mapped_column( nullable=False)
+    purpose: Mapped[str] = mapped_column( nullable=False)
 
     graph_node_execution_models: Mapped[list[GraphNodeDefinitionModel]] = relationship(
         "GraphNodeDefinitionModel",
@@ -306,22 +306,21 @@ class GraphDefinitionModel(Base):
 class GraphNodeDefinitionModel(Base):
     __tablename__ = "graph_node_definition"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column( primary_key=True)
     graph_definition_id: Mapped[str] = mapped_column(
-        String(36),
         ForeignKey("graph_definition.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
     position: Mapped[int] = mapped_column(nullable=False)
     mode: Mapped[str] = mapped_column(String(32), nullable=False)
-    role: Mapped[str] = mapped_column(String(128), nullable=False)
-    node_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    role: Mapped[str] = mapped_column( nullable=False)
+    node_type: Mapped[str] = mapped_column( nullable=False)
+    model: Mapped[str | None] = mapped_column( nullable=True)
     command: Mapped[str] = mapped_column(nullable=False)
     timeout: Mapped[int] = mapped_column(nullable=False)
     retries: Mapped[int] = mapped_column(nullable=False)
-    log_level: Mapped[str] = mapped_column(String(16), nullable=False)
+    log_level: Mapped[str] = mapped_column(nullable=False)
     max_step: Mapped[int | None] = mapped_column(nullable=True)
     no_ask_user: Mapped[bool | None] = mapped_column(
         nullable=True,
@@ -330,7 +329,6 @@ class GraphNodeDefinitionModel(Base):
         nullable=True,
     )
     status_initial: Mapped[str] = mapped_column(
-        String(64),
         nullable=False,
     )
     extra: Mapped[dict | None] = mapped_column(
@@ -340,7 +338,6 @@ class GraphNodeDefinitionModel(Base):
         nullable=True,
     )
     script_type: Mapped[str | None] = mapped_column(
-        String(16),
         nullable=True,
     )
 
