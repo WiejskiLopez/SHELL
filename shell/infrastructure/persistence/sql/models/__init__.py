@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -15,27 +15,26 @@ class Base(DeclarativeBase):
 class TaskExecutionModel(Base):
     __tablename__ = "task_execution"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False, index=True)
+    version: Mapped[int] = mapped_column(nullable=False, default=1)
+    hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class GraphExecutionModel(Base):
     __tablename__ = "graph"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     task_execution_id: Mapped[str] = mapped_column(
-        String(36),
         ForeignKey("task_execution.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
         unique=True,
     )
-    graph_definition_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
+    graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
 
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
         "GraphNodeExecutionModel",
@@ -47,27 +46,27 @@ class GraphExecutionModel(Base):
 class GraphNodeExecutionModel(Base):
     __tablename__ = "graph_node_execution"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     graph_execution_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("graph.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("graph.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    node_dir: Mapped[str] = mapped_column(String(512), nullable=False, default="")
-    mode: Mapped[str] = mapped_column(String(32), nullable=False)
-    role: Mapped[str] = mapped_column(String(128), nullable=False, default="")
-    node_type: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    model: Mapped[str] = mapped_column(String(128), nullable=False, default="")
+    position: Mapped[int] = mapped_column(nullable=False, default=0)
+    node_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    mode: Mapped[str] = mapped_column(nullable=False)
+    role: Mapped[str] = mapped_column(nullable=False, default="")
+    node_type: Mapped[str] = mapped_column(nullable=False, default="")
+    model: Mapped[str] = mapped_column(nullable=False, default="")
     command: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    timeout: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    retries: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    log_level: Mapped[str] = mapped_column(String(16), nullable=False, default="INFO")
-    max_step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    no_ask_user: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    autopilot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    task_execution_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    source_dir: Mapped[str] = mapped_column(String(512), nullable=False, default="")
-    work_dir: Mapped[str] = mapped_column(String(512), nullable=False, default="")
-    status_initial: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    timeout: Mapped[int] = mapped_column(nullable=False, default=0)
+    retries: Mapped[int] = mapped_column(nullable=False, default=0)
+    log_level: Mapped[str] = mapped_column(nullable=False, default="INFO")
+    max_step: Mapped[int] = mapped_column(nullable=False, default=0)
+    no_ask_user: Mapped[bool] = mapped_column(nullable=False, default=False)
+    autopilot: Mapped[bool] = mapped_column(nullable=False, default=False)
+    task_execution_id: Mapped[str] = mapped_column(nullable=False, default="")
+    source_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    work_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    status_initial: Mapped[str] = mapped_column(nullable=False, default="")
     extra: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
 
     graph_execution_model: Mapped[GraphExecutionModel] = relationship(
@@ -78,15 +77,15 @@ class GraphNodeExecutionModel(Base):
 class WorkflowModel(Base):
     __tablename__ = "workflow"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    task_execution_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
+    id: Mapped[str] = mapped_column(primary_key=True)
+    task_execution_id: Mapped[str] = mapped_column(nullable=False, index=True)
+    status: Mapped[str] = mapped_column(nullable=False, default="idle")
     current_graph_node_execution_id: Mapped[str | None] = mapped_column(
-        String(255), nullable=True, default=None, index=True
+        nullable=True, default=None, index=True
     )
-    work_dir: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
-    correlation_id: Mapped[str] = mapped_column(String(64), nullable=False, default="")
-    version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    work_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
+    version: Mapped[int] = mapped_column(nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     graph_node_execution_state_models: Mapped[list[GraphNodeExecutionStateModel]] = relationship(
@@ -105,13 +104,13 @@ class WorkflowModel(Base):
 class GraphNodeExecutionStateModel(Base):
     __tablename__ = "node_state"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     workflow_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="idle")
-    step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)
+    status: Mapped[str] = mapped_column(nullable=False, default="idle")
+    step: Mapped[int] = mapped_column(nullable=False, default=0)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     workflow_model: Mapped[WorkflowModel] = relationship(
@@ -122,21 +121,21 @@ class GraphNodeExecutionStateModel(Base):
 class EnvelopeModel(Base):
     __tablename__ = "envelope"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    workflow_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    parent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    sender_graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    receiver_graph_node_execution_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    source_role: Mapped[str] = mapped_column(String(128), nullable=False, default="")
-    target_role: Mapped[str] = mapped_column(String(128), nullable=False, default="")
-    sequence_id: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    step: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    status: Mapped[str] = mapped_column(String(32), nullable=False, default="pending")
-    stage: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
+    id: Mapped[str] = mapped_column(primary_key=True)
+    workflow_id: Mapped[str] = mapped_column(nullable=False, index=True)
+    parent_id: Mapped[str | None] = mapped_column(nullable=True)
+    correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
+    sender_graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)
+    receiver_graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)
+    source_role: Mapped[str] = mapped_column(nullable=False, default="")
+    target_role: Mapped[str] = mapped_column(nullable=False, default="")
+    sequence_id: Mapped[int] = mapped_column(nullable=False, default=0)
+    step: Mapped[int] = mapped_column(nullable=False, default=0)
+    status: Mapped[str] = mapped_column(nullable=False, default="pending")
+    stage: Mapped[str] = mapped_column(nullable=False, default="draft")
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
-    artifact_uri: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
-    archive_uri: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
+    artifact_uri: Mapped[str] = mapped_column(nullable=False, default="")
+    archive_uri: Mapped[str] = mapped_column(nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -148,11 +147,11 @@ class EnvelopeModel(Base):
 class EnvelopeEventModel(Base):
     __tablename__ = "envelope_event"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(primary_key=True)
     envelope_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("envelope.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("envelope.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    kind: Mapped[str] = mapped_column(String(64), nullable=False)
+    kind: Mapped[str] = mapped_column(nullable=False)
     payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)  # type: ignore[type-arg]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
@@ -162,13 +161,13 @@ class EnvelopeEventModel(Base):
 class PromptModel(Base):
     __tablename__ = "prompt"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    id: Mapped[str] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=False, index=True)
+    version: Mapped[int] = mapped_column(nullable=False, default=1)
+    hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    source_uri: Mapped[str] = mapped_column(String(1024), nullable=False, default="")
-    is_current: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    source_uri: Mapped[str] = mapped_column(nullable=False, default="")
+    is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

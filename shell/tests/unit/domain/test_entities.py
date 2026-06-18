@@ -156,7 +156,6 @@ class TestEnvelope:
 
 
 class TestRagDocument:
-    from datetime import timezone
 
     _NOW = __import__("datetime").datetime(2025, 1, 1, tzinfo=__import__("datetime").timezone.utc)
 

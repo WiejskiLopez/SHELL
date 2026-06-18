@@ -28,3 +28,5 @@
 2026-06-18 12:43:37,992 DEBUG test_stdlib_dbg: trace
 2026-06-18 12:44:40,928 INFO shell.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
 2026-06-18 12:44:40,931 INFO shell.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
+2026-06-18 12:46:16,482 INFO shell.infrastructure.persistence.sql.repositories: Querying current Task by name=e2e_task
+2026-06-18 12:46:16,486 INFO shell.infrastructure.persistence.sql.repositories: No current Task found for name=e2e_task
