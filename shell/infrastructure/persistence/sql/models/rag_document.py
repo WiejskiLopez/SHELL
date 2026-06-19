@@ -1,0 +1,24 @@
+from __future__ import annotations
+
+from datetime import datetime
+
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from .base import Base
+
+
+class RagDocumentModel(Base):
+    __tablename__ = "rag_document"
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    source_uri: Mapped[str] = mapped_column(nullable=False, index=True)
+    title: Mapped[str] = mapped_column(nullable=False)
+    domain: Mapped[str] = mapped_column(nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+    chunks: Mapped[list[RagChunkModel]] = relationship(
+        "RagChunkModel", back_populates="document", cascade="all, delete-orphan"
+    )
+
+
+from .rag_chunk import RagChunkModel

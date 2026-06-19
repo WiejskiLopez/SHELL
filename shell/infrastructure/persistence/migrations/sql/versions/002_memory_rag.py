@@ -62,6 +62,7 @@ def upgrade() -> None:
             sa.ForeignKey("session.id", ondelete="CASCADE"),
             nullable=False,
         ),
+        sa.Column("correlation_id", sa.String(36), nullable=False, server_default=""),
         sa.Column("sender", sa.String(255), nullable=False),
         sa.Column("receiver", sa.String(255), nullable=False),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),

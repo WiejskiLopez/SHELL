@@ -28,7 +28,7 @@ def upgrade() -> None:
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_task_execution_name", "task", ["name"])
+    op.create_index("ix_task_execution_name", "task_execution", ["name"])
 
     op.create_table(
         "graph_execution",
@@ -48,7 +48,7 @@ def upgrade() -> None:
         sa.Column(
             "graph_execution_id",
             sa.String(36),
-            sa.ForeignKey("graph.id", ondelete="CASCADE"),
+            sa.ForeignKey("graph_execution.id", ondelete="CASCADE"),
             nullable=False,
         ),
         sa.Column("position", sa.Integer, nullable=False, server_default="0"),
@@ -70,7 +70,7 @@ def upgrade() -> None:
         sa.Column("status_initial", sa.String(64), nullable=False, server_default=""),
         sa.Column("extra", sa.JSON, nullable=False, server_default="{}"),
     )
-    op.create_index("ix_graph_node_graph_execution_id", "graph_node", ["graph_execution_id"])
+    op.create_index("ix_graph_node_graph_execution_id", "graph_node_execution", ["graph_execution_id"])
 
     op.create_table(
         "workflow",
@@ -79,7 +79,7 @@ def upgrade() -> None:
         sa.Column("status", sa.String(32), nullable=False, server_default="idle"),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
-    op.create_index("ix_workflow_task_execution_name", "workflow", ["task_execution_name"])
+    op.create_index("ix_workflow_task_execution_id", "workflow", ["task_execution_id"])
 
     op.create_table(
         "node_state",
@@ -90,7 +90,7 @@ def upgrade() -> None:
             sa.ForeignKey("workflow.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("node_execution_id", sa.String(255), nullable=False),
+        sa.Column("graph_execution_id", sa.String(255), nullable=False),
         sa.Column("status", sa.String(32), nullable=False, server_default="idle"),
         sa.Column("step", sa.Integer, nullable=False, server_default="0"),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
@@ -189,8 +189,8 @@ def upgrade() -> None:
     op.create_table(
         "graph_definition",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("name", sa.String(36), nullable=False),
-        sa.Column("purpose", sa.String(36), nullable=False),
+        sa.Column("name", sa.String(255), nullable=False),
+        sa.Column("purpose", sa.String(255), nullable=False),
     )
 
     # Tabela graph_node_definition

@@ -30,6 +30,7 @@ from .graph_node_execution_completed import GraphNodeExecutionCompleted
 from .graph_node_execution_failed import GraphNodeExecutionFailed
 from .graph_node_execution_requested import GraphNodeExecutionRequested
 from .graph_node_execution_started import GraphNodeExecutionStarted
+from .task_execution_completed import TaskExecutionCompleted
 from .task_execution_created import TaskExecutionCreated
 from .workflow_completed import WorkflowCompleted
 from .workflow_failed import WorkflowFailed
@@ -45,6 +46,7 @@ __all__ = [
     "GraphNodeExecutionFailed",
     "GraphNodeExecutionRequested",
     "GraphNodeExecutionStarted",
+    "TaskExecutionCompleted",
     "TaskExecutionCreated",
     "WorkflowCompleted",
     "WorkflowFailed",
