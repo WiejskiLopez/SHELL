@@ -397,7 +397,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -465,7 +465,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -533,14 +533,14 @@ def task_execution_loader() -> FakeTaskLoader:
 
 from typing import TYPE_CHECKING
 
-from shell.bootstrap.factory.application_factory import ApplicationFactory
+from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 
 if TYPE_CHECKING:
     import pathlib
 
 
 async def _make_app(tmp_path: pathlib.Path):
-    from shell.framework.api.app import create_app
+    from shell.framework.platform.api.app import create_app
 
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     core_container = await ApplicationFactory(database_url=db_url).build()
@@ -556,8 +556,8 @@ import pathlib
 
 import pytest
 
-from shell.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
-from shell.application.commands.workflow_commands import RunTaskerWorkflowCommand
+from shell.application.execution.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
+from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.application.execution.event_handlers.graph_node_execution_result_handler import (
     GraphNodeExecutionResultHandler,
 )
@@ -704,3 +704,15 @@ def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
 
 def _db_url(tmp_path: pathlib.Path) -> str:
     return f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
+
+
+
+
+
+
+
+
+
+
+
+
