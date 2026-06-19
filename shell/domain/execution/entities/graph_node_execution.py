@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.platform.base.entity import Entity
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
@@ -30,6 +30,11 @@ class GraphNodeExecution(Entity[GraphNodeExecutionId]):
         "task_execution_id",
         "source_dir",
         "status_initial",
+        "sub_graph_definition_id",
+        "sub_graph_definition_version",
+        "timeout_seconds",
+        "max_retries",
+        "retry_delay_seconds",
         "extra",
     )
 
@@ -51,7 +56,12 @@ class GraphNodeExecution(Entity[GraphNodeExecutionId]):
         task_execution_id: str = "",
         source_dir: str = "",
         status_initial: str = "",
-        extra: dict[str, object] | None = None,
+        sub_graph_definition_id: str | None = None,
+        sub_graph_definition_version: int | None = None,
+        timeout_seconds: int = 0,
+        max_retries: int = 0,
+        retry_delay_seconds: int = 0,
+        extra: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(id)
         self.position = position
@@ -69,4 +79,9 @@ class GraphNodeExecution(Entity[GraphNodeExecutionId]):
         self.task_execution_id = task_execution_id
         self.source_dir = source_dir
         self.status_initial = status_initial
+        self.sub_graph_definition_id = sub_graph_definition_id
+        self.sub_graph_definition_version = sub_graph_definition_version
+        self.timeout_seconds = timeout_seconds
+        self.max_retries = max_retries
+        self.retry_delay_seconds = retry_delay_seconds
         self.extra = extra or {}

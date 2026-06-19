@@ -284,6 +284,11 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             task_execution_id=graph_node_execution_model.task_execution_id,
             source_dir=graph_node_execution_model.source_dir,
             status_initial=graph_node_execution_model.status_initial,
+            sub_graph_definition_id=graph_node_execution_model.sub_graph_definition_id,
+            sub_graph_definition_version=graph_node_execution_model.sub_graph_definition_version,
+            timeout_seconds=graph_node_execution_model.timeout_seconds,
+            max_retries=graph_node_execution_model.max_retries,
+            retry_delay_seconds=graph_node_execution_model.retry_delay_seconds,
             extra=dict(graph_node_execution_model.extra),
         )
         for graph_node_execution_model in graph_execution_model.graph_node_execution_models
@@ -298,6 +303,22 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         graph_definition_id=GraphDefinitionId(graph_execution_model.graph_definition_id),
         graph_node_executions=graph_node_executions,
         transitions=transitions,
+        parent_graph_execution_id=(
+            GraphExecutionId(graph_execution_model.parent_graph_execution_id)
+            if graph_execution_model.parent_graph_execution_id
+            else None
+        ),
+        parent_tasker_node_execution_id=(
+            GraphNodeExecutionId(graph_execution_model.parent_tasker_node_execution_id)
+            if graph_execution_model.parent_tasker_node_execution_id
+            else None
+        ),
+        state_input=dict(graph_execution_model.state_input),
+        state_output=dict(graph_execution_model.state_output),
+        depth=graph_execution_model.depth,
+        timeout_at=graph_execution_model.timeout_at,
+        correlation_id=graph_execution_model.correlation_id or "",
+        tags=dict(graph_execution_model.tags),
     )
 
 
@@ -418,6 +439,22 @@ def graph_execution_entity_to_model(
         id=graph_execution.id.value,
         task_execution_id=graph_execution.task_execution_id.value,
         graph_definition_id=str(graph_execution.graph_definition_id),
+        parent_graph_execution_id=(
+            graph_execution.parent_graph_execution_id.value
+            if graph_execution.parent_graph_execution_id
+            else None
+        ),
+        parent_tasker_node_execution_id=(
+            graph_execution.parent_tasker_node_execution_id.value
+            if graph_execution.parent_tasker_node_execution_id
+            else None
+        ),
+        state_input=graph_execution.state_input,
+        state_output=graph_execution.state_output,
+        depth=graph_execution.depth,
+        timeout_at=graph_execution.timeout_at,
+        correlation_id=graph_execution.correlation_id,
+        tags=graph_execution.tags,
     )
     graph_execution_model.graph_node_execution_models = [
         GraphNodeExecutionModel(
@@ -438,6 +475,11 @@ def graph_execution_entity_to_model(
             task_execution_id=graph_node_execution.task_execution_id,
             source_dir=graph_node_execution.source_dir,
             status_initial=graph_node_execution.status_initial,
+            sub_graph_definition_id=graph_node_execution.sub_graph_definition_id,
+            sub_graph_definition_version=graph_node_execution.sub_graph_definition_version,
+            timeout_seconds=graph_node_execution.timeout_seconds,
+            max_retries=graph_node_execution.max_retries,
+            retry_delay_seconds=graph_node_execution.retry_delay_seconds,
             extra=graph_node_execution.extra,
         )
         for graph_node_execution in graph_execution.graph_node_executions

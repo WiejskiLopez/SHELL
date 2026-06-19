@@ -50,6 +50,8 @@ class TaskExecutionQueryService:
                         node_type=graph_node_execution_model.node_type,
                         model=graph_node_execution_model.model,
                         command=graph_node_execution_model.command,
+                        sub_graph_definition_id=graph_node_execution_model.sub_graph_definition_id,
+                        sub_graph_definition_version=graph_node_execution_model.sub_graph_definition_version,
                     )
                     for graph_node_execution_model in graph_model.graph_node_execution_models
                 ]

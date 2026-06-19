@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_execution.join_counter import JoinCounter
 from shell.domain.execution.aggregates.graph_execution.loop_counter import LoopCounter
@@ -34,6 +34,14 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     __slots__ = (
         "_task_execution_id",
         "_graph_definition_id",
+        "_parent_graph_execution_id",
+        "_parent_tasker_node_execution_id",
+        "_state_input",
+        "_state_output",
+        "_depth",
+        "_timeout_at",
+        "_correlation_id",
+        "_tags",
         "_graph_node_executions",
         "_transitions",
         "_parallel_groups",
@@ -43,6 +51,14 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
 
     _task_execution_id: TaskExecutionId
     _graph_definition_id: GraphDefinitionId
+    _parent_graph_execution_id: GraphExecutionId | None
+    _parent_tasker_node_execution_id: GraphNodeExecutionId | None
+    _state_input: dict[str, Any]
+    _state_output: dict[str, Any]
+    _depth: int
+    _timeout_at: datetime | None
+    _correlation_id: str
+    _tags: dict[str, Any]
     _graph_node_executions: list[GraphNodeExecution]
     _transitions: list[GraphNodeTransitionExecution]
     _parallel_groups: dict[str, ParallelGroup]
@@ -56,10 +72,26 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         graph_definition_id: GraphDefinitionId,
         graph_node_executions: list[GraphNodeExecution] | None = None,
         transitions: list[GraphNodeTransitionExecution] | None = None,
+        parent_graph_execution_id: GraphExecutionId | None = None,
+        parent_tasker_node_execution_id: GraphNodeExecutionId | None = None,
+        state_input: dict[str, Any] | None = None,
+        state_output: dict[str, Any] | None = None,
+        depth: int = 0,
+        timeout_at: datetime | None = None,
+        correlation_id: str = "",
+        tags: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._graph_definition_id = graph_definition_id
+        self._parent_graph_execution_id = parent_graph_execution_id
+        self._parent_tasker_node_execution_id = parent_tasker_node_execution_id
+        self._state_input = state_input or {}
+        self._state_output = state_output or {}
+        self._depth = depth
+        self._timeout_at = timeout_at
+        self._correlation_id = correlation_id
+        self._tags = tags or {}
         self._graph_node_executions = list(graph_node_executions) if graph_node_executions else []
         self._transitions = list(transitions) if transitions else []
         self._parallel_groups = {}
@@ -73,6 +105,42 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     @property
     def graph_definition_id(self) -> GraphDefinitionId:
         return self._graph_definition_id
+
+    @property
+    def parent_graph_execution_id(self) -> GraphExecutionId | None:
+        return self._parent_graph_execution_id
+
+    @property
+    def parent_tasker_node_execution_id(self) -> GraphNodeExecutionId | None:
+        return self._parent_tasker_node_execution_id
+
+    @property
+    def state_input(self) -> dict[str, Any]:
+        return self._state_input
+
+    @property
+    def state_output(self) -> dict[str, Any]:
+        return self._state_output
+
+    @state_output.setter
+    def state_output(self, value: dict[str, Any]) -> None:
+        self._state_output = value
+
+    @property
+    def depth(self) -> int:
+        return self._depth
+
+    @property
+    def timeout_at(self) -> datetime | None:
+        return self._timeout_at
+
+    @property
+    def correlation_id(self) -> str:
+        return self._correlation_id
+
+    @property
+    def tags(self) -> dict[str, Any]:
+        return self._tags
 
     @property
     def graph_node_executions(self) -> tuple[GraphNodeExecution, ...]:
@@ -115,6 +183,11 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         graph_definition: GraphDefinition,
         id_gen: IdGenerator,
         now: datetime,
+        parent_graph_execution_id: GraphExecutionId | None = None,
+        parent_tasker_node_execution_id: GraphNodeExecutionId | None = None,
+        state_input: dict[str, Any] | None = None,
+        correlation_id: str = "",
+        depth: int = 0,
     ) -> GraphExecution:
         from shell.domain.platform.value_objects.mode import Mode
 
@@ -147,6 +220,9 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
                     source_dir="",
                     status_initial=graph_node_definition.status_initial,
                     extra=dict(graph_node_definition.extra),
+                    sub_graph_definition_id=graph_node_definition.extra.get("sub_graph_definition_id"),
+                    timeout_seconds=graph_node_definition.timeout,
+                    max_retries=graph_node_definition.retries,
                 )
             )
             previous_node_id = node_id
@@ -156,6 +232,11 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition.id,
             graph_node_executions=graph_node_executions,
+            parent_graph_execution_id=parent_graph_execution_id,
+            parent_tasker_node_execution_id=parent_tasker_node_execution_id,
+            state_input=state_input,
+            depth=depth,
+            correlation_id=correlation_id,
         )
 
         graph_execution._build_sequence_transitions(previous_node_id)

@@ -43,6 +43,8 @@ class InMemoryQueryServices:
                     node_type=graph_node_execution.node_type,
                     model=graph_node_execution.model,
                     command=graph_node_execution.command,
+                    sub_graph_definition_id=graph_node_execution.sub_graph_definition_id,
+                    sub_graph_definition_version=graph_node_execution.sub_graph_definition_version,
                 )
                 for graph_node_execution in graph_execution.graph_node_executions
             ]
