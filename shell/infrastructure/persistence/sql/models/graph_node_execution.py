@@ -16,7 +16,6 @@ class GraphNodeExecutionModel(Base):
         ForeignKey("graph_execution.id", ondelete="CASCADE"), nullable=False, index=True
     )
     position: Mapped[int] = mapped_column(nullable=False, default=0)
-    node_dir: Mapped[str] = mapped_column(nullable=False, default="")
     mode: Mapped[str] = mapped_column(nullable=False)
     role: Mapped[str] = mapped_column(nullable=False, default="")
     node_type: Mapped[str] = mapped_column(nullable=False, default="")
@@ -30,7 +29,6 @@ class GraphNodeExecutionModel(Base):
     autopilot: Mapped[bool] = mapped_column(nullable=False, default=False)
     task_execution_id: Mapped[str] = mapped_column(nullable=False, default="")
     source_dir: Mapped[str] = mapped_column(nullable=False, default="")
-    work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
     extra: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 

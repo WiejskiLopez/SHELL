@@ -33,6 +33,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         "_body",
         "_is_current",
         "_created_at",
+        "_work_dir",
     )
 
     _parent_task_execution_id: TaskExecutionId | None
@@ -42,6 +43,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     _body: TaskExecutionBody
     _is_current: bool
     _created_at: datetime
+    _work_dir: str
 
     def __init__(
         self,
@@ -53,6 +55,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         body: TaskExecutionBody | None = None,
         is_current: bool = True,
         created_at: datetime | None = None,
+        work_dir: str = "",
     ) -> None:
         super().__init__(id)
         self._parent_task_execution_id = parent_task_execution_id
@@ -62,6 +65,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         self._body = body or TaskExecutionBody("")
         self._is_current = is_current
         self._created_at = created_at or datetime.min
+        self._work_dir = work_dir
 
     @property
     def parent_task_execution_id(self) -> TaskExecutionId | None:
@@ -90,6 +94,14 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     @property
     def created_at(self) -> datetime:
         return self._created_at
+
+    @property
+    def work_dir(self) -> str:
+        return self._work_dir
+
+    @work_dir.setter
+    def work_dir(self, value: str) -> None:
+        self._work_dir = value
 
     @classmethod
     def create(

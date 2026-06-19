@@ -38,7 +38,6 @@ class InMemoryQueryServices:
                 GraphNodeExecutionDto(
                     id=graph_node_execution.id.value,
                     position=graph_node_execution.position,
-                    node_dir=graph_node_execution.node_dir,
                     mode=graph_node_execution.mode.value,
                     role=graph_node_execution.role,
                     node_type=graph_node_execution.node_type,

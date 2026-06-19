@@ -77,9 +77,11 @@ class RunTaskerWorkflowHandler:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)
 
             context = WorkflowExecutionContext(
-                work_dir=cmd.work_dir,
                 correlation_id=str(uuid.uuid4()),
             )
+
+            task_execution.work_dir = cmd.work_dir
+            await uow.task_executions.save(task_execution)
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),

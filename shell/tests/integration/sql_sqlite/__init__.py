@@ -212,7 +212,6 @@ class TestSqlWorkflowRepository:
                     GraphNodeExecution(
                         id=GraphNodeExecutionId("wf-task-node-0"),
                         position=0,
-                        node_dir="/fake/wf-task-0",
                         mode=Mode("agent"),
                         role="agent",
                         node_type="agent",

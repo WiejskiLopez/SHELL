@@ -16,7 +16,6 @@ class GraphNodeExecution:
 
     id: GraphNodeExecutionId
     position: int
-    node_dir: str
     mode: Mode
     role: str
     node_type: str
@@ -30,6 +29,5 @@ class GraphNodeExecution:
     autopilot: bool = False
     task_execution_id: str = ""
     source_dir: str = ""
-    work_dir: str = ""
     status_initial: str = ""
     extra: dict[str, object] = field(default_factory=dict)

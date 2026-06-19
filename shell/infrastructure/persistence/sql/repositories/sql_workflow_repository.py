@@ -66,7 +66,6 @@ class SqlWorkflowRepository:
                     if workflow.cursor.current_graph_node_execution_id
                     else None
                 ),
-                work_dir=workflow.execution_context.work_dir,
                 correlation_id=workflow.execution_context.correlation_id,
                 version=new_version,
             )

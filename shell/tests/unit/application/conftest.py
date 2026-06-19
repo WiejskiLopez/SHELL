@@ -127,7 +127,6 @@ def _build_graph_execution(
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=i,
-            node_dir=f"/fake/{m}-{i}",
             mode=Mode(m),
             role=m,
             node_type=m,
@@ -150,7 +149,7 @@ async def _persist_running_workflow(
     wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=task_execution_id, now=_NOW)
     wf.start_at(
         first_graph_node_execution_id=first_node,
-        context=WorkflowExecutionContext(work_dir="/tmp", correlation_id="cid"),
+        context=WorkflowExecutionContext(correlation_id="cid"),
         now=_NOW,
     )
     async with uow:

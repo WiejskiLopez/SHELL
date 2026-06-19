@@ -42,7 +42,6 @@ class TaskExecutionQueryService:
                     GraphNodeExecutionDto(
                         id=graph_node_execution_model.id,
                         position=graph_node_execution_model.position,
-                        node_dir=graph_node_execution_model.node_dir,
                         mode=graph_node_execution_model.mode,
                         role=graph_node_execution_model.role,
                         node_type=graph_node_execution_model.node_type,

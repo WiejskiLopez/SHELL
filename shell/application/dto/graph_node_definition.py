@@ -7,7 +7,6 @@ from dataclasses import dataclass
 class GraphNodeDefinitionDto:
     id: str
     position: int
-    node_dir: str
     mode: str
     role: str
     node_type: str

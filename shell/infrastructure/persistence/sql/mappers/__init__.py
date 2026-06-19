@@ -96,6 +96,7 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
         body=TaskExecutionBody(task_execution_model.body),
         is_current=task_execution_model.is_current,
         created_at=_ensure_utc(task_execution_model.created_at),
+        work_dir=task_execution_model.work_dir or "",
     )
 
 
@@ -112,6 +113,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         hash=task_execution.hash.value,
         body=task_execution.body.value,
         is_current=task_execution.is_current,
+        work_dir=task_execution.work_dir,
         created_at=task_execution.created_at,
     )
 
@@ -242,7 +244,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         GraphNodeExecution(
             id=GraphNodeExecutionId(graph_node_execution_model.id),
             position=graph_node_execution_model.position,
-            node_dir=graph_node_execution_model.node_dir,
             mode=Mode(graph_node_execution_model.mode),
             role=graph_node_execution_model.role,
             node_type=graph_node_execution_model.node_type,
@@ -256,7 +257,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             autopilot=graph_node_execution_model.autopilot,
             task_execution_id=graph_node_execution_model.task_execution_id,
             source_dir=graph_node_execution_model.source_dir,
-            work_dir=graph_node_execution_model.work_dir,
             status_initial=graph_node_execution_model.status_initial,
             extra=dict(graph_node_execution_model.extra),
         )
@@ -281,7 +281,6 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
             id=graph_node_execution.id.value,
             graph_execution_id=graph_execution.id.value,
             position=graph_node_execution.position,
-            node_dir=graph_node_execution.node_dir,
             mode=graph_node_execution.mode.value,
             role=graph_node_execution.role,
             node_type=graph_node_execution.node_type,
@@ -295,7 +294,6 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
             autopilot=graph_node_execution.autopilot,
             task_execution_id=graph_node_execution.task_execution_id,
             source_dir=graph_node_execution.source_dir,
-            work_dir=graph_node_execution.work_dir,
             status_initial=graph_node_execution.status_initial,
             extra=graph_node_execution.extra,
         )
@@ -335,7 +333,6 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
         else WorkflowCursor.empty()
     )
     context = WorkflowExecutionContext(
-        work_dir=workflow_model.work_dir or "",
         correlation_id=workflow_model.correlation_id or "",
     )
     return Workflow(
@@ -359,7 +356,6 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
         current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value
         if work_flow.cursor.current_graph_node_execution_id
         else None,
-        work_dir=work_flow.execution_context.work_dir,
         correlation_id=work_flow.execution_context.correlation_id,
         version=work_flow.version,
         created_at=work_flow.created_at,

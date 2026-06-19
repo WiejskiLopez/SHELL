@@ -520,3 +520,45 @@
 2026-06-19 06:38:15,089 WARNING test_stdlib_warn: watch out
 2026-06-19 06:38:15,090 ERROR test_stdlib_err: boom
 2026-06-19 06:38:15,091 DEBUG test_stdlib_dbg: trace
+2026-06-19 08:55:18,892 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 08:55:18,897 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 08:55:26,071 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 08:55:26,075 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 08:55:27,813 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 08:55:27,817 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 08:55:27,826 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 08:55:27,827 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 08:55:27,832 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 08:55:27,833 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 08:55:28,280 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 08:55:28,283 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 08:55:28,288 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 08:55:28,289 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 08:55:28,295 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 08:55:28,297 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 08:55:28,457 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 08:55:28,461 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 08:55:28,533 INFO test_stdlib_info: hello world
+2026-06-19 08:55:28,534 WARNING test_stdlib_warn: watch out
+2026-06-19 08:55:28,535 ERROR test_stdlib_err: boom
+2026-06-19 08:55:28,536 DEBUG test_stdlib_dbg: trace
+2026-06-19 08:58:27,884 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 08:58:27,887 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 08:58:29,646 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 08:58:29,649 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 08:58:29,658 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 08:58:29,659 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 08:58:29,663 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 08:58:29,664 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 08:58:29,966 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 08:58:29,969 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 08:58:29,974 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 08:58:29,974 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 08:58:29,980 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 08:58:29,981 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 08:58:30,143 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 08:58:30,146 INFO shell.infrastructure.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 08:58:30,223 INFO test_stdlib_info: hello world
+2026-06-19 08:58:30,224 WARNING test_stdlib_warn: watch out
+2026-06-19 08:58:30,225 ERROR test_stdlib_err: boom
+2026-06-19 08:58:30,226 DEBUG test_stdlib_dbg: trace

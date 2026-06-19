@@ -40,7 +40,6 @@ def _new_workflow() -> Workflow:
 def _ctx() -> WorkflowExecutionContext:
     """Pomocniczy kontekst wykonania mapowany w infrastructure/persistence/sql/mappers."""
     return WorkflowExecutionContext(
-        work_dir="/tmp/shell_work",
         correlation_id="corr-abc-123",
     )
 

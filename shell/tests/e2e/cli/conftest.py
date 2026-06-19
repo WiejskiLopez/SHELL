@@ -56,7 +56,6 @@ def _make_task_with_graph_execution(
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=i,
-            node_dir=f"/fake/{m}-{i}",
             mode=Mode(m),
             role=m,
             node_type=m,

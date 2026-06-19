@@ -81,7 +81,7 @@ def _new_workflow() -> Workflow:
 
 
 def _ctx() -> WorkflowExecutionContext:
-    return WorkflowExecutionContext(work_dir="/tmp", correlation_id="cid-1")
+    return WorkflowExecutionContext(correlation_id="cid-1")
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +95,6 @@ def _graph_node_execution(
     return GraphNodeExecution(
         id=GraphNodeExecutionId(graph_node_execution_id),
         position=position,
-        node_dir=f"/fake/{graph_node_execution_id}",
         mode=Mode(mode),
         role=mode,
         node_type=mode,

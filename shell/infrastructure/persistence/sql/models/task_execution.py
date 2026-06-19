@@ -23,4 +23,5 @@ class TaskExecutionModel(Base):
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(nullable=False, default="")
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
+    work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(nullable=False)

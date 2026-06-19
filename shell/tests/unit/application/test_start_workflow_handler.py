@@ -59,7 +59,6 @@ class TestStartWorkflowHandler:
                 GraphNodeExecution(
                     id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
                     position=0,
-                    node_dir=f"/fake/{task_execution_name}-0",
                     mode=Mode("agent"),
                     role="agent",
                     node_type="agent",

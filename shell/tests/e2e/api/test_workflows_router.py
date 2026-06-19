@@ -57,7 +57,6 @@ class TestWorkflowsRouter:
                         GraphNodeExecution(
                             id=GraphNodeExecutionId("wf_task-node-0"),
                             position=0,
-                            node_dir="/fake/wf_task-0",
                             mode=Mode("agent"),
                             role="agent",
                             node_type="agent",
@@ -74,7 +73,6 @@ class TestWorkflowsRouter:
                             GraphNodeExecution(
                                 id=GraphNodeExecutionId("wf_task-node-0"),
                                 position=0,
-                                node_dir="/fake/wf_task-0",
                                 mode=Mode("agent"),
                                 role="agent",
                                 node_type="agent",

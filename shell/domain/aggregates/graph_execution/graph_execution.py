@@ -78,7 +78,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
                 GraphNodeExecution(
                     id=id_gen.new_graph_node_execution_id(),
                     position=graph_node_definition.position,
-                    node_dir="",
                     mode=mode,
                     role=graph_node_definition.role,
                     node_type=graph_node_definition.node_type,
@@ -92,7 +91,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
                     autopilot=graph_node_definition.autopilot,
                     task_execution_id="",
                     source_dir="",
-                    work_dir="",
                     status_initial=graph_node_definition.status_initial,
                     extra=dict(graph_node_definition.extra),
                 )

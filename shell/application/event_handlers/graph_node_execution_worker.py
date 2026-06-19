@@ -103,7 +103,20 @@ class GraphNodeExecutionWorker:
             if not self._is_event_relevant(workflow, event):
                 return
 
-            graph_execution = await self._load_graph_execution(uow, workflow)
+            task_execution = await uow.task_executions.get_current_by_id(
+                workflow.task_execution_id
+            )
+            if task_execution is None:
+                self._logger.warning(
+                    "graph_node_execution_worker.task_execution_not_found",
+                    task_execution_id=workflow.task_execution_id.value,
+                )
+                return
+
+            graph_execution = await uow.graph_executions.get_by_task_execution_id(
+                task_execution.id
+            )
+            work_dir = task_execution.work_dir
 
         if graph_execution is None:
             self._logger.error(
@@ -122,7 +135,7 @@ class GraphNodeExecutionWorker:
             return
 
         # ── 2. Execute subprocess outside the UoW ────────────────────────
-        success, stdout, stderr = await self._run_node(workflow, node, event)
+        success, stdout, stderr = await self._run_node(workflow, node, event, work_dir)
 
         # ── 3. Reload + record result + decide next step (transactional) ─
         try:
@@ -166,23 +179,15 @@ class GraphNodeExecutionWorker:
             return False
         return True
 
-    @staticmethod
-    async def _load_graph_execution(uow: UnitOfWork, workflow: Workflow) -> GraphExecution | None:
-
-        task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
-        if task_execution is None:
-            return None
-        return await uow.graph_executions.get_by_task_execution_id(task_execution.id)
-
     async def _run_node(
         self,
         workflow: Workflow,
         graph_node_execution: GraphNodeExecution,
         event: GraphNodeExecutionRequested,
+        work_dir: str,
     ) -> tuple[bool, str, str]:
         manifest = self._build_manifest(graph_node_execution)
         env = self._build_env(workflow, graph_node_execution)
-        work_dir = workflow.execution_context.work_dir
         try:
             result: ExecutionResult = await self._runner.run(manifest, work_dir, env)
             return result.success, result.stdout, result.stderr

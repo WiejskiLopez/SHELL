@@ -26,7 +26,6 @@ class TaskExecutionDto:
 class GraphNodeExecutionDto:
     id: str
     position: int
-    node_dir: str
     mode: str
     role: str
     node_type: str
@@ -151,7 +150,6 @@ class GraphDefinitionDto:
 class GraphNodeDefinitionDto:
     id: str
     position: int
-    node_dir: str
     mode: str
     role: str
     node_type: str

@@ -16,7 +16,6 @@ class WorkflowModel(Base):
     current_graph_node_execution_id: Mapped[str | None] = mapped_column(
         nullable=True, default=None, index=True
     )
-    work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     version: Mapped[int] = mapped_column(nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
