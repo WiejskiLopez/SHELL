@@ -168,9 +168,8 @@ class GraphNodeExecutionResultHandler:
             workflow.finish(now)
             return
         next_graph_node_execution = next_graph_node_executions[0]
-        workflow.advance_to(next_graph_node_execution_id=next_graph_node_execution.id, now=now)
-        workflow.append_event(
-            GraphNodeExecutionRequested.now(workflow.id, next_graph_node_execution.id, now=now)
+        workflow.advance_and_request(
+            next_graph_node_execution_id=next_graph_node_execution.id, now=now
         )
 
     def _handle_failure(

@@ -49,7 +49,6 @@ class TestSqlNodeResultRepository:
                     now=clock.now(),
                 )
             )
-            await u.commit()
 
         handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
         await handler.handle(

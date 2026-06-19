@@ -47,4 +47,6 @@ class TestWorkflow:
         wf.update_graph_node_execution_state(
             graph_node_execution_id, Status.running(), now=_NOW, step=2
         )
-        assert wf.graph_node_execution_states["node-1"].step == 2
+        state = wf.get_graph_node_execution_state(graph_node_execution_id)
+        assert state is not None
+        assert state.step == 2

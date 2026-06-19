@@ -546,7 +546,112 @@ def message_model_to_entity(model):
 
 ---
 
-## 19. ADR — Architecture Decision Records
+## 19. Handler — bezstanowy (stateless)
+
+Handler (command/query/event) NIGDY nie przechowuje mutowalnego stanu między wywołaniami `handle()`.
+Wszystkie dane potrzebne do obsługi komendy/eventu pochodzą z jej parametrów lub z repozytoriów.
+
+```python
+# POPRAWNIE — bezstanowy
+class SomeHandler:
+    def __init__(self, uow: UnitOfWork, clock: Clock) -> None:
+        self._uow = uow   # ← wstrzyknięte serwisy (współdzielone, bezstanowe)
+        self._clock = clock
+
+# ŹLE — stan mutowalny w handlerze
+# class RouteEnvelopesHandler:
+#     def __init__(self, ...):
+#         self._routing_attempts: dict[str, int] = {}  # ← stan między wywołaniami!
+```
+
+Jeśli potrzebujesz zachować stan między krokami (np. licznik prób routingu), zapisz go w domenie (np. w encji lub Value Object) i odczytaj z repozytorium.
+
+---
+
+## 20. Factory/Bus — zakaz `Any` escape
+
+W plikach factory (`command_factory.py`, `event_factory.py`, `query_factory.py`) NIE używaj `Any` do pomijania type-checkingu.
+
+```python
+# POPRAWNIE
+from bootstrap.container.core_container import CoreContainer
+
+def register_cmds(cmd_bus: CommandBus, core: CoreContainer) -> None:
+    cmd_bus.register(SomeCommand, core.application.commands.some_handler_factory)
+
+# ŹLE
+# app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+# cmd_bus.register(SomeCommand, app_ctx.commands.some_handler)  # ← Any, brak typowania
+```
+
+Używaj `providers.Container[T]` lub jawnych typów kontenera zamiast `Any` + `type: ignore`.
+
+---
+
+## 21. Event registry — automatyczna rejestracja
+
+Event registry (np. `EventDeserializer`) NIE może używać hardcoded mapy string → klasa.
+Zamiast tego użyj automatycznej rejestracji przez `__init_subclass__` w base class:
+
+```python
+class DomainEvent:
+    _registry: ClassVar[dict[str, type[DomainEvent]]] = {}
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        cls._registry[cls.__name__] = cls
+```
+
+Dodawanie nowego eventu = utworzenie pliku z klasą dziedziczącą po `DomainEvent`.
+Żadnej ręcznej rejestracji.
+
+---
+
+## 22. Event schema — backward compatibility
+
+`from_payload()` w każdym evencie MUSI obsługiwać brakujące pola (np. przez `.get()` z domyślną wartością).
+NIGDY nie używaj `payload["field"]` — zawsze `payload.get("field", default)`.
+
+Deserializacja starej wersji eventu (niższy `schema_version`) NIGDY nie powoduje cichego dropnięcia eventu.
+Każda zmiana schematu = inkrementacja `schema_version` + obsługa starego formatu w `from_payload()`.
+
+```python
+@classmethod
+def from_payload(cls, occurred_at, payload, schema_version=1):
+    return cls(
+        occurred_at=occurred_at,
+        schema_version=schema_version,
+        # POPRAWNIE: obsługa brakujących pól
+        new_field=payload.get("new_field", "default_value"),
+    )
+```
+
+---
+
+## 23. Aggregate Root — enkapsulacja stanu
+
+Aggregate Root (podobnie jak Entity) NIGDY nie udostępnia:
+- Publicznych setterów dla stanu domenowego (`@status.setter`, `@version.setter`)
+- Mutowalnych referencji do kolekcji wewnętrznych (`return self._items` — zwraca oryginalny słownik/listę)
+
+```python
+# POPRAWNIE — niemutowalny widok
+@property
+def items(self) -> ReadOnlyDict[str, Item]:
+    return ReadOnlyDict(self._items)
+
+# ŹLE — mutowalna referencja
+# @property
+# def items(self) -> dict[str, Item]:
+#     return self._items  # ← caller może modyfikować wewnętrzny stan!
+```
+
+Mutacja stanu Aggregate Root odbywa się WYŁĄCZNIE przez metody domenowe (`start_at()`, `advance_to()`, `archive()`, itd.).
+Repozytorium do zapisu wersji używa metody domenowej, NIE bezpośredniego przypisania.
+
+---
+
+## 24. ADR — Architecture Decision Records
 
 Wszystkie znaczące decyzje architektoniczne dokumentowane są jako ADR w `shell/docs/adr/`.
 Obowiązujące ADR-y:

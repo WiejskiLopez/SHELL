@@ -10,6 +10,7 @@ from shell.domain.events.events import (
     GraphNodeExecutionAdvanced,
     GraphNodeExecutionCompleted,
     GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
     GraphNodeExecutionStarted,
     WorkflowCompleted,
     WorkflowFailed,
@@ -94,10 +95,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
     def status(self) -> Status:
         return self._status
 
-    @status.setter
-    def status(self, value: Status) -> None:
-        self._status = value
-
     @property
     def created_at(self) -> datetime:
         return self._created_at
@@ -106,33 +103,34 @@ class Workflow(AggregateRoot["WorkflowId"]):
     def cursor(self) -> WorkflowCursor:
         return self._cursor
 
-    @cursor.setter
-    def cursor(self, value: WorkflowCursor) -> None:
-        self._cursor = value
-
     @property
     def execution_context(self) -> WorkflowExecutionContext:
         return self._execution_context
-
-    @execution_context.setter
-    def execution_context(self, value: WorkflowExecutionContext) -> None:
-        self._execution_context = value
 
     @property
     def version(self) -> int:
         return self._version
 
-    @version.setter
-    def version(self, value: int) -> None:
-        self._version = value
+    @property
+    def graph_node_execution_states(self) -> tuple[GraphNodeExecutionState, ...]:
+        return tuple(self._graph_node_execution_states.values())
 
     @property
-    def graph_node_execution_states(self) -> dict[str, GraphNodeExecutionState]:
-        return self._graph_node_execution_states
+    def graph_node_execution_results(self) -> tuple[GraphNodeExecutionResult, ...]:
+        return tuple(self._graph_node_execution_results.values())
 
-    @property
-    def graph_node_execution_results(self) -> dict[str, GraphNodeExecutionResult]:
-        return self._graph_node_execution_results
+    def apply_new_version(self, version: int) -> None:
+        self._version = version
+
+    def get_graph_node_execution_state(
+        self, graph_node_execution_id: GraphNodeExecutionId
+    ) -> GraphNodeExecutionState | None:
+        return self._graph_node_execution_states.get(graph_node_execution_id.value)
+
+    def get_graph_node_execution_result(
+        self, graph_node_execution_id: GraphNodeExecutionId
+    ) -> GraphNodeExecutionResult | None:
+        return self._graph_node_execution_results.get(graph_node_execution_id.value)
 
     @classmethod
     def new(
@@ -156,13 +154,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         context: WorkflowExecutionContext,
         now: datetime,
     ) -> None:
-        if self.status != Status.idle():
+        if self._status != Status.idle():
             raise InvalidWorkflowTransition(
-                f"start_at requires status=idle, got {self.status.value!r}"
+                f"start_at requires status=idle, got {self._status.value!r}"
             )
-        self.status = Status.running()
-        self.execution_context = context
-        self.cursor = WorkflowCursor.at(first_graph_node_execution_id)
+        self._status = Status.running()
+        self._execution_context = context
+        self._cursor = WorkflowCursor.at(first_graph_node_execution_id)
         self.update_graph_node_execution_state(
             first_graph_node_execution_id, Status.running(), now=now
         )
@@ -174,14 +172,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
     def advance_to(
         self, *, next_graph_node_execution_id: GraphNodeExecutionId, now: datetime
     ) -> None:
-        if self.status != Status.running():
+        if self._status != Status.running():
             raise InvalidWorkflowTransition(
-                f"advance_to requires status=running, got {self.status.value!r}"
+                f"advance_to requires status=running, got {self._status.value!r}"
             )
-        previous = self.cursor.current_graph_node_execution_id
+        previous = self._cursor.current_graph_node_execution_id
         if previous is None:
             raise InvalidWorkflowTransition("advance_to requires an active cursor")
-        self.cursor = WorkflowCursor.at(next_graph_node_execution_id)
+        self._cursor = WorkflowCursor.at(next_graph_node_execution_id)
         self.update_graph_node_execution_state(
             next_graph_node_execution_id, Status.running(), now=now
         )
@@ -197,13 +195,21 @@ class Workflow(AggregateRoot["WorkflowId"]):
             GraphNodeExecutionStarted.now(self.id, next_graph_node_execution_id, now=now)
         )
 
+    def advance_and_request(
+        self, *, next_graph_node_execution_id: GraphNodeExecutionId, now: datetime
+    ) -> None:
+        self.advance_to(next_graph_node_execution_id=next_graph_node_execution_id, now=now)
+        self.append_event(
+            GraphNodeExecutionRequested.now(self.id, next_graph_node_execution_id, now=now)
+        )
+
     def finish(self, now: datetime) -> None:
-        if self.status != Status.running():
+        if self._status != Status.running():
             raise InvalidWorkflowTransition(
-                f"finish requires status=running, got {self.status.value!r}"
+                f"finish requires status=running, got {self._status.value!r}"
             )
-        self.status = Status.done()
-        self.cursor = self.cursor.cleared()
+        self._status = Status.done()
+        self._cursor = self._cursor.cleared()
         self.append_event(WorkflowCompleted.now(self.id, self.task_execution_id, now=now))
 
     def abort(
@@ -213,12 +219,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         now: datetime,
         compensation: CompensationHandler | None = None,
     ) -> None:
-        if self.status not in (Status.running(), Status.idle()):
+        if self._status not in (Status.running(), Status.idle()):
             raise InvalidWorkflowTransition(
-                f"abort requires status in (idle,running), got {self.status.value!r}"
+                f"abort requires status in (idle,running), got {self._status.value!r}"
             )
-        self.status = Status.failed()
-        self.cursor = self.cursor.cleared()
+        self._status = Status.failed()
+        self._cursor = self._cursor.cleared()
         self.append_event(WorkflowFailed.now(self.id, self.task_execution_id, now=now))
         if compensation is not None:
             compensation.compensate(self, reason)
@@ -232,9 +238,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
     ) -> None:
         from shell.domain.value_objects.ids import GraphNodeExecutionStateId
 
-        existing = self.graph_node_execution_states.get(graph_node_execution_id.value)
+        existing = self._graph_node_execution_states.get(graph_node_execution_id.value)
         state_id = existing.id if existing else GraphNodeExecutionStateId.generate()
-        self.graph_node_execution_states[graph_node_execution_id.value] = GraphNodeExecutionState(
+        self._graph_node_execution_states[graph_node_execution_id.value] = GraphNodeExecutionState(
             id=state_id,
             graph_node_execution_id=graph_node_execution_id,
             status=status,
@@ -268,7 +274,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             artifact_uri=artifact_uri,
             now=now,
         )
-        self.graph_node_execution_results[graph_node_execution_id.value] = result
+        self._graph_node_execution_results[graph_node_execution_id.value] = result
         self.update_graph_node_execution_state(graph_node_execution_id, status, now=now)
         if status == Status.done():
             self.append_event(

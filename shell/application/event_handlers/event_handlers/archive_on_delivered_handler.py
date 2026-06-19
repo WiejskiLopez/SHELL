@@ -15,7 +15,7 @@ class ArchiveOnDeliveredHandler:
         self._clock = clock
 
     async def handle(self, event: EnvelopeRouted) -> None:
-        from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
+        from shell.domain.value_objects.envelope_status import EnvelopeStatus
         from shell.domain.value_objects.ids import EnvelopeId
 
         async with self._uow as uow:
@@ -25,6 +25,5 @@ class ArchiveOnDeliveredHandler:
             if envelope.status != EnvelopeStatus.DELIVERED:
                 return
             archive_uri = await uow.envelope_archive.archive(envelope)
-            envelope.archive_uri = archive_uri
-            envelope.transition_stage(EnvelopeStage.ARCHIVED, self._clock.now())
+            envelope.archive(archive_uri, self._clock.now())
             await uow.envelopes.save(envelope)

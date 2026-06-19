@@ -103,7 +103,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         try:
             if exc_type:
                 await self.rollback()
-            else:
+            elif not self._committed:
                 await self.commit()
         finally:
             if self._session:

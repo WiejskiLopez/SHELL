@@ -36,7 +36,7 @@ class TestAdvanceTo:
 
     def test_advance_requires_active_cursor(self) -> None:
         wf = _new_workflow()
-        wf.status = Status.running()
-        wf.cursor = WorkflowCursor.empty()
+        wf._status = Status.running()
+        wf._cursor = WorkflowCursor.empty()
         with pytest.raises(InvalidWorkflowTransition):
             wf.advance_to(next_graph_node_execution_id=GraphNodeExecutionId("n2"), now=_NOW)

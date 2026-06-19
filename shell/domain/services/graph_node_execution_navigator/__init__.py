@@ -8,8 +8,12 @@ from shell.domain.services.graph_node_execution_navigator.linear_graph_node_exec
 from shell.domain.services.graph_node_execution_navigator.node_navigator import (
     NodeNavigator,
 )
+from shell.domain.services.graph_node_execution_navigator.transition_based_navigator import (
+    TransitionBasedNavigator,
+)
 
 __all__ = [
     "LinearGraphNodeExecutionNavigator",
     "NodeNavigator",
+    "TransitionBasedNavigator",
 ]

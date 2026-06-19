@@ -24,5 +24,12 @@ class GraphExecutionModel(Base):
         cascade="all, delete-orphan",
     )
 
+    graph_node_transition_models: Mapped[list[GraphNodeTransitionModel]] = relationship(
+        "GraphNodeTransitionModel",
+        back_populates="graph_execution_model",
+        cascade="all, delete-orphan",
+    )
+
 
 from .graph_node_execution import GraphNodeExecutionModel
+from .graph_node_transition import GraphNodeTransitionModel

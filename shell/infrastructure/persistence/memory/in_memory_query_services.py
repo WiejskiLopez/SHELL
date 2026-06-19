@@ -70,13 +70,13 @@ class InMemoryQueryServices:
             status=workflow.status.value,
             created_at=workflow.created_at,
             graph_node_execution_states={
-                str(state_id): GraphNodeExecutionStateDto(
+                str(state.graph_node_execution_id): GraphNodeExecutionStateDto(
                     graph_node_execution_id=str(state.graph_node_execution_id),
                     status=state.status.value,
                     step=state.step,
                     updated_at=state.updated_at,
                 )
-                for state_id, state in workflow.graph_node_execution_states.items()
+                for state in workflow.graph_node_execution_states
             },
         )
 
@@ -115,8 +115,10 @@ class InMemoryQueryServices:
         wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
         if wf is None:
             return None
-        res = wf.graph_node_execution_results.get(graph_node_execution_id)
-        if not res:
+        from shell.domain.value_objects.ids import GraphNodeExecutionId
+
+        res = wf.get_graph_node_execution_result(GraphNodeExecutionId(graph_node_execution_id))
+        if res is None:
             return None
         return GraphNodeExecutionResultDto(
             id=str(res.id),

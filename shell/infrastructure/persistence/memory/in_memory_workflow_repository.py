@@ -22,14 +22,16 @@ class InMemoryWorkflowRepository(WorkflowRepository):
 
         existing_version = self._persisted_versions.get(workflow.id.value)
         if existing_version is None:
-            workflow.version = max(workflow.version, 0) + 1
+            new_version = max(workflow.version, 0) + 1
+            workflow.apply_new_version(new_version)
             self._store[workflow.id.value] = workflow
-            self._persisted_versions[workflow.id.value] = workflow.version
+            self._persisted_versions[workflow.id.value] = new_version
             return
 
         if existing_version != workflow.version:
             raise WorkflowConcurrentlyModified(workflow.id.value)
 
-        workflow.version = workflow.version + 1
+        new_version = workflow.version + 1
+        workflow.apply_new_version(new_version)
         self._store[workflow.id.value] = workflow
-        self._persisted_versions[workflow.id.value] = workflow.version
+        self._persisted_versions[workflow.id.value] = new_version

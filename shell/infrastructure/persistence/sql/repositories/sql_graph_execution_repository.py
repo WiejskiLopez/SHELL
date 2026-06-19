@@ -24,22 +24,22 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
-        query = (
-            select(GraphExecutionModel)
-            .options(selectinload(GraphExecutionModel.graph_node_execution_models))
-            .where(GraphExecutionModel.id == graph_execution_id.value)
+    def _base_query(self):
+        return select(GraphExecutionModel).options(
+            selectinload(GraphExecutionModel.graph_node_execution_models),
+            selectinload(GraphExecutionModel.graph_node_transition_models),
         )
+
+    async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
+        query = self._base_query().where(GraphExecutionModel.id == graph_execution_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None
 
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> GraphExecution | None:
-        query = (
-            select(GraphExecutionModel)
-            .options(selectinload(GraphExecutionModel.graph_node_execution_models))
-            .where(GraphExecutionModel.task_execution_id == task_execution_id.value)
+        query = self._base_query().where(
+            GraphExecutionModel.task_execution_id == task_execution_id.value
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None

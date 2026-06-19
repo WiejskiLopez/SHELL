@@ -53,7 +53,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
         handler = _make_result_handler(uow)
 
         # Act: Cycle B — result handler decides next step
-        result_id = list(wf.graph_node_execution_results.values())[0].id
+        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompleted.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
@@ -97,7 +97,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
 
         handler = _make_result_handler(uow)
 
-        result_id = list(wf.graph_node_execution_results.values())[0].id
+        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompleted.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
@@ -184,7 +184,7 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
         handler = _make_result_handler(uow)
 
         # Re-delivery of completed event after finish
-        result_id = list(wf.graph_node_execution_results.values())[0].id
+        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompleted.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,

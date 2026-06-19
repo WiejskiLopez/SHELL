@@ -51,7 +51,7 @@ class TestWorkflowStateMachine:
 
         assert wf.status == Status.idle()
         assert wf.cursor == WorkflowCursor.empty()
-        assert wf.graph_node_execution_states == {}
+        assert wf.graph_node_execution_states == ()
 
     def test_start_at_transitions_to_running_and_emits_events(self) -> None:
         """Weryfikuje przejście ze stanu idle do running po wywołaniu start_at."""
@@ -64,11 +64,9 @@ class TestWorkflowStateMachine:
 
         assert wf.status == Status.running()
         assert wf.cursor == WorkflowCursor.at(first_graph_node_execution_id)
-        assert first_graph_node_execution_id.value in wf.graph_node_execution_states
-        assert (
-            wf.graph_node_execution_states[first_graph_node_execution_id.value].status
-            == Status.running()
-        )
+        state = wf.get_graph_node_execution_state(first_graph_node_execution_id)
+        assert state is not None
+        assert state.status == Status.running()
 
         # Sprawdzenie akumulacji zdarzeń domenowych
         events = wf.pull_events()
@@ -101,7 +99,9 @@ class TestWorkflowStateMachine:
         wf.advance_to(next_graph_node_execution_id=node2, now=_NOW)
 
         assert wf.cursor == WorkflowCursor.at(node2)
-        assert wf.graph_node_execution_states[node2.value].status == Status.running()
+        state = wf.get_graph_node_execution_state(node2)
+        assert state is not None
+        assert state.status == Status.running()
 
         events = wf.pull_events()
         assert any(isinstance(e, GraphNodeExecutionAdvanced) for e in events)

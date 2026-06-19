@@ -18,6 +18,7 @@ from shell.domain.aggregates.graph_node_execution_output_payload import (
 from shell.domain.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.entities.graph_node_execution_result import GraphNodeExecutionResult
+from shell.domain.entities.graph_node_transition import GraphNodeTransition
 from shell.domain.entities.prompt import Prompt
 from shell.domain.entities.runner_config import RunnerConfig
 from shell.domain.aggregates.task_execution import TaskExecution
@@ -39,6 +40,7 @@ from shell.domain.value_objects.ids import (
     GraphNodeDefinitionId,
     GraphNodeExecutionId,
     GraphNodeExecutionInputPayloadId,
+    GraphNodeTransitionId,
     GraphNodeExecutionOutputPayloadId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
@@ -56,6 +58,7 @@ from shell.domain.value_objects.ids import (
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.value_objects.transition_type import TransitionType
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
 from shell.infrastructure.persistence.sql.models import (
@@ -273,15 +276,77 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         )
         for graph_node_execution_model in graph_execution_model.graph_node_execution_models
     ]
+    transitions = [
+        graph_node_transition_model_to_entity(t)
+        for t in graph_execution_model.graph_node_transition_models
+    ]
     return GraphExecution(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
         graph_definition_id=GraphDefinitionId(graph_execution_model.graph_definition_id),
         graph_node_executions=graph_node_executions,
+        transitions=transitions,
     )
 
 
-def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExecutionModel:
+def graph_node_transition_model_to_entity(
+    model: GraphNodeTransitionModel,
+) -> GraphNodeTransition:
+    return GraphNodeTransition(
+        id=GraphNodeTransitionId(model.id),
+        graph_execution_id=GraphExecutionId(model.graph_execution_id),
+        source_node_execution_id=(
+            GraphNodeExecutionId(model.source_node_execution_id)
+            if model.source_node_execution_id
+            else None
+        ),
+        target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id),
+        transition_type=TransitionType(model.transition_type),
+        priority=model.priority,
+        condition_expression=model.condition_expression,
+        condition_language=model.condition_language,
+        join_wait_count=model.join_wait_count,
+        max_loop_count=model.max_loop_count,
+        timeout_seconds=model.timeout_seconds,
+        retry_count=model.retry_count,
+        retry_delay_seconds=model.retry_delay_seconds,
+        data_mapping=dict(model.data_mapping) if model.data_mapping else None,
+        label=model.label,
+    )
+
+
+def graph_node_transition_entity_to_model(
+    transition: GraphNodeTransition,
+    now: datetime,
+) -> GraphNodeTransitionModel:
+    return GraphNodeTransitionModel(
+        id=transition.id.value,
+        graph_execution_id=transition.graph_execution_id.value,
+        source_node_execution_id=(
+            transition.source_node_execution_id.value
+            if transition.source_node_execution_id
+            else None
+        ),
+        target_node_execution_id=transition.target_node_execution_id.value,
+        transition_type=transition.transition_type.value,
+        priority=transition.priority,
+        condition_expression=transition.condition_expression,
+        condition_language=transition.condition_language,
+        join_wait_count=transition.join_wait_count,
+        max_loop_count=transition.max_loop_count,
+        timeout_seconds=transition.timeout_seconds,
+        retry_count=transition.retry_count,
+        retry_delay_seconds=transition.retry_delay_seconds,
+        data_mapping=transition.data_mapping,
+        label=transition.label,
+        created_at=now,
+        updated_at=now,
+    )
+
+
+def graph_execution_entity_to_model(
+    graph_execution: GraphExecution,
+) -> GraphExecutionModel:
     graph_execution_model = GraphExecutionModel(
         id=graph_execution.id.value,
         task_execution_id=graph_execution.task_execution_id.value,
@@ -309,6 +374,11 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
             extra=graph_node_execution.extra,
         )
         for graph_node_execution in graph_execution.graph_node_executions
+    ]
+    _now = datetime.now(UTC)
+    graph_execution_model.graph_node_transition_models = [
+        graph_node_transition_entity_to_model(t, _now)
+        for t in graph_execution.transitions
     ]
     return graph_execution_model
 
@@ -381,12 +451,11 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
             step=node_state.step,
             updated_at=node_state.updated_at,
         )
-        for node_state in work_flow.graph_node_execution_states.values()
+        for node_state in work_flow.graph_node_execution_states
     ]
-    # POPRAWKA: Zmiana nazwy na graph_node_execution_result_models
     work_flow_model.graph_node_execution_result_models = [
         graph_node_execution_result_entity_to_model(node_result)
-        for node_result in work_flow.graph_node_execution_results.values()
+        for node_result in work_flow.graph_node_execution_results
     ]
     return work_flow_model
 

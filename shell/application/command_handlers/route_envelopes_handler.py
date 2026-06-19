@@ -18,15 +18,13 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-_MAX_ROUTING_ATTEMPTS = 3
-
 
 class RouteEnvelopesHandler:
     """Routes PENDING envelopes using the task graph to the correct receiver node.
 
     - Envelopes exceeding max_step are expired (DEAD).
     - Remaining PENDING envelopes are resolved to a receiver and moved to ACTIVE.
-    - Envelopes that fail routing after MAX_ROUTING_ATTEMPTS are dead-lettered.
+    - Envelopes that fail routing are dead-lettered.
     """
 
     def __init__(
@@ -38,7 +36,6 @@ class RouteEnvelopesHandler:
         self._uow = uow
         self._clock = clock
         self._max_step = max_step
-        self._routing_attempts: dict[str, int] = {}
 
     async def handle(self, cmd: RouteEnvelopesCommand) -> int:
         """Process envelopes and return the number of envelopes routed."""
@@ -59,7 +56,6 @@ class RouteEnvelopesHandler:
 
             now = self._clock.now()
             routed = 0
-            failed = 0
             expired = 0
 
             for envelope in pending:
@@ -84,28 +80,17 @@ class RouteEnvelopesHandler:
                         )
                         envelope.receiver_graph_node_execution_id = target_graph_node_execution_id
                     except Exception as e:
-                        env_key = envelope.id.value
-                        attempt = self._routing_attempts.get(env_key, 0) + 1
-                        self._routing_attempts[env_key] = attempt
-
-                        if attempt >= _MAX_ROUTING_ATTEMPTS:
-                            logger.warning(
-                                "Envelope %s dead-lettered after %d failed routing attempts: %s",
-                                envelope.id.value, attempt, e,
-                            )
-                            envelope.transition_status(EnvelopeStatus.DEAD, now)
-                            await uow.envelopes.save(envelope)
-                            uow.stage_events(
-                                [EnvelopeDeadlettered.now(
-                                    envelope.id, envelope.workflow_id, reason=str(e), now=now
-                                )]
-                            )
-                            failed += 1
-                        else:
-                            logger.info(
-                                "Routing failed for envelope %s (attempt %d/%d): %s",
-                                envelope.id.value, attempt, _MAX_ROUTING_ATTEMPTS, e,
-                            )
+                        logger.warning(
+                            "Envelope %s dead-lettered after routing failure: %s",
+                            envelope.id.value, e,
+                        )
+                        envelope.transition_status(EnvelopeStatus.DEAD, now)
+                        await uow.envelopes.save(envelope)
+                        uow.stage_events(
+                            [EnvelopeDeadlettered.now(
+                                envelope.id, envelope.workflow_id, reason=str(e), now=now
+                            )]
+                        )
                         continue
 
                 envelope.transition_status(EnvelopeStatus.ACTIVE, now)
@@ -113,12 +98,5 @@ class RouteEnvelopesHandler:
                 await uow.envelopes.save(envelope)
                 uow.stage_events([EnvelopeRouted.now(envelope.id, envelope.workflow_id, now=now)])
                 routed += 1
-                self._routing_attempts.pop(envelope.id.value, None)
-
-        if failed:
-            logger.warning(
-                "Routed %d envelopes, expired %d, dead-lettered %d for workflow %s",
-                routed, expired, failed, cmd.workflow_id,
-            )
 
         return routed

@@ -168,7 +168,7 @@ class GraphNodeExecutionWorker:
         # Node-state guard: skip if this node was already executed.
         # This closes the window between Cycle A (record result) and
         # Cycle B (advance cursor) — a re-delivery won't re-run the node.
-        state = workflow.graph_node_execution_states.get(event.graph_node_execution_id.value)
+        state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
         if state is not None and state.status in (Status.done(), Status.failed()):
             self._logger.debug(
                 "graph_node_execution_worker.skip_already_executed",

@@ -45,7 +45,8 @@ class SqlWorkflowRepository(WorkflowRepository):
         existing_version = existing.scalar_one_or_none()
 
         if existing_version is None:
-            workflow.version = max(workflow.version, 0) + 1
+            new_version = max(workflow.version, 0) + 1
+            workflow.apply_new_version(new_version)
             model = workflow_entity_to_model(workflow)
             await self._session.merge(model)
             return
@@ -75,6 +76,6 @@ class SqlWorkflowRepository(WorkflowRepository):
         if (result.rowcount if hasattr(result, "rowcount") else 0) == 0:
             raise WorkflowConcurrentlyModified(workflow.id.value)
 
-        workflow.version = new_version
+        workflow.apply_new_version(new_version)
         model = workflow_entity_to_model(workflow)
         await self._session.merge(model)

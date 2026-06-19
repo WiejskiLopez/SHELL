@@ -151,3 +151,7 @@ class Envelope(Entity[EnvelopeId]):
     def transition_stage(self, new_stage: EnvelopeStage, now: datetime) -> None:
         self.stage = new_stage
         self.updated_at = now
+
+    def archive(self, archive_uri: str, now: datetime) -> None:
+        self.archive_uri = archive_uri
+        self.transition_stage(EnvelopeStage.ARCHIVED, now)
