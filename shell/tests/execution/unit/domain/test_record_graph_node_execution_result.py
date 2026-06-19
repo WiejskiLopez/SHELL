@@ -4,7 +4,7 @@ from shell.domain.execution.events import GraphNodeExecutionCompletedEvent, Grap
 from shell.domain.platform.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
-from shell.tests.unit.domain.conftest import _ctx, _new_workflow, _NOW
+from shell.tests.conftest import _ctx, _new_workflow, _NOW
 
 
 class TestRecordGraphNodeExecutionResult:

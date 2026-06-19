@@ -1,1 +1,0 @@
-"""SQLite integration test package."""

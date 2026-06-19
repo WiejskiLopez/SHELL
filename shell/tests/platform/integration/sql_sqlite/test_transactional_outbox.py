@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class TestTransactionalOutbox:
     async def test_outbox_written_atomically_with_domain_state(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
@@ -38,7 +38,7 @@ class TestTransactionalOutbox:
         session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "atomic-task"))
 
@@ -61,12 +61,12 @@ class TestTransactionalOutbox:
 
     async def test_rollback_removes_staged_outbox_events(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         session_factory: async_sessionmaker,
     ) -> None:
         with pytest.raises(RuntimeError, match="forced rollback"):
-            async with uow as u:
+            async with sql_uow as u:
                 u.stage_events(
                     [
                         WorkflowStartedEvent.now(

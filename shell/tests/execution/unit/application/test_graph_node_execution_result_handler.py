@@ -22,7 +22,7 @@ from shell.infrastructure.platform.persistence.memory import (
 
 from shell.infrastructure.platform.persistence.memory import FakeIdGenerator
 
-from tests.conftest import (
+from shell.tests.conftest import (
     _NOW,
     _build_graph_execution,
     _make_result_handler,

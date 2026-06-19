@@ -11,12 +11,12 @@ from shell.infrastructure.definition.persistence.sql.services import PromptQuery
 class TestPgPromptRepository:
     async def test_save_and_get_prompt(
         self,
-        uow,
+        sql_uow,
         clock,
         id_gen,
         session_factory,
     ) -> None:
-        handler = SavePromptHandler(uow, clock, id_gen)
+        handler = SavePromptHandler(sql_uow, clock, id_gen)
         await handler.handle(SavePromptCommand("pg-sys-prompt", "You are a pg helper."))
 
         q = GetPromptHandler(PromptQueryService(session_factory))
@@ -26,7 +26,7 @@ class TestPgPromptRepository:
 
     async def test_prompt_not_found_returns_none(
         self,
-        uow,
+        sql_uow,
         session_factory,
     ) -> None:
         q = GetPromptHandler(PromptQueryService(session_factory))

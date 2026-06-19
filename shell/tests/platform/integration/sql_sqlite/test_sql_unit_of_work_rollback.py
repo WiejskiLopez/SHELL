@@ -17,12 +17,12 @@ if TYPE_CHECKING:
 class TestSqlUnitOfWorkRollback:
     async def test_rollback_on_exception_leaves_db_clean(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         session_factory: async_sessionmaker,
     ) -> None:
         try:
-            async with uow as u:
+            async with sql_uow as u:
                 from shell.domain.definition.entities.prompt import Prompt
                 from shell.domain.platform.value_objects.ids import PromptId
 

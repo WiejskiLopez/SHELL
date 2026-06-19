@@ -22,26 +22,26 @@ from shell.infrastructure.execution.persistence.sql.services import WorkflowQuer
 class TestPgWorkflowRepository:
     async def test_start_and_query_workflow(
         self,
-        uow,
+        sql_uow,
         clock,
         id_gen,
         events,
         task_execution_loader,
         session_factory,
     ) -> None:
-        imp = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        imp = ImportTaskExecutionHandler(sql_uow, clock, id_gen, task_execution_loader, FakeLogger())
         await imp.handle(ImportTaskExecutionCommand("t.md", "pg-wf-task"))
 
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
-        async with uow as u:
+        async with sql_uow as u:
             task_execution = await u.task_executions.get_current_by_name(
                 TaskExecutionName("pg-wf-task")
             )
             assert task_execution is not None
             real_task_execution_id = task_execution.id.value
 
-        start = StartWorkflowHandler(uow, clock, id_gen)
+        start = StartWorkflowHandler(sql_uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
         q = GetWorkflowHandler(WorkflowQueryService(session_factory))
@@ -51,7 +51,7 @@ class TestPgWorkflowRepository:
 
     async def test_workflow_not_found_returns_none(
         self,
-        uow,
+        sql_uow,
         session_factory,
     ) -> None:
         q = GetWorkflowHandler(WorkflowQueryService(session_factory))

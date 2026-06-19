@@ -26,7 +26,7 @@ from shell.infrastructure.execution.persistence.sql.services import TaskExecutio
 class TestSqlTaskExecutionRepository:
     async def test_import_and_get_current(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
@@ -34,7 +34,7 @@ class TestSqlTaskExecutionRepository:
         session_factory,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 
@@ -46,7 +46,7 @@ class TestSqlTaskExecutionRepository:
 
     async def test_reimport_marks_old_non_current(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
@@ -54,7 +54,7 @@ class TestSqlTaskExecutionRepository:
         session_factory,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))

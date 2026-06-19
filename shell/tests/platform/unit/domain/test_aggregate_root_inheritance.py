@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from shell.domain.platform.base import Entity
 
-from tests.conftest import _SampleAggregate, _SampleId
+from shell.tests.conftest import _SampleAggregate, _SampleId
 
 
 class TestAggregateRootInheritance:

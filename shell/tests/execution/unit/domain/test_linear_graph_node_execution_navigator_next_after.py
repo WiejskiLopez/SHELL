@@ -7,7 +7,7 @@ from shell.domain.execution.services.graph_node_execution_navigator import (
 )
 from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
 
-from tests.conftest import _graph_execution, _graph_node_execution
+from shell.tests.conftest import _graph_execution, _graph_node_execution
 
 
 class TestLinearGraphNodeExecutionNavigatorNextAfter:

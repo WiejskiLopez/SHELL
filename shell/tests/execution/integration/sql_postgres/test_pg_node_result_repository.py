@@ -15,13 +15,13 @@ from shell.infrastructure.execution.persistence.sql.services import NodeResultQu
 class TestPgNodeResultRepository:
     async def test_save_and_get_result(
         self,
-        uow,
+        sql_uow,
         clock,
         id_gen,
         events,
         session_factory,
     ) -> None:
-        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
         await handler.handle(
             SaveGraphNodeExecutionResultCommand(
                 workflow_id="pg-wf-nr-1",

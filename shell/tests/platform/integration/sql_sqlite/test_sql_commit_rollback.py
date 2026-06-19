@@ -23,9 +23,9 @@ class TestSqlCommitRollback:
         clock: FakeClock,
         id_gen: FakeIdGenerator,
     ) -> None:
-        uow = SqlAlchemyUnitOfWork(session_factory)
+        sql_uow = SqlAlchemyUnitOfWork(session_factory)
         try:
-            async with uow as u:
+            async with sql_uow as u:
                 await u.prompts.save(
                     Prompt.new(
                         id_=id_gen.new_prompt_id(),

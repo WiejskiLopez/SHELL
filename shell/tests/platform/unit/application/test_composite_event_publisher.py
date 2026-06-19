@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 from shell.domain.platform.events import DomainEvent
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
-from shell.tests.unit.application.conftest import _task_imported
+from shell.tests.conftest import _task_imported
 
 
 class TestCompositeEventPublisher:

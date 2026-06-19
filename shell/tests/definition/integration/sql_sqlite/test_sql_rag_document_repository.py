@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 class TestSqlRagDocumentRepository:
     async def test_index_and_search_similar(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
@@ -36,7 +36,7 @@ class TestSqlRagDocumentRepository:
         cmd = IndexDocumentCommand(
             source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text
         )
-        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
+        await IndexDocumentHandler(sql_uow, clock, id_gen, embedder).handle(cmd)
 
         results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
@@ -46,7 +46,7 @@ class TestSqlRagDocumentRepository:
 
     async def test_search_domain_filter_excludes_other_domains(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
@@ -60,7 +60,7 @@ class TestSqlRagDocumentRepository:
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
-        await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(
+        await IndexDocumentHandler(sql_uow, clock, id_gen, embedder).handle(
             IndexDocumentCommand(
                 source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
             )

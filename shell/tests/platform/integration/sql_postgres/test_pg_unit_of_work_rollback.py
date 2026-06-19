@@ -7,13 +7,13 @@ from shell.infrastructure.definition.persistence.sql.services import PromptQuery
 class TestPgUnitOfWorkRollback:
     async def test_rollback_on_exception_leaves_db_clean(
         self,
-        uow,
+        sql_uow,
         clock,
         id_gen,
         session_factory,
     ) -> None:
         try:
-            async with uow as u:
+            async with sql_uow as u:
                 from shell.domain.definition.entities.prompt import Prompt
                 from shell.domain.platform.value_objects.ids import PromptId
 

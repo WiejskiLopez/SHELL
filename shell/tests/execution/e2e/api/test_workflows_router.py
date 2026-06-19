@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution, Gr
 from shell.domain.platform.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.tests.e2e.api.conftest import _make_app
+from shell.tests.conftest import _make_app
 
 if TYPE_CHECKING:
     import pathlib

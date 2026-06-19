@@ -31,14 +31,14 @@ if TYPE_CHECKING:
 class TestSqlWorkflowRepository:
     async def test_start_and_query_workflow(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        imp = ImportTaskExecutionHandler(sql_uow, clock, id_gen, task_execution_loader, FakeLogger())
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
@@ -50,7 +50,7 @@ class TestSqlWorkflowRepository:
         from shell.domain.platform.value_objects.mode import Mode
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
-        async with uow as u:
+        async with sql_uow as u:
             task_execution = await u.task_executions.get_current_by_name(
                 TaskExecutionName("wf-task")
             )
@@ -73,7 +73,7 @@ class TestSqlWorkflowRepository:
             await u.graph_executions.save(graph_execution)
             await u.commit()
 
-        start = StartWorkflowHandler(uow, clock, id_gen)
+        start = StartWorkflowHandler(sql_uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
         q = GetWorkflowHandler(WorkflowQueryService(session_factory))

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class TestSqlSessionRepository:
     async def test_open_append_close_and_history(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
@@ -37,10 +37,10 @@ class TestSqlSessionRepository:
         from shell.application.platform.queries.queries import GetSessionHistoryQuery
         from shell.application.platform.query_handlers.query_handlers import GetSessionHistoryHandler
 
-        session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
+        session_id = await OpenSessionHandler(sql_uow, clock, id_gen).handle(
             OpenSessionCommand(goal="integration test")
         )
-        await AppendMessageHandler(uow, clock, id_gen).handle(
+        await AppendMessageHandler(sql_uow, clock, id_gen).handle(
             AppendMessageCommand(
                 session_id=session_id.value,
                 correlation_id=get_correlation_id(),
@@ -49,7 +49,7 @@ class TestSqlSessionRepository:
                 payload={"k": 1},
             )
         )
-        await AppendMessageHandler(uow, clock, id_gen).handle(
+        await AppendMessageHandler(sql_uow, clock, id_gen).handle(
             AppendMessageCommand(
                 session_id=session_id.value,
                 correlation_id=get_correlation_id(),
@@ -58,7 +58,7 @@ class TestSqlSessionRepository:
                 payload={"k": 2},
             )
         )
-        await CloseSessionHandler(uow, clock).handle(
+        await CloseSessionHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
 

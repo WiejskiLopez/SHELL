@@ -13,7 +13,7 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryUnitOfWork
 )
 
-from tests.conftest import _make_task_with_graph_execution, _run_tasker_full
+from shell.tests.conftest import _make_task_with_graph_execution, _run_tasker_full
 
 
 class TestRunTaskerWorkflowPartialFailure:

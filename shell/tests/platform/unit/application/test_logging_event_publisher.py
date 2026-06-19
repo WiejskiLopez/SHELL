@@ -3,7 +3,7 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
-from shell.tests.unit.application.conftest import _task_imported, _workflow_started
+from shell.tests.conftest import _task_imported, _workflow_started
 
 
 class TestLoggingEventPublisher:

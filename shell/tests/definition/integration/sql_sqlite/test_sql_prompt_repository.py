@@ -22,12 +22,12 @@ if TYPE_CHECKING:
 class TestSqlPromptRepository:
     async def test_save_and_get_prompt(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = SavePromptHandler(uow, clock, id_gen)
+        handler = SavePromptHandler(sql_uow, clock, id_gen)
         await handler.handle(SavePromptCommand("sys-prompt", "You are helpful."))
 
         q = GetPromptHandler(PromptQueryService(session_factory))

@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 class TestSqlNodeResultRepository:
     async def test_save_and_get_result(
         self,
-        uow: SqlAlchemyUnitOfWork,
+        sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
         events: FakeEventPublisher,
@@ -41,7 +41,7 @@ class TestSqlNodeResultRepository:
         from shell.domain.execution.aggregates.workflow import Workflow
         from shell.domain.platform.value_objects.ids import WorkflowId
 
-        async with uow as u:
+        async with sql_uow as u:
             await u.workflows.save(
                 Workflow.new(
                     id_=WorkflowId("wf-sql-nr-1"),
@@ -50,7 +50,7 @@ class TestSqlNodeResultRepository:
                 )
             )
 
-        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
         await handler.handle(
             SaveGraphNodeExecutionResultCommand(
                 workflow_id="wf-sql-nr-1",
