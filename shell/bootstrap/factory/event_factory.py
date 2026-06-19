@@ -48,3 +48,9 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(GraphNodeExecutionStarted, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionAdvanced, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionRequested, events.graph_node_execution_worker_factory)
+    event_bus.subscribe(
+        GraphNodeExecutionCompleted, events.graph_node_execution_result_handler_factory
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionFailed, events.graph_node_execution_result_handler_factory
+    )

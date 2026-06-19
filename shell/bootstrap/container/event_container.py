@@ -11,6 +11,9 @@ from shell.application.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
     LogAuditHandler,
 )
+from shell.application.event_handlers.graph_node_execution_result_handler import (
+    GraphNodeExecutionResultHandler,
+)
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 
 
@@ -43,6 +46,13 @@ class EventContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         runner=infra.runner_factory,
+        logger=infra.stdlib_logger,
+    )
+    graph_node_execution_result_handler_factory = providers.Factory(
+        GraphNodeExecutionResultHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
         navigator=domain.node_navigator_factory,
         policy=domain.graph_node_execution_policy_factory,

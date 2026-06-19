@@ -60,9 +60,12 @@ class InboxProcessor:
                 # Mark in Inbox as processed (our ACK!)
                 row.processed_at = datetime.now(tz=UTC)
 
-            # Pass reconstructed events to application internals
+            await session.commit()
+
+            # Publish AFTER commit so Inbox events are marked processed
+            # before any handler runs.  If a handler throws, the event won't
+            # be lost — the commit already durable-marked it.
             if events_to_publish:
                 await self._event_bus.publish(events_to_publish)
 
-            await session.commit()
             return len(rows)

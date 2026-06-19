@@ -41,12 +41,14 @@ def upgrade() -> None:
                 server_default="",
             )
         )
-        batch.create_unique_constraint("uq_graph_task_execution_id", ["task_execution_id"])
+        batch.drop_index("ix_graph_execution_task_execution_id")
+        batch.create_index("uq_graph_execution_task_execution_id", ["task_execution_id"], unique=True)
 
 
 def downgrade() -> None:
     with op.batch_alter_table("graph_execution") as batch:
-        batch.drop_constraint("uq_graph_task_execution_id", type_="unique")
+        batch.drop_index("uq_graph_execution_task_execution_id")
+        batch.create_index("ix_graph_execution_task_execution_id", ["task_execution_id"])
         batch.drop_column("graph_definition_id")
 
     with op.batch_alter_table("task_execution") as batch:

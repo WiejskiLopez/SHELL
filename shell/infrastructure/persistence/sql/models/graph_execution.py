@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -8,13 +8,12 @@ from .base import Base
 
 class GraphExecutionModel(Base):
     __tablename__ = "graph_execution"
+    __table_args__ = (Index("uq_graph_execution_task_execution_id", "task_execution_id", unique=True),)
 
     id: Mapped[str] = mapped_column(primary_key=True)
     task_execution_id: Mapped[str] = mapped_column(
         ForeignKey("task_execution.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
-        unique=True,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
     status: Mapped[str] = mapped_column(nullable=False, default="CREATED")

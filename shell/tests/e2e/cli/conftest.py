@@ -9,11 +9,18 @@ import pytest
 
 from shell.application.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell.application.commands.workflow_commands import RunTaskerWorkflowCommand
+from shell.application.event_handlers.graph_node_execution_result_handler import (
+    GraphNodeExecutionResultHandler,
+)
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.aggregates.task_execution import TaskExecution
-from shell.domain.events.events import GraphNodeExecutionRequested
+from shell.domain.events.events import (
+    GraphNodeExecutionCompleted,
+    GraphNodeExecutionFailed,
+    GraphNodeExecutionRequested,
+)
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
     GraphDefinitionId,
@@ -80,30 +87,50 @@ async def _run_tasker_full(
     cmd: RunTaskerWorkflowCommand,
     runner: FakeNodeProcessRunner | None = None,
 ) -> list[Any]:
+    """Run the full workflow saga and return all emitted domain events."""
     logger = FakeLogger()
     if runner is None:
         runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
 
     worker = GraphNodeExecutionWorker(
-        uow=uow,
-        clock=clock,
-        id_gen=id_gen,
-        logger=logger,
-        runner=runner,
+        uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner,
     )
+    result_handler = GraphNodeExecutionResultHandler(
+        uow=uow, clock=clock, id_gen=id_gen, logger=logger,
+    )
+    bootstrap_handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
 
-    handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
-    await handler.handle(cmd)
+    all_events: list[Any] = []
 
-    processed_count = 0
-    while processed_count < len(uow.committed_events):
-        event = uow.committed_events[processed_count]
-        processed_count += 1
+    # Phase 1: Bootstrap (creates workflow + first GraphNodeExecutionRequested)
+    await bootstrap_handler.handle(cmd)
+    all_events.extend(uow.committed_events)
 
-        if isinstance(event, GraphNodeExecutionRequested):
-            await worker.handle(event)
+    # Phase 2: Pump loop — process events as they are emitted
+    # after each handler call, InMemoryUnitOfWork.committed_events is replaced
+    # with the events from the latest commit, so we track our own queue.
+    max_iterations = 100
+    for _ in range(max_iterations):
+        # Reload the latest batch of committed events
+        batch = list(uow.committed_events)
+        if not batch:
+            break
 
-    return uow.committed_events
+        has_work = False
+        for event in batch:
+            if isinstance(event, GraphNodeExecutionRequested):
+                await worker.handle(event)
+                all_events.extend(uow.committed_events)
+                has_work = True
+            elif isinstance(event, (GraphNodeExecutionCompleted, GraphNodeExecutionFailed)):
+                await result_handler.handle(event)
+                all_events.extend(uow.committed_events)
+                has_work = True
+
+        if not has_work:
+            break
+
+    return all_events
 
 
 @pytest.fixture()

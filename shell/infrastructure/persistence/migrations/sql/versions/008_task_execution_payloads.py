@@ -26,12 +26,12 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index(
-        "ix_task_execution_input_payload_task_id",
+        "ix_task_execution_input_payload_task_execution_id",
         "task_execution_input_payload",
         ["task_execution_id"],
     )
     op.create_index(
-        "uq_task_execution_input_payload_current",
+        "uq_task_execution_input_payload_is_current",
         "task_execution_input_payload",
         ["task_execution_id"],
         postgresql_where=sa.text("is_current = true"),
@@ -48,12 +48,12 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index(
-        "ix_task_execution_output_payload_task_id",
+        "ix_task_execution_output_payload_task_execution_id",
         "task_execution_output_payload",
         ["task_execution_id"],
     )
     op.create_index(
-        "uq_task_execution_output_payload_current",
+        "uq_task_execution_output_payload_is_current",
         "task_execution_output_payload",
         ["task_execution_id"],
         postgresql_where=sa.text("is_current = true"),
@@ -63,9 +63,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("uq_task_execution_output_payload_current", table_name="task_execution_output_payload")
-    op.drop_index("ix_task_execution_output_payload_task_id", table_name="task_execution_output_payload")
+    op.drop_index("uq_task_execution_output_payload_is_current", table_name="task_execution_output_payload")
+    op.drop_index("ix_task_execution_output_payload_task_execution_id", table_name="task_execution_output_payload")
     op.drop_table("task_execution_output_payload")
-    op.drop_index("uq_task_execution_input_payload_current", table_name="task_execution_input_payload")
-    op.drop_index("ix_task_execution_input_payload_task_id", table_name="task_execution_input_payload")
+    op.drop_index("uq_task_execution_input_payload_is_current", table_name="task_execution_input_payload")
+    op.drop_index("ix_task_execution_input_payload_task_execution_id", table_name="task_execution_input_payload")
     op.drop_table("task_execution_input_payload")

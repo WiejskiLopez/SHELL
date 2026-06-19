@@ -40,7 +40,7 @@ def upgrade() -> None:
             nullable=False,
         ),
     )
-    op.create_index("ix_graph_task_execution_id", "graph_execution", ["task_execution_id"])
+    op.create_index("ix_graph_execution_task_execution_id", "graph_execution", ["task_execution_id"])
 
     op.create_table(
         "graph_node_execution",
@@ -70,7 +70,7 @@ def upgrade() -> None:
         sa.Column("status_initial", sa.String(64), nullable=False, server_default=""),
         sa.Column("extra", sa.JSON, nullable=False, server_default="{}"),
     )
-    op.create_index("ix_graph_node_graph_execution_id", "graph_node_execution", ["graph_execution_id"])
+    op.create_index("ix_graph_node_execution_graph_execution_id", "graph_node_execution", ["graph_execution_id"])
 
     op.create_table(
         "workflow",
@@ -221,9 +221,8 @@ def upgrade() -> None:
         sa.Column("script_type", sa.String(16), nullable=True),
     )
 
-    # Indeks dla klucza obcego (zgodnie z wzorcem ix_envelope_workflow_id)
     op.create_index(
-        "ix_graph_node_definition_graph_execution_id",
+        "ix_graph_node_definition_graph_definition_id",
         "graph_node_definition",
         ["graph_definition_id"],
     )

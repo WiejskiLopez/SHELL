@@ -122,7 +122,7 @@ async def _route(argv: Sequence[str]) -> int:
 
 
 async def _run_tasker(argv: Sequence[str]) -> int:
-    from shell.application.commands.commands import RunTaskerWorkflowCommand
+    from shell.framework.orchestration.sync_workflow_runner import SyncWorkflowRunner
 
     parser = build_parser(prog="shell run-tasker")
     ns = parser.parse_args(list(argv))
@@ -135,17 +135,27 @@ async def _run_tasker(argv: Sequence[str]) -> int:
     work_dir = ns.work_dir or os.getcwd()
 
     database_url = _get_database_url()
-    core_container = await ApplicationFactory(database_url=database_url).build()
-    cmd = RunTaskerWorkflowCommand(
-        task_execution_id=task_execution_id,
-        work_dir=work_dir,
-    )
+    max_step = _get_max_step()
+    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
 
     app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    messaging_ctx: Any = core_container.messaging  # type: ignore[attr-defined]
+
+    # Build the synchronous workflow runner
+    runner = SyncWorkflowRunner(
+        handler=app_ctx.commands.run_tasker_workflow_handler_factory(),
+        relay=messaging_ctx.outbox_to_inbox_relay(),
+        processor=messaging_ctx.inbox_processor(),
+        uow=app_ctx.buses.uow_factory(),
+    )
+
     try:
-        workflow_id = await app_ctx.buses.command_bus().dispatch(cmd)
-        print(f"Tasker workflow completed: workflow_id={workflow_id}")
-        return 0
+        result = await runner.run(
+            task_execution_id=task_execution_id,
+            work_dir=work_dir,
+        )
+        print(f"Workflow {result.workflow_id} [{result.status}]: {result.message}")
+        return 0 if result.status == "done" else 1
     except Exception as exc:  # noqa: BLE001
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

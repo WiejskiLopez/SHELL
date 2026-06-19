@@ -26,12 +26,12 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index(
-        "ix_gne_input_payload_node_id",
+        "ix_graph_node_execution_input_payload_graph_node_execution_id",
         "graph_node_execution_input_payload",
         ["graph_node_execution_id"],
     )
     op.create_index(
-        "uq_gne_input_payload_current",
+        "uq_graph_node_execution_input_payload_is_current",
         "graph_node_execution_input_payload",
         ["graph_node_execution_id"],
         postgresql_where=sa.text("is_current = true"),
@@ -48,12 +48,12 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index(
-        "ix_gne_output_payload_node_id",
+        "ix_graph_node_execution_output_payload_graph_node_execution_id",
         "graph_node_execution_output_payload",
         ["graph_node_execution_id"],
     )
     op.create_index(
-        "uq_gne_output_payload_current",
+        "uq_graph_node_execution_output_payload_is_current",
         "graph_node_execution_output_payload",
         ["graph_node_execution_id"],
         postgresql_where=sa.text("is_current = true"),
@@ -63,9 +63,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("uq_gne_output_payload_current", table_name="graph_node_execution_output_payload")
-    op.drop_index("ix_gne_output_payload_node_id", table_name="graph_node_execution_output_payload")
+    op.drop_index("uq_graph_node_execution_output_payload_is_current", table_name="graph_node_execution_output_payload")
+    op.drop_index("ix_graph_node_execution_output_payload_graph_node_execution_id", table_name="graph_node_execution_output_payload")
     op.drop_table("graph_node_execution_output_payload")
-    op.drop_index("uq_gne_input_payload_current", table_name="graph_node_execution_input_payload")
-    op.drop_index("ix_gne_input_payload_node_id", table_name="graph_node_execution_input_payload")
+    op.drop_index("uq_graph_node_execution_input_payload_is_current", table_name="graph_node_execution_input_payload")
+    op.drop_index("ix_graph_node_execution_input_payload_graph_node_execution_id", table_name="graph_node_execution_input_payload")
     op.drop_table("graph_node_execution_input_payload")

@@ -26,7 +26,7 @@ def upgrade() -> None:
             )
         )
         batch.create_index(
-            "ix_task_execution_parent_id",
+            "ix_task_execution_parent_task_execution_id",
             ["parent_task_execution_id"],
         )
         batch.create_foreign_key(
@@ -41,5 +41,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     with op.batch_alter_table("task_execution") as batch:
         batch.drop_constraint("fk_task_execution_parent", type_="foreignkey")
-        batch.drop_index("ix_task_execution_parent_id")
+        batch.drop_index("ix_task_execution_parent_task_execution_id")
         batch.drop_column("parent_task_execution_id")

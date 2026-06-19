@@ -1,26 +1,31 @@
-"""GraphNodeExecutionWorker — Process Manager for step-by-step node execution.
+"""GraphNodeExecutionWorker — executes exactly one node step per cycle.
 
-The worker subscribes to :class:`GraphNodeExecutionRequested` on the in-process
-EventBus. Each invocation processes **exactly one** node and then either:
+This handler subscribes to :class:`GraphNodeExecutionRequested` on the
+in-process EventBus. Each invocation processes **exactly one** node:
+runs the subprocess, records the result, and emits
+:class:`GraphNodeExecutionCompleted` or :class:`GraphNodeExecutionFailed`.
 
-* emits a fresh :class:`GraphNodeExecutionRequested` for the *next* node, or
-* finishes the workflow (terminal: ``done``), or
-* aborts the workflow (terminal: ``failed``) — possibly after consulting
-  a configurable :class:`NodeExecutionPolicy` and invoking a
-  :class:`CompensationHandler`.
+The *next-step decision* (advance, finish, abort) is delegated to
+:class:`GraphNodeExecutionResultHandler`, which subscribes to the result
+events and forms the second cycle of the saga.
 
-This design embodies the *Process Manager / Saga* pattern: long-running
-work is decomposed into a sequence of short, idempotent steps where each
-step is durable, observable and re-deliverable.
+Cycle A (this worker)
+    ``GraphNodeExecutionRequested`` → run node → record result →
+    ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` → return
 
-Idempotency model (three-tier defence in depth)
-================================================
-1. **Cursor guard** — the worker only processes the node the workflow's
-   ``cursor`` actually points at. Stale events are silently dropped.
-2. **Status guard** — only workflows in ``running`` are touched. Terminal
-   workflows ignore re-deliveries.
-3. **CAS guard** — the SQL repository performs ``WHERE version = :v`` on
-   save. A concurrent advance from another worker raises
+Cycle B (GraphNodeExecutionResultHandler)
+    ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` →
+    decide next → ``GraphNodeExecutionRequested`` / terminal event → return
+
+Idempotency model (four-tier defence in depth)
+===============================================
+1. **Cursor guard** — only processes the node the workflow's ``cursor``
+   actually points at. Stale events are silently dropped.
+2. **Status guard** — only workflows in ``running`` are touched.
+3. **Node-state guard** — only nodes whose state is still ``running``
+   (not already ``done`` / ``failed``) are executed.
+4. **CAS guard** — the SQL repository performs ``WHERE version = :v`` on
+   save. A concurrent modification raises
    :class:`WorkflowConcurrentlyModified` which we log and swallow.
 """
 
@@ -28,25 +33,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from datetime import datetime
-
 from shell.domain.events.events import GraphNodeExecutionRequested
 from shell.domain.exceptions import WorkflowConcurrentlyModified
-from shell.domain.services.compensation_handler import (
-    CompensationHandler,
-    NoOpCompensationHandler,
-)
-from shell.domain.services.graph_node_execution_navigator import (
-    LinearGraphNodeExecutionNavigator,
-    NodeNavigator,
-)
-from shell.domain.services.graph_node_execution_policy import (
-    AbortDecision,
-    ContinueDecision,
-    FailFastPolicy,
-    NodeExecutionPolicy,
-)
 from shell.domain.value_objects.manifest import Manifest
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.status import Status
@@ -65,7 +53,12 @@ if TYPE_CHECKING:
 
 
 class GraphNodeExecutionWorker:
-    """Executes one node per :class:`GraphNodeExecutionRequested` event."""
+    """Cycle A: executes exactly one node per :class:`GraphNodeExecutionRequested`.
+
+    Records the result and emits ``GraphNodeExecutionCompleted`` or
+    ``GraphNodeExecutionFailed``.  The *next-step decision* is handled by
+    :class:`GraphNodeExecutionResultHandler` (Cycle B).
+    """
 
     def __init__(
         self,
@@ -74,18 +67,12 @@ class GraphNodeExecutionWorker:
         id_gen: IdGenerator,
         runner: NodeProcessRunner,
         logger: Logger,
-        navigator: NodeNavigator | None = None,
-        policy: NodeExecutionPolicy | None = None,
-        compensation: CompensationHandler | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
         self._runner = runner
         self._logger = logger
-        self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
-        self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
-        self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
 
     async def handle(self, event: GraphNodeExecutionRequested) -> None:
         """Handle exactly one ``GraphNodeExecutionRequested``."""
@@ -137,11 +124,12 @@ class GraphNodeExecutionWorker:
         # ── 2. Execute subprocess outside the UoW ────────────────────────
         success, stdout, stderr = await self._run_node(workflow, node, event, work_dir)
 
-        # ── 3. Reload + record result + decide next step (transactional) ─
+        # ── 3. Reload + record result (transactional) ───────────────────
+        # NOTE: next-step decision (advance / finish / abort) is handled
+        # by GraphNodeExecutionResultHandler (Cycle B).
         try:
             await self._commit_step(
                 event=event,
-                graph_execution=graph_execution,
                 success=success,
                 stdout=stdout,
                 stderr=stderr,
@@ -157,7 +145,7 @@ class GraphNodeExecutionWorker:
     # ── Step helpers ─────────────────────────────────────────────────────
 
     def _is_event_relevant(self, workflow: Workflow, event: GraphNodeExecutionRequested) -> bool:
-        """Three-tier idempotency: drop the event if the cursor or status moved on."""
+        """Four-tier idempotency: drop the event if cursor, status or node state moved on."""
         if workflow.status != Status.running():
             self._logger.debug(
                 "graph_node_execution_worker.skip_terminal",
@@ -175,6 +163,18 @@ class GraphNodeExecutionWorker:
                     else None
                 ),
                 requested=event.graph_node_execution_id.value,
+            )
+            return False
+        # Node-state guard: skip if this node was already executed.
+        # This closes the window between Cycle A (record result) and
+        # Cycle B (advance cursor) — a re-delivery won't re-run the node.
+        state = workflow.graph_node_execution_states.get(event.graph_node_execution_id.value)
+        if state is not None and state.status in (Status.done(), Status.failed()):
+            self._logger.debug(
+                "graph_node_execution_worker.skip_already_executed",
+                workflow_id=workflow.id.value,
+                graph_node_execution_id=event.graph_node_execution_id.value,
+                node_status=state.status.value,
             )
             return False
         return True
@@ -204,11 +204,17 @@ class GraphNodeExecutionWorker:
         self,
         *,
         event: GraphNodeExecutionRequested,
-        graph_execution: GraphExecution,
         success: bool,
         stdout: str,
         stderr: str,
     ) -> None:
+        """Record the node execution result and stage events.
+
+        This is Cycle A of the saga.  The *next-step decision* (advance /
+        finish / abort) is handled by ``GraphNodeExecutionResultHandler``
+        (Cycle B), which subscribes to the ``GraphNodeExecutionCompleted``
+        / ``GraphNodeExecutionFailed`` events emitted here.
+        """
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
             if workflow is None or not self._is_event_relevant(workflow, event):
@@ -226,67 +232,9 @@ class GraphNodeExecutionWorker:
                 reason=stderr,
             )
 
-            if success:
-                self._advance_or_finish(
-                    workflow=workflow,
-                    graph_execution=graph_execution,
-                    graph_node_execution_id=event.graph_node_execution_id,
-                    now=now,
-                )
-            else:
-                self._handle_failure(
-                    workflow=workflow,
-                    graph_execution=graph_execution,
-                    graph_node_execution_id=event.graph_node_execution_id,
-                    reason=stderr or "graph_node_execution failed",
-                    now=now,
-                )
-
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
             await uow.commit()
-
-    def _advance_or_finish(
-        self,
-        *,
-        workflow: Workflow,
-        graph_execution: GraphExecution,
-        graph_node_execution_id: GraphNodeExecutionId,
-        now: datetime,
-    ) -> None:
-        next_graph_node_executions = list(
-            self._navigator.next_after(graph_execution, graph_node_execution_id)
-        )
-        if not next_graph_node_executions:
-            workflow.finish(now)
-            return
-        next_graph_node_execution = next_graph_node_executions[0]
-        workflow.advance_to(next_graph_node_execution_id=next_graph_node_execution.id, now=now)
-        workflow.append_event(
-            GraphNodeExecutionRequested.now(workflow.id, next_graph_node_execution.id, now=now)
-        )
-
-    def _handle_failure(
-        self,
-        *,
-        workflow: Workflow,
-        graph_execution: GraphExecution,
-        graph_node_execution_id: GraphNodeExecutionId,
-        reason: str,
-        now: datetime,
-    ) -> None:
-        decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)
-        if isinstance(decision, ContinueDecision):
-            self._advance_or_finish(
-                workflow=workflow,
-                graph_execution=graph_execution,
-                graph_node_execution_id=graph_node_execution_id,
-                now=now,
-            )
-            return
-
-        abort_reason = decision.reason if isinstance(decision, AbortDecision) else reason
-        workflow.abort(reason=abort_reason, now=now, compensation=self._compensation)
 
     # ── Pure helpers ─────────────────────────────────────────────────────
 

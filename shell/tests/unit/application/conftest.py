@@ -5,6 +5,9 @@ from datetime import UTC, datetime
 
 import pytest
 
+from shell.application.event_handlers.graph_node_execution_result_handler import (
+    GraphNodeExecutionResultHandler,
+)
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
@@ -167,5 +170,16 @@ def _make_worker(
         clock=FakeClock(_NOW),
         id_gen=FakeIdGenerator(),
         runner=runner,
+        logger=FakeLogger(),
+    )
+
+
+def _make_result_handler(
+    uow: InMemoryUnitOfWork,
+) -> GraphNodeExecutionResultHandler:
+    return GraphNodeExecutionResultHandler(
+        uow=uow,
+        clock=FakeClock(_NOW),
+        id_gen=FakeIdGenerator(),
         logger=FakeLogger(),
     )

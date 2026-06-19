@@ -44,12 +44,12 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
     op.create_index(
-        "ix_graph_execution_state_graph_id",
+        "ix_graph_execution_state_graph_execution_id",
         "graph_execution_state",
         ["graph_execution_id"],
     )
     op.create_index(
-        "uq_graph_execution_state_current",
+        "uq_graph_execution_state_is_current",
         "graph_execution_state",
         ["graph_execution_id"],
         postgresql_where=sa.text("is_current = true"),
@@ -59,8 +59,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("uq_graph_execution_state_current", table_name="graph_execution_state")
-    op.drop_index("ix_graph_execution_state_graph_id", table_name="graph_execution_state")
+    op.drop_index("uq_graph_execution_state_is_current", table_name="graph_execution_state")
+    op.drop_index("ix_graph_execution_state_graph_execution_id", table_name="graph_execution_state")
     op.drop_table("graph_execution_state")
 
     with op.batch_alter_table("graph_execution") as batch:
