@@ -6,14 +6,19 @@ from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
 
-from shell.domain.exceptions import (
+from shell.domain.platform.exceptions import (
     DomainError,
+    
+)
+from shell.domain.definition.exceptions import (
+    PromptNotFound,
+    RunnerConfigNotFound
+)
+from shell.domain.execution.exceptions import (
     EnvelopeNotFound,
     NodeNotFound,
-    PromptNotFound,
-    RunnerConfigNotFound,
     TaskExecutionNotFound,
-    WorkflowNotFound,
+    WorkflowNotFound
 )
 
 if TYPE_CHECKING:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.exceptions import WorkflowNotFound
+from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.platform.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.platform.value_objects.status import Status
 

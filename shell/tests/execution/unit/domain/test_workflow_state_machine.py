@@ -12,7 +12,7 @@ from shell.domain.execution.events import (
     WorkflowFailedEvent,
     WorkflowStartedEvent,
 )
-from shell.domain.exceptions import InvalidWorkflowTransition
+from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.platform.value_objects.ids import (
     GraphNodeExecutionId,
     TaskExecutionId,

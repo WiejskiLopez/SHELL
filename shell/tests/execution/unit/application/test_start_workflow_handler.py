@@ -12,7 +12,7 @@ from shell.application.platform.commands.commands import ImportTaskExecutionComm
 from shell.application.platform.queries.queries import GetWorkflowQuery
 from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
 from shell.domain.execution.events import WorkflowStartedEvent
-from shell.domain.exceptions import TaskExecutionNotFound
+from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,

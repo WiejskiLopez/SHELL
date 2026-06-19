@@ -4,7 +4,7 @@ import pytest
 
 from shell.application.execution.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
-from shell.domain.exceptions import TaskExecutionNotFound
+from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,

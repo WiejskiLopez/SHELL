@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 import pytest
 
 from shell.domain.execution.entities.envelope import Envelope
-from shell.domain.exceptions import InvalidEnvelopeTransition
+from shell.domain.execution.exceptions import InvalidEnvelopeTransition
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.ids import (
     EnvelopeId,

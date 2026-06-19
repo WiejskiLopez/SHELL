@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.exceptions import EnvelopeNotFound
+from shell.domain.execution.exceptions import EnvelopeNotFound
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage
 from shell.domain.platform.value_objects.ids import EnvelopeId
 

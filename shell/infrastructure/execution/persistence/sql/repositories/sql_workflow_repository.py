@@ -37,7 +37,7 @@ class SqlWorkflowRepository(WorkflowRepository):
         return workflow_model_to_entity(row) if row else None
 
     async def save(self, workflow: Workflow) -> None:
-        from shell.domain.exceptions import WorkflowConcurrentlyModified
+        from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 
         existing = await self._session.execute(
             select(WorkflowModel.version).where(WorkflowModel.id == workflow.id.value)

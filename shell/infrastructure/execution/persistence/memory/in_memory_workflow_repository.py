@@ -18,7 +18,7 @@ class InMemoryWorkflowRepository(WorkflowRepository):
         return self._store.get(workflow_id.value)
 
     async def save(self, workflow: Workflow) -> None:
-        from shell.domain.exceptions import WorkflowConcurrentlyModified
+        from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 
         existing_version = self._persisted_versions.get(workflow.id.value)
         if existing_version is None:

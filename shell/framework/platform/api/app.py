@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from fastapi import FastAPI
 
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
-from shell.domain.exceptions import DomainError
+from shell.domain.platform.exceptions import DomainError
 from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.framework.platform.api.middleware.error_handler import domain_error_handler
 from shell.framework.execution.api.routers import envelopes, graph_node_execution, task_executions, workflows

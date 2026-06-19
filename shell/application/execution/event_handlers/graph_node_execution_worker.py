@@ -34,7 +34,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
-from shell.domain.exceptions import WorkflowConcurrentlyModified
+from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status

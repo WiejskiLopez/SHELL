@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from shell.domain.execution.events import GraphNodeExecutionStartedEvent, WorkflowStartedEvent
-from shell.domain.exceptions import InvalidWorkflowTransition
+from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
