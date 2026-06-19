@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey
+
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -30,7 +32,7 @@ class GraphNodeExecutionModel(Base):
     source_dir: Mapped[str] = mapped_column(nullable=False, default="")
     work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
-    extra: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    extra: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
     graph_execution_model: Mapped[GraphExecutionModel] = relationship(
         "GraphExecutionModel", back_populates="graph_node_execution_models"

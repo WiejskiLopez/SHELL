@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -15,5 +15,5 @@ class RunnerConfigModel(Base):
     package_name: Mapped[str] = mapped_column(nullable=False, index=True)
     kind: Mapped[str] = mapped_column(nullable=False)
     hash: Mapped[str] = mapped_column(nullable=False)
-    body: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    body: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)

@@ -17,7 +17,7 @@ class GraphExecutionModel(Base):
         unique=True,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
-    status: Mapped[str] = mapped_column(nullable=False, default="RUNNING")
+    status: Mapped[str] = mapped_column(nullable=False, default="CREATED")
 
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
         "GraphNodeExecutionModel",

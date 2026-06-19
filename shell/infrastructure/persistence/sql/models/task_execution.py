@@ -17,7 +17,7 @@ class TaskExecutionModel(Base):
         nullable=True,
         index=True,
     )
-    status: Mapped[str] = mapped_column(nullable=False, default="PENDING")
+    status: Mapped[str] = mapped_column(nullable=False, default="CREATED")
     name: Mapped[str] = mapped_column(nullable=False, index=True)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)

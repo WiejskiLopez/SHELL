@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import JSON
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -23,7 +23,7 @@ class EnvelopeModel(Base):
     step: Mapped[int] = mapped_column(nullable=False, default=0)
     status: Mapped[str] = mapped_column(nullable=False, default="pending")
     stage: Mapped[str] = mapped_column(nullable=False, default="draft")
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     artifact_uri: Mapped[str] = mapped_column(nullable=False, default="")
     archive_uri: Mapped[str] = mapped_column(nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(nullable=False)

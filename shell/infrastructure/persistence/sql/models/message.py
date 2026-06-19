@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey
+
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -18,7 +20,7 @@ class MessageModel(Base):
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     sender: Mapped[str] = mapped_column(nullable=False)
     receiver: Mapped[str] = mapped_column(nullable=False)
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     session: Mapped[SessionModel] = relationship("SessionModel", back_populates="messages")

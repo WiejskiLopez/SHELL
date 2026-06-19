@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey
+
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base
@@ -30,7 +32,7 @@ class GraphNodeDefinitionModel(Base):
     no_ask_user: Mapped[bool | None] = mapped_column(nullable=True)
     autopilot: Mapped[bool | None] = mapped_column(nullable=True)
     status_initial: Mapped[str] = mapped_column(nullable=False)
-    extra: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    extra: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
     script: Mapped[str | None] = mapped_column(nullable=True)
     script_type: Mapped[str | None] = mapped_column(nullable=True)
 

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey
+
+from ._compat import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -17,6 +19,6 @@ class TaskExecutionOutputPayloadModel(Base):
         nullable=False,
         index=True,
     )
-    payload: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
