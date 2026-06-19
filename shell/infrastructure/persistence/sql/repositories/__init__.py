@@ -1,4 +1,6 @@
 """SQL repository adapters (SQLite + PostgreSQL via SQLAlchemy 2.x async)."""
+from __future__ import annotations
+
 
 from shell.infrastructure.persistence.sql.repositories.sql_envelope_archive_stub import (
     SqlEnvelopeArchiveStub,

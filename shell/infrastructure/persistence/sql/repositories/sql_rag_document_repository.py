@@ -6,20 +6,26 @@ from typing import TYPE_CHECKING
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import selectinload
 
-from shell.domain.entities.rag_document import RagChunk, RagDocument
-from shell.domain.value_objects.ids import RagChunkId, RagDocumentId
+from shell.domain.repositories.rag_repository import RagDocumentRepository
+from shell.domain.value_objects.ids import RagDocumentId
 
+from ..mappers import (
+    rag_chunk_entity_to_model,
+    rag_document_entity_to_model,
+    rag_document_model_to_entity,
+)
 from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from shell.domain.entities.rag_document import RagChunk, RagDocument
     from shell.infrastructure.persistence.sql.rag_search import RagSearchStrategy
 
 logger = logging.getLogger(__name__)
 
 
-class SqlRagDocumentRepository:
+class SqlRagDocumentRepository(RagDocumentRepository):
     def __init__(
         self,
         session: AsyncSession,
@@ -38,28 +44,13 @@ class SqlRagDocumentRepository:
         return self._search_strategy  # type: ignore[return]
 
     async def save(self, document: RagDocument) -> None:
-        doc_model = RagDocumentModel(
-            id=document.id.value,
-            source_uri=document.source_uri,
-            title=document.title,
-            domain=document.domain,
-            created_at=document.created_at,
-        )
+        doc_model = rag_document_entity_to_model(document)
         await self._session.merge(doc_model)
         await self._session.execute(
             sa_delete(RagChunkModel).where(RagChunkModel.document_id == document.id.value)
         )
         for chunk in document.chunks:
-            self._session.add(
-                RagChunkModel(
-                    id=chunk.id.value,
-                    document_id=chunk.document_id.value,
-                    chunk_index=chunk.chunk_index,
-                    chunk_text=chunk.chunk_text,
-                    embedding=chunk.embedding,
-                    embedding_model=chunk.embedding_model,
-                )
-            )
+            self._session.add(rag_chunk_entity_to_model(chunk))
 
     async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None:
         from sqlalchemy import select
@@ -72,25 +63,7 @@ class SqlRagDocumentRepository:
         row = (await self._session.execute(query)).scalar_one_or_none()
         if row is None:
             return None
-        doc = RagDocument(
-            id=RagDocumentId(row.id),
-            source_uri=row.source_uri,
-            title=row.title,
-            domain=row.domain,
-            created_at=row.created_at,
-        )
-        for chunk in sorted(row.chunks, key=lambda chunk_entry: chunk_entry.chunk_index):
-            doc.chunks.append(
-                RagChunk(
-                    id=RagChunkId(chunk.id),
-                    document_id=RagDocumentId(chunk.document_id),
-                    chunk_index=chunk.chunk_index,
-                    chunk_text=chunk.chunk_text,
-                    embedding=chunk.embedding,
-                    embedding_model=chunk.embedding_model,
-                )
-            )
-        return doc
+        return rag_document_model_to_entity(row)
 
     async def search_similar(
         self,

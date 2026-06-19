@@ -1,4 +1,6 @@
 """One-shot pipeline command: runs relay → processor once."""
+from __future__ import annotations
+
 
 from argparse import Namespace
 

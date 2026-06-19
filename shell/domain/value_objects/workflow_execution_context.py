@@ -20,6 +20,9 @@ class WorkflowExecutionContext:
         if not isinstance(self.correlation_id, str):
             raise ValueError("correlation_id must be a string")
 
+    def __str__(self) -> str:
+        return f"WorkflowExecutionContext(correlation_id={self.correlation_id})"
+
     @classmethod
     def empty(cls) -> WorkflowExecutionContext:
         return cls(correlation_id="")

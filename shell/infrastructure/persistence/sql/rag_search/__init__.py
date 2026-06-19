@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.infrastructure.persistence.sql.rag_search.rag_search_strategy import (
     InMemoryRagSearchStrategy,
     PgVectorRagSearchStrategy,

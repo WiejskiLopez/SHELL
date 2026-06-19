@@ -1,4 +1,6 @@
 """Typed ID value objects."""
+from __future__ import annotations
+
 
 from shell.domain.value_objects.ids.correlation_id import CorrelationId
 from shell.domain.value_objects.ids.envelope_id import EnvelopeId

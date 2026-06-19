@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+from shell.domain.repositories.envelope_repository.envelope_archive import EnvelopeArchive
 
 if TYPE_CHECKING:
     from shell.domain.entities.envelope import Envelope
 
 
-class SqlEnvelopeArchiveStub:
+class SqlEnvelopeArchiveStub(EnvelopeArchive):
     """Stub — archives are stored on filesystem; this is a no-op SQL adapter."""
 
     async def archive(self, envelope: Envelope) -> str:

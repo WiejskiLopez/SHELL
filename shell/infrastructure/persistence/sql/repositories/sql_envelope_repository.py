@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from shell.domain.repositories.envelope_repository.envelope_repository import EnvelopeRepository
 from shell.domain.value_objects.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.ids import EnvelopeId, WorkflowId
 
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from shell.domain.entities.envelope import Envelope
 
 
-class SqlEnvelopeRepository:
+class SqlEnvelopeRepository(EnvelopeRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from argparse import Namespace
 
 from shell.bootstrap.cli.command.command import RunnableCommand

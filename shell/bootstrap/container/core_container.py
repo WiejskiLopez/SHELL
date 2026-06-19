@@ -28,15 +28,17 @@ class CoreContainer(containers.DeclarativeContainer):
 
     infra = providers.Container(InfrastructureContainer, config=config)
     domain = providers.Container(DomainContainer)
-    messaging = providers.Container(
-        MessagingContainer,
-        config=config.messaging,
-        infra=infra,
-    )
 
     app: providers.Container[ApplicationContainer] = providers.Container(
         ApplicationContainer,
         config=config,
         infra=infra,
         domain=domain,
+    )
+
+    messaging = providers.Container(
+        MessagingContainer,
+        config=config.messaging,
+        infra=infra,
+        buses=app.buses,
     )

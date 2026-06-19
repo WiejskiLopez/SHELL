@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.value_objects.envelope_status.envelope_status import EnvelopeStatus
 from shell.domain.value_objects.envelope_status.envelope_stage import EnvelopeStage
 

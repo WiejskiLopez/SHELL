@@ -1,4 +1,6 @@
 """Porty dla ścieżki odczytu (CQRS). Zwracają bezpośrednio DTO."""
+from __future__ import annotations
+
 
 from shell.application.ports.queries.envelope_query_service import (
     EnvelopeQueryService,

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
+from shell.domain.repositories.workflow_repository import WorkflowRepository
 from shell.domain.value_objects.ids import WorkflowId
 
 from ..mappers import (
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from shell.domain.aggregates.workflow import Workflow
 
 
-class SqlWorkflowRepository:
+class SqlWorkflowRepository(WorkflowRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

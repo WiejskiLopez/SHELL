@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
 
 
@@ -13,3 +14,7 @@ class GraphNodeExecutionId:
 
     def __str__(self) -> str:
         return self.value
+
+    @classmethod
+    def generate(cls) -> GraphNodeExecutionId:
+        return cls(str(uuid.uuid4()))

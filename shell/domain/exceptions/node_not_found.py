@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.exceptions._base import DomainError
 
 

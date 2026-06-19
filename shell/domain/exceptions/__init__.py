@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.exceptions._base import DomainError
 from shell.domain.exceptions.envelope_not_found import EnvelopeNotFound
 from shell.domain.exceptions.invalid_envelope_transition import InvalidEnvelopeTransition

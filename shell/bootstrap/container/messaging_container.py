@@ -17,6 +17,7 @@ class MessagingContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
     infra = providers.DependenciesContainer()
+    buses = providers.DependenciesContainer()
 
     # 1. Publishers (outbound from domain)
     sql_outbox_publisher = providers.Singleton(
@@ -27,7 +28,7 @@ class MessagingContainer(containers.DeclarativeContainer):
     # 2. EventBus adapter (inbound to domain handlers)
     bus_publisher = providers.Singleton(
         EventBusPublisher,
-        event_bus=providers.Dependency(),  # wired from BusContainer
+        event_bus=buses.event_bus,
     )
 
     # 3. Composite publisher for UoW post-commit (audit + outbox + in-memory bus)

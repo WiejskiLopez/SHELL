@@ -10,7 +10,7 @@ from shell.domain.events.events import DomainEvent
 from shell.domain.value_objects.ids import GraphNodeExecutionId, WorkflowId
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(frozen=True, slots=True)
 class GraphNodeExecutionRequested(DomainEvent):
     """Request to execute exactly one node identified by ``node_execution_id``.
 
@@ -40,7 +40,7 @@ class GraphNodeExecutionRequested(DomainEvent):
         workflow_id: WorkflowId,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-    ) -> Self:
+    ) -> GraphNodeExecutionRequested:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,

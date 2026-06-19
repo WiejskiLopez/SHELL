@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from shell.domain.entities.base.entity import Entity
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -9,9 +10,17 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import EnvelopeEventId
 
 
-@dataclass(slots=True)
-class EnvelopeEvent:
-    id: EnvelopeEventId
-    kind: str
-    payload: dict[str, object]
-    created_at: datetime
+class EnvelopeEvent(Entity[EnvelopeEventId]):
+    __slots__ = ("kind", "payload", "created_at")
+
+    def __init__(
+        self,
+        id: EnvelopeEventId,
+        kind: str,
+        payload: dict[str, object],
+        created_at: datetime,
+    ) -> None:
+        super().__init__(id)
+        self.kind = kind
+        self.payload = payload
+        self.created_at = created_at

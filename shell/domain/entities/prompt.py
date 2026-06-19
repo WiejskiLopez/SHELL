@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from shell.domain.entities.base.entity import Entity
 from shell.domain.value_objects.hash import Hash
 
 if TYPE_CHECKING:
@@ -13,16 +13,28 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import PromptId
 
 
-@dataclass(slots=True)
-class Prompt:
-    id: PromptId
-    name: str
-    version: int
-    hash: Hash
-    body: str
-    source_uri: str
-    is_current: bool
-    created_at: datetime
+class Prompt(Entity[PromptId]):
+    __slots__ = ("name", "version", "hash", "body", "source_uri", "is_current", "created_at")
+
+    def __init__(
+        self,
+        id: PromptId,
+        name: str,
+        version: int,
+        hash: Hash,
+        body: str,
+        source_uri: str,
+        is_current: bool,
+        created_at: datetime,
+    ) -> None:
+        super().__init__(id)
+        self.name = name
+        self.version = version
+        self.hash = hash
+        self.body = body
+        self.source_uri = source_uri
+        self.is_current = is_current
+        self.created_at = created_at
 
     @classmethod
     def new(

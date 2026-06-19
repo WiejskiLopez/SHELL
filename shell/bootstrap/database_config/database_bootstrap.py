@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.infrastructure.persistence.sql import create_all_tables, seed_base_data
 
 

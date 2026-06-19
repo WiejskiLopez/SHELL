@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.repositories.graph_node_execution_input_payload_repository import GraphNodeExecutionInputPayloadRepository
 from shell.domain.value_objects.ids import GraphNodeExecutionId
 
 from ..mappers import (
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     )
 
 
-class SqlGraphNodeExecutionInputPayloadRepository:
+class SqlGraphNodeExecutionInputPayloadRepository(GraphNodeExecutionInputPayloadRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

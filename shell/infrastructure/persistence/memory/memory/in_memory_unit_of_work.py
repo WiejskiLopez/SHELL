@@ -3,13 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.ports.unit_of_work import UnitOfWork
-from shell.domain.entities.graph_definition import GraphDefinition
-from shell.domain.entities.graph_node_definition import GraphNodeDefinition
-from shell.domain.value_objects.ids import (
-    GraphDefinitionId,
-    GraphNodeDefinitionId,
-)
-from shell.domain.value_objects.mode import Mode
 from shell.infrastructure.persistence.memory.memory.in_memory_task_execution_repository import InMemoryTaskExecutionRepository
 from shell.infrastructure.persistence.memory.memory.in_memory_graph_execution_repository import InMemoryGraphExecutionRepository
 from shell.infrastructure.persistence.memory.memory.in_memory_workflow_repository import InMemoryWorkflowRepository
@@ -43,6 +36,11 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events: list[DomainEvent] = []
 
     def seed_base_planner(self) -> None:
+        from shell.domain.entities.graph_definition import GraphDefinition
+        from shell.domain.entities.graph_node_definition import GraphNodeDefinition
+        from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+        from shell.domain.value_objects.mode import Mode
+
         self._graph_definitions._store["base_planner"] = GraphDefinition(
             id=GraphDefinitionId("base-planner-id"),
             name="base_planner",

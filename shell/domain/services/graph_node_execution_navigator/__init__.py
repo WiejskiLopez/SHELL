@@ -1,4 +1,6 @@
 """NodeNavigator — domain service deciding which node runs next in a Graph."""
+from __future__ import annotations
+
 
 from shell.domain.services.graph_node_execution_navigator.linear_graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,

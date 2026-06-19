@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.application.strategies.graph_node_execution_strategy.agent_strategy import (
     AgentStrategy,
 )

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.repositories.task_execution_output_payload_repository import TaskExecutionOutputPayloadRepository
 from shell.domain.value_objects.ids import TaskExecutionId
 
 from ..mappers import (
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     )
 
 
-class SqlTaskExecutionOutputPayloadRepository:
+class SqlTaskExecutionOutputPayloadRepository(TaskExecutionOutputPayloadRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

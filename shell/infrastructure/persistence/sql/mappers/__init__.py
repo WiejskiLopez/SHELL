@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 
 from shell.domain.entities.envelope import Envelope, EnvelopeEvent
 from shell.domain.entities.graph_definition import GraphDefinition
+from shell.domain.entities.rag_document import RagChunk, RagDocument
+from shell.domain.entities.session import Message, Session
 from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.aggregates.graph_node_execution_input_payload import (
     GraphNodeExecutionInputPayload,
@@ -29,6 +31,7 @@ from shell.domain.aggregates.workflow import GraphNodeExecutionState, Workflow
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
+    CorrelationId,
     EnvelopeEventId,
     EnvelopeId,
     GraphDefinitionId,
@@ -39,8 +42,12 @@ from shell.domain.value_objects.ids import (
     GraphNodeExecutionOutputPayloadId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
+    MessageId,
     PromptId,
+    RagChunkId,
+    RagDocumentId,
     RunnerConfigId,
+    SessionId,
     TaskExecutionId,
     TaskExecutionInputPayloadId,
     TaskExecutionOutputPayloadId,
@@ -62,8 +69,12 @@ from shell.infrastructure.persistence.sql.models import (
     GraphNodeExecutionOutputPayloadModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateModel,
+    MessageModel,
     PromptModel,
+    RagChunkModel,
+    RagDocumentModel,
     RunnerConfigModel,
+    SessionModel,
     TaskExecutionInputPayloadModel,
     TaskExecutionModel,
     TaskExecutionOutputPayloadModel,
@@ -627,4 +638,119 @@ def graph_node_definition_entity_to_model(
         extra=graph_node_definition.extra,
         script=graph_node_definition.script,
         script_type=graph_node_definition.script_type,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Session
+# ---------------------------------------------------------------------------
+
+
+def session_model_to_entity(session_model: SessionModel) -> Session:
+    return Session(
+        id=SessionId(session_model.id),
+        goal=session_model.goal,
+        status=session_model.status,
+        opened_at=_ensure_utc(session_model.opened_at),
+        closed_at=_ensure_utc(session_model.closed_at) if session_model.closed_at else None,
+        messages=[message_model_to_entity(m) for m in session_model.messages],
+    )
+
+
+def session_entity_to_model(session: Session) -> SessionModel:
+    model = SessionModel(
+        id=session.id.value,
+        goal=session.goal,
+        status=session.status,
+        opened_at=session.opened_at,
+        closed_at=session.closed_at,
+    )
+    model.messages = [message_entity_to_model(m) for m in session.messages]
+    return model
+
+
+# ---------------------------------------------------------------------------
+# Message
+# ---------------------------------------------------------------------------
+
+
+def message_model_to_entity(message_model: MessageModel) -> Message:
+    return Message(
+        id=MessageId(message_model.id),
+        session_id=SessionId(message_model.session_id),
+        correlation_id=CorrelationId(message_model.correlation_id),
+        sender=message_model.sender,
+        receiver=message_model.receiver,
+        payload=dict(message_model.payload),
+        created_at=_ensure_utc(message_model.created_at),
+    )
+
+
+def message_entity_to_model(message: Message) -> MessageModel:
+    return MessageModel(
+        id=message.id.value,
+        session_id=message.session_id.value,
+        correlation_id=message.correlation_id.value,
+        sender=message.sender,
+        receiver=message.receiver,
+        payload=message.payload,
+        created_at=message.created_at,
+    )
+
+
+# ---------------------------------------------------------------------------
+# RagDocument
+# ---------------------------------------------------------------------------
+
+
+def rag_document_model_to_entity(rag_document_model: RagDocumentModel) -> RagDocument:
+    return RagDocument(
+        id=RagDocumentId(rag_document_model.id),
+        source_uri=rag_document_model.source_uri,
+        title=rag_document_model.title,
+        domain=rag_document_model.domain,
+        created_at=_ensure_utc(rag_document_model.created_at),
+        chunks=[
+            rag_chunk_model_to_entity(c)
+            for c in sorted(rag_document_model.chunks, key=lambda c: c.chunk_index)
+        ],
+    )
+
+
+def rag_document_entity_to_model(rag_document: RagDocument) -> RagDocumentModel:
+    model = RagDocumentModel(
+        id=rag_document.id.value,
+        source_uri=rag_document.source_uri,
+        title=rag_document.title,
+        domain=rag_document.domain,
+        created_at=rag_document.created_at,
+    )
+    model.chunks = [rag_chunk_entity_to_model(c) for c in rag_document.chunks]
+    return model
+
+
+# ---------------------------------------------------------------------------
+# RagChunk
+# ---------------------------------------------------------------------------
+
+
+def rag_chunk_model_to_entity(rag_chunk_model: RagChunkModel) -> RagChunk:
+    return RagChunk(
+        id=RagChunkId(rag_chunk_model.id),
+        document_id=RagDocumentId(rag_chunk_model.document_id),
+        chunk_index=rag_chunk_model.chunk_index,
+        chunk_text=rag_chunk_model.chunk_text,
+        embedding=rag_chunk_model.embedding,
+        embedding_model=rag_chunk_model.embedding_model,
+    )
+
+
+def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
+    return RagChunkModel(
+        id=rag_chunk.id.value,
+        document_id=rag_chunk.document_id.value,
+        chunk_index=rag_chunk.chunk_index,
+        chunk_text=rag_chunk.chunk_text,
+        embedding=rag_chunk.embedding,
+        embedding_model=rag_chunk.embedding_model,
     )

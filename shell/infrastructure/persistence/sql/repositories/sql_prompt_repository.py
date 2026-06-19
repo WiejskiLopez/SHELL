@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.repositories.prompt_repository import PromptRepository
 from shell.domain.value_objects.ids import PromptId
 
 from ..mappers import (
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from shell.domain.entities.prompt import Prompt
 
 
-class SqlPromptRepository:
+class SqlPromptRepository(PromptRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

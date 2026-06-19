@@ -1,4 +1,6 @@
 """Workflow aggregate."""
+from __future__ import annotations
+
 
 from shell.domain.aggregates.workflow.graph_node_execution_state import (
     GraphNodeExecutionState,

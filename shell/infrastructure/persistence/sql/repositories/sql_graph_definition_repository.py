@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from shell.domain.repositories.graph_definition_repository.graph_definition_repository import GraphDefinitionRepository
 from shell.domain.value_objects.ids import GraphDefinitionId
 
 from ..mappers import (
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
     from shell.domain.entities.graph_definition import GraphDefinition
 
 
-class SqlGraphDefinitionRepository:
+class SqlGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

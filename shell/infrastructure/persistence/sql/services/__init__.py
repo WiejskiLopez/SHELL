@@ -1,4 +1,6 @@
 """Re-eksportuje wszystkie QueryService klasy."""
+from __future__ import annotations
+
 
 from shell.infrastructure.persistence.sql.services.envelope_query_service import EnvelopeQueryService
 from shell.infrastructure.persistence.sql.services.node_result_query_service import NodeResultQueryService

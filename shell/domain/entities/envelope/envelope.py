@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.envelope.envelope_event import EnvelopeEvent
 from shell.domain.exceptions import InvalidEnvelopeTransition
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
@@ -26,28 +26,70 @@ _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
 }
 
 
-@dataclass(slots=True)
-class Envelope:
-    """Envelope aggregate root."""
+class Envelope(Entity[EnvelopeId]):
+    __slots__ = (
+        "workflow_id",
+        "parent_id",
+        "correlation_id",
+        "sender_graph_node_execution_id",
+        "receiver_graph_node_execution_id",
+        "source_role",
+        "target_role",
+        "sequence_id",
+        "step",
+        "status",
+        "stage",
+        "payload",
+        "artifact_uri",
+        "archive_uri",
+        "created_at",
+        "updated_at",
+        "_envelope_events",
+    )
 
-    id: EnvelopeId
-    workflow_id: WorkflowId
-    parent_id: EnvelopeId | None
-    correlation_id: str
-    sender_graph_node_execution_id: GraphNodeExecutionId
-    receiver_graph_node_execution_id: GraphNodeExecutionId
-    source_role: str
-    target_role: str
-    sequence_id: int
-    step: int
-    status: EnvelopeStatus
-    stage: EnvelopeStage
-    payload: dict[str, object]
-    artifact_uri: str
-    archive_uri: str
-    created_at: datetime
-    updated_at: datetime
-    events: list[EnvelopeEvent] = field(default_factory=list)
+    def __init__(
+        self,
+        id: EnvelopeId,
+        workflow_id: WorkflowId,
+        parent_id: EnvelopeId | None,
+        correlation_id: str,
+        sender_graph_node_execution_id: GraphNodeExecutionId,
+        receiver_graph_node_execution_id: GraphNodeExecutionId,
+        source_role: str,
+        target_role: str,
+        sequence_id: int,
+        step: int,
+        status: EnvelopeStatus,
+        stage: EnvelopeStage,
+        payload: dict[str, object],
+        artifact_uri: str,
+        archive_uri: str,
+        created_at: datetime,
+        updated_at: datetime,
+        events: list[EnvelopeEvent] | None = None,
+    ) -> None:
+        super().__init__(id)
+        self.workflow_id = workflow_id
+        self.parent_id = parent_id
+        self.correlation_id = correlation_id
+        self.sender_graph_node_execution_id = sender_graph_node_execution_id
+        self.receiver_graph_node_execution_id = receiver_graph_node_execution_id
+        self.source_role = source_role
+        self.target_role = target_role
+        self.sequence_id = sequence_id
+        self.step = step
+        self.status = status
+        self.stage = stage
+        self.payload = payload
+        self.artifact_uri = artifact_uri
+        self.archive_uri = archive_uri
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self._envelope_events = events or []
+
+    @property
+    def events(self) -> list[EnvelopeEvent]:
+        return self._envelope_events.copy()
 
     @classmethod
     def new(
@@ -97,7 +139,7 @@ class Envelope:
         self.updated_at = now
         from shell.domain.value_objects.ids import EnvelopeEventId
 
-        self.events.append(
+        self._envelope_events.append(
             EnvelopeEvent(
                 id=EnvelopeEventId.generate(),
                 kind="status_changed",

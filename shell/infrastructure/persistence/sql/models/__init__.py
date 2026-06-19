@@ -1,4 +1,6 @@
 """SQLAlchemy 2.x ORM models — shared between SQLite and PostgreSQL."""
+from __future__ import annotations
+
 
 from .audit_event import AuditEventModel
 from .base import Base

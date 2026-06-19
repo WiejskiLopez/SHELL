@@ -13,3 +13,6 @@ class PromptFile:
     def __post_init__(self) -> None:
         if not self.file_name:
             raise ValueError("PromptFile.file_name cannot be empty")
+
+    def __str__(self) -> str:
+        return f"PromptFile(file_name={self.file_name})"

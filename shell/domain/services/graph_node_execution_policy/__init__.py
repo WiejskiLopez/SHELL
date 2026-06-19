@@ -1,4 +1,6 @@
 """NodeExecutionPolicy — decides what to do after a single node finishes."""
+from __future__ import annotations
+
 
 from shell.domain.services.graph_node_execution_policy.abort_decision import (
     AbortDecision,

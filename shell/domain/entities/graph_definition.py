@@ -1,19 +1,28 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+
+from shell.domain.entities.base.entity import Entity
 
 if TYPE_CHECKING:
     from shell.domain.entities.graph_node_definition import GraphNodeDefinition
     from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 
-@dataclass(slots=True)
-class GraphDefinition:
-    id: GraphDefinitionId
-    name: str
-    purpose: str
-    graph_node_definitions: list[GraphNodeDefinition] = field(default_factory=list)
+class GraphDefinition(Entity[GraphDefinitionId]):
+    __slots__ = ("name", "purpose", "graph_node_definitions")
+
+    def __init__(
+        self,
+        id: GraphDefinitionId,
+        name: str,
+        purpose: str,
+        graph_node_definitions: list[GraphNodeDefinition] | None = None,
+    ) -> None:
+        super().__init__(id)
+        self.name = name
+        self.purpose = purpose
+        self.graph_node_definitions = graph_node_definitions or []
 
     def add_graph_node_definition(self, node: GraphNodeDefinition) -> None:
         self.graph_node_definitions.append(node)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.application.dto.envelope import EnvelopeDto
 from shell.application.dto.graph_definition import GraphDefinitionDto
 from shell.application.dto.graph_execution import GraphExecutionDto

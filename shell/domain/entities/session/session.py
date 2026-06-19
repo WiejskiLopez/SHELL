@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.session.message import Message
 
 if TYPE_CHECKING:
@@ -15,20 +15,28 @@ if TYPE_CHECKING:
     )
 
 
-@dataclass(slots=True)
-class Session:
-    id: SessionId
-    goal: str
-    status: str
-    opened_at: datetime
-    closed_at: datetime | None
-    messages: list[Message] = field(default_factory=list)
+class Session(Entity[SessionId]):
+    __slots__ = ("goal", "status", "opened_at", "closed_at", "messages")
 
-    def __post_init__(self) -> None:
-        if not self.goal:
+    def __init__(
+        self,
+        id: SessionId,
+        goal: str,
+        status: str,
+        opened_at: datetime,
+        closed_at: datetime | None,
+        messages: list[Message] | None = None,
+    ) -> None:
+        if not goal:
             raise ValueError("goal cannot be empty")
-        if self.status not in ("open", "closed"):
-            raise ValueError(f"invalid status: {self.status!r}")
+        if status not in ("open", "closed"):
+            raise ValueError(f"invalid status: {status!r}")
+        super().__init__(id)
+        self.goal = goal
+        self.status = status
+        self.opened_at = opened_at
+        self.closed_at = closed_at
+        self.messages = list(messages) if messages is not None else []
 
     @classmethod
     def open(

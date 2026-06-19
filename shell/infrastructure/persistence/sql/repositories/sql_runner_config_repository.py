@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.repositories.runner_config_repository import RunnerConfigRepository
 from shell.domain.value_objects.ids import RunnerConfigId
 
 from ..mappers import (
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from shell.domain.entities.runner_config import RunnerConfig
 
 
-class SqlRunnerConfigRepository:
+class SqlRunnerConfigRepository(RunnerConfigRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 

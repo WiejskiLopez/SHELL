@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.rag_document.rag_chunk import RagChunk
 
 if TYPE_CHECKING:
@@ -11,22 +11,30 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import RagChunkId, RagDocumentId
 
 
-@dataclass(slots=True)
-class RagDocument:
-    id: RagDocumentId
-    source_uri: str
-    title: str
-    domain: str
-    created_at: datetime
-    chunks: list[RagChunk] = field(default_factory=list)
+class RagDocument(Entity[RagDocumentId]):
+    __slots__ = ("source_uri", "title", "domain", "created_at", "chunks")
 
-    def __post_init__(self) -> None:
-        if not self.source_uri:
+    def __init__(
+        self,
+        id: RagDocumentId,
+        source_uri: str,
+        title: str,
+        domain: str,
+        created_at: datetime,
+        chunks: list[RagChunk] | None = None,
+    ) -> None:
+        if not source_uri:
             raise ValueError("source_uri cannot be empty")
-        if not self.title:
+        if not title:
             raise ValueError("title cannot be empty")
-        if not self.domain:
+        if not domain:
             raise ValueError("domain cannot be empty")
+        super().__init__(id)
+        self.source_uri = source_uri
+        self.title = title
+        self.domain = domain
+        self.created_at = created_at
+        self.chunks = list(chunks) if chunks is not None else []
 
     @classmethod
     def new(
