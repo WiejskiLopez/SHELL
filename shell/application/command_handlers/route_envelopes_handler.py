@@ -115,8 +115,6 @@ class RouteEnvelopesHandler:
                 routed += 1
                 self._routing_attempts.pop(envelope.id.value, None)
 
-            await uow.commit()
-
         if failed:
             logger.warning(
                 "Routed %d envelopes, expired %d, dead-lettered %d for workflow %s",

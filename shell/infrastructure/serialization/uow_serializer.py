@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.shared.serialization.event_serializer import DomainEventSerializer
+from shell.infrastructure.serialization.event_serializer import DomainEventSerializer
 
 if TYPE_CHECKING:
     from shell.domain.events.events import DomainEvent

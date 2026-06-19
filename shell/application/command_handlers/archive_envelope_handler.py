@@ -35,4 +35,3 @@ class ArchiveEnvelopeHandler:
             envelope.archive_uri = archive_uri
             envelope.transition_stage(EnvelopeStage.ARCHIVED, now)
             await uow.envelopes.save(envelope)
-            await uow.commit()

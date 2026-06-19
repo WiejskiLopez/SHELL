@@ -13,7 +13,7 @@ from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
 from shell.domain.events.events import WorkflowStarted
 from shell.domain.exceptions import TaskExecutionNotFound
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,

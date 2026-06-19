@@ -9,7 +9,7 @@ from shell.application.query_handlers.query_handlers import GetPromptHandler
 from shell.domain.entities.prompt import Prompt
 from shell.domain.value_objects.ids import PromptId
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import FakeClock, FakeIdGenerator
+from shell.infrastructure.persistence.memory import FakeClock, FakeIdGenerator
 from shell.infrastructure.persistence.sql.services import PromptQueryService
 
 if TYPE_CHECKING:

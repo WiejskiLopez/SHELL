@@ -8,7 +8,7 @@ from shell.application.command_handlers.save_graph_node_execution_result_handler
 from shell.application.commands.commands import SaveGraphNodeExecutionResultCommand
 from shell.application.queries.queries import GetGraphNodeExecutionResultQuery
 from shell.application.query_handlers.query_handlers import GetGraphNodeExecutionResultHandler
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,

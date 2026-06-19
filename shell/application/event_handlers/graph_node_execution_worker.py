@@ -234,7 +234,6 @@ class GraphNodeExecutionWorker:
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
-            await uow.commit()
 
     # ── Pure helpers ─────────────────────────────────────────────────────
 

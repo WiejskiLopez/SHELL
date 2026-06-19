@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
+from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 if TYPE_CHECKING:
     from shell.domain.entities.graph_node_definition import GraphNodeDefinition
-    from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 
 class GraphDefinition(Entity[GraphDefinitionId]):

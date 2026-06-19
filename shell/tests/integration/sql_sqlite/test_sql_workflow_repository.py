@@ -15,7 +15,7 @@ from shell.application.commands.commands import (
 from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,

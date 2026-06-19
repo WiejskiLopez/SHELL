@@ -6,13 +6,13 @@ from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.envelope.envelope_event import EnvelopeEvent
 from shell.domain.exceptions import InvalidEnvelopeTransition
 from shell.domain.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
+from shell.domain.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.value_objects.ids import (
         EnvelopeEventId,
-        EnvelopeId,
         GraphNodeExecutionId,
         WorkflowId,
     )

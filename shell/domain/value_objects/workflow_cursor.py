@@ -8,10 +8,8 @@ extension seam for future multi-cursor scenarios (parallel branches).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from shell.domain.value_objects.ids import GraphNodeExecutionId
+from shell.domain.value_objects.ids import GraphNodeExecutionId
 
 
 @dataclass(frozen=True, slots=True)

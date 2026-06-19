@@ -9,7 +9,7 @@ from shell.application.commands.commands import SavePromptCommand
 from shell.application.queries.queries import GetPromptQuery
 from shell.application.query_handlers.query_handlers import GetPromptHandler
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
 )

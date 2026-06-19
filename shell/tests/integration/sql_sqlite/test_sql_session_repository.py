@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from shell.infrastructure.logging.stdlib_logger import get_correlation_id
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
 )

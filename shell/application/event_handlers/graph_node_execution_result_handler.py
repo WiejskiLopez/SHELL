@@ -140,7 +140,6 @@ class GraphNodeExecutionResultHandler:
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
-            await uow.commit()
 
     # ── Private helpers ───────────────────────────────────────────────────
 

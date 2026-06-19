@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
+from shell.domain.value_objects.ids import GraphNodeExecutionResultId
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.value_objects.ids import (
         GraphNodeExecutionId,
-        GraphNodeExecutionResultId,
         WorkflowId,
     )
     from shell.domain.value_objects.status import Status

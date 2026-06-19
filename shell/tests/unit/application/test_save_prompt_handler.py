@@ -6,7 +6,7 @@ from shell.application.command_handlers.save_prompt_handler import SavePromptHan
 from shell.application.commands.commands import SavePromptCommand
 from shell.application.queries.queries import GetPromptQuery
 from shell.application.query_handlers.query_handlers import GetPromptHandler
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,

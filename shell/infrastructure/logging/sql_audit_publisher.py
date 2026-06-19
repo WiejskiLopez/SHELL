@@ -6,7 +6,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.persistence.sql.models import AuditEventModel
-from shell.shared.serialization import DomainEventSerializer
+from shell.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

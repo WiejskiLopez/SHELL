@@ -8,7 +8,7 @@ from shell.domain.events.events import (
     WorkflowCompleted,
     WorkflowFailed,
 )
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,

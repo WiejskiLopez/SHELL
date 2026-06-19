@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.messaging.memory_outbox_store.outbox_record import OutboxRecord
-from shell.shared.serialization import DomainEventSerializer
+from shell.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from shell.domain.events.events import DomainEvent

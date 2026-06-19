@@ -25,5 +25,4 @@ class OpenSessionHandler:
         )
         async with self._uow as uow:
             await uow.sessions.save(session)
-            await uow.commit()
         return session_id

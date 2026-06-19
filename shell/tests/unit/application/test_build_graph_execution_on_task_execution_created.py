@@ -20,7 +20,7 @@ from shell.domain.value_objects.ids import (
 )
 from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
@@ -130,7 +130,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         logger: FakeLogger,
     ) -> None:
         # Use a fresh UoW without seeded graph_definition
-        from shell.infrastructure.persistence.memory.memory import InMemoryGraphDefinitionRepository
+        from shell.infrastructure.persistence.memory import InMemoryGraphDefinitionRepository
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
@@ -176,7 +176,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         logger: FakeLogger,
     ) -> None:
         # No graph_definition seeded — handler must NOT publish events when failing.
-        from shell.infrastructure.persistence.memory.memory import InMemoryGraphDefinitionRepository
+        from shell.infrastructure.persistence.memory import InMemoryGraphDefinitionRepository
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()

@@ -4,11 +4,12 @@ from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.rag_document.rag_chunk import RagChunk
+from shell.domain.value_objects.ids import RagDocumentId
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.value_objects.ids import RagChunkId, RagDocumentId
+    from shell.domain.value_objects.ids import RagChunkId
 
 
 class RagDocument(Entity[RagDocumentId]):

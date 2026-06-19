@@ -14,7 +14,7 @@ from shell.application.commands.commands import ImportTaskExecutionCommand
 from shell.domain.events.events import WorkflowStarted
 from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,

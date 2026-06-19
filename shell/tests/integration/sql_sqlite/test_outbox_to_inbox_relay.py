@@ -12,7 +12,7 @@ from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
-from shell.infrastructure.persistence.memory.memory import FakeEventPublisher
+from shell.infrastructure.persistence.memory import FakeEventPublisher
 from shell.infrastructure.persistence.sql.models import OutboxEventModel
 
 if TYPE_CHECKING:

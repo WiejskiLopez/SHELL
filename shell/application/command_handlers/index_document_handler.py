@@ -44,5 +44,4 @@ class IndexDocumentHandler:
         )
         async with self._uow as uow:
             await uow.rag_documents.save(doc)
-            await uow.commit()
         return doc_id

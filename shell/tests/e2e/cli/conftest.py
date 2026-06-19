@@ -32,7 +32,7 @@ from shell.domain.value_objects.mode import Mode
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.value_objects.version import Version
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,

@@ -1,5 +1,3 @@
-"""Shared ID generators."""
-
 from __future__ import annotations
 
 import uuid
@@ -17,8 +15,6 @@ from shell.domain.value_objects.ids import (
 
 
 class UuidIdGenerator:
-    """Generates real UUID-based IDs."""
-
     def new_task_execution_id(self) -> TaskExecutionId:
         return TaskExecutionId(str(uuid.uuid4()))
 

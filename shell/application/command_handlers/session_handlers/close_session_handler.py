@@ -23,4 +23,3 @@ class CloseSessionHandler:
                 raise SessionNotFound(f"Session not found: {cmd.session_id}")
             session.close(self._clock.now())
             await uow.sessions.save(session)
-            await uow.commit()

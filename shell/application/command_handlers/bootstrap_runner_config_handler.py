@@ -32,5 +32,4 @@ class BootstrapRunnerConfigHandler:
                 now=self._clock.now(),
             )
             await uow.runner_configs.save(config)
-            await uow.commit()
         return config.id.value

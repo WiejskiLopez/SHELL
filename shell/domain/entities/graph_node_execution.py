@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
+from shell.domain.value_objects.ids import GraphNodeExecutionId
 
 if TYPE_CHECKING:
-    from shell.domain.value_objects.ids import GraphNodeExecutionId
     from shell.domain.value_objects.mode import Mode
 
 

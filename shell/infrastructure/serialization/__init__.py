@@ -1,0 +1,5 @@
+from __future__ import annotations
+
+from shell.infrastructure.serialization.event_serializer import DomainEventSerializer
+
+__all__ = ["DomainEventSerializer"]

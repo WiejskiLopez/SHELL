@@ -103,6 +103,5 @@ class RunTaskerWorkflowHandler:
                     )
                 ]
             )
-            await uow.commit()
 
         return workflow.id.value

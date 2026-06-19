@@ -10,7 +10,7 @@ from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
     GetWorkflowHandler,
 )
-from shell.infrastructure.persistence.memory.memory import InMemoryQueryServices
+from shell.infrastructure.persistence.memory import InMemoryQueryServices
 
 
 class TestQueryHandlersNotFound:

@@ -28,4 +28,3 @@ class ArchiveOnDeliveredHandler:
             envelope.archive_uri = archive_uri
             envelope.transition_stage(EnvelopeStage.ARCHIVED, self._clock.now())
             await uow.envelopes.save(envelope)
-            await uow.commit()

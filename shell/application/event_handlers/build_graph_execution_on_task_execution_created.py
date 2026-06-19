@@ -76,7 +76,6 @@ class BuildGraphExecutionOnTaskExecutionCreated:
             )
             await uow.graph_executions.save(graph_execution)
             uow.stage_events(graph_execution.pull_events())
-            await uow.commit()
 
         self._logger.info(
             "Graph built for task",

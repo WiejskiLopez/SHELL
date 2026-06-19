@@ -3,16 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.ports.unit_of_work import UnitOfWork
-from shell.infrastructure.persistence.memory.memory.in_memory_task_execution_repository import InMemoryTaskExecutionRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_graph_execution_repository import InMemoryGraphExecutionRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_workflow_repository import InMemoryWorkflowRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_envelope_repository import InMemoryEnvelopeRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_prompt_repository import InMemoryPromptRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_runner_config_repository import InMemoryRunnerConfigRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_envelope_archive import InMemoryEnvelopeArchive
-from shell.infrastructure.persistence.memory.memory.in_memory_rag_document_repository import InMemoryRagDocumentRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_session_repository import InMemorySessionRepository
-from shell.infrastructure.persistence.memory.memory.in_memory_graph_definition_repository import InMemoryGraphDefinitionRepository
+from shell.infrastructure.persistence.memory.in_memory_task_execution_repository import InMemoryTaskExecutionRepository
+from shell.infrastructure.persistence.memory.in_memory_graph_execution_repository import InMemoryGraphExecutionRepository
+from shell.infrastructure.persistence.memory.in_memory_workflow_repository import InMemoryWorkflowRepository
+from shell.infrastructure.persistence.memory.in_memory_envelope_repository import InMemoryEnvelopeRepository
+from shell.infrastructure.persistence.memory.in_memory_prompt_repository import InMemoryPromptRepository
+from shell.infrastructure.persistence.memory.in_memory_runner_config_repository import InMemoryRunnerConfigRepository
+from shell.infrastructure.persistence.memory.in_memory_envelope_archive import InMemoryEnvelopeArchive
+from shell.infrastructure.persistence.memory.in_memory_rag_document_repository import InMemoryRagDocumentRepository
+from shell.infrastructure.persistence.memory.in_memory_session_repository import InMemorySessionRepository
+from shell.infrastructure.persistence.memory.in_memory_graph_definition_repository import InMemoryGraphDefinitionRepository
 
 if TYPE_CHECKING:
     from shell.domain.events.events import DomainEvent
@@ -116,6 +116,8 @@ class InMemoryUnitOfWork(UnitOfWork):
     async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         if exc_type is not None:
             await self.rollback()
+        else:
+            await self.commit()
 
     async def commit(self) -> None:
         self._committed_events = list(self._staged_events)

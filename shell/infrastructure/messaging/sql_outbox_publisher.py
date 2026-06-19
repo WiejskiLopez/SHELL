@@ -11,7 +11,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.persistence.sql.models import OutboxEventModel
-from shell.shared.serialization import DomainEventSerializer
+from shell.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

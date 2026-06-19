@@ -60,7 +60,6 @@ class RunGraphNodeExecutionHandler:
                 graph_node_execution_id, Status.running(), now=now
             )
             await uow.workflows.save(workflow)
-            await uow.commit()
 
         # Execute strategy (outside UoW — may take a long time)
         try:
@@ -94,6 +93,5 @@ class RunGraphNodeExecutionHandler:
             )
             await uow.workflows.save(wf)
             uow.stage_events(wf.pull_events())
-            await uow.commit()
 
         return result.id.value

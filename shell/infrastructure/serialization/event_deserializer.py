@@ -22,7 +22,7 @@ from shell.domain.events.events import (
     WorkflowFailed,
     WorkflowStarted,
 )
-from shell.shared.serialization import DomainEventSerializer
+from shell.infrastructure.serialization import DomainEventSerializer
 
 logger = logging.getLogger(__name__)
 

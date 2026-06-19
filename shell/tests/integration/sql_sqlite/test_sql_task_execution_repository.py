@@ -13,7 +13,7 @@ from shell.application.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
 )
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,

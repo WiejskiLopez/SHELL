@@ -14,7 +14,7 @@ from shell.application.queries.queries import (
 from shell.application.query_handlers.query_handlers import (
     GetWorkflowHandler,
 )
-from shell.infrastructure.persistence.memory.memory import FakeLogger
+from shell.infrastructure.persistence.memory import FakeLogger
 from shell.infrastructure.persistence.sql.services import WorkflowQueryService
 
 

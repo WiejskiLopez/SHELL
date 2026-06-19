@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from shell.domain.events.events import GraphNodeExecutionRequested
 from shell.domain.value_objects.status import Status
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeIdGenerator,
     FakeNodeProcessRunner,
     InMemoryUnitOfWork,

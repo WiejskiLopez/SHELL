@@ -13,7 +13,7 @@ from shell.application.dto import (
     WorkflowDto,
 )
 from shell.domain.value_objects.ids import WorkflowId
-from shell.infrastructure.persistence.memory.memory.in_memory_unit_of_work import InMemoryUnitOfWork
+from shell.infrastructure.persistence.memory.in_memory_unit_of_work import InMemoryUnitOfWork
 
 
 class InMemoryQueryServices:

@@ -9,7 +9,7 @@ from shell.application.command_handlers.import_task_execution_handler import (
 )
 from shell.application.commands.commands import ImportTaskExecutionCommand
 from shell.domain.events.events import TaskExecutionCreated
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,

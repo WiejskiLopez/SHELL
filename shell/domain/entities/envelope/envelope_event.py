@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
+from shell.domain.value_objects.ids import EnvelopeEventId
 
 if TYPE_CHECKING:
     from datetime import datetime
-
-    from shell.domain.value_objects.ids import EnvelopeEventId
 
 
 class EnvelopeEvent(Entity[EnvelopeEventId]):

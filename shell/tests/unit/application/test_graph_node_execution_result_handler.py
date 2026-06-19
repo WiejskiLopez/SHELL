@@ -15,12 +15,12 @@ from shell.domain.events.events import (
     WorkflowFailed,
 )
 from shell.domain.value_objects.status import Status
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeNodeProcessRunner,
     InMemoryUnitOfWork,
 )
 
-from shell.infrastructure.persistence.memory.memory import FakeIdGenerator
+from shell.infrastructure.persistence.memory import FakeIdGenerator
 
 from .conftest import (
     _NOW,

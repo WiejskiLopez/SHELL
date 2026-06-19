@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import logging
 
+__all__ = [
+    "StdlibLogger",
+]
+
 
 class StdlibLogger:
     """Implements application/ports/ports.Logger using Python stdlib logging."""

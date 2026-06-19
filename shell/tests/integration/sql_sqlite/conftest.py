@@ -6,7 +6,7 @@ import pytest
 
 from shell.bootstrap.database_config.database_bootstrap import bootstrap_database
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,

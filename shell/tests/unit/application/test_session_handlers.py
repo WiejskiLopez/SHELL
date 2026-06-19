@@ -18,7 +18,7 @@ from shell.application.commands.commands import (
 from shell.application.queries.queries import GetSessionHistoryQuery
 from shell.application.query_handlers.query_handlers import GetSessionHistoryHandler
 from shell.infrastructure.logging.stdlib_logger import get_correlation_id
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,

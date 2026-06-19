@@ -18,7 +18,7 @@ from shell.application.query_handlers.query_handlers import (
 )
 from shell.domain.value_objects.ids import TaskExecutionId
 from shell.infrastructure.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,

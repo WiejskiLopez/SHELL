@@ -24,7 +24,7 @@ from shell.infrastructure.persistence.sql.services import (
 )
 from shell.infrastructure.process.subprocess_runner import SubprocessNodeProcessRunner
 from shell.infrastructure.time.system_clock import SystemClock
-from shell.shared.ids import UuidIdGenerator
+from shell.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 
 
 class InfrastructureContainer(containers.DeclarativeContainer):

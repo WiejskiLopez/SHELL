@@ -16,6 +16,13 @@ from shell.infrastructure.persistence.sql.models import GraphDefinitionModel
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
+__all__ = [
+    "build_session_factory",
+    "create_all_tables",
+    "get_session",
+    "seed_base_data",
+]
+
 
 def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
     """Create an async session factory for the given database URL.

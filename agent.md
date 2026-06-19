@@ -454,7 +454,99 @@ if TYPE_CHECKING:
 
 ---
 
-## 15. ADR — Architecture Decision Records
+## 15. Entity state — prywatne atrybuty z publicznymi property
+
+Każdy stan mutowalny encji (poza `_id` który jest już prywatny w `Entity[TId]`) MUSI być:
+- Prywatny — atrybut z prefiksem `_`
+- Eksponowany przez publiczne `@property` (tylko do odczytu)
+- Modyfikowany przez metody domenowe, NIGDY przez bezpośrednie przypisanie z zewnątrz
+
+
+```python
+# POPRAWNIE — wzorzec z TaskExecution
+class TaskExecution(AggregateRoot[TaskExecutionId]):
+    __slots__ = ("_name", "_version", "_hash", "_body", ...)
+
+    @property
+    def name(self) -> TaskExecutionName:
+        return self._name
+
+    def rename(self, new_name: TaskExecutionName) -> None:
+        self._name = new_name
+
+# ŹLE — publiczne atrybuty
+# class RunnerConfig(Entity[RunnerConfigId]):
+#     __slots__ = ("package_name", "kind", ...)  # ← brak _
+#     self.package_name = package_name           # ← publiczny
+```
+
+---
+
+## 16. `__init__.py` — tylko re-eksport, nie definicja klas
+
+Plik `__init__.py` w pakiecie NIGDY nie zawiera definicji klas, funkcji ani stałych (poza `__all__`). Służy WYŁĄCZNIE do re-eksportowania publicznego API z podmodułów.
+
+```python
+# POPRAWNIE — re-eksport
+from .sql_alchemy_uow import SqlAlchemyUnitOfWork
+__all__ = ["SqlAlchemyUnitOfWork"]
+
+# ŹLE — definicja klasy w __init__.py
+# class SqlAlchemyUnitOfWork: ...  # ← przenieś do osobnego pliku
+```
+
+**WYJĄTKI**:
+- Puste `__init__.py` (pakiet jako namespace)
+- `__init__.py` zawierające tylko `__all__` z importami
+- Pliki konfiguracyjne frameworków (np. Alembic `env.py`)
+
+---
+
+## 17. `TYPE_CHECKING` — zakaz dla class base i `isinstance`
+
+Typy używane w:
+- Class base list: `class Foo(Entity[SomeId])`
+- `isinstance()` check: `isinstance(x, SomeId)`
+- `@dataclass` field type z `__post_init__` używającym tego typu
+
+MUSZĄ być importowane w runtime (NIE pod `TYPE_CHECKING`). `from __future__ import annotations` deferuje tylko adnotacje, NIE class base expression ani isinstance.
+
+```python
+from __future__ import annotations
+from shell.domain.value_objects.ids import SomeId  # ← runtime, bo używane w class base
+
+if TYPE_CHECKING:
+    # Tu idą tylko typy używane wyłącznie w adnotacjach
+    from shell.domain.other import SomeOther
+```
+
+---
+
+## 18. Child entity — tworzona TYLKO przez Aggregate Root
+
+Child entity (np. `Message`, `RagChunk`) są tworzone WYŁĄCZNIE przez metody swojego Aggregate Root. Repozytoria SQL/InMemory oraz mappery mogą wywoływać konstruktor child entity TYLKO do deserializacji z persystencji — NIGDY jako część logiki biznesowej.
+
+```python
+# POPRAWNIE — przez metodę AR
+class Session(Entity[SessionId]):
+    def append_message(self, ...) -> Message:
+        msg = Message(id=msg_id, ...)  # ← tworzenie wewnątrz AR
+        self.messages.append(msg)
+        return msg
+
+# POPRAWNIE — konstruktor w mapperze (deserializacja)
+def message_model_to_entity(model):
+    return Message(id=MessageId(model.id), ...)  # ← OK: czysta deserializacja
+
+# ŹLE — tworzenie child entity w repozytorium jako logika biznesowa
+# class SomeService:
+#     def do_stuff(self):
+#         msg = Message(id=..., ...)  # ← NIE: logika biznesowa poza AR
+```
+
+---
+
+## 19. ADR — Architecture Decision Records
 
 Wszystkie znaczące decyzje architektoniczne dokumentowane są jako ADR w `shell/docs/adr/`.
 Obowiązujące ADR-y:

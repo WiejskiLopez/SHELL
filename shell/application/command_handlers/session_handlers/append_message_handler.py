@@ -32,5 +32,4 @@ class AppendMessageHandler:
                 now=self._clock.now(),
             )
             await uow.sessions.save(session)
-            await uow.commit()
         return msg_id

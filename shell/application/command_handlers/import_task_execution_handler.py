@@ -56,5 +56,4 @@ class ImportTaskExecutionHandler:
             )
             await uow.task_executions.save(task_execution)
             uow.stage_events(task_execution.pull_events())
-            await uow.commit()
         return task_execution.id.value

@@ -30,7 +30,7 @@ from shell.domain.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
 from shell.infrastructure.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,

@@ -31,5 +31,4 @@ class SavePromptHandler:
                 now=self._clock.now(),
             )
             await uow.prompts.save(prompt)
-            await uow.commit()
         return prompt.id.value

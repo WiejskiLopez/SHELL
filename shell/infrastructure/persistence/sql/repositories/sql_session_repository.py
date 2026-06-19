@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from shell.domain.repositories.session_repository import SessionRepository
 from shell.domain.value_objects.ids import SessionId
@@ -32,7 +33,11 @@ class SqlSessionRepository(SessionRepository):
             await self._session.merge(message_entity_to_model(message))
 
     async def get_by_id(self, session_id: SessionId) -> Session | None:
-        query = select(SessionModel).where(SessionModel.id == session_id.value)
+        query = (
+            select(SessionModel)
+            .options(selectinload(SessionModel.messages))
+            .where(SessionModel.id == session_id.value)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         if row is None:
             return None

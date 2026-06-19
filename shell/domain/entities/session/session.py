@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from shell.domain.entities.base.entity import Entity
 from shell.domain.entities.session.message import Message
+from shell.domain.value_objects.ids import SessionId
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -11,7 +12,6 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import (
         CorrelationId,
         MessageId,
-        SessionId,
     )
 
 

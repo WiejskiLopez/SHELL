@@ -9,7 +9,7 @@ from shell.application.commands.commands import IndexDocumentCommand
 from shell.application.queries.queries import SearchSimilarQuery
 from shell.application.query_handlers.query_handlers import SearchSimilarHandler
 from shell.infrastructure.external.hash_embedder import HashEmbedder
-from shell.infrastructure.persistence.memory.memory import (
+from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,
