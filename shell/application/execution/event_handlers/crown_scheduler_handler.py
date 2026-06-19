@@ -93,9 +93,15 @@ class CrownSchedulerHandler:
                 )
                 return
 
-            parent_workflow = await uow.workflows.get_by_task_execution_id(
-                parent_graph.task_execution_id,
-            )
+            parent_workflow_id = parent_graph.workflow_id
+            if parent_workflow_id is None:
+                self._logger.warning(
+                    "crown_scheduler.parent_no_workflow_id",
+                    parent_graph_id=parent_id.value,
+                )
+                return
+
+            parent_workflow = await uow.workflows.get_by_id(parent_workflow_id)
             if parent_workflow is None:
                 self._logger.warning(
                     "crown_scheduler.parent_workflow_not_found",

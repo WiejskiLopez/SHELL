@@ -32,7 +32,6 @@ def _new_workflow() -> Workflow:
     """Pomocnicza fabryka agregatu Workflow oparta o sygnaturę z dump_002.md."""
     return Workflow.new(
         id_=WorkflowId("wf-123"),
-        task_execution_id=TaskExecutionId("task-456"),
         now=_NOW,
     )
 
@@ -59,7 +58,8 @@ class TestWorkflowStateMachine:
         first_graph_node_execution_id = GraphNodeExecutionId("node-start")
 
         wf.start_at(
-            first_graph_node_execution_id=first_graph_node_execution_id, context=_ctx(), now=_NOW
+            first_graph_node_execution_id=first_graph_node_execution_id, context=_ctx(), now=_NOW,
+            task_execution_id=TaskExecutionId("task-456"),
         )
 
         assert wf.status == Status.running()
@@ -122,7 +122,7 @@ class TestWorkflowStateMachine:
         )
         wf.pull_events()
 
-        wf.finish(now=_NOW)
+        wf.finish(now=_NOW, task_execution_id=TaskExecutionId("task-456"))
 
         assert wf.status == Status.done()
         assert wf.cursor == WorkflowCursor.empty()
@@ -138,7 +138,7 @@ class TestWorkflowStateMachine:
         )
         wf.pull_events()
 
-        wf.abort(reason="Wymuszone zatrzymanie awaryjne", now=_NOW)
+        wf.abort(reason="Wymuszone zatrzymanie awaryjne", now=_NOW, task_execution_id=TaskExecutionId("task-456"))
 
         assert wf.status == Status.failed()
         assert wf.cursor == WorkflowCursor.empty()

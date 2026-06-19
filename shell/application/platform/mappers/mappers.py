@@ -67,9 +67,10 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
         )
         for state in workflow.graph_node_execution_states
     }
+    primary_te_id = workflow.task_execution_id
     return WorkflowDto(
         id=workflow.id.value,
-        task_execution_id=workflow.task_execution_id.value,
+        task_execution_id=primary_te_id.value if primary_te_id else "",
         status=workflow.status.value,
         created_at=workflow.created_at,
         graph_node_execution_states=graph_node_execution_states,

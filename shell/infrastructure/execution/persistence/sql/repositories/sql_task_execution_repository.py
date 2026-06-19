@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
-from shell.domain.execution.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
@@ -88,6 +88,16 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
     async def save(self, task_execution: TaskExecution) -> None:
         model = task_execution_entity_to_model(task_execution)
         await self._session.merge(model)
+
+    async def get_by_workflow_id(
+        self, workflow_id: WorkflowId
+    ) -> list[TaskExecution]:
+        query = (
+            select(TaskExecutionModel)
+            .where(TaskExecutionModel.workflow_id == workflow_id.value)
+        )
+        rows = (await self._session.execute(query)).scalars().all()
+        return [task_execution_model_to_entity(row) for row in rows]
 
     async def list_current(self) -> list[TaskExecution]:
         query = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))

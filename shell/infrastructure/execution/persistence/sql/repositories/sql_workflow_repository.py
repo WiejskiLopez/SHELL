@@ -12,7 +12,7 @@ from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
-from ..models import WorkflowModel
+from ..models import TaskExecutionModel, WorkflowModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,18 +39,13 @@ class SqlWorkflowRepository(WorkflowRepository):
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> Workflow | None:
-        query = (
-            select(WorkflowModel)
-            .options(
-                selectinload(WorkflowModel.graph_node_execution_state_models),
-                selectinload(WorkflowModel.graph_node_execution_result_models),
-            )
-            .where(WorkflowModel.task_execution_id == task_execution_id.value)
-            .order_by(WorkflowModel.created_at.desc())
-            .limit(1)
+        te_query = select(TaskExecutionModel.workflow_id).where(
+            TaskExecutionModel.id == task_execution_id.value
         )
-        row = (await self._session.execute(query)).scalar_one_or_none()
-        return workflow_model_to_entity(row) if row else None
+        wf_id = (await self._session.execute(te_query)).scalar_one_or_none()
+        if wf_id is None:
+            return None
+        return await self.get_by_id(WorkflowId(wf_id))
 
     async def save(self, workflow: Workflow) -> None:
         from shell.domain.execution.exceptions import WorkflowConcurrentlyModified

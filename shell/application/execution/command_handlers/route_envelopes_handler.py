@@ -47,12 +47,8 @@ class RouteEnvelopesHandler:
                 raise WorkflowNotFound(cmd.workflow_id)
 
             pending = await uow.envelopes.list_pending(wf_id)
-            task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
-            graph_execution = (
-                await uow.graph_executions.get_by_task_execution_id(task_execution.id)
-                if task_execution is not None
-                else None
-            )
+            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
+            graph_execution = graph_executions[0] if graph_executions else None
 
             now = self._clock.now()
             routed = 0

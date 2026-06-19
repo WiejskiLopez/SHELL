@@ -19,7 +19,7 @@ from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.version import Version
 
 if TYPE_CHECKING:
-    from shell.domain.execution.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 
 class TaskExecution(AggregateRoot["TaskExecutionId"]):
@@ -34,6 +34,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         "_is_current",
         "_created_at",
         "_work_dir",
+        "_workflow_id",
     )
 
     _parent_task_execution_id: TaskExecutionId | None
@@ -44,6 +45,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     _is_current: bool
     _created_at: datetime
     _work_dir: str
+    _workflow_id: WorkflowId | None  # owning workflow (optional)
 
     def __init__(
         self,
@@ -56,6 +58,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         is_current: bool = True,
         created_at: datetime | None = None,
         work_dir: str = "",
+        workflow_id: WorkflowId | None = None,
     ) -> None:
         super().__init__(id)
         self._parent_task_execution_id = parent_task_execution_id
@@ -66,6 +69,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         self._is_current = is_current
         self._created_at = created_at or datetime.min
         self._work_dir = work_dir
+        self._workflow_id = workflow_id
 
     @property
     def parent_task_execution_id(self) -> TaskExecutionId | None:
@@ -103,6 +107,10 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     def work_dir(self, value: str) -> None:
         self._work_dir = value
 
+    @property
+    def workflow_id(self) -> WorkflowId | None:
+        return self._workflow_id
+
     @classmethod
     def create(
         cls,
@@ -112,6 +120,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         body: TaskExecutionBody,
         now: datetime,
         parent_task_execution_id: TaskExecutionId | None = None,
+        workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
         """Factory for a brand-new Task (version 1, current). Emits TaskExecutionCreatedEvent."""
         task_execution = cls(
@@ -123,6 +132,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
             body=body,
             is_current=True,
             created_at=now,
+            workflow_id=workflow_id,
         )
         task_execution.append_event(
             TaskExecutionCreatedEvent.now(task_execution_id=id_, task_execution_name=name, now=now)

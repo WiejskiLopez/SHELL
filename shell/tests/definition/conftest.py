@@ -172,7 +172,7 @@ _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 def _new_workflow() -> Workflow:
     return Workflow.new(
-        id_=WorkflowId.generate(), task_execution_id=TaskExecutionId("task-id"), now=_NOW
+        id_=WorkflowId.generate(), now=_NOW
     )
 
 
@@ -359,7 +359,10 @@ def _build_graph_execution(
 async def _persist_running_workflow(
     uow: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
-    wf = Workflow.new(id_=WorkflowId.generate(), task_execution_id=task_execution_id, now=_NOW)
+    wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
+    for ge in list(uow.graph_executions._store.values()):
+        if ge.task_execution_id == task_execution_id:
+            ge._workflow_id = wf.id
     wf.start_at(
         first_graph_node_execution_id=first_node,
         context=WorkflowExecutionContext(correlation_id="cid"),

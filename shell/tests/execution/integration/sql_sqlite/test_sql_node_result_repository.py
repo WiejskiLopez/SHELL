@@ -45,7 +45,6 @@ class TestSqlNodeResultRepository:
             await u.workflows.save(
                 Workflow.new(
                     id_=WorkflowId("wf-sql-nr-1"),
-                    task_execution_id=TaskExecutionId("task-id"),
                     now=clock.now(),
                 )
             )

@@ -20,9 +20,6 @@ class InMemoryWorkflowRepository(WorkflowRepository):
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> Workflow | None:
-        for workflow in self._store.values():
-            if workflow.task_execution_id == task_execution_id:
-                return workflow
         return None
 
     async def save(self, workflow: Workflow) -> None:

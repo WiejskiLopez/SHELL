@@ -4,7 +4,7 @@ import pytest
 
 from shell.domain.execution.events import GraphNodeExecutionStartedEvent, WorkflowStartedEvent
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
-from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, TaskExecutionId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.tests.conftest import _ctx, _new_workflow, _NOW
@@ -14,7 +14,8 @@ class TestStartAt:
     def test_idle_to_running_sets_cursor_and_emits_events(self) -> None:
         wf = _new_workflow()
         wf.start_at(
-            first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW
+            first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW,
+            task_execution_id=TaskExecutionId("task-456"),
         )
         assert wf.status == Status.running()
         assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n1"))

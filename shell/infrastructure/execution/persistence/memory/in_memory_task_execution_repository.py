@@ -8,6 +8,7 @@ from shell.domain.execution.value_objects.ids import TaskExecutionId
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution import TaskExecution
     from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+    from shell.domain.execution.value_objects.ids import WorkflowId
 
 
 class InMemoryTaskExecutionRepository(TaskExecutionRepository):
@@ -37,6 +38,14 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
 
     async def save(self, task_execution: TaskExecution) -> None:
         self._store[task_execution.id.value] = task_execution
+
+    async def get_by_workflow_id(
+        self, workflow_id: WorkflowId
+    ) -> list[TaskExecution]:
+        return [
+            te for te in self._store.values()
+            if te.workflow_id == workflow_id
+        ]
 
     async def list_current(self) -> list[TaskExecution]:
         return [task_execution for task_execution in self._store.values() if task_execution.is_current]

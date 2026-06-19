@@ -40,10 +40,12 @@ if TYPE_CHECKING:
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
-    """Workflow aggregate root — owns GraphNodeExecutionStates, NodeResults and the cursor."""
+    """Workflow aggregate root — owns GraphNodeExecutionStates, NodeResults and the cursor.
+
+    TaskExecution and GraphExecution reference this Workflow via workflow_id.
+    """
 
     __slots__ = (
-        "_task_execution_id",
         "_status",
         "_created_at",
         "_cursor",
@@ -54,7 +56,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         "_waiting_nodes",
     )
 
-    _task_execution_id: TaskExecutionId
     _status: Status
     _created_at: datetime
     _cursor: WorkflowCursor
@@ -68,7 +69,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self,
         *,
         id: WorkflowId,
-        task_execution_id: TaskExecutionId,
         status: Status,
         created_at: datetime,
         cursor: WorkflowCursor | None = None,
@@ -79,7 +79,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         waiting_nodes: dict[str, list[str]] | None = None,
     ) -> None:
         super().__init__(id)
-        self._task_execution_id = task_execution_id
         self._status = status
         self._created_at = created_at
         self._cursor = cursor if cursor is not None else WorkflowCursor.empty()
@@ -90,10 +89,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._graph_node_execution_states = graph_node_execution_states or {}
         self._graph_node_execution_results = graph_node_execution_results or {}
         self._waiting_nodes = waiting_nodes or {}
-
-    @property
-    def task_execution_id(self) -> TaskExecutionId:
-        return self._task_execution_id
 
     @property
     def status(self) -> Status:
@@ -141,12 +136,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
         cls,
         *,
         id_: WorkflowId,
-        task_execution_id: TaskExecutionId,
         now: datetime,
     ) -> Workflow:
         return cls(
             id=id_,
-            task_execution_id=task_execution_id,
             status=Status.idle(),
             created_at=now,
         )
@@ -157,6 +150,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         first_graph_node_execution_id: GraphNodeExecutionId,
         context: WorkflowExecutionContext,
         now: datetime,
+        task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != Status.idle():
             raise InvalidWorkflowTransition(
@@ -168,7 +162,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.update_graph_node_execution_state(
             first_graph_node_execution_id, Status.running(), now=now
         )
-        self.append_event(WorkflowStartedEvent.now(self.id, self.task_execution_id, now=now))
+        if task_execution_id is not None:
+            self.append_event(WorkflowStartedEvent.now(self.id, task_execution_id, now=now))
         self.append_event(
             GraphNodeExecutionStartedEvent.now(self.id, first_graph_node_execution_id, now=now)
         )
@@ -207,14 +202,15 @@ class Workflow(AggregateRoot["WorkflowId"]):
             GraphNodeExecutionRequestedEvent.now(self.id, next_graph_node_execution_id, now=now)
         )
 
-    def finish(self, now: datetime) -> None:
+    def finish(self, now: datetime, task_execution_id: TaskExecutionId | None = None) -> None:
         if self._status != Status.running():
             raise InvalidWorkflowTransition(
                 f"finish requires status=running, got {self._status.value!r}"
             )
         self._status = Status.done()
         self._cursor = self._cursor.cleared()
-        self.append_event(WorkflowCompletedEvent.now(self.id, self.task_execution_id, now=now))
+        if task_execution_id is not None:
+            self.append_event(WorkflowCompletedEvent.now(self.id, task_execution_id, now=now))
 
     def abort(
         self,
@@ -222,6 +218,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         reason: str,
         now: datetime,
         compensation: CompensationHandler | None = None,
+        task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status not in (Status.running(), Status.idle()):
             raise InvalidWorkflowTransition(
@@ -229,7 +226,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = Status.failed()
         self._cursor = self._cursor.cleared()
-        self.append_event(WorkflowFailedEvent.now(self.id, self.task_execution_id, now=now))
+        if task_execution_id is not None:
+            self.append_event(WorkflowFailedEvent.now(self.id, task_execution_id, now=now))
         if compensation is not None:
             compensation.compensate(self, reason)
 
@@ -263,11 +261,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         child_graph_ids: list[str] | None = None,
         now: datetime,
     ) -> None:
-        """Mark a node as waiting for its child sub-graphs to complete.
-        
-        The cursor advances past this node — the Crown-Scheduler will
-        notify when all children are done via on_children_completed.
-        """
         if self._status != Status.running():
             raise InvalidWorkflowTransition(
                 f"wait_for_children requires status=running, got {self._status.value!r}"
@@ -292,10 +285,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
     ) -> None:
-        """Mark a waiting node as complete after children have finished.
-        
-        Removes the node from waiting_nodes and updates its state to done.
-        """
         node_key = graph_node_execution_id.value
         self._waiting_nodes.pop(node_key, None)
         self.update_graph_node_execution_state(

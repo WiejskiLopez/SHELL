@@ -4,7 +4,7 @@ import pytest
 
 from shell.domain.execution.events import WorkflowFailedEvent
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
-from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId, TaskExecutionId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.tests.conftest import _ctx, _new_workflow, _NOW
@@ -18,7 +18,7 @@ class TestAbort:
             first_graph_node_execution_id=GraphNodeExecutionId("n1"), context=_ctx(), now=_NOW
         )
         wf.pull_events()
-        wf.abort(reason="boom", now=_NOW)
+        wf.abort(reason="boom", now=_NOW, task_execution_id=TaskExecutionId("task-456"))
         assert wf.status == Status.failed()
         assert wf.cursor == WorkflowCursor.empty()
         events = wf.pull_events()

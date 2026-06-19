@@ -85,13 +85,13 @@ class RunTaskerWorkflowHandler:
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_execution_id=task_execution_id,
                 now=now,
             )
             workflow.start_at(
                 first_graph_node_execution_id=first_graph_node_execution.id,
                 context=context,
                 now=now,
+                task_execution_id=task_execution_id,
             )
 
             await uow.workflows.save(workflow)

@@ -56,13 +56,13 @@ class StartWorkflowHandler:
 
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
-                task_execution_id=TaskExecutionId(cmd.task_execution_id),
                 now=now,
             )
             workflow.start_at(
                 first_graph_node_execution_id=first_graph_node_execution.id,
                 context=WorkflowExecutionContext.empty(),
                 now=now,
+                task_execution_id=task_execution.id,
             )
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())

@@ -7,7 +7,7 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 
 class InMemoryGraphExecutionRepository(GraphExecutionRepository):
@@ -24,6 +24,14 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
             if graph_execution.task_execution_id == task_execution_id:
                 return graph_execution
         return None
+
+    async def get_by_workflow_id(
+        self, workflow_id: WorkflowId
+    ) -> list[GraphExecution]:
+        return [
+            ge for ge in self._store.values()
+            if ge.workflow_id == workflow_id
+        ]
 
     async def save(self, graph_execution: GraphExecution) -> None:
         self._store[graph_execution.id.value] = graph_execution

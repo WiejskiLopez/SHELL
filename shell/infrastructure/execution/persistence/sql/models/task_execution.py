@@ -24,4 +24,5 @@ class TaskExecutionModel(Base):
     body: Mapped[str] = mapped_column(nullable=False, default="")
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     work_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    workflow_id: Mapped[str | None] = mapped_column(nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)

@@ -126,6 +126,12 @@ class SubGraphExecutionService:
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphExecution (no child TaskExecution) ──────────
+        # ── Create Workflow for child graph ────────────────────────────
+        child_workflow = Workflow.new(
+            id_=self._id_gen.new_workflow_id(),
+            now=now,
+        )
+
         sub_graph_execution = GraphExecution.from_graph_definition(
             id_=self._id_gen.new_graph_execution_id(),
             task_execution_id=parent_graph_execution.task_execution_id,
@@ -136,40 +142,35 @@ class SubGraphExecutionService:
             state_input=resolved_state,
             correlation_id=correlation_id,
             depth=depth,
-        )
-
-        # ── Create minimal Workflow for event-driven saga ────────────────
-        workflow = Workflow.new(
-            id_=self._id_gen.new_workflow_id(),
-            task_execution_id=parent_graph_execution.task_execution_id,
-            now=now,
+            workflow_id=child_workflow.id,
         )
 
         first_node = self._navigator.first(sub_graph_execution)
 
         if first_node is not None:
-            workflow.start_at(
+            child_workflow.start_at(
                 first_graph_node_execution_id=first_node.id,
                 context=WorkflowExecutionContext(correlation_id=correlation_id),
                 now=now,
+                task_execution_id=parent_graph_execution.task_execution_id,
             )
 
         # ── Persist ───────────────────────────────────────────────────────
         await _uow.graph_executions.save(sub_graph_execution)
-        await _uow.workflows.save(workflow)
+        await _uow.workflows.save(child_workflow)
 
         events = list(sub_graph_execution.pull_events())
-        events.extend(workflow.pull_events())
+        events.extend(child_workflow.pull_events())
 
         if first_node is not None:
-            workflow.append_event(
+            child_workflow.append_event(
                 GraphNodeExecutionRequestedEvent.now(
-                    workflow_id=workflow.id,
+                    workflow_id=child_workflow.id,
                     graph_node_execution_id=first_node.id,
                     now=now,
                 )
             )
-            events.extend(workflow.pull_events())
+            events.extend(child_workflow.pull_events())
 
         _uow.stage_events(events)
 

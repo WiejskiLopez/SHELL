@@ -28,7 +28,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
         wf = Workflow.new(
-            id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now()
+            id_=WorkflowId("wf-1"), now=clock.now()
         )
         await uow.workflows.save(wf)
 

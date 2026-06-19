@@ -57,6 +57,7 @@ from shell.domain.execution.value_objects.ids import (
     MessageId,
     SessionId,
     TaskExecutionId,
+    WorkflowId,
     TaskExecutionInputPayloadId,
     TaskExecutionOutputPayloadId,
     WorkflowId
@@ -109,6 +110,8 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
+    from shell.domain.execution.value_objects.ids import WorkflowId
+
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
         parent_task_execution_id=(
@@ -123,6 +126,11 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
         is_current=task_execution_model.is_current,
         created_at=_ensure_utc(task_execution_model.created_at),
         work_dir=task_execution_model.work_dir or "",
+        workflow_id=(
+            WorkflowId(task_execution_model.workflow_id)
+            if task_execution_model.workflow_id
+            else None
+        ),
     )
 
 
@@ -141,6 +149,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         is_current=task_execution.is_current,
         work_dir=task_execution.work_dir,
         created_at=task_execution.created_at,
+        workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
     )
 
 
@@ -314,6 +323,11 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         timeout_at=graph_execution_model.timeout_at,
         correlation_id=graph_execution_model.correlation_id or "",
         tags=dict(graph_execution_model.tags),
+        workflow_id=(
+            WorkflowId(graph_execution_model.workflow_id)
+            if graph_execution_model.workflow_id
+            else None
+        ),
     )
 
 
@@ -445,6 +459,7 @@ def graph_execution_entity_to_model(
         timeout_at=graph_execution.timeout_at,
         correlation_id=graph_execution.correlation_id,
         tags=graph_execution.tags,
+        workflow_id=graph_execution.workflow_id.value if graph_execution.workflow_id else None,
     )
     graph_execution_model.graph_node_execution_models = [
         GraphNodeExecutionModel(
@@ -517,7 +532,6 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     )
     return Workflow(
         id=WorkflowId(workflow_model.id),
-        task_execution_id=TaskExecutionId(workflow_model.task_execution_id),
         status=Status(workflow_model.status),
         created_at=_ensure_utc(workflow_model.created_at),
         cursor=cursor,
@@ -531,7 +545,6 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
 def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     work_flow_model = WorkflowModel(
         id=work_flow.id.value,
-        task_execution_id=work_flow.task_execution_id.value,
         status=work_flow.status.value,
         current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value
         if work_flow.cursor.current_graph_node_execution_id

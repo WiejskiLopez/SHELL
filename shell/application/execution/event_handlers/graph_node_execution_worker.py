@@ -84,20 +84,20 @@ class GraphNodeExecutionWorker:
                 )
                 return
 
-            task_execution = await uow.task_executions.get_current_by_id(
-                workflow.task_execution_id
+            graph_executions = await uow.graph_executions.get_by_workflow_id(
+                workflow.id
             )
-            if task_execution is None:
+            if not graph_executions:
                 self._logger.warning(
-                    "graph_node_execution_worker.task_execution_not_found",
-                    task_execution_id=workflow.task_execution_id.value,
+                    "graph_node_execution_worker.no_graph_execution",
+                    workflow_id=event.workflow_id.value,
                 )
                 return
-
-            graph_execution = await uow.graph_executions.get_by_task_execution_id(
-                task_execution.id
+            graph_execution = graph_executions[0]
+            task_execution = await uow.task_executions.get_current_by_id(
+                graph_execution.task_execution_id
             )
-            work_dir = task_execution.work_dir
+            work_dir = task_execution.work_dir if task_execution else ""
 
         if graph_execution is None:
             self._logger.error(
@@ -229,14 +229,10 @@ class GraphNodeExecutionWorker:
             if workflow is None:
                 return
 
-            task_execution = await uow.task_executions.get_current_by_id(
-                workflow.task_execution_id
+            graph_executions = await uow.graph_executions.get_by_workflow_id(
+                workflow.id
             )
-            graph_execution = (
-                await uow.graph_executions.get_by_task_execution_id(task_execution.id)
-                if task_execution is not None
-                else None
-            )
+            graph_execution = graph_executions[0] if graph_executions else None
 
             if not await self._is_event_relevant(workflow, graph_execution, event):
                 return
@@ -287,6 +283,6 @@ class GraphNodeExecutionWorker:
         return {
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_GRAPH_NODE_EXECUTION_ID": graph_node_execution.id.value,
-            "SHELL_TASK_EXECUTION_ID": workflow.task_execution_id.value,
+            "SHELL_TASK_EXECUTION_ID": "",
             "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
         }

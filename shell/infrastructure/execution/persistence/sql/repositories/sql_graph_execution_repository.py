@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId, WorkflowId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_entity_to_model,
@@ -43,6 +43,15 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None
+
+    async def get_by_workflow_id(
+        self, workflow_id: WorkflowId
+    ) -> list[GraphExecution]:
+        query = self._base_query().where(
+            GraphExecutionModel.workflow_id == workflow_id.value
+        )
+        rows = (await self._session.execute(query)).scalars().all()
+        return [graph_execution_model_to_entity(row) for row in rows if row is not None]
 
     async def save(self, graph_execution: GraphExecution) -> None:
         graph_execution_model = graph_execution_entity_to_model(graph_execution)

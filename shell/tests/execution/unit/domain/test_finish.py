@@ -4,7 +4,7 @@ import pytest
 
 from shell.domain.execution.events import WorkflowCompletedEvent
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
-from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId, TaskExecutionId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.tests.conftest import _ctx, _new_workflow, _NOW
@@ -23,7 +23,7 @@ class TestFinish:
             now=_NOW,
         )
         wf.pull_events()
-        wf.finish(_NOW)
+        wf.finish(_NOW, task_execution_id=TaskExecutionId("task-456"))
         assert wf.status == Status.done()
         assert wf.cursor == WorkflowCursor.empty()
         events = wf.pull_events()

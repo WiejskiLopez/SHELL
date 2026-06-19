@@ -22,7 +22,6 @@ from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, TaskE
 def _workflow() -> Workflow:
     return Workflow.new(
         id_=WorkflowId.generate(),
-        task_execution_id=TaskExecutionId("task_execution_id"),
         now=datetime.now(tz=UTC),
     )
 

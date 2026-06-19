@@ -11,7 +11,6 @@ class WorkflowModel(Base):
     __tablename__ = "workflow"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    task_execution_id: Mapped[str] = mapped_column(nullable=False, index=True)
     status: Mapped[str] = mapped_column(nullable=False, default="idle")
     current_graph_node_execution_id: Mapped[str | None] = mapped_column(
         nullable=True, default=None, index=True

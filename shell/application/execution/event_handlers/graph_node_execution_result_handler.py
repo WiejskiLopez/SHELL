@@ -105,19 +105,16 @@ class GraphNodeExecutionResultHandler:
                 )
                 return
 
-            task_execution = await uow.task_executions.get_current_by_id(
-                workflow.task_execution_id
+            graph_executions = await uow.graph_executions.get_by_workflow_id(
+                workflow.id
             )
-            if task_execution is None:
-                self._logger.error(
-                    "graph_node_execution_result_handler.task_missing",
+            if not graph_executions:
+                self._logger.warning(
+                    "graph_node_execution_result_handler.no_graph",
                     workflow_id=workflow.id.value,
                 )
                 return
-
-            graph_execution = await uow.graph_executions.get_by_task_execution_id(
-                task_execution.id
-            )
+            graph_execution = graph_executions[0]
             if graph_execution is None:
                 self._logger.error(
                     "graph_node_execution_result_handler.graph_missing",
@@ -306,7 +303,7 @@ class GraphNodeExecutionResultHandler:
             self._navigator.next_after(graph_execution, graph_node_execution_id)
         )
         if not next_nodes:
-            workflow.finish(now)
+            workflow.finish(now, task_execution_id=graph_execution.task_execution_id)
             return
         next_node = next_nodes[0]
         workflow.advance_and_request(
@@ -343,7 +340,12 @@ class GraphNodeExecutionResultHandler:
             return
 
         abort_reason = decision.reason if isinstance(decision, AbortDecision) else reason
-        workflow.abort(reason=abort_reason, now=now, compensation=self._compensation)
+        workflow.abort(
+            reason=abort_reason,
+            now=now,
+            compensation=self._compensation,
+            task_execution_id=graph_execution.task_execution_id,
+        )
 
     @staticmethod
     def _find_error_handler(

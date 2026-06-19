@@ -44,15 +44,12 @@ class GraphNodeJoinExecutionHandler:
             if workflow.status != Status.running():
                 return
 
-            task_execution = await uow.task_executions.get_current_by_id(
-                workflow.task_execution_id
+            graph_executions = await uow.graph_executions.get_by_workflow_id(
+                workflow.id
             )
-            if task_execution is None:
+            if not graph_executions:
                 return
-
-            graph_execution = await uow.graph_executions.get_by_task_execution_id(
-                task_execution.id
-            )
+            graph_execution = graph_executions[0]
             if graph_execution is None:
                 return
 

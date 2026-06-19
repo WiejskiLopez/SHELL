@@ -62,7 +62,6 @@ class TestWorkflowWaitingState:
 
         workflow = Workflow.new(
             id_=WorkflowId("wf-1"),
-            task_execution_id=TaskExecutionId("task-1"),
             now=_NOW,
         )
         node_id = GraphNodeExecutionId("node-1")
@@ -81,7 +80,6 @@ class TestWorkflowWaitingState:
     def _make_running_workflow(self) -> Workflow:
         workflow = Workflow.new(
             id_=WorkflowId("wf-1"),
-            task_execution_id=TaskExecutionId("task-1"),
             now=_NOW,
         )
         workflow.start_at(

@@ -11,7 +11,7 @@ from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 class GraphExecutionModel(Base):
     __tablename__ = "graph_execution"
-    __table_args__ = (Index("uq_graph_execution_task_execution_id", "task_execution_id", unique=True),)
+    __table_args__ = (Index("ix_graph_execution_workflow_id", "workflow_id"),)
 
     id: Mapped[str] = mapped_column(primary_key=True)
     task_execution_id: Mapped[str] = mapped_column(
@@ -26,9 +26,7 @@ class GraphExecutionModel(Base):
         nullable=True,
         index=True,
     )
-    parent_tasker_node_execution_id: Mapped[str | None] = mapped_column(
-        nullable=True, index=True,
-    )
+    workflow_id: Mapped[str | None] = mapped_column(nullable=True, index=True)
     state_input: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     state_output: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     depth: Mapped[int] = mapped_column(nullable=False, default=0)
