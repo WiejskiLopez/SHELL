@@ -13,6 +13,9 @@ from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 
+from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
+    InMemoryCrownScheduler,
+)
 from shell.infrastructure.execution.process.subprocess_runner import SubprocessNodeProcessRunner
 from shell.infrastructure.platform.time.system_clock import SystemClock
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
@@ -72,6 +75,9 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     workspace_factory = providers.Factory(Workspace)
     runner_factory = providers.Factory(SubprocessNodeProcessRunner)
 
-    # 3. Publikatory zdarzeń (warstwa IO)
+    # 3. Crown-Scheduler (parent-child sub-graph orchestration)
+    crown_scheduler_factory = providers.Singleton(InMemoryCrownScheduler)
+
+    # 4. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)
     sql_audit_publisher = providers.Singleton(SqlAuditPublisher, session_factory=session_factory)

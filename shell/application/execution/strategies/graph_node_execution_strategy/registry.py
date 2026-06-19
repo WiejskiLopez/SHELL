@@ -3,6 +3,9 @@ from __future__ import annotations
 from shell.application.execution.strategies.graph_node_execution_strategy.agent_strategy import (
     AgentStrategy,
 )
+from shell.application.execution.strategies.graph_node_execution_strategy.planner_strategy import (
+    PlannerStrategy,
+)
 from shell.application.execution.strategies.graph_node_execution_strategy.protocol import (
     GraphNodeExecutionStrategy,
 )
@@ -21,6 +24,7 @@ from shell.application.execution.strategies.graph_node_execution_strategy.worker
 
 _STRATEGY_MAP: dict[str, GraphNodeExecutionStrategy] = {
     "agent": AgentStrategy(),
+    "planner": PlannerStrategy(),
     "router": RouterStrategy(),
     "tasker": TaskerStrategy(),
     "tool": ToolStrategy(),

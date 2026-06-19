@@ -471,3 +471,21 @@ class SubGraphVersioning(Protocol): ...
 8. **Wszystko przez `extra`** — każde rozszerzenie danych przez JSONB `extra` na encjach. Zero migracji dla nowych pól.
 
 9. **Open/Closed** — rdzeń zamknięty dla modyfikacji, otwarty dla rozszerzeń przez DI.
+
+
+Agent output (JSON) 
+  └→ request_new_tasks: [{sub_graph_definition_id, reason, state_input}]
+       └→ GraphNodeExecutionResultHandler (Cycle B)
+            └→ OutputInterpreter (Protocol → AgentOutputInterpreter)
+                 └→ OutputDecision.spawn_sub_graphs()
+                      └→ SubGraphExecutionService
+                           ├── Governance: can_spawn?
+                           ├── Versioning: resolve_definition
+                           ├── Security: filter_state
+                           ├── Spawn: child TaskExecution + GraphExecution + Workflow
+                           └── Observer: on_start
+                                └→ SubGraph runs independently
+                                     └→ WorkflowCompletedEvent
+                                          └→ SubGraphCompletedHandler
+                                               └→ Mark Tasker node SUCCESS
+                                                    └→ Normal advance (Cycle B)

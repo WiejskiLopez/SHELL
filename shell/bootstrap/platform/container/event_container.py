@@ -24,6 +24,13 @@ from shell.application.execution.event_handlers.graph_node_parallel_execution_ha
 from shell.application.execution.event_handlers.graph_node_timeout_handler import (
     GraphNodeTimeoutHandler,
 )
+from shell.application.execution.event_handlers.crown_scheduler_handler import (
+    CrownSchedulerHandler,
+)
+from shell.application.execution.event_handlers.planner_result_handler import (
+    PlannerResultHandler,
+)
+
 
 
 class EventContainer(containers.DeclarativeContainer):
@@ -86,4 +93,21 @@ class EventContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
+    )
+    crown_scheduler_handler_factory = providers.Factory(
+        CrownSchedulerHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        id_gen=infra.id_gen_factory,
+        logger=infra.stdlib_logger,
+        crown_scheduler=infra.crown_scheduler_factory,
+    )
+    planner_result_handler_factory = providers.Factory(
+        PlannerResultHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        id_gen=infra.id_gen_factory,
+        logger=infra.stdlib_logger,
+        sub_graph_service=domain.sub_graph_execution_service_factory,
+        crown_scheduler=infra.crown_scheduler_factory,
     )

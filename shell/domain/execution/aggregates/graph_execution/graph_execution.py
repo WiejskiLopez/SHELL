@@ -35,7 +35,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         "_task_execution_id",
         "_graph_definition_id",
         "_parent_graph_execution_id",
-        "_parent_tasker_node_execution_id",
         "_state_input",
         "_state_output",
         "_depth",
@@ -52,7 +51,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     _task_execution_id: TaskExecutionId
     _graph_definition_id: GraphDefinitionId
     _parent_graph_execution_id: GraphExecutionId | None
-    _parent_tasker_node_execution_id: GraphNodeExecutionId | None
     _state_input: dict[str, Any]
     _state_output: dict[str, Any]
     _depth: int
@@ -73,7 +71,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         graph_node_executions: list[GraphNodeExecution] | None = None,
         transitions: list[GraphNodeTransitionExecution] | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        parent_tasker_node_execution_id: GraphNodeExecutionId | None = None,
         state_input: dict[str, Any] | None = None,
         state_output: dict[str, Any] | None = None,
         depth: int = 0,
@@ -85,7 +82,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         self._task_execution_id = task_execution_id
         self._graph_definition_id = graph_definition_id
         self._parent_graph_execution_id = parent_graph_execution_id
-        self._parent_tasker_node_execution_id = parent_tasker_node_execution_id
         self._state_input = state_input or {}
         self._state_output = state_output or {}
         self._depth = depth
@@ -109,10 +105,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     @property
     def parent_graph_execution_id(self) -> GraphExecutionId | None:
         return self._parent_graph_execution_id
-
-    @property
-    def parent_tasker_node_execution_id(self) -> GraphNodeExecutionId | None:
-        return self._parent_tasker_node_execution_id
 
     @property
     def state_input(self) -> dict[str, Any]:
@@ -184,7 +176,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         id_gen: IdGenerator,
         now: datetime,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        parent_tasker_node_execution_id: GraphNodeExecutionId | None = None,
         state_input: dict[str, Any] | None = None,
         correlation_id: str = "",
         depth: int = 0,
@@ -233,7 +224,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             graph_definition_id=graph_definition.id,
             graph_node_executions=graph_node_executions,
             parent_graph_execution_id=parent_graph_execution_id,
-            parent_tasker_node_execution_id=parent_tasker_node_execution_id,
             state_input=state_input,
             depth=depth,
             correlation_id=correlation_id,

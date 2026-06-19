@@ -32,3 +32,7 @@ class Status:
     @classmethod
     def failed(cls) -> Status:
         return cls("failed")
+
+    @classmethod
+    def waiting(cls) -> Status:
+        return cls("waiting")

@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 # Map of mode-name → default runner root dir (relative to this file if available).
 _MODE_RUNNER_ROOTS: dict[str, str] = {
     "agent": "agent",
+    "planner": "planner",
     "router": "router",
     "tasker": "tasker",
     "tool": "tool",

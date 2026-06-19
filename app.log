@@ -1768,3 +1768,220 @@
 2026-06-19 17:43:40,204 WARNING test_stdlib_warn: watch out
 2026-06-19 17:43:40,205 ERROR test_stdlib_err: boom
 2026-06-19 17:43:40,206 DEBUG test_stdlib_dbg: trace
+2026-06-19 18:43:56,210 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:56,211 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 18:43:56,214 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 18:43:56,697 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:56,886 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:57,085 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:57,086 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 18:43:57,089 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 18:43:57,097 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:57,098 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:43:57,099 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 18:43:57,103 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:43:57,104 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 18:43:57,273 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:57,274 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:43:57,277 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 18:43:57,282 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:43:57,283 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:43:57,289 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 18:43:57,290 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:43:57,616 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 18:43:58,189 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:58,535 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:58,704 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:58,706 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 18:43:58,709 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 18:43:58,716 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:43:58,741 INFO test_stdlib_info: hello world
+2026-06-19 18:43:58,742 WARNING test_stdlib_warn: watch out
+2026-06-19 18:43:58,743 ERROR test_stdlib_err: boom
+2026-06-19 18:43:58,744 DEBUG test_stdlib_dbg: trace
+2026-06-19 18:51:16,174 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:16,175 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 18:51:16,179 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 18:51:16,667 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:16,862 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:17,103 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:17,104 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 18:51:17,108 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 18:51:17,117 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:17,118 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:51:17,119 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 18:51:17,123 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:51:17,124 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 18:51:17,302 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:17,304 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:51:17,307 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 18:51:17,312 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:51:17,313 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:51:17,320 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 18:51:17,321 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:51:17,634 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 18:51:18,218 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:18,570 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:18,742 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:18,743 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 18:51:18,746 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 18:51:18,754 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:51:18,777 INFO test_stdlib_info: hello world
+2026-06-19 18:51:18,778 WARNING test_stdlib_warn: watch out
+2026-06-19 18:51:18,778 ERROR test_stdlib_err: boom
+2026-06-19 18:51:18,779 DEBUG test_stdlib_dbg: trace
+2026-06-19 18:52:31,043 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:31,044 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 18:52:31,047 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 18:52:31,531 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:31,726 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:31,929 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:31,930 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 18:52:31,933 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 18:52:31,942 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:31,943 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:52:31,944 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 18:52:31,948 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:52:31,949 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 18:52:32,125 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:32,126 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:52:32,129 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 18:52:32,134 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:52:32,135 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:52:32,142 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 18:52:32,143 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:52:32,455 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 18:52:33,079 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:33,431 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:33,605 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:33,607 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 18:52:33,610 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 18:52:33,618 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:52:33,641 INFO test_stdlib_info: hello world
+2026-06-19 18:52:33,642 WARNING test_stdlib_warn: watch out
+2026-06-19 18:52:33,642 ERROR test_stdlib_err: boom
+2026-06-19 18:52:33,643 DEBUG test_stdlib_dbg: trace
+2026-06-19 18:55:36,217 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:36,219 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 18:55:36,222 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 18:55:36,713 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:36,907 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:37,111 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:37,112 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 18:55:37,115 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 18:55:37,124 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:37,125 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:55:37,126 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 18:55:37,131 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 18:55:37,131 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 18:55:37,309 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:37,310 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:55:37,314 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 18:55:37,319 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 18:55:37,319 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:55:37,326 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 18:55:37,327 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 18:55:37,638 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 18:55:38,262 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:38,598 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:38,765 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:38,766 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 18:55:38,770 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 18:55:38,777 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 18:55:38,800 INFO test_stdlib_info: hello world
+2026-06-19 18:55:38,801 WARNING test_stdlib_warn: watch out
+2026-06-19 18:55:38,802 ERROR test_stdlib_err: boom
+2026-06-19 18:55:38,803 DEBUG test_stdlib_dbg: trace
+2026-06-19 19:06:26,962 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:26,963 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 19:06:26,967 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 19:06:27,454 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:27,646 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:27,848 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:27,849 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 19:06:27,853 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 19:06:27,862 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:27,863 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 19:06:27,864 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 19:06:27,868 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 19:06:27,869 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 19:06:28,042 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:28,043 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 19:06:28,046 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 19:06:28,051 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 19:06:28,052 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 19:06:28,059 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 19:06:28,060 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 19:06:28,369 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 19:06:28,946 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:29,299 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:29,474 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:29,475 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 19:06:29,479 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 19:06:29,486 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:29,509 INFO test_stdlib_info: hello world
+2026-06-19 19:06:29,510 WARNING test_stdlib_warn: watch out
+2026-06-19 19:06:29,511 ERROR test_stdlib_err: boom
+2026-06-19 19:06:29,512 DEBUG test_stdlib_dbg: trace
+2026-06-19 19:06:54,208 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:54,210 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 19:06:54,213 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 19:06:54,704 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:54,944 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:55,149 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:55,150 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 19:06:55,154 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 19:06:55,162 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:55,163 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 19:06:55,164 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 19:06:55,169 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 19:06:55,169 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 19:06:55,338 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:55,339 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 19:06:55,342 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 19:06:55,348 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 19:06:55,349 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 19:06:55,355 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 19:06:55,356 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 19:06:55,660 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 19:06:56,220 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:56,552 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:56,802 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:56,804 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 19:06:56,807 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 19:06:56,815 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 19:06:56,837 INFO test_stdlib_info: hello world
+2026-06-19 19:06:56,838 WARNING test_stdlib_warn: watch out
+2026-06-19 19:06:56,839 ERROR test_stdlib_err: boom
+2026-06-19 19:06:56,840 DEBUG test_stdlib_dbg: trace
+2026-06-19 23:31:54,694 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:54,700 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-19 23:31:54,703 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-19 23:31:55,188 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:55,374 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:55,566 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:55,567 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task
+2026-06-19 23:31:55,570 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task
+2026-06-19 23:31:55,578 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:55,579 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 23:31:55,580 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=sql-task-v
+2026-06-19 23:31:55,584 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=sql-task-v
+2026-06-19 23:31:55,585 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=sql-task-v is_current=True
+2026-06-19 23:31:55,755 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:55,756 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 23:31:55,760 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=wf-task
+2026-06-19 23:31:55,764 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=wf-task
+2026-06-19 23:31:55,765 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 23:31:55,772 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by id=00000000-0000-0000-0000-000000000001
+2026-06-19 23:31:55,773 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: TaskExecutionModel found: id=00000000-0000-0000-0000-000000000001 name=wf-task is_current=True
+2026-06-19 23:31:56,121 INFO httpx: HTTP Request: GET http://test/health "HTTP/1.1 200 OK"
+2026-06-19 23:31:56,698 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:57,040 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:57,211 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:57,212 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=atomic-task
+2026-06-19 23:31:57,215 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=atomic-task
+2026-06-19 23:31:57,223 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-19 23:31:57,247 INFO test_stdlib_info: hello world
+2026-06-19 23:31:57,249 WARNING test_stdlib_warn: watch out
+2026-06-19 23:31:57,250 ERROR test_stdlib_err: boom
+2026-06-19 23:31:57,251 DEBUG test_stdlib_dbg: trace

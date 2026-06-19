@@ -308,11 +308,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             if graph_execution_model.parent_graph_execution_id
             else None
         ),
-        parent_tasker_node_execution_id=(
-            GraphNodeExecutionId(graph_execution_model.parent_tasker_node_execution_id)
-            if graph_execution_model.parent_tasker_node_execution_id
-            else None
-        ),
         state_input=dict(graph_execution_model.state_input),
         state_output=dict(graph_execution_model.state_output),
         depth=graph_execution_model.depth,
@@ -442,11 +437,6 @@ def graph_execution_entity_to_model(
         parent_graph_execution_id=(
             graph_execution.parent_graph_execution_id.value
             if graph_execution.parent_graph_execution_id
-            else None
-        ),
-        parent_tasker_node_execution_id=(
-            graph_execution.parent_tasker_node_execution_id.value
-            if graph_execution.parent_tasker_node_execution_id
             else None
         ),
         state_input=graph_execution.state_input,

@@ -13,3 +13,4 @@ class Mode(StrEnum):
     TASKER = "tasker"
     TOOL = "tool"
     WORKER = "worker"
+    PLANNER = "planner"

@@ -55,6 +55,9 @@ def register_events(core_container: CoreContainer) -> None:
         GraphNodeExecutionCompletedEvent, events.graph_node_execution_result_handler_factory
     )
     event_bus.subscribe(
+        GraphNodeExecutionCompletedEvent, events.planner_result_handler_factory
+    )
+    event_bus.subscribe(
         GraphNodeExecutionFailedEvent, events.graph_node_execution_result_handler_factory
     )
     event_bus.subscribe(
@@ -68,4 +71,8 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(
         GraphNodeExecutionTimedOutEvent,
         events.graph_node_timeout_handler_factory,
+    )
+    event_bus.subscribe(
+        WorkflowCompletedEvent,
+        events.crown_scheduler_handler_factory,
     )

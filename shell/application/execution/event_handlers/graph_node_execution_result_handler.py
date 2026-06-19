@@ -12,15 +12,8 @@ workflow transition:
 * finish the workflow (terminal: ``done``)
 * abort the workflow (terminal: ``failed``)
 
-This is **Cycle B** of the node-execution saga:
-
-    Cycle A (GraphNodeExecutionWorker)
-        ``GraphNodeExecutionRequestedEvent`` → run node → record result →
-        ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` → return
-
-    Cycle B (this handler)
-        ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` →
-        decide next → ``GraphNodeExecutionRequestedEvent`` / terminal event → return
+This is **Cycle B** of the node-execution saga.
+Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
 """
 
 from __future__ import annotations
@@ -37,13 +30,9 @@ from shell.domain.execution.services.compensation_handler import (
     CompensationHandler,
     NoOpCompensationHandler,
 )
-from shell.domain.platform.services.condition_evaluator import ConditionEvaluator
 from shell.domain.execution.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
     NodeNavigator,
-)
-from shell.domain.execution.services.graph_node_execution_navigator.transition_based_navigator import (
-    TransitionBasedNavigator,
 )
 from shell.domain.execution.services.graph_node_execution_policy import (
     AbortDecision,
@@ -52,7 +41,6 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     NodeExecutionPolicy,
     RouteToErrorHandlerDecision,
 )
-from shell.domain.platform.services.simple_condition_evaluator import SimpleConditionEvaluator
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.platform.value_objects.transition_type import TransitionType
 
@@ -65,6 +53,7 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.workflow import Workflow
+    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 GraphNodeExecutionResultEvent = Union[GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent]
@@ -75,6 +64,8 @@ class GraphNodeExecutionResultHandler:
 
     Supports SEQUENCE, PARALLEL, CONDITIONAL, LOOP, ERROR_HANDLER, and
     DEFAULT transition types through the ``NodeNavigator``.
+
+    Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
     """
 
     def __init__(
@@ -86,7 +77,6 @@ class GraphNodeExecutionResultHandler:
         navigator: NodeNavigator | None = None,
         policy: NodeExecutionPolicy | None = None,
         compensation: CompensationHandler | None = None,
-        condition_evaluator: ConditionEvaluator | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
@@ -95,7 +85,6 @@ class GraphNodeExecutionResultHandler:
         self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
         self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
         self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
-        self._condition_evaluator: ConditionEvaluator = condition_evaluator or SimpleConditionEvaluator()
 
     async def handle(self, event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
@@ -139,11 +128,12 @@ class GraphNodeExecutionResultHandler:
             now = self._clock.now()
 
             if isinstance(event, GraphNodeExecutionCompletedEvent):
-                self._handle_completed(
+                await self._handle_completed(
                     workflow=workflow,
                     graph_execution=graph_execution,
                     graph_node_execution_id=event.graph_node_execution_id,
                     now=now,
+                    uow=uow,
                 )
             else:
                 self._handle_failure(
@@ -159,13 +149,14 @@ class GraphNodeExecutionResultHandler:
 
     # ── Private helpers ───────────────────────────────────────────────────
 
-    def _handle_completed(
+    async def _handle_completed(
         self,
         *,
         workflow: Workflow,
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
+        uow: UnitOfWork,
     ) -> None:
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         if not outgoing:

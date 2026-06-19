@@ -9,13 +9,8 @@ The *next-step decision* (advance, finish, abort) is delegated to
 :class:`GraphNodeExecutionResultHandler`, which subscribes to the result
 events and forms the second cycle of the saga.
 
-Cycle A (this worker)
-    ``GraphNodeExecutionRequestedEvent`` → run node → record result →
-    ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` → return
-
-Cycle B (GraphNodeExecutionResultHandler)
-    ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` →
-    decide next → ``GraphNodeExecutionRequestedEvent`` / terminal event → return
+Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler,
+not by the Worker directly.
 
 Idempotency model (four-tier defence in depth)
 ===============================================
@@ -58,6 +53,8 @@ class GraphNodeExecutionWorker:
     Records the result and emits ``GraphNodeExecutionCompletedEvent`` or
     ``GraphNodeExecutionFailedEvent``.  The *next-step decision* is handled by
     :class:`GraphNodeExecutionResultHandler` (Cycle B).
+
+    Sub-graph spawning is handled by PLANNER nodes via CrownScheduler.
     """
 
     def __init__(

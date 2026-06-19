@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
-from shell.domain.execution.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,
@@ -32,6 +32,22 @@ class SqlWorkflowRepository(WorkflowRepository):
                 selectinload(WorkflowModel.graph_node_execution_result_models),
             )
             .where(WorkflowModel.id == workflow_id.value)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return workflow_model_to_entity(row) if row else None
+
+    async def get_by_task_execution_id(
+        self, task_execution_id: TaskExecutionId
+    ) -> Workflow | None:
+        query = (
+            select(WorkflowModel)
+            .options(
+                selectinload(WorkflowModel.graph_node_execution_state_models),
+                selectinload(WorkflowModel.graph_node_execution_result_models),
+            )
+            .where(WorkflowModel.task_execution_id == task_execution_id.value)
+            .order_by(WorkflowModel.created_at.desc())
+            .limit(1)
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return workflow_model_to_entity(row) if row else None

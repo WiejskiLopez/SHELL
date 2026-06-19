@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
-from shell.domain.execution.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow import Workflow
@@ -16,6 +16,14 @@ class InMemoryWorkflowRepository(WorkflowRepository):
 
     async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None:
         return self._store.get(workflow_id.value)
+
+    async def get_by_task_execution_id(
+        self, task_execution_id: TaskExecutionId
+    ) -> Workflow | None:
+        for workflow in self._store.values():
+            if workflow.task_execution_id == task_execution_id:
+                return workflow
+        return None
 
     async def save(self, workflow: Workflow) -> None:
         from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
