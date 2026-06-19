@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.ports.ports import Clock, Logger, UnitOfWork
+    from shell.application.ports.ports import Clock, UnitOfWork
     from shell.domain.events.events import EnvelopeRouted
 
 

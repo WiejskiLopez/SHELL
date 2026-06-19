@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.commands.commands import SavePromptCommand
 from shell.application.queries.queries import GetPromptQuery

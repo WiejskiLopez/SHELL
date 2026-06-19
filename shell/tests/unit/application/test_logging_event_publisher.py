@@ -9,14 +9,14 @@ from shell.tests.unit.application.conftest import _task_imported, _workflow_star
 class TestLoggingEventPublisher:
     async def test_logs_each_event(self) -> None:
         spy = MagicMock()
-        pub = LoggingEventPublisher(spy)
+        pub = LoggingEventPublisher(spy)  # type: ignore[arg-type]
         events = [_task_imported(), _workflow_started()]
         await pub.publish(events)
         assert spy.info.call_count == 2
 
     async def test_logs_event_type(self) -> None:
         spy = MagicMock()
-        pub = LoggingEventPublisher(spy)
+        pub = LoggingEventPublisher(spy)  # type: ignore[arg-type]
         event = _task_imported()
         await pub.publish([event])
         call_kwargs = spy.info.call_args
@@ -24,6 +24,6 @@ class TestLoggingEventPublisher:
 
     async def test_empty_events_no_log(self) -> None:
         spy = MagicMock()
-        pub = LoggingEventPublisher(spy)
+        pub = LoggingEventPublisher(spy)  # type: ignore[arg-type]
         await pub.publish([])
         spy.info.assert_not_called()

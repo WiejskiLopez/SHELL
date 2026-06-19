@@ -15,3 +15,5 @@ build/
 htmlcov/
 .env
 .venv
+*.log
+*.db

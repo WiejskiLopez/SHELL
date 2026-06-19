@@ -123,7 +123,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         self._committed = False
         return self
 
-    async def __aexit__(self, exc_type: object, *args: object) -> None:
+    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
         try:
             if exc_type:
                 await self.rollback()

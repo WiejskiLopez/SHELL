@@ -159,8 +159,8 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_model_to_entity(row) if row else None
 
-    async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
-        logger.info("Querying current Task by id=%s", task_execution_id.value)
+    async def get_current_by_id(self, id: TaskExecutionId) -> TaskExecution | None:
+        logger.info("Querying current Task by id=%s", id.value)
         query = (
             select(TaskExecutionModel)
             .where(
@@ -171,7 +171,7 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         if not row:
-            logger.info("No current Task found for id=%s", task_execution_id.value)
+            logger.info("No current Task found for id=%s", id.value)
             return None
 
         logger.info(

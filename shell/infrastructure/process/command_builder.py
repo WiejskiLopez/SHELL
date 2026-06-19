@@ -29,6 +29,7 @@ def build_agent_command(
     binary = shutil.which("copilot")
     if binary is None:
         raise FileNotFoundError("copilot binary not found on PATH. Install GitHub Copilot CLI.")
+    binary = str(binary)
 
     cmd: list[str] = []
 

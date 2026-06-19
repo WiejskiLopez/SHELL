@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
 
 from shell.application.commands.commands import ImportTaskExecutionCommand
 from shell.application.queries.queries import GetTaskExecutionByNameQuery

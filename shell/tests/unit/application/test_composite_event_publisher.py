@@ -12,7 +12,7 @@ class TestCompositeEventPublisher:
         p1 = AsyncMock()
         p2 = AsyncMock()
         p3 = AsyncMock()
-        composite = CompositeEventPublisher([p1, p2, p3])
+        composite = CompositeEventPublisher([p1, p2, p3])  # type: ignore[arg-type]
         events: list[DomainEvent] = [_task_imported()]
         await composite.publish(events)
         p1.publish.assert_awaited_once_with(events)

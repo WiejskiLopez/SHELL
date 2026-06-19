@@ -1,14 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.queries.queries import GetPromptQuery
 from shell.application.query_handlers.query_handlers import GetPromptHandler
 from shell.infrastructure.persistence.sql.services import PromptQueryService
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
-
 
 class TestPgUnitOfWorkRollback:
     async def test_rollback_on_exception_leaves_db_clean(

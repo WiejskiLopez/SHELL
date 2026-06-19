@@ -14,9 +14,9 @@ class InMemoryGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         self._store: dict[str, GraphNodeDefinition] = {}
 
     async def get_by_id(
-        self, graph_node_definition_id: GraphNodeDefinitionId
+        self, graph_node_execution_id: GraphNodeDefinitionId
     ) -> GraphNodeDefinition | None:
-        return self._store.get(graph_node_definition_id.value)
+        return self._store.get(graph_node_execution_id.value)
 
     async def save(self, node: GraphNodeDefinition) -> None:
         self._store[node.id.value] = node

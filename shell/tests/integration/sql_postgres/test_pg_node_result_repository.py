@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.command_handlers.save_graph_node_execution_result_handler import (
     SaveGraphNodeExecutionResultHandler,
 )

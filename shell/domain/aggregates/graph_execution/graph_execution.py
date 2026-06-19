@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from shell.domain.value_objects.ids import (
         GraphDefinitionId,
         GraphExecutionId,
-        GraphNodeExecutionId,
         TaskExecutionId,
     )
 

@@ -23,8 +23,8 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
                 return task_execution
         return None
 
-    async def get_current_by_id(self, task_execution_id: TaskExecutionId) -> TaskExecution | None:
-        task_execution = self._store.get(task_execution_id.value)
+    async def get_current_by_id(self, id: TaskExecutionId) -> TaskExecution | None:
+        task_execution = self._store.get(id.value)
         if task_execution and task_execution.is_current:
             return task_execution
         return None

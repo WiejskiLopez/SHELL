@@ -13,12 +13,12 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphDefinition] = {}
 
-    async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
-        return self._store.get(graph_definition_id.value)
+    async def get(self, graph_execution_id: GraphDefinitionId) -> GraphDefinition | None:
+        return self._store.get(graph_execution_id.value)
 
-    async def get_graph_definition_by_name(self, name: str) -> GraphDefinition | None:
+    async def get_graph_definition_by_name(self, graph_definition_by_name: str) -> GraphDefinition | None:
         for graph_definition in self._store.values():
-            if graph_definition.name == name:
+            if graph_definition.name == graph_definition_by_name:
                 return graph_definition
         return None
 

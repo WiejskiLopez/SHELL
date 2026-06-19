@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
-from pydantic import BaseModel
 
 from shell.application.commands.commands import RouteEnvelopesCommand, StartWorkflowCommand
 from shell.application.queries.queries import GetWorkflowQuery
