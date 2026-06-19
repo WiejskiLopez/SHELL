@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.application.dto.dto import (
+from shell.application.dto import (
     EnvelopeDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
@@ -32,7 +32,7 @@ class InMemoryQueryServices:
         )
         graph_node_executions = []
         if graph_execution is not None:
-            from shell.application.dto.dto import GraphNodeExecutionDto
+            from shell.application.dto import GraphNodeExecutionDto
 
             graph_node_executions = [
                 GraphNodeExecutionDto(

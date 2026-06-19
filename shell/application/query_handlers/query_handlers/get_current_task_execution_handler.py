@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.dto.dto import TaskExecutionDto
+    from shell.application.dto import TaskExecutionDto
     from shell.application.ports.queries import TaskExecutionQueryService
     from shell.application.queries.queries import GetCurrentTaskExecutionQuery
 

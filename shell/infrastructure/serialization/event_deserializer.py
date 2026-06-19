@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -7,6 +8,7 @@ if TYPE_CHECKING:
 
 from shell.domain.events.events import (
     DomainEvent,
+    EnvelopeDeadlettered,
     EnvelopeExpired,
     EnvelopeRouted,
     GraphExecutionBuilt,
@@ -20,13 +22,15 @@ from shell.domain.events.events import (
     WorkflowFailed,
     WorkflowStarted,
 )
+from shell.shared.serialization import DomainEventSerializer
+
+logger = logging.getLogger(__name__)
 
 
-# 1. Tworzymy centralny deserializator z rejestrem Twoich eventów
 class EventDeserializer:
     def __init__(self) -> None:
-        # Mapowanie nazwy tekstowej (z bazy/szyny) na konkretną klasę
         self._registry: dict[str, type[DomainEvent]] = {
+            "EnvelopeDeadlettered": EnvelopeDeadlettered,
             "TaskExecutionCreated": TaskExecutionCreated,
             "GraphExecutionBuilt": GraphExecutionBuilt,
             "WorkflowStarted": WorkflowStarted,
@@ -40,6 +44,7 @@ class EventDeserializer:
             "GraphNodeExecutionStarted": GraphNodeExecutionStarted,
             "GraphNodeExecutionAdvanced": GraphNodeExecutionAdvanced,
         }
+        self._serializer = DomainEventSerializer()
 
     def deserialize(
         self,
@@ -51,12 +56,16 @@ class EventDeserializer:
         event_cls = self._registry.get(event_type)
 
         if not event_cls:
-            raise NotImplementedError
+            logger.error("Unknown event type: %s", event_type)
+            return None
 
         try:
-            return event_cls.from_payload(
-                occurred_at=occurred_at, payload=payload, schema_version=schema_version
+            return self._serializer.from_payload(
+                event_cls=event_cls,
+                occurred_at=occurred_at,
+                payload=payload,
+                schema_version=schema_version,
             )
         except (KeyError, ValueError, TypeError) as e:
-            print(f"Błąd deserializacji eventu {event_type}: {e}")
+            logger.error("Failed to deserialize event %s: %s", event_type, e)
             return None

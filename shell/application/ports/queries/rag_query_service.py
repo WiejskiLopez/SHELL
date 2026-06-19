@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import RagChunkDto
+from shell.application.dto import RagChunkDto
 
 
 class RagQueryService(Protocol):

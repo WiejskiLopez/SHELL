@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.dto.dto import GraphNodeExecutionResultDto
+    from shell.application.dto import GraphNodeExecutionResultDto
     from shell.application.ports.queries import GraphNodeExecutionResultQueryService
     from shell.application.queries.queries import GetGraphNodeExecutionResultQuery
 

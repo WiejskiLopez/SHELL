@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import dataclasses
 import uuid
 from typing import TYPE_CHECKING
 
 from shell.application.ports.unit_of_work import UnitOfWork
 from shell.infrastructure.persistence.sql.models import OutboxEventModel
+from shell.infrastructure.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
@@ -20,6 +20,7 @@ from shell.infrastructure.persistence.sql.repositories import (
     SqlTaskExecutionRepository,
     SqlWorkflowRepository,
 )
+from shell.shared.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -42,6 +43,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         self._staged_events: list[DomainEvent] = []
         self._committed = False
         self._session: AsyncSession | None = None
+        self._rag_search_strategy = create_rag_search_strategy(session_factory)
 
     # ------------------------------------------------------------------
     # Internal state guards
@@ -91,7 +93,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 
     @property
     def rag_documents(self) -> SqlRagDocumentRepository:
-        return SqlRagDocumentRepository(self._active_session)
+        return SqlRagDocumentRepository(
+            self._active_session,
+            search_strategy=self._rag_search_strategy,
+        )
 
     @property
     def sessions(self) -> SqlSessionRepository:
@@ -134,23 +139,28 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 
     async def commit(self) -> None:
         """Write staged outbox events to DB and commit everything in one transaction."""
-        session = self._active_session  # Zabezpieczenie przed typem Optional
+        session = self._active_session
+        serializer = DomainEventSerializer()
 
         for event in self._staged_events:
-            payload = {
-                field.name: str(getattr(event, field.name))
-                for field in dataclasses.fields(event)
-                if field.name != "occurred_at"
-            }
-            session.add(
-                OutboxEventModel(
-                    id=str(uuid.uuid4()),
-                    event_type=type(event).__name__,
-                    occurred_at=event.occurred_at,
-                    payload=payload,
-                    published_at=None,
+            try:
+                payload = serializer.to_payload(event)
+                session.add(
+                    OutboxEventModel(
+                        id=str(uuid.uuid4()),
+                        event_type=type(event).__name__,
+                        occurred_at=event.occurred_at,
+                        payload=payload,
+                        published_at=None,
+                    )
                 )
-            )
+            except Exception:
+                import logging
+
+                logging.getLogger(__name__).exception(
+                    "Failed to serialize outbox event %s", type(event).__name__
+                )
+                continue
 
         self._staged_events = []
         await session.commit()

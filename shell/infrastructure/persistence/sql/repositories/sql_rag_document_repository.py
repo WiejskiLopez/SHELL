@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import logging
-import struct
 from typing import TYPE_CHECKING
 
-from sqlalchemy import delete as sa_delete, select
+from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import selectinload
 
 from shell.domain.entities.rag_document import RagChunk, RagDocument
-from shell.domain.services.rag_index_service import cosine_similarity
 from shell.domain.value_objects.ids import RagChunkId, RagDocumentId
 
 from ..models import RagChunkModel, RagDocumentModel
@@ -16,12 +14,28 @@ from ..models import RagChunkModel, RagDocumentModel
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from shell.infrastructure.persistence.sql.rag_search import RagSearchStrategy
+
 logger = logging.getLogger(__name__)
 
 
 class SqlRagDocumentRepository:
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(
+        self,
+        session: AsyncSession,
+        search_strategy: RagSearchStrategy | None = None,
+    ) -> None:
         self._session = session
+        self._search_strategy = search_strategy
+
+    def _get_strategy(self) -> RagSearchStrategy:  # type: ignore[return]
+        if self._search_strategy is None:
+            from shell.infrastructure.persistence.sql.rag_search import (
+                InMemoryRagSearchStrategy,
+            )
+
+            self._search_strategy = InMemoryRagSearchStrategy()
+        return self._search_strategy  # type: ignore[return]
 
     async def save(self, document: RagDocument) -> None:
         doc_model = RagDocumentModel(
@@ -48,6 +62,8 @@ class SqlRagDocumentRepository:
             )
 
     async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None:
+        from sqlalchemy import select
+
         query = (
             select(RagDocumentModel)
             .options(selectinload(RagDocumentModel.chunks))
@@ -82,33 +98,10 @@ class SqlRagDocumentRepository:
         top_k: int = 5,
         domain: str | None = None,
     ) -> list[RagChunk]:
-        query = select(RagChunkModel).options(selectinload(RagChunkModel.document))
-        if domain:
-            query = query.join(RagDocumentModel).where(RagDocumentModel.domain == domain)
-        rows = (await self._session.execute(query)).scalars().all()
-        if not rows:
-            return []
-        dim = len(query_embedding) // 4
-        query_vec = list(struct.unpack(f"{dim}f", query_embedding))
-        scored: list[tuple[float, RagChunkModel]] = []
-        for rag_chunk_model in rows:
-            chunk_vec = list(
-                struct.unpack(
-                    f"{len(rag_chunk_model.embedding) // 4}f",
-                    rag_chunk_model.embedding,
-                )
-            )
-            score = cosine_similarity(query_vec, chunk_vec)
-            scored.append((score, rag_chunk_model))
-        scored.sort(key=lambda t: t[0], reverse=True)
-        return [
-            RagChunk(
-                id=RagChunkId(rag_chunk_model.id),
-                document_id=RagDocumentId(rag_chunk_model.document_id),
-                chunk_index=rag_chunk_model.chunk_index,
-                chunk_text=rag_chunk_model.chunk_text,
-                embedding=rag_chunk_model.embedding,
-                embedding_model=rag_chunk_model.embedding_model,
-            )
-            for _, rag_chunk_model in scored[:top_k]
-        ]
+        strategy = self._get_strategy()
+        return await strategy.search_similar(
+            session=self._session,
+            query_embedding=query_embedding,
+            top_k=top_k,
+            domain=domain,
+        )

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.dto.dto import EnvelopeDto
+from shell.application.dto import EnvelopeDto
 from shell.infrastructure.persistence.sql.models import EnvelopeModel
 
 if TYPE_CHECKING:

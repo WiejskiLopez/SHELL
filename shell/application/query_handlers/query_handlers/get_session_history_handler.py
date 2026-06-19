@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.dto.dto import SessionDto
+    from shell.application.dto import SessionDto
     from shell.application.ports.queries import SessionQueryService
     from shell.application.queries.queries import GetSessionHistoryQuery
 

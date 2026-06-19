@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from shell.application.dto.dto import GraphNodeExecutionResultDto
+from shell.application.dto import GraphNodeExecutionResultDto
 from shell.infrastructure.persistence.sql.models import WorkflowModel
 
 if TYPE_CHECKING:

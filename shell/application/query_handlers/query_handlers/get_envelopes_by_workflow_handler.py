@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.dto.dto import EnvelopeDto
+    from shell.application.dto import EnvelopeDto
     from shell.application.ports.queries import EnvelopeQueryService
     from shell.application.queries.queries import GetEnvelopesByWorkflowQuery
 

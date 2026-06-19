@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import RunnerConfigDto
+from shell.application.dto import RunnerConfigDto
 
 
 class RunnerConfigQueryService(Protocol):

@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import SessionDto
+from shell.application.dto import SessionDto
 
 
 class SessionQueryService(Protocol):

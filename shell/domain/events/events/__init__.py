@@ -22,6 +22,7 @@ class DomainEvent:
         raise NotImplementedError
 
 
+from .envelope_deadlettered import EnvelopeDeadlettered
 from .envelope_expired import EnvelopeExpired
 from .envelope_routed import EnvelopeRouted
 from .graph_execution_built import GraphExecutionBuilt
@@ -38,6 +39,7 @@ from .workflow_started import WorkflowStarted
 
 __all__ = [
     "DomainEvent",
+    "EnvelopeDeadlettered",
     "EnvelopeExpired",
     "EnvelopeRouted",
     "GraphExecutionBuilt",

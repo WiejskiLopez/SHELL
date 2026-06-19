@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import PromptDto
+from shell.application.dto import PromptDto
 
 
 class PromptQueryService(Protocol):

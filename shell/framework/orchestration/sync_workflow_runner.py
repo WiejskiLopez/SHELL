@@ -1,7 +1,7 @@
 """SyncWorkflowRunner — runs a full tasker workflow synchronously.
 
 Bootstraps a Workflow (via ``RunTaskerWorkflowHandler``) and then pumps
-the outbox → inbox → handler loop until the workflow reaches a terminal
+the outbox -> inbox -> handler loop until the workflow reaches a terminal
 state (``done`` or ``failed``).  Designed for the CLI ``run-tasker``
 command so the user experiences a *synchronous* workflow execution from a
 single process.
@@ -9,11 +9,13 @@ single process.
 Each iteration of the pump loop corresponds to **one step** (one node
 execution), strictly following the one-cycle-per-step principle:
 
-    command/event → execution → next event → (repeat)
+    command/event -> execution -> next event -> (repeat)
 """
 
 from __future__ import annotations
 
+import logging
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -25,6 +27,8 @@ if TYPE_CHECKING:
     from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
     from shell.infrastructure.messaging.processor.inbox_processor import InboxProcessor
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True, slots=True)
 class SyncWorkflowResult:
@@ -33,10 +37,21 @@ class SyncWorkflowResult:
     workflow_id: str
     status: str
     message: str
+    iterations: int = 0
+    elapsed_seconds: float = 0.0
+    total_outbox_processed: int = 0
+    total_inbox_processed: int = 0
+
+
+@dataclass(slots=True)
+class _PumpMetrics:
+    outbox_total: int = 0
+    inbox_total: int = 0
+    idle_consecutive: int = 0
 
 
 class SyncWorkflowRunner:
-    """Pumps outbox → inbox → handlers until the workflow is terminal."""
+    """Pumps outbox -> inbox -> handlers until the workflow is terminal."""
 
     def __init__(
         self,
@@ -44,26 +59,29 @@ class SyncWorkflowRunner:
         relay: OutboxToInboxRelay,
         processor: InboxProcessor,
         uow: UnitOfWork,
+        max_iterations: int = 1000,
+        max_timeout: float = 300.0,
+        max_idle_before_break: int = 10,
     ) -> None:
         self._handler = handler
         self._relay = relay
         self._processor = processor
         self._uow = uow
+        self._max_iterations = max_iterations
+        self._max_timeout = max_timeout
+        self._max_idle_before_break = max_idle_before_break
 
     async def run(
         self,
         task_execution_id: str,
         work_dir: str,
     ) -> SyncWorkflowResult:
-        """Bootstrap the workflow and pump events until terminal.
-
-        Returns the final workflow status and id.
-        """
         from shell.application.commands.commands import RunTaskerWorkflowCommand
         from shell.domain.value_objects.ids import WorkflowId
         from shell.domain.value_objects.status import Status
 
-        # Phase 1: Bootstrap — creates workflow + emits first event to outbox
+        start_time = time.monotonic()
+
         cmd = RunTaskerWorkflowCommand(
             task_execution_id=task_execution_id,
             work_dir=work_dir,
@@ -71,26 +89,53 @@ class SyncWorkflowRunner:
         workflow_id_str = await self._handler.handle(cmd)
         workflow_id = WorkflowId(workflow_id_str)
 
-        # Phase 2: Pump loop — one cycle per step
-        max_iterations = 1000  # safety limit
-        for _ in range(max_iterations):
-            # Relay: outbox_event → inbox_event
-            outbox_count = await self._relay.run_once()
-            if outbox_count > 0:
-                await self._processor.run_once()
-            else:
-                await self._processor.run_once()
+        metrics = _PumpMetrics()
 
-            # Check workflow status
+        for iteration in range(self._max_iterations):
+            elapsed = time.monotonic() - start_time
+            if elapsed > self._max_timeout:
+                logger.warning(
+                    "Workflow %s exceeded max timeout %.1fs after %d iterations",
+                    workflow_id_str, self._max_timeout, iteration,
+                )
+                break
+
+            try:
+                outbox_count = await self._relay.run_once()
+                inbox_count = await self._processor.run_once()
+            except Exception:
+                logger.exception("Pump iteration %d failed, continuing...", iteration)
+                continue
+
+            metrics.outbox_total += outbox_count
+            metrics.inbox_total += inbox_count
+
+            if outbox_count == 0 and inbox_count == 0:
+                metrics.idle_consecutive += 1
+                if metrics.idle_consecutive >= self._max_idle_before_break:
+                    logger.info(
+                        "Workflow %s idle for %d consecutive iterations, breaking",
+                        workflow_id_str, metrics.idle_consecutive,
+                    )
+                    break
+            else:
+                metrics.idle_consecutive = 0
+
             async with self._uow as uow:
                 workflow = await uow.workflows.get_by_id(workflow_id)
                 if workflow is None:
+                    elapsed = time.monotonic() - start_time
                     return SyncWorkflowResult(
                         workflow_id=workflow_id_str,
                         status="unknown",
                         message="Workflow not found after bootstrap",
+                        iterations=iteration + 1,
+                        elapsed_seconds=elapsed,
+                        total_outbox_processed=metrics.outbox_total,
+                        total_inbox_processed=metrics.inbox_total,
                     )
                 if workflow.status in (Status.done(), Status.failed()):
+                    elapsed = time.monotonic() - start_time
                     message = (
                         "Workflow completed successfully"
                         if workflow.status == Status.done()
@@ -100,14 +145,13 @@ class SyncWorkflowRunner:
                         workflow_id=workflow_id_str,
                         status=workflow.status.value,
                         message=message,
+                        iterations=iteration + 1,
+                        elapsed_seconds=elapsed,
+                        total_outbox_processed=metrics.outbox_total,
+                        total_inbox_processed=metrics.inbox_total,
                     )
 
-            if outbox_count == 0:
-                outbox_count = await self._relay.run_once()
-                if outbox_count == 0:
-                    break
-
-        # If we get here, the workflow didn't reach terminal within limits
+        elapsed = time.monotonic() - start_time
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(workflow_id)
             status = workflow.status.value if workflow else "unknown"
@@ -115,5 +159,9 @@ class SyncWorkflowRunner:
         return SyncWorkflowResult(
             workflow_id=workflow_id_str,
             status=status,
-            message="Workflow did not reach terminal state within iteration limit",
+            message="Workflow did not reach terminal state within iteration/time limit",
+            iterations=self._max_iterations,
+            elapsed_seconds=elapsed,
+            total_outbox_processed=metrics.outbox_total,
+            total_inbox_processed=metrics.inbox_total,
         )

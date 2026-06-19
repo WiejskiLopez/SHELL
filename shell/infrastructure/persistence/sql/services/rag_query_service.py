@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from shell.application.dto.dto import RagChunkDto
+from shell.application.dto import RagChunkDto
 from shell.infrastructure.persistence.sql.models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:

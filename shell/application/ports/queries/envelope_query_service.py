@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import EnvelopeDto
+from shell.application.dto import EnvelopeDto
 
 
 class EnvelopeQueryService(Protocol):

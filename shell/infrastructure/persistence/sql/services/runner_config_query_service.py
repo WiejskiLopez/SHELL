@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.dto.dto import RunnerConfigDto
+from shell.application.dto import RunnerConfigDto
 from shell.infrastructure.persistence.sql.models import RunnerConfigModel
 
 if TYPE_CHECKING:

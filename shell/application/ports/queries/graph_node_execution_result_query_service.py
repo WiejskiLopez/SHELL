@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import GraphNodeExecutionResultDto
+from shell.application.dto import GraphNodeExecutionResultDto
 
 
 class GraphNodeExecutionResultQueryService(Protocol):

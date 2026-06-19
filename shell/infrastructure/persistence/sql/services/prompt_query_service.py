@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.dto.dto import PromptDto
+from shell.application.dto import PromptDto
 from shell.infrastructure.persistence.sql.models import PromptModel
 
 if TYPE_CHECKING:

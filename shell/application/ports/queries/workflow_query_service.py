@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import WorkflowDto
+from shell.application.dto import WorkflowDto
 
 
 class WorkflowQueryService(Protocol):

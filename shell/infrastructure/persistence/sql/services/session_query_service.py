@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from shell.application.dto.dto import MessageDto, SessionDto
+from shell.application.dto import MessageDto, SessionDto
 from shell.infrastructure.persistence.sql.models import SessionModel
 
 if TYPE_CHECKING:

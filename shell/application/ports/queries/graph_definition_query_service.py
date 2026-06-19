@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from shell.application.dto.dto import GraphDefinitionDto
+from shell.application.dto import GraphDefinitionDto
 
 
 class GraphDefinitionQueryService(Protocol):
