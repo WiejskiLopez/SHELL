@@ -1,4 +1,4 @@
-"""Subscribes to EnvelopeRouted and archives the envelope when it reaches DELIVERED stage."""
+"""Subscribes to EnvelopeRoutedEvent and archives the envelope when it reaches DELIVERED stage."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.ports.ports import Clock, UnitOfWork
-    from shell.domain.events.events import EnvelopeRouted
+    from shell.domain.events.events import EnvelopeRoutedEvent
 
 
 class ArchiveOnDeliveredHandler:
@@ -14,7 +14,7 @@ class ArchiveOnDeliveredHandler:
         self._uow = uow
         self._clock = clock
 
-    async def handle(self, event: EnvelopeRouted) -> None:
+    async def handle(self, event: EnvelopeRoutedEvent) -> None:
         from shell.domain.value_objects.envelope_status import EnvelopeStatus
         from shell.domain.value_objects.ids import EnvelopeId
 

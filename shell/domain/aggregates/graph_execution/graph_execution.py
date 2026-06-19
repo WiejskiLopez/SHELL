@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.aggregates.graph_execution.join_counter import JoinCounter
+from shell.domain.aggregates.graph_execution.loop_counter import LoopCounter
+from shell.domain.aggregates.graph_execution.parallel_group import ParallelGroup
 from shell.domain.entities.base import AggregateRoot
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
-from shell.domain.entities.graph_node_transition import GraphNodeTransition
-from shell.domain.events.events import GraphExecutionBuilt
+from shell.domain.entities.graph_node_transition_execution import GraphNodeTransitionExecution
+from shell.domain.events.events import GraphExecutionBuiltEvent
 from shell.domain.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
@@ -17,25 +20,30 @@ if TYPE_CHECKING:
         GraphDefinitionId,
         GraphExecutionId,
         GraphNodeExecutionId,
-        GraphNodeTransitionId,
         TaskExecutionId,
     )
 
 
 class GraphExecution(AggregateRoot["GraphExecutionId"]):
-    """Graph aggregate root — owns its GraphNodeExecutions and GraphNodeTransitions."""
+    """Graph aggregate root — owns its GraphNodeExecutions and GraphNodeTransitionExecutions."""
 
     __slots__ = (
         "_task_execution_id",
         "_graph_definition_id",
         "_graph_node_executions",
         "_transitions",
+        "_parallel_groups",
+        "_join_counters",
+        "_loop_counters",
     )
 
     _task_execution_id: TaskExecutionId
     _graph_definition_id: GraphDefinitionId
     _graph_node_executions: list[GraphNodeExecution]
-    _transitions: list[GraphNodeTransition]
+    _transitions: list[GraphNodeTransitionExecution]
+    _parallel_groups: dict[str, ParallelGroup]
+    _join_counters: dict[str, JoinCounter]
+    _loop_counters: dict[str, LoopCounter]
 
     def __init__(
         self,
@@ -43,13 +51,16 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         task_execution_id: TaskExecutionId,
         graph_definition_id: GraphDefinitionId,
         graph_node_executions: list[GraphNodeExecution] | None = None,
-        transitions: list[GraphNodeTransition] | None = None,
+        transitions: list[GraphNodeTransitionExecution] | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._graph_definition_id = graph_definition_id
         self._graph_node_executions = list(graph_node_executions) if graph_node_executions else []
         self._transitions = list(transitions) if transitions else []
+        self._parallel_groups = {}
+        self._join_counters = {}
+        self._loop_counters = {}
 
     @property
     def task_execution_id(self) -> TaskExecutionId:
@@ -64,12 +75,12 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         return tuple(self._graph_node_executions)
 
     @property
-    def transitions(self) -> tuple[GraphNodeTransition, ...]:
+    def transitions(self) -> tuple[GraphNodeTransitionExecution, ...]:
         return tuple(self._transitions)
 
     def get_outgoing_transitions(
         self, source_node_execution_id: GraphNodeExecutionId
-    ) -> tuple[GraphNodeTransition, ...]:
+    ) -> tuple[GraphNodeTransitionExecution, ...]:
         return tuple(
             sorted(
                 (
@@ -83,12 +94,12 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
 
     def get_incoming_transitions(
         self, target_node_execution_id: GraphNodeExecutionId
-    ) -> tuple[GraphNodeTransition, ...]:
+    ) -> tuple[GraphNodeTransitionExecution, ...]:
         return tuple(
             t for t in self._transitions if t.target_node_execution_id == target_node_execution_id
         )
 
-    def add_transition(self, transition: GraphNodeTransition) -> None:
+    def add_transition(self, transition: GraphNodeTransitionExecution) -> None:
         self._transitions.append(transition)
 
     @classmethod
@@ -101,8 +112,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         id_gen: IdGenerator,
         now: datetime,
     ) -> GraphExecution:
-        from shell.domain.entities.graph_node_transition import GraphNodeTransition
-        from shell.domain.value_objects.ids import GraphNodeTransitionId
         from shell.domain.value_objects.mode import Mode
 
         graph_node_executions: list[GraphNodeExecution] = []
@@ -147,7 +156,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
 
         graph_execution._build_sequence_transitions(previous_node_id)
         graph_execution.append_event(
-            GraphExecutionBuilt.now(
+            GraphExecutionBuiltEvent.now(
                 graph_execution_id=id_,
                 task_execution_id=task_execution_id,
                 graph_definition_id=graph_definition.id,
@@ -159,13 +168,13 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def _build_sequence_transitions(
         self, last_node_id: GraphNodeExecutionId | None
     ) -> None:
-        from shell.domain.value_objects.ids import GraphNodeTransitionId
+        from shell.domain.value_objects.ids import GraphNodeTransitionExecutionId
 
         sorted_nodes = sorted(self._graph_node_executions, key=lambda n: n.position)
         for i in range(len(sorted_nodes) - 1):
             self._transitions.append(
-                GraphNodeTransition(
-                    id=GraphNodeTransitionId.generate(),
+                GraphNodeTransitionExecution(
+                    id=GraphNodeTransitionExecutionId.generate(),
                     graph_execution_id=self.id,
                     source_node_execution_id=sorted_nodes[i].id,
                     target_node_execution_id=sorted_nodes[i + 1].id,
@@ -177,3 +186,87 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
 
     def add_graph_node_execution(self, graph_node_execution: GraphNodeExecution) -> None:
         self._graph_node_executions.append(graph_node_execution)
+
+    # ── Parallel group management ─────────────────────────────────────────
+
+    @property
+    def parallel_groups(self) -> dict[str, ParallelGroup]:
+        return dict(self._parallel_groups)
+
+    def create_parallel_group(
+        self,
+        group_id: str,
+        fork_node_execution_id: GraphNodeExecutionId,
+        target_node_ids: list[GraphNodeExecutionId],
+    ) -> ParallelGroup:
+        group = ParallelGroup(
+            group_id=group_id,
+            fork_node_execution_id=fork_node_execution_id,
+            pending_node_ids={nid.value for nid in target_node_ids},
+        )
+        self._parallel_groups[group_id] = group
+        return group
+
+    def complete_parallel_node(self, group_id: str, node_id: str) -> ParallelGroup | None:
+        group = self._parallel_groups.get(group_id)
+        if group is not None:
+            group.mark_completed(node_id)
+            if group.is_complete:
+                self._parallel_groups.pop(group_id, None)
+        return group
+
+    def is_node_in_any_parallel_group(self, node_id: str) -> bool:
+        return any(
+            node_id in group.pending_node_ids or node_id in group.completed_node_ids
+            for group in self._parallel_groups.values()
+        )
+
+    def get_parallel_group_for_node(self, node_id: str) -> ParallelGroup | None:
+        for group in self._parallel_groups.values():
+            if node_id in group.pending_node_ids or node_id in group.completed_node_ids:
+                return group
+        return None
+
+    # ── Join counter management ───────────────────────────────────────────
+
+    @property
+    def join_counters(self) -> dict[str, JoinCounter]:
+        return dict(self._join_counters)
+
+    def create_join_counter(
+        self,
+        transition_id: str,
+        target_node_execution_id: GraphNodeExecutionId,
+        wait_count: int,
+    ) -> JoinCounter:
+        counter = JoinCounter(
+            transition_id=transition_id,
+            target_node_execution_id=target_node_execution_id,
+            wait_count=wait_count,
+        )
+        self._join_counters[transition_id] = counter
+        return counter
+
+    def record_join_completion(
+        self, transition_id: str, source_node_id: str
+    ) -> JoinCounter | None:
+        counter = self._join_counters.get(transition_id)
+        if counter is not None and counter.record_completion(source_node_id):
+            return counter
+        return None
+
+    # ── Loop counter management ───────────────────────────────────────────
+
+    @property
+    def loop_counters(self) -> dict[str, LoopCounter]:
+        return dict(self._loop_counters)
+
+    def get_or_create_loop_counter(
+        self, transition_id: str, max_loop_count: int
+    ) -> LoopCounter:
+        if transition_id not in self._loop_counters:
+            self._loop_counters[transition_id] = LoopCounter(
+                transition_id=transition_id,
+                max_loop_count=max_loop_count,
+            )
+        return self._loop_counters[transition_id]

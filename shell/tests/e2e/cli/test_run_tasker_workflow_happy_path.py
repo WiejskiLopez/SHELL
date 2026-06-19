@@ -4,9 +4,9 @@ from shell.application.commands.commands import RunTaskerWorkflowCommand
 from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
 from shell.domain.events.events import (
-    GraphNodeExecutionCompleted,
-    WorkflowCompleted,
-    WorkflowFailed,
+    GraphNodeExecutionCompletedEvent,
+    WorkflowCompletedEvent,
+    WorkflowFailedEvent,
 )
 from shell.infrastructure.persistence.memory import (
     FakeClock,
@@ -34,9 +34,9 @@ class TestRunTaskerWorkflowHappyPath:
         )
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
 
-        assert any(isinstance(e, GraphNodeExecutionCompleted) for e in events)
-        assert any(isinstance(e, WorkflowCompleted) for e in events)
-        assert not any(isinstance(e, WorkflowFailed) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionCompletedEvent) for e in events)
+        assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
+        assert not any(isinstance(e, WorkflowFailedEvent) for e in events)
 
         workflows = list(uow.workflows._store.values())  # type: ignore[attr-defined]
         assert len(workflows) == 1
@@ -60,6 +60,6 @@ class TestRunTaskerWorkflowHappyPath:
         )
         events = await _run_tasker_full(uow, clock, id_gen, cmd)
 
-        assert any(isinstance(e, WorkflowCompleted) for e in events)
+        assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
         workflows = list(uow.workflows._store.values())  # type: ignore[attr-defined]
         assert workflows[0].status.value == "done"

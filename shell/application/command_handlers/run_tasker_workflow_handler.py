@@ -5,14 +5,14 @@ Lifecycle (command side):
 1. Validate the task exists and its Graph has nodes.
 2. Compute the *first* node via the configured ``NodeNavigator``.
 3. Create a ``Workflow`` and call ``Workflow.start_at(first, context, now)``
-   which emits ``WorkflowStarted`` + ``GraphNodeExecutionStarted``.
+   which emits ``WorkflowStartedEvent`` + ``GraphNodeExecutionStartedEvent``.
 4. Persist the workflow (CAS bumps version 0→1) and stage:
    - the workflow's own events (``pull_events``)
-   - a kickoff ``GraphNodeExecutionRequested(workflow_id, first_graph_node_execution.id)``
+   - a kickoff ``GraphNodeExecutionRequestedEvent(workflow_id, first_graph_node_execution.id)``
 5. Commit and publish.
 
 The actual subprocess orchestration is performed by ``GraphNodeExecutionWorker``
-which subscribes to ``GraphNodeExecutionRequested`` (Process Manager / Saga).
+which subscribes to ``GraphNodeExecutionRequestedEvent`` (Process Manager / Saga).
 This keeps the command handler fast and free of long-running side effects.
 """
 
@@ -22,7 +22,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.domain.aggregates.workflow import Workflow
-from shell.domain.events.events import GraphNodeExecutionRequested
+from shell.domain.events.events import GraphNodeExecutionRequestedEvent
 from shell.domain.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
 from shell.domain.services.graph_node_execution_navigator import LinearGraphNodeExecutionNavigator
 from shell.domain.value_objects.ids import TaskExecutionId
@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 
 
 class RunTaskerWorkflowHandler:
-    """Creates a Workflow in RUNNING state and emits the first GraphNodeExecutionRequested.
+    """Creates a Workflow in RUNNING state and emits the first GraphNodeExecutionRequestedEvent.
 
     Throws ``TaskExecutionNotFound`` if the task does not exist and
     ``WorkflowHasNoNodes`` if its GraphExecution has no executable nodes.
@@ -98,7 +98,7 @@ class RunTaskerWorkflowHandler:
             uow.stage_events(workflow.pull_events())
             uow.stage_events(
                 [
-                    GraphNodeExecutionRequested.now(
+                    GraphNodeExecutionRequestedEvent.now(
                         workflow.id, first_graph_node_execution.id, now=now
                     )
                 ]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.events.events import WorkflowFailed
+from shell.domain.events.events import WorkflowFailedEvent
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.value_objects.status import Status
@@ -22,7 +22,7 @@ class TestAbort:
         assert wf.status == Status.failed()
         assert wf.cursor == WorkflowCursor.empty()
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowFailed) for e in events)
+        assert any(isinstance(e, WorkflowFailedEvent) for e in events)
 
     def test_abort_from_done_raises(self) -> None:
         wf = _new_workflow()

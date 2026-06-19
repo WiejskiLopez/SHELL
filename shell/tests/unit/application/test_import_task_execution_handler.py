@@ -8,7 +8,7 @@ from shell.application.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
 from shell.application.commands.commands import ImportTaskExecutionCommand
-from shell.domain.events.events import TaskExecutionCreated
+from shell.domain.events.events import TaskExecutionCreatedEvent
 from shell.infrastructure.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
@@ -33,7 +33,7 @@ class TestImportTaskExecutionHandler:
 
         assert task_execution_id
         assert len(uow.committed_events) == 1
-        assert isinstance(uow.committed_events[0], TaskExecutionCreated)
+        assert isinstance(uow.committed_events[0], TaskExecutionCreatedEvent)
 
     async def test_task_saved_as_current(
         self,

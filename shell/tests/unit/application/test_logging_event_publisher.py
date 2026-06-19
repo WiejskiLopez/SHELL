@@ -20,7 +20,7 @@ class TestLoggingEventPublisher:
         event = _task_imported()
         await pub.publish([event])
         call_kwargs = spy.info.call_args
-        assert call_kwargs.kwargs.get("event_type") == "TaskExecutionCreated"
+        assert call_kwargs.kwargs.get("event_type") == "TaskExecutionCreatedEvent"
 
     async def test_empty_events_no_log(self) -> None:
         spy = MagicMock()

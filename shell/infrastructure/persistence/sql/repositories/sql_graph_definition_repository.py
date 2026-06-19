@@ -24,8 +24,14 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    def _base_query(self):
+        return select(GraphDefinitionModel).options(
+            selectinload(GraphDefinitionModel.graph_node_execution_models),
+            selectinload(GraphDefinitionModel.graph_node_transition_definition_models),
+        )
+
     async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
-        query = select(GraphDefinitionModel).where(GraphDefinitionModel.id == graph_definition_id.value)
+        query = self._base_query().where(GraphDefinitionModel.id == graph_definition_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None
 
@@ -33,8 +39,7 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
         self, graph_definition_by_name: str
     ) -> GraphDefinition | None:
         query = (
-            select(GraphDefinitionModel)
-            .options(selectinload(GraphDefinitionModel.graph_node_execution_models))
+            self._base_query()
             .where(GraphDefinitionModel.name == graph_definition_by_name)
         )
         row = (await self._session.execute(query)).scalar_one_or_none()

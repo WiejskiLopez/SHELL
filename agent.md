@@ -58,7 +58,9 @@ domain/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
 ### Domain Event
 - Niezmienne dataclasses w `domain/events/events/`
 - Każdy event w osobnym pliku
-- Nazewnictwo: przeszłość dokonana (np. `TaskExecutionCreated`, `WorkflowCompleted`, `EnvelopeRouted`)
+- Nazwa pliku: snake_case z sufiksem `_event` (np. `task_execution_created_event.py`, `workflow_completed_event.py`)
+- Klasa: PascalCase z sufiksem `Event` (np. `TaskExecutionCreatedEvent`, `WorkflowCompletedEvent`)
+- Część opisowa klasy: przeszłość dokonana (np. `Created`, `Completed`, `Failed`)
 - Eventy są faktami — zawierają tylko dane które się wydarzyły, nie instrukcje
 
 ### Domain Service
@@ -365,7 +367,8 @@ AggregateRoot.append_event()
 | Command/Query | PascalCase + suffix | `StartWorkflowCommand`, `GetWorkflowQuery` |
 | Handler | PascalCase + "Handler" | `StartWorkflowHandler`, `GetWorkflowHandler` |
 | DTO | PascalCase + "Dto" | `WorkflowDto`, `TaskExecutionListItemDto` |
-| Domain Event | Past tense PascalCase | `TaskExecutionCreated`, `WorkflowCompleted` |
+| Domain Event class | PascalCase + `Event` suffix | `TaskExecutionCreatedEvent`, `WorkflowCompletedEvent` |
+| Domain Event file | snake_case + `_event` suffix | `task_execution_created_event.py`, `workflow_completed_event.py` |
 | Exception | PascalCase + domain context | `WorkflowNotFoundException`, `InvalidEnvelopeTransitionError` |
 | Port/Protocol | PascalCase | `UnitOfWork`, `IdGenerator`, `Clock` |
 | Strategy | PascalCase + "Strategy" | `AgentStrategy`, `RouterStrategy` |

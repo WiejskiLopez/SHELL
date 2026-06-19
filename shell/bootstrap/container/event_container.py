@@ -5,7 +5,7 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from shell.application.event_handlers.build_graph_execution_on_task_execution_created import (
-    BuildGraphExecutionOnTaskExecutionCreated,
+    BuildGraphExecutionOnTaskExecutionCreatedEvent,
 )
 from shell.application.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
@@ -15,6 +15,15 @@ from shell.application.event_handlers.graph_node_execution_result_handler import
     GraphNodeExecutionResultHandler,
 )
 from shell.application.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
+from shell.application.event_handlers.graph_node_join_execution_handler import (
+    GraphNodeJoinExecutionHandler,
+)
+from shell.application.event_handlers.graph_node_parallel_execution_handler import (
+    GraphNodeParallelExecutionHandler,
+)
+from shell.application.event_handlers.graph_node_timeout_handler import (
+    GraphNodeTimeoutHandler,
+)
 
 
 class EventContainer(containers.DeclarativeContainer):
@@ -34,7 +43,7 @@ class EventContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
     )
     build_graph_execution_on_task_execution_created_factory = providers.Factory(
-        BuildGraphExecutionOnTaskExecutionCreated,
+        BuildGraphExecutionOnTaskExecutionCreatedEvent,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
@@ -57,4 +66,24 @@ class EventContainer(containers.DeclarativeContainer):
         navigator=domain.node_navigator_factory,
         policy=domain.graph_node_execution_policy_factory,
         compensation=domain.compensation_handler_factory,
+    )
+    graph_node_parallel_execution_handler_factory = providers.Factory(
+        GraphNodeParallelExecutionHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+    )
+    graph_node_join_execution_handler_factory = providers.Factory(
+        GraphNodeJoinExecutionHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+        navigator=domain.node_navigator_factory,
+    )
+    graph_node_timeout_handler_factory = providers.Factory(
+        GraphNodeTimeoutHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        id_gen=infra.id_gen_factory,
+        logger=infra.stdlib_logger,
     )

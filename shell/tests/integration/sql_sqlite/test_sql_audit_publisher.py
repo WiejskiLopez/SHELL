@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
+from shell.domain.events.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
@@ -24,12 +24,12 @@ class TestSqlAuditPublisher:
     ) -> None:
         pub = SqlAuditPublisher(session_factory)
         events = [
-            TaskExecutionCreated.now(
+            TaskExecutionCreatedEvent.now(
                 task_execution_id=TaskExecutionId.generate(),
                 task_execution_name=TaskExecutionName("audit-task"),
                 now=datetime(2026, 1, 1, tzinfo=UTC),
             ),
-            WorkflowStarted.now(
+            WorkflowStartedEvent.now(
                 workflow_id=WorkflowId.generate(),
                 task_execution_id=TaskExecutionId.generate(),
                 now=datetime(2026, 1, 1, tzinfo=UTC),
@@ -41,8 +41,8 @@ class TestSqlAuditPublisher:
             rows = (await session.execute(select(AuditEventModel))).scalars().all()
 
         types = {r.event_type for r in rows}
-        assert "TaskExecutionCreated" in types
-        assert "WorkflowStarted" in types
+        assert "TaskExecutionCreatedEvent" in types
+        assert "WorkflowStartedEvent" in types
 
     async def test_empty_events_writes_nothing(
         self,

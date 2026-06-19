@@ -27,7 +27,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     def _base_query(self):
         return select(GraphExecutionModel).options(
             selectinload(GraphExecutionModel.graph_node_execution_models),
-            selectinload(GraphExecutionModel.graph_node_transition_models),
+            selectinload(GraphExecutionModel.graph_node_transition_execution_models),
         )
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:

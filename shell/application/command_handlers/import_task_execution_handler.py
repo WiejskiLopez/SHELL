@@ -1,7 +1,7 @@
 """ImportTaskExecutionHandler — imports a task from a markdown file.
 
 This handler is intentionally ignorant of the GraphExcecution aggregate: after a Task
-is persisted, the ``TaskExecutionCreated`` event triggers ``BuildGraphExecutionOnTaskExecutionCreated``
+is persisted, the ``TaskExecutionCreatedEvent`` event triggers ``BuildGraphExecutionOnTaskExecutionCreatedEvent``
 which constructs the appropriate Graph from a GraphDefinition.
 """
 

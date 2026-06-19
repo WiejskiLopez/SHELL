@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.events.events import TaskExecutionCreated
+from shell.domain.events.events import TaskExecutionCreatedEvent
 from shell.domain.value_objects.ids import TaskExecutionId
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.messaging.sql_outbox_publisher import SqlOutboxPublisher
@@ -24,7 +24,7 @@ class TestSqlOutboxPublisher:
     ) -> None:
         pub = SqlOutboxPublisher(session_factory)
         events = [
-            TaskExecutionCreated.now(
+            TaskExecutionCreatedEvent.now(
                 task_execution_id=TaskExecutionId.generate(),
                 task_execution_name=TaskExecutionName("ob-task"),
                 now=datetime(2026, 1, 1, tzinfo=UTC),
@@ -34,7 +34,7 @@ class TestSqlOutboxPublisher:
 
         async with session_factory() as session:
             rows = (await session.execute(select(OutboxEventModel))).scalars().all()
-        assert any(r.event_type == "TaskExecutionCreated" for r in rows)
+        assert any(r.event_type == "TaskExecutionCreatedEvent" for r in rows)
         assert all(r.published_at is None for r in rows)
 
     async def test_empty_publish_noop(

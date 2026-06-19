@@ -17,9 +17,9 @@ from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.aggregates.task_execution import TaskExecution
 from shell.domain.events.events import (
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
@@ -102,7 +102,7 @@ async def _run_tasker_full(
 
     all_events: list[Any] = []
 
-    # Phase 1: Bootstrap (creates workflow + first GraphNodeExecutionRequested)
+    # Phase 1: Bootstrap (creates workflow + first GraphNodeExecutionRequestedEvent)
     await bootstrap_handler.handle(cmd)
     all_events.extend(uow.committed_events)
 
@@ -118,11 +118,11 @@ async def _run_tasker_full(
 
         has_work = False
         for event in batch:
-            if isinstance(event, GraphNodeExecutionRequested):
+            if isinstance(event, GraphNodeExecutionRequestedEvent):
                 await worker.handle(event)
                 all_events.extend(uow.committed_events)
                 has_work = True
-            elif isinstance(event, (GraphNodeExecutionCompleted, GraphNodeExecutionFailed)):
+            elif isinstance(event, (GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent)):
                 await result_handler.handle(event)
                 all_events.extend(uow.committed_events)
                 has_work = True

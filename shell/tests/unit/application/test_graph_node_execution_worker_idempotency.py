@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.domain.events.events import GraphNodeExecutionRequested
+from shell.domain.events.events import GraphNodeExecutionRequestedEvent
 from shell.domain.value_objects.status import Status
 from shell.infrastructure.persistence.memory import (
     FakeIdGenerator,
@@ -25,7 +25,7 @@ class TestGraphNodeExecutionWorkerIdempotency:
         worker = _make_worker(uow, runner)
 
         await worker.handle(
-            GraphNodeExecutionRequested.now(
+            GraphNodeExecutionRequestedEvent.now(
                 wf.id, graph_execution.graph_node_executions[1].id, now=_NOW
             )
         )
@@ -62,7 +62,7 @@ class TestGraphNodeExecutionWorkerIdempotency:
         worker = _make_worker(uow, runner)
 
         await worker.handle(
-            GraphNodeExecutionRequested.now(
+            GraphNodeExecutionRequestedEvent.now(
                 wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
             )
         )

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.events.events import GraphNodeExecutionStarted, WorkflowStarted
+from shell.domain.events.events import GraphNodeExecutionStartedEvent, WorkflowStartedEvent
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import GraphNodeExecutionId
 from shell.domain.value_objects.status import Status
@@ -20,8 +20,8 @@ class TestStartAt:
         assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n1"))
         assert wf.execution_context == _ctx()
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowStarted) for e in events)
-        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
+        assert any(isinstance(e, WorkflowStartedEvent) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStartedEvent) for e in events)
 
     def test_double_start_raises(self) -> None:
         wf = _new_workflow()

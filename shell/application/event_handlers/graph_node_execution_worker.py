@@ -1,21 +1,21 @@
 """GraphNodeExecutionWorker — executes exactly one node step per cycle.
 
-This handler subscribes to :class:`GraphNodeExecutionRequested` on the
+This handler subscribes to :class:`GraphNodeExecutionRequestedEvent` on the
 in-process EventBus. Each invocation processes **exactly one** node:
 runs the subprocess, records the result, and emits
-:class:`GraphNodeExecutionCompleted` or :class:`GraphNodeExecutionFailed`.
+:class:`GraphNodeExecutionCompletedEvent` or :class:`GraphNodeExecutionFailedEvent`.
 
 The *next-step decision* (advance, finish, abort) is delegated to
 :class:`GraphNodeExecutionResultHandler`, which subscribes to the result
 events and forms the second cycle of the saga.
 
 Cycle A (this worker)
-    ``GraphNodeExecutionRequested`` → run node → record result →
-    ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` → return
+    ``GraphNodeExecutionRequestedEvent`` → run node → record result →
+    ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` → return
 
 Cycle B (GraphNodeExecutionResultHandler)
-    ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` →
-    decide next → ``GraphNodeExecutionRequested`` / terminal event → return
+    ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` →
+    decide next → ``GraphNodeExecutionRequestedEvent`` / terminal event → return
 
 Idempotency model (four-tier defence in depth)
 ===============================================
@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.events.events import GraphNodeExecutionRequested
+from shell.domain.events.events import GraphNodeExecutionRequestedEvent
 from shell.domain.exceptions import WorkflowConcurrentlyModified
 from shell.domain.value_objects.manifest import Manifest
 from shell.domain.value_objects.mode import Mode
@@ -53,10 +53,10 @@ if TYPE_CHECKING:
 
 
 class GraphNodeExecutionWorker:
-    """Cycle A: executes exactly one node per :class:`GraphNodeExecutionRequested`.
+    """Cycle A: executes exactly one node per :class:`GraphNodeExecutionRequestedEvent`.
 
-    Records the result and emits ``GraphNodeExecutionCompleted`` or
-    ``GraphNodeExecutionFailed``.  The *next-step decision* is handled by
+    Records the result and emits ``GraphNodeExecutionCompletedEvent`` or
+    ``GraphNodeExecutionFailedEvent``.  The *next-step decision* is handled by
     :class:`GraphNodeExecutionResultHandler` (Cycle B).
     """
 
@@ -74,8 +74,8 @@ class GraphNodeExecutionWorker:
         self._runner = runner
         self._logger = logger
 
-    async def handle(self, event: GraphNodeExecutionRequested) -> None:
-        """Handle exactly one ``GraphNodeExecutionRequested``."""
+    async def handle(self, event: GraphNodeExecutionRequestedEvent) -> None:
+        """Handle exactly one ``GraphNodeExecutionRequestedEvent``."""
 
         # ── 1. Load aggregate + graph_execution ─────────────────────────────────────
         async with self._uow as uow:
@@ -85,9 +85,6 @@ class GraphNodeExecutionWorker:
                     "graph_node_execution_worker.workflow_not_found",
                     workflow_id=event.workflow_id.value,
                 )
-                return
-
-            if not self._is_event_relevant(workflow, event):
                 return
 
             task_execution = await uow.task_executions.get_current_by_id(
@@ -110,6 +107,9 @@ class GraphNodeExecutionWorker:
                 "graph_node_execution_worker.graph_missing",
                 workflow_id=event.workflow_id.value,
             )
+            return
+
+        if not await self._is_event_relevant(workflow, graph_execution, event):
             return
 
         node = self._find_graph_node_execution(graph_execution, event.graph_node_execution_id)
@@ -144,8 +144,17 @@ class GraphNodeExecutionWorker:
 
     # ── Step helpers ─────────────────────────────────────────────────────
 
-    def _is_event_relevant(self, workflow: Workflow, event: GraphNodeExecutionRequested) -> bool:
-        """Four-tier idempotency: drop the event if cursor, status or node state moved on."""
+    async def _is_event_relevant(
+        self,
+        workflow: Workflow,
+        graph_execution: GraphExecution,
+        event: GraphNodeExecutionRequestedEvent,
+    ) -> bool:
+        """Four-tier idempotency: drop the event if cursor, status or node state moved on.
+
+        For parallel execution children, the cursor guard is bypassed —
+        instead we check if the node belongs to an active parallel group.
+        """
         if workflow.status != Status.running():
             self._logger.debug(
                 "graph_node_execution_worker.skip_terminal",
@@ -153,7 +162,11 @@ class GraphNodeExecutionWorker:
                 status=workflow.status.value,
             )
             return False
-        if not workflow.cursor.points_to(event.graph_node_execution_id):
+
+        is_parallel = graph_execution.is_node_in_any_parallel_group(
+            event.graph_node_execution_id.value
+        )
+        if not is_parallel and not workflow.cursor.points_to(event.graph_node_execution_id):
             self._logger.debug(
                 "graph_node_execution_worker.skip_stale_cursor",
                 workflow_id=workflow.id.value,
@@ -165,9 +178,8 @@ class GraphNodeExecutionWorker:
                 requested=event.graph_node_execution_id.value,
             )
             return False
+
         # Node-state guard: skip if this node was already executed.
-        # This closes the window between Cycle A (record result) and
-        # Cycle B (advance cursor) — a re-delivery won't re-run the node.
         state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
         if state is not None and state.status in (Status.done(), Status.failed()):
             self._logger.debug(
@@ -183,7 +195,7 @@ class GraphNodeExecutionWorker:
         self,
         workflow: Workflow,
         graph_node_execution: GraphNodeExecution,
-        event: GraphNodeExecutionRequested,
+        event: GraphNodeExecutionRequestedEvent,
         work_dir: str,
     ) -> tuple[bool, str, str]:
         manifest = self._build_manifest(graph_node_execution)
@@ -203,7 +215,7 @@ class GraphNodeExecutionWorker:
     async def _commit_step(
         self,
         *,
-        event: GraphNodeExecutionRequested,
+        event: GraphNodeExecutionRequestedEvent,
         success: bool,
         stdout: str,
         stderr: str,
@@ -212,12 +224,24 @@ class GraphNodeExecutionWorker:
 
         This is Cycle A of the saga.  The *next-step decision* (advance /
         finish / abort) is handled by ``GraphNodeExecutionResultHandler``
-        (Cycle B), which subscribes to the ``GraphNodeExecutionCompleted``
-        / ``GraphNodeExecutionFailed`` events emitted here.
+        (Cycle B), which subscribes to the ``GraphNodeExecutionCompletedEvent``
+        / ``GraphNodeExecutionFailedEvent`` events emitted here.
         """
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
-            if workflow is None or not self._is_event_relevant(workflow, event):
+            if workflow is None:
+                return
+
+            task_execution = await uow.task_executions.get_current_by_id(
+                workflow.task_execution_id
+            )
+            graph_execution = (
+                await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+                if task_execution is not None
+                else None
+            )
+
+            if not await self._is_event_relevant(workflow, graph_execution, event):
                 return
 
             now = self._clock.now()

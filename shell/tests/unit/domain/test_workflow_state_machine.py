@@ -6,11 +6,11 @@ import pytest
 
 from shell.domain.aggregates.workflow import Workflow
 from shell.domain.events.events import (
-    GraphNodeExecutionAdvanced,
-    GraphNodeExecutionStarted,
-    WorkflowCompleted,
-    WorkflowFailed,
-    WorkflowStarted,
+    GraphNodeExecutionAdvancedEvent,
+    GraphNodeExecutionStartedEvent,
+    WorkflowCompletedEvent,
+    WorkflowFailedEvent,
+    WorkflowStartedEvent,
 )
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import (
@@ -70,8 +70,8 @@ class TestWorkflowStateMachine:
 
         # Sprawdzenie akumulacji zdarzeń domenowych
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowStarted) for e in events)
-        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
+        assert any(isinstance(e, WorkflowStartedEvent) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStartedEvent) for e in events)
 
     def test_start_at_raises_invalid_transition_if_not_idle(self) -> None:
         """Próba ponownego wystartowania uruchomionego workflow rzuca wyjątek."""
@@ -104,8 +104,8 @@ class TestWorkflowStateMachine:
         assert state.status == Status.running()
 
         events = wf.pull_events()
-        assert any(isinstance(e, GraphNodeExecutionAdvanced) for e in events)
-        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionAdvancedEvent) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStartedEvent) for e in events)
 
     def test_advance_to_raises_if_workflow_not_running(self) -> None:
         """Nie można przesunąć cursora, jeśli workflow nie wystartował."""
@@ -128,7 +128,7 @@ class TestWorkflowStateMachine:
         assert wf.cursor == WorkflowCursor.empty()
 
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowCompleted) for e in events)
+        assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
 
     def test_abort_transitions_to_failed_and_clears_cursor(self) -> None:
         """Weryfikuje zachowanie metody abort na podstawie struktury TestAbort z dump_004.md."""
@@ -144,4 +144,4 @@ class TestWorkflowStateMachine:
         assert wf.cursor == WorkflowCursor.empty()
 
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowFailed) for e in events)
+        assert any(isinstance(e, WorkflowFailedEvent) for e in events)

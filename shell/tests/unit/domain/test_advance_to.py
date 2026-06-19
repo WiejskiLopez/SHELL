@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.events.events import GraphNodeExecutionAdvanced, GraphNodeExecutionStarted
+from shell.domain.events.events import GraphNodeExecutionAdvancedEvent, GraphNodeExecutionStartedEvent
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.value_objects.status import Status
@@ -26,8 +26,8 @@ class TestAdvanceTo:
         wf.advance_to(next_graph_node_execution_id=GraphNodeExecutionId("n2"), now=_NOW)
         assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n2"))
         events = wf.pull_events()
-        assert any(isinstance(e, GraphNodeExecutionAdvanced) for e in events)
-        assert any(isinstance(e, GraphNodeExecutionStarted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionAdvancedEvent) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionStartedEvent) for e in events)
 
     def test_advance_requires_running_status(self) -> None:
         wf = _new_workflow()

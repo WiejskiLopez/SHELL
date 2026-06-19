@@ -19,5 +19,12 @@ class GraphDefinitionModel(Base):
         order_by="GraphNodeDefinitionModel.position",
     )
 
+    graph_node_transition_definition_models: Mapped[list[GraphNodeTransitionDefinitionModel]] = relationship(
+        "GraphNodeTransitionDefinitionModel",
+        back_populates="graph_definition_model",
+        cascade="all, delete-orphan",
+    )
+
 
 from .graph_node_definition import GraphNodeDefinitionModel
+from .graph_node_transition_definition import GraphNodeTransitionDefinitionModel

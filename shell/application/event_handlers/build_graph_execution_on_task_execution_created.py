@@ -1,10 +1,10 @@
-"""BuildGraphExecutionOnTaskExecutionCreated — reacts to TaskExecutionCreated and builds a Graph.
+"""BuildGraphExecutionOnTaskExecutionCreatedEvent — reacts to TaskExecutionCreatedEvent and builds a Graph.
 
 The Task aggregate is intentionally agnostic of which Graph realises it.
 This handler bridges that gap: when a Task is created, it materialises a
 Graph from a GraphDefinition (default name: ``base_planner``), persists it
 in its own transactional boundary, and forwards the resulting domain
-events (``GraphExecutionBuilt``) downstream.
+events (``GraphExecutionBuiltEvent``) downstream.
 """
 
 from __future__ import annotations
@@ -21,14 +21,14 @@ if TYPE_CHECKING:
         Logger,
         UnitOfWork,
     )
-    from shell.domain.events.events import TaskExecutionCreated
+    from shell.domain.events.events import TaskExecutionCreatedEvent
 
 
 GRAPH_DEFINITION_NAME = "base_planner"
 
 
-class BuildGraphExecutionOnTaskExecutionCreated:
-    """Event handler — listens to ``TaskExecutionCreated`` and builds a Graph."""
+class BuildGraphExecutionOnTaskExecutionCreatedEvent:
+    """Event handler — listens to ``TaskExecutionCreatedEvent`` and builds a Graph."""
 
     def __init__(
         self,
@@ -44,9 +44,9 @@ class BuildGraphExecutionOnTaskExecutionCreated:
         self._logger = logger
         self._name = name
 
-    async def handle(self, event: TaskExecutionCreated) -> None:
+    async def handle(self, event: TaskExecutionCreatedEvent) -> None:
         self._logger.info(
-            "Handle TaskExecutionCreated:",
+            "Handle TaskExecutionCreatedEvent:",
             task_execution_id=event.task_execution_id.value,
         )
         now = self._clock.now()

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
+from shell.domain.events.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
@@ -25,7 +25,7 @@ class TestOutboxToInboxRelay:
         session_factory: async_sessionmaker,
     ) -> None:
         outbox_pub = SqlOutboxPublisher(session_factory)
-        event = WorkflowStarted.now(
+        event = WorkflowStartedEvent.now(
             workflow_id=WorkflowId.generate(),
             task_execution_id=TaskExecutionId.generate(),
             now=datetime(2026, 1, 1, tzinfo=UTC),
@@ -56,7 +56,7 @@ class TestOutboxToInboxRelay:
         outbox_pub = SqlOutboxPublisher(session_factory)
         await outbox_pub.publish(
             [
-                TaskExecutionCreated.now(
+                TaskExecutionCreatedEvent.now(
                     task_execution_id=TaskExecutionId.generate(),
                     task_execution_name=TaskExecutionName("idm-task"),
                     now=datetime(2026, 1, 1, tzinfo=UTC),

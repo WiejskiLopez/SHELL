@@ -7,12 +7,12 @@ the handler correctly decides the next step (advance / finish / abort).
 from __future__ import annotations
 
 from shell.domain.events.events import (
-    GraphNodeExecutionAdvanced,
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
-    WorkflowCompleted,
-    WorkflowFailed,
+    GraphNodeExecutionAdvancedEvent,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
+    WorkflowCompletedEvent,
+    WorkflowFailedEvent,
 )
 from shell.domain.value_objects.status import Status
 from shell.infrastructure.persistence.memory import (
@@ -55,7 +55,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
         # Act: Cycle B — result handler decides next step
         result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
-            GraphNodeExecutionCompleted.now(
+            GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
                 graph_node_execution_result_id=result_id,
@@ -73,8 +73,8 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
         )
 
         types = [type(e) for e in uow.committed_events]
-        assert GraphNodeExecutionAdvanced in types
-        assert GraphNodeExecutionRequested in types
+        assert GraphNodeExecutionAdvancedEvent in types
+        assert GraphNodeExecutionRequestedEvent in types
 
     async def test_completed_on_last_node_finishes_workflow(self) -> None:
         uow = InMemoryUnitOfWork()
@@ -99,7 +99,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
 
         result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
-            GraphNodeExecutionCompleted.now(
+            GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
                 graph_node_execution_result_id=result_id,
@@ -113,7 +113,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
         assert stored.cursor.current_graph_node_execution_id is None
 
         types = [type(e) for e in uow.committed_events]
-        assert WorkflowCompleted in types
+        assert WorkflowCompletedEvent in types
 
 
 class TestGraphNodeExecutionResultHandlerFailure:
@@ -141,7 +141,7 @@ class TestGraphNodeExecutionResultHandlerFailure:
         handler = _make_result_handler(uow)
 
         await handler.handle(
-            GraphNodeExecutionFailed.now(
+            GraphNodeExecutionFailedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
                 reason="boom",
@@ -155,9 +155,9 @@ class TestGraphNodeExecutionResultHandlerFailure:
         assert stored.cursor.current_graph_node_execution_id is None
 
         types = [type(e) for e in uow.committed_events]
-        assert WorkflowFailed in types
-        assert GraphNodeExecutionAdvanced not in types
-        assert GraphNodeExecutionRequested not in types
+        assert WorkflowFailedEvent in types
+        assert GraphNodeExecutionAdvancedEvent not in types
+        assert GraphNodeExecutionRequestedEvent not in types
 
 
 class TestGraphNodeExecutionResultHandlerIdempotency:
@@ -186,7 +186,7 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
         # Re-delivery of completed event after finish
         result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
-            GraphNodeExecutionCompleted.now(
+            GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
                 graph_node_execution_result_id=result_id,

@@ -64,10 +64,62 @@ class TransitionBasedNavigator:
                     matched.append(node)
                 continue
 
+            if t.transition_type == TransitionType.CONDITIONAL:
+                continue
+
+            if t.transition_type == TransitionType.ERROR_HANDLER:
+                continue
+
         if not matched and has_default and default_target:
             matched.append(default_target)
 
         return matched
+
+    def next_conditional(
+        self,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+    ) -> list[tuple[GraphNodeExecution, str]]:
+        nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
+        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+
+        results: list[tuple[GraphNodeExecution, str]] = []
+        for t in outgoing:
+            if t.transition_type == TransitionType.CONDITIONAL:
+                node = nodes_by_id.get(t.target_node_execution_id.value)
+                if node and t.condition_expression:
+                    results.append((node, t.condition_expression))
+        return results
+
+    def next_error_handler(
+        self,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+    ) -> GraphNodeExecution | None:
+        nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
+        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+
+        for t in outgoing:
+            if t.transition_type == TransitionType.ERROR_HANDLER:
+                node = nodes_by_id.get(t.target_node_execution_id.value)
+                if node:
+                    return node
+        return None
+
+    def next_loop_target(
+        self,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+    ) -> GraphNodeExecution | None:
+        nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
+        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+
+        for t in outgoing:
+            if t.transition_type == TransitionType.LOOP:
+                node = nodes_by_id.get(t.target_node_execution_id.value)
+                if node:
+                    return node
+        return None
 
     @staticmethod
     def _fallback_first(graph_execution: GraphExecution) -> GraphNodeExecution | None:

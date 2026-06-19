@@ -1,4 +1,4 @@
-"""Unit tests for ``BuildGraphExecutionOnTaskExecutionCreated`` event handler."""
+"""Unit tests for ``BuildGraphExecutionOnTaskExecutionCreatedEvent`` event handler."""
 
 from __future__ import annotations
 
@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 import pytest
 
 from shell.application.event_handlers.build_graph_execution_on_task_execution_created import (
-    BuildGraphExecutionOnTaskExecutionCreated,
+    BuildGraphExecutionOnTaskExecutionCreatedEvent,
 )
 from shell.application.exceptions import GraphDefinitionNotFoundException
 from shell.domain.entities.graph_definition import GraphDefinition
 from shell.domain.entities.graph_node_definition import GraphNodeDefinition
-from shell.domain.events.events import GraphExecutionBuilt, TaskExecutionCreated
+from shell.domain.events.events import GraphExecutionBuiltEvent, TaskExecutionCreatedEvent
 from shell.domain.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
@@ -88,8 +88,8 @@ async def _seed_graph_definition(
     return graph_definition
 
 
-def _task_created_event(now: datetime) -> TaskExecutionCreated:
-    return TaskExecutionCreated.now(
+def _task_created_event(now: datetime) -> TaskExecutionCreatedEvent:
+    return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId("task-abc"),
         task_execution_name=TaskExecutionName("my-task"),
         now=now,
@@ -101,7 +101,7 @@ def _task_created_event(now: datetime) -> TaskExecutionCreated:
 # ---------------------------------------------------------------------------
 
 
-class TestBuildGraphExecutionOnTaskExecutionCreated:
+class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
     async def test_happy_path_builds_and_persists_graph_execution(
         self,
         uow: InMemoryUnitOfWork,
@@ -110,7 +110,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreated(uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, clock, id_gen, logger)
 
         await handler.handle(_task_created_event(clock.now()))
 
@@ -120,7 +120,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         assert len(graph_execution.graph_node_executions) == 2
-        assert any(isinstance(e, GraphExecutionBuilt) for e in uow.committed_events)
+        assert any(isinstance(e, GraphExecutionBuiltEvent) for e in uow.committed_events)
 
     async def test_graph_definition_not_found_raises(
         self,
@@ -134,7 +134,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreated(fresh_uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
@@ -147,7 +147,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreated(uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, clock, id_gen, logger)
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
@@ -180,7 +180,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreated:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreated(fresh_uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, clock, id_gen, logger)
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))

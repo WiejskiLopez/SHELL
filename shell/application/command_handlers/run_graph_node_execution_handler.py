@@ -26,7 +26,7 @@ class RunGraphNodeExecutionHandler:
     """Executes a graph node execution via the registered GraphNodeExecutionStrategy for its mode.
 
     Appends a NodeResult to the owning Workflow aggregate, syncing node state and
-    emitting GraphNodeExecutionCompleted/GraphNodeExecutionFailed via Workflow.record_graph_node_execution_result.
+    emitting GraphNodeExecutionCompletedEvent/GraphNodeExecutionFailedEvent via Workflow.record_graph_node_execution_result.
     """
 
     def __init__(

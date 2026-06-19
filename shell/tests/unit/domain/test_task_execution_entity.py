@@ -34,7 +34,7 @@ class TestTaskExecution:
         )
         events = task_execution.pull_events()
         assert len(events) == 1
-        assert type(events[0]).__name__ == "TaskExecutionCreated"
+        assert type(events[0]).__name__ == "TaskExecutionCreatedEvent"
 
     def test_hash_changes_with_content(self) -> None:
         t1 = TaskExecution.create(

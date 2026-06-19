@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.domain.events.events import EnvelopeDeadlettered, EnvelopeExpired, EnvelopeRouted
+from shell.domain.events.events import EnvelopeDeadletteredEvent, EnvelopeExpiredEvent, EnvelopeRoutedEvent
 from shell.domain.exceptions import WorkflowNotFound
 from shell.domain.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.services.graph_execution_routing_service import GraphExcetutionRoutingService
@@ -64,7 +64,7 @@ class RouteEnvelopesHandler:
                     envelope.transition_status(EnvelopeStatus.DEAD, now)
                     await uow.envelopes.save(envelope)
                     uow.stage_events(
-                        [EnvelopeExpired.now(envelope.id, envelope.workflow_id, now=now)]
+                        [EnvelopeExpiredEvent.now(envelope.id, envelope.workflow_id, now=now)]
                     )
                     expired += 1
                     continue
@@ -87,7 +87,7 @@ class RouteEnvelopesHandler:
                         envelope.transition_status(EnvelopeStatus.DEAD, now)
                         await uow.envelopes.save(envelope)
                         uow.stage_events(
-                            [EnvelopeDeadlettered.now(
+                            [EnvelopeDeadletteredEvent.now(
                                 envelope.id, envelope.workflow_id, reason=str(e), now=now
                             )]
                         )
@@ -96,7 +96,7 @@ class RouteEnvelopesHandler:
                 envelope.transition_status(EnvelopeStatus.ACTIVE, now)
                 envelope.transition_stage(EnvelopeStage.SENT, now)
                 await uow.envelopes.save(envelope)
-                uow.stage_events([EnvelopeRouted.now(envelope.id, envelope.workflow_id, now=now)])
+                uow.stage_events([EnvelopeRoutedEvent.now(envelope.id, envelope.workflow_id, now=now)])
                 routed += 1
 
         return routed

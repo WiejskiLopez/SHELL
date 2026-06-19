@@ -9,7 +9,12 @@ from shell.domain.value_objects.ids.graph_definition_id import GraphDefinitionId
 from shell.domain.value_objects.ids.graph_execution_id import GraphExecutionId
 from shell.domain.value_objects.ids.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.value_objects.ids.graph_node_execution_id import GraphNodeExecutionId
-from shell.domain.value_objects.ids.graph_node_transition_id import GraphNodeTransitionId
+from shell.domain.value_objects.ids.graph_node_transition_execution_id import (
+    GraphNodeTransitionExecutionId,
+)
+from shell.domain.value_objects.ids.graph_node_transition_definition_id import (
+    GraphNodeTransitionDefinitionId,
+)
 from shell.domain.value_objects.ids.graph_node_execution_input_payload_id import (
     GraphNodeExecutionInputPayloadId,
 )
@@ -45,7 +50,8 @@ __all__ = [
     "GraphExecutionId",
     "GraphNodeDefinitionId",
     "GraphNodeExecutionId",
-    "GraphNodeTransitionId",
+    "GraphNodeTransitionDefinitionId",
+    "GraphNodeTransitionExecutionId",
     "GraphNodeExecutionInputPayloadId",
     "GraphNodeExecutionOutputPayloadId",
     "GraphNodeExecutionResultId",

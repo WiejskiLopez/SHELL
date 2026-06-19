@@ -8,8 +8,8 @@ GraphNodeExecutionResultHandler tests.
 from __future__ import annotations
 
 from shell.domain.events.events import (
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.value_objects.status import Status
 from shell.infrastructure.persistence.memory import (
@@ -32,7 +32,7 @@ class TestGraphNodeExecutionWorkerFailure:
         worker = _make_worker(uow, runner)
 
         await worker.handle(
-            GraphNodeExecutionRequested.now(
+            GraphNodeExecutionRequestedEvent.now(
                 wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
             )
         )
@@ -47,4 +47,4 @@ class TestGraphNodeExecutionWorkerFailure:
         )
 
         types = [type(e) for e in uow.committed_events]
-        assert GraphNodeExecutionFailed in types
+        assert GraphNodeExecutionFailedEvent in types

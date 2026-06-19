@@ -8,12 +8,15 @@ from shell.domain.services.graph_node_execution_policy.abort_decision import (
 from shell.domain.services.graph_node_execution_policy.continue_decision import (
     ContinueDecision,
 )
+from shell.domain.services.graph_node_execution_policy.route_to_error_handler_decision import (
+    RouteToErrorHandlerDecision,
+)
 
 if TYPE_CHECKING:
     from shell.domain.aggregates.workflow import Workflow
     from shell.domain.value_objects.ids import GraphNodeExecutionId
 
-PolicyDecision = AbortDecision | ContinueDecision
+PolicyDecision = AbortDecision | ContinueDecision | RouteToErrorHandlerDecision
 
 
 class NodeExecutionPolicy(Protocol):

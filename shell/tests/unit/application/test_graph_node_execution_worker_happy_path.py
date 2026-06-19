@@ -7,9 +7,9 @@ Next-step decisions are verified in the GraphNodeExecutionResultHandler tests.
 from __future__ import annotations
 
 from shell.domain.events.events import (
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.value_objects.status import Status
 from shell.infrastructure.persistence.memory import (
@@ -32,7 +32,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
         worker = _make_worker(uow, runner)
 
         await worker.handle(
-            GraphNodeExecutionRequested.now(
+            GraphNodeExecutionRequestedEvent.now(
                 wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
             )
         )
@@ -47,9 +47,9 @@ class TestGraphNodeExecutionWorkerHappyPath:
         )
 
         types = [type(e) for e in uow.committed_events]
-        assert GraphNodeExecutionCompleted in types
+        assert GraphNodeExecutionCompletedEvent in types
         # These are emitted by Cycle B (GraphNodeExecutionResultHandler):
-        assert GraphNodeExecutionFailed not in types
+        assert GraphNodeExecutionFailedEvent not in types
 
     async def test_last_node_success_records_result_and_does_not_finish(self) -> None:
         uow = InMemoryUnitOfWork()
@@ -62,7 +62,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
         worker = _make_worker(uow, runner)
 
         await worker.handle(
-            GraphNodeExecutionRequested.now(
+            GraphNodeExecutionRequestedEvent.now(
                 wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
             )
         )
@@ -74,4 +74,4 @@ class TestGraphNodeExecutionWorkerHappyPath:
         assert stored.cursor.current_graph_node_execution_id is not None
 
         types = [type(e) for e in uow.committed_events]
-        assert GraphNodeExecutionCompleted in types
+        assert GraphNodeExecutionCompletedEvent in types

@@ -18,6 +18,9 @@ from shell.domain.services.graph_node_execution_policy.node_execution_policy imp
 from shell.domain.services.graph_node_execution_policy.policy_action import (
     PolicyAction,
 )
+from shell.domain.services.graph_node_execution_policy.route_to_error_handler_decision import (
+    RouteToErrorHandlerDecision,
+)
 
 __all__ = [
     "AbortDecision",
@@ -26,4 +29,5 @@ __all__ = [
     "NodeExecutionPolicy",
     "PolicyAction",
     "PolicyDecision",
+    "RouteToErrorHandlerDecision",
 ]

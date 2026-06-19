@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
+from shell.domain.events.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.messaging.memory_outbox_store import InMemoryOutboxStore
@@ -14,16 +14,16 @@ from shell.infrastructure.messaging.memory_outbox_store import InMemoryOutboxSto
 # ---------------------------------------------------------------------------
 
 
-def _task_imported() -> TaskExecutionCreated:
-    return TaskExecutionCreated.now(
+def _task_imported() -> TaskExecutionCreatedEvent:
+    return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         task_execution_name=TaskExecutionName("task-name-t1"),
         now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
-def _workflow_started() -> WorkflowStarted:
-    return WorkflowStarted.now(
+def _workflow_started() -> WorkflowStartedEvent:
+    return WorkflowStartedEvent.now(
         workflow_id=WorkflowId.generate(),
         task_execution_id=TaskExecutionId("task-id-t1"),
         now=datetime(2026, 1, 1, tzinfo=UTC),
@@ -56,7 +56,7 @@ class TestInMemoryOutboxStore:
     async def test_records_have_event_type(self) -> None:
         store = InMemoryOutboxStore()
         await store.publish([_task_imported()])
-        assert store.records[0].event_type == "TaskExecutionCreated"
+        assert store.records[0].event_type == "TaskExecutionCreatedEvent"
 
     async def test_empty_publish_no_records(self) -> None:
         store = InMemoryOutboxStore()

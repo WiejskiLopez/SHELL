@@ -1,25 +1,26 @@
 """GraphNodeExecutionResultHandler — decides next step after a node result.
 
-This handler subscribes to :class:`GraphNodeExecutionCompleted` and
-:class:`GraphNodeExecutionFailed` on the in-process EventBus.  Each
+This handler subscribes to :class:`GraphNodeExecutionCompletedEvent` and
+:class:`GraphNodeExecutionFailedEvent` on the in-process EventBus.  Each
 invocation processes **exactly one** result and decides the next
 workflow transition:
 
 * advance to the next node (via :class:`NodeNavigator`)
+* fan out to parallel nodes
+* evaluate conditional branches
+* route to error handler on failure
 * finish the workflow (terminal: ``done``)
-* abort the workflow (terminal: ``failed``) — possibly after consulting
-  a configurable :class:`NodeExecutionPolicy` and invoking a
-  :class:`CompensationHandler`.
+* abort the workflow (terminal: ``failed``)
 
 This is **Cycle B** of the node-execution saga:
 
     Cycle A (GraphNodeExecutionWorker)
-        ``GraphNodeExecutionRequested`` → run node → record result →
-        ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` → return
+        ``GraphNodeExecutionRequestedEvent`` → run node → record result →
+        ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` → return
 
     Cycle B (this handler)
-        ``GraphNodeExecutionCompleted`` / ``GraphNodeExecutionFailed`` →
-        decide next → ``GraphNodeExecutionRequested`` / terminal event → return
+        ``GraphNodeExecutionCompletedEvent`` / ``GraphNodeExecutionFailedEvent`` →
+        decide next → ``GraphNodeExecutionRequestedEvent`` / terminal event → return
 """
 
 from __future__ import annotations
@@ -27,25 +28,33 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 
 from shell.domain.events.events import (
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
+    GraphNodeParallelExecutionRequestedEvent,
 )
 from shell.domain.services.compensation_handler import (
     CompensationHandler,
     NoOpCompensationHandler,
 )
+from shell.domain.services.condition_evaluator import ConditionEvaluator
 from shell.domain.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
     NodeNavigator,
+)
+from shell.domain.services.graph_node_execution_navigator.transition_based_navigator import (
+    TransitionBasedNavigator,
 )
 from shell.domain.services.graph_node_execution_policy import (
     AbortDecision,
     ContinueDecision,
     FailFastPolicy,
     NodeExecutionPolicy,
+    RouteToErrorHandlerDecision,
 )
+from shell.domain.services.simple_condition_evaluator import SimpleConditionEvaluator
 from shell.domain.value_objects.status import Status
+from shell.domain.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -58,21 +67,14 @@ if TYPE_CHECKING:
     from shell.domain.aggregates.workflow import Workflow
     from shell.domain.value_objects.ids import GraphNodeExecutionId
 
-GraphNodeExecutionResultEvent = Union[GraphNodeExecutionCompleted, GraphNodeExecutionFailed]
+GraphNodeExecutionResultEvent = Union[GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent]
 
 
 class GraphNodeExecutionResultHandler:
     """Cycle B: decides next step after receiving a node execution result.
 
-    On ``GraphNodeExecutionCompleted``:
-        Uses ``NodeNavigator.next_after()`` to find the next node.
-        If found → ``advance_to()`` + emit ``GraphNodeExecutionRequested``.
-        If not found → ``finish()`` (terminal: ``done``).
-
-    On ``GraphNodeExecutionFailed``:
-        Consults ``NodeExecutionPolicy.decide_after_failure()``.
-        If ``ContinueDecision`` → advance (same as success path).
-        If ``AbortDecision`` → ``abort()`` (terminal: ``failed``).
+    Supports SEQUENCE, PARALLEL, CONDITIONAL, LOOP, ERROR_HANDLER, and
+    DEFAULT transition types through the ``NodeNavigator``.
     """
 
     def __init__(
@@ -84,6 +86,7 @@ class GraphNodeExecutionResultHandler:
         navigator: NodeNavigator | None = None,
         policy: NodeExecutionPolicy | None = None,
         compensation: CompensationHandler | None = None,
+        condition_evaluator: ConditionEvaluator | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
@@ -92,6 +95,7 @@ class GraphNodeExecutionResultHandler:
         self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
         self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
         self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
+        self._condition_evaluator: ConditionEvaluator = condition_evaluator or SimpleConditionEvaluator()
 
     async def handle(self, event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
@@ -112,7 +116,19 @@ class GraphNodeExecutionResultHandler:
                 )
                 return
 
-            graph_execution = await self._load_graph_execution(uow, workflow)
+            task_execution = await uow.task_executions.get_current_by_id(
+                workflow.task_execution_id
+            )
+            if task_execution is None:
+                self._logger.error(
+                    "graph_node_execution_result_handler.task_missing",
+                    workflow_id=workflow.id.value,
+                )
+                return
+
+            graph_execution = await uow.graph_executions.get_by_task_execution_id(
+                task_execution.id
+            )
             if graph_execution is None:
                 self._logger.error(
                     "graph_node_execution_result_handler.graph_missing",
@@ -122,14 +138,14 @@ class GraphNodeExecutionResultHandler:
 
             now = self._clock.now()
 
-            if isinstance(event, GraphNodeExecutionCompleted):
-                self._advance_or_finish(
+            if isinstance(event, GraphNodeExecutionCompletedEvent):
+                self._handle_completed(
                     workflow=workflow,
                     graph_execution=graph_execution,
                     graph_node_execution_id=event.graph_node_execution_id,
                     now=now,
                 )
-            else:  # GraphNodeExecutionFailed
+            else:
                 self._handle_failure(
                     workflow=workflow,
                     graph_execution=graph_execution,
@@ -143,15 +159,149 @@ class GraphNodeExecutionResultHandler:
 
     # ── Private helpers ───────────────────────────────────────────────────
 
-    async def _load_graph_execution(
+    def _handle_completed(
         self,
-        uow: UnitOfWork,
+        *,
         workflow: Workflow,
-    ) -> GraphExecution | None:
-        task_execution = await uow.task_executions.get_current_by_id(workflow.task_execution_id)
-        if task_execution is None:
-            return None
-        return await uow.graph_executions.get_by_task_execution_id(task_execution.id)
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+        now: datetime,
+    ) -> None:
+        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+        if not outgoing:
+            self._advance_or_finish(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+            )
+            return
+
+        transition_types = {t.transition_type for t in outgoing}
+
+        if TransitionType.PARALLEL in transition_types:
+            self._handle_parallel(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+                outgoing=list(outgoing),
+            )
+            return
+
+        if TransitionType.LOOP in transition_types:
+            self._handle_loop(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+                outgoing=list(outgoing),
+            )
+            return
+
+        self._advance_or_finish(
+            workflow=workflow,
+            graph_execution=graph_execution,
+            graph_node_execution_id=graph_node_execution_id,
+            now=now,
+        )
+
+    def _handle_parallel(
+        self,
+        *,
+        workflow: Workflow,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+        now: datetime,
+        outgoing: list,
+    ) -> None:
+        parallel_nodes: list = []
+        for t in outgoing:
+            if t.transition_type == TransitionType.PARALLEL:
+                for node in graph_execution.graph_node_executions:
+                    if node.id == t.target_node_execution_id:
+                        parallel_nodes.append(node)
+                        break
+
+        if not parallel_nodes:
+            self._advance_or_finish(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+            )
+            return
+
+        parallel_group_id = f"pg_{graph_node_execution_id.value}_{now.timestamp()}"
+        target_ids = [n.id for n in parallel_nodes]
+        graph_execution.create_parallel_group(
+            group_id=parallel_group_id,
+            fork_node_execution_id=graph_node_execution_id,
+            target_node_ids=target_ids,
+        )
+
+        workflow.append_event(
+            GraphNodeParallelExecutionRequestedEvent.now(
+                workflow_id=workflow.id,
+                fork_node_execution_id=graph_node_execution_id,
+                parallel_target_node_ids=tuple(target_ids),
+                parallel_group_id=parallel_group_id,
+                now=now,
+            )
+        )
+
+    def _handle_loop(
+        self,
+        *,
+        workflow: Workflow,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+        now: datetime,
+        outgoing: list,
+    ) -> None:
+        loop_transition = None
+        non_loop: list = []
+
+        for t in outgoing:
+            if t.transition_type == TransitionType.LOOP:
+                loop_transition = t
+            else:
+                non_loop.append(t)
+
+        if loop_transition is None:
+            self._advance_or_finish(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+            )
+            return
+
+        counter = graph_execution.get_or_create_loop_counter(
+            transition_id=loop_transition.id.value,
+            max_loop_count=loop_transition.max_loop_count or 0,
+        )
+        counter.increment()
+
+        if not counter.is_exhausted:
+            target_node = None
+            for node in graph_execution.graph_node_executions:
+                if node.id == loop_transition.target_node_execution_id:
+                    target_node = node
+                    break
+
+            if target_node is not None:
+                workflow.advance_and_request(
+                    next_graph_node_execution_id=target_node.id, now=now
+                )
+                return
+
+        self._advance_or_finish(
+            workflow=workflow,
+            graph_execution=graph_execution,
+            graph_node_execution_id=graph_node_execution_id,
+            now=now,
+        )
 
     def _advance_or_finish(
         self,
@@ -161,15 +311,15 @@ class GraphNodeExecutionResultHandler:
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
     ) -> None:
-        next_graph_node_executions = list(
+        next_nodes = list(
             self._navigator.next_after(graph_execution, graph_node_execution_id)
         )
-        if not next_graph_node_executions:
+        if not next_nodes:
             workflow.finish(now)
             return
-        next_graph_node_execution = next_graph_node_executions[0]
+        next_node = next_nodes[0]
         workflow.advance_and_request(
-            next_graph_node_execution_id=next_graph_node_execution.id, now=now
+            next_graph_node_execution_id=next_node.id, now=now
         )
 
     def _handle_failure(
@@ -181,6 +331,16 @@ class GraphNodeExecutionResultHandler:
         reason: str,
         now: datetime,
     ) -> None:
+        error_handler_node = self._find_error_handler(
+            graph_execution, graph_node_execution_id
+        )
+
+        if error_handler_node is not None:
+            workflow.advance_and_request(
+                next_graph_node_execution_id=error_handler_node.id, now=now
+            )
+            return
+
         decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)
         if isinstance(decision, ContinueDecision):
             self._advance_or_finish(
@@ -193,3 +353,16 @@ class GraphNodeExecutionResultHandler:
 
         abort_reason = decision.reason if isinstance(decision, AbortDecision) else reason
         workflow.abort(reason=abort_reason, now=now, compensation=self._compensation)
+
+    @staticmethod
+    def _find_error_handler(
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+    ) -> GraphNodeExecution | None:
+        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+        for t in outgoing:
+            if t.transition_type == TransitionType.ERROR_HANDLER:
+                for node in graph_execution.graph_node_executions:
+                    if node.id == t.target_node_execution_id:
+                        return node
+        return None

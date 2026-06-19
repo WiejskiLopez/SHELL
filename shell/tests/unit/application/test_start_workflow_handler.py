@@ -11,7 +11,7 @@ from shell.application.command_handlers.start_workflow_handler import StartWorkf
 from shell.application.commands.commands import ImportTaskExecutionCommand, StartWorkflowCommand
 from shell.application.queries.queries import GetWorkflowQuery
 from shell.application.query_handlers.query_handlers import GetWorkflowHandler
-from shell.domain.events.events import WorkflowStarted
+from shell.domain.events.events import WorkflowStartedEvent
 from shell.domain.exceptions import TaskExecutionNotFound
 from shell.infrastructure.persistence.memory import (
     FakeClock,
@@ -81,7 +81,7 @@ class TestStartWorkflowHandler:
         wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
         assert wf_id
-        assert any(isinstance(e, WorkflowStarted) for e in uow.committed_events)
+        assert any(isinstance(e, WorkflowStartedEvent) for e in uow.committed_events)
 
     async def test_task_not_found_raises(
         self,

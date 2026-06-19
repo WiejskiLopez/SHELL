@@ -7,14 +7,14 @@ from shell.domain.aggregates.workflow.graph_node_execution_state import (
 )
 from shell.domain.entities.base import AggregateRoot
 from shell.domain.events.events import (
-    GraphNodeExecutionAdvanced,
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
-    GraphNodeExecutionStarted,
-    WorkflowCompleted,
-    WorkflowFailed,
-    WorkflowStarted,
+    GraphNodeExecutionAdvancedEvent,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
+    GraphNodeExecutionStartedEvent,
+    WorkflowCompletedEvent,
+    WorkflowFailedEvent,
+    WorkflowStartedEvent,
 )
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.status import Status
@@ -164,9 +164,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.update_graph_node_execution_state(
             first_graph_node_execution_id, Status.running(), now=now
         )
-        self.append_event(WorkflowStarted.now(self.id, self.task_execution_id, now=now))
+        self.append_event(WorkflowStartedEvent.now(self.id, self.task_execution_id, now=now))
         self.append_event(
-            GraphNodeExecutionStarted.now(self.id, first_graph_node_execution_id, now=now)
+            GraphNodeExecutionStartedEvent.now(self.id, first_graph_node_execution_id, now=now)
         )
 
     def advance_to(
@@ -184,7 +184,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             next_graph_node_execution_id, Status.running(), now=now
         )
         self.append_event(
-            GraphNodeExecutionAdvanced.now(
+            GraphNodeExecutionAdvancedEvent.now(
                 workflow_id=self.id,
                 from_graph_node_execution_id=previous,
                 to_graph_node_execution_id=next_graph_node_execution_id,
@@ -192,7 +192,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         )
         self.append_event(
-            GraphNodeExecutionStarted.now(self.id, next_graph_node_execution_id, now=now)
+            GraphNodeExecutionStartedEvent.now(self.id, next_graph_node_execution_id, now=now)
         )
 
     def advance_and_request(
@@ -200,7 +200,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     ) -> None:
         self.advance_to(next_graph_node_execution_id=next_graph_node_execution_id, now=now)
         self.append_event(
-            GraphNodeExecutionRequested.now(self.id, next_graph_node_execution_id, now=now)
+            GraphNodeExecutionRequestedEvent.now(self.id, next_graph_node_execution_id, now=now)
         )
 
     def finish(self, now: datetime) -> None:
@@ -210,7 +210,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = Status.done()
         self._cursor = self._cursor.cleared()
-        self.append_event(WorkflowCompleted.now(self.id, self.task_execution_id, now=now))
+        self.append_event(WorkflowCompletedEvent.now(self.id, self.task_execution_id, now=now))
 
     def abort(
         self,
@@ -225,7 +225,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = Status.failed()
         self._cursor = self._cursor.cleared()
-        self.append_event(WorkflowFailed.now(self.id, self.task_execution_id, now=now))
+        self.append_event(WorkflowFailedEvent.now(self.id, self.task_execution_id, now=now))
         if compensation is not None:
             compensation.compensate(self, reason)
 
@@ -278,13 +278,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.update_graph_node_execution_state(graph_node_execution_id, status, now=now)
         if status == Status.done():
             self.append_event(
-                GraphNodeExecutionCompleted.now(
+                GraphNodeExecutionCompletedEvent.now(
                     graph_node_execution_id, self.id, result_id, now=now
                 )
             )
         else:
             self.append_event(
-                GraphNodeExecutionFailed.now(
+                GraphNodeExecutionFailedEvent.now(
                     graph_node_execution_id, self.id, reason or stderr, now=now
                 )
             )

@@ -5,17 +5,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.domain.events.events import (
-    EnvelopeExpired,
-    EnvelopeRouted,
-    GraphNodeExecutionAdvanced,
-    GraphNodeExecutionCompleted,
-    GraphNodeExecutionFailed,
-    GraphNodeExecutionRequested,
-    GraphNodeExecutionStarted,
-    TaskExecutionCreated,
-    WorkflowCompleted,
-    WorkflowFailed,
-    WorkflowStarted,
+    EnvelopeExpiredEvent,
+    EnvelopeRoutedEvent,
+    GraphNodeExecutionAdvancedEvent,
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionJoinReadyEvent,
+    GraphNodeExecutionRequestedEvent,
+    GraphNodeExecutionStartedEvent,
+    GraphNodeExecutionTimedOutEvent,
+    GraphNodeParallelExecutionRequestedEvent,
+    TaskExecutionCreatedEvent,
+    WorkflowCompletedEvent,
+    WorkflowFailedEvent,
+    WorkflowStartedEvent,
 )
 
 if TYPE_CHECKING:
@@ -33,24 +36,36 @@ def register_events(core_container: CoreContainer) -> None:
     events = app_ctx.events
 
     # Dzięki sprowadzeniu do Any, dynamiczne fabryki przechodzą bez problemu:
-    event_bus.subscribe(EnvelopeRouted, events.archive_on_delivered_handler_factory)
-    event_bus.subscribe(EnvelopeRouted, events.log_audit_handler_factory)
-    event_bus.subscribe(EnvelopeExpired, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionCompleted, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionFailed, events.log_audit_handler_factory)
-    event_bus.subscribe(TaskExecutionCreated, events.log_audit_handler_factory)
+    event_bus.subscribe(EnvelopeRoutedEvent, events.archive_on_delivered_handler_factory)
+    event_bus.subscribe(EnvelopeRoutedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(EnvelopeExpiredEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionCompletedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionFailedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(TaskExecutionCreatedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
-        TaskExecutionCreated, events.build_graph_execution_on_task_execution_created_factory
+        TaskExecutionCreatedEvent, events.build_graph_execution_on_task_execution_created_factory
     )
-    event_bus.subscribe(WorkflowStarted, events.log_audit_handler_factory)
-    event_bus.subscribe(WorkflowCompleted, events.log_audit_handler_factory)
-    event_bus.subscribe(WorkflowFailed, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionStarted, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionAdvanced, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionRequested, events.graph_node_execution_worker_factory)
+    event_bus.subscribe(WorkflowStartedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(WorkflowCompletedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionStartedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionAdvancedEvent, events.log_audit_handler_factory)
+    event_bus.subscribe(GraphNodeExecutionRequestedEvent, events.graph_node_execution_worker_factory)
     event_bus.subscribe(
-        GraphNodeExecutionCompleted, events.graph_node_execution_result_handler_factory
+        GraphNodeExecutionCompletedEvent, events.graph_node_execution_result_handler_factory
     )
     event_bus.subscribe(
-        GraphNodeExecutionFailed, events.graph_node_execution_result_handler_factory
+        GraphNodeExecutionFailedEvent, events.graph_node_execution_result_handler_factory
+    )
+    event_bus.subscribe(
+        GraphNodeParallelExecutionRequestedEvent,
+        events.graph_node_parallel_execution_handler_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionJoinReadyEvent,
+        events.graph_node_join_execution_handler_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionTimedOutEvent,
+        events.graph_node_timeout_handler_factory,
     )

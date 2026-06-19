@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.events.events import GraphNodeExecutionCompleted, GraphNodeExecutionFailed
+from shell.domain.events.events import GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent
 from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.value_objects.status import Status
 from shell.domain.value_objects.workflow_cursor import WorkflowCursor
@@ -23,7 +23,7 @@ class TestRecordGraphNodeExecutionResult:
         )
         assert wf.cursor == WorkflowCursor.at(GraphNodeExecutionId("n1"))
         events = wf.pull_events()
-        assert any(isinstance(e, GraphNodeExecutionCompleted) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionCompletedEvent) for e in events)
 
     def test_recording_failure_emits_node_failed(self) -> None:
         wf = _new_workflow()
@@ -40,4 +40,4 @@ class TestRecordGraphNodeExecutionResult:
             reason="boom",
         )
         events = wf.pull_events()
-        assert any(isinstance(e, GraphNodeExecutionFailed) for e in events)
+        assert any(isinstance(e, GraphNodeExecutionFailedEvent) for e in events)

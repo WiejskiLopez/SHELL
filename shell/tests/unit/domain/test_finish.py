@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.events.events import WorkflowCompleted
+from shell.domain.events.events import WorkflowCompletedEvent
 from shell.domain.exceptions import InvalidWorkflowTransition
 from shell.domain.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.value_objects.status import Status
@@ -27,7 +27,7 @@ class TestFinish:
         assert wf.status == Status.done()
         assert wf.cursor == WorkflowCursor.empty()
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowCompleted) for e in events)
+        assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
 
     def test_finish_from_idle_raises(self) -> None:
         wf = _new_workflow()

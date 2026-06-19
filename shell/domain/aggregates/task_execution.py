@@ -1,7 +1,7 @@
 """Task aggregate root.
 
 Task represents a versioned, named definition of work to be performed.
-After a Task is created (`task_execution.create`), it emits a ``TaskExecutionCreated`` event
+After a Task is created (`task_execution.create`), it emits a ``TaskExecutionCreatedEvent`` event
 that other aggregates (notably ``Graph``) react to. Task does NOT know
 which graph_execution realises it — that responsibility belongs to ``Graph``.
 """
@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.entities.base import AggregateRoot
-from shell.domain.events.events import TaskExecutionCreated
+from shell.domain.events.events import TaskExecutionCreatedEvent
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.value_objects.task_execution_name import TaskExecutionName
@@ -113,7 +113,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
         now: datetime,
         parent_task_execution_id: TaskExecutionId | None = None,
     ) -> TaskExecution:
-        """Factory for a brand-new Task (version 1, current). Emits TaskExecutionCreated."""
+        """Factory for a brand-new Task (version 1, current). Emits TaskExecutionCreatedEvent."""
         task_execution = cls(
             id=id_,
             parent_task_execution_id=parent_task_execution_id,
@@ -125,7 +125,7 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
             created_at=now,
         )
         task_execution.append_event(
-            TaskExecutionCreated.now(task_execution_id=id_, task_execution_name=name, now=now)
+            TaskExecutionCreatedEvent.now(task_execution_id=id_, task_execution_name=name, now=now)
         )
         return task_execution
 

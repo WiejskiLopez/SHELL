@@ -12,7 +12,8 @@ from .graph_execution_state import GraphExecutionStateModel
 from .graph_node_definition import GraphNodeDefinitionModel
 from .graph_node_execution import GraphNodeExecutionModel
 from .graph_node_execution_input_payload import GraphNodeExecutionInputPayloadModel
-from .graph_node_transition import GraphNodeTransitionModel
+from .graph_node_transition_execution import GraphNodeTransitionExecutionModel
+from .graph_node_transition_definition import GraphNodeTransitionDefinitionModel
 from .graph_node_execution_output_payload import GraphNodeExecutionOutputPayloadModel
 from .graph_node_execution_result import GraphNodeExecutionResultModel
 from .graph_node_execution_state import GraphNodeExecutionStateModel
@@ -43,7 +44,8 @@ __all__ = [
     "GraphNodeExecutionOutputPayloadModel",
     "GraphNodeExecutionResultModel",
     "GraphNodeExecutionStateModel",
-    "GraphNodeTransitionModel",
+    "GraphNodeTransitionDefinitionModel",
+    "GraphNodeTransitionExecutionModel",
     "InboxEventModel",
     "MessageModel",
     "OutboxEventModel",

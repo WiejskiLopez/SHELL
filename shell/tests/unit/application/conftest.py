@@ -13,7 +13,7 @@ from shell.domain.aggregates.graph_execution import GraphExecution
 from shell.domain.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.aggregates.task_execution import TaskExecution
 from shell.domain.aggregates.workflow import Workflow
-from shell.domain.events.events import TaskExecutionCreated, WorkflowStarted
+from shell.domain.events.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.value_objects.hash import Hash
 from shell.domain.value_objects.ids import (
     GraphDefinitionId,
@@ -41,16 +41,16 @@ from shell.infrastructure.persistence.memory import (
 )
 
 
-def _task_imported() -> TaskExecutionCreated:
-    return TaskExecutionCreated.now(
+def _task_imported() -> TaskExecutionCreatedEvent:
+    return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         task_execution_name=TaskExecutionName("t1"),
         now=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
 
-def _workflow_started() -> WorkflowStarted:
-    return WorkflowStarted.now(
+def _workflow_started() -> WorkflowStartedEvent:
+    return WorkflowStartedEvent.now(
         workflow_id=WorkflowId.generate(),
         task_execution_id=TaskExecutionId.generate(),
         now=datetime(2026, 1, 1, tzinfo=UTC),

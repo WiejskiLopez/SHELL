@@ -7,10 +7,11 @@ from shell.domain.value_objects.ids import GraphDefinitionId, GraphNodeDefinitio
 
 if TYPE_CHECKING:
     from shell.domain.entities.graph_node_definition import GraphNodeDefinition
+    from shell.domain.entities.graph_node_transition_definition import GraphNodeTransitionDefinition
 
 
 class GraphDefinition(Entity[GraphDefinitionId]):
-    __slots__ = ("name", "purpose", "graph_node_definitions")
+    __slots__ = ("name", "purpose", "graph_node_definitions", "_transition_definitions")
 
     def __init__(
         self,
@@ -18,11 +19,17 @@ class GraphDefinition(Entity[GraphDefinitionId]):
         name: str,
         purpose: str,
         graph_node_definitions: list[GraphNodeDefinition] | None = None,
+        transition_definitions: list[GraphNodeTransitionDefinition] | None = None,
     ) -> None:
         super().__init__(id)
         self.name = name
         self.purpose = purpose
         self.graph_node_definitions = graph_node_definitions or []
+        self._transition_definitions = list(transition_definitions) if transition_definitions else []
+
+    @property
+    def transition_definitions(self) -> tuple[GraphNodeTransitionDefinition, ...]:
+        return tuple(self._transition_definitions)
 
     def add_graph_node_definition(self, node: GraphNodeDefinition) -> None:
         self.graph_node_definitions.append(node)
@@ -50,3 +57,6 @@ class GraphDefinition(Entity[GraphDefinitionId]):
             ),
             None,
         )
+
+    def add_transition_definition(self, transition: GraphNodeTransitionDefinition) -> None:
+        self._transition_definitions.append(transition)

@@ -3,7 +3,7 @@
 Loads the task's Graph, transitions the Workflow to ``running`` via
 ``Workflow.start_at`` (anchoring the cursor on the first graph node execution), and
 persists. Unlike :class:`RunTaskerWorkflowHandler` this handler does **not**
-emit ``GraphNodeExecutionRequested`` — it is the "prepare without auto-kickoff"
+emit ``GraphNodeExecutionRequestedEvent`` — it is the "prepare without auto-kickoff"
 entrypoint used by the API and integration tests.
 """
 
