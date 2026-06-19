@@ -9,10 +9,10 @@ import pytest
 from shell.domain.execution.entities.envelope import Envelope
 from shell.domain.execution.exceptions import InvalidEnvelopeTransition
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
-from shell.domain.platform.value_objects.ids import (
+from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphNodeExecutionId,
-    WorkflowId,
+    WorkflowId
 )
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)

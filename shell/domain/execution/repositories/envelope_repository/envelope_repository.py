@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.entities.envelope import Envelope
-    from shell.domain.platform.value_objects.ids import EnvelopeId, WorkflowId
+    from shell.domain.execution.value_objects.ids import EnvelopeId, WorkflowId
 
 
 class EnvelopeRepository(Protocol):

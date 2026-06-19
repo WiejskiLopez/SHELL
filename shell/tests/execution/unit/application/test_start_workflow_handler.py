@@ -39,10 +39,12 @@ class TestStartWorkflowHandler:
     @staticmethod
     async def _attach_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
         from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
-        from shell.domain.platform.value_objects.ids import (
-            GraphDefinitionId,
+        from shell.domain.definition.value_objects.ids import (
+            GraphDefinitionId
+        )
+        from shell.domain.execution.value_objects.ids import (
             GraphExecutionId,
-            GraphNodeExecutionId,
+            GraphNodeExecutionId
         )
         from shell.domain.platform.value_objects.mode import Mode
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName

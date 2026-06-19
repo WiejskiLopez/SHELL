@@ -33,29 +33,33 @@ from shell.domain.execution.aggregates.workflow import GraphNodeExecutionState, 
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.ids import (
-    CorrelationId,
+    CorrelationId
+)
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId,
+    GraphNodeDefinitionId,
+    GraphNodeTransitionDefinitionId,
+    PromptId,
+    RagChunkId,
+    RagDocumentId,
+    RunnerConfigId
+)
+from shell.domain.execution.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
-    GraphDefinitionId,
     GraphExecutionId,
-    GraphNodeDefinitionId,
     GraphNodeExecutionId,
     GraphNodeExecutionInputPayloadId,
-    GraphNodeTransitionDefinitionId,
     GraphNodeTransitionExecutionId,
     GraphNodeExecutionOutputPayloadId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
     MessageId,
-    PromptId,
-    RagChunkId,
-    RagDocumentId,
-    RunnerConfigId,
     SessionId,
     TaskExecutionId,
     TaskExecutionInputPayloadId,
     TaskExecutionOutputPayloadId,
-    WorkflowId,
+    WorkflowId
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
@@ -894,4 +898,36 @@ def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
         chunk_text=rag_chunk.chunk_text,
         embedding=rag_chunk.embedding,
         embedding_model=rag_chunk.embedding_model,
+    )
+
+
+# ── GraphExecutionState ──────────────────────────────────────────────────────
+
+
+def graph_execution_state_model_to_entity(model):
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_state import (
+        GraphExecutionState,
+    )
+    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateId
+
+    return GraphExecutionState(
+        id=GraphExecutionStateId(model.id),
+        graph_execution_id=GraphExecutionId(model.graph_execution_id),
+        state_data=dict(model.payload) if model.payload else {},
+        is_current=model.is_current,
+        created_at=model.created_at,
+    )
+
+
+def graph_execution_state_entity_to_model(entity):
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state import (
+        GraphExecutionStateModel,
+    )
+
+    return GraphExecutionStateModel(
+        id=entity.id.value,
+        graph_execution_id=entity.graph_execution_id.value,
+        payload=entity.state_data,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
     )

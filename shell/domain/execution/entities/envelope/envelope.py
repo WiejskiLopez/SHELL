@@ -6,15 +6,15 @@ from shell.domain.execution.exceptions import InvalidEnvelopeTransition
 from shell.domain.execution.entities.envelope.envelope_event import EnvelopeEvent
 from shell.domain.platform.base.entity import Entity
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
-from shell.domain.platform.value_objects.ids import EnvelopeId
+from shell.domain.execution.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import (
-        GraphNodeExecutionId,
-        WorkflowId,
-    )
+    from shell.domain.execution.value_objects.ids import (
+    GraphNodeExecutionId,
+    WorkflowId
+)
 
 _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
     EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
@@ -136,7 +136,7 @@ class Envelope(Entity[EnvelopeId]):
             )
         self.status = new_status
         self.updated_at = now
-        from shell.domain.platform.value_objects.ids import EnvelopeEventId
+        from shell.domain.execution.value_objects.ids import EnvelopeEventId
 
         self._envelope_events.append(
             EnvelopeEvent(

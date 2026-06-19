@@ -19,7 +19,7 @@ from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.version import Version
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 
 class TaskExecution(AggregateRoot["TaskExecutionId"]):

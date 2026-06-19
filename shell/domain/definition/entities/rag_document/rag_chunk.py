@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.ids import RagChunkId, RagDocumentId
+    from shell.domain.definition.value_objects.ids import RagChunkId, RagDocumentId
 
 
 @dataclass(slots=True)

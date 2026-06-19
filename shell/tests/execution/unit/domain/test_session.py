@@ -8,9 +8,11 @@ import pytest
 
 from shell.domain.execution.entities.session import Session
 from shell.domain.platform.value_objects.ids import (
-    CorrelationId,
+    CorrelationId
+)
+from shell.domain.execution.value_objects.ids import (
     MessageId,
-    SessionId,
+    SessionId
 )
 
 _NOW = datetime(2025, 1, 1, tzinfo=UTC)

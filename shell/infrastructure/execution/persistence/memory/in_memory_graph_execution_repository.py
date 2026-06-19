@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.platform.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.platform.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 
 class InMemoryGraphExecutionRepository(GraphExecutionRepository):

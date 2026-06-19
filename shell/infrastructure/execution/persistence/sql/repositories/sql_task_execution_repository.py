@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
-from shell.domain.platform.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 from shell.infrastructure.platform.persistence.sql.mappers import (

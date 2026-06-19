@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.platform.services.simple_condition_evaluator import SimpleConditionEvaluator
-from shell.domain.platform.value_objects.ids import (
-    GraphDefinitionId,
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    TaskExecutionId,
+    TaskExecutionId
 )
 
 

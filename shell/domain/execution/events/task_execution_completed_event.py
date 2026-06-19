@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 
 @dataclass(frozen=True, slots=True)

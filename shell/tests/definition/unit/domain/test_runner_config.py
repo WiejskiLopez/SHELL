@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import RunnerConfigId
+from shell.domain.definition.value_objects.ids import RunnerConfigId
 
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 

@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import CorrelationId, MessageId, SessionId
+    from shell.domain.platform.value_objects.ids import CorrelationId
+from shell.domain.execution.value_objects.ids import MessageId, SessionId
 
 
 @dataclass(slots=True)

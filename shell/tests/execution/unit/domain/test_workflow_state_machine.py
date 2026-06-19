@@ -13,10 +13,10 @@ from shell.domain.execution.events import (
     WorkflowStartedEvent,
 )
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
-from shell.domain.platform.value_objects.ids import (
+from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
     TaskExecutionId,
-    WorkflowId,
+    WorkflowId
 )
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor

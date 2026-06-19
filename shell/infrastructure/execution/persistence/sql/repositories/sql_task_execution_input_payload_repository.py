@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.execution.repositories.task_execution_input_payload_repository import TaskExecutionInputPayloadRepository
-from shell.domain.platform.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_input_payload_entity_to_model,

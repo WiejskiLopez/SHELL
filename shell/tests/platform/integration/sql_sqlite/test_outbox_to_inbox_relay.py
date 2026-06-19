@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
-from shell.domain.platform.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.infrastructure.platform.messaging.sql_outbox_publisher import SqlOutboxPublisher

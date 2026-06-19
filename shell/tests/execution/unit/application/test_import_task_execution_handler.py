@@ -68,7 +68,7 @@ class TestImportTaskExecutionHandler:
 
         old = await uow.task_executions.get_by_id(
             __import__(
-                "shell.domain.platform.value_objects.ids", fromlist=["TaskExecutionId"]
+                "shell.domain.execution.value_objects.ids", fromlist=["TaskExecutionId"]
             ).TaskExecutionId(first_id)
         )
         assert old is not None

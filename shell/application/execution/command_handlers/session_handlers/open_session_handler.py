@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.entities.session import Session
-from shell.domain.platform.value_objects.ids import SessionId
+from shell.domain.execution.value_objects.ids import SessionId
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import OpenSessionCommand

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.exceptions import EnvelopeNotFound
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage
-from shell.domain.platform.value_objects.ids import EnvelopeId
+from shell.domain.execution.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import ArchiveEnvelopeCommand

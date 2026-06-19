@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
-    from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class GraphNodeExecutionWorker:

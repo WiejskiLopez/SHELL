@@ -11,7 +11,7 @@ from shell.domain.definition.entities.rag_document import RagDocument
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import RagChunkId, RagDocumentId
+    from shell.domain.definition.value_objects.ids import RagChunkId, RagDocumentId
 
 
 class Embedder(Protocol):

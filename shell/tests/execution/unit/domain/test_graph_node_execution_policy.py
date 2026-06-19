@@ -16,7 +16,7 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     ContinueDecision,
     FailFastPolicy,
 )
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId, TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, TaskExecutionId, WorkflowId
 
 
 def _workflow() -> Workflow:

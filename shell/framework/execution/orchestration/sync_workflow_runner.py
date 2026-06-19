@@ -77,7 +77,7 @@ class SyncWorkflowRunner:
         work_dir: str,
     ) -> SyncWorkflowResult:
         from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
-        from shell.domain.platform.value_objects.ids import WorkflowId
+        from shell.domain.execution.value_objects.ids import WorkflowId
         from shell.domain.platform.value_objects.status import Status
 
         start_time = time.monotonic()

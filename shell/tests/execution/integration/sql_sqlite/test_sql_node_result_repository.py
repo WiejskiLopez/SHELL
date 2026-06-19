@@ -16,7 +16,7 @@ from shell.application.platform.queries.queries import (
 from shell.application.platform.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
-from shell.domain.platform.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -39,7 +39,7 @@ class TestSqlNodeResultRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         from shell.domain.execution.aggregates.workflow import Workflow
-        from shell.domain.platform.value_objects.ids import WorkflowId
+        from shell.domain.execution.value_objects.ids import WorkflowId
 
         async with sql_uow as u:
             await u.workflows.save(

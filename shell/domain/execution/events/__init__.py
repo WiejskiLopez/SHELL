@@ -7,6 +7,9 @@ from shell.domain.execution.events.envelope_deadlettered_event import EnvelopeDe
 from shell.domain.execution.events.envelope_expired_event import EnvelopeExpiredEvent
 from shell.domain.execution.events.envelope_routed_event import EnvelopeRoutedEvent
 from shell.domain.execution.events.graph_execution_built_event import GraphExecutionBuiltEvent
+from shell.domain.execution.events.graph_execution_state_changed_event import (
+    GraphExecutionStateChangedEvent,
+)
 from shell.domain.execution.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
 )
@@ -51,6 +54,7 @@ __all__ = [
     "EnvelopeExpiredEvent",
     "EnvelopeRoutedEvent",
     "GraphExecutionBuiltEvent",
+    "GraphExecutionStateChangedEvent",
     "GraphNodeExecutionAdvancedEvent",
     "GraphNodeExecutionCompletedEvent",
     "GraphNodeExecutionConditionEvaluatedEvent",

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_input_payload import (
         TaskExecutionInputPayload,
     )
-    from shell.domain.platform.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 
 class TaskExecutionInputPayloadRepository(Protocol):

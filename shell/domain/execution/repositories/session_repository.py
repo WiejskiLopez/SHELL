@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.entities.session import Message, Session
-    from shell.domain.platform.value_objects.ids import SessionId
+    from shell.domain.execution.value_objects.ids import SessionId
 
 
 class SessionRepository(Protocol):

@@ -12,7 +12,7 @@ from shell.application.execution.command_handlers.import_task_execution_handler 
 )
 from shell.application.platform.commands.commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import WorkflowStartedEvent
-from shell.domain.platform.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,

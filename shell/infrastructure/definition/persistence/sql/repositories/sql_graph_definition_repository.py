@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import GraphDefinitionRepository
-from shell.domain.platform.value_objects.ids import GraphDefinitionId
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_definition_entity_to_model,

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class SimpleConditionEvaluator:

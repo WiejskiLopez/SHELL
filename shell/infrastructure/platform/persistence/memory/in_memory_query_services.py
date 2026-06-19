@@ -12,7 +12,7 @@ from shell.application.platform.dto import (
     TaskExecutionDto,
     WorkflowDto,
 )
-from shell.domain.platform.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import WorkflowId
 from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import InMemoryUnitOfWork
 
 
@@ -115,7 +115,7 @@ class InMemoryQueryServices:
         wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
         if wf is None:
             return None
-        from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+        from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
         res = wf.get_graph_node_execution_result(GraphNodeExecutionId(graph_node_execution_id))
         if res is None:

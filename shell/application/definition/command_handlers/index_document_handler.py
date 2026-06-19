@@ -9,7 +9,7 @@ from shell.domain.definition.services.rag_index_service import Embedder, build_r
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import IndexDocumentCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
-    from shell.domain.platform.value_objects.ids import RagDocumentId
+    from shell.domain.definition.value_objects.ids import RagDocumentId
 
 
 class IndexDocumentHandler:

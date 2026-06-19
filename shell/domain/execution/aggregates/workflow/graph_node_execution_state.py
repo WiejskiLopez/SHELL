@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.base.entity import Entity
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionStateId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionStateId
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class GraphNodeExecutionState(Entity[GraphNodeExecutionStateId]):

@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.envelope_repository.envelope_repository import EnvelopeRepository
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
-from shell.domain.platform.value_objects.ids import EnvelopeId, WorkflowId
+from shell.domain.execution.value_objects.ids import EnvelopeId, WorkflowId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     envelope_entity_to_model,

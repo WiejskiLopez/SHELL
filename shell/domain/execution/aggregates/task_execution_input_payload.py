@@ -7,10 +7,10 @@ from shell.domain.platform.base import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import (
-        TaskExecutionId,
-        TaskExecutionInputPayloadId,
-    )
+    from shell.domain.execution.value_objects.ids import (
+    TaskExecutionId,
+    TaskExecutionInputPayloadId
+)
 
 
 class TaskExecutionInputPayload(AggregateRoot["TaskExecutionInputPayloadId"]):

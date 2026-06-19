@@ -11,7 +11,7 @@ from shell.domain.execution.services.graph_node_execution_policy.node_execution_
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class FailFastPolicy:

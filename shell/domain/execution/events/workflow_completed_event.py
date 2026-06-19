@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 
 @dataclass(frozen=True, slots=True)

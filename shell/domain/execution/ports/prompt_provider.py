@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.prompt import Prompt
-    from shell.domain.platform.value_objects.ids import PromptId
+    from shell.domain.definition.value_objects.ids import PromptId
 
 
 class PromptProvider(Protocol):

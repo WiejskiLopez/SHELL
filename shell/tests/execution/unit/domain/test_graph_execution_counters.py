@@ -3,7 +3,7 @@ from __future__ import annotations
 from shell.domain.execution.aggregates.graph_execution.join_counter import JoinCounter
 from shell.domain.execution.aggregates.graph_execution.loop_counter import LoopCounter
 from shell.domain.execution.aggregates.graph_execution.parallel_group import ParallelGroup
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class TestJoinCounter:

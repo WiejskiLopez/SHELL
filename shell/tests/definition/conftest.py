@@ -101,14 +101,16 @@ from datetime import UTC, datetime
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import WorkflowId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
-from shell.domain.platform.value_objects.ids import (
-    GraphDefinitionId,
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    TaskExecutionId,
+    TaskExecutionId
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.workflow_execution_context import (
@@ -221,12 +223,14 @@ from shell.domain.execution.aggregates.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import (
-    GraphDefinitionId,
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     TaskExecutionId,
-    WorkflowId,
+    WorkflowId
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
@@ -511,7 +515,8 @@ from shell.domain.execution.entities.graph_node_execution import GraphNodeExecut
 from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import GraphDefinitionId, GraphExecutionId, GraphNodeExecutionId, TaskExecutionId
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId, TaskExecutionId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.version import Version
 from shell.infrastructure.platform.persistence.memory import FakeNodeProcessRunner, InMemoryQueryServices, InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeLogger

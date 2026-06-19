@@ -6,7 +6,7 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
-from shell.domain.platform.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import WorkflowId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,

@@ -7,7 +7,7 @@ from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.platform.value_objects.ids import RagDocumentId
+from shell.domain.definition.value_objects.ids import RagDocumentId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     rag_chunk_entity_to_model,

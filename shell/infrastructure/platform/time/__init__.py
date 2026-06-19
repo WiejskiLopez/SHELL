@@ -5,15 +5,17 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.ids import (
+from shell.domain.definition.value_objects.ids import (
+    PromptId,
+    RunnerConfigId
+)
+from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-    PromptId,
-    RunnerConfigId,
     TaskExecutionId,
-    WorkflowId,
+    WorkflowId
 )
 
 

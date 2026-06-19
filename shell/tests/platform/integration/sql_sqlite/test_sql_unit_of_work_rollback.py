@@ -24,7 +24,7 @@ class TestSqlUnitOfWorkRollback:
         try:
             async with sql_uow as u:
                 from shell.domain.definition.entities.prompt import Prompt
-                from shell.domain.platform.value_objects.ids import PromptId
+                from shell.domain.definition.value_objects.ids import PromptId
 
                 await u.prompts.save(
                     Prompt.new(

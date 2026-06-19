@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from shell.domain.definition.entities.prompt import Prompt
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import PromptId
+from shell.domain.definition.value_objects.ids import PromptId
 
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 

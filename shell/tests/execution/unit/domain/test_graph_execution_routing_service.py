@@ -8,11 +8,13 @@ from shell.domain.execution.exceptions import RoleNotResolvable
 from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExcetutionRoutingService,
 )
-from shell.domain.platform.value_objects.ids import (
-    GraphDefinitionId,
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    TaskExecutionId,
+    TaskExecutionId
 )
 from shell.domain.platform.value_objects.mode import Mode
 

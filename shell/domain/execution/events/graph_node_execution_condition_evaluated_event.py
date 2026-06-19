@@ -7,10 +7,10 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.ids import (
+from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
     GraphNodeTransitionExecutionId,
-    WorkflowId,
+    WorkflowId
 )
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.repositories.graph_definition_repository import GraphDefinitionRepository
-from shell.domain.platform.value_objects.ids import GraphDefinitionId
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_definition import GraphDefinition

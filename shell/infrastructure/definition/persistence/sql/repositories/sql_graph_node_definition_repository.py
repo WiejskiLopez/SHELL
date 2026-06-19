@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import GraphNodeDefinitionRepository
-from shell.domain.platform.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_node_definition_entity_to_model,

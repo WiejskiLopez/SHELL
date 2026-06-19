@@ -5,7 +5,7 @@ from __future__ import annotations
 from shell.domain.execution.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
 )
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 from shell.tests.conftest import _graph_execution, _graph_node_execution
 

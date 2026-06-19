@@ -14,6 +14,7 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlEnvelopeArchiveStub,
     SqlEnvelopeRepository,
     SqlGraphExecutionRepository,
+    SqlGraphExecutionStateRepository,
     SqlSessionRepository,
     SqlTaskExecutionRepository,
     SqlWorkflowRepository,
@@ -62,6 +63,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     @property
     def envelopes(self) -> SqlEnvelopeRepository:
         return SqlEnvelopeRepository(self._active_session)
+
+    @property
+    def graph_execution_states(self) -> SqlGraphExecutionStateRepository:
+        return SqlGraphExecutionStateRepository(self._active_session)
 
     @property
     def prompts(self) -> SqlPromptRepository:

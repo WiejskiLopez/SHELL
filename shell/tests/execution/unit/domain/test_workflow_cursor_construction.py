@@ -6,7 +6,7 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 
 

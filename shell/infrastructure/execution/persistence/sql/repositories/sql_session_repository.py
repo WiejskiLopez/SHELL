@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.session_repository import SessionRepository
-from shell.domain.platform.value_objects.ids import SessionId
+from shell.domain.execution.value_objects.ids import SessionId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     message_entity_to_model,

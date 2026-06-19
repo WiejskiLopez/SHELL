@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_definition import GraphDefinition
-    from shell.domain.platform.value_objects.ids import GraphDefinitionId
+    from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
 
 class GraphDefinitionRepository(Protocol):

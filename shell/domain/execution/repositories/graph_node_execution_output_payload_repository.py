@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution_output_payload import (
         GraphNodeExecutionOutputPayload,
     )
-    from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class GraphNodeExecutionOutputPayloadRepository(Protocol):

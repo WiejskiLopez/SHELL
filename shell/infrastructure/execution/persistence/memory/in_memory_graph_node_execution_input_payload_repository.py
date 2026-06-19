@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.repositories.graph_node_execution_input_payload_repository import (
     GraphNodeExecutionInputPayloadRepository,
 )
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution_input_payload import (

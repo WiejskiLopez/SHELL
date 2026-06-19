@@ -30,12 +30,12 @@ if TYPE_CHECKING:
         GraphNodeExecutionResult,
     )
     from shell.domain.execution.services.compensation_handler import CompensationHandler
-    from shell.domain.platform.value_objects.ids import (
-        GraphNodeExecutionId,
-        GraphNodeExecutionResultId,
-        TaskExecutionId,
-        WorkflowId,
-    )
+    from shell.domain.execution.value_objects.ids import (
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
+    TaskExecutionId,
+    WorkflowId
+)
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
@@ -235,7 +235,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         now: datetime,
         step: int = 0,
     ) -> None:
-        from shell.domain.platform.value_objects.ids import GraphNodeExecutionStateId
+        from shell.domain.execution.value_objects.ids import GraphNodeExecutionStateId
 
         existing = self._graph_node_execution_states.get(graph_node_execution_id.value)
         state_id = existing.id if existing else GraphNodeExecutionStateId.generate()

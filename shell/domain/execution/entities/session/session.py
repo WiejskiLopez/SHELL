@@ -4,15 +4,17 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.entities.session.message import Message
 from shell.domain.platform.base.entity import Entity
-from shell.domain.platform.value_objects.ids import SessionId
+from shell.domain.execution.value_objects.ids import SessionId
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.value_objects.ids import (
-        CorrelationId,
-        MessageId,
-    )
+    CorrelationId
+)
+from shell.domain.execution.value_objects.ids import (
+    MessageId
+)
 
 
 class Session(Entity[SessionId]):

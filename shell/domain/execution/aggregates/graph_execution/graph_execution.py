@@ -18,12 +18,14 @@ if TYPE_CHECKING:
 
     from shell.domain.definition.entities.graph_definition import GraphDefinition
     from shell.domain.platform.ports.identity import IdGenerator
-    from shell.domain.platform.value_objects.ids import (
-        GraphDefinitionId,
-        GraphExecutionId,
-        GraphNodeExecutionId,
-        TaskExecutionId,
-    )
+    from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    TaskExecutionId
+)
 
 
 class GraphExecution(AggregateRoot["GraphExecutionId"]):
@@ -170,7 +172,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def _build_sequence_transitions(
         self, last_node_id: GraphNodeExecutionId | None
     ) -> None:
-        from shell.domain.platform.value_objects.ids import GraphNodeTransitionExecutionId
+        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
 
         sorted_nodes = sorted(self._graph_node_executions, key=lambda n: n.position)
         for i in range(len(sorted_nodes) - 1):

@@ -3,22 +3,24 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.ids import (
-        EnvelopeId,
-        GraphDefinitionId,
-        GraphExecutionId,
-        GraphNodeDefinitionId,
-        GraphNodeExecutionId,
-        GraphNodeExecutionResultId,
-        MessageId,
-        PromptId,
-        RagChunkId,
-        RagDocumentId,
-        RunnerConfigId,
-        SessionId,
-        TaskExecutionId,
-        WorkflowId,
-    )
+    from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId,
+    GraphNodeDefinitionId,
+    PromptId,
+    RagChunkId,
+    RagDocumentId,
+    RunnerConfigId
+)
+from shell.domain.execution.value_objects.ids import (
+    EnvelopeId,
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    GraphNodeExecutionResultId,
+    MessageId,
+    SessionId,
+    TaskExecutionId,
+    WorkflowId
+)
 
 
 class IdGenerator(Protocol):

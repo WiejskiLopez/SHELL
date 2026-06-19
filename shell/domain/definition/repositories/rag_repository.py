@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
-    from shell.domain.platform.value_objects.ids import RagDocumentId
+    from shell.domain.definition.value_objects.ids import RagDocumentId
 
 
 class RagDocumentRepository(Protocol):

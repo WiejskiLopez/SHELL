@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.application.platform.queries.queries import GetPromptQuery
 from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
 from shell.domain.definition.entities.prompt import Prompt
-from shell.domain.platform.value_objects.ids import PromptId
+from shell.domain.definition.value_objects.ids import PromptId
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import FakeClock, FakeIdGenerator
 from shell.infrastructure.definition.persistence.sql.services import PromptQueryService

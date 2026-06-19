@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
 from shell.domain.execution.services.graph_node_execution_navigator import LinearGraphNodeExecutionNavigator
-from shell.domain.platform.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )

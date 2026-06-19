@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.definition.repositories.prompt_repository import PromptRepository
-from shell.domain.platform.value_objects.ids import PromptId
+from shell.domain.definition.value_objects.ids import PromptId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     prompt_entity_to_model,

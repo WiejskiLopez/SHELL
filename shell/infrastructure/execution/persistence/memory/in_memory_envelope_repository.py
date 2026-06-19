@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.repositories.envelope_repository import EnvelopeRepository
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
-from shell.domain.platform.value_objects.ids import EnvelopeId
+from shell.domain.execution.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from shell.domain.execution.entities.envelope import Envelope
-    from shell.domain.platform.value_objects.ids import WorkflowId
+    from shell.domain.execution.value_objects.ids import WorkflowId
 
 
 class InMemoryEnvelopeRepository(EnvelopeRepository):

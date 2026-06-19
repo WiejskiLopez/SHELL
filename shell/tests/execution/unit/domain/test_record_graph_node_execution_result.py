@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from shell.domain.execution.events import GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent
-from shell.domain.platform.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, GraphNodeExecutionResultId
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.tests.conftest import _ctx, _new_workflow, _NOW

@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.platform.value_objects.ids import GraphExecutionId, TaskExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId
 
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_entity_to_model,

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.base.entity import Entity
-from shell.domain.platform.value_objects.ids import GraphNodeDefinitionId
+from shell.domain.definition.value_objects.ids import GraphNodeDefinitionId
 
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.mode import Mode

@@ -13,10 +13,12 @@ from shell.application.platform.exceptions import GraphDefinitionNotFoundExcepti
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.execution.events import GraphExecutionBuiltEvent, TaskExecutionCreatedEvent
-from shell.domain.platform.value_objects.ids import (
+from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
-    GraphNodeDefinitionId,
-    TaskExecutionId,
+    GraphNodeDefinitionId
+)
+from shell.domain.execution.value_objects.ids import (
+    TaskExecutionId
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName

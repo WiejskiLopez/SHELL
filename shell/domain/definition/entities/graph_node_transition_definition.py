@@ -6,11 +6,11 @@ from typing import TYPE_CHECKING
 from shell.domain.platform.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.ids import (
-        GraphDefinitionId,
-        GraphNodeDefinitionId,
-        GraphNodeTransitionDefinitionId,
-    )
+    from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId,
+    GraphNodeDefinitionId,
+    GraphNodeTransitionDefinitionId
+)
 
 
 @dataclass(slots=True)

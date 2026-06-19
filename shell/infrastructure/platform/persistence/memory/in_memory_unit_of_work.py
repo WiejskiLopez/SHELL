@@ -13,6 +13,9 @@ from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archiv
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import InMemoryRagDocumentRepository
 from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import InMemorySessionRepository
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import InMemoryGraphDefinitionRepository
+from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_repository import (
+    InMemoryGraphExecutionStateRepository,
+)
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
@@ -30,6 +33,7 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_documents = InMemoryRagDocumentRepository()
         self._sessions = InMemorySessionRepository()
         self._graph_definitions = InMemoryGraphDefinitionRepository()
+        self._graph_execution_states = InMemoryGraphExecutionStateRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -38,7 +42,7 @@ class InMemoryUnitOfWork(UnitOfWork):
     def seed_base_planner(self) -> None:
         from shell.domain.definition.entities.graph_definition import GraphDefinition
         from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-        from shell.domain.platform.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+        from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
         from shell.domain.platform.value_objects.mode import Mode
 
         self._graph_definitions._store["base_planner"] = GraphDefinition(
@@ -95,6 +99,10 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def graph_definitions(self) -> InMemoryGraphDefinitionRepository:
         return self._graph_definitions
+
+    @property
+    def graph_execution_states(self) -> InMemoryGraphExecutionStateRepository:
+        return self._graph_execution_states
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

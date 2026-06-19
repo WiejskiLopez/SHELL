@@ -10,7 +10,7 @@ from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.execution.services.graph_execution_routing_service import GraphExcetutionRoutingService
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
-from shell.domain.platform.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import WorkflowId
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import RouteEnvelopesCommand

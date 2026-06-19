@@ -25,7 +25,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         queries: InMemoryQueryServices,
     ) -> None:
         from shell.domain.execution.aggregates.workflow import Workflow
-        from shell.domain.platform.value_objects.ids import TaskExecutionId, WorkflowId
+        from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
         wf = Workflow.new(
             id_=WorkflowId("wf-1"), task_execution_id=TaskExecutionId("task-1"), now=clock.now()

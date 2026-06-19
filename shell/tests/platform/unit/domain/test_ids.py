@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.platform.value_objects.ids import EnvelopeId, TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import EnvelopeId, TaskExecutionId, WorkflowId
 
 
 class TestIds:
