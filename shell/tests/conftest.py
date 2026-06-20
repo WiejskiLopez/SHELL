@@ -360,14 +360,15 @@ async def _persist_running_workflow(
     uow: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-    for ge in list(uow.graph_executions._store.values()):
-        if ge.task_execution_id == task_execution_id:
-            ge._workflow_id = wf.id
     wf.start_at(
         first_graph_node_execution_id=first_node,
         context=WorkflowExecutionContext(correlation_id="cid"),
         now=_NOW,
+        task_execution_id=task_execution_id,
     )
+    for te in list(uow.task_executions._store.values()):
+        if te.id == task_execution_id:
+            te.execute_in_workflow(wf.id)
     async with uow:
         await uow.workflows.save(wf)
         await uow.commit()
