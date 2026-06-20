@@ -133,8 +133,8 @@ class SpawnSubGraphsOnPlannerCompletionHandler:
         correlation_id: str,
         uow: UnitOfWork,
     ) -> GraphExecution | None:
-        sub_graph_def_id = step.get("sub_graph_definition_id")
-        if not sub_graph_def_id:
+        sub_graph_definition_id = step.get("sub_graph_definition_id")
+        if not sub_graph_definition_id:
             self._logger.warning(
                 "spawn_sub_graphs_on_planner_completion_handler.missing_definition_id",
                 step=str(step),
@@ -146,7 +146,7 @@ class SpawnSubGraphsOnPlannerCompletionHandler:
             child = await self._sub_graph_service.spawn(
                 parent_graph_execution=graph_execution,
                 parent_tasker_node=node,
-                graph_definition_id=sub_graph_def_id,
+                graph_definition_id=sub_graph_definition_id,
                 state_input=state_input,
                 correlation_id=correlation_id,
                 uow=uow,
@@ -155,7 +155,7 @@ class SpawnSubGraphsOnPlannerCompletionHandler:
         except Exception as exc:
             self._logger.error(
                 "spawn_sub_graphs_on_planner_completion_handler.spawn_failed",
-                definition_id=sub_graph_def_id,
+                definition_id=sub_graph_definition_id,
                 error=str(exc),
             )
             return None

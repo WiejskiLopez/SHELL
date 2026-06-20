@@ -22,11 +22,11 @@ class ArchiveEnvelopeHandler:
         self._clock = clock
 
     async def handle(self, cmd: ArchiveEnvelopeCommand) -> None:
-        env_id = EnvelopeId(cmd.envelope_id)
+        envelope_id = EnvelopeId(cmd.envelope_id)
         now = self._clock.now()
 
         async with self._uow as uow:
-            envelope = await uow.envelopes.get_by_id(env_id)
+            envelope = await uow.envelopes.get_by_id(envelope_id)
             if envelope is None:
                 raise EnvelopeNotFound(cmd.envelope_id)
 

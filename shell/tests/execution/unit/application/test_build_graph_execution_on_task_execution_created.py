@@ -64,30 +64,30 @@ class _InMemoryGraphDefinitionQueryService:
     def _to_dto(self, entity: object) -> GraphExecutionDefinition:
         from shell.domain.definition.entities.graph_definition import GraphDefinition
 
-        gd: GraphDefinition = entity  # type: ignore[assignment]
+        graph_definition: GraphDefinition = entity  # type: ignore[assignment]
         return GraphExecutionDefinition(
-            id=gd.id.value if hasattr(gd.id, "value") else str(gd.id),
-            name=gd.name,
+            id=graph_definition.id.value if hasattr(graph_definition.id, "value") else str(graph_definition.id),
+            name=graph_definition.name,
             graph_node_execution_definitions=[
                 GraphNodeExecutionDefinition(
-                    position=nd.position,
-                    mode=nd.mode.value if hasattr(nd.mode, "value") else str(nd.mode),
-                    role=nd.role,
-                    node_type=nd.node_type,
-                    model=nd.model,
-                    command=nd.command,
-                    timeout=nd.timeout,
-                    retries=nd.retries,
-                    log_level=nd.log_level,
-                    max_step=nd.max_step,
-                    no_ask_user=nd.no_ask_user,
-                    autopilot=nd.autopilot,
-                    status_initial=nd.status_initial,
-                    extra=dict(nd.extra) if nd.extra else {},
-                    script=getattr(nd, "script", ""),
-                    script_type=getattr(nd, "script_type", ""),
+                    position=graph_node_definition.position,
+                    mode=graph_node_definition.mode.value if hasattr(graph_node_definition.mode, "value") else str(graph_node_definition.mode),
+                    role=graph_node_definition.role,
+                    node_type=graph_node_definition.node_type,
+                    model=graph_node_definition.model,
+                    command=graph_node_definition.command,
+                    timeout=graph_node_definition.timeout,
+                    retries=graph_node_definition.retries,
+                    log_level=graph_node_definition.log_level,
+                    max_step=graph_node_definition.max_step,
+                    no_ask_user=graph_node_definition.no_ask_user,
+                    autopilot=graph_node_definition.autopilot,
+                    status_initial=graph_node_definition.status_initial,
+                    extra=dict(graph_node_definition.extra) if graph_node_definition.extra else {},
+                    script=getattr(graph_node_definition, "script", ""),
+                    script_type=getattr(graph_node_definition, "script_type", ""),
                 )
-                for nd in gd.graph_node_definitions
+                for graph_node_definition in graph_definition.graph_node_definitions
             ],
         )
 

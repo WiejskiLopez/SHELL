@@ -23,9 +23,9 @@ class AppendMessageHandler:
             session = await uow.sessions.get_by_id(SessionId(cmd.session_id))
             if session is None:
                 raise SessionNotFound(f"Session not found: {cmd.session_id}")
-            msg_id = self._id_gen.new_message_id()
+            message_id = self._id_gen.new_message_id()
             session.append_message(
-                msg_id=msg_id,
+                msg_id=message_id,
                 correlation_id=CorrelationId(cmd.correlation_id),
                 sender=cmd.sender,
                 receiver=cmd.receiver,
@@ -33,4 +33,4 @@ class AppendMessageHandler:
                 now=self._clock.now(),
             )
             await uow.sessions.save(session)
-        return msg_id
+        return message_id

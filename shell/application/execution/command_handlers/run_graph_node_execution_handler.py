@@ -47,12 +47,12 @@ class RunGraphNodeExecutionHandler:
 
     async def handle(self, cmd: RunGraphNodeExecutionCommand) -> str:
         """Execute node and return NodeResult id."""
-        wf_id = WorkflowId(cmd.workflow_id)
+        workflow_id = WorkflowId(cmd.workflow_id)
         graph_node_execution_id = GraphNodeExecutionId(cmd.graph_node_execution_id)
         now = self._clock.now()
 
         async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(wf_id)
+            workflow = await uow.workflows.get_by_id(workflow_id)
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
 
@@ -79,10 +79,10 @@ class RunGraphNodeExecutionHandler:
             failure_reason = str(exc)
 
         async with self._uow as uow:
-            wf = await uow.workflows.get_by_id(wf_id)
-            if wf is None:
+            workflow = await uow.workflows.get_by_id(workflow_id)
+            if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
-            result = wf.record_graph_node_execution_result(
+            result = workflow.record_graph_node_execution_result(
                 result_id=self._id_gen.new_graph_node_execution_result_id(),
                 graph_node_execution_id=graph_node_execution_id,
                 status=node_status,

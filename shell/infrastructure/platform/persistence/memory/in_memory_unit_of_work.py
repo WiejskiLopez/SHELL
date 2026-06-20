@@ -39,13 +39,13 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._staged_events: list[DomainEvent] = []
         self._committed_events: list[DomainEvent] = []
 
-    def seed_base_planner(self) -> None:
+    async def seed_base_planner(self) -> None:
         from shell.domain.definition.entities.graph_definition import GraphDefinition
         from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
         from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
         from shell.domain.platform.value_objects.mode import Mode
 
-        self._graph_definitions._store["base_planner"] = GraphDefinition(
+        await self._graph_definitions.save(GraphDefinition(
             id=GraphDefinitionId("base-planner-id"),
             name="base_planner",
             purpose="default_planning",
@@ -58,7 +58,7 @@ class InMemoryUnitOfWork(UnitOfWork):
                     node_type="agent",
                 ),
             ],
-        )
+        ))
 
     @property
     def task_executions(self) -> InMemoryTaskExecutionRepository:

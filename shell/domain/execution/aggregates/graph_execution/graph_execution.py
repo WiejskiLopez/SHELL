@@ -190,31 +190,31 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         graph_node_executions: list[GraphNodeExecution] = []
         previous_node_id: GraphNodeExecutionId | None = None
 
-        for node_dto in graph_definition.graph_node_execution_definitions:
-            mode = Mode(node_dto.mode)
+        for graph_node_definition in graph_definition.graph_node_execution_definitions:
+            mode = Mode(graph_node_definition.mode)
             node_id = id_gen.new_graph_node_execution_id()
             graph_node_executions.append(
                 GraphNodeExecution(
                     id=node_id,
-                    position=node_dto.position,
+                    position=graph_node_definition.position,
                     mode=mode,
-                    role=node_dto.role,
-                    node_type=node_dto.node_type,
-                    model=node_dto.model,
-                    command=node_dto.command,
-                    timeout=node_dto.timeout,
-                    retries=node_dto.retries,
-                    log_level=node_dto.log_level,
-                    max_step=node_dto.max_step or 0,
-                    no_ask_user=node_dto.no_ask_user,
-                    autopilot=node_dto.autopilot,
+                    role=graph_node_definition.role,
+                    node_type=graph_node_definition.node_type,
+                    model=graph_node_definition.model,
+                    command=graph_node_definition.command,
+                    timeout=graph_node_definition.timeout,
+                    retries=graph_node_definition.retries,
+                    log_level=graph_node_definition.log_level,
+                    max_step=graph_node_definition.max_step or 0,
+                    no_ask_user=graph_node_definition.no_ask_user,
+                    autopilot=graph_node_definition.autopilot,
                     task_execution_id="",
                     source_dir="",
-                    status_initial=node_dto.status_initial,
-                    extra=dict(node_dto.extra),
-                    sub_graph_definition_id=node_dto.extra.get("sub_graph_definition_id"),
-                    timeout_seconds=node_dto.timeout,
-                    max_retries=node_dto.retries,
+                    status_initial=graph_node_definition.status_initial,
+                    extra=dict(graph_node_definition.extra),
+                    sub_graph_definition_id=graph_node_definition.extra.get("sub_graph_definition_id"),
+                    timeout_seconds=graph_node_definition.timeout,
+                    max_retries=graph_node_definition.retries,
                 )
             )
             previous_node_id = node_id
@@ -242,25 +242,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         )
         return graph_execution
 
-    def _build_sequence_transitions(
-        self, last_node_id: GraphNodeExecutionId | None
-    ) -> None:
-        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
-
-        sorted_nodes = sorted(self._graph_node_executions, key=lambda n: n.position)
-        for i in range(len(sorted_nodes) - 1):
-            self._transitions.append(
-                GraphNodeTransitionExecution(
-                    id=GraphNodeTransitionExecutionId.generate(),
-                    graph_execution_id=self.id,
-                    source_node_execution_id=sorted_nodes[i].id,
-                    target_node_execution_id=sorted_nodes[i + 1].id,
-                    transition_type=TransitionType.SEQUENCE,
-                    priority=0,
-                    label=f"sequence_{sorted_nodes[i].position}_to_{sorted_nodes[i + 1].position}",
-                )
-            )
-
     def add_graph_node_execution(self, graph_node_execution: GraphNodeExecution) -> None:
         self._graph_node_executions.append(graph_node_execution)
 
@@ -279,3 +260,24 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
                 max_loop_count=max_loop_count,
             )
         return self._loop_counters[transition_id]
+
+    # ── Private helpers ──────────────────────────────────────────────────
+
+    def _build_sequence_transitions(
+        self, last_node_id: GraphNodeExecutionId | None
+    ) -> None:
+        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
+
+        sorted_nodes = sorted(self._graph_node_executions, key=lambda n: n.position)
+        for i in range(len(sorted_nodes) - 1):
+            self._transitions.append(
+                GraphNodeTransitionExecution(
+                    id=GraphNodeTransitionExecutionId.generate(),
+                    graph_execution_id=self.id,
+                    source_node_execution_id=sorted_nodes[i].id,
+                    target_node_execution_id=sorted_nodes[i + 1].id,
+                    transition_type=TransitionType.SEQUENCE,
+                    priority=0,
+                    label=f"sequence_{sorted_nodes[i].position}_to_{sorted_nodes[i + 1].position}",
+                )
+            )

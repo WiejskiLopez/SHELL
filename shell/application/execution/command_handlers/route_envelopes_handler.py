@@ -39,14 +39,14 @@ class RouteEnvelopesHandler:
 
     async def handle(self, cmd: RouteEnvelopesCommand) -> int:
         """Process envelopes and return the number of envelopes routed."""
-        wf_id = WorkflowId(cmd.workflow_id)
+        workflow_id = WorkflowId(cmd.workflow_id)
 
         async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(wf_id)
+            workflow = await uow.workflows.get_by_id(workflow_id)
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
 
-            pending = await uow.envelopes.list_pending(wf_id)
+            pending = await uow.envelopes.list_pending(workflow_id)
             graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
             graph_execution = graph_executions[0] if graph_executions else None
 

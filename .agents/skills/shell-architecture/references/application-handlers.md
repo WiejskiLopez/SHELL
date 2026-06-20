@@ -85,3 +85,7 @@ Zdarzenia domenowe i komendy opisują **fakty biznesowe** w języku domeny, nie 
 2. **Łatwość nawigacji** — `Ctrl+Click` z eventu na handler działa intuicyjnie
 3. **Konsystencja** — jednakowy wzorzec w całej warstwie aplikacyjnej
 4. **Biznesowy język** — kod mówi językiem domeny, nie implementacji
+
+## Zakaz skróconych nazw zmiennych
+
+Obowiązują zasady opisane w [naming-standards.md](naming-standards.md). W skrócie: **nigdy nie skracaj nazw zmiennych** — każda zmienna musi mieć pełną, biznesową nazwę.

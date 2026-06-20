@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.application.platform.dto import (
     EnvelopeDto,
     GraphNodeExecutionResultDto,
@@ -12,8 +14,16 @@ from shell.application.platform.dto import (
     TaskExecutionDto,
     WorkflowDto,
 )
-from shell.domain.execution.value_objects.ids import WorkflowId
+from shell.domain.execution.value_objects.ids import (
+    GraphNodeExecutionId,
+    SessionId,
+    WorkflowId,
+)
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import InMemoryUnitOfWork
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 
 class InMemoryQueryServices:
@@ -21,10 +31,9 @@ class InMemoryQueryServices:
         self._uow = uow
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
-        task_execution = next(
-            (task_execution for task_execution in self._uow.task_executions._store.values() if task_execution.name.value == name),  # type: ignore[attr-defined]
-            None,
-        )
+        from shell.domain.execution.aggregates.task_execution import TaskExecution
+
+        task_execution = await self._uow.task_executions.get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
         graph_execution = await self._uow.graph_executions.get_by_task_execution_id(
@@ -63,7 +72,7 @@ class InMemoryQueryServices:
         return await self.get_task_execution_by_name(name)
 
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
-        workflow = self._uow.workflows._store.get(workflow_id)  # type: ignore[attr-defined]
+        workflow = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
         if not workflow:
             return None
         return WorkflowDto(
@@ -88,11 +97,7 @@ class InMemoryQueryServices:
     async def get_envelopes_by_workflow(
         self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
-        envelopes = [
-            envelope
-            for envelope in self._uow.envelopes._store.values()
-            if str(envelope.workflow_id) == workflow_id  # type: ignore[attr-defined]
-        ]
+        envelopes = await self._uow.envelopes.list_by_workflow(WorkflowId(workflow_id))
         if pending_only:
             envelopes = [envelope for envelope in envelopes if envelope.status.value == "pending"]
 
@@ -117,30 +122,26 @@ class InMemoryQueryServices:
     async def get_graph_node_execution_result(
         self, graph_node_execution_id: str, workflow_id: str
     ) -> GraphNodeExecutionResultDto | None:
-        wf = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
-        if wf is None:
+        workflow = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
+        if workflow is None:
             return None
-        from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
-        res = wf.get_graph_node_execution_result(GraphNodeExecutionId(graph_node_execution_id))
-        if res is None:
+        result = workflow.get_graph_node_execution_result(GraphNodeExecutionId(graph_node_execution_id))
+        if result is None:
             return None
         return GraphNodeExecutionResultDto(
-            id=str(res.id),
-            graph_node_execution_id=str(res.graph_node_execution_id),
-            workflow_id=str(res.workflow_id),
-            status=res.status.value,
-            stdout=res.stdout,
-            stderr=res.stderr,
-            artifact_uri=res.artifact_uri,
-            created_at=res.created_at,
+            id=str(result.id),
+            graph_node_execution_id=str(result.graph_node_execution_id),
+            workflow_id=str(result.workflow_id),
+            status=result.status.value,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            artifact_uri=result.artifact_uri,
+            created_at=result.created_at,
         )
 
     async def get_prompt(self, name: str) -> PromptDto | None:
-        prompt = next(
-            (prompt for prompt in self._uow.prompts._store.values() if prompt.name == name and prompt.is_current),
-            None,  # type: ignore[attr-defined]
-        )
+        prompt = await self._uow.prompts.get_current_by_name(name)
         if not prompt:
             return None
         return PromptDto(
@@ -154,21 +155,20 @@ class InMemoryQueryServices:
         )
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        c = await self._uow.runner_configs.get_by_package(package_name)
-        if not c:
+        runner_config = await self._uow.runner_configs.get_by_package(package_name)
+        if not runner_config:
             return None
         return RunnerConfigDto(
-            id=str(c.id),
-            package_name=c.package_name,
-            kind=c.kind,
-            hash=str(c.hash),
-            body=c.body,
-            created_at=c.created_at,
+            id=str(runner_config.id),
+            package_name=runner_config.package_name,
+            kind=runner_config.kind,
+            hash=str(runner_config.hash),
+            body=runner_config.body,
+            created_at=runner_config.created_at,
         )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
-        session = self._uow.sessions._store.get(session_id)  # type: ignore[attr-defined]
-
+        session = await self._uow.sessions.get_by_id(SessionId(session_id))
         if session is None:
             return None
 
@@ -195,17 +195,17 @@ class InMemoryQueryServices:
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
-        chunks = list(self._uow.rag_documents._store.values())  # type: ignore[attr-defined]
+        chunks = await self._uow.rag_documents.search_similar(query_embedding, top_k, domain)
         return [
             RagChunkDto(
-                chunk_id=f"chunk-{index}",
-                document_id="doc-1",
-                chunk_index=index,
-                chunk_text="test content",
-                source_uri="file://test.md",
-                title="Test Doc",
-                domain=domain or "default",
+                chunk_id=chunk.id.value,
+                document_id=chunk.document_id.value,
+                chunk_index=chunk.chunk_index,
+                chunk_text=chunk.chunk_text,
+                source_uri="",
+                title="",
+                domain=domain or "",
                 score=1.0,
             )
-            for index in range(min(top_k, len(chunks)))
+            for chunk in chunks
         ]

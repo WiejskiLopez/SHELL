@@ -94,35 +94,33 @@ class SubGraphExecutionService:
         _uow = uow or self._uow
         now = self._clock.now()
         depth = parent_graph_execution.depth + 1
-        parent_id = parent_graph_execution.id.value
-        def_id = graph_definition_id
+        parent_graph_execution_id_value = parent_graph_execution.id.value
 
         # ── Governance check ──────────────────────────────────────────────
         if self._governance is not None:
-            allowed = await self._governance.can_spawn(parent_id, def_id, depth)
+            allowed = await self._governance.can_spawn(parent_graph_execution_id_value, graph_definition_id, depth)
             if not allowed:
                 raise PermissionError(
-                    f"Governance rejected sub-graph spawn: def={def_id}, depth={depth}"
+                    f"Governance rejected sub-graph spawn: def={graph_definition_id}, depth={depth}"
                 )
 
         # ── Versioning: resolve definition ────────────────────────────────
         version = parent_tasker_node.sub_graph_definition_version
         if self._versioning is not None:
             graph_definition = await self._versioning.resolve_definition(
-                definition_id=def_id,
+                definition_id=graph_definition_id,
                 version=version,
-                parent_graph_execution_id=parent_id,
+                parent_graph_execution_id=parent_graph_execution_id_value,
             )
         else:
-            gd = await self._definition_provider.get_graph_definition(def_id)
-            if gd is None:
-                raise ValueError(f"GraphDefinition {def_id!r} not found")
-            graph_definition = gd
+            graph_definition = await self._definition_provider.get_graph_definition(graph_definition_id)
+            if graph_definition is None:
+                raise ValueError(f"GraphDefinition {graph_definition_id!r} not found")
 
         # ── Security: resolve scope + filter state ────────────────────────
         resolved_state: dict[str, Any] = dict(state_input) if state_input else {}
         if self._security is not None:
-            scope = await self._security.resolve_scope(parent_id, def_id)
+            scope = await self._security.resolve_scope(parent_graph_execution_id_value, graph_definition_id)
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphExecution (no child TaskExecution) ──────────
@@ -176,21 +174,21 @@ class SubGraphExecutionService:
 
         # ── Observer notification ─────────────────────────────────────────
         if self._observer is not None:
-            ctx = SubGraphContext(
+            sub_graph_context = SubGraphContext(
                 graph_execution_id=sub_graph_execution.id.value,
-                parent_graph_execution_id=parent_id,
+                parent_graph_execution_id=parent_graph_execution_id_value,
                 depth=depth,
                 correlation_id=correlation_id,
                 started_at=now,
             )
-            await self._observer.on_start(ctx)
+            await self._observer.on_start(sub_graph_context)
 
         self._logger.info(
             "sub_graph_execution.spawned",
             sub_graph_id=sub_graph_execution.id.value,
-            parent_graph_id=parent_id,
+            parent_graph_id=parent_graph_execution_id_value,
             tasker_node_id=parent_tasker_node.id.value,
-            definition_id=def_id,
+            definition_id=graph_definition_id,
             depth=depth,
         )
 

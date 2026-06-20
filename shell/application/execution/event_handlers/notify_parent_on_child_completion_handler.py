@@ -57,8 +57,8 @@ class NotifyParentOnChildCompletionHandler:
                 return
             graph_execution = graph_executions[0]
 
-            parent_id = graph_execution.parent_graph_execution_id
-            if parent_id is None:
+            parent_graph_execution_id = graph_execution.parent_graph_execution_id
+            if parent_graph_execution_id is None:
                 return
 
             # Notify CrownScheduler of child completion
@@ -71,11 +71,11 @@ class NotifyParentOnChildCompletionHandler:
             self._logger.info(
                 "crown_scheduler.child_completed",
                 child_graph_id=graph_execution.id.value,
-                parent_graph_id=parent_id.value,
+                parent_graph_id=parent_graph_execution_id.value,
             )
 
             # Check if all children of parent are done
-            all_done = await self._crown_scheduler.has_all_children_completed(parent_id)
+            all_done = await self._crown_scheduler.has_all_children_completed(parent_graph_execution_id)
             if not all_done:
                 return
 
@@ -85,11 +85,11 @@ class NotifyParentOnChildCompletionHandler:
             )
 
             # Load parent workflow and mark the waiting node as complete
-            parent_graph = await uow.graph_executions.get_by_id(parent_id)
+            parent_graph = await uow.graph_executions.get_by_id(parent_graph_execution_id)
             if parent_graph is None:
                 self._logger.warning(
                     "crown_scheduler.parent_graph_not_found",
-                    parent_graph_id=parent_id.value,
+                    parent_graph_id=parent_graph_execution_id.value,
                 )
                 return
 
@@ -97,7 +97,7 @@ class NotifyParentOnChildCompletionHandler:
             if parent_workflow_id is None:
                 self._logger.warning(
                     "crown_scheduler.parent_no_workflow_id",
-                    parent_graph_id=parent_id.value,
+                    parent_graph_id=parent_graph_execution_id.value,
                 )
                 return
 
@@ -105,7 +105,7 @@ class NotifyParentOnChildCompletionHandler:
             if parent_workflow is None:
                 self._logger.warning(
                     "crown_scheduler.parent_workflow_not_found",
-                    parent_graph_id=parent_id.value,
+                    parent_graph_id=parent_graph_execution_id.value,
                 )
                 return
 
@@ -127,7 +127,7 @@ class NotifyParentOnChildCompletionHandler:
                 )
 
             parent_workflow.record_child_graphs_completed(
-                parent_graph_execution_id=parent_id,
+                parent_graph_execution_id=parent_graph_execution_id,
                 completed_child_ids=completed_ids,
                 combined_output=combined_output or None,
                 now=now,
