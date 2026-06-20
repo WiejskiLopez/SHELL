@@ -103,17 +103,9 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     def work_dir(self) -> str:
         return self._work_dir
 
-    @work_dir.setter
-    def work_dir(self, value: str) -> None:
-        self._work_dir = value
-
     @property
     def workflow_id(self) -> WorkflowId | None:
         return self._workflow_id
-
-    @workflow_id.setter
-    def workflow_id(self, value: WorkflowId | None) -> None:
-        self._workflow_id = value
 
     @classmethod
     def create(
@@ -152,3 +144,9 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
 
     def rename(self, new_name: TaskExecutionName) -> None:
         self._name = new_name
+
+    def execute_in_workflow(self, workflow_id: WorkflowId) -> None:
+        self._workflow_id = workflow_id
+
+    def prepare_workspace(self, path: str) -> None:
+        self._work_dir = path

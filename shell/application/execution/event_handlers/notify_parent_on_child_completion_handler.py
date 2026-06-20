@@ -11,7 +11,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import (
-    ChildGraphsCompletedEvent,
     WorkflowCompletedEvent,
 )
 from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
@@ -31,7 +30,7 @@ if TYPE_CHECKING:
     )
 
 
-class CrownSchedulerHandler:
+class NotifyParentOnChildCompletionHandler:
     """Listens to child graph completion and notifies the parent via CrownScheduler."""
 
     def __init__(
@@ -110,12 +109,11 @@ class CrownSchedulerHandler:
                 )
                 return
 
-            # Merge child outputs into parent state
             combined_output: dict = {}
             for child_status in children:
                 if child_status.result:
                     combined_output.update(child_status.result)
-            parent_graph.state_output = combined_output
+            parent_graph.absorb_child_results(combined_output)
 
             # Find the waiting node in parent workflow and mark it complete
             waiting_node = self._find_waiting_node(parent_workflow)
@@ -128,13 +126,12 @@ class CrownSchedulerHandler:
                     stdout=str(combined_output),
                 )
 
-            event_to_emit = ChildGraphsCompletedEvent.now(
+            parent_workflow.record_child_graphs_completed(
                 parent_graph_execution_id=parent_id,
                 completed_child_ids=completed_ids,
                 combined_output=combined_output or None,
                 now=now,
             )
-            parent_workflow.append_event(event_to_emit)
 
             # Save workflow first (CAS), then graph
             try:

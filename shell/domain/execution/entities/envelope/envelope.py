@@ -151,6 +151,9 @@ class Envelope(Entity[EnvelopeId]):
         self.stage = new_stage
         self.updated_at = now
 
+    def deliver_to(self, graph_node_execution_id: GraphNodeExecutionId) -> None:
+        self.receiver_graph_node_execution_id = graph_node_execution_id
+
     def archive(self, archive_uri: str, now: datetime) -> None:
         self.archive_uri = archive_uri
         self.transition_stage(EnvelopeStage.ARCHIVED, now)

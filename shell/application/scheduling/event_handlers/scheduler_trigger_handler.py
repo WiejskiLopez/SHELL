@@ -109,8 +109,6 @@ class SchedulerTriggerHandler:
                 await uow.scheduler_executions.save(execution)
                 uow.stage_events(events)
 
-            await uow.commit()
-
             self._logger.info(
                 "scheduler_trigger_handler.processed",
                 source_context=source_context,

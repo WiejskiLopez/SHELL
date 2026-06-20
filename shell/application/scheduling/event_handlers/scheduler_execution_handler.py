@@ -57,8 +57,6 @@ class SchedulerExecutionHandler:
                 await uow.scheduler_executions.save(execution)
                 uow.stage_events(events)
 
-            await uow.commit()
-
             self._logger.info(
                 "scheduler_execution_handler.workflow_completed",
                 workflow_id=event.workflow_id.value,
@@ -86,8 +84,6 @@ class SchedulerExecutionHandler:
                 )
                 await uow.scheduler_executions.save(execution)
                 uow.stage_events(events)
-
-            await uow.commit()
 
             self._logger.info(
                 "scheduler_execution_handler.workflow_failed",

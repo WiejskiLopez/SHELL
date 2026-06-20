@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.exceptions import EnvelopeNotFound
-from shell.domain.platform.value_objects.envelope_status import EnvelopeStage
 from shell.domain.execution.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
@@ -32,6 +31,5 @@ class ArchiveEnvelopeHandler:
                 raise EnvelopeNotFound(cmd.envelope_id)
 
             archive_uri = await uow.envelope_archive.archive(envelope)
-            envelope.archive_uri = archive_uri
-            envelope.transition_stage(EnvelopeStage.ARCHIVED, now)
+            envelope.archive(archive_uri, now)
             await uow.envelopes.save(envelope)

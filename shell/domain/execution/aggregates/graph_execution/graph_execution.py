@@ -111,8 +111,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def state_output(self) -> dict[str, Any]:
         return dict(self._state_output)
 
-    @state_output.setter
-    def state_output(self, value: dict[str, Any]) -> None:
+    def absorb_child_results(self, value: dict[str, Any]) -> None:
         self._state_output = dict(value) if value else {}
 
     @property
@@ -130,6 +129,9 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     @property
     def workflow_id(self) -> WorkflowId | None:
         return self._workflow_id
+
+    def execute_in_workflow(self, workflow_id: WorkflowId) -> None:
+        self._workflow_id = workflow_id
 
     @property
     def tags(self) -> dict[str, Any]:

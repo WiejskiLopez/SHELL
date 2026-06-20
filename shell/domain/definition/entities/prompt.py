@@ -55,3 +55,6 @@ class Prompt(Entity[PromptId]):
             is_current=True,
             created_at=now,
         )
+
+    def supersede(self) -> None:
+        self.is_current = False

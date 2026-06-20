@@ -58,7 +58,7 @@ class StartWorkflowHandler:
                 id_=self._id_gen.new_workflow_id(),
                 now=now,
             )
-            task_execution.workflow_id = workflow.id
+            task_execution.execute_in_workflow(workflow.id)
             await uow.task_executions.save(task_execution)
 
             workflow.start_at(

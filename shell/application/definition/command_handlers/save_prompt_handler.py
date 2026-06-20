@@ -21,7 +21,7 @@ class SavePromptHandler:
         async with self._uow as uow:
             existing = await uow.prompts.get_current_by_name(cmd.name)
             if existing:
-                existing.is_current = False
+                existing.supersede()
                 await uow.prompts.save(existing)
             prompt = Prompt.new(
                 id_=self._id_gen.new_prompt_id(),

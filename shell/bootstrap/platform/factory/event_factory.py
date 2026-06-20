@@ -13,7 +13,6 @@ from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
     GraphNodeExecutionStartedEvent,
     GraphNodeExecutionTimedOutEvent,
-    GraphNodeParallelExecutionRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -51,25 +50,21 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(GraphNodeExecutionAdvancedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionRequestedEvent, events.graph_node_execution_worker_factory)
     event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent, events.graph_node_execution_result_handler_factory
+        GraphNodeExecutionCompletedEvent, events.graph_node_execution_completed_handler_factory
     )
     event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent, events.planner_result_handler_factory
+        GraphNodeExecutionCompletedEvent, events.spawn_sub_graphs_on_planner_completion_handler_factory
     )
     event_bus.subscribe(
-        GraphNodeExecutionFailedEvent, events.graph_node_execution_result_handler_factory
-    )
-    event_bus.subscribe(
-        GraphNodeParallelExecutionRequestedEvent,
-        events.graph_node_parallel_execution_handler_factory,
+        GraphNodeExecutionFailedEvent, events.graph_node_execution_completed_handler_factory
     )
     event_bus.subscribe(
         GraphNodeExecutionTimedOutEvent,
-        events.graph_node_timeout_handler_factory,
+        events.graph_node_execution_timed_out_handler_factory,
     )
     event_bus.subscribe(
         WorkflowCompletedEvent,
-        events.crown_scheduler_handler_factory,
+        events.notify_parent_on_child_completion_handler_factory,
     )
 
     # ── Scheduler event subscriptions ──────────────────────────────────

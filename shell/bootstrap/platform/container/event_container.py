@@ -11,21 +11,19 @@ from shell.application.platform.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
     LogAuditHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_result_handler import (
-    GraphNodeExecutionResultHandler,
+from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
+    GraphNodeExecutionCompletedHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
-from shell.application.execution.event_handlers.graph_node_parallel_execution_handler import (
-    GraphNodeParallelExecutionHandler,
+
+from shell.application.execution.event_handlers.graph_node_execution_timed_out_handler import (
+    GraphNodeExecutionTimedOutHandler,
 )
-from shell.application.execution.event_handlers.graph_node_timeout_handler import (
-    GraphNodeTimeoutHandler,
+from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
+    NotifyParentOnChildCompletionHandler,
 )
-from shell.application.execution.event_handlers.crown_scheduler_handler import (
-    CrownSchedulerHandler,
-)
-from shell.application.execution.event_handlers.planner_result_handler import (
-    PlannerResultHandler,
+from shell.application.execution.event_handlers.spawn_sub_graphs_on_planner_completion_handler import (
+    SpawnSubGraphsOnPlannerCompletionHandler,
 )
 from shell.application.scheduling.event_handlers.scheduler_trigger_handler import (
     SchedulerTriggerHandler,
@@ -67,8 +65,8 @@ class EventContainer(containers.DeclarativeContainer):
         runner=infra.runner_factory,
         logger=infra.stdlib_logger,
     )
-    graph_node_execution_result_handler_factory = providers.Factory(
-        GraphNodeExecutionResultHandler,
+    graph_node_execution_completed_handler_factory = providers.Factory(
+        GraphNodeExecutionCompletedHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
@@ -77,29 +75,23 @@ class EventContainer(containers.DeclarativeContainer):
         policy=domain.graph_node_execution_policy_factory,
         compensation=domain.compensation_handler_factory,
     )
-    graph_node_parallel_execution_handler_factory = providers.Factory(
-        GraphNodeParallelExecutionHandler,
-        uow=buses.uow_factory,
-        clock=infra.clock_factory,
-        logger=infra.stdlib_logger,
-    )
-    graph_node_timeout_handler_factory = providers.Factory(
-        GraphNodeTimeoutHandler,
+    graph_node_execution_timed_out_handler_factory = providers.Factory(
+        GraphNodeExecutionTimedOutHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
     )
-    crown_scheduler_handler_factory = providers.Factory(
-        CrownSchedulerHandler,
+    notify_parent_on_child_completion_handler_factory = providers.Factory(
+        NotifyParentOnChildCompletionHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
         crown_scheduler=infra.crown_scheduler_factory,
     )
-    planner_result_handler_factory = providers.Factory(
-        PlannerResultHandler,
+    spawn_sub_graphs_on_planner_completion_handler_factory = providers.Factory(
+        SpawnSubGraphsOnPlannerCompletionHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,

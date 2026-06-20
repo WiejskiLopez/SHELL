@@ -213,8 +213,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-from shell.application.execution.event_handlers.graph_node_execution_result_handler import (
-    GraphNodeExecutionResultHandler,
+from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
+    GraphNodeExecutionCompletedHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
@@ -389,8 +389,8 @@ def _make_worker(
 
 def _make_result_handler(
     uow: InMemoryUnitOfWork,
-) -> GraphNodeExecutionResultHandler:
-    return GraphNodeExecutionResultHandler(
+) -> GraphNodeExecutionCompletedHandler:
+    return GraphNodeExecutionCompletedHandler(
         uow=uow,
         clock=FakeClock(_NOW),
         id_gen=FakeIdGenerator(),
@@ -510,7 +510,7 @@ from datetime import UTC, datetime
 from typing import Any
 from shell.application.execution.command_handlers.run_tasker_workflow_handler import RunTaskerWorkflowHandler
 from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
-from shell.application.execution.event_handlers.graph_node_execution_result_handler import GraphNodeExecutionResultHandler
+from shell.application.execution.event_handlers.graph_node_execution_completed_handler import GraphNodeExecutionCompletedHandler
 from shell.application.execution.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.task_execution import TaskExecution
@@ -546,7 +546,7 @@ async def _run_tasker_full(uow, clock, id_gen, cmd, runner=None):
     logger = FakeLogger()
     if runner is None: runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
     worker = GraphNodeExecutionWorker(uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner)
-    result_handler = GraphNodeExecutionResultHandler(uow=uow, clock=clock, id_gen=id_gen, logger=logger)
+    result_handler = GraphNodeExecutionCompletedHandler(uow=uow, clock=clock, id_gen=id_gen, logger=logger)
     bootstrap_handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
     all_events = []
     await bootstrap_handler.handle(cmd)

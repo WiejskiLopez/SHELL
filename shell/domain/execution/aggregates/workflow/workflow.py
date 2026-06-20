@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.aggregates.workflow.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
 from shell.domain.execution.events import (
+    ChildGraphsCompletedEvent,
     GraphNodeExecutionAdvancedEvent,
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
@@ -31,11 +32,12 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.services.compensation_handler import CompensationHandler
     from shell.domain.execution.value_objects.ids import (
-    GraphNodeExecutionId,
-    GraphNodeExecutionResultId,
-    TaskExecutionId,
-    WorkflowId
-)
+        GraphExecutionId,
+        GraphNodeExecutionId,
+        GraphNodeExecutionResultId,
+        TaskExecutionId,
+        WorkflowId,
+    )
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
@@ -300,3 +302,31 @@ class Workflow(AggregateRoot["WorkflowId"]):
                 )
             )
         return result
+
+    def request_node_execution(
+        self,
+        *,
+        graph_node_execution_id: GraphNodeExecutionId,
+        now: datetime,
+    ) -> None:
+        self.update_graph_node_execution_state(graph_node_execution_id, Status.running(), now=now)
+        self.append_event(
+            GraphNodeExecutionRequestedEvent.now(self.id, graph_node_execution_id, now=now)
+        )
+
+    def record_child_graphs_completed(
+        self,
+        *,
+        parent_graph_execution_id: GraphExecutionId,
+        completed_child_ids: tuple[GraphExecutionId, ...],
+        combined_output: dict[str, Any] | None = None,
+        now: datetime | None = None,
+    ) -> None:
+        self.append_event(
+            ChildGraphsCompletedEvent.now(
+                parent_graph_execution_id=parent_graph_execution_id,
+                completed_child_ids=completed_child_ids,
+                combined_output=combined_output,
+                now=now,
+            )
+        )

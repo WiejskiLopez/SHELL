@@ -84,9 +84,11 @@ class RunTaskerWorkflowHandler:
                 id_=self._id_gen.new_workflow_id(),
                 now=now,
             )
-            task_execution.work_dir = cmd.work_dir
-            task_execution.workflow_id = workflow.id
+            task_execution.prepare_workspace(cmd.work_dir)
+            task_execution.execute_in_workflow(workflow.id)
             await uow.task_executions.save(task_execution)
+            graph_execution.execute_in_workflow(workflow.id)
+            await uow.graph_executions.save(graph_execution)
 
             workflow.start_at(
                 first_graph_node_execution_id=first_graph_node_execution.id,

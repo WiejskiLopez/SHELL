@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
-class PlannerResultHandler:
+class SpawnSubGraphsOnPlannerCompletionHandler:
     """Processes PLANNER node output and spawns sub-graphs via CrownScheduler."""
 
     def __init__(
@@ -103,7 +103,7 @@ class PlannerResultHandler:
                     await uow.workflows.save(workflow)
                 except WorkflowConcurrentlyModified:
                     self._logger.warning(
-                        "planner_result_handler.concurrent_modification",
+                        "spawn_sub_graphs_on_planner_completion_handler.concurrent_modification",
                         workflow_id=workflow.id.value,
                     )
                     return
@@ -119,7 +119,7 @@ class PlannerResultHandler:
                 await self._crown_scheduler.mark_waiting(graph_execution.id)
 
                 self._logger.info(
-                    "planner_result_handler.waiting_for_children",
+                    "spawn_sub_graphs_on_planner_completion_handler.waiting_for_children",
                     planner_node_id=event.graph_node_execution_id.value,
                     child_count=len(child_graph_ids),
                 )
@@ -138,7 +138,7 @@ class PlannerResultHandler:
         sub_graph_def_id = step.get("sub_graph_definition_id")
         if not sub_graph_def_id:
             self._logger.warning(
-                "planner_result_handler.missing_definition_id",
+                "spawn_sub_graphs_on_planner_completion_handler.missing_definition_id",
                 step=str(step),
             )
             return None
@@ -156,7 +156,7 @@ class PlannerResultHandler:
             return child
         except Exception as exc:
             self._logger.error(
-                "planner_result_handler.spawn_failed",
+                "spawn_sub_graphs_on_planner_completion_handler.spawn_failed",
                 definition_id=sub_graph_def_id,
                 error=str(exc),
             )

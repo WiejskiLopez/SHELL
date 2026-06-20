@@ -1,4 +1,4 @@
-"""GraphNodeExecutionResultHandler — decides next step after a node result.
+"""GraphNodeExecutionCompletedHandler — decides next step after a node result.
 
 This handler subscribes to :class:`GraphNodeExecutionCompletedEvent` and
 :class:`GraphNodeExecutionFailedEvent` on the in-process EventBus.  Each
@@ -23,8 +23,6 @@ from typing import TYPE_CHECKING, Union
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionRequestedEvent,
-    GraphNodeParallelExecutionRequestedEvent,
 )
 from shell.domain.execution.services.compensation_handler import (
     CompensationHandler,
@@ -59,7 +57,7 @@ if TYPE_CHECKING:
 GraphNodeExecutionResultEvent = Union[GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent]
 
 
-class GraphNodeExecutionResultHandler:
+class GraphNodeExecutionCompletedHandler:
     """Cycle B: decides next step after receiving a node execution result.
 
     Supports SEQUENCE, PARALLEL, CONDITIONAL, LOOP, ERROR_HANDLER, and
@@ -92,14 +90,14 @@ class GraphNodeExecutionResultHandler:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
             if workflow is None:
                 self._logger.warning(
-                    "graph_node_execution_result_handler.workflow_not_found",
+                    "graph_node_execution_completed_handler.workflow_not_found",
                     workflow_id=event.workflow_id.value,
                 )
                 return
 
             if workflow.status != Status.running():
                 self._logger.debug(
-                    "graph_node_execution_result_handler.skip_non_running",
+                    "graph_node_execution_completed_handler.skip_non_running",
                     workflow_id=workflow.id.value,
                     status=workflow.status.value,
                 )
@@ -110,7 +108,7 @@ class GraphNodeExecutionResultHandler:
             )
             if not graph_executions:
                 self._logger.warning(
-                    "graph_node_execution_result_handler.no_graph",
+                    "graph_node_execution_completed_handler.no_graph",
                     workflow_id=workflow.id.value,
                 )
                 return
@@ -214,17 +212,11 @@ class GraphNodeExecutionResultHandler:
             )
             return
 
-        target_ids = [n.id for n in parallel_nodes]
-
-        workflow.append_event(
-            GraphNodeParallelExecutionRequestedEvent.now(
-                workflow_id=workflow.id,
-                fork_node_execution_id=graph_node_execution_id,
-                parallel_target_node_ids=tuple(target_ids),
-                parallel_group_id=parallel_group_id,
+        for target_id in parallel_nodes:
+            workflow.request_node_execution(
+                graph_node_execution_id=target_id.id,
                 now=now,
             )
-        )
 
     def _handle_loop(
         self,
