@@ -19,4 +19,5 @@ class TaskExecutionDto:
     is_current: bool = True
     created_at: datetime | None = None
     body: str = ""
-    graph_node_executions: list[GraphNodeExecutionDto] = field(default_factory=list)
+    work_dir: str = ""
+    workflow_id: str | None = None

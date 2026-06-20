@@ -14,7 +14,8 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class WorkflowDto:
     id: str
-    task_execution_id: str
     status: str
     created_at: datetime
+    version: int = 0
+    cursor: str | None = None
     graph_node_execution_states: dict[str, GraphNodeExecutionStateDto] = field(default_factory=dict)

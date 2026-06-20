@@ -68,9 +68,12 @@ class InMemoryQueryServices:
             return None
         return WorkflowDto(
             id=str(workflow.id),
-            task_execution_id="",
             status=workflow.status.value,
             created_at=workflow.created_at,
+            version=workflow.version,
+            cursor=workflow.cursor.current_graph_node_execution_id.value
+            if workflow.cursor.current_graph_node_execution_id
+            else None,
             graph_node_execution_states={
                 str(state.graph_node_execution_id): GraphNodeExecutionStateDto(
                     graph_node_execution_id=str(state.graph_node_execution_id),

@@ -80,13 +80,14 @@ class RunTaskerWorkflowHandler:
                 correlation_id=str(uuid.uuid4()),
             )
 
-            task_execution.work_dir = cmd.work_dir
-            await uow.task_executions.save(task_execution)
-
             workflow = Workflow.new(
                 id_=self._id_gen.new_workflow_id(),
                 now=now,
             )
+            task_execution.work_dir = cmd.work_dir
+            task_execution.workflow_id = workflow.id
+            await uow.task_executions.save(task_execution)
+
             workflow.start_at(
                 first_graph_node_execution_id=first_graph_node_execution.id,
                 context=context,

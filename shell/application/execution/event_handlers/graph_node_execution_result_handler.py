@@ -115,12 +115,6 @@ class GraphNodeExecutionResultHandler:
                 )
                 return
             graph_execution = graph_executions[0]
-            if graph_execution is None:
-                self._logger.error(
-                    "graph_node_execution_result_handler.graph_missing",
-                    workflow_id=workflow.id.value,
-                )
-                return
 
             now = self._clock.now()
 
@@ -220,13 +214,7 @@ class GraphNodeExecutionResultHandler:
             )
             return
 
-        parallel_group_id = f"pg_{graph_node_execution_id.value}_{now.timestamp()}"
         target_ids = [n.id for n in parallel_nodes]
-        graph_execution.create_parallel_group(
-            group_id=parallel_group_id,
-            fork_node_execution_id=graph_node_execution_id,
-            target_node_ids=target_ids,
-        )
 
         workflow.append_event(
             GraphNodeParallelExecutionRequestedEvent.now(

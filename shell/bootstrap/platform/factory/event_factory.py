@@ -10,7 +10,6 @@ from shell.domain.execution.events import (
     GraphNodeExecutionAdvancedEvent,
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionJoinReadyEvent,
     GraphNodeExecutionRequestedEvent,
     GraphNodeExecutionStartedEvent,
     GraphNodeExecutionTimedOutEvent,
@@ -63,10 +62,6 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(
         GraphNodeParallelExecutionRequestedEvent,
         events.graph_node_parallel_execution_handler_factory,
-    )
-    event_bus.subscribe(
-        GraphNodeExecutionJoinReadyEvent,
-        events.graph_node_join_execution_handler_factory,
     )
     event_bus.subscribe(
         GraphNodeExecutionTimedOutEvent,

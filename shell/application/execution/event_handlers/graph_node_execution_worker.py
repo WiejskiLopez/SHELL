@@ -99,14 +99,7 @@ class GraphNodeExecutionWorker:
             )
             work_dir = task_execution.work_dir if task_execution else ""
 
-        if graph_execution is None:
-            self._logger.error(
-                "graph_node_execution_worker.graph_missing",
-                workflow_id=event.workflow_id.value,
-            )
-            return
-
-        if not await self._is_event_relevant(workflow, graph_execution, event):
+        if not await self._is_event_relevant(workflow, event):
             return
 
         node = self._find_graph_node_execution(graph_execution, event.graph_node_execution_id)
@@ -119,7 +112,8 @@ class GraphNodeExecutionWorker:
             return
 
         # ── 2. Execute subprocess outside the UoW ────────────────────────
-        success, stdout, stderr = await self._run_node(workflow, node, event, work_dir)
+        task_execution_id = graph_execution.task_execution_id.value
+        success, stdout, stderr = await self._run_node(workflow, node, event, work_dir, task_execution_id)
 
         # ── 3. Reload + record result (transactional) ───────────────────
         # NOTE: next-step decision (advance / finish / abort) is handled
@@ -144,14 +138,9 @@ class GraphNodeExecutionWorker:
     async def _is_event_relevant(
         self,
         workflow: Workflow,
-        graph_execution: GraphExecution,
         event: GraphNodeExecutionRequestedEvent,
     ) -> bool:
-        """Four-tier idempotency: drop the event if cursor, status or node state moved on.
-
-        For parallel execution children, the cursor guard is bypassed —
-        instead we check if the node belongs to an active parallel group.
-        """
+        """Check if event is still relevant — guards against stale/duplicate events."""
         if workflow.status != Status.running():
             self._logger.debug(
                 "graph_node_execution_worker.skip_terminal",
@@ -160,10 +149,11 @@ class GraphNodeExecutionWorker:
             )
             return False
 
-        is_parallel = graph_execution.is_node_in_any_parallel_group(
-            event.graph_node_execution_id.value
-        )
-        if not is_parallel and not workflow.cursor.points_to(event.graph_node_execution_id):
+        # Only enforce cursor guard for nodes the workflow hasn't reached yet.
+        # Nodes with an existing state (even running) were intentionally set
+        # (e.g. parallel children, sub-graph start nodes).
+        state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
+        if state is None and not workflow.cursor.points_to(event.graph_node_execution_id):
             self._logger.debug(
                 "graph_node_execution_worker.skip_stale_cursor",
                 workflow_id=workflow.id.value,
@@ -178,7 +168,7 @@ class GraphNodeExecutionWorker:
 
         # Node-state guard: skip if this node was already executed.
         state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-        if state is not None and state.status in (Status.done(), Status.failed()):
+        if state is not None and state.status in (Status.done(), Status.failed(), Status.waiting()):
             self._logger.debug(
                 "graph_node_execution_worker.skip_already_executed",
                 workflow_id=workflow.id.value,
@@ -194,9 +184,10 @@ class GraphNodeExecutionWorker:
         graph_node_execution: GraphNodeExecution,
         event: GraphNodeExecutionRequestedEvent,
         work_dir: str,
+        task_execution_id: str,
     ) -> tuple[bool, str, str]:
         manifest = self._build_manifest(graph_node_execution)
-        env = self._build_env(workflow, graph_node_execution)
+        env = self._build_env(workflow, graph_node_execution, task_execution_id)
         try:
             result: ExecutionResult = await self._runner.run(manifest, work_dir, env)
             return result.success, result.stdout, result.stderr
@@ -234,7 +225,7 @@ class GraphNodeExecutionWorker:
             )
             graph_execution = graph_executions[0] if graph_executions else None
 
-            if not await self._is_event_relevant(workflow, graph_execution, event):
+            if not await self._is_event_relevant(workflow, event):
                 return
 
             now = self._clock.now()
@@ -279,10 +270,14 @@ class GraphNodeExecutionWorker:
         )
 
     @staticmethod
-    def _build_env(workflow: Workflow, graph_node_execution: GraphNodeExecution) -> dict[str, str]:
+    def _build_env(
+        workflow: Workflow,
+        graph_node_execution: GraphNodeExecution,
+        task_execution_id: str,
+    ) -> dict[str, str]:
         return {
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_GRAPH_NODE_EXECUTION_ID": graph_node_execution.id.value,
-            "SHELL_TASK_EXECUTION_ID": "",
+            "SHELL_TASK_EXECUTION_ID": task_execution_id,
             "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
         }

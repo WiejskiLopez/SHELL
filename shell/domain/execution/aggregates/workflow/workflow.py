@@ -12,7 +12,6 @@ from shell.domain.execution.events import (
     GraphNodeExecutionFailedEvent,
     GraphNodeExecutionRequestedEvent,
     GraphNodeExecutionStartedEvent,
-    GraphNodeExecutionWaitingEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
     WorkflowStartedEvent,
@@ -53,7 +52,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         "_version",
         "_graph_node_execution_states",
         "_graph_node_execution_results",
-        "_waiting_nodes",
     )
 
     _status: Status
@@ -63,7 +61,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
     _version: int
     _graph_node_execution_states: dict[str, GraphNodeExecutionState]
     _graph_node_execution_results: dict[str, GraphNodeExecutionResult]
-    _waiting_nodes: dict[str, list[str]]  # node_id -> child_graph_ids
 
     def __init__(
         self,
@@ -76,7 +73,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         version: int = 0,
         graph_node_execution_states: dict[str, GraphNodeExecutionState] | None = None,
         graph_node_execution_results: dict[str, GraphNodeExecutionResult] | None = None,
-        waiting_nodes: dict[str, list[str]] | None = None,
     ) -> None:
         super().__init__(id)
         self._status = status
@@ -88,8 +84,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._version = version
         self._graph_node_execution_states = graph_node_execution_states or {}
         self._graph_node_execution_results = graph_node_execution_results or {}
-        self._waiting_nodes = waiting_nodes or {}
-
     @property
     def status(self) -> Status:
         return self._status
@@ -242,6 +236,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
         existing = self._graph_node_execution_states.get(graph_node_execution_id.value)
         state_id = existing.id if existing else GraphNodeExecutionStateId.generate()
+        step = existing.step if existing else step
         self._graph_node_execution_states[graph_node_execution_id.value] = GraphNodeExecutionState(
             id=state_id,
             graph_node_execution_id=graph_node_execution_id,
@@ -250,15 +245,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
             step=step,
         )
 
-    @property
-    def waiting_nodes(self) -> dict[str, list[str]]:
-        return dict(self._waiting_nodes)
-
     def wait_for_children(
         self,
         *,
         graph_node_execution_id: GraphNodeExecutionId,
-        child_graph_ids: list[str] | None = None,
         now: datetime,
     ) -> None:
         if self._status != Status.running():
@@ -267,28 +257,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self.update_graph_node_execution_state(
             graph_node_execution_id, Status.waiting(), now=now
-        )
-        node_key = graph_node_execution_id.value
-        self._waiting_nodes[node_key] = child_graph_ids or []
-        self.append_event(
-            GraphNodeExecutionWaitingEvent.now(
-                workflow_id=self.id,
-                graph_node_execution_id=graph_node_execution_id,
-                child_graph_ids=tuple(self._waiting_nodes[node_key]),
-                now=now,
-            )
-        )
-
-    def on_children_completed(
-        self,
-        *,
-        graph_node_execution_id: GraphNodeExecutionId,
-        now: datetime,
-    ) -> None:
-        node_key = graph_node_execution_id.value
-        self._waiting_nodes.pop(node_key, None)
-        self.update_graph_node_execution_state(
-            graph_node_execution_id, Status.done(), now=now
         )
 
     def record_graph_node_execution_result(

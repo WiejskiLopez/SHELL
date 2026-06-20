@@ -31,9 +31,10 @@ class WorkflowQueryService:
                 return None
             return WorkflowDto(
                 id=model.id,
-                task_execution_id=model.task_execution_id,
                 status=model.status,
                 created_at=model.created_at,
+                version=model.version,
+                cursor=model.current_graph_node_execution_id,
                 graph_node_execution_states={
                     state_model.graph_node_execution_id: GraphNodeExecutionStateDto(
                         graph_node_execution_id=state_model.graph_node_execution_id,

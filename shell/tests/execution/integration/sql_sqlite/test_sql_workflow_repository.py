@@ -82,7 +82,6 @@ class TestSqlWorkflowRepository:
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
-        assert dto.task_execution_id == real_task_execution_id
 
     async def test_workflow_not_found_returns_none(
         self,

@@ -17,11 +17,6 @@ class InMemoryWorkflowRepository(WorkflowRepository):
     async def get_by_id(self, workflow_id: WorkflowId) -> Workflow | None:
         return self._store.get(workflow_id.value)
 
-    async def get_by_task_execution_id(
-        self, task_execution_id: TaskExecutionId
-    ) -> Workflow | None:
-        return None
-
     async def save(self, workflow: Workflow) -> None:
         from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 

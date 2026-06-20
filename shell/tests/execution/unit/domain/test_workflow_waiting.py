@@ -1,4 +1,4 @@
-"""Tests for Workflow.wait_for_children / on_children_completed."""
+"""Tests for Workflow.wait_for_children."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ from datetime import datetime, timezone
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
-    TaskExecutionId,
     WorkflowId,
 )
 from shell.domain.execution.value_objects.workflow_execution_context import (
@@ -26,36 +25,12 @@ class TestWorkflowWaitingState:
 
         workflow.wait_for_children(
             graph_node_execution_id=node_id,
-            child_graph_ids=["child-1", "child-2"],
             now=_NOW,
         )
 
         state = workflow.get_graph_node_execution_state(node_id)
         assert state is not None
         assert state.status == Status.waiting()
-
-        assert node_id.value in workflow.waiting_nodes
-        assert workflow.waiting_nodes[node_id.value] == ["child-1", "child-2"]
-
-    def test_on_children_completed_marks_node_done(self) -> None:
-        workflow = self._make_running_workflow()
-        node_id = GraphNodeExecutionId("node-1")
-        workflow.wait_for_children(
-            graph_node_execution_id=node_id,
-            child_graph_ids=["child-1"],
-            now=_NOW,
-        )
-
-        workflow.on_children_completed(
-            graph_node_execution_id=node_id,
-            now=_NOW,
-        )
-
-        state = workflow.get_graph_node_execution_state(node_id)
-        assert state is not None
-        assert state.status == Status.done()
-
-        assert node_id.value not in workflow.waiting_nodes
 
     def test_wait_for_children_requires_running_status(self) -> None:
         from shell.domain.execution.exceptions import InvalidWorkflowTransition

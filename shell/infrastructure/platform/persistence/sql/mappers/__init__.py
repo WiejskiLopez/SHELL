@@ -57,10 +57,9 @@ from shell.domain.execution.value_objects.ids import (
     MessageId,
     SessionId,
     TaskExecutionId,
-    WorkflowId,
     TaskExecutionInputPayloadId,
     TaskExecutionOutputPayloadId,
-    WorkflowId
+    WorkflowId,
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
@@ -110,8 +109,6 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
-    from shell.domain.execution.value_objects.ids import WorkflowId
-
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
         parent_task_execution_id=(
@@ -347,7 +344,6 @@ def graph_node_transition_execution_model_to_entity(
         priority=model.priority,
         condition_expression=model.condition_expression,
         condition_language=model.condition_language,
-        join_wait_count=model.join_wait_count,
         max_loop_count=model.max_loop_count,
         timeout_seconds=model.timeout_seconds,
         retry_count=model.retry_count,
@@ -374,7 +370,6 @@ def graph_node_transition_execution_entity_to_model(
         priority=transition.priority,
         condition_expression=transition.condition_expression,
         condition_language=transition.condition_language,
-        join_wait_count=transition.join_wait_count,
         max_loop_count=transition.max_loop_count,
         timeout_seconds=transition.timeout_seconds,
         retry_count=transition.retry_count,
@@ -402,7 +397,6 @@ def graph_node_transition_definition_model_to_entity(
         priority=model.priority,
         condition_expression=model.condition_expression,
         condition_language=model.condition_language,
-        join_wait_count=model.join_wait_count,
         max_loop_count=model.max_loop_count,
         timeout_seconds=model.timeout_seconds,
         retry_count=model.retry_count,
@@ -429,7 +423,6 @@ def graph_node_transition_definition_entity_to_model(
         priority=transition.priority,
         condition_expression=transition.condition_expression,
         condition_language=transition.condition_language,
-        join_wait_count=transition.join_wait_count,
         max_loop_count=transition.max_loop_count,
         timeout_seconds=transition.timeout_seconds,
         retry_count=transition.retry_count,

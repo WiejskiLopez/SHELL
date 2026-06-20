@@ -111,6 +111,10 @@ class TaskExecution(AggregateRoot["TaskExecutionId"]):
     def workflow_id(self) -> WorkflowId | None:
         return self._workflow_id
 
+    @workflow_id.setter
+    def workflow_id(self, value: WorkflowId | None) -> None:
+        self._workflow_id = value
+
     @classmethod
     def create(
         cls,

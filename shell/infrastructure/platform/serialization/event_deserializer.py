@@ -16,7 +16,6 @@ from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionConditionEvaluatedEvent,
     GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionJoinReadyEvent,
     GraphNodeExecutionLoopIterationEvent,
     GraphNodeExecutionRequestedEvent,
     GraphNodeExecutionStartedEvent,
@@ -50,7 +49,6 @@ class EventDeserializer:
             "GraphNodeExecutionAdvanced": GraphNodeExecutionAdvancedEvent,
             "GraphNodeParallelExecutionRequested": GraphNodeParallelExecutionRequestedEvent,
             "GraphNodeExecutionConditionEvaluated": GraphNodeExecutionConditionEvaluatedEvent,
-            "GraphNodeExecutionJoinReady": GraphNodeExecutionJoinReadyEvent,
             "GraphNodeExecutionLoopIteration": GraphNodeExecutionLoopIterationEvent,
             "GraphNodeExecutionTimedOut": GraphNodeExecutionTimedOutEvent,
         }

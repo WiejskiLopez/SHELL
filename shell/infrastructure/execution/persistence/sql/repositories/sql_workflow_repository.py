@@ -36,17 +36,6 @@ class SqlWorkflowRepository(WorkflowRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return workflow_model_to_entity(row) if row else None
 
-    async def get_by_task_execution_id(
-        self, task_execution_id: TaskExecutionId
-    ) -> Workflow | None:
-        te_query = select(TaskExecutionModel.workflow_id).where(
-            TaskExecutionModel.id == task_execution_id.value
-        )
-        wf_id = (await self._session.execute(te_query)).scalar_one_or_none()
-        if wf_id is None:
-            return None
-        return await self.get_by_id(WorkflowId(wf_id))
-
     async def save(self, workflow: Workflow) -> None:
         from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 

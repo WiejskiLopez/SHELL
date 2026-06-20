@@ -51,11 +51,12 @@ class CrownSchedulerHandler:
     async def handle(self, event: WorkflowCompletedEvent) -> None:
         """Check if completed workflow belongs to a child graph and notify parent."""
         async with self._uow as uow:
-            graph_execution = await uow.graph_executions.get_by_task_execution_id(
-                event.task_execution_id,
+            graph_executions = await uow.graph_executions.get_by_workflow_id(
+                event.workflow_id,
             )
-            if graph_execution is None:
+            if not graph_executions:
                 return
+            graph_execution = graph_executions[0]
 
             parent_id = graph_execution.parent_graph_execution_id
             if parent_id is None:
@@ -115,7 +116,6 @@ class CrownSchedulerHandler:
                 if child_status.result:
                     combined_output.update(child_status.result)
             parent_graph.state_output = combined_output
-            await uow.graph_executions.save(parent_graph)
 
             # Find the waiting node in parent workflow and mark it complete
             waiting_node = self._find_waiting_node(parent_workflow)
@@ -136,14 +136,17 @@ class CrownSchedulerHandler:
             )
             parent_workflow.append_event(event_to_emit)
 
+            # Save workflow first (CAS), then graph
             try:
                 await uow.workflows.save(parent_workflow)
-                uow.stage_events(parent_workflow.pull_events())
             except WorkflowConcurrentlyModified:
                 self._logger.warning(
                     "crown_scheduler.concurrent_modification",
                     parent_workflow_id=parent_workflow.id.value,
                 )
+                raise
+            await uow.graph_executions.save(parent_graph)
+            uow.stage_events(parent_workflow.pull_events())
 
     @staticmethod
     def _find_waiting_node(

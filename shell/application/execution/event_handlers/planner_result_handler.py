@@ -62,8 +62,6 @@ class PlannerResultHandler:
             if not graph_executions:
                 return
             graph_execution = graph_executions[0]
-            if graph_execution is None:
-                return
 
             node = self._find_node(graph_execution, event.graph_node_execution_id)
             if node is None or node.mode != Mode.PLANNER:
@@ -95,21 +93,29 @@ class PlannerResultHandler:
                     )
                     if child is not None:
                         child_graph_ids.append(child.id.value)
-                        await self._crown_scheduler.register_child(
-                            parent_graph_execution_id=graph_execution.id,
-                            child_graph_execution_id=child.id,
-                        )
 
             if child_graph_ids:
                 workflow.wait_for_children(
                     graph_node_execution_id=event.graph_node_execution_id,
-                    child_graph_ids=child_graph_ids,
                     now=now,
                 )
-                await uow.workflows.save(workflow)
+                try:
+                    await uow.workflows.save(workflow)
+                except WorkflowConcurrentlyModified:
+                    self._logger.warning(
+                        "planner_result_handler.concurrent_modification",
+                        workflow_id=workflow.id.value,
+                    )
+                    return
                 uow.stage_events(workflow.pull_events())
 
-                # Mark graph as waiting in CrownScheduler
+                # Register children + mark waiting after successful save
+                for child_id in child_graph_ids:
+                    from shell.domain.execution.value_objects.ids import GraphExecutionId
+                    await self._crown_scheduler.register_child(
+                        parent_graph_execution_id=graph_execution.id,
+                        child_graph_execution_id=GraphExecutionId(child_id),
+                    )
                 await self._crown_scheduler.mark_waiting(graph_execution.id)
 
                 self._logger.info(

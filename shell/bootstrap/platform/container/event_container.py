@@ -15,9 +15,6 @@ from shell.application.execution.event_handlers.graph_node_execution_result_hand
     GraphNodeExecutionResultHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
-from shell.application.execution.event_handlers.graph_node_join_execution_handler import (
-    GraphNodeJoinExecutionHandler,
-)
 from shell.application.execution.event_handlers.graph_node_parallel_execution_handler import (
     GraphNodeParallelExecutionHandler,
 )
@@ -79,13 +76,6 @@ class EventContainer(containers.DeclarativeContainer):
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         logger=infra.stdlib_logger,
-    )
-    graph_node_join_execution_handler_factory = providers.Factory(
-        GraphNodeJoinExecutionHandler,
-        uow=buses.uow_factory,
-        clock=infra.clock_factory,
-        logger=infra.stdlib_logger,
-        navigator=domain.node_navigator_factory,
     )
     graph_node_timeout_handler_factory = providers.Factory(
         GraphNodeTimeoutHandler,

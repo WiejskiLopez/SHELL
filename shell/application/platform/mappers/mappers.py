@@ -53,7 +53,8 @@ def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
         is_current=task_execution.is_current,
         created_at=task_execution.created_at,
         body=task_execution.body.value,
-        graph_node_executions=[],
+        work_dir=task_execution.work_dir,
+        workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
     )
 
 
@@ -67,12 +68,14 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
         )
         for state in workflow.graph_node_execution_states
     }
-    primary_te_id = workflow.task_execution_id
     return WorkflowDto(
         id=workflow.id.value,
-        task_execution_id=primary_te_id.value if primary_te_id else "",
         status=workflow.status.value,
         created_at=workflow.created_at,
+        version=workflow.version,
+        cursor=workflow.cursor.current_graph_node_execution_id.value
+        if workflow.cursor.current_graph_node_execution_id
+        else None,
         graph_node_execution_states=graph_node_execution_states,
     )
 
