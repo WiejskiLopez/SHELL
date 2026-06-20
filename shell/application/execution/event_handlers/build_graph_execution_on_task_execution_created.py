@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.ports.definition_provider import DefinitionProvider
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -33,12 +34,14 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
     def __init__(
         self,
         uow: UnitOfWork,
+        definition_provider: DefinitionProvider,
         clock: Clock,
         id_gen: IdGenerator,
         logger: Logger,
         name: str = GRAPH_DEFINITION_NAME,
     ) -> None:
         self._uow = uow
+        self._definition_provider = definition_provider
         self._clock = clock
         self._id_gen = id_gen
         self._logger = logger
@@ -50,6 +53,15 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
             task_execution_id=event.task_execution_id.value,
         )
         now = self._clock.now()
+
+        graph_definition = await self._definition_provider.get_graph_definition_by_name(
+            self._name,
+        )
+        if graph_definition is None:
+            raise GraphDefinitionNotFoundException(
+                f"GraphDefinition {self._name!r} not found",
+            )
+
         async with self._uow as uow:
             existing = await uow.graph_executions.get_by_task_execution_id(event.task_execution_id)
             if existing is not None:
@@ -58,14 +70,6 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                     task_execution_id=event.task_execution_id.value,
                 )
                 return
-
-            graph_definition = await uow.graph_definitions.get_graph_definition_by_name(
-                self._name,
-            )
-            if graph_definition is None:
-                raise GraphDefinitionNotFoundException(
-                    f"GraphDefinition {self._name!r} not found",
-                )
 
             graph_execution = GraphExecution.from_graph_definition(
                 id_=self._id_gen.new_graph_execution_id(),

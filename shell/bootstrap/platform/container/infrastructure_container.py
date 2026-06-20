@@ -13,6 +13,9 @@ from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 
+from shell.infrastructure.execution.definition_provider_adapter import (
+    DefinitionProviderAdapter,
+)
 from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
     InMemoryCrownScheduler,
 )
@@ -36,6 +39,9 @@ from shell.infrastructure.definition.persistence.sql.services import (
     PromptQueryService,
     RagQueryService,
     RunnerConfigQueryService,
+)
+from shell.infrastructure.definition.persistence.sql.services.graph_definition_query_service import (
+    SqlGraphDefinitionQueryService,
 )
 
 
@@ -81,10 +87,20 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     workspace_factory = providers.Factory(Workspace)
     runner_factory = providers.Factory(SubprocessNodeProcessRunner)
 
-    # 3. Crown-Scheduler (parent-child sub-graph orchestration)
+    # 3. Adaptery definicji (bridge execution → definition)
+    graph_definition_query_service_factory = providers.Factory(
+        SqlGraphDefinitionQueryService,
+        session_factory=session_factory,
+    )
+    definition_provider_factory = providers.Factory(
+        DefinitionProviderAdapter,
+        query_service=graph_definition_query_service_factory,
+    )
+
+    # 4. Crown-Scheduler (parent-child sub-graph orchestration)
     crown_scheduler_factory = providers.Singleton(InMemoryCrownScheduler)
 
-    # 4. Scheduler adapters (bridges scheduling → execution)
+    # 5. Scheduler adapters (bridges scheduling → execution)
     scheduler_launcher_factory = providers.Factory(
         GraphExecutionLauncherAdapter,
         uow=uow_factory,
@@ -98,6 +114,6 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         logger=stdlib_logger,
     )
 
-    # 5. Publikatory zdarzeń (warstwa IO)
+    # 6. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)
     sql_audit_publisher = providers.Singleton(SqlAuditPublisher, session_factory=session_factory)

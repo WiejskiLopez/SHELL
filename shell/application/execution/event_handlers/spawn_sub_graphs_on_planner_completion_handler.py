@@ -133,8 +133,6 @@ class SpawnSubGraphsOnPlannerCompletionHandler:
         correlation_id: str,
         uow: UnitOfWork,
     ) -> GraphExecution | None:
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId
-
         sub_graph_def_id = step.get("sub_graph_definition_id")
         if not sub_graph_def_id:
             self._logger.warning(
@@ -148,7 +146,7 @@ class SpawnSubGraphsOnPlannerCompletionHandler:
             child = await self._sub_graph_service.spawn(
                 parent_graph_execution=graph_execution,
                 parent_tasker_node=node,
-                graph_definition_id=GraphDefinitionId(sub_graph_def_id),
+                graph_definition_id=sub_graph_def_id,
                 state_input=state_input,
                 correlation_id=correlation_id,
                 uow=uow,

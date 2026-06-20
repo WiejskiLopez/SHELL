@@ -47,6 +47,7 @@ class DomainContainer(containers.DeclarativeContainer):
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
         navigator=node_navigator_factory,
+        definition_provider=infra.definition_provider_factory,
         governance=sub_graph_governance_factory,
         security=sub_graph_security_factory,
         versioning=sub_graph_versioning_factory,

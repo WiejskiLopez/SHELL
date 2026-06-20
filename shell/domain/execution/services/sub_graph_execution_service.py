@@ -15,12 +15,12 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
+from shell.domain.execution.ports.definition_provider import DefinitionProvider
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
 
 if TYPE_CHECKING:
-    from shell.domain.definition.value_objects.ids import GraphDefinitionId
     from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.ids import GraphExecutionId
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
@@ -54,6 +54,7 @@ class SubGraphExecutionService:
         id_gen: IdGenerator,
         logger: Logger,
         navigator: NodeNavigator,
+        definition_provider: DefinitionProvider,
         governance: SubGraphGovernance | None = None,
         security: SubGraphSecurity | None = None,
         versioning: SubGraphVersioning | None = None,
@@ -64,6 +65,7 @@ class SubGraphExecutionService:
         self._id_gen = id_gen
         self._logger = logger
         self._navigator = navigator
+        self._definition_provider = definition_provider
         self._governance = governance
         self._security = security
         self._versioning = versioning
@@ -74,7 +76,7 @@ class SubGraphExecutionService:
         *,
         parent_graph_execution: GraphExecution,
         parent_tasker_node: GraphNodeExecution,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: str,
         state_input: dict[str, Any] | None = None,
         correlation_id: str = "",
         uow: UnitOfWork | None = None,
@@ -93,7 +95,7 @@ class SubGraphExecutionService:
         now = self._clock.now()
         depth = parent_graph_execution.depth + 1
         parent_id = parent_graph_execution.id.value
-        def_id = str(graph_definition_id)
+        def_id = graph_definition_id
 
         # ── Governance check ──────────────────────────────────────────────
         if self._governance is not None:
@@ -112,9 +114,7 @@ class SubGraphExecutionService:
                 parent_graph_execution_id=parent_id,
             )
         else:
-            from shell.domain.definition.value_objects.ids import GraphDefinitionId
-
-            gd = await _uow.graph_definitions.get_by_id(GraphDefinitionId(def_id))
+            gd = await self._definition_provider.get_graph_definition(def_id)
             if gd is None:
                 raise ValueError(f"GraphDefinition {def_id!r} not found")
             graph_definition = gd

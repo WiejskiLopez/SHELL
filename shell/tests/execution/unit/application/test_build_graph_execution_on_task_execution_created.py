@@ -22,6 +22,9 @@ from shell.domain.execution.value_objects.ids import (
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.infrastructure.execution.definition_provider_adapter import (
+    DefinitionProviderAdapter,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
@@ -29,8 +32,65 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryUnitOfWork
 )
 
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
+)
+
 if TYPE_CHECKING:
     from datetime import datetime
+
+
+class _InMemoryGraphDefinitionQueryService:
+    def __init__(self, uow: InMemoryUnitOfWork) -> None:
+        self._repo = uow.graph_definitions
+
+    async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
+        from shell.domain.platform.value_objects.mode import Mode
+
+        entity = await self._repo.get_graph_definition_by_name(name)
+        if entity is None:
+            return None
+        return self._to_dto(entity)
+
+    async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None:
+        from shell.domain.definition.value_objects.ids import GraphDefinitionId
+
+        entity = await self._repo.get_by_id(GraphDefinitionId(definition_id))
+        if entity is None:
+            return None
+        return self._to_dto(entity)
+
+    def _to_dto(self, entity: object) -> GraphExecutionDefinition:
+        from shell.domain.definition.entities.graph_definition import GraphDefinition
+
+        gd: GraphDefinition = entity  # type: ignore[assignment]
+        return GraphExecutionDefinition(
+            id=gd.id.value if hasattr(gd.id, "value") else str(gd.id),
+            name=gd.name,
+            graph_node_execution_definitions=[
+                GraphNodeExecutionDefinition(
+                    position=nd.position,
+                    mode=nd.mode.value if hasattr(nd.mode, "value") else str(nd.mode),
+                    role=nd.role,
+                    node_type=nd.node_type,
+                    model=nd.model,
+                    command=nd.command,
+                    timeout=nd.timeout,
+                    retries=nd.retries,
+                    log_level=nd.log_level,
+                    max_step=nd.max_step,
+                    no_ask_user=nd.no_ask_user,
+                    autopilot=nd.autopilot,
+                    status_initial=nd.status_initial,
+                    extra=dict(nd.extra) if nd.extra else {},
+                    script=getattr(nd, "script", ""),
+                    script_type=getattr(nd, "script_type", ""),
+                )
+                for nd in gd.graph_node_definitions
+            ],
+        )
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -112,7 +172,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger)
 
         await handler.handle(_task_created_event(clock.now()))
 
@@ -136,7 +196,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger)
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
@@ -149,7 +209,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger)
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
@@ -182,7 +242,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger)
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))

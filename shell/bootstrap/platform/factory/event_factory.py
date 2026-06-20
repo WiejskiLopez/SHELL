@@ -78,9 +78,9 @@ def register_events(core_container: CoreContainer) -> None:
     )
     event_bus.subscribe(
         WorkflowCompletedEvent,
-        events.scheduler_execution_handler_factory,
+        events.workflow_outcome_adapter_factory,
     )
     event_bus.subscribe(
         WorkflowFailedEvent,
-        events.scheduler_execution_handler_factory,
+        events.workflow_outcome_adapter_factory,
     )

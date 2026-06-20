@@ -31,6 +31,9 @@ from shell.application.scheduling.event_handlers.scheduler_trigger_handler impor
 from shell.application.scheduling.event_handlers.scheduler_execution_handler import (
     SchedulerExecutionHandler,
 )
+from shell.infrastructure.scheduling.execution_workflow_outcome_adapter import (
+    ExecutionWorkflowOutcomeAdapter,
+)
 
 
 
@@ -53,6 +56,7 @@ class EventContainer(containers.DeclarativeContainer):
     build_graph_execution_on_task_execution_created_factory = providers.Factory(
         BuildGraphExecutionOnTaskExecutionCreatedEvent,
         uow=buses.uow_factory,
+        definition_provider=infra.definition_provider_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
@@ -116,4 +120,8 @@ class EventContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         logger=infra.stdlib_logger,
         orchestrator=domain.scheduler_orchestrator_factory,
+    )
+    workflow_outcome_adapter_factory = providers.Factory(
+        ExecutionWorkflowOutcomeAdapter,
+        receiver=scheduler_execution_handler_factory,
     )

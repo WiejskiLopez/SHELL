@@ -11,14 +11,15 @@ from shell.domain.execution.events import GraphExecutionBuiltEvent
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.transition_type import TransitionType
 
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
+)
+
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
     from shell.domain.platform.ports.identity import IdGenerator
-    from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId
-)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
@@ -47,7 +48,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     )
 
     _task_execution_id: TaskExecutionId
-    _graph_definition_id: GraphDefinitionId
+    _graph_definition_id: str
     _parent_graph_execution_id: GraphExecutionId | None
     _state_input: dict[str, Any]
     _state_output: dict[str, Any]
@@ -64,7 +65,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         self,
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: str,
         graph_node_executions: list[GraphNodeExecution] | None = None,
         transitions: list[GraphNodeTransitionExecution] | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
@@ -96,7 +97,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         return self._task_execution_id
 
     @property
-    def graph_definition_id(self) -> GraphDefinitionId:
+    def graph_definition_id(self) -> str:
         return self._graph_definition_id
 
     @property
@@ -175,7 +176,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         *,
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        graph_definition: GraphDefinition,
+        graph_definition: GraphExecutionDefinition,
         id_gen: IdGenerator,
         now: datetime,
         parent_graph_execution_id: GraphExecutionId | None = None,
@@ -189,35 +190,31 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         graph_node_executions: list[GraphNodeExecution] = []
         previous_node_id: GraphNodeExecutionId | None = None
 
-        for graph_node_definition in graph_definition.graph_node_definitions:
-            mode = (
-                graph_node_definition.mode
-                if isinstance(graph_node_definition.mode, Mode)
-                else Mode(str(graph_node_definition.mode))
-            )
+        for node_dto in graph_definition.graph_node_execution_definitions:
+            mode = Mode(node_dto.mode)
             node_id = id_gen.new_graph_node_execution_id()
             graph_node_executions.append(
                 GraphNodeExecution(
                     id=node_id,
-                    position=graph_node_definition.position,
+                    position=node_dto.position,
                     mode=mode,
-                    role=graph_node_definition.role,
-                    node_type=graph_node_definition.node_type,
-                    model=graph_node_definition.model,
-                    command=graph_node_definition.command,
-                    timeout=graph_node_definition.timeout,
-                    retries=graph_node_definition.retries,
-                    log_level=graph_node_definition.log_level,
-                    max_step=graph_node_definition.max_step or 0,
-                    no_ask_user=graph_node_definition.no_ask_user,
-                    autopilot=graph_node_definition.autopilot,
+                    role=node_dto.role,
+                    node_type=node_dto.node_type,
+                    model=node_dto.model,
+                    command=node_dto.command,
+                    timeout=node_dto.timeout,
+                    retries=node_dto.retries,
+                    log_level=node_dto.log_level,
+                    max_step=node_dto.max_step or 0,
+                    no_ask_user=node_dto.no_ask_user,
+                    autopilot=node_dto.autopilot,
                     task_execution_id="",
                     source_dir="",
-                    status_initial=graph_node_definition.status_initial,
-                    extra=dict(graph_node_definition.extra),
-                    sub_graph_definition_id=graph_node_definition.extra.get("sub_graph_definition_id"),
-                    timeout_seconds=graph_node_definition.timeout,
-                    max_retries=graph_node_definition.retries,
+                    status_initial=node_dto.status_initial,
+                    extra=dict(node_dto.extra),
+                    sub_graph_definition_id=node_dto.extra.get("sub_graph_definition_id"),
+                    timeout_seconds=node_dto.timeout,
+                    max_retries=node_dto.retries,
                 )
             )
             previous_node_id = node_id

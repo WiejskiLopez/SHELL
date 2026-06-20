@@ -7,9 +7,6 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId
-)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     TaskExecutionId
@@ -20,14 +17,14 @@ from shell.domain.execution.value_objects.ids import (
 class GraphExecutionBuiltEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
-    graph_definition_id: GraphDefinitionId
+    graph_definition_id: str
 
     @classmethod
     def now(
         cls,
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: str,
         now: datetime,
     ) -> GraphExecutionBuiltEvent:
         return cls(
@@ -46,5 +43,5 @@ class GraphExecutionBuiltEvent(DomainEvent):
             schema_version=schema_version,
             graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
-            graph_definition_id=GraphDefinitionId(payload["graph_definition_id"]),
+            graph_definition_id=payload["graph_definition_id"],
         )

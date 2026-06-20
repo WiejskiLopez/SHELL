@@ -2,10 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import (
-    WorkflowCompletedEvent,
-    WorkflowFailedEvent,
-)
+from shell.domain.scheduling.ports.workflow_outcome_receiver import WorkflowOutcomeReceiver
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
@@ -16,7 +13,7 @@ if TYPE_CHECKING:
     )
 
 
-class SchedulerExecutionHandler:
+class SchedulerExecutionHandler(WorkflowOutcomeReceiver):
     def __init__(
         self,
         uow: UnitOfWork,
@@ -29,18 +26,14 @@ class SchedulerExecutionHandler:
         self._logger = logger
         self._orchestrator = orchestrator
 
-    async def handle_workflow_completed(
-        self, event: WorkflowCompletedEvent
-    ) -> None:
+    async def on_workflow_completed(self, workflow_id: str) -> None:
         now = self._clock.now()
         async with self._uow as uow:
-            executions = await uow.scheduler_executions.get_by_action_ref(
-                event.workflow_id.value,
-            )
+            executions = await uow.scheduler_executions.get_by_action_ref(workflow_id)
             if not executions:
                 self._logger.info(
                     "scheduler_execution_handler.no_matching_execution",
-                    workflow_id=event.workflow_id.value,
+                    workflow_id=workflow_id,
                 )
                 return
 
@@ -59,16 +52,14 @@ class SchedulerExecutionHandler:
 
             self._logger.info(
                 "scheduler_execution_handler.workflow_completed",
-                workflow_id=event.workflow_id.value,
+                workflow_id=workflow_id,
                 executions_updated=len(executions),
             )
 
-    async def handle_workflow_failed(self, event: WorkflowFailedEvent) -> None:
+    async def on_workflow_failed(self, workflow_id: str, error: str) -> None:
         now = self._clock.now()
         async with self._uow as uow:
-            executions = await uow.scheduler_executions.get_by_action_ref(
-                event.workflow_id.value,
-            )
+            executions = await uow.scheduler_executions.get_by_action_ref(workflow_id)
             if not executions:
                 return
 
@@ -79,7 +70,7 @@ class SchedulerExecutionHandler:
                 events = self._orchestrator.complete_execution(
                     execution,
                     output_state=None,
-                    error=event.error or "workflow_failed",
+                    error=error,
                     now=now,
                 )
                 await uow.scheduler_executions.save(execution)
@@ -87,6 +78,6 @@ class SchedulerExecutionHandler:
 
             self._logger.info(
                 "scheduler_execution_handler.workflow_failed",
-                workflow_id=event.workflow_id.value,
-                error=event.error,
+                workflow_id=workflow_id,
+                error=error,
             )

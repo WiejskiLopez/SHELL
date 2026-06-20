@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
-if TYPE_CHECKING:
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
-    from shell.domain.definition.value_objects.ids import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+)
 
 
 class DefinitionProvider(Protocol):
-    def get_graph_definition(self, id: GraphDefinitionId) -> GraphDefinition: ...
+    async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None: ...
+
+    async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None: ...
