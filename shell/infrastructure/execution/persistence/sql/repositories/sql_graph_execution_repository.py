@@ -13,6 +13,7 @@ from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_model_to_entity,
 )
 from ..models import GraphExecutionModel
+from ..models.task_execution import TaskExecutionModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,8 +48,11 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_workflow_id(
         self, workflow_id: WorkflowId
     ) -> list[GraphExecution]:
-        query = self._base_query().where(
-            GraphExecutionModel.workflow_id == workflow_id.value
+        query = self._base_query().join(
+            TaskExecutionModel,
+            GraphExecutionModel.task_execution_id == TaskExecutionModel.id,
+        ).where(
+            TaskExecutionModel.workflow_id == workflow_id.value
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [graph_execution_model_to_entity(row) for row in rows if row is not None]

@@ -16,8 +16,8 @@ class PipelineCommand(RunnableCommand):
         await bootstrap_database(args.db_url)
         core_container = await ApplicationFactory(database_url=args.db_url).build()
 
-        relay = core_container.messaging.outbox_relay()
-        processor = core_container.messaging.inbox_processor()
+        relay = core_container.events.outbox_to_inbox_relay()
+        processor = core_container.events.inbox_processor()
 
         outbox_count = await relay.run_once()
         inbox_count = await processor.run_once()

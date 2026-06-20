@@ -8,11 +8,20 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+    from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+        InMemoryTaskExecutionRepository,
+    )
 
 
 class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphExecution] = {}
+        self._task_executions: InMemoryTaskExecutionRepository | None = None
+
+    def link_task_executions(
+        self, repo: InMemoryTaskExecutionRepository
+    ) -> None:
+        self._task_executions = repo
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
         return self._store.get(graph_execution_id.value)
@@ -28,9 +37,16 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_workflow_id(
         self, workflow_id: WorkflowId
     ) -> list[GraphExecution]:
+        if self._task_executions is None:
+            return []
+        task_ids = [
+            te.id.value
+            for te in self._task_executions._store.values()
+            if te.workflow_id == workflow_id
+        ]
         return [
             ge for ge in self._store.values()
-            if ge.workflow_id == workflow_id
+            if ge.task_execution_id.value in task_ids
         ]
 
     async def save(self, graph_execution: GraphExecution) -> None:

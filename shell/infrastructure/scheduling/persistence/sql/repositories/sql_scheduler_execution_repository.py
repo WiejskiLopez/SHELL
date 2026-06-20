@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
@@ -34,24 +34,17 @@ class SqlSchedulerExecutionRepository:
         row = (await self._session.execute(query)).scalar_one_or_none()
         return scheduler_execution_model_to_entity(row) if row else None
 
-    async def get_by_action_ref(
-        self, action_ref: str
-    ) -> list[SchedulerExecution]:
+    async def list_enabled(self) -> list[SchedulerExecution]:
         query = select(SchedulerExecutionModel).where(
-            SchedulerExecutionModel.action_ref == action_ref
+            SchedulerExecutionModel.enabled == True
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 
-    async def count_by_definition_and_status(
-        self, scheduler_definition_id: str, status: str
-    ) -> int:
-        query = select(func.count()).select_from(SchedulerExecutionModel).where(
-            SchedulerExecutionModel.scheduler_definition_id == scheduler_definition_id,
-            SchedulerExecutionModel.status == status,
-        )
-        result = await self._session.execute(query)
-        return result.scalar_one()
+    async def list_all(self) -> list[SchedulerExecution]:
+        query = select(SchedulerExecutionModel)
+        rows = (await self._session.execute(query)).scalars().all()
+        return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 
     async def save(self, execution: SchedulerExecution) -> None:
         model = scheduler_execution_entity_to_model(execution)

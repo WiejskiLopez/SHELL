@@ -93,15 +93,15 @@ class NotifyParentOnChildCompletionHandler:
                 )
                 return
 
-            parent_workflow_id = parent_graph.workflow_id
-            if parent_workflow_id is None:
+            parent_task = await uow.task_executions.get_by_id(parent_graph.task_execution_id)
+            if parent_task is None or parent_task.workflow_id is None:
                 self._logger.warning(
                     "crown_scheduler.parent_no_workflow_id",
                     parent_graph_id=parent_graph_execution_id.value,
                 )
                 return
 
-            parent_workflow = await uow.workflows.get_by_id(parent_workflow_id)
+            parent_workflow = await uow.workflows.get_by_id(parent_task.workflow_id)
             if parent_workflow is None:
                 self._logger.warning(
                     "crown_scheduler.parent_workflow_not_found",

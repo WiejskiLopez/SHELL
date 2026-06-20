@@ -24,7 +24,6 @@ class GraphExecutionModel(Base):
         ForeignKey("graph_execution.id", ondelete="SET NULL"),
         nullable=True,
     )
-    workflow_id: Mapped[str | None] = mapped_column(nullable=True)
     state_input: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     state_output: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     depth: Mapped[int] = mapped_column(nullable=False, default=0)

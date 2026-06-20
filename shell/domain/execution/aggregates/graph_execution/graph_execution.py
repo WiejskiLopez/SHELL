@@ -24,7 +24,6 @@ from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     TaskExecutionId,
-    WorkflowId,
 )
 
 
@@ -44,7 +43,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         "_graph_node_executions",
         "_transitions",
         "_loop_counters",
-        "_workflow_id",
     )
 
     _task_execution_id: TaskExecutionId
@@ -59,7 +57,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     _graph_node_executions: list[GraphNodeExecution]
     _transitions: list[GraphNodeTransitionExecution]
     _loop_counters: dict[str, LoopCounter]
-    _workflow_id: WorkflowId | None
 
     def __init__(
         self,
@@ -75,7 +72,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         timeout_at: datetime | None = None,
         correlation_id: str = "",
         tags: dict[str, Any] | None = None,
-        workflow_id: WorkflowId | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -90,7 +86,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         self._graph_node_executions = list(graph_node_executions) if graph_node_executions else []
         self._transitions = list(transitions) if transitions else []
         self._loop_counters = {}
-        self._workflow_id = workflow_id
 
     @property
     def task_execution_id(self) -> TaskExecutionId:
@@ -126,13 +121,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     @property
     def correlation_id(self) -> str:
         return self._correlation_id
-
-    @property
-    def workflow_id(self) -> WorkflowId | None:
-        return self._workflow_id
-
-    def execute_in_workflow(self, workflow_id: WorkflowId) -> None:
-        self._workflow_id = workflow_id
 
     @property
     def tags(self) -> dict[str, Any]:
@@ -183,7 +171,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         state_input: dict[str, Any] | None = None,
         correlation_id: str = "",
         depth: int = 0,
-        workflow_id: WorkflowId | None = None,
     ) -> GraphExecution:
         from shell.domain.platform.value_objects.mode import Mode
 
@@ -228,7 +215,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             state_input=state_input,
             depth=depth,
             correlation_id=correlation_id,
-            workflow_id=workflow_id,
         )
 
         graph_execution._build_sequence_transitions(previous_node_id)

@@ -320,11 +320,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         timeout_at=graph_execution_model.timeout_at,
         correlation_id=graph_execution_model.correlation_id or "",
         tags=dict(graph_execution_model.tags),
-        workflow_id=(
-            WorkflowId(graph_execution_model.workflow_id)
-            if graph_execution_model.workflow_id
-            else None
-        ),
     )
 
 
@@ -452,7 +447,6 @@ def graph_execution_entity_to_model(
         timeout_at=graph_execution.timeout_at,
         correlation_id=graph_execution.correlation_id,
         tags=graph_execution.tags,
-        workflow_id=graph_execution.workflow_id.value if graph_execution.workflow_id else None,
     )
     graph_execution_model.graph_node_execution_models = [
         GraphNodeExecutionModel(

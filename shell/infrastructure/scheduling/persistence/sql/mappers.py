@@ -11,7 +11,6 @@ from shell.domain.scheduling.aggregates.scheduler_execution import (
 )
 from shell.domain.scheduling.value_objects.action_config import ActionConfig
 from shell.domain.scheduling.value_objects.execution_policy import ExecutionPolicy
-from shell.domain.scheduling.value_objects.execution_status import ExecutionStatus
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,
     SchedulerExecutionId,
@@ -94,16 +93,12 @@ def scheduler_execution_model_to_entity(
     return SchedulerExecution(
         id=SchedulerExecutionId(model.id),
         scheduler_definition_id=SchedulerDefinitionId(model.scheduler_definition_id),
-        status=ExecutionStatus(model.status),
-        trigger_event_id=model.trigger_event_id,
-        trigger_event_type=model.trigger_event_type,
-        action_ref=model.action_ref,
-        action_ref_type=model.action_ref_type,
-        input_state=dict(model.input_state) if model.input_state else {},
-        output_state=dict(model.output_state) if model.output_state else {},
-        error=model.error,
-        started_at=_ensure_utc(model.started_at) if model.started_at else None,
-        completed_at=_ensure_utc(model.completed_at) if model.completed_at else None,
+        name=model.name,
+        job_type=model.job_type,
+        interval_seconds=model.interval_seconds,
+        batch_size=model.batch_size,
+        enabled=model.enabled,
+        config=dict(model.config) if model.config else {},
         created_at=_ensure_utc(model.created_at),
         updated_at=_ensure_utc(model.updated_at),
     )
@@ -115,16 +110,12 @@ def scheduler_execution_entity_to_model(
     return SchedulerExecutionModel(
         id=entity.id.value,
         scheduler_definition_id=entity.scheduler_definition_id.value,
-        status=entity.status.value,
-        trigger_event_id=entity.trigger_event_id,
-        trigger_event_type=entity.trigger_event_type,
-        action_ref=entity.action_ref,
-        action_ref_type=entity.action_ref_type,
-        input_state=entity.input_state,
-        output_state=entity.output_state,
-        error=entity.error,
-        started_at=entity.started_at,
-        completed_at=entity.completed_at,
+        name=entity.name,
+        job_type=entity.job_type,
+        interval_seconds=entity.interval_seconds,
+        batch_size=entity.batch_size,
+        enabled=entity.enabled,
+        config=entity.config,
         created_at=entity.created_at,
         updated_at=entity.updated_at,
     )

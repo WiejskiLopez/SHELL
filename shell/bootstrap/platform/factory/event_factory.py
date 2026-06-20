@@ -67,20 +67,3 @@ def register_events(core_container: CoreContainer) -> None:
         events.notify_parent_on_child_completion_handler_factory,
     )
 
-    # ── Scheduler event subscriptions ──────────────────────────────────
-    event_bus.subscribe(
-        WorkflowCompletedEvent,
-        events.scheduler_trigger_handler_factory,
-    )
-    event_bus.subscribe(
-        WorkflowFailedEvent,
-        events.scheduler_trigger_handler_factory,
-    )
-    event_bus.subscribe(
-        WorkflowCompletedEvent,
-        events.workflow_outcome_adapter_factory,
-    )
-    event_bus.subscribe(
-        WorkflowFailedEvent,
-        events.workflow_outcome_adapter_factory,
-    )

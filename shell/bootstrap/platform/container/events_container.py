@@ -1,4 +1,4 @@
-"""Kontener infrastruktury messaging (Outbox Relay, Inbox Processor, Publishers)."""
+"""Kontener infrastruktury eventów (Event Publishers, Outbox Relay, Inbox Processor)."""
 
 from __future__ import annotations
 
@@ -9,10 +9,9 @@ from shell.infrastructure.platform.logging.composite_event_publisher import Comp
 from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.infrastructure.platform.messaging.processor.inbox_processor import InboxProcessor
 from shell.infrastructure.platform.messaging.sql_outbox_publisher import SqlOutboxPublisher
-from shell.infrastructure.platform.messaging.worker.messaging_worker import MessagingWorker
 
 
-class MessagingContainer(containers.DeclarativeContainer):
+class EventsContainer(containers.DeclarativeContainer):
     """Infrastruktura wzorca Outbox/Inbox - atomowe odpowiedzialności."""
 
     config = providers.Configuration()
@@ -26,20 +25,19 @@ class MessagingContainer(containers.DeclarativeContainer):
     )
 
     # 2. EventBus adapter (inbound to domain handlers)
-    bus_publisher = providers.Singleton(
+    event_bus_publisher = providers.Singleton(
         EventBusPublisher,
         event_bus=buses.event_bus,
     )
 
-    # 3. Composite publisher for UoW post-commit (audit + outbox + in-memory bus)
-    #    This replaces the one in BusContainer
+    # 3. Composite publisher for UoW post-commit (audit + outbox + in-memory EventBus)
     event_publisher = providers.Singleton(
         CompositeEventPublisher,
         publishers=providers.List(
             infra.logging_publisher,
             infra.sql_audit_publisher,
-            sql_outbox_publisher,  # writes to outbox_event
-            bus_publisher,  # fans out to in-memory EventBus
+            sql_outbox_publisher,
+            event_bus_publisher,
         ),
     )
 
@@ -54,17 +52,7 @@ class MessagingContainer(containers.DeclarativeContainer):
     inbox_processor = providers.Factory(
         InboxProcessor,
         session_factory=infra.session_factory,
-        event_publisher=bus_publisher,  # publishes to in-memory EventBus
+        event_publisher=event_bus_publisher,
         batch_size=config.inbox_batch_size,
     )
 
-    # 6. Background Worker (long-running loop for production)
-
-    messaging_worker = providers.Factory(
-        MessagingWorker,
-        outbox_to_inbox_relay=outbox_to_inbox_relay,
-        inbox_processor=inbox_processor,
-        poll_interval=config.worker_poll_interval,
-        backoff_factor=config.worker_backoff_factor,
-        max_backoff=config.worker_max_backoff,
-    )

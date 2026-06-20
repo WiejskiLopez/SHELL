@@ -25,15 +25,7 @@ from shell.application.execution.event_handlers.notify_parent_on_child_completio
 from shell.application.execution.event_handlers.spawn_sub_graphs_on_planner_completion_handler import (
     SpawnSubGraphsOnPlannerCompletionHandler,
 )
-from shell.application.scheduling.event_handlers.scheduler_trigger_handler import (
-    SchedulerTriggerHandler,
-)
-from shell.application.scheduling.event_handlers.scheduler_execution_handler import (
-    SchedulerExecutionHandler,
-)
-from shell.infrastructure.scheduling.execution_workflow_outcome_adapter import (
-    ExecutionWorkflowOutcomeAdapter,
-)
+
 
 
 
@@ -104,24 +96,3 @@ class EventContainer(containers.DeclarativeContainer):
         crown_scheduler=infra.crown_scheduler_factory,
     )
 
-    # ── Scheduler handlers ────────────────────────────────────────────────
-    scheduler_trigger_handler_factory = providers.Factory(
-        SchedulerTriggerHandler,
-        uow=buses.uow_factory,
-        clock=infra.clock_factory,
-        logger=infra.stdlib_logger,
-        orchestrator=domain.scheduler_orchestrator_factory,
-        launcher=infra.scheduler_launcher_factory,
-        checker=infra.scheduler_checker_factory,
-    )
-    scheduler_execution_handler_factory = providers.Factory(
-        SchedulerExecutionHandler,
-        uow=buses.uow_factory,
-        clock=infra.clock_factory,
-        logger=infra.stdlib_logger,
-        orchestrator=domain.scheduler_orchestrator_factory,
-    )
-    workflow_outcome_adapter_factory = providers.Factory(
-        ExecutionWorkflowOutcomeAdapter,
-        receiver=scheduler_execution_handler_factory,
-    )

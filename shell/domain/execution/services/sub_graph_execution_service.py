@@ -1,8 +1,8 @@
 """SubGraphExecutionService — spawns child GraphExecution for sub-graph nodes.
 
-Creates a child GraphExecution + minimal Workflow linked to the parent graph.
-No child TaskExecution is created — the sub-graph shares the parent task
-execution context.
+Creates a child GraphExecution linked to the parent graph.
+No child TaskExecution, no child Workflow — the sub-graph shares
+the parent's task execution context and is detached from workflow.
 
 All extension points are optional — if not provided, default permissive
 implementations are used.
@@ -13,16 +13,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
 from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
-from shell.domain.execution.value_objects.workflow_execution_context import (
-    WorkflowExecutionContext,
-)
 
 if TYPE_CHECKING:
     from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
-    from shell.domain.execution.value_objects.ids import GraphExecutionId
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
         SubGraphContext,
@@ -34,17 +28,13 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.logging import Logger
     from shell.domain.platform.ports.time import Clock
     from shell.domain.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.services.graph_node_execution_navigator import (
-        GraphNodeExecutionNavigator,
-    )
 
 
 class SubGraphExecutionService:
     """Domain service: spawns a child GraphExecution for a sub-graph node.
 
-    No child TaskExecution is created — the sub-graph reuses the parent's
-    task_execution_id. A minimal Workflow is still created for the existing
-    event-driven saga, but this will be simplified in future phases.
+    No child TaskExecution, no child Workflow — the sub-graph reuses the
+    parent's task_execution_id and is not bound to any Workflow.
     """
 
     def __init__(
@@ -53,7 +43,6 @@ class SubGraphExecutionService:
         clock: Clock,
         id_gen: IdGenerator,
         logger: Logger,
-        navigator: GraphNodeExecutionNavigator,
         definition_provider: GraphExecutionDefinitionProvider,
         governance: SubGraphGovernance | None = None,
         security: SubGraphSecurity | None = None,
@@ -64,7 +53,6 @@ class SubGraphExecutionService:
         self._clock = clock
         self._id_gen = id_gen
         self._logger = logger
-        self._navigator = navigator
         self._definition_provider = definition_provider
         self._governance = governance
         self._security = security
@@ -86,10 +74,8 @@ class SubGraphExecutionService:
         1. Governance: can_spawn? (depth, parallel limits)
         2. Versioning: resolve definition (pin/latest/snapshot)
         3. Security: scope + state filtering
-        4. Builds child GraphExecution (no child TaskExecution)
-        5. Creates minimal Workflow for event-driven execution
-        6. Kicks off first node execution
-        7. Observer: on_start notification
+        4. Builds child GraphExecution (no child TaskExecution, no child Workflow)
+        5. Observer: on_start notification
         """
         _uow = uow or self._uow
         now = self._clock.now()
@@ -123,13 +109,7 @@ class SubGraphExecutionService:
             scope = await self._security.resolve_scope(parent_graph_execution_id_value, graph_definition_id)
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
-        # ── Build child GraphExecution (no child TaskExecution) ──────────
-        # ── Create Workflow for child graph ────────────────────────────
-        child_workflow = Workflow.new(
-            id_=self._id_gen.new_workflow_id(),
-            now=now,
-        )
-
+        # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
         sub_graph_execution = GraphExecution.from_graph_definition(
             id_=self._id_gen.new_graph_execution_id(),
             task_execution_id=parent_graph_execution.task_execution_id,
@@ -140,37 +120,12 @@ class SubGraphExecutionService:
             state_input=resolved_state,
             correlation_id=correlation_id,
             depth=depth,
-            workflow_id=child_workflow.id,
         )
-
-        first_node = self._navigator.first(sub_graph_execution)
-
-        if first_node is not None:
-            child_workflow.start_at(
-                first_graph_node_execution_id=first_node.id,
-                context=WorkflowExecutionContext(correlation_id=correlation_id),
-                now=now,
-                task_execution_id=parent_graph_execution.task_execution_id,
-            )
 
         # ── Persist ───────────────────────────────────────────────────────
         await _uow.graph_executions.save(sub_graph_execution)
-        await _uow.workflows.save(child_workflow)
 
-        events = list(sub_graph_execution.pull_events())
-        events.extend(child_workflow.pull_events())
-
-        if first_node is not None:
-            child_workflow.append_event(
-                GraphNodeExecutionRequestedEvent.now(
-                    workflow_id=child_workflow.id,
-                    graph_node_execution_id=first_node.id,
-                    now=now,
-                )
-            )
-            events.extend(child_workflow.pull_events())
-
-        _uow.stage_events(events)
+        _uow.stage_events(list(sub_graph_execution.pull_events()))
 
         # ── Observer notification ─────────────────────────────────────────
         if self._observer is not None:

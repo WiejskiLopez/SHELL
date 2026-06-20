@@ -25,6 +25,7 @@ class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self._task_executions = InMemoryTaskExecutionRepository()
         self._graph_executions = InMemoryGraphExecutionRepository()
+        self._graph_executions.link_task_executions(self._task_executions)
         self._workflows = InMemoryWorkflowRepository()
         self._envelopes = InMemoryEnvelopeRepository()
         self._prompts = InMemoryPromptRepository()
