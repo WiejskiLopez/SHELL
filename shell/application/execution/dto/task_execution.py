@@ -21,3 +21,4 @@ class TaskExecutionDto:
     body: str = ""
     work_dir: str = ""
     workflow_id: str | None = None
+    graph_node_executions: tuple = field(default_factory=tuple)
