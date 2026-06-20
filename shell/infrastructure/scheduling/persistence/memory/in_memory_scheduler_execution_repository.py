@@ -18,11 +18,22 @@ class InMemorySchedulerExecutionRepository:
     ) -> SchedulerExecution | None:
         return self._store.get(id.value)
 
-    async def list_enabled(self) -> list[SchedulerExecution]:
-        return [e for e in self._store.values() if e.enabled]
+    async def get_by_action_ref(
+        self, action_ref: str
+    ) -> list[SchedulerExecution]:
+        return [
+            e for e in self._store.values() if e.action_ref == action_ref
+        ]
 
-    async def list_all(self) -> list[SchedulerExecution]:
-        return list(self._store.values())
+    async def count_by_definition_and_status(
+        self, definition_id: str, status: str
+    ) -> int:
+        return sum(
+            1
+            for e in self._store.values()
+            if e.scheduler_definition_id.value == definition_id
+            and e.status.value == status
+        )
 
     async def save(self, execution: SchedulerExecution) -> None:
         self._store[execution.id.value] = execution

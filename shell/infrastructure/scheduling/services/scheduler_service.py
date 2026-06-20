@@ -21,8 +21,8 @@ from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.domain.scheduling.aggregates.scheduler_execution import (
-        SchedulerExecution,
+    from shell.domain.scheduling.aggregates.scheduler_job import (
+        SchedulerJob,
     )
     from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
     from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import (
@@ -60,16 +60,16 @@ class SchedulerService:
         """Load enabled executions from DB and register APScheduler jobs."""
         async with self._session_factory() as session:
             repo = SqlSchedulerExecutionRepository(session)
-            executions = await repo.list_enabled()
+            jobs = await repo.list_enabled()
 
-        for execution in executions:
-            self._add_job(execution)
+        for job in jobs:
+            self._add_job(job)
 
         self._scheduler.start()
         self._running = True
         logger.info(
             "scheduler_service.started",
-            extra={"job_count": len(executions)},
+            extra={"job_count": len(jobs)},
         )
 
     def stop(self) -> None:
@@ -78,50 +78,50 @@ class SchedulerService:
             self._running = False
             logger.info("scheduler_service.stopped")
 
-    def add_job(self, execution: SchedulerExecution) -> None:
-        self._add_job(execution)
+    def add_job(self, job: SchedulerJob) -> None:
+        self._add_job(job)
 
-    def remove_job(self, execution_id: SchedulerExecutionId) -> None:
-        job_id = _JOB_ID_PREFIX + execution_id.value
+    def remove_job(self, job_id_value: SchedulerExecutionId) -> None:
+        job_id = _JOB_ID_PREFIX + job_id_value.value
         if self._scheduler.get_job(job_id):
             self._scheduler.remove_job(job_id)
             logger.info(
                 "scheduler_service.job_removed",
-                extra={"execution_id": execution_id.value},
+                extra={"job_id": job_id_value.value},
             )
 
-    def _add_job(self, execution: SchedulerExecution) -> None:
-        if not execution.enabled:
+    def _add_job(self, job: SchedulerJob) -> None:
+        if not job.enabled:
             return
 
-        job_id = _JOB_ID_PREFIX + execution.id.value
+        job_id = _JOB_ID_PREFIX + job.id.value
 
         if self._scheduler.get_job(job_id):
             self._scheduler.reschedule_job(
                 job_id,
-                trigger=IntervalTrigger(seconds=execution.interval_seconds),
+                trigger=IntervalTrigger(seconds=job.interval_seconds),
             )
             return
 
         job_fn = _build_job_fn(
-            job_type=execution.job_type,
+            job_type=job.job_type,
             outbox_relay=self._outbox_to_inbox_relay,
             inbox_processor=self._inbox_processor,
         )
 
         self._scheduler.add_job(
             job_fn,
-            trigger=IntervalTrigger(seconds=execution.interval_seconds),
+            trigger=IntervalTrigger(seconds=job.interval_seconds),
             id=job_id,
-            name=execution.name or execution.id.value,
+            name=job.name or job.id.value,
             replace_existing=True,
         )
         logger.info(
             "scheduler_service.job_added",
             extra={
-                "execution_id": execution.id.value,
-                "job_type": execution.job_type,
-                "interval": execution.interval_seconds,
+                "job_id": job.id.value,
+                "job_type": job.job_type,
+                "interval": job.interval_seconds,
             },
         )
 

@@ -6,8 +6,8 @@ from typing import Any
 from shell.domain.scheduling.aggregates.scheduler_definition import (
     SchedulerDefinition,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution import (
-    SchedulerExecution,
+from shell.domain.scheduling.aggregates.scheduler_job import (
+    SchedulerJob,
 )
 from shell.domain.scheduling.value_objects.action_config import ActionConfig
 from shell.domain.scheduling.value_objects.execution_policy import ExecutionPolicy
@@ -89,8 +89,8 @@ def scheduler_definition_entity_to_model(
 
 def scheduler_execution_model_to_entity(
     model: SchedulerExecutionModel,
-) -> SchedulerExecution:
-    return SchedulerExecution(
+) -> SchedulerJob:
+    return SchedulerJob(
         id=SchedulerExecutionId(model.id),
         scheduler_definition_id=SchedulerDefinitionId(model.scheduler_definition_id),
         name=model.name,
@@ -105,7 +105,7 @@ def scheduler_execution_model_to_entity(
 
 
 def scheduler_execution_entity_to_model(
-    entity: SchedulerExecution,
+    entity: SchedulerJob,
 ) -> SchedulerExecutionModel:
     return SchedulerExecutionModel(
         id=entity.id.value,

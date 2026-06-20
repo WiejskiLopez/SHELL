@@ -103,7 +103,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_executions(self):
+    def scheduler_jobs(self):
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
             SqlSchedulerExecutionRepository,
         )

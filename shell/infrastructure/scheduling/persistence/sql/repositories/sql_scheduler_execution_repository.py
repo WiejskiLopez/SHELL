@@ -16,8 +16,8 @@ from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.scheduling.aggregates.scheduler_execution import (
-        SchedulerExecution,
+    from shell.domain.scheduling.aggregates.scheduler_job import (
+        SchedulerJob,
     )
 
 
@@ -27,25 +27,25 @@ class SqlSchedulerExecutionRepository:
 
     async def get_by_id(
         self, id: SchedulerExecutionId
-    ) -> SchedulerExecution | None:
+    ) -> SchedulerJob | None:
         query = select(SchedulerExecutionModel).where(
             SchedulerExecutionModel.id == id.value
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return scheduler_execution_model_to_entity(row) if row else None
 
-    async def list_enabled(self) -> list[SchedulerExecution]:
+    async def list_enabled(self) -> list[SchedulerJob]:
         query = select(SchedulerExecutionModel).where(
             SchedulerExecutionModel.enabled == True
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 
-    async def list_all(self) -> list[SchedulerExecution]:
+    async def list_all(self) -> list[SchedulerJob]:
         query = select(SchedulerExecutionModel)
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 
-    async def save(self, execution: SchedulerExecution) -> None:
+    async def save(self, execution: SchedulerJob) -> None:
         model = scheduler_execution_entity_to_model(execution)
         await self._session.merge(model)
