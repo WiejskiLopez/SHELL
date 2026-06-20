@@ -15,7 +15,7 @@ class EnvelopeEventModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     envelope_id: Mapped[str] = mapped_column(
-        ForeignKey("envelope.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("envelope.id", ondelete="CASCADE"), nullable=False
     )
     kind: Mapped[str] = mapped_column(nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

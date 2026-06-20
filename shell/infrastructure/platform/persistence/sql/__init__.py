@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -20,8 +21,8 @@ if TYPE_CHECKING:
 
 __all__ = [
     "build_session_factory",
-    "create_all_tables",
     "get_session",
+    "run_migrations",
     "seed_base_data",
 ]
 
@@ -42,14 +43,21 @@ def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-async def create_all_tables(url: str) -> None:
-    """Create all tables (dev/test helper — production uses alembic)."""
-    from shell.infrastructure.platform.persistence.sql.models import Base
+_ALEMBIC_INI = str(Path(__file__).resolve().parents[4] / "alembic.ini")
 
-    engine = create_async_engine(url, echo=False, future=True)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    await engine.dispose()
+
+async def run_migrations(url: str) -> None:
+    """Run all Alembic migrations up to head (used by tests and bootstrap)."""
+    import asyncio
+
+    from alembic.config import Config
+    from alembic import command
+
+    alembic_cfg = Config(_ALEMBIC_INI)
+    alembic_cfg.set_main_option("sqlalchemy.url", url)
+    script_location = str(Path(_ALEMBIC_INI).parent / "infrastructure" / "platform" / "persistence" / "migrations" / "sql")
+    alembic_cfg.set_main_option("script_location", script_location)
+    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
 
 
 async def get_session(

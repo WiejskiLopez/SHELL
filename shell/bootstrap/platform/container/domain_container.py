@@ -9,6 +9,7 @@ from shell.domain.execution.services.compensation_handler import NoOpCompensatio
 from shell.domain.execution.services.graph_node_execution_navigator import TransitionBasedNavigator
 from shell.domain.execution.services.graph_node_execution_policy import FailFastPolicy
 from shell.domain.execution.services.sub_graph_execution_service import SubGraphExecutionService
+from shell.domain.scheduling.services.scheduler_orchestrator import SchedulerOrchestrator
 from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
     DefaultSubGraphObserver,
     FullAccessSubGraphSecurity,
@@ -51,3 +52,6 @@ class DomainContainer(containers.DeclarativeContainer):
         versioning=sub_graph_versioning_factory,
         observer=sub_graph_observer_factory,
     )
+
+    # ── Scheduler domain services ─────────────────────────────────────────
+    scheduler_orchestrator_factory = providers.Singleton(SchedulerOrchestrator)

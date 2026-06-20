@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Index
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
@@ -11,7 +11,6 @@ from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 class GraphExecutionModel(Base):
     __tablename__ = "graph_execution"
-    __table_args__ = (Index("ix_graph_execution_workflow_id", "workflow_id"),)
 
     id: Mapped[str] = mapped_column(primary_key=True)
     task_execution_id: Mapped[str] = mapped_column(
@@ -24,9 +23,8 @@ class GraphExecutionModel(Base):
     parent_graph_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("graph_execution.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
     )
-    workflow_id: Mapped[str | None] = mapped_column(nullable=True, index=True)
+    workflow_id: Mapped[str | None] = mapped_column(nullable=True)
     state_input: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     state_output: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     depth: Mapped[int] = mapped_column(nullable=False, default=0)

@@ -16,6 +16,12 @@ from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
     InMemoryCrownScheduler,
 )
+from shell.infrastructure.execution.scheduling_adapters.graph_execution_launcher_adapter import (
+    GraphExecutionLauncherAdapter,
+)
+from shell.infrastructure.execution.scheduling_adapters.execution_checker_adapter import (
+    ExecutionCheckerAdapter,
+)
 from shell.infrastructure.execution.process.subprocess_runner import SubprocessNodeProcessRunner
 from shell.infrastructure.platform.time.system_clock import SystemClock
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
@@ -78,6 +84,20 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     # 3. Crown-Scheduler (parent-child sub-graph orchestration)
     crown_scheduler_factory = providers.Singleton(InMemoryCrownScheduler)
 
-    # 4. Publikatory zdarzeń (warstwa IO)
+    # 4. Scheduler adapters (bridges scheduling → execution)
+    scheduler_launcher_factory = providers.Factory(
+        GraphExecutionLauncherAdapter,
+        uow=uow_factory,
+        clock=clock_factory,
+        id_gen=id_gen_factory,
+        logger=stdlib_logger,
+    )
+    scheduler_checker_factory = providers.Factory(
+        ExecutionCheckerAdapter,
+        uow=uow_factory,
+        logger=stdlib_logger,
+    )
+
+    # 5. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)
     sql_audit_publisher = providers.Singleton(SqlAuditPublisher, session_factory=session_factory)

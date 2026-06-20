@@ -95,6 +95,20 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     def graph_definitions(self) -> SqlGraphDefinitionRepository:
         return SqlGraphDefinitionRepository(self._active_session)
 
+    @property
+    def scheduler_definitions(self):
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
+            SqlSchedulerDefinitionRepository,
+        )
+        return SqlSchedulerDefinitionRepository(self._active_session)
+
+    @property
+    def scheduler_executions(self):
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
+            SqlSchedulerExecutionRepository,
+        )
+        return SqlSchedulerExecutionRepository(self._active_session)
+
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
 

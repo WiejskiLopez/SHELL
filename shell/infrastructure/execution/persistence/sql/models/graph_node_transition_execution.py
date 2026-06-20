@@ -16,7 +16,6 @@ class GraphNodeTransitionExecutionModel(Base):
     graph_execution_id: Mapped[str] = mapped_column(
         ForeignKey("graph_execution.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     source_node_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("graph_node_execution.id", ondelete="SET NULL"),

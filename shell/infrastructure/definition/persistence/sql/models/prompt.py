@@ -11,7 +11,7 @@ class PromptModel(Base):
     __tablename__ = "prompt"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(nullable=False, index=True)
+    name: Mapped[str] = mapped_column(nullable=False)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(nullable=False, default="")

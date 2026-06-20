@@ -13,7 +13,7 @@ class GraphNodeExecutionModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     graph_execution_id: Mapped[str] = mapped_column(
-        ForeignKey("graph_execution.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("graph_execution.id", ondelete="CASCADE"), nullable=False
     )
     position: Mapped[int] = mapped_column(nullable=False, default=0)
     mode: Mapped[str] = mapped_column(nullable=False)

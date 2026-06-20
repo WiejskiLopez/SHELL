@@ -11,7 +11,7 @@ class RagChunkModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     document_id: Mapped[str] = mapped_column(
-        ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("rag_document.id", ondelete="CASCADE"), nullable=False
     )
     chunk_index: Mapped[int] = mapped_column(nullable=False, default=0)
     chunk_text: Mapped[str] = mapped_column(nullable=False)

@@ -12,7 +12,7 @@ class EnvelopeModel(Base):
     __tablename__ = "envelope"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    workflow_id: Mapped[str] = mapped_column(nullable=False, index=True)
+    workflow_id: Mapped[str] = mapped_column(nullable=False)
     parent_id: Mapped[str | None] = mapped_column(nullable=True)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     sender_graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)

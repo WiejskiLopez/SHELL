@@ -12,7 +12,7 @@ class RunnerConfigModel(Base):
     __tablename__ = "runner_config"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    package_name: Mapped[str] = mapped_column(nullable=False, index=True)
+    package_name: Mapped[str] = mapped_column(nullable=False)
     kind: Mapped[str] = mapped_column(nullable=False)
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

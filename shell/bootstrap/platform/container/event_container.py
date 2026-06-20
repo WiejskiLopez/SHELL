@@ -27,6 +27,12 @@ from shell.application.execution.event_handlers.crown_scheduler_handler import (
 from shell.application.execution.event_handlers.planner_result_handler import (
     PlannerResultHandler,
 )
+from shell.application.scheduling.event_handlers.scheduler_trigger_handler import (
+    SchedulerTriggerHandler,
+)
+from shell.application.scheduling.event_handlers.scheduler_execution_handler import (
+    SchedulerExecutionHandler,
+)
 
 
 
@@ -100,4 +106,22 @@ class EventContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
         sub_graph_service=domain.sub_graph_execution_service_factory,
         crown_scheduler=infra.crown_scheduler_factory,
+    )
+
+    # ── Scheduler handlers ────────────────────────────────────────────────
+    scheduler_trigger_handler_factory = providers.Factory(
+        SchedulerTriggerHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+        orchestrator=domain.scheduler_orchestrator_factory,
+        launcher=infra.scheduler_launcher_factory,
+        checker=infra.scheduler_checker_factory,
+    )
+    scheduler_execution_handler_factory = providers.Factory(
+        SchedulerExecutionHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+        orchestrator=domain.scheduler_orchestrator_factory,
     )

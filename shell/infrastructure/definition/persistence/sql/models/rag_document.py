@@ -11,9 +11,9 @@ class RagDocumentModel(Base):
     __tablename__ = "rag_document"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    source_uri: Mapped[str] = mapped_column(nullable=False, index=True)
+    source_uri: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=False)
-    domain: Mapped[str] = mapped_column(nullable=False, index=True)
+    domain: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     chunks: Mapped[list[RagChunkModel]] = relationship(

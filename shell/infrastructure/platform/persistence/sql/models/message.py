@@ -15,7 +15,7 @@ class MessageModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     session_id: Mapped[str] = mapped_column(
-        ForeignKey("session.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("session.id", ondelete="CASCADE"), nullable=False
     )
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     sender: Mapped[str] = mapped_column(nullable=False)

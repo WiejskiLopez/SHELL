@@ -17,7 +17,6 @@ class GraphNodeDefinitionModel(Base):
     graph_definition_id: Mapped[str] = mapped_column(
         ForeignKey("graph_definition.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     position: Mapped[int] = mapped_column(nullable=False)
     mode: Mapped[str] = mapped_column(nullable=False)

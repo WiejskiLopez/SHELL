@@ -11,8 +11,8 @@ class GraphNodeExecutionResultModel(Base):
     __tablename__ = "graph_node_execution_result"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    graph_node_execution_id: Mapped[str] = mapped_column(nullable=False, index=True)
-    workflow_id: Mapped[str] = mapped_column(nullable=False, index=True)
+    graph_node_execution_id: Mapped[str] = mapped_column(nullable=False)
+    workflow_id: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=False)
     stdout: Mapped[str] = mapped_column(nullable=False, default="")
     stderr: Mapped[str] = mapped_column(nullable=False, default="")

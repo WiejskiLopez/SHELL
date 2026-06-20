@@ -13,7 +13,7 @@ class GraphNodeExecutionStateModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     workflow_id: Mapped[str] = mapped_column(
-        ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("workflow.id", ondelete="CASCADE"), nullable=False
     )
     graph_node_execution_id: Mapped[str] = mapped_column("graph_execution_id", nullable=False)
     status: Mapped[str] = mapped_column(nullable=False, default="idle")

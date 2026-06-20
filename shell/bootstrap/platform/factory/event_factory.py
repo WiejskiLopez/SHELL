@@ -71,3 +71,21 @@ def register_events(core_container: CoreContainer) -> None:
         WorkflowCompletedEvent,
         events.crown_scheduler_handler_factory,
     )
+
+    # ── Scheduler event subscriptions ──────────────────────────────────
+    event_bus.subscribe(
+        WorkflowCompletedEvent,
+        events.scheduler_trigger_handler_factory,
+    )
+    event_bus.subscribe(
+        WorkflowFailedEvent,
+        events.scheduler_trigger_handler_factory,
+    )
+    event_bus.subscribe(
+        WorkflowCompletedEvent,
+        events.scheduler_execution_handler_factory,
+    )
+    event_bus.subscribe(
+        WorkflowFailedEvent,
+        events.scheduler_execution_handler_factory,
+    )

@@ -17,7 +17,6 @@ class TaskExecutionOutputPayloadModel(Base):
     task_execution_id: Mapped[str] = mapped_column(
         ForeignKey("task_execution.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)

@@ -1985,3 +1985,13 @@
 2026-06-19 23:31:57,249 WARNING test_stdlib_warn: watch out
 2026-06-19 23:31:57,250 ERROR test_stdlib_err: boom
 2026-06-19 23:31:57,251 DEBUG test_stdlib_dbg: trace
+2026-06-20 15:36:50,223 INFO test_stdlib_info: hello world
+2026-06-20 15:36:50,224 WARNING test_stdlib_warn: watch out
+2026-06-20 15:36:50,225 ERROR test_stdlib_err: boom
+2026-06-20 15:36:50,225 DEBUG test_stdlib_dbg: trace
+2026-06-20 18:31:42,758 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-20 18:31:42,768 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-20 18:31:42,774 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task
+2026-06-20 18:36:47,136 INFO shell.infrastructure.platform.persistence.sql.rag_search.rag_search_strategy: Using in-memory (Python) RAG search strategy
+2026-06-20 18:36:47,137 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: Querying current Task by name=e2e_task
+2026-06-20 18:36:47,141 INFO shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository: No current Task found for name=e2e_task

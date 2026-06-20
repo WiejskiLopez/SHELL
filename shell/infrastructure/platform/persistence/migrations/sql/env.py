@@ -16,6 +16,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[6]))
 from shell.infrastructure.platform.persistence.sql.models import (
     Base
 )
+# Register scheduling models so they are picked up by Alembic
+from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (  # noqa: F401
+    SchedulerDefinitionModel,
+)
+from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (  # noqa: F401
+    SchedulerExecutionModel,
+)
 
 # Alembic Config object
 config = context.config

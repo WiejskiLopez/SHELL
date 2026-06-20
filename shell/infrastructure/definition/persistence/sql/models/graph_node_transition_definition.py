@@ -16,7 +16,6 @@ class GraphNodeTransitionDefinitionModel(Base):
     graph_definition_id: Mapped[str] = mapped_column(
         ForeignKey("graph_definition.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
     )
     source_node_definition_id: Mapped[str | None] = mapped_column(
         ForeignKey("graph_node_definition.id", ondelete="SET NULL"),

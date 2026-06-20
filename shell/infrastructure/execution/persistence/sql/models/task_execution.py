@@ -15,14 +15,13 @@ class TaskExecutionModel(Base):
     parent_task_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("task_execution.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
     )
     status: Mapped[str] = mapped_column(nullable=False, default="CREATED")
-    name: Mapped[str] = mapped_column(nullable=False, index=True)
+    name: Mapped[str] = mapped_column(nullable=False)
     version: Mapped[int] = mapped_column(nullable=False, default=1)
     hash: Mapped[str] = mapped_column(nullable=False)
     body: Mapped[str] = mapped_column(nullable=False, default="")
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     work_dir: Mapped[str] = mapped_column(nullable=False, default="")
-    workflow_id: Mapped[str | None] = mapped_column(nullable=True, index=True)
+    workflow_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
