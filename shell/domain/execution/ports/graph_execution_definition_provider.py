@@ -7,7 +7,7 @@ from shell.domain.execution.value_objects.graph_execution_definition import (
 )
 
 
-class DefinitionProvider(Protocol):
+class GraphExecutionDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None: ...
 
     async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None: ...

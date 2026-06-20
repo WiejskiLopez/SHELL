@@ -22,8 +22,8 @@ from shell.domain.execution.value_objects.ids import (
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.infrastructure.execution.definition_provider_adapter import (
-    DefinitionProviderAdapter,
+from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
+    GraphExecutionDefinitionProviderAdapter,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,

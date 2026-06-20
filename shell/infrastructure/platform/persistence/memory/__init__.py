@@ -8,8 +8,8 @@ from shell.infrastructure.platform.persistence.memory.fake_clock import FakeCloc
 from shell.infrastructure.platform.persistence.memory.fake_event_publisher import FakeEventPublisher
 from shell.infrastructure.platform.persistence.memory.fake_id_generator import FakeIdGenerator
 from shell.infrastructure.platform.persistence.memory.fake_logger import FakeLogger
-from shell.infrastructure.platform.persistence.memory.fake_node_process_runner import FakeNodeProcessRunner
-from shell.infrastructure.platform.persistence.memory.fake_node_workspace import FakeNodeWorkspace
+from shell.infrastructure.platform.persistence.memory.fake_graph_node_execution_process_runner import FakeGraphNodeExecutionProcessRunner
+from shell.infrastructure.platform.persistence.memory.fake_graph_node_execution_workspace import FakeGraphNodeExecutionWorkspace
 from shell.infrastructure.platform.persistence.memory.fake_task_loader import FakeTaskLoader
 from shell.infrastructure.platform.persistence.memory.in_memory_query_services import InMemoryQueryServices
 from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import InMemoryUnitOfWork
@@ -28,8 +28,8 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_reposi
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "FakeClock", "FakeEventPublisher", "FakeIdGenerator", "FakeLogger", "FakeNodeProcessRunner",
-    "FakeNodeWorkspace", "FakeTaskLoader", "InMemoryQueryServices", "InMemoryUnitOfWork",
+    "FakeClock", "FakeEventPublisher", "FakeIdGenerator", "FakeLogger", "FakeGraphNodeExecutionProcessRunner",
+    "FakeGraphNodeExecutionWorkspace", "FakeTaskLoader", "InMemoryQueryServices", "InMemoryUnitOfWork",
     "InMemoryGraphDefinitionRepository", "InMemoryGraphNodeDefinitionRepository",
     "InMemoryPromptRepository", "InMemoryRagDocumentRepository", "InMemoryRunnerConfigRepository",
     "InMemoryEnvelopeArchive", "InMemoryEnvelopeRepository", "InMemoryGraphExecutionRepository",

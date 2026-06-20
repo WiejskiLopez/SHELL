@@ -5,7 +5,7 @@ This handler subscribes to :class:`GraphNodeExecutionCompletedEvent` and
 invocation processes **exactly one** result and decides the next
 workflow transition:
 
-* advance to the next node (via :class:`NodeNavigator`)
+* advance to the next node (via :class:`GraphNodeExecutionNavigator`)
 * fan out to parallel nodes
 * evaluate conditional branches
 * route to error handler on failure
@@ -30,13 +30,13 @@ from shell.domain.execution.services.compensation_handler import (
 )
 from shell.domain.execution.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
-    NodeNavigator,
+    GraphNodeExecutionNavigator,
 )
 from shell.domain.execution.services.graph_node_execution_policy import (
     AbortDecision,
     ContinueDecision,
-    FailFastPolicy,
-    NodeExecutionPolicy,
+    FailFastGraphNodeExecutionPolicy,
+    GraphNodeExecutionPolicy,
     RouteToErrorHandlerDecision,
 )
 from shell.domain.platform.value_objects.status import Status
@@ -61,7 +61,7 @@ class GraphNodeExecutionCompletedHandler:
     """Cycle B: decides next step after receiving a node execution result.
 
     Supports SEQUENCE, PARALLEL, CONDITIONAL, LOOP, ERROR_HANDLER, and
-    DEFAULT transition types through the ``NodeNavigator``.
+    DEFAULT transition types through the ``GraphNodeExecutionNavigator``.
 
     Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
     """
@@ -72,16 +72,16 @@ class GraphNodeExecutionCompletedHandler:
         clock: Clock,
         id_gen: IdGenerator,
         logger: Logger,
-        navigator: NodeNavigator | None = None,
-        policy: NodeExecutionPolicy | None = None,
+        navigator: GraphNodeExecutionNavigator | None = None,
+        policy: GraphNodeExecutionPolicy | None = None,
         compensation: CompensationHandler | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
         self._logger = logger
-        self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
-        self._policy: NodeExecutionPolicy = policy or FailFastPolicy()
+        self._navigator: GraphNodeExecutionNavigator = navigator or LinearGraphNodeExecutionNavigator()
+        self._policy: GraphNodeExecutionPolicy = policy or FailFastGraphNodeExecutionPolicy()
         self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
 
     async def handle(self, event: GraphNodeExecutionResultEvent) -> None:

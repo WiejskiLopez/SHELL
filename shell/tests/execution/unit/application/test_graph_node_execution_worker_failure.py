@@ -13,7 +13,7 @@ from shell.domain.execution.events import (
 )
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
-    FakeNodeProcessRunner,
+    FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork
 )
 
@@ -28,7 +28,7 @@ class TestGraphNodeExecutionWorkerFailure:
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        runner = FakeNodeProcessRunner(returncode=1, stderr="boom")
+        runner = FakeGraphNodeExecutionProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(uow, runner)
 
         await worker.handle(

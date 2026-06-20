@@ -1,4 +1,4 @@
-"""NodeExecutionPolicy — decides what to do after a single node finishes."""
+"""GraphNodeExecutionPolicy — decides what to do after a single node finishes."""
 from __future__ import annotations
 
 from shell.domain.execution.services.graph_node_execution_policy.abort_decision import (
@@ -7,11 +7,11 @@ from shell.domain.execution.services.graph_node_execution_policy.abort_decision 
 from shell.domain.execution.services.graph_node_execution_policy.continue_decision import (
     ContinueDecision,
 )
-from shell.domain.execution.services.graph_node_execution_policy.fail_fast_policy import (
-    FailFastPolicy,
+from shell.domain.execution.services.graph_node_execution_policy.fail_fast_graph_node_execution_policy import (
+    FailFastGraphNodeExecutionPolicy,
 )
-from shell.domain.execution.services.graph_node_execution_policy.node_execution_policy import (
-    NodeExecutionPolicy,
+from shell.domain.execution.services.graph_node_execution_policy.graph_node_execution_policy import (
+    GraphNodeExecutionPolicy,
     PolicyDecision,
 )
 from shell.domain.execution.services.graph_node_execution_policy.policy_action import (
@@ -24,8 +24,8 @@ from shell.domain.execution.services.graph_node_execution_policy.route_to_error_
 __all__ = [
     "AbortDecision",
     "ContinueDecision",
-    "FailFastPolicy",
-    "NodeExecutionPolicy",
+    "FailFastGraphNodeExecutionPolicy",
+    "GraphNodeExecutionPolicy",
     "PolicyAction",
     "PolicyDecision",
     "RouteToErrorHandlerDecision",

@@ -445,7 +445,7 @@ application/
 ├── dto/                     DTO zwracane przez handlery zapytań
 ├── mappers/                 Entity ↔ DTO
 ├── ports/
-│   └── ports.py             UnitOfWork, Clock, IdGenerator, EventPublisher, Logger, NodeProcessRunner, TaskLoader
+│   └── ports.py             UnitOfWork, Clock, IdGenerator, EventPublisher, Logger, GraphNodeExecutionProcessRunner, TaskLoader
 ├── strategies/
 │   ├── node_execution_strategy.py   (Protocol)
 │   ├── agent_strategy.py
@@ -480,7 +480,7 @@ infrastructure/
 │   ├── node_workspace.py         Zarządza katalogiem roboczym node'a
 │   └── envelope_archive_fs.py    FS-based archiwum kopert
 ├── process/
-│   └── subprocess_runner.py      NodeProcessRunner — uruchamia node'y przez subprocess
+│   └── subprocess_runner.py      GraphNodeExecutionProcessRunner — uruchamia node'y przez subprocess
 ├── logging/
 │   ├── stdlib_logger.py          StdlibLogger (JSON output, correlation_id)
 │   ├── logging_event_publisher.py

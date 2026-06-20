@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
-class NodeNavigator(Protocol):
+class GraphNodeExecutionNavigator(Protocol):
     """Decides the next node(s) to execute in a Graph."""
 
     def first(self, graph_execution: GraphExecution) -> GraphNodeExecution | None:

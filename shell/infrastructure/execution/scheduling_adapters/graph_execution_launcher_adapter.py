@@ -66,10 +66,10 @@ class GraphExecutionLauncherAdapter:
             )
 
             from shell.domain.execution.services.graph_node_execution_navigator import (
-                TransitionBasedNavigator,
+                TransitionBasedGraphNodeExecutionNavigator,
             )
 
-            navigator = TransitionBasedNavigator()
+            navigator = TransitionBasedGraphNodeExecutionNavigator()
             first_node = navigator.first(graph_execution)
 
             if first_node is not None:

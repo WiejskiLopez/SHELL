@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     )
 
 
-class ExecutionChecker(Protocol):
+class SchedulerExecutionChecker(Protocol):
     async def can_execute(
         self,
         *,

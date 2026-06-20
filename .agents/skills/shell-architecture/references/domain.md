@@ -112,7 +112,7 @@ Warunkowanie emisji eventu stanu od parametru powoduje, że sagi/event-handlery 
 - W `domain/services/` — operacje które nie pasują do żadnej encji lub VO
 - Stateless
 - Pracują wyłącznie na obiektach domenowych
-- Przykłady: `EnvelopeLifecycleService`, `GraphNodeExecutionNavigator`, `GraphNodeExecutionPolicy`
+- Przykłady: `EnvelopeLifecycleService`, `GraphNodeExecutionNavigator`, `GraphGraphNodeExecutionPolicy`
 
 ## Domain Exception
 

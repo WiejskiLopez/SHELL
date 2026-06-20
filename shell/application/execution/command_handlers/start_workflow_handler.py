@@ -22,7 +22,7 @@ from shell.domain.execution.value_objects.workflow_execution_context import (
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import StartWorkflowCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
-    from shell.domain.execution.services.graph_node_execution_navigator import NodeNavigator
+    from shell.domain.execution.services.graph_node_execution_navigator import GraphNodeExecutionNavigator
 
 
 class StartWorkflowHandler:
@@ -31,12 +31,12 @@ class StartWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        navigator: NodeNavigator | None = None,
+        navigator: GraphNodeExecutionNavigator | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
+        self._navigator: GraphNodeExecutionNavigator = navigator or LinearGraphNodeExecutionNavigator()
 
     async def handle(self, cmd: StartWorkflowCommand) -> str:
         now = self._clock.now()

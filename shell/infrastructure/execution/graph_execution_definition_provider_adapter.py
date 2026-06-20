@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.ports.definition_provider import DefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     GraphNodeExecutionDefinition,
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     )
 
 
-class DefinitionProviderAdapter(DefinitionProvider):
+class GraphExecutionDefinitionProviderAdapter(GraphExecutionDefinitionProvider):
     def __init__(self, query_service: GraphDefinitionQueryService) -> None:
         self._query_service = query_service
 

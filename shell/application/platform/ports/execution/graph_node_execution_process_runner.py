@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.manifest import Manifest
 
 
-class NodeProcessRunner(Protocol):
+class GraphNodeExecutionProcessRunner(Protocol):
     async def run(
         self,
         manifest: Manifest,

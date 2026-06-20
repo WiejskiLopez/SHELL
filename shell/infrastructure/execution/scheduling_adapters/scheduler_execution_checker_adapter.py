@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
-class ExecutionCheckerAdapter:
+class SchedulerExecutionCheckerAdapter:
     def __init__(
         self,
         uow: UnitOfWork,

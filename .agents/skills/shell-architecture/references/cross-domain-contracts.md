@@ -9,7 +9,7 @@ DTO (kontrakt danych) jest własnością **domeny która go definiuje** (źród�
 ```
 Definition Domain (źródło)                Execution Domain (docelowa)
 ┌────────────────────────┐                ┌──────────────────────────┐
-│ GraphDefinitionDto     │── TYPE_CHECKING│ DefinitionProvider       │
+│ GraphDefinitionDto     │── TYPE_CHECKING│ GraphExecutionDefinitionProvider        │
 │ GraphNodeDefinitionDto │  (tylko typy)  │ (port/Protocol)          │
 │ (application/dto/)     │                │ (domain/ports/)          │
 └────────────────────────┘                └──────────────────────────┘
@@ -28,14 +28,14 @@ Definition Domain (źródło)                Execution Domain (docelowa)
 - W sygnaturach portu można używać DTO z domeny źródłowej — pod `TYPE_CHECKING` (typy są tylko dla type-checkera, z `from __future__ import annotations` nie są importowane w runtime)
 
 ```python
-# shell/domain/execution/ports/definition_provider.py
+# shell/domain/execution/ports/graph_execution_definition_provider.py
 from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 
-class DefinitionProvider(Protocol):
+class GraphExecutionDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None: ...
 ```
 
@@ -46,7 +46,7 @@ Domena docelowa definiuje **swoje własne DTO** (value objects) reprezentujące 
 ```
 Definition Domain (źródło)       Infrastructure                   Execution Domain (docelowa)
 ┌──────────────────────┐        ┌──────────────────────┐         ┌──────────────────────────┐
-│ GraphDefinitionDto   │───────→│ DefinitionProvider   │────────→│ DefinitionProvider       │
+│ GraphDefinitionDto   │───────→│ GraphExecutionDefinitionProviderAdapter   │────────→│ GraphExecutionDefinitionProvider       │
 │ (application/dto/)   │        │ Adapter              │         │ (port — zwraca własne)   │
 └──────────────────────┘        │ mapuje:              │         └──────────────────────────┘
                                 │ src DTO → exec DTO   │                   │
@@ -101,8 +101,8 @@ SQLAlchemy model → DTO (bez encji domenowych!)
 ### Przykład
 
 ```python
-# shell/infrastructure/execution/definition_provider_adapter.py
-class DefinitionProviderAdapter(DefinitionProvider):
+# shell/infrastructure/execution/graph_execution_definition_provider_adapter.py
+class GraphExecutionDefinitionProviderAdapter(GraphExecutionDefinitionProvider):
     def __init__(self, query_service: GraphDefinitionQueryService) -> None:
         self._query_service = query_service  # ← port odczytu z definition
 

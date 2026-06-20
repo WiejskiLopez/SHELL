@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.scheduling.ports.execution_checker import ExecutionChecker
+    from shell.domain.scheduling.ports.scheduler_execution_checker import SchedulerExecutionChecker
     from shell.domain.scheduling.ports.graph_execution_launcher import (
         GraphExecutionLauncher,
     )
@@ -25,7 +25,7 @@ class SchedulerTriggerHandler:
         logger: Logger,
         orchestrator: SchedulerOrchestrator,
         launcher: GraphExecutionLauncher,
-        checker: ExecutionChecker,
+        checker: SchedulerExecutionChecker,
     ) -> None:
         self._uow = uow
         self._clock = clock

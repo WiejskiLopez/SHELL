@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.manifest import Manifest
 
 
-class FakeNodeProcessRunner:
+class FakeGraphNodeExecutionProcessRunner:
     def __init__(self, stdout: str = "", stderr: str = "", returncode: int = 0) -> None:
         self._stdout = stdout
         self._stderr = stderr

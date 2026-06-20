@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.ports.definition_provider import DefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -34,7 +34,7 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
     def __init__(
         self,
         uow: UnitOfWork,
-        definition_provider: DefinitionProvider,
+        definition_provider: GraphExecutionDefinitionProvider,
         clock: Clock,
         id_gen: IdGenerator,
         logger: Logger,

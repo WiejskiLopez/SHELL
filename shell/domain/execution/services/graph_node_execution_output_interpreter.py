@@ -1,7 +1,7 @@
-"""OutputInterpreter — decides next action based on node execution output.
+"""GraphNodeExecutionOutputInterpreter — decides next action based on node execution output.
 
 Enterprise pattern: each node type can have its own interpreter registered.
-Sub-graph spawning is now handled by PLANNER nodes, not by OutputInterpreter.
+Sub-graph spawning is now handled by PLANNER nodes, not by GraphNodeExecutionOutputInterpreter.
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class OutputDecision:
-    """Decision returned by an OutputInterpreter.
+    """Decision returned by an GraphNodeExecutionOutputInterpreter.
 
     Attributes:
         action: One of "advance", "finish", "replan"
@@ -39,7 +39,7 @@ class OutputDecision:
         return cls("replan", payload=payload)
 
 
-class OutputInterpreter(Protocol):
+class GraphNodeExecutionOutputInterpreter(Protocol):
     """Interprets a node's output and returns a decision.
 
     Implementations are registered per node mode or globally.

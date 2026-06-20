@@ -476,7 +476,7 @@ class SubGraphVersioning(Protocol): ...
 Agent output (JSON) 
   └→ request_new_tasks: [{sub_graph_definition_id, reason, state_input}]
        └→ GraphNodeExecutionResultHandler (Cycle B)
-            └→ OutputInterpreter (Protocol → AgentOutputInterpreter)
+            └→ GraphNodeExecutionOutputInterpreter (Protocol → AgentGraphNodeExecutionOutputInterpreter)
                  └→ OutputDecision.spawn_sub_graphs()
                       └→ SubGraphExecutionService
                            ├── Governance: can_spawn?

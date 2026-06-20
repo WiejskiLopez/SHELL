@@ -2,6 +2,51 @@
 
 > Standardy dotyczą wszystkich warstw: `domain/`, `application/`, `infrastructure/`, `framework/`, `bootstrap/`, `shared/`.
 
+## Zakaz skróconych nazw klas
+
+**Nigdy nie skracaj nazw klas.** Każda klasa musi mieć pełną, biznesową nazwę która oddaje jej znaczenie w języku domeny. Skracanie nazw klas jest zabronione z tych samych powodów co skracanie zmiennych.
+
+### ❌ Przykłady ZABRONIONE (skrócone nazwy klas)
+
+| Skrócona nazwa | Pełna nazwa | Problem |
+|----------------|-------------|---------|
+| `DefinitionProvider` | `GraphExecutionDefinitionProvider` | "Definition" jest niejednoznaczne — istnieją też `SchedulerDefinition`, `GraphDefinition` |
+| `DefinitionProviderAdapter` | `GraphExecutionDefinitionProviderAdapter` | Pochodzi od skróconej nazwy portu |
+| `ExecutionChecker` | `SchedulerExecutionChecker` | "Execution" jest niejednoznaczne — istnieją `GraphExecution`, `TaskExecution`, `SchedulerExecution` |
+| `ExecutionCheckerAdapter` | `SchedulerExecutionCheckerAdapter` | Pochodzi od skróconej nazwy portu |
+| `NodeNavigator` | `GraphNodeExecutionNavigator` | "Node" jest niejednoznaczne — pełny koncept to `GraphNodeExecution` |
+| `NodeWorkspace` | `GraphNodeExecutionWorkspace` | "Node" jest niejednoznaczne |
+| `NodeProcessRunner` | `GraphNodeExecutionProcessRunner` | "Node" jest niejednoznaczne |
+| `NodeExecutionPolicy` | `GraphNodeExecutionPolicy` | "NodeExecution" pomija "Graph" |
+| `OutputInterpreter` | `GraphNodeExecutionOutputInterpreter` | "Output" jest niejednoznaczne — output czego? |
+| `FakeNodeWorkspace` | `FakeGraphNodeExecutionWorkspace` | Pochodzi od skróconej nazwy portu |
+| `FakeNodeProcessRunner` | `FakeGraphNodeExecutionProcessRunner` | Pochodzi od skróconej nazwy portu |
+| `SubprocessNodeProcessRunner` | `SubprocessGraphNodeExecutionProcessRunner` | Pochodzi od skróconej nazwy portu |
+| `FailFastPolicy` | `FailFastGraphNodeExecutionPolicy` | Pochodzi od skróconej nazwy portu `NodeExecutionPolicy` |
+| `AgentOutputInterpreter` | `AgentGraphNodeExecutionOutputInterpreter` | Pochodzi od skróconej nazwy portu `OutputInterpreter` |
+| `TransitionBasedNavigator` | `TransitionBasedGraphNodeExecutionNavigator` | Pochodzi od skróconej nazwy portu `NodeNavigator` |
+
+**Zasada:** Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekcie (np. "Definition", "Execution", "Node", "Output"), musi zawierać pełny kwalifikator domenowy. Nie polegaj na kontekście pakietu — klasa może być używana poza swoim pakietem.
+
+### Przykłady PRAWIDŁOWE
+
+```python
+# ZAMIAST:
+class DefinitionProvider(Protocol): ...
+# PISZ:
+class GraphExecutionDefinitionProvider(Protocol): ...
+
+# ZAMIAST:
+class NodeNavigator(Protocol): ...
+# PISZ:
+class GraphNodeExecutionNavigator(Protocol): ...
+
+# ZAMIAST:
+class OutputInterpreter(Protocol): ...
+# PISZ:
+class GraphNodeExecutionOutputInterpreter(Protocol): ...
+```
+
 ## Zakaz skróconych nazw zmiennych
 
 **Nigdy nie skracaj nazw zmiennych.** Każda zmienna musi mieć pełną, biznesową nazwę która oddaje jej znaczenie w języku domeny.
@@ -98,7 +143,7 @@ for graph_node_definition in graph_definition.graph_node_execution_definitions:
 | Handler (event, drugorzędny) | `PascalCase + kwalifikator + Handler` | `SpawnSubGraphsOnPlannerCompletionHandler` |
 | DTO | `PascalCase + Dto` | `GraphDefinitionDto`, `WorkflowDto` |
 | Mapper | `PascalCase + Mapper` | `GraphDefinitionMapper`, `PromptMapper` |
-| Port (Protocol) | `PascalCase` | `UnitOfWork`, `Clock`, `DefinitionProvider` |
+| Port (Protocol) | `PascalCase` | `UnitOfWork`, `Clock`, `GraphExecutionDefinitionProvider` |
 | Query Service | `PascalCase + QueryService` | `WorkflowQueryService`, `GraphDefinitionQueryService` |
 
 ### Klasy infrastrukturalne
@@ -108,7 +153,7 @@ for graph_node_definition in graph_definition.graph_node_execution_definitions:
 | SQL Repository | `Sql + PascalCase` | `SqlWorkflowRepository`, `SqlGraphDefinitionRepository` |
 | InMemory Repository | `InMemory + PascalCase` | `InMemoryWorkflowRepository` |
 | SQL Query Service | `Sql + PascalCase` | `SqlGraphDefinitionQueryService` |
-| Adapter | `PascalCase + Adapter` | `DefinitionProviderAdapter`, `ExecutionWorkflowOutcomeAdapter` |
+| Adapter | `PascalCase + Adapter` | `GraphExecutionDefinitionProviderAdapter`, `ExecutionWorkflowOutcomeAdapter` |
 | ORM Model | `PascalCase + Model` | `GraphDefinitionModel`, `TaskExecutionModel` |
 
 ## Nazewnictwo plików

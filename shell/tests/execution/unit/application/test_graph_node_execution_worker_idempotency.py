@@ -6,7 +6,7 @@ from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
     FakeIdGenerator,
-    FakeNodeProcessRunner,
+    FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork
 )
 
@@ -21,7 +21,7 @@ class TestGraphNodeExecutionWorkerIdempotency:
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        runner = FakeNodeProcessRunner(returncode=0)
+        runner = FakeGraphNodeExecutionProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
         await worker.handle(
@@ -58,7 +58,7 @@ class TestGraphNodeExecutionWorkerIdempotency:
             await uow.workflows.save(wf)
             await uow.commit()
 
-        runner = FakeNodeProcessRunner(returncode=0)
+        runner = FakeGraphNodeExecutionProcessRunner(returncode=0)
         worker = _make_worker(uow, runner)
 
         await worker.handle(

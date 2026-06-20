@@ -35,7 +35,7 @@ from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.execution import NodeProcessRunner
+    from shell.application.platform.ports.execution import GraphNodeExecutionProcessRunner
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.logging import Logger
     from shell.application.platform.ports.time import Clock
@@ -62,7 +62,7 @@ class GraphNodeExecutionWorker:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        runner: NodeProcessRunner,
+        runner: GraphNodeExecutionProcessRunner,
         logger: Logger,
     ) -> None:
         self._uow = uow

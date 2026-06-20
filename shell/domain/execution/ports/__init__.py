@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from shell.domain.execution.ports.crown_scheduler import CrownScheduler, SubGraphChildStatus
-from shell.domain.execution.ports.definition_provider import DefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
 from shell.domain.execution.ports.prompt_provider import PromptProvider
 from shell.domain.execution.ports.runner_config_provider import RunnerConfigProvider
 from shell.domain.execution.ports.sub_graph_policy import (
@@ -32,7 +32,7 @@ __all__ = [
     "CompensationDecision",
     "CrownScheduler",
     "Decision",
-    "DefinitionProvider",
+    "GraphExecutionDefinitionProvider",
     "PromptProvider",
     "RunnerConfigProvider",
     "Scope",

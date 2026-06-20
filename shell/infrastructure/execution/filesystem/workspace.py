@@ -1,4 +1,4 @@
-"""Workspace — filesystem implementation of the NodeWorkspace port."""
+"""Workspace — filesystem implementation of the GraphNodeExecutionWorkspace port."""
 
 from __future__ import annotations
 

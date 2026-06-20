@@ -1,6 +1,6 @@
-"""Unit tests for ``NodeExecutionPolicy`` strategy.
+"""Unit tests for ``GraphNodeExecutionPolicy`` strategy.
 
-The default ``FailFastPolicy`` always returns ``AbortDecision`` on failure,
+The default ``FailFastGraphNodeExecutionPolicy`` always returns ``AbortDecision`` on failure,
 preserving the legacy "any failure aborts the whole workflow" semantics.
 The protocol allows future strategies (retry, continue-on-error, conditional
 branching) to be plugged in without touching the ``GraphNodeExecutionWorker``.
@@ -14,7 +14,7 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.services.graph_node_execution_policy import (
     AbortDecision,
     ContinueDecision,
-    FailFastPolicy,
+    FailFastGraphNodeExecutionPolicy,
 )
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, TaskExecutionId, WorkflowId
 
@@ -26,9 +26,9 @@ def _workflow() -> Workflow:
     )
 
 
-class TestFailFastPolicy:
+class TestFailFastGraphNodeExecutionPolicy:
     def test_decide_after_failure_returns_abort_decision(self) -> None:
-        policy = FailFastPolicy()
+        policy = FailFastGraphNodeExecutionPolicy()
         wf = _workflow()
         decision = policy.decide_after_failure(wf, GraphNodeExecutionId("n1"), reason="boom")
         assert isinstance(decision, AbortDecision)

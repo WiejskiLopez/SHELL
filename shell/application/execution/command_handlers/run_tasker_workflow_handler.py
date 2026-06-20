@@ -3,7 +3,7 @@
 Lifecycle (command side):
 
 1. Validate the task exists and its Graph has nodes.
-2. Compute the *first* node via the configured ``NodeNavigator``.
+2. Compute the *first* node via the configured ``GraphNodeExecutionNavigator``.
 3. Create a ``Workflow`` and call ``Workflow.start_at(first, context, now)``
    which emits ``WorkflowStartedEvent`` + ``GraphNodeExecutionStartedEvent``.
 4. Persist the workflow (CAS bumps version 0→1) and stage:
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
         IdGenerator,
         UnitOfWork,
     )
-    from shell.domain.execution.services.graph_node_execution_navigator import NodeNavigator
+    from shell.domain.execution.services.graph_node_execution_navigator import GraphNodeExecutionNavigator
 
 
 class RunTaskerWorkflowHandler:
@@ -52,12 +52,12 @@ class RunTaskerWorkflowHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        navigator: NodeNavigator | None = None,
+        navigator: GraphNodeExecutionNavigator | None = None,
     ) -> None:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._navigator: NodeNavigator = navigator or LinearGraphNodeExecutionNavigator()
+        self._navigator: GraphNodeExecutionNavigator = navigator or LinearGraphNodeExecutionNavigator()
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow and request execution; return the workflow id."""

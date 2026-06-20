@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
         Clock,
         IdGenerator,
-        NodeProcessRunner,
-        NodeWorkspace,
+        GraphNodeExecutionProcessRunner,
+        GraphNodeExecutionWorkspace,
         UnitOfWork,
     )
     from shell.application.execution.strategies.graph_node_execution_strategy import (
@@ -34,8 +34,8 @@ class RunGraphNodeExecutionHandler:
         uow: UnitOfWork,
         clock: Clock,
         id_gen: IdGenerator,
-        workspace: NodeWorkspace,
-        runner: NodeProcessRunner,
+        workspace: GraphNodeExecutionWorkspace,
+        runner: GraphNodeExecutionProcessRunner,
         strategy: GraphNodeExecutionStrategy,
     ) -> None:
         self._uow = uow

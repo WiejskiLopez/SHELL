@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.services.graph_node_execution_policy.abort_decision import (
     AbortDecision,
 )
-from shell.domain.execution.services.graph_node_execution_policy.node_execution_policy import (
+from shell.domain.execution.services.graph_node_execution_policy.graph_node_execution_policy import (
     PolicyDecision,
 )
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
-class FailFastPolicy:
+class FailFastGraphNodeExecutionPolicy:
     """Default policy — stop the workflow immediately on the first failure."""
 
     def decide_after_failure(

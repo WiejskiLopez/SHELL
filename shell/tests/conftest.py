@@ -244,7 +244,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
-    FakeNodeProcessRunner,
+    FakeGraphNodeExecutionProcessRunner,
     FakeTaskLoader,
     InMemoryQueryServices,
     InMemoryUnitOfWork,
@@ -376,7 +376,7 @@ async def _persist_running_workflow(
 
 def _make_worker(
     uow: InMemoryUnitOfWork,
-    runner: FakeNodeProcessRunner,
+    runner: FakeGraphNodeExecutionProcessRunner,
 ) -> GraphNodeExecutionWorker:
     return GraphNodeExecutionWorker(
         uow=uow,
@@ -522,7 +522,7 @@ from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId, TaskExecutionId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.version import Version
-from shell.infrastructure.platform.persistence.memory import FakeNodeProcessRunner, InMemoryQueryServices, InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeLogger
+from shell.infrastructure.platform.persistence.memory import FakeGraphNodeExecutionProcessRunner, InMemoryQueryServices, InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeLogger
 
 def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
     task_execution = TaskExecution(
@@ -544,7 +544,7 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
 
 async def _run_tasker_full(uow, clock, id_gen, cmd, runner=None):
     logger = FakeLogger()
-    if runner is None: runner = FakeNodeProcessRunner(stdout="ok", returncode=0)
+    if runner is None: runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
     worker = GraphNodeExecutionWorker(uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner)
     result_handler = GraphNodeExecutionCompletedHandler(uow=uow, clock=clock, id_gen=id_gen, logger=logger)
     bootstrap_handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)

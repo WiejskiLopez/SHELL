@@ -9,7 +9,7 @@ from shell.domain.execution.events import (
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
-    FakeNodeProcessRunner,
+    FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork
 )
 
@@ -29,7 +29,7 @@ class TestRunTaskerWorkflowPartialFailure:
         cmd = RunTaskerWorkflowCommand(
             task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
         )
-        failing_runner = FakeNodeProcessRunner(stdout="execution failed", returncode=1)
+        failing_runner = FakeGraphNodeExecutionProcessRunner(stdout="execution failed", returncode=1)
 
         events = await _run_tasker_full(uow, clock, id_gen, cmd, runner=failing_runner)
 

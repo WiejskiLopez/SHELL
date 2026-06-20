@@ -6,7 +6,7 @@ from shell.domain.execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
 from shell.domain.execution.services.graph_node_execution_navigator.transition_based_navigator import (
-    TransitionBasedNavigator,
+    TransitionBasedGraphNodeExecutionNavigator,
 )
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId
@@ -62,9 +62,9 @@ def _make_graph(*nodes: GraphNodeExecution, transitions: list[GraphNodeTransitio
     )
 
 
-class TestTransitionBasedNavigatorFirst:
+class TestTransitionBasedGraphNodeExecutionNavigatorFirst:
     def setup_method(self) -> None:
-        self._nav = TransitionBasedNavigator()
+        self._nav = TransitionBasedGraphNodeExecutionNavigator()
 
     def test_first_no_transitions_falls_back_to_position(self) -> None:
         a = _make_node("a", 1)
@@ -100,9 +100,9 @@ class TestTransitionBasedNavigatorFirst:
         assert self._nav.first(ge) is None
 
 
-class TestTransitionBasedNavigatorNextAfter:
+class TestTransitionBasedGraphNodeExecutionNavigatorNextAfter:
     def setup_method(self) -> None:
-        self._nav = TransitionBasedNavigator()
+        self._nav = TransitionBasedGraphNodeExecutionNavigator()
         self._a = _make_node("a", 1)
         self._b = _make_node("b", 2)
         self._c = _make_node("c", 3)
@@ -153,9 +153,9 @@ class TestTransitionBasedNavigatorNextAfter:
         assert len(result) == 0
 
 
-class TestTransitionBasedNavigatorNextConditional:
+class TestTransitionBasedGraphNodeExecutionNavigatorNextConditional:
     def test_returns_conditional_targets_with_expressions(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         b = _make_node("b", 2)
         c = _make_node("c", 3)
@@ -167,7 +167,7 @@ class TestTransitionBasedNavigatorNextConditional:
         result = nav.next_conditional(ge, GraphNodeExecutionId("a"))
         assert len(result) == 2
     def no_condition_expression_is_skipped(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         b = _make_node("b", 2)
         ge = _make_graph(a, b, transitions=[
@@ -177,9 +177,9 @@ class TestTransitionBasedNavigatorNextConditional:
         assert len(result) == 0
 
 
-class TestTransitionBasedNavigatorNextErrorHandler:
+class TestTransitionBasedGraphNodeExecutionNavigatorNextErrorHandler:
     def test_returns_error_handler_target(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         b = _make_node("b", 2)
         ge = _make_graph(a, b, transitions=[
@@ -190,16 +190,16 @@ class TestTransitionBasedNavigatorNextErrorHandler:
         assert result.id == GraphNodeExecutionId("b")
 
     def test_no_error_handler_returns_none(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         ge = _make_graph(a)
         result = nav.next_error_handler(ge, GraphNodeExecutionId("a"))
         assert result is None
 
 
-class TestTransitionBasedNavigatorNextLoopTarget:
+class TestTransitionBasedGraphNodeExecutionNavigatorNextLoopTarget:
     def test_returns_loop_target(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         b = _make_node("b", 2)
         ge = _make_graph(a, b, transitions=[
@@ -210,7 +210,7 @@ class TestTransitionBasedNavigatorNextLoopTarget:
         assert result.id == GraphNodeExecutionId("b")
 
     def test_no_loop_returns_none(self) -> None:
-        nav = TransitionBasedNavigator()
+        nav = TransitionBasedGraphNodeExecutionNavigator()
         a = _make_node("a", 1)
         ge = _make_graph(a)
         result = nav.next_loop_target(ge, GraphNodeExecutionId("a"))

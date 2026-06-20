@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
-class TransitionBasedNavigator:
+class TransitionBasedGraphNodeExecutionNavigator:
     def first(self, graph_execution: GraphExecution) -> GraphNodeExecution | None:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
         transitions = graph_execution.transitions

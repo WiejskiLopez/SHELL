@@ -39,7 +39,7 @@ Zasady:
 
 ### Two-phase UoW — dla długotrwałych operacji
 
-Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `NodeProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków:
+Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `GraphNodeExecutionProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków:
 
 ```python
 async def handle(self, command: SomeCommand) -> None:
@@ -94,7 +94,7 @@ Każde pole DTO musi mieć źródło. Hardcoded `[]` albo `""` zamiast mapowania
 
 - W `application/ports/` — interfejsy dla adapterów infrastrukturalnych
 - Każdy w osobnym module (`unit_of_work.py`, `time.py`, `logging.py`)
-- Obowiązkowe porty: `UnitOfWork`, `Clock`, `IdGenerator`, `EventPublisher`, `Logger`, `NodeProcessRunner`, `NodeWorkspace`, `TaskExecutionLoader`
+- Obowiązkowe porty: `UnitOfWork`, `Clock`, `IdGenerator`, `EventPublisher`, `Logger`, `GraphNodeExecutionProcessRunner`, `GraphNodeExecutionWorkspace`, `TaskExecutionLoader`
 - `ports.py` agreguje re-exporty dla wygody
 
 ## `from __future__ import annotations`

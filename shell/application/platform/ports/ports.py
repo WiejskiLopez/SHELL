@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.application.platform.ports.execution import NodeProcessRunner, NodeWorkspace
+from shell.application.platform.ports.execution import GraphNodeExecutionProcessRunner, GraphNodeExecutionWorkspace
 from shell.application.platform.ports.filesystem import TaskExecutionLoader
 from shell.application.platform.ports.identity import IdGenerator
 from shell.application.platform.ports.logging import Logger
@@ -15,8 +15,8 @@ __all__ = [
     "EventPublisher",
     "IdGenerator",
     "Logger",
-    "NodeProcessRunner",
-    "NodeWorkspace",
+    "GraphNodeExecutionProcessRunner",
+    "GraphNodeExecutionWorkspace",
     "TaskExecutionLoader",
     "UnitOfWork",
 ]

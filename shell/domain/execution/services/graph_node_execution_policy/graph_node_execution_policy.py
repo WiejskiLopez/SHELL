@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 PolicyDecision = AbortDecision | ContinueDecision | RouteToErrorHandlerDecision
 
 
-class NodeExecutionPolicy(Protocol):
+class GraphNodeExecutionPolicy(Protocol):
     """Decides what to do after a node has failed."""
 
     def decide_after_failure(

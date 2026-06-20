@@ -6,8 +6,8 @@ from dependency_injector import containers, providers
 
 from shell.application.execution.strategies.graph_node_execution_strategy import get_strategy
 from shell.domain.execution.services.compensation_handler import NoOpCompensationHandler
-from shell.domain.execution.services.graph_node_execution_navigator import TransitionBasedNavigator
-from shell.domain.execution.services.graph_node_execution_policy import FailFastPolicy
+from shell.domain.execution.services.graph_node_execution_navigator import TransitionBasedGraphNodeExecutionNavigator
+from shell.domain.execution.services.graph_node_execution_policy import FailFastGraphNodeExecutionPolicy
 from shell.domain.execution.services.sub_graph_execution_service import SubGraphExecutionService
 from shell.domain.scheduling.services.scheduler_orchestrator import SchedulerOrchestrator
 from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
@@ -24,8 +24,8 @@ class DomainContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    node_navigator_factory = providers.Singleton(TransitionBasedNavigator)
-    graph_node_execution_policy_factory = providers.Singleton(FailFastPolicy)
+    node_navigator_factory = providers.Singleton(TransitionBasedGraphNodeExecutionNavigator)
+    graph_node_execution_policy_factory = providers.Singleton(FailFastGraphNodeExecutionPolicy)
     compensation_handler_factory = providers.Singleton(NoOpCompensationHandler)
 
     strategy = providers.Object(get_strategy("agent"))

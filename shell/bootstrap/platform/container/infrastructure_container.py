@@ -13,8 +13,8 @@ from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 
-from shell.infrastructure.execution.definition_provider_adapter import (
-    DefinitionProviderAdapter,
+from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
+    GraphExecutionDefinitionProviderAdapter,
 )
 from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
     InMemoryCrownScheduler,
@@ -22,10 +22,10 @@ from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler impo
 from shell.infrastructure.execution.scheduling_adapters.graph_execution_launcher_adapter import (
     GraphExecutionLauncherAdapter,
 )
-from shell.infrastructure.execution.scheduling_adapters.execution_checker_adapter import (
-    ExecutionCheckerAdapter,
+from shell.infrastructure.execution.scheduling_adapters.scheduler_execution_checker_adapter import (
+    SchedulerExecutionCheckerAdapter,
 )
-from shell.infrastructure.execution.process.subprocess_runner import SubprocessNodeProcessRunner
+from shell.infrastructure.execution.process.subprocess_runner import SubprocessGraphNodeExecutionProcessRunner
 from shell.infrastructure.platform.time.system_clock import SystemClock
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.execution.persistence.sql.services import (
@@ -85,7 +85,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     id_gen_factory = providers.Factory(UuidIdGenerator)
     task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
     workspace_factory = providers.Factory(Workspace)
-    runner_factory = providers.Factory(SubprocessNodeProcessRunner)
+    runner_factory = providers.Factory(SubprocessGraphNodeExecutionProcessRunner)
 
     # 3. Adaptery definicji (bridge execution → definition)
     graph_definition_query_service_factory = providers.Factory(
@@ -93,7 +93,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
     definition_provider_factory = providers.Factory(
-        DefinitionProviderAdapter,
+        GraphExecutionDefinitionProviderAdapter,
         query_service=graph_definition_query_service_factory,
     )
 
@@ -109,7 +109,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         logger=stdlib_logger,
     )
     scheduler_checker_factory = providers.Factory(
-        ExecutionCheckerAdapter,
+        SchedulerExecutionCheckerAdapter,
         uow=uow_factory,
         logger=stdlib_logger,
     )

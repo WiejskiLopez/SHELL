@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
-from shell.domain.execution.ports.definition_provider import DefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Clock
     from shell.domain.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.services.graph_node_execution_navigator import (
-        NodeNavigator,
+        GraphNodeExecutionNavigator,
     )
 
 
@@ -53,8 +53,8 @@ class SubGraphExecutionService:
         clock: Clock,
         id_gen: IdGenerator,
         logger: Logger,
-        navigator: NodeNavigator,
-        definition_provider: DefinitionProvider,
+        navigator: GraphNodeExecutionNavigator,
+        definition_provider: GraphExecutionDefinitionProvider,
         governance: SubGraphGovernance | None = None,
         security: SubGraphSecurity | None = None,
         versioning: SubGraphVersioning | None = None,
