@@ -1,0 +1,1 @@
+from shell.infrastructure.platform.persistence.sql.models.base import Base
