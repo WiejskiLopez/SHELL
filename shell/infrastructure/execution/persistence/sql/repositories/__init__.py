@@ -14,10 +14,14 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execu
     SqlGraphExecutionRepository,
     TaskExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_repository import (
-    GraphExecutionStateModel,
-    SqlGraphExecutionStateRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_input_repository import (
+    GraphExecutionStateInputModel,
+    SqlGraphExecutionStateInputRepository,
     update,
+)
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_output_repository import (
+    GraphExecutionStateOutputModel,
+    SqlGraphExecutionStateOutputRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
     SqlGraphNodeExecutionRepository,
@@ -47,13 +51,15 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_re
 __all__ = [
     "EnvelopeModel",
     "GraphExecutionModel",
-    "GraphExecutionStateModel",
+    "GraphExecutionStateInputModel",
+    "GraphExecutionStateOutputModel",
     "MessageModel",
     "SessionModel",
     "SqlEnvelopeArchiveStub",
     "SqlEnvelopeRepository",
     "SqlGraphExecutionRepository",
-    "SqlGraphExecutionStateRepository",
+    "SqlGraphExecutionStateInputRepository",
+    "SqlGraphExecutionStateOutputRepository",
     "SqlGraphNodeExecutionRepository",
     "SqlSessionRepository",
     "SqlTaskExecutionInputPayloadRepository",

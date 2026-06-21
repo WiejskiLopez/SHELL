@@ -2,27 +2,27 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.aggregates.graph_execution.graph_execution_state import (
-    GraphExecutionState,
+from shell.domain.execution.aggregates.graph_execution.graph_execution_state_input import (
+    GraphExecutionStateInput,
 )
-from shell.domain.execution.events.graph_execution_state_changed_event import (
-    GraphExecutionStateChangedEvent,
+from shell.domain.execution.events.graph_execution_state_input_changed_event import (
+    GraphExecutionStateInputChangedEvent,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateInputId
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")
 
 
-def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionState:
-    return GraphExecutionState.create(
-        id_=GraphExecutionStateId.generate(),
+def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionStateInput:
+    return GraphExecutionStateInput.create(
+        id_=GraphExecutionStateInputId.generate(),
         graph_execution_id=_GE_ID,
         now=_NOW,
     )
 
 
-class TestGraphExecutionStateCreate:
+class TestGraphExecutionStateInputCreate:
     def test_create_has_empty_state(self) -> None:
         state = _make_state()
         assert state.state_data == {}
@@ -30,8 +30,8 @@ class TestGraphExecutionStateCreate:
         assert state.graph_execution_id == _GE_ID
 
     def test_create_with_initial_data(self) -> None:
-        state = GraphExecutionState(
-            id=GraphExecutionStateId.generate(),
+        state = GraphExecutionStateInput(
+            id=GraphExecutionStateInputId.generate(),
             graph_execution_id=_GE_ID,
             state_data={"k": "v"},
             is_current=True,
@@ -40,7 +40,7 @@ class TestGraphExecutionStateCreate:
         assert state.get("k") == "v"
 
 
-class TestGraphExecutionStateUpdate:
+class TestGraphExecutionStateInputUpdate:
     def test_update_sets_value(self) -> None:
         state = _make_state()
         state.update("key1", "value1")
@@ -58,13 +58,13 @@ class TestGraphExecutionStateUpdate:
         events = state.pull_events()
         assert len(events) == 1
         event = events[0]
-        assert isinstance(event, GraphExecutionStateChangedEvent)
+        assert isinstance(event, GraphExecutionStateInputChangedEvent)
         assert event.key == "k"
         assert event.old_value is None
         assert event.new_value == "v"
 
 
-class TestGraphExecutionStateDelete:
+class TestGraphExecutionStateInputDelete:
     def test_delete_removes_key(self) -> None:
         state = _make_state()
         state.update("k", "v")
@@ -78,7 +78,7 @@ class TestGraphExecutionStateDelete:
         assert len(events) == 0
 
 
-class TestGraphExecutionStatePatch:
+class TestGraphExecutionStateInputPatch:
     def test_patch_updates_multiple_keys(self) -> None:
         state = _make_state()
         state.patch({"a": 1, "b": 2})
@@ -87,30 +87,7 @@ class TestGraphExecutionStatePatch:
         assert len(state.pull_events()) == 2
 
 
-class TestGraphExecutionStateMerge:
-    def test_merge_adds_new_keys(self) -> None:
-        state = _make_state()
-        state.update("x", 1)
-        child = GraphExecutionState.create(
-            id_=GraphExecutionStateId.generate(),
-            graph_execution_id=GraphExecutionId("child"),
-            now=_NOW,
-        )
-        child.update("y", 2)
-        child.update("x", 999)
-        state.merge(child)
-        assert state.get("x") == 1
-        assert state.get("y") == 2
-
-    def test_merge_empty_other_noop(self) -> None:
-        state = _make_state()
-        state.update("x", 1)
-        other = _make_state()
-        state.merge(other)
-        assert state.get("x") == 1
-
-
-class TestGraphExecutionStateSupersede:
+class TestGraphExecutionStateInputSupersede:
     def test_supersede_flags_not_current(self) -> None:
         state = _make_state()
         assert state.is_current is True
@@ -118,7 +95,7 @@ class TestGraphExecutionStateSupersede:
         assert state.is_current is False
 
 
-class TestGraphExecutionStateSnapshot:
+class TestGraphExecutionStateInputSnapshot:
     def test_snapshot_returns_copy(self) -> None:
         state = _make_state()
         state.update("k", "v")
@@ -128,7 +105,7 @@ class TestGraphExecutionStateSnapshot:
         assert state.get("k") == "v"
 
 
-class TestGraphExecutionStateClear:
+class TestGraphExecutionStateInputClear:
     def test_clear_removes_all_keys(self) -> None:
         state = _make_state()
         state.update("a", 1)

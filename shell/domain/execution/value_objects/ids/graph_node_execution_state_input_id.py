@@ -7,16 +7,16 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 @dataclass(frozen=True, slots=True)
-class GraphNodeExecutionInputPayloadId(ValueObject):
+class GraphNodeExecutionStateInputId(ValueObject):
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("GraphNodeExecutionInputPayloadId cannot be empty")
+            raise ValueError("GraphNodeExecutionStateInputId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> GraphNodeExecutionInputPayloadId:
+    def generate(cls) -> GraphNodeExecutionStateInputId:
         return cls(str(uuid.uuid4()))

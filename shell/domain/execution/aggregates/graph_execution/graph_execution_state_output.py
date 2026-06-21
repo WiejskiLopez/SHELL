@@ -1,13 +1,16 @@
-"""GraphExecutionState — shared graph-level state, a separate AggregateRoot.
+"""GraphExecutionStateOutput — graph-produced output state, a separate AggregateRoot.
 
 This aggregate provides a key-value store (JSONB-backed) scoped to a single
 graph_execution_id.  It is *not* owned by GraphExecution — both are peers,
 each with its own transactional boundary.
 
+Output state represents data produced by the graph's own nodes during execution.
+Nodes write and read this state as they progress through the graph.
+
 Lifecycle:
     1. Created when a GraphExecution is built (BuildGraphExecutionOnTaskExecutionCreated).
     2. Mutated by node execution handlers via `.update(key, value)`.
-       Each mutation appends a :class:`GraphExecutionStateChangedEvent`.
+       Each mutation appends a :class:`GraphExecutionStateOutputChangedEvent`.
     3. Superseded on change (previous row marked is_current=False, new row inserted)
        — the ORM table enforces at most one is_current row per graph_execution_id.
     4. Merged when a Tasker node completes child tasks.
@@ -17,19 +20,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events.graph_execution_state_changed_event import (
-    GraphExecutionStateChangedEvent,
+from shell.domain.execution.events.graph_execution_state_output_changed_event import (
+    GraphExecutionStateOutputChangedEvent,
 )
 from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateId
+    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateOutputId
 
 
-class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
-    """Aggregate that holds mutable shared key-value state for one graph execution."""
+class GraphExecutionStateOutput(AggregateRoot["GraphExecutionStateOutputId"]):
+    """Aggregate that holds graph-produced mutable key-value state for one graph execution."""
 
     __slots__ = (
         "_graph_execution_id",
@@ -45,7 +48,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     def __init__(
         self,
-        id: GraphExecutionStateId,
+        id: GraphExecutionStateOutputId,
         graph_execution_id: GraphExecutionId,
         state_data: dict[str, object] | None = None,
         is_current: bool = True,
@@ -82,10 +85,10 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def create(
         cls,
         *,
-        id_: GraphExecutionStateId,
+        id_: GraphExecutionStateOutputId,
         graph_execution_id: GraphExecutionId,
         now: datetime,
-    ) -> GraphExecutionState:
+    ) -> GraphExecutionStateOutput:
         instance = cls(
             id=id_,
             graph_execution_id=graph_execution_id,
@@ -99,17 +102,17 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     # ------------------------------------------------------------------ mutations
 
     def update(self, key: str, value: object) -> None:
-        """Set or overwrite a key. Emits a GraphExecutionStateChangedEvent."""
+        """Set or overwrite a key. Emits a GraphExecutionStateOutputChangedEvent."""
         old_value = self._state_data.get(key)
         self._state_data[key] = value
         self.append_event(
-            GraphExecutionStateChangedEvent.now(
+            GraphExecutionStateOutputChangedEvent.now(
                 graph_execution_id=self._graph_execution_id,
-                graph_execution_state_id=self.id,
+                graph_execution_state_output_id=self.id,
                 key=key,
                 old_value=old_value,
                 new_value=value,
-                now=self._created_at,  # will be replaced by UoW commit time
+                now=self._created_at,
             )
         )
 
@@ -120,9 +123,9 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         if key in self._state_data:
             old_value = self._state_data.pop(key)
             self.append_event(
-                GraphExecutionStateChangedEvent.now(
+                GraphExecutionStateOutputChangedEvent.now(
                     graph_execution_id=self._graph_execution_id,
-                    graph_execution_state_id=self.id,
+                    graph_execution_state_output_id=self.id,
                     key=key,
                     old_value=old_value,
                     new_value=None,
@@ -140,7 +143,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         for key in keys:
             self.delete(key)
 
-    def merge(self, other: GraphExecutionState) -> None:
+    def merge(self, other: GraphExecutionStateOutput) -> None:
         """Incorporate state from a child task (Tasker pattern).
 
         Keys present in *other* but absent in *self* are copied.

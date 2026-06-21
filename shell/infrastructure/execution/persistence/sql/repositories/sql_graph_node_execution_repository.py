@@ -23,8 +23,8 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
 
     def _base_query(self):
         return select(GraphNodeExecutionModel).options(
-            selectinload(GraphNodeExecutionModel.input_payload_models),
-            selectinload(GraphNodeExecutionModel.output_payload_models),
+            selectinload(GraphNodeExecutionModel.input_state_models),
+            selectinload(GraphNodeExecutionModel.output_state_models),
         )
 
     async def get_by_id(self, node_id: GraphNodeExecutionId) -> GraphNodeExecution | None:
@@ -57,37 +57,37 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
 def _graph_node_execution_model_to_entity(
     model: GraphNodeExecutionModel,
 ) -> GraphNodeExecution:
-    from shell.domain.execution.entities.graph_node_execution_input_payload import (
-        GraphNodeExecutionInputPayload,
+    from shell.domain.execution.entities.graph_node_execution_state_input import (
+        GraphNodeExecutionStateInput,
     )
-    from shell.domain.execution.entities.graph_node_execution_output_payload import (
-        GraphNodeExecutionOutputPayload,
+    from shell.domain.execution.entities.graph_node_execution_state_output import (
+        GraphNodeExecutionStateOutput,
     )
     from shell.domain.execution.value_objects.ids import (
-        GraphNodeExecutionInputPayloadId,
-        GraphNodeExecutionOutputPayloadId,
+        GraphNodeExecutionStateInputId,
+        GraphNodeExecutionStateOutputId,
     )
     from shell.domain.platform.value_objects.mode import Mode
 
-    input_payloads = [
-        GraphNodeExecutionInputPayload(
-            id=GraphNodeExecutionInputPayloadId(p.id),
+    input_states = [
+        GraphNodeExecutionStateInput(
+            id=GraphNodeExecutionStateInputId(p.id),
             graph_node_execution_id=GraphNodeExecutionId(p.graph_node_execution_id),
             payload=dict(p.payload),
             is_current=p.is_current,
             created_at=p.created_at,
         )
-        for p in model.input_payload_models
+        for p in model.input_state_models
     ]
-    output_payloads = [
-        GraphNodeExecutionOutputPayload(
-            id=GraphNodeExecutionOutputPayloadId(p.id),
+    output_states = [
+        GraphNodeExecutionStateOutput(
+            id=GraphNodeExecutionStateOutputId(p.id),
             graph_node_execution_id=GraphNodeExecutionId(p.graph_node_execution_id),
             payload=dict(p.payload),
             is_current=p.is_current,
             created_at=p.created_at,
         )
-        for p in model.output_payload_models
+        for p in model.output_state_models
     ]
     return GraphNodeExecution(
         id=GraphNodeExecutionId(model.id),
@@ -114,17 +114,17 @@ def _graph_node_execution_model_to_entity(
             if model.graph_execution_id
             else None
         ),
-        input_payloads=input_payloads,
-        output_payloads=output_payloads,
+        input_states=input_states,
+        output_states=output_states,
     )
 
 
 def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNodeExecutionModel:
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_input_payload import (
-        GraphNodeExecutionInputPayloadModel,
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
+        GraphNodeExecutionStateInputModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_output_payload import (
-        GraphNodeExecutionOutputPayloadModel,
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+        GraphNodeExecutionStateOutputModel,
     )
 
     model = GraphNodeExecutionModel(
@@ -149,24 +149,24 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         max_retries=node.max_retries,
         retry_delay_seconds=node.retry_delay_seconds,
     )
-    model.input_payload_models = [
-        GraphNodeExecutionInputPayloadModel(
+    model.input_state_models = [
+        GraphNodeExecutionStateInputModel(
             id=p.id.value,
             graph_node_execution_id=p.graph_node_execution_id.value,
             payload=p.payload,
             is_current=p.is_current,
             created_at=p.created_at,
         )
-        for p in node.input_payloads
+        for p in node.input_states
     ]
-    model.output_payload_models = [
-        GraphNodeExecutionOutputPayloadModel(
+    model.output_state_models = [
+        GraphNodeExecutionStateOutputModel(
             id=p.id.value,
             graph_node_execution_id=p.graph_node_execution_id.value,
             payload=p.payload,
             is_current=p.is_current,
             created_at=p.created_at,
         )
-        for p in node.output_payloads
+        for p in node.output_states
     ]
     return model

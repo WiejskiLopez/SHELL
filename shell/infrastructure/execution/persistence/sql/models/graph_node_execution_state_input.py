@@ -8,8 +8,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
-class GraphNodeExecutionOutputPayloadModel(Base):
-    __tablename__ = "graph_node_execution_output_payload"
+class GraphNodeExecutionStateInputModel(Base):
+    __tablename__ = "graph_node_execution_state_input"
 
     id: Mapped[str] = mapped_column(primary_key=True)
     graph_node_execution_id: Mapped[str] = mapped_column(
@@ -21,10 +21,10 @@ class GraphNodeExecutionOutputPayloadModel(Base):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     graph_node_execution_model: Mapped[GraphNodeExecutionModel] = relationship(
-        "GraphNodeExecutionModel", back_populates="output_payload_models"
+        "GraphNodeExecutionModel", back_populates="input_state_models"
     )
 
 
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionOutputPayloadModel ↔ GraphNodeExecutionModel
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionStateInputModel ↔ GraphNodeExecutionModel
     GraphNodeExecutionModel,  # noqa: TC002 — GraphNodeExecutionModel używany w Mapped[GraphNodeExecutionModel] w relacji SQLAlchemy
 )

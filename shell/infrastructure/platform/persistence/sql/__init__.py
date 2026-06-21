@@ -160,7 +160,6 @@ def _seed_sync(sync_conn) -> None:
                 no_ask_user=False,
                 autopilot=False,
                 status_initial="",
-                extra={},
                 script="",
                 script_type="",
             )

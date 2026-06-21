@@ -12,17 +12,20 @@ from shell.infrastructure.execution.persistence.sql.models.envelope_event import
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
     GraphExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_execution_state import (
-    GraphExecutionStateModel,
+from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+    GraphExecutionStateInputModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+    GraphExecutionStateOutputModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInputModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_result import (
     GraphNodeExecutionResultModel,
@@ -53,10 +56,11 @@ __all__ = [
     "EnvelopeModel",
     "ForeignKey",
     "GraphExecutionModel",
-    "GraphExecutionStateModel",
-    "GraphNodeExecutionInputPayloadModel",
+    "GraphExecutionStateInputModel",
+    "GraphExecutionStateOutputModel",
+    "GraphNodeExecutionStateInputModel",
     "GraphNodeExecutionModel",
-    "GraphNodeExecutionOutputPayloadModel",
+    "GraphNodeExecutionStateOutputModel",
     "GraphNodeExecutionResultModel",
     "GraphNodeExecutionStateModel",
     "GraphNodeTransitionExecutionModel",

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True)
-class GraphNodeExecutionOutputPayloadDto:
+class GraphNodeExecutionStateInputDto:
     id: str
     graph_node_execution_id: str
     payload: dict

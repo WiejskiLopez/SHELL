@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any  # noqa: TC003 — re-exported via __init__.py
 
 
 @dataclass(frozen=True, slots=True)

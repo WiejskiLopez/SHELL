@@ -36,8 +36,11 @@ from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_repository import (
-    InMemoryGraphExecutionStateRepository,
+from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
+    InMemoryGraphExecutionStateInputRepository,
+)
+from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_output_repository import (
+    InMemoryGraphExecutionStateOutputRepository,
 )
 
 if TYPE_CHECKING:
@@ -59,7 +62,8 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_documents = InMemoryRagDocumentRepository()
         self._sessions = InMemorySessionRepository()
         self._graph_definitions = InMemoryGraphDefinitionRepository()
-        self._graph_execution_states = InMemoryGraphExecutionStateRepository()
+        self._graph_execution_state_inputs = InMemoryGraphExecutionStateInputRepository()
+        self._graph_execution_state_outputs = InMemoryGraphExecutionStateOutputRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -130,8 +134,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         return self._graph_definitions
 
     @property
-    def graph_execution_states(self) -> InMemoryGraphExecutionStateRepository:
-        return self._graph_execution_states
+    def graph_execution_state_inputs(self) -> InMemoryGraphExecutionStateInputRepository:
+        return self._graph_execution_state_inputs
+
+    @property
+    def graph_execution_state_outputs(self) -> InMemoryGraphExecutionStateOutputRepository:
+        return self._graph_execution_state_outputs
 
     @property
     def graph_node_executions(self) -> InMemoryGraphNodeExecutionRepository:

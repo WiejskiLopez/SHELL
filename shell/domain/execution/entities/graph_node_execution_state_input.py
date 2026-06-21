@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
-    GraphNodeExecutionInputPayloadId,
+    GraphNodeExecutionStateInputId,
 )
 from shell.domain.platform.base.entity import Entity
 
@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 
-class GraphNodeExecutionInputPayload(Entity[GraphNodeExecutionInputPayloadId]):
-    """Input payload for a GraphNodeExecution — child entity."""
+class GraphNodeExecutionStateInput(Entity[GraphNodeExecutionStateInputId]):
+    """Input state for a GraphNodeExecution — child entity."""
 
     __slots__ = (
         "_graph_node_execution_id",
@@ -29,7 +29,7 @@ class GraphNodeExecutionInputPayload(Entity[GraphNodeExecutionInputPayloadId]):
 
     def __init__(
         self,
-        id: GraphNodeExecutionInputPayloadId,
+        id: GraphNodeExecutionStateInputId,
         graph_node_execution_id: GraphNodeExecutionId,
         payload: dict,
         is_current: bool,
@@ -61,11 +61,11 @@ class GraphNodeExecutionInputPayload(Entity[GraphNodeExecutionInputPayloadId]):
     def create(
         cls,
         *,
-        id_: GraphNodeExecutionInputPayloadId,
+        id_: GraphNodeExecutionStateInputId,
         graph_node_execution_id: GraphNodeExecutionId,
         payload: dict,
         now: datetime,
-    ) -> GraphNodeExecutionInputPayload:
+    ) -> GraphNodeExecutionStateInput:
         return cls(
             id=id_,
             graph_node_execution_id=graph_node_execution_id,

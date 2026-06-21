@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.dto import (
     EnvelopeDto,
-    GraphNodeExecutionInputPayloadDto,
-    GraphNodeExecutionOutputPayloadDto,
+    GraphNodeExecutionStateInputDto,
+    GraphNodeExecutionStateOutputDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
     PromptDto,
@@ -21,11 +21,11 @@ from shell.application.platform.dto import (
 if TYPE_CHECKING:
     from shell.domain.definition.entities.prompt import Prompt
     from shell.domain.definition.entities.runner_config import RunnerConfig
-    from shell.domain.execution.aggregates.graph_node_execution_input_payload import (
-        GraphNodeExecutionInputPayload,
+    from shell.domain.execution.aggregates.graph_node_execution_state_input import (
+        GraphNodeExecutionStateInput,
     )
-    from shell.domain.execution.aggregates.graph_node_execution_output_payload import (
-        GraphNodeExecutionOutputPayload,
+    from shell.domain.execution.aggregates.graph_node_execution_state_output import (
+        GraphNodeExecutionStateOutput,
     )
     from shell.domain.execution.aggregates.task_execution import TaskExecution
     from shell.domain.execution.aggregates.task_execution_input_payload import (
@@ -157,10 +157,10 @@ def task_execution_output_payload_to_dto(
     )
 
 
-def graph_node_execution_input_payload_to_dto(
-    entity: GraphNodeExecutionInputPayload,
-) -> GraphNodeExecutionInputPayloadDto:
-    return GraphNodeExecutionInputPayloadDto(
+def graph_node_execution_state_input_to_dto(
+    entity: GraphNodeExecutionStateInput,
+) -> GraphNodeExecutionStateInputDto:
+    return GraphNodeExecutionStateInputDto(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,
@@ -169,10 +169,10 @@ def graph_node_execution_input_payload_to_dto(
     )
 
 
-def graph_node_execution_output_payload_to_dto(
-    entity: GraphNodeExecutionOutputPayload,
-) -> GraphNodeExecutionOutputPayloadDto:
-    return GraphNodeExecutionOutputPayloadDto(
+def graph_node_execution_state_output_to_dto(
+    entity: GraphNodeExecutionStateOutput,
+) -> GraphNodeExecutionStateOutputDto:
+    return GraphNodeExecutionStateOutputDto(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,

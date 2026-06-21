@@ -5,13 +5,14 @@ from __future__ import annotations
 from shell.domain.execution.value_objects.ids.envelope_event_id import EnvelopeEventId
 from shell.domain.execution.value_objects.ids.envelope_id import EnvelopeId
 from shell.domain.execution.value_objects.ids.graph_execution_id import GraphExecutionId
-from shell.domain.execution.value_objects.ids.graph_execution_state_id import GraphExecutionStateId
+from shell.domain.execution.value_objects.ids.graph_execution_state_input_id import GraphExecutionStateInputId
+from shell.domain.execution.value_objects.ids.graph_execution_state_output_id import GraphExecutionStateOutputId
 from shell.domain.execution.value_objects.ids.graph_node_execution_id import GraphNodeExecutionId
-from shell.domain.execution.value_objects.ids.graph_node_execution_input_payload_id import (
-    GraphNodeExecutionInputPayloadId,
+from shell.domain.execution.value_objects.ids.graph_node_execution_state_input_id import (
+    GraphNodeExecutionStateInputId,
 )
-from shell.domain.execution.value_objects.ids.graph_node_execution_output_payload_id import (
-    GraphNodeExecutionOutputPayloadId,
+from shell.domain.execution.value_objects.ids.graph_node_execution_state_output_id import (
+    GraphNodeExecutionStateOutputId,
 )
 from shell.domain.execution.value_objects.ids.graph_node_execution_result_id import (
     GraphNodeExecutionResultId,
@@ -37,10 +38,11 @@ __all__ = [
     "EnvelopeEventId",
     "EnvelopeId",
     "GraphExecutionId",
-    "GraphExecutionStateId",
+    "GraphExecutionStateInputId",
+    "GraphExecutionStateOutputId",
     "GraphNodeExecutionId",
-    "GraphNodeExecutionInputPayloadId",
-    "GraphNodeExecutionOutputPayloadId",
+    "GraphNodeExecutionStateInputId",
+    "GraphNodeExecutionStateOutputId",
     "GraphNodeExecutionResultId",
     "GraphNodeExecutionStateId",
     "GraphNodeTransitionExecutionId",

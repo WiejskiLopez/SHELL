@@ -16,8 +16,11 @@ if TYPE_CHECKING:
     from shell.domain.execution.repositories.graph_execution_repository import (
         GraphExecutionRepository,
     )
-    from shell.domain.execution.repositories.graph_execution_state_repository import (
-        GraphExecutionStateRepository,
+    from shell.domain.execution.repositories.graph_execution_state_input_repository import (
+        GraphExecutionStateInputRepository,
+    )
+    from shell.domain.execution.repositories.graph_execution_state_output_repository import (
+        GraphExecutionStateOutputRepository,
     )
     from shell.domain.execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
@@ -62,7 +65,10 @@ class UnitOfWork(Protocol):
     def graph_definitions(self) -> GraphDefinitionRepository: ...
 
     @property
-    def graph_execution_states(self) -> GraphExecutionStateRepository: ...
+    def graph_execution_state_inputs(self) -> GraphExecutionStateInputRepository: ...
+
+    @property
+    def graph_execution_state_outputs(self) -> GraphExecutionStateOutputRepository: ...
 
     @property
     def graph_node_executions(self) -> GraphNodeExecutionRepository: ...

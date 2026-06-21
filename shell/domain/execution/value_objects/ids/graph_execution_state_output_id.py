@@ -7,16 +7,16 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 @dataclass(frozen=True, slots=True)
-class GraphExecutionStateId(ValueObject):
+class GraphExecutionStateOutputId(ValueObject):
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("GraphExecutionStateId cannot be empty")
+            raise ValueError("GraphExecutionStateOutputId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> GraphExecutionStateId:
+    def generate(cls) -> GraphExecutionStateOutputId:
         return cls(str(uuid.uuid4()))

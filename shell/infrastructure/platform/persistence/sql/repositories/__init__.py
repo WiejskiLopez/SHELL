@@ -25,11 +25,11 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_re
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_input_payload_repository import (
-    SqlGraphNodeExecutionInputPayloadRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_input_repository import (
+    SqlGraphNodeExecutionStateInputRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_output_payload_repository import (
-    SqlGraphNodeExecutionOutputPayloadRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_output_repository import (
+    SqlGraphNodeExecutionStateOutputRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
@@ -53,8 +53,8 @@ __all__ = [
     "SqlGraphDefinitionRepository",
     "SqlGraphExecutionRepository",
     "SqlGraphNodeDefinitionRepository",
-    "SqlGraphNodeExecutionInputPayloadRepository",
-    "SqlGraphNodeExecutionOutputPayloadRepository",
+    "SqlGraphNodeExecutionStateInputRepository",
+    "SqlGraphNodeExecutionStateOutputRepository",
     "SqlPromptRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",

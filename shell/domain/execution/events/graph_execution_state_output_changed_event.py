@@ -8,13 +8,13 @@ from shell.domain.platform.events import DomainEvent
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateId
+    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateOutputId
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class GraphExecutionStateChangedEvent(DomainEvent):
+class GraphExecutionStateOutputChangedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
-    graph_execution_state_id: GraphExecutionStateId
+    graph_execution_state_output_id: GraphExecutionStateOutputId
     key: str
     old_value: object | None
     new_value: object | None
@@ -24,16 +24,16 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         cls,
         *,
         graph_execution_id: GraphExecutionId,
-        graph_execution_state_id: GraphExecutionStateId,
+        graph_execution_state_output_id: GraphExecutionStateOutputId,
         key: str,
         old_value: object | None,
         new_value: object | None,
         now: datetime,
-    ) -> GraphExecutionStateChangedEvent:
+    ) -> GraphExecutionStateOutputChangedEvent:
         return cls(
             occurred_at=now,
             graph_execution_id=graph_execution_id,
-            graph_execution_state_id=graph_execution_state_id,
+            graph_execution_state_output_id=graph_execution_state_output_id,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -46,7 +46,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             graph_execution_id=payload["graph_execution_id"],
-            graph_execution_state_id=payload["graph_execution_state_id"],
+            graph_execution_state_output_id=payload["graph_execution_state_output_id"],
             key=payload["key"],
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

@@ -8,8 +8,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-class GraphExecutionStateModel(Base):
-    __tablename__ = "graph_execution_state"
+class GraphExecutionStateOutputModel(Base):
+    __tablename__ = "graph_execution_state_output"
 
     id: Mapped[str] = mapped_column(primary_key=True)
     graph_execution_id: Mapped[str] = mapped_column(

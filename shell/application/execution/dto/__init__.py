@@ -6,11 +6,11 @@ from shell.application.execution.dto.envelope import (
 )
 from shell.application.execution.dto.graph_execution import Any, GraphExecutionDto, datetime
 from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
-from shell.application.execution.dto.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayloadDto,
+from shell.application.execution.dto.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInputDto,
 )
-from shell.application.execution.dto.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayloadDto,
+from shell.application.execution.dto.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputDto,
 )
 from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 from shell.application.execution.dto.graph_node_execution_state import GraphNodeExecutionStateDto
@@ -30,8 +30,8 @@ __all__ = [
     "EnvelopeDto",
     "GraphExecutionDto",
     "GraphNodeExecutionDto",
-    "GraphNodeExecutionInputPayloadDto",
-    "GraphNodeExecutionOutputPayloadDto",
+    "GraphNodeExecutionStateInputDto",
+    "GraphNodeExecutionStateOutputDto",
     "GraphNodeExecutionResultDto",
     "GraphNodeExecutionStateDto",
     "MessageDto",

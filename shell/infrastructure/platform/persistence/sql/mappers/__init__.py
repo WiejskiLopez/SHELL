@@ -31,11 +31,11 @@ from shell.domain.execution.aggregates.task_execution_output_payload import (
 )
 from shell.domain.execution.aggregates.workflow import GraphNodeExecutionState, Workflow
 from shell.domain.execution.entities.envelope import Envelope, EnvelopeEvent
-from shell.domain.execution.entities.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayload,
+from shell.domain.execution.entities.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInput,
 )
-from shell.domain.execution.entities.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayload,
+from shell.domain.execution.entities.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutput,
 )
 from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
 from shell.domain.execution.entities.graph_node_transition_execution import (
@@ -47,8 +47,8 @@ from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
-    GraphNodeExecutionInputPayloadId,
-    GraphNodeExecutionOutputPayloadId,
+    GraphNodeExecutionStateInputId,
+    GraphNodeExecutionStateOutputId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
     GraphNodeTransitionExecutionId,
@@ -81,8 +81,8 @@ from shell.infrastructure.execution.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
     GraphExecutionModel,
-    GraphNodeExecutionInputPayloadModel,
-    GraphNodeExecutionOutputPayloadModel,
+    GraphNodeExecutionStateInputModel,
+    GraphNodeExecutionStateOutputModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateModel,
     GraphNodeTransitionExecutionModel,
@@ -207,15 +207,15 @@ def task_execution_output_payload_entity_to_model(
 
 
 # ---------------------------------------------------------------------------
-# GraphNodeExecution Input Payload
+# GraphNodeExecution State Input
 # ---------------------------------------------------------------------------
 
 
-def graph_node_execution_input_payload_model_to_entity(
-    model: GraphNodeExecutionInputPayloadModel,
-) -> GraphNodeExecutionInputPayload:
-    return GraphNodeExecutionInputPayload(
-        id=GraphNodeExecutionInputPayloadId(model.id),
+def graph_node_execution_state_input_model_to_entity(
+    model: GraphNodeExecutionStateInputModel,
+) -> GraphNodeExecutionStateInput:
+    return GraphNodeExecutionStateInput(
+        id=GraphNodeExecutionStateInputId(model.id),
         graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
         payload=dict(model.payload),
         is_current=model.is_current,
@@ -223,10 +223,10 @@ def graph_node_execution_input_payload_model_to_entity(
     )
 
 
-def graph_node_execution_input_payload_entity_to_model(
-    entity: GraphNodeExecutionInputPayload,
-) -> GraphNodeExecutionInputPayloadModel:
-    return GraphNodeExecutionInputPayloadModel(
+def graph_node_execution_state_input_entity_to_model(
+    entity: GraphNodeExecutionStateInput,
+) -> GraphNodeExecutionStateInputModel:
+    return GraphNodeExecutionStateInputModel(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,
@@ -236,15 +236,15 @@ def graph_node_execution_input_payload_entity_to_model(
 
 
 # ---------------------------------------------------------------------------
-# GraphNodeExecution Output Payload
+# GraphNodeExecution State Output
 # ---------------------------------------------------------------------------
 
 
-def graph_node_execution_output_payload_model_to_entity(
-    model: GraphNodeExecutionOutputPayloadModel,
-) -> GraphNodeExecutionOutputPayload:
-    return GraphNodeExecutionOutputPayload(
-        id=GraphNodeExecutionOutputPayloadId(model.id),
+def graph_node_execution_state_output_model_to_entity(
+    model: GraphNodeExecutionStateOutputModel,
+) -> GraphNodeExecutionStateOutput:
+    return GraphNodeExecutionStateOutput(
+        id=GraphNodeExecutionStateOutputId(model.id),
         graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
         payload=dict(model.payload),
         is_current=model.is_current,
@@ -252,10 +252,10 @@ def graph_node_execution_output_payload_model_to_entity(
     )
 
 
-def graph_node_execution_output_payload_entity_to_model(
-    entity: GraphNodeExecutionOutputPayload,
-) -> GraphNodeExecutionOutputPayloadModel:
-    return GraphNodeExecutionOutputPayloadModel(
+def graph_node_execution_state_output_entity_to_model(
+    entity: GraphNodeExecutionStateOutput,
+) -> GraphNodeExecutionStateOutputModel:
+    return GraphNodeExecutionStateOutputModel(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
         payload=entity.payload,
@@ -878,17 +878,17 @@ def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
     )
 
 
-# ── GraphExecutionState ──────────────────────────────────────────────────────
+# ── GraphExecutionStateInput ──────────────────────────────────────────────────
 
 
-def graph_execution_state_model_to_entity(model):
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_state import (
-        GraphExecutionState,
+def graph_execution_state_input_model_to_entity(model):
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_state_input import (
+        GraphExecutionStateInput,
     )
-    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateId
+    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateInputId
 
-    return GraphExecutionState(
-        id=GraphExecutionStateId(model.id),
+    return GraphExecutionStateInput(
+        id=GraphExecutionStateInputId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         state_data=dict(model.payload) if model.payload else {},
         is_current=model.is_current,
@@ -896,12 +896,44 @@ def graph_execution_state_model_to_entity(model):
     )
 
 
-def graph_execution_state_entity_to_model(entity):
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state import (
-        GraphExecutionStateModel,
+def graph_execution_state_input_entity_to_model(entity):
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+        GraphExecutionStateInputModel,
     )
 
-    return GraphExecutionStateModel(
+    return GraphExecutionStateInputModel(
+        id=entity.id.value,
+        graph_execution_id=entity.graph_execution_id.value,
+        payload=entity.state_data,
+        is_current=entity.is_current,
+        created_at=entity.created_at,
+    )
+
+
+# ── GraphExecutionStateOutput ─────────────────────────────────────────────────
+
+
+def graph_execution_state_output_model_to_entity(model):
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_state_output import (
+        GraphExecutionStateOutput,
+    )
+    from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateOutputId
+
+    return GraphExecutionStateOutput(
+        id=GraphExecutionStateOutputId(model.id),
+        graph_execution_id=GraphExecutionId(model.graph_execution_id),
+        state_data=dict(model.payload) if model.payload else {},
+        is_current=model.is_current,
+        created_at=model.created_at,
+    )
+
+
+def graph_execution_state_output_entity_to_model(entity):
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+        GraphExecutionStateOutputModel,
+    )
+
+    return GraphExecutionStateOutputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
         payload=entity.state_data,

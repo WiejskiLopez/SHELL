@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.entities.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayload,  # noqa: TC002 — GraphNodeExecutionInputPayload używany w konstruktorze i typach propertisów GraphNodeExecution
+from shell.domain.execution.entities.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInput,  # noqa: TC002 — GraphNodeExecutionStateInput używany w konstruktorze i typach propertisów GraphNodeExecution
 )
-from shell.domain.execution.entities.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayload,  # noqa: TC002 — GraphNodeExecutionOutputPayload używany w konstruktorze i typach propertisów GraphNodeExecution
+from shell.domain.execution.entities.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutput,  # noqa: TC002 — GraphNodeExecutionStateOutput używany w konstruktorze i typach propertisów GraphNodeExecution
 )
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
@@ -45,8 +45,8 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "timeout_seconds",
         "max_retries",
         "retry_delay_seconds",
-        "_input_payloads",
-        "_output_payloads",
+        "_input_states",
+        "_output_states",
     )
 
     def __init__(
@@ -71,8 +71,8 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         max_retries: int = 0,
         retry_delay_seconds: int = 0,
         graph_execution_id: GraphExecutionId | None = None,
-        input_payloads: list[GraphNodeExecutionInputPayload] | None = None,
-        output_payloads: list[GraphNodeExecutionOutputPayload] | None = None,
+        input_states: list[GraphNodeExecutionStateInput] | None = None,
+        output_states: list[GraphNodeExecutionStateOutput] | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -94,33 +94,33 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.retry_delay_seconds = retry_delay_seconds
-        self._input_payloads = list(input_payloads) if input_payloads else []
-        self._output_payloads = list(output_payloads) if output_payloads else []
+        self._input_states = list(input_states) if input_states else []
+        self._output_states = list(output_states) if output_states else []
 
     @property
     def graph_execution_id(self) -> GraphExecutionId | None:
         return self._graph_execution_id
 
     @property
-    def input_payloads(self) -> tuple[GraphNodeExecutionInputPayload, ...]:
-        return tuple(self._input_payloads)
+    def input_states(self) -> tuple[GraphNodeExecutionStateInput, ...]:
+        return tuple(self._input_states)
 
     @property
-    def output_payloads(self) -> tuple[GraphNodeExecutionOutputPayload, ...]:
-        return tuple(self._output_payloads)
+    def output_states(self) -> tuple[GraphNodeExecutionStateOutput, ...]:
+        return tuple(self._output_states)
 
-    def add_input_payload(self, payload: GraphNodeExecutionInputPayload) -> None:
-        self._input_payloads.append(payload)
+    def add_input_state(self, payload: GraphNodeExecutionStateInput) -> None:
+        self._input_states.append(payload)
 
-    def add_output_payload(self, payload: GraphNodeExecutionOutputPayload) -> None:
-        self._output_payloads.append(payload)
+    def add_output_state(self, payload: GraphNodeExecutionStateOutput) -> None:
+        self._output_states.append(payload)
 
-    def get_latest_input_payload(self) -> GraphNodeExecutionInputPayload | None:
-        current = [p for p in self._input_payloads if p.is_current]
+    def get_latest_input_state(self) -> GraphNodeExecutionStateInput | None:
+        current = [p for p in self._input_states if p.is_current]
         return current[0] if current else None
 
-    def get_latest_output_payload(self) -> GraphNodeExecutionOutputPayload | None:
-        current = [p for p in self._output_payloads if p.is_current]
+    def get_latest_output_state(self) -> GraphNodeExecutionStateOutput | None:
+        current = [p for p in self._output_states if p.is_current]
         return current[0] if current else None
 
     def record_planner_result(

@@ -8,11 +8,11 @@ from shell.application.definition.dto.runner_config import RunnerConfigDto
 from shell.application.execution.dto.envelope import EnvelopeDto
 from shell.application.execution.dto.graph_execution import GraphExecutionDto
 from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
-from shell.application.execution.dto.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayloadDto,
+from shell.application.execution.dto.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInputDto,
 )
-from shell.application.execution.dto.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayloadDto,
+from shell.application.execution.dto.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputDto,
 )
 from shell.application.execution.dto.graph_node_execution_result import (
     GraphNodeExecutionResultDto,
@@ -37,8 +37,8 @@ __all__ = [
     "GraphExecutionDto",
     "GraphNodeDefinitionDto",
     "GraphNodeExecutionDto",
-    "GraphNodeExecutionInputPayloadDto",
-    "GraphNodeExecutionOutputPayloadDto",
+    "GraphNodeExecutionStateInputDto",
+    "GraphNodeExecutionStateOutputDto",
     "GraphNodeExecutionResultDto",
     "GraphNodeExecutionStateDto",
     "MessageDto",

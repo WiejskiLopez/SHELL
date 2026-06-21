@@ -189,7 +189,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=False,
         autopilot=True,
         status_initial="idle",
-        extra={"description": "Autonomous agent node for simple tasks"},
         script=None,
         script_type=None,
     )
@@ -217,7 +216,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=False,
         autopilot=True,
         status_initial="idle",
-        extra={"description": "Planner node — generates execution plan"},
         script=None,
         script_type=None,
     )
@@ -238,7 +236,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=True,
         autopilot=True,
         status_initial="idle",
-        extra={"description": "Worker node — executes plan steps"},
         script=None,
         script_type=None,
     )
@@ -286,7 +283,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=False,
         autopilot=True,
         status_initial="idle",
-        extra={"description": "Tasker node — splits work into sub-tasks"},
         script=None,
         script_type=None,
     )
@@ -307,7 +303,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=False,
         autopilot=False,
         status_initial="idle",
-        extra={"description": "Router node — directs envelopes to correct agents"},
         script=None,
         script_type=None,
     )
@@ -328,7 +323,6 @@ def _seed_graph_definitions(session: Session) -> None:
         no_ask_user=False,
         autopilot=True,
         status_initial="idle",
-        extra={"description": "Agent node — performs the actual work"},
         script=None,
         script_type=None,
     )
@@ -502,8 +496,11 @@ def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
         GraphExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state import (
-        GraphExecutionStateModel,
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+        GraphExecutionStateInputModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+        GraphExecutionStateOutputModel,
     )
     from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
         GraphNodeExecutionModel,
@@ -556,15 +553,25 @@ def _seed_workflow_scenario(session: Session) -> None:
     )
     session.add(ge)
 
-    # -- GraphExecutionState --
-    ges = GraphExecutionStateModel(
-        id=f"{ge_id}-state-1",
+    # -- GraphExecutionStateInput --
+    ges_input = GraphExecutionStateInputModel(
+        id=f"{ge_id}-state-input-1",
+        graph_execution_id=ge_id,
+        payload={"context": "dev environment", "prompt": "Process sample scenario"},
+        is_current=True,
+        created_at=_NOW,
+    )
+    session.add(ges_input)
+
+    # -- GraphExecutionStateOutput --
+    ges_output = GraphExecutionStateOutputModel(
+        id=f"{ge_id}-state-output-1",
         graph_execution_id=ge_id,
         payload={"status": "completed", "message": "Sample scenario completed"},
         is_current=True,
         created_at=_NOW,
     )
-    session.add(ges)
+    session.add(ges_output)
 
     # -- GraphNodeExecution --
     gne = GraphNodeExecutionModel(

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any  # noqa: TC003 — re-exported via __init__.py
+
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
