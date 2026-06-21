@@ -5,20 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
-
-from shell.domain.platform.exceptions import (
-    DomainError,
-    
-)
-from shell.domain.definition.exceptions import (
-    PromptNotFound,
-    RunnerConfigNotFound
-)
+from shell.domain.definition.exceptions import PromptNotFound, RunnerConfigNotFound
 from shell.domain.execution.exceptions import (
     EnvelopeNotFound,
     NodeNotFound,
     TaskExecutionNotFound,
-    WorkflowNotFound
+    WorkflowNotFound,
+)
+from shell.domain.platform.exceptions import (
+    DomainError,  # noqa: TC002 — DomainError używany w sygnaturze domain_error_handler() i isinstance() w _NOT_FOUND
 )
 
 if TYPE_CHECKING:

@@ -7,7 +7,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import PlannerSpawnsQueuedEvent
+from shell.domain.execution.events import (
+    PlannerSpawnsQueuedEvent,  # noqa: TC002 — PlannerSpawnsQueuedEvent używany w sygnaturze handle() handlera
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger

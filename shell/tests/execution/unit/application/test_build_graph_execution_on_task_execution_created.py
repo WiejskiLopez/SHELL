@@ -5,36 +5,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created import (
     BuildGraphExecutionOnTaskExecutionCreatedEvent,
 )
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
+from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 from shell.domain.execution.events import GraphExecutionBuiltEvent, TaskExecutionCreatedEvent
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId,
-    GraphNodeDefinitionId
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
 )
-from shell.domain.execution.value_objects.ids import (
-    TaskExecutionId
-)
-from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
-    GraphExecutionDefinitionProviderAdapter,
-)
+from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
-    InMemoryUnitOfWork
-)
-
-from shell.domain.execution.value_objects.graph_execution_definition import (
-    GraphExecutionDefinition,
-    GraphNodeExecutionDefinition,
+    InMemoryUnitOfWork,
 )
 
 if TYPE_CHECKING:
@@ -46,7 +36,6 @@ class _InMemoryGraphDefinitionQueryService:
         self._repo = uow.graph_definitions
 
     async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
-        from shell.domain.platform.value_objects.mode import Mode
 
         entity = await self._repo.get_graph_definition_by_name(name)
         if entity is None:
@@ -62,7 +51,6 @@ class _InMemoryGraphDefinitionQueryService:
         return self._to_dto(entity)
 
     def _to_dto(self, entity: object) -> GraphExecutionDefinition:
-        from shell.domain.definition.entities.graph_definition import GraphDefinition
 
         graph_definition: GraphDefinition = entity  # type: ignore[assignment]
         return GraphExecutionDefinition(
@@ -192,7 +180,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         # Use a fresh UoW without seeded graph_definition
-        from shell.infrastructure.definition.persistence.memory import InMemoryGraphDefinitionRepository
+        from shell.infrastructure.definition.persistence.memory import (
+            InMemoryGraphDefinitionRepository,
+        )
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
@@ -238,7 +228,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         # No graph_definition seeded — handler must NOT publish events when failing.
-        from shell.infrastructure.definition.persistence.memory import InMemoryGraphDefinitionRepository
+        from shell.infrastructure.definition.persistence.memory import (
+            InMemoryGraphDefinitionRepository,
+        )
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()

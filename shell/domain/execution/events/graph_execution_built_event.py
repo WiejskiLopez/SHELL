@@ -6,11 +6,8 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
+from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId
 from shell.domain.platform.events import DomainEvent
-from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
-    TaskExecutionId
-)
 
 
 @dataclass(frozen=True, slots=True)

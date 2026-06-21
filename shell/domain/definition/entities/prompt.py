@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.value_objects.ids import PromptId
 from shell.domain.platform.base.entity import Entity
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.definition.value_objects.ids import PromptId
 
 if TYPE_CHECKING:
     from datetime import datetime

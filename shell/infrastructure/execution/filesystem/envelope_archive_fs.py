@@ -49,4 +49,4 @@ class FileSystemEnvelopeArchive:
             return None
         # Minimal deserialisation — returns raw dict as pseudo-Envelope
         # Full round-trip requires proper mappers (wired in Faza 3 mappers).
-        return None  # noqa: RET504
+        return None  # noqa: RET504 — jawny return None czytelniejszy niż implicit

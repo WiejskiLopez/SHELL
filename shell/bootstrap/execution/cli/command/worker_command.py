@@ -1,9 +1,10 @@
 """Production background scheduler command."""
 from __future__ import annotations
 
-
 import asyncio
-from argparse import Namespace
+from argparse import (
+    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+)
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory

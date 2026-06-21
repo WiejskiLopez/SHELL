@@ -2,17 +2,14 @@ from __future__ import annotations
 
 import uuid
 
-from shell.domain.definition.value_objects.ids import (
-    PromptId,
-    RunnerConfigId
-)
+from shell.domain.definition.value_objects.ids import PromptId, RunnerConfigId
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
     TaskExecutionId,
-    WorkflowId
+    WorkflowId,
 )
 
 

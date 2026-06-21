@@ -16,14 +16,13 @@ from shell.application.platform.queries.queries import (
 from shell.application.platform.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
-from shell.domain.execution.value_objects.ids import TaskExecutionId
+from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
-    FakeIdGenerator
+    FakeIdGenerator,
 )
-from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

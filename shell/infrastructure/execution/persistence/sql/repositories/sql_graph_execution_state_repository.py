@@ -2,25 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select, update
-
 from shell.domain.execution.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId
-
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_state_entity_to_model,
     graph_execution_state_model_to_entity,
 )
+from sqlalchemy import select, update
+
 from ..models.graph_execution_state import GraphExecutionStateModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.aggregates.graph_execution.graph_execution_state import (
         GraphExecutionState,
     )
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):

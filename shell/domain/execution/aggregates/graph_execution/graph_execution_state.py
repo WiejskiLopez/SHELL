@@ -15,12 +15,12 @@ Lifecycle:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from shell.domain.platform.base import AggregateRoot
 from shell.domain.execution.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
+from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -85,7 +85,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id_: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         now: datetime,
-    ) -> "GraphExecutionState":
+    ) -> GraphExecutionState:
         instance = cls(
             id=id_,
             graph_execution_id=graph_execution_id,
@@ -140,7 +140,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         for key in keys:
             self.delete(key)
 
-    def merge(self, other: "GraphExecutionState") -> None:
+    def merge(self, other: GraphExecutionState) -> None:
         """Incorporate state from a child task (Tasker pattern).
 
         Keys present in *other* but absent in *self* are copied.

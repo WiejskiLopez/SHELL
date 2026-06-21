@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.domain.execution.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze SubGraphChildStatus i sygnaturach Protocol
+)
 
 
 class SubGraphChildStatus:

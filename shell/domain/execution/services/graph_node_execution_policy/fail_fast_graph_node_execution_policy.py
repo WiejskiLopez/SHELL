@@ -6,7 +6,7 @@ from shell.domain.execution.services.graph_node_execution_policy.abort_decision 
     AbortDecision,
 )
 from shell.domain.execution.services.graph_node_execution_policy.graph_node_execution_policy import (
-    PolicyDecision,
+    PolicyDecision,  # noqa: TC002 — PolicyDecision używany jako typ zwracany w decide_after_failure()
 )
 
 if TYPE_CHECKING:

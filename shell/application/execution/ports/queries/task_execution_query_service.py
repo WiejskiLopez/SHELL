@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import TaskExecutionDto
+from shell.application.platform.dto import (
+    TaskExecutionDto,  # noqa: TC002 — TaskExecutionDto używany jako typ zwracany w sygnaturach Protocol
+)
 
 
 class TaskExecutionQueryService(Protocol):

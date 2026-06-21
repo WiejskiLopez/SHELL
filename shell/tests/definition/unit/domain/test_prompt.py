@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.definition.entities.prompt import Prompt
-from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.definition.value_objects.ids import PromptId
+from shell.domain.platform.value_objects.hash import Hash
 
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 

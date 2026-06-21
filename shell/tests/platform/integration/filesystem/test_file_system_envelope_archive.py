@@ -8,7 +8,11 @@ class TestFileSystemEnvelopeArchive:
         from datetime import UTC, datetime
 
         from shell.domain.execution.entities.envelope import Envelope
-        from shell.domain.execution.value_objects.ids import EnvelopeId, GraphNodeExecutionId, WorkflowId
+        from shell.domain.execution.value_objects.ids import (
+            EnvelopeId,
+            GraphNodeExecutionId,
+            WorkflowId,
+        )
 
         archive = FileSystemEnvelopeArchive(str(tmp_path))
         now = datetime.now(tz=UTC)

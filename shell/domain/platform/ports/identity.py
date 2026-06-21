@@ -4,22 +4,22 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId,
-    GraphNodeDefinitionId,
-    PromptId,
-    RagChunkId,
-    RagDocumentId,
-    RunnerConfigId
-)
+        GraphDefinitionId,
+        GraphNodeDefinitionId,
+        PromptId,
+        RagChunkId,
+        RagDocumentId,
+        RunnerConfigId,
+    )
 from shell.domain.execution.value_objects.ids import (
-    EnvelopeId,
-    GraphExecutionId,
-    GraphNodeExecutionId,
-    GraphNodeExecutionResultId,
-    MessageId,
-    SessionId,
-    TaskExecutionId,
-    WorkflowId
+    EnvelopeId,  # noqa: TC002 — EnvelopeId używany w sygnaturach metod IdGenerator
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w sygnaturach metod IdGenerator
+    GraphNodeExecutionId,  # noqa: TC002 — GraphNodeExecutionId używany w sygnaturach metod IdGenerator
+    GraphNodeExecutionResultId,  # noqa: TC002 — GraphNodeExecutionResultId używany w sygnaturach metod IdGenerator
+    MessageId,  # noqa: TC002 — MessageId używany w sygnaturach metod IdGenerator
+    SessionId,  # noqa: TC002 — SessionId używany w sygnaturach metod IdGenerator
+    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w sygnaturach metod IdGenerator
+    WorkflowId,  # noqa: TC002 — WorkflowId używany w sygnaturach metod IdGenerator
 )
 
 

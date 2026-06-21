@@ -2,13 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.application.platform.dto import GraphNodeExecutionStateDto, WorkflowDto
+from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-
-from shell.application.platform.dto import GraphNodeExecutionStateDto, WorkflowDto
-from shell.infrastructure.execution.persistence.sql.models import (
-    WorkflowModel
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import (
     GraphNodeExecutionAdvancedEvent,
@@ -16,13 +15,13 @@ from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
     TaskExecutionId,
-    WorkflowId
+    WorkflowId,
 )
-from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
+from shell.domain.platform.value_objects.status import Status
 
 # Definicja stałej czasowej zgodna z konwencją w dump_004.md
 _NOW = datetime(2026, 6, 16, 12, 0, 0, tzinfo=UTC)

@@ -3,13 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
-
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
 from shell.domain.definition.value_objects.ids import GraphDefinitionId
+from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
-from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.mode import Mode
 from shell.tests.conftest import _make_app
 
 if TYPE_CHECKING:

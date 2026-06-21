@@ -6,7 +6,9 @@ import sys
 
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
-from shell.infrastructure.execution.process.subprocess_runner import SubprocessGraphNodeExecutionProcessRunner
+from shell.infrastructure.execution.process.subprocess_runner import (
+    SubprocessGraphNodeExecutionProcessRunner,
+)
 
 
 def _make_manifest(name: str, mode: Mode = Mode.WORKER) -> Manifest:

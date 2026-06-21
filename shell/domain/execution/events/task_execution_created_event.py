@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.events import DomainEvent
-from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 
 @dataclass(frozen=True, slots=True)

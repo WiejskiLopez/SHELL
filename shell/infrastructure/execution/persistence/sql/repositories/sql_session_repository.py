@@ -2,24 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
 from shell.domain.execution.repositories.session_repository import SessionRepository
-from shell.domain.execution.value_objects.ids import SessionId
-
+from shell.domain.execution.value_objects.ids import (
+    SessionId,  # noqa: TC002 — SessionId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     message_entity_to_model,
     message_model_to_entity,
     session_entity_to_model,
     session_model_to_entity,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from ..models import MessageModel, SessionModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.entities.session import Message, Session
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlSessionRepository(SessionRepository):

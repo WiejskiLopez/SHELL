@@ -2,14 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
 from shell.application.platform.dto import GraphNodeExecutionDto, TaskExecutionDto
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
-    TaskExecutionModel
+    TaskExecutionModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

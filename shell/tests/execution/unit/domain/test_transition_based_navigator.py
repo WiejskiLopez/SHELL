@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.entities.graph_node_transition_execution import (
@@ -8,14 +9,11 @@ from shell.domain.execution.entities.graph_node_transition_execution import (
 from shell.domain.execution.services.graph_node_execution_navigator.transition_based_navigator import (
     TransitionBasedGraphNodeExecutionNavigator,
 )
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId
-)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeTransitionExecutionId,
-    TaskExecutionId
+    TaskExecutionId,
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.transition_type import TransitionType

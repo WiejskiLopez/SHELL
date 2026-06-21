@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.queries.queries import GetPromptQuery
 from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
+from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import FakeClock
-from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

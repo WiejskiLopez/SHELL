@@ -2,22 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
-from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import GraphDefinitionRepository
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
-
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId,  # noqa: TC002 — GraphDefinitionId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_definition_entity_to_model,
     graph_definition_model_to_entity,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from ..models import GraphDefinitionModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.definition.entities.graph_definition import GraphDefinition
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlGraphDefinitionRepository(GraphDefinitionRepository):

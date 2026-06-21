@@ -7,10 +7,10 @@ from shell.domain.platform.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
-    GraphNodeExecutionId,
-    GraphNodeTransitionExecutionId
-)
+        GraphExecutionId,
+        GraphNodeExecutionId,
+        GraphNodeTransitionExecutionId,
+    )
 
 
 @dataclass(slots=True)

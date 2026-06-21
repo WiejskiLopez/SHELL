@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-from shell.domain.definition.value_objects.ids import RunnerConfigId
+from shell.domain.definition.value_objects.ids import (
+    RunnerConfigId,  # noqa: TC002 — RunnerConfigId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.runner_config import RunnerConfig

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy import ForeignKey
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class MessageModel(Base):
@@ -26,4 +24,6 @@ class MessageModel(Base):
     session: Mapped[SessionModel] = relationship("SessionModel", back_populates="messages")
 
 
-from shell.infrastructure.execution.persistence.sql.models.session import SessionModel
+from shell.infrastructure.execution.persistence.sql.models.session import (  # noqa: E402 — łamie circular import MessageModel ↔ SessionModel
+    SessionModel,  # noqa: TC002 — SessionModel używany w Mapped[SessionModel] w relacji SQLAlchemy
+)

@@ -3,33 +3,6 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-
-from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
-from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
-from shell.infrastructure.execution.filesystem.workspace import Workspace
-from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
-from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
-from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-
-from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
-    GraphExecutionDefinitionProviderAdapter,
-)
-from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
-    InMemoryCrownScheduler,
-)
-
-from shell.infrastructure.execution.process.subprocess_runner import SubprocessGraphNodeExecutionProcessRunner
-from shell.infrastructure.platform.time.system_clock import SystemClock
-from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
-from shell.infrastructure.execution.persistence.sql.services import (
-    EnvelopeQueryService,
-    NodeResultQueryService,
-    SessionQueryService,
-    TaskExecutionQueryService,
-    WorkflowQueryService,
-)
 from shell.infrastructure.definition.persistence.sql.services import (
     PromptQueryService,
     RagQueryService,
@@ -38,6 +11,32 @@ from shell.infrastructure.definition.persistence.sql.services import (
 from shell.infrastructure.definition.persistence.sql.services.graph_definition_query_service import (
     SqlGraphDefinitionQueryService,
 )
+from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
+from shell.infrastructure.execution.filesystem.workspace import Workspace
+from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
+    GraphExecutionDefinitionProviderAdapter,
+)
+from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
+    InMemoryCrownScheduler,
+)
+from shell.infrastructure.execution.persistence.sql.services import (
+    EnvelopeQueryService,
+    NodeResultQueryService,
+    SessionQueryService,
+    TaskExecutionQueryService,
+    WorkflowQueryService,
+)
+from shell.infrastructure.execution.process.subprocess_runner import (
+    SubprocessGraphNodeExecutionProcessRunner,
+)
+from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
+from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
+from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
+from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
+from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
+from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence.sql import build_session_factory
+from shell.infrastructure.platform.time.system_clock import SystemClock
 
 
 class InfrastructureContainer(containers.DeclarativeContainer):

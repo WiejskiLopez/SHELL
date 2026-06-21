@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,
+)
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     GraphNodeExecutionDefinition,

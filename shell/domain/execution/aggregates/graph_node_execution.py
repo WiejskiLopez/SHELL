@@ -5,23 +5,20 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.platform.base import AggregateRoot
+from shell.domain.execution.entities.graph_node_execution_input_payload import (
+    GraphNodeExecutionInputPayload,  # noqa: TC002 — GraphNodeExecutionInputPayload używany w konstruktorze i typach propertisów GraphNodeExecution
+)
+from shell.domain.execution.entities.graph_node_execution_output_payload import (
+    GraphNodeExecutionOutputPayload,  # noqa: TC002 — GraphNodeExecutionOutputPayload używany w konstruktorze i typach propertisów GraphNodeExecution
+)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
 )
-
-from shell.domain.execution.entities.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayload,
-)
-from shell.domain.execution.entities.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayload,
-)
+from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
-    from datetime import datetime
 
-    from shell.domain.platform.events import DomainEvent
     from shell.domain.platform.value_objects.mode import Mode
 
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 from shell.domain.scheduling.aggregates.scheduler_definition import (
     SchedulerDefinition,

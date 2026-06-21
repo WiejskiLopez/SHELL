@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-
 from shell.infrastructure.scheduling.services.scheduler_service import SchedulerService
 
 from .application_container import ApplicationContainer
 from .domain_container import DomainContainer
-from .infrastructure_container import InfrastructureContainer
 from .events_container import EventsContainer
+from .infrastructure_container import InfrastructureContainer
 
 
 class CoreContainer(containers.DeclarativeContainer):

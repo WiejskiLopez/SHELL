@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
@@ -14,6 +12,7 @@ from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import Outbox
 from shell.infrastructure.platform.messaging.sql_outbox_publisher import SqlOutboxPublisher
 from shell.infrastructure.platform.persistence.memory import FakeEventPublisher
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

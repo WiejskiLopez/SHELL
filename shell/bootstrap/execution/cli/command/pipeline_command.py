@@ -1,12 +1,13 @@
 """One-shot pipeline command: runs relay → processor once."""
 from __future__ import annotations
 
-
-from argparse import Namespace
+from argparse import (
+    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+)
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 
 
 class PipelineCommand(RunnableCommand):

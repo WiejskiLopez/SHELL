@@ -2,21 +2,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-from shell.domain.definition.value_objects.ids import RunnerConfigId
-
+from shell.domain.definition.value_objects.ids import (
+    RunnerConfigId,  # noqa: TC002 — RunnerConfigId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     runner_config_entity_to_model,
     runner_config_model_to_entity,
 )
+from sqlalchemy import select
+
 from ..models import RunnerConfigModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.definition.entities.runner_config import RunnerConfig
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlRunnerConfigRepository(RunnerConfigRepository):

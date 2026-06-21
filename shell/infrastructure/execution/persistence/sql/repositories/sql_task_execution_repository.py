@@ -3,22 +3,25 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
-from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-
+from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskExecutionId i WorkflowId używane w konstruktorach w repozytorium
+    TaskExecutionId,
+    WorkflowId,
+)
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
 )
+from sqlalchemy import select
+
 from ..models import TaskExecutionModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.aggregates.task_execution import TaskExecution
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import GraphNodeExecutionTimedOutEvent
+from shell.domain.execution.events import (
+    GraphNodeExecutionTimedOutEvent,  # noqa: TC002 — GraphNodeExecutionTimedOutEvent używany w sygnaturze handle() handlera
+)
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:

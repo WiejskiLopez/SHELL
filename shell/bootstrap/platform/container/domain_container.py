@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-
 from shell.application.execution.strategies.graph_node_execution_strategy import get_strategy
 from shell.domain.execution.services.compensation_handler import NoOpCompensationHandler
-from shell.domain.execution.services.graph_node_execution_navigator import TransitionBasedGraphNodeExecutionNavigator
-from shell.domain.execution.services.graph_node_execution_policy import FailFastGraphNodeExecutionPolicy
+from shell.domain.execution.services.graph_node_execution_navigator import (
+    TransitionBasedGraphNodeExecutionNavigator,
+)
+from shell.domain.execution.services.graph_node_execution_policy import (
+    FailFastGraphNodeExecutionPolicy,
+)
 from shell.domain.execution.services.sub_graph_execution_service import SubGraphExecutionService
-
 from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
     DefaultSubGraphDiscovery,
     DefaultSubGraphObserver,

@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-
-from shell.application.execution.command_handlers.archive_envelope_handler import ArchiveEnvelopeHandler
 from shell.application.definition.command_handlers.bootstrap_runner_config_handler import (
     BootstrapRunnerConfigHandler,
+)
+from shell.application.definition.command_handlers.save_prompt_handler import SavePromptHandler
+from shell.application.execution.command_handlers.archive_envelope_handler import (
+    ArchiveEnvelopeHandler,
 )
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.execution.command_handlers.route_envelopes_handler import RouteEnvelopesHandler
+from shell.application.execution.command_handlers.route_envelopes_handler import (
+    RouteEnvelopesHandler,
+)
 from shell.application.execution.command_handlers.run_graph_node_execution_handler import (
     RunGraphNodeExecutionHandler,
 )
@@ -21,7 +25,6 @@ from shell.application.execution.command_handlers.run_tasker_workflow_handler im
 from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
     SaveGraphNodeExecutionResultHandler,
 )
-from shell.application.definition.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
 
 

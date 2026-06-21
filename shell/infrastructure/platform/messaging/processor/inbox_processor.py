@@ -5,17 +5,13 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.persistence.sql.models import InboxEventModel
+from shell.infrastructure.platform.serialization.event_deserializer import EventDeserializer
 from sqlalchemy import select
 
-from shell.infrastructure.platform.persistence.sql.models import (
-    InboxEventModel
-)
-from shell.infrastructure.platform.serialization.event_deserializer import EventDeserializer
-
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
     from shell.application.platform.ports.ports import EventPublisher
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class InboxProcessor:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from shell.application.execution.command_handlers.session_handlers import (
     AppendMessageHandler,
     CloseSessionHandler,
@@ -22,7 +21,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
 
 

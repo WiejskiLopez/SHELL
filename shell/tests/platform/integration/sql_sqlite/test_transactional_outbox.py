@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from sqlalchemy import select
-
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
@@ -19,9 +17,10 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeEventPublisher,
     FakeIdGenerator,
     FakeLogger,
-    FakeTaskLoader
+    FakeTaskLoader,
 )
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

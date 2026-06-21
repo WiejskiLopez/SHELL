@@ -135,6 +135,7 @@ Dla każdego agregatu persystowanego:
 ## Cross-cutting
 
 - Brak komentarzy w kodzie produkcyjnym — kod samodokumentujący się przez nazwy
+  - **Wyjątek:** komentarze `# noqa: <REGULA> — <uzasadnienie>` są obowiązkowe dla każdej świadomie stłumionej reguły lintera. Każde `# noqa` musi zawierać kod reguły i konkretne uzasadnienie dlaczego w TYM miejscu reguła nie ma zastosowania. Patrz skill `noqa-enterprise-policy`.
 - Brak emoji w kodzie
 - Type hints obowiązkowe (weryfikowane przez mypy, strict mode)
 - `__all__` w `__init__.py` — jawny eksport publicznego API

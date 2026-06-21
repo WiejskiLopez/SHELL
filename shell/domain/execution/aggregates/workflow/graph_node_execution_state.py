@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.base.entity import Entity
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionStateId
-from shell.domain.platform.value_objects.status import Status
+from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.value_objects.status import (
+    Status,  # noqa: TC002 — Status używany w konstruktorze GraphNodeExecutionState
+)
 
 if TYPE_CHECKING:
     from datetime import datetime

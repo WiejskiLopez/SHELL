@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.execution.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
@@ -59,5 +61,5 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
             for node in graph_execution.graph_node_executions:
                 if hasattr(node, 'id') and hasattr(node, 'mode') and node.mode is not None:
                     if node.graph_execution_id is None:
-                        setattr(node, '_graph_execution_id', graph_execution.id)
+                        node._graph_execution_id = graph_execution.id
                     await self._graph_node_executions.save(node)

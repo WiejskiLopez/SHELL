@@ -9,16 +9,16 @@ from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, Workf
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
+    from shell.application.execution.strategies.graph_node_execution_strategy import (
+        GraphNodeExecutionStrategy,
+    )
     from shell.application.platform.commands.commands import RunGraphNodeExecutionCommand
     from shell.application.platform.ports.ports import (
         Clock,
-        IdGenerator,
         GraphNodeExecutionProcessRunner,
         GraphNodeExecutionWorkspace,
+        IdGenerator,
         UnitOfWork,
-    )
-    from shell.application.execution.strategies.graph_node_execution_strategy import (
-        GraphNodeExecutionStrategy,
     )
 
 
@@ -91,7 +91,7 @@ class RunGraphNodeExecutionHandler:
                 stderr=stderr,
                 reason=failure_reason,
             )
-            await uow.workflows.save(wf)
-            uow.stage_events(wf.pull_events())
+            await uow.workflows.save(workflow)
+            uow.stage_events(workflow.pull_events())
 
         return result.id.value

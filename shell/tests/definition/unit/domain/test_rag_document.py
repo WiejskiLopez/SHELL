@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-
 from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
 from shell.domain.definition.value_objects.ids import RagChunkId, RagDocumentId
 

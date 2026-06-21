@@ -8,7 +8,7 @@ from shell.domain.definition.entities.graph_node_transition_definition import (
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
-    GraphNodeTransitionDefinitionId
+    GraphNodeTransitionDefinitionId,
 )
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.transition_type import TransitionType

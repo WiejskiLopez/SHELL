@@ -12,9 +12,8 @@ from shell.application.platform.queries.queries import (
 from shell.application.platform.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
 )
-from shell.infrastructure.platform.persistence.memory import FakeLogger
 from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService
-
+from shell.infrastructure.platform.persistence.memory import FakeLogger
 
 
 class TestPgTaskExecutionRepository:

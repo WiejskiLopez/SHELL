@@ -13,7 +13,9 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.exceptions import TaskExecutionNotFound, WorkflowHasNoNodes
-from shell.domain.execution.services.graph_node_execution_navigator import LinearGraphNodeExecutionNavigator
+from shell.domain.execution.services.graph_node_execution_navigator import (
+    LinearGraphNodeExecutionNavigator,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
@@ -22,7 +24,9 @@ from shell.domain.execution.value_objects.workflow_execution_context import (
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import StartWorkflowCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
-    from shell.domain.execution.services.graph_node_execution_navigator import GraphNodeExecutionNavigator
+    from shell.domain.execution.services.graph_node_execution_navigator import (
+        GraphNodeExecutionNavigator,
+    )
 
 
 class StartWorkflowHandler:

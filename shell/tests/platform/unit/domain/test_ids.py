@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from shell.domain.execution.value_objects.ids import EnvelopeId, TaskExecutionId, WorkflowId
 
 

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 import sqlalchemy as sa
+from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 
 class GraphNodeTransitionExecutionModel(Base):
@@ -49,4 +48,6 @@ class GraphNodeTransitionExecutionModel(Base):
     )
 
 
-from shell.infrastructure.execution.persistence.sql.models.graph_execution import GraphExecutionModel
+from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeTransitionExecutionModel ↔ GraphExecutionModel
+    GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
+)

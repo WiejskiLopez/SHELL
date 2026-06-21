@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
@@ -14,7 +13,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeIdGenerator,
     FakeLogger,
     FakeTaskLoader,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
 
 

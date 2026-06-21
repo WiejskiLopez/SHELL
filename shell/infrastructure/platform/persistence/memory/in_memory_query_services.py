@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.platform.dto import (
     EnvelopeDto,
     GraphNodeExecutionResultDto,
@@ -20,10 +18,9 @@ from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import InMemoryUnitOfWork
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import (
+    InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w konstruktorze InMemoryQueryServices
+)
 
 
 class InMemoryQueryServices:
@@ -31,7 +28,6 @@ class InMemoryQueryServices:
         self._uow = uow
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
-        from shell.domain.execution.aggregates.task_execution import TaskExecution
 
         task_execution = await self._uow.task_executions.get_by_name(TaskExecutionName(name))
         if not task_execution:

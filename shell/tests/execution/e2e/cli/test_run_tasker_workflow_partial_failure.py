@@ -8,11 +8,10 @@ from shell.domain.execution.events import (
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
-    FakeIdGenerator,
     FakeGraphNodeExecutionProcessRunner,
-    InMemoryUnitOfWork
+    FakeIdGenerator,
+    InMemoryUnitOfWork,
 )
-
 from shell.tests.conftest import _make_task_with_graph_execution, _run_tasker_full
 
 

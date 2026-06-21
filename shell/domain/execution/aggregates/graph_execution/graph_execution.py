@@ -7,13 +7,11 @@ from shell.domain.execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
 from shell.domain.execution.events import GraphExecutionBuiltEvent
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w metodzie from_graph_definition() GraphExecution
+)
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.transition_type import TransitionType
-
-from shell.domain.execution.value_objects.graph_execution_definition import (
-    GraphExecutionDefinition,
-    GraphNodeExecutionDefinition,
-)
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -261,7 +259,7 @@ def _ensure_node_ids(items: list[Any]) -> list[GraphNodeExecutionId]:
     for item in items:
         if isinstance(item, GraphNodeExecutionId):
             result.append(item)
-        elif hasattr(item, 'id') and isinstance(getattr(item, 'id'), GraphNodeExecutionId):
+        elif hasattr(item, 'id') and isinstance(item.id, GraphNodeExecutionId):
             result.append(item.id)
         else:
             result.append(GraphNodeExecutionId(str(item)))

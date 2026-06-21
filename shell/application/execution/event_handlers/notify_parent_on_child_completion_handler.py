@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import (
-    WorkflowCompletedEvent,
+    WorkflowCompletedEvent,  # noqa: TC002 — WorkflowCompletedEvent używany w sygnaturze handle() handlera
 )
 from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 from shell.domain.platform.value_objects.status import Status
@@ -21,11 +21,9 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.ports.crown_scheduler import CrownScheduler
     from shell.domain.execution.value_objects.ids import (
-        GraphExecutionId,
         GraphNodeExecutionId,
     )
 

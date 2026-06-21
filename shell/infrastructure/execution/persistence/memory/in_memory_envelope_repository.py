@@ -3,8 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.repositories.envelope_repository import EnvelopeRepository
+from shell.domain.execution.value_objects.ids import (
+    EnvelopeId,  # noqa: TC002 — EnvelopeId używany w konstruktorach w repozytorium
+)
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
-from shell.domain.execution.value_objects.ids import EnvelopeId
 
 if TYPE_CHECKING:
     from shell.domain.execution.entities.envelope import Envelope

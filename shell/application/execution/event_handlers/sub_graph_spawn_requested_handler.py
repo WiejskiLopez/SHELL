@@ -9,7 +9,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import SubGraphSpawnRequestedEvent
+from shell.domain.execution.events import (
+    SubGraphSpawnRequestedEvent,  # noqa: TC002 — SubGraphSpawnRequestedEvent używany w sygnaturze handle() handlera
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger

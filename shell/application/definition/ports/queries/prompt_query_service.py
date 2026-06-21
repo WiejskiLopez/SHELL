@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import PromptDto
+from shell.application.platform.dto import (
+    PromptDto,  # noqa: TC002 — PromptDto używany jako typ zwracany w sygnaturze Protocol
+)
 
 
 class PromptQueryService(Protocol):

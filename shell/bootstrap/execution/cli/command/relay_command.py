@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from argparse import Namespace
+from argparse import (
+    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+)
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database

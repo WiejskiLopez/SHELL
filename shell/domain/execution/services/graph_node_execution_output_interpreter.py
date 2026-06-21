@@ -6,7 +6,7 @@ Sub-graph spawning is now handled by PLANNER nodes, not by GraphNodeExecutionOut
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:

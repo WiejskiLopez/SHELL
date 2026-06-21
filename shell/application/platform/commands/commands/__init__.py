@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from shell.application.definition.commands.config_commands import BootstrapRunnerConfigCommand
+from shell.application.definition.commands.prompt_commands import SavePromptCommand
+from shell.application.definition.commands.rag_commands import IndexDocumentCommand
 from shell.application.execution.commands.envelope_commands import ArchiveEnvelopeCommand
 from shell.application.execution.commands.graph_node_execution_commands import (
     RunGraphNodeExecutionCommand,
     SaveGraphNodeExecutionResultCommand,
 )
-from shell.application.definition.commands.prompt_commands import SavePromptCommand
-from shell.application.definition.commands.rag_commands import IndexDocumentCommand
 from shell.application.execution.commands.session_commands import (
     AppendMessageCommand,
     CloseSessionCommand,

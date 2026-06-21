@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+    from shell.domain.execution.value_objects.ids import WorkflowId
 
 
 class WorkflowRepository(Protocol):

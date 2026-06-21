@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from shell.domain.scheduling.aggregates.scheduler_definition import (
     SchedulerDefinition,
@@ -25,7 +25,7 @@ from shell.domain.scheduling.value_objects.trigger_config import TriggerConfig
 class TestSchedulerOrchestrator:
     def setup_method(self) -> None:
         self._orchestrator = SchedulerOrchestrator()
-        self._now = datetime.now(timezone.utc)
+        self._now = datetime.now(UTC)
 
     def test_evaluate_definition_can_execute_returns_pending(self) -> None:
         definition = self._make_definition(

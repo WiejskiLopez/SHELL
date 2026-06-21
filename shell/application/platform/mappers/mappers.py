@@ -19,8 +19,6 @@ from shell.application.platform.dto import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.envelope import Envelope
-    from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
     from shell.domain.definition.entities.prompt import Prompt
     from shell.domain.definition.entities.runner_config import RunnerConfig
     from shell.domain.execution.aggregates.graph_node_execution_input_payload import (
@@ -37,6 +35,8 @@ if TYPE_CHECKING:
         TaskExecutionOutputPayload,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
+    from shell.domain.execution.entities.envelope import Envelope
+    from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
 
 
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:

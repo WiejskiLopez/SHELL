@@ -11,7 +11,6 @@ from shell.application.platform.query_handlers.query_handlers import (
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 
 
-
 class TestPgNodeResultRepository:
     async def test_save_and_get_result(
         self,

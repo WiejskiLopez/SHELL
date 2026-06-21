@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import RagChunkDto
+from shell.application.platform.dto import (
+    RagChunkDto,  # noqa: TC002 — RagChunkDto używany jako typ zwracany w sygnaturze Protocol
+)
 
 
 class RagQueryService(Protocol):

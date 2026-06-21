@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.value_objects.ids import CorrelationId
+from shell.application.execution.command_handlers.session_handlers.session_not_found import (
+    SessionNotFound,
+)
 from shell.domain.execution.value_objects.ids import MessageId, SessionId
-
-from shell.application.execution.command_handlers.session_handlers.session_not_found import SessionNotFound
+from shell.domain.platform.value_objects.ids import CorrelationId
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import AppendMessageCommand

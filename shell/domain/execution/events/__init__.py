@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from shell.domain.platform.events import DomainEvent
+from shell.domain.execution.events.child_graph_completed_event import ChildGraphCompletedEvent
+from shell.domain.execution.events.child_graphs_completed_event import ChildGraphsCompletedEvent
 from shell.domain.execution.events.envelope_deadlettered_event import EnvelopeDeadletteredEvent
 from shell.domain.execution.events.envelope_expired_event import EnvelopeExpiredEvent
 from shell.domain.execution.events.envelope_routed_event import EnvelopeRoutedEvent
@@ -37,21 +38,22 @@ from shell.domain.execution.events.graph_node_execution_timed_out_event import (
 from shell.domain.execution.events.graph_node_parallel_execution_requested_event import (
     GraphNodeParallelExecutionRequestedEvent,
 )
+from shell.domain.execution.events.planner_result_event import PlannerResultEvent
+from shell.domain.execution.events.planner_spawns_queued_event import PlannerSpawnsQueuedEvent
+from shell.domain.execution.events.sub_graph_execution_started_event import (
+    SubGraphExecutionStartedEvent,
+)
+from shell.domain.execution.events.sub_graph_spawn_requested_event import (
+    SubGraphSpawnRequestedEvent,
+)
 from shell.domain.execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
 from shell.domain.execution.events.task_execution_created_event import TaskExecutionCreatedEvent
-from shell.domain.execution.events.child_graph_completed_event import ChildGraphCompletedEvent
-from shell.domain.execution.events.child_graphs_completed_event import ChildGraphsCompletedEvent
-from shell.domain.execution.events.sub_graph_execution_started_event import (
-    SubGraphExecutionStartedEvent,
-)
-from shell.domain.execution.events.planner_result_event import PlannerResultEvent
-from shell.domain.execution.events.planner_spawns_queued_event import PlannerSpawnsQueuedEvent
-from shell.domain.execution.events.sub_graph_spawn_requested_event import SubGraphSpawnRequestedEvent
 from shell.domain.execution.events.workflow_completed_event import WorkflowCompletedEvent
 from shell.domain.execution.events.workflow_failed_event import WorkflowFailedEvent
 from shell.domain.execution.events.workflow_started_event import WorkflowStartedEvent
+from shell.domain.platform.events import DomainEvent
 
 __all__ = [
     "ChildGraphCompletedEvent",

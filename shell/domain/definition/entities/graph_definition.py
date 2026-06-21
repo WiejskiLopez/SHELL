@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.base.entity import Entity
 from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition

@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.application.platform.dto import RagChunkDto
+from shell.infrastructure.definition.persistence.sql.models import RagChunkModel, RagDocumentModel
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-
-from shell.application.platform.dto import RagChunkDto
-from shell.infrastructure.definition.persistence.sql.models import (
-    RagChunkModel,
-    RagDocumentModel
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

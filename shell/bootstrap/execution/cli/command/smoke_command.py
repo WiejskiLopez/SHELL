@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import tempfile
-from argparse import Namespace
+from argparse import (
+    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+)
 from pathlib import Path
 from typing import Any  # Dodano import Any
 

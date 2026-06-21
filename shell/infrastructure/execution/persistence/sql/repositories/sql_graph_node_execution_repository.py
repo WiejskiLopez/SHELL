@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
+from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
@@ -12,7 +10,8 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNode
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
 )
-from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -58,7 +57,6 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
 def _graph_node_execution_model_to_entity(
     model: GraphNodeExecutionModel,
 ) -> GraphNodeExecution:
-    from shell.domain.platform.value_objects.mode import Mode
     from shell.domain.execution.entities.graph_node_execution_input_payload import (
         GraphNodeExecutionInputPayload,
     )
@@ -69,6 +67,7 @@ def _graph_node_execution_model_to_entity(
         GraphNodeExecutionInputPayloadId,
         GraphNodeExecutionOutputPayloadId,
     )
+    from shell.domain.platform.value_objects.mode import Mode
 
     input_payloads = [
         GraphNodeExecutionInputPayload(

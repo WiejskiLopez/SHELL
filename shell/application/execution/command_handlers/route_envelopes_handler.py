@@ -5,12 +5,18 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import EnvelopeDeadletteredEvent, EnvelopeExpiredEvent, EnvelopeRoutedEvent
+from shell.domain.execution.events import (
+    EnvelopeDeadletteredEvent,
+    EnvelopeExpiredEvent,
+    EnvelopeRoutedEvent,
+)
 from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.services.envelope_lifecycle_service import EnvelopeLifecycleService
-from shell.domain.execution.services.graph_execution_routing_service import GraphExcetutionRoutingService
-from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
+from shell.domain.execution.services.graph_execution_routing_service import (
+    GraphExcetutionRoutingService,
+)
 from shell.domain.execution.value_objects.ids import WorkflowId
+from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import RouteEnvelopesCommand

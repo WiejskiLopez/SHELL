@@ -14,10 +14,14 @@ from shell.domain.execution.events import (
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
-
-from shell.tests.conftest import _NOW, _build_graph_execution, _make_worker, _persist_running_workflow
+from shell.tests.conftest import (
+    _NOW,
+    _build_graph_execution,
+    _make_worker,
+    _persist_running_workflow,
+)
 
 
 class TestGraphNodeExecutionWorkerFailure:

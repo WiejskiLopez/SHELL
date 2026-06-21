@@ -4,13 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.execution.persistence.sql.services import SessionQueryService
 from shell.infrastructure.platform.logging.stdlib_logger import get_correlation_id
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeIdGenerator
-)
-from shell.infrastructure.execution.persistence.sql.services import SessionQueryService
+from shell.infrastructure.platform.persistence.memory import FakeClock, FakeIdGenerator
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -35,7 +32,9 @@ class TestSqlSessionRepository:
             OpenSessionCommand,
         )
         from shell.application.platform.queries.queries import GetSessionHistoryQuery
-        from shell.application.platform.query_handlers.query_handlers import GetSessionHistoryHandler
+        from shell.application.platform.query_handlers.query_handlers import (
+            GetSessionHistoryHandler,
+        )
 
         session_id = await OpenSessionHandler(sql_uow, clock, id_gen).handle(
             OpenSessionCommand(goal="integration test")

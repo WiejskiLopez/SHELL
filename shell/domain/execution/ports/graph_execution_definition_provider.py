@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from shell.domain.execution.value_objects.graph_execution_definition import (
-    GraphExecutionDefinition,
+    GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w sygnaturach Protocol
 )
 
 

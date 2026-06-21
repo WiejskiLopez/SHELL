@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.aggregates.workflow.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
@@ -17,6 +16,7 @@ from shell.domain.execution.events import (
     WorkflowFailedEvent,
     WorkflowStartedEvent,
 )
+from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,

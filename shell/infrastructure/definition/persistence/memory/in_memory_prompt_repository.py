@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.repositories.prompt_repository import PromptRepository
-from shell.domain.definition.value_objects.ids import PromptId
+from shell.domain.definition.value_objects.ids import (
+    PromptId,  # noqa: TC002 — PromptId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.prompt import Prompt

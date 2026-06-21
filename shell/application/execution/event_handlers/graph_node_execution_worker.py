@@ -28,7 +28,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
+from shell.domain.execution.events import (
+    GraphNodeExecutionRequestedEvent,  # noqa: TC002 — GraphNodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
+)
 from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
@@ -41,10 +43,9 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.aggregates.workflow import Workflow
+    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
-    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
 class GraphNodeExecutionWorker:
@@ -194,7 +195,7 @@ class GraphNodeExecutionWorker:
         try:
             result: ExecutionResult = await self._runner.run(manifest, work_dir, env)
             return result.success, result.stdout, result.stderr
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception dla logowania i graceful degradation w workerze
             self._logger.error(
                 "graph_node_execution_worker.run_failed",
                 workflow_id=event.workflow_id.value,

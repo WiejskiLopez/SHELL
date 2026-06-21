@@ -2,12 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from shell.application.platform.dto import PromptDto
-from shell.infrastructure.definition.persistence.sql.models import (
-    PromptModel
-)
+from shell.infrastructure.definition.persistence.sql.models import PromptModel
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

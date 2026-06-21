@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import ForeignKey
-
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class GraphNodeDefinitionModel(Base):
@@ -41,4 +39,6 @@ class GraphNodeDefinitionModel(Base):
     )
 
 
-from shell.infrastructure.definition.persistence.sql.models.graph_definition import GraphDefinitionModel
+from shell.infrastructure.definition.persistence.sql.models.graph_definition import (  # noqa: E402 — łamie circular import GraphNodeDefinitionModel ↔ GraphDefinitionModel
+    GraphDefinitionModel,  # noqa: TC002 — GraphDefinitionModel używany w Mapped[GraphDefinitionModel] w relacji SQLAlchemy
+)

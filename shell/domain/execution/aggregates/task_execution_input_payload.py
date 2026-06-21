@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.execution.value_objects.ids import (
-    TaskExecutionId,
-    TaskExecutionInputPayloadId
-)
+        TaskExecutionId,
+        TaskExecutionInputPayloadId,
+    )
 
 
 class TaskExecutionInputPayload(AggregateRoot["TaskExecutionInputPayloadId"]):

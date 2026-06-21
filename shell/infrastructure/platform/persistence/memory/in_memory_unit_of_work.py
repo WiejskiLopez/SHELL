@@ -3,21 +3,41 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import InMemoryTaskExecutionRepository
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import InMemoryGraphExecutionRepository
-from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import InMemoryWorkflowRepository
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_repository import InMemoryEnvelopeRepository
-from shell.infrastructure.definition.persistence.memory.in_memory_prompt_repository import InMemoryPromptRepository
-from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import InMemoryRunnerConfigRepository
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archive import InMemoryEnvelopeArchive
-from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import InMemoryRagDocumentRepository
-from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import InMemorySessionRepository
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import InMemoryGraphDefinitionRepository
-from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_repository import (
-    InMemoryGraphExecutionStateRepository,
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
+    InMemoryGraphDefinitionRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_prompt_repository import (
+    InMemoryPromptRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
+    InMemoryRagDocumentRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
+    InMemoryRunnerConfigRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archive import (
+    InMemoryEnvelopeArchive,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_envelope_repository import (
+    InMemoryEnvelopeRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+    InMemoryGraphExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import (
+    InMemorySessionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+    InMemoryTaskExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
+    InMemoryWorkflowRepository,
+)
+from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_repository import (
+    InMemoryGraphExecutionStateRepository,
 )
 
 if TYPE_CHECKING:
@@ -48,7 +68,10 @@ class InMemoryUnitOfWork(UnitOfWork):
     async def seed_base_planner(self) -> None:
         from shell.domain.definition.entities.graph_definition import GraphDefinition
         from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+        from shell.domain.definition.value_objects.ids import (
+            GraphDefinitionId,
+            GraphNodeDefinitionId,
+        )
         from shell.domain.platform.value_objects.mode import Mode
 
         await self._graph_definitions.save(GraphDefinition(

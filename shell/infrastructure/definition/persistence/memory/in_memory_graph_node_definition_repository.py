@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.repositories.graph_definition_repository import GraphNodeDefinitionRepository
-from shell.domain.definition.value_objects.ids import GraphNodeDefinitionId
+from shell.domain.definition.repositories.graph_definition_repository import (
+    GraphNodeDefinitionRepository,
+)
+from shell.domain.definition.value_objects.ids import (
+    GraphNodeDefinitionId,  # noqa: TC002 — GraphNodeDefinitionId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition

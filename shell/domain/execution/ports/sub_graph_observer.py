@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import (
+    datetime,  # noqa: TC003 — datetime używany w parametrach konstruktora SubGraphContext i __slots__
+)
 from typing import TYPE_CHECKING, Protocol
-
-from datetime import datetime
 
 if TYPE_CHECKING:
     from shell.domain.execution.value_objects.execution_result import ExecutionResult

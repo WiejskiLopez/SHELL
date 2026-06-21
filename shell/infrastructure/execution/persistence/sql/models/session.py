@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class SessionModel(Base):
@@ -21,4 +20,6 @@ class SessionModel(Base):
     )
 
 
-from shell.infrastructure.platform.persistence.sql.models.message import MessageModel
+from shell.infrastructure.platform.persistence.sql.models.message import (  # noqa: E402 — łamie circular import SessionModel ↔ MessageModel
+    MessageModel,  # noqa: TC002 — MessageModel używany w Mapped[list[MessageModel]] w relacji SQLAlchemy
+)

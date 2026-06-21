@@ -8,7 +8,6 @@ from dependency_injector import containers, providers
 
 if TYPE_CHECKING:
     from dependency_injector.providers import Factory
-
     from shell.application.platform.query_handlers.query_handlers import (
         GetCurrentTaskExecutionHandler,
         GetEnvelopesByWorkflowHandler,

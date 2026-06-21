@@ -2,23 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId, WorkflowId
-
+from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+    GraphExecutionId,
+    TaskExecutionId,
+    WorkflowId,
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from ..models import GraphExecutionModel
 from ..models.task_execution import TaskExecutionModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlGraphExecutionRepository(GraphExecutionRepository):
@@ -64,7 +66,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         for node in graph_execution.graph_node_executions:
             if hasattr(node, 'id') and hasattr(node, 'mode') and node.mode is not None:
                 if node.graph_execution_id is None:
-                    setattr(node, '_graph_execution_id', graph_execution.id)
+                    node._graph_execution_id = graph_execution.id
                 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
                     _graph_node_execution_entity_to_model,
                 )

@@ -2,23 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
-from shell.domain.execution.repositories.task_execution_output_payload_repository import TaskExecutionOutputPayloadRepository
-from shell.domain.execution.value_objects.ids import TaskExecutionId
-
+from shell.domain.execution.repositories.task_execution_output_payload_repository import (
+    TaskExecutionOutputPayloadRepository,
+)
+from shell.domain.execution.value_objects.ids import (
+    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_output_payload_entity_to_model,
     task_execution_output_payload_model_to_entity,
 )
+from sqlalchemy import select
+
 from ..models import TaskExecutionOutputPayloadModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.aggregates.task_execution_output_payload import (
         TaskExecutionOutputPayload,
     )
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlTaskExecutionOutputPayloadRepository(TaskExecutionOutputPayloadRepository):

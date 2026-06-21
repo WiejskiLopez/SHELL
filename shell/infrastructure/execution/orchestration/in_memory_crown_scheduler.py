@@ -6,7 +6,9 @@ from shell.domain.execution.ports.crown_scheduler import (
     CrownScheduler,
     SubGraphChildStatus,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach i sygnaturach metod CrownScheduler
+)
 
 
 class InMemoryCrownScheduler(CrownScheduler):
@@ -43,7 +45,7 @@ class InMemoryCrownScheduler(CrownScheduler):
         result: dict | None = None,
     ) -> list[SubGraphChildStatus]:
         child_key = child_graph_execution_id.value
-        for parent_key, children in self._children.items():
+        for _parent_key, children in self._children.items():
             if child_key in children:
                 children[child_key].status = "completed"
                 children[child_key].result = result or {}
@@ -56,7 +58,7 @@ class InMemoryCrownScheduler(CrownScheduler):
         error: str = "",
     ) -> list[SubGraphChildStatus]:
         child_key = child_graph_execution_id.value
-        for parent_key, children in self._children.items():
+        for _parent_key, children in self._children.items():
             if child_key in children:
                 children[child_key].status = "failed"
                 return list(children.values())

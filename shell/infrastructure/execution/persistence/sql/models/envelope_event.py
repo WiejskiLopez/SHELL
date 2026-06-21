@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy import ForeignKey
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class EnvelopeEventModel(Base):
@@ -24,4 +22,6 @@ class EnvelopeEventModel(Base):
     envelope: Mapped[EnvelopeModel] = relationship("EnvelopeModel", back_populates="events")
 
 
-from shell.infrastructure.execution.persistence.sql.models.envelope import EnvelopeModel
+from shell.infrastructure.execution.persistence.sql.models.envelope import (  # noqa: E402 — łamie circular import EnvelopeEventModel ↔ EnvelopeModel
+    EnvelopeModel,  # noqa: TC002 — EnvelopeModel używany w Mapped[EnvelopeModel] w relacji SQLAlchemy
+)

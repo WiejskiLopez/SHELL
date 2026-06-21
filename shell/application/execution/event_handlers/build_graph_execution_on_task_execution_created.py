@@ -13,7 +13,9 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.ports.graph_execution_definition_provider import GraphExecutionDefinitionProvider
+from shell.domain.execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze handlera
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -67,7 +69,9 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 )
                 return
 
-            from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+            from shell.domain.execution.aggregates.graph_node_execution import (
+                GraphNodeExecution as GNE,
+            )
 
             node_ids: list = []
             for node_def in graph_definition.graph_node_execution_definitions:

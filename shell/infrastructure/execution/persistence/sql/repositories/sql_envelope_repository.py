@@ -2,23 +2,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-
-from shell.domain.execution.repositories.envelope_repository.envelope_repository import EnvelopeRepository
+from shell.domain.execution.repositories.envelope_repository.envelope_repository import (
+    EnvelopeRepository,
+)
+from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — EnvelopeId i WorkflowId używane w konstruktorach w repozytorium
+    EnvelopeId,
+    WorkflowId,
+)
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
-from shell.domain.execution.value_objects.ids import EnvelopeId, WorkflowId
-
 from shell.infrastructure.platform.persistence.sql.mappers import (
     envelope_entity_to_model,
     envelope_model_to_entity,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+
 from ..models import EnvelopeModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.entities.envelope import Envelope
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlEnvelopeRepository(EnvelopeRepository):

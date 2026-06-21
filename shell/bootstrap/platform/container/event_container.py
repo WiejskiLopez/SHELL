@@ -3,21 +3,17 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created import (
     BuildGraphExecutionOnTaskExecutionCreatedEvent,
-)
-from shell.application.platform.event_handlers.event_handlers import (
-    ArchiveOnDeliveredHandler,
-    LogAuditHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
     GraphNodeExecutionCompletedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_worker import GraphNodeExecutionWorker
-
 from shell.application.execution.event_handlers.graph_node_execution_timed_out_handler import (
     GraphNodeExecutionTimedOutHandler,
+)
+from shell.application.execution.event_handlers.graph_node_execution_worker import (
+    GraphNodeExecutionWorker,
 )
 from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
     NotifyParentOnChildCompletionHandler,
@@ -25,14 +21,16 @@ from shell.application.execution.event_handlers.notify_parent_on_child_completio
 from shell.application.execution.event_handlers.planner_result_handler import (
     PlannerResultHandler,
 )
-from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
-    SubGraphSpawnRequestedHandler,
-)
 from shell.application.execution.event_handlers.planner_spawns_queued_handler import (
     PlannerSpawnsQueuedHandler,
 )
-
-
+from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
+    SubGraphSpawnRequestedHandler,
+)
+from shell.application.platform.event_handlers.event_handlers import (
+    ArchiveOnDeliveredHandler,
+    LogAuditHandler,
+)
 
 
 class EventContainer(containers.DeclarativeContainer):

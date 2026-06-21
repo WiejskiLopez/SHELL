@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 from fastapi import Request as _Request
-
 from shell.application.platform.queries.queries import GetEnvelopesByWorkflowQuery
 
 if TYPE_CHECKING:

@@ -4,24 +4,24 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.entities.envelope import Envelope, EnvelopeEvent
 from shell.domain.definition.entities.graph_definition import GraphDefinition
-from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
-from shell.domain.execution.entities.session import Message, Session
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-from shell.domain.execution.entities.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayload,
-)
-from shell.domain.execution.entities.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayload,
-)
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
-from shell.domain.execution.entities.graph_node_transition_execution import GraphNodeTransitionExecution
-from shell.domain.definition.entities.graph_node_transition_definition import GraphNodeTransitionDefinition
+from shell.domain.definition.entities.graph_node_transition_definition import (
+    GraphNodeTransitionDefinition,
+)
 from shell.domain.definition.entities.prompt import Prompt
+from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.runner_config import RunnerConfig
+from shell.domain.definition.value_objects.ids import (
+    GraphDefinitionId,
+    GraphNodeDefinitionId,
+    GraphNodeTransitionDefinitionId,
+    PromptId,
+    RagChunkId,
+    RagDocumentId,
+    RunnerConfigId,
+)
+from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_input_payload import (
     TaskExecutionInputPayload,
@@ -30,30 +30,28 @@ from shell.domain.execution.aggregates.task_execution_output_payload import (
     TaskExecutionOutputPayload,
 )
 from shell.domain.execution.aggregates.workflow import GraphNodeExecutionState, Workflow
-from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
-from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import (
-    CorrelationId
+from shell.domain.execution.entities.envelope import Envelope, EnvelopeEvent
+from shell.domain.execution.entities.graph_node_execution_input_payload import (
+    GraphNodeExecutionInputPayload,
 )
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId,
-    GraphNodeDefinitionId,
-    GraphNodeTransitionDefinitionId,
-    PromptId,
-    RagChunkId,
-    RagDocumentId,
-    RunnerConfigId
+from shell.domain.execution.entities.graph_node_execution_output_payload import (
+    GraphNodeExecutionOutputPayload,
 )
+from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
+from shell.domain.execution.entities.graph_node_transition_execution import (
+    GraphNodeTransitionExecution,
+)
+from shell.domain.execution.entities.session import Message, Session
 from shell.domain.execution.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionInputPayloadId,
-    GraphNodeTransitionExecutionId,
     GraphNodeExecutionOutputPayloadId,
     GraphNodeExecutionResultId,
     GraphNodeExecutionStateId,
+    GraphNodeTransitionExecutionId,
     MessageId,
     SessionId,
     TaskExecutionId,
@@ -61,15 +59,15 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionOutputPayloadId,
     WorkflowId,
 )
+from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
+from shell.domain.platform.value_objects.hash import Hash
+from shell.domain.platform.value_objects.ids import CorrelationId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.platform.value_objects.transition_type import TransitionType
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.version import Version
-from shell.infrastructure.platform.persistence.sql.models import (
-    MessageModel
-)
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
@@ -77,14 +75,13 @@ from shell.infrastructure.definition.persistence.sql.models import (
     PromptModel,
     RagChunkModel,
     RagDocumentModel,
-    RunnerConfigModel
+    RunnerConfigModel,
 )
 from shell.infrastructure.execution.persistence.sql.models import (
     EnvelopeEventModel,
     EnvelopeModel,
     GraphExecutionModel,
     GraphNodeExecutionInputPayloadModel,
-    GraphNodeExecutionModel,
     GraphNodeExecutionOutputPayloadModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateModel,
@@ -93,8 +90,9 @@ from shell.infrastructure.execution.persistence.sql.models import (
     TaskExecutionInputPayloadModel,
     TaskExecutionModel,
     TaskExecutionOutputPayloadModel,
-    WorkflowModel
+    WorkflowModel,
 )
+from shell.infrastructure.platform.persistence.sql.models import MessageModel
 
 
 def _ensure_utc(dt: datetime) -> datetime:

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from shell.application.platform.ports.execution import GraphNodeExecutionProcessRunner, GraphNodeExecutionWorkspace
+from shell.application.platform.ports.execution import (
+    GraphNodeExecutionProcessRunner,
+    GraphNodeExecutionWorkspace,
+)
 from shell.application.platform.ports.filesystem import TaskExecutionLoader
 from shell.application.platform.ports.identity import IdGenerator
 from shell.application.platform.ports.logging import Logger

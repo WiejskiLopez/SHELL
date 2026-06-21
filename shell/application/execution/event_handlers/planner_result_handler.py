@@ -16,7 +16,9 @@ from shell.domain.execution.events import (
     PlannerSpawnsQueuedEvent,
     SubGraphSpawnRequestedEvent,
 )
-from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.events import (
+    DomainEvent,  # noqa: TC002 — DomainEvent używany jako klasa bazowa w isinstance() i konstruktorze eventów
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger

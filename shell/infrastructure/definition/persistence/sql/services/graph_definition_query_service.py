@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
-
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
-    GraphNodeDefinitionModel,
 )
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

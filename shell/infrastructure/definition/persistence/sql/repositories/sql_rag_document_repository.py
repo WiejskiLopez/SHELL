@@ -3,24 +3,24 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from sqlalchemy import delete as sa_delete
-from sqlalchemy.orm import selectinload
-
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.definition.value_objects.ids import RagDocumentId
-
+from shell.domain.definition.value_objects.ids import (
+    RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     rag_chunk_entity_to_model,
     rag_document_entity_to_model,
     rag_document_model_to_entity,
 )
+from sqlalchemy import delete as sa_delete
+from sqlalchemy.orm import selectinload
+
 from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
     from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 

@@ -66,11 +66,11 @@ class DomainEventSerializer:
 
     def _deserialize_value(self, value: object, target_type: type) -> object:
         from shell.domain.execution.value_objects.ids import (
-    EnvelopeId,
-    GraphNodeExecutionId,
-    TaskExecutionId,
-    WorkflowId
-)
+            EnvelopeId,
+            GraphNodeExecutionId,
+            TaskExecutionId,
+            WorkflowId,
+        )
 
         if value is None:
             return None

@@ -1,20 +1,17 @@
 from __future__ import annotations
 
 import pytest
-
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.exceptions import RoleNotResolvable
 from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExcetutionRoutingService,
 )
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId
-)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    TaskExecutionId
+    TaskExecutionId,
 )
 from shell.domain.platform.value_objects.mode import Mode
 

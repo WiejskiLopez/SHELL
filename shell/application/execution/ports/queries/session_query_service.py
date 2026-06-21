@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import SessionDto
+from shell.application.platform.dto import (
+    SessionDto,  # noqa: TC002 — SessionDto używany jako typ zwracany w sygnaturze Protocol
+)
 
 
 class SessionQueryService(Protocol):

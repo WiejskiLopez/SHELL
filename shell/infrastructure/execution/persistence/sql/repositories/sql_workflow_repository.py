@@ -2,22 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select, update
-from sqlalchemy.orm import selectinload
-
 from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
-from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
-
+from shell.domain.execution.value_objects.ids import (
+    WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
-from ..models import TaskExecutionModel, WorkflowModel
+from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
+
+from ..models import WorkflowModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.execution.aggregates.workflow import Workflow
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlWorkflowRepository(WorkflowRepository):

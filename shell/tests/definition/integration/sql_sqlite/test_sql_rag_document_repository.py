@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeIdGenerator
-)
 from shell.infrastructure.definition.persistence.sql.services import RagQueryService
+from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence.memory import FakeClock, FakeIdGenerator
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

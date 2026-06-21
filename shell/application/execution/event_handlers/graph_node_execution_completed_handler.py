@@ -18,7 +18,7 @@ Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
@@ -29,15 +29,14 @@ from shell.domain.execution.services.compensation_handler import (
     NoOpCompensationHandler,
 )
 from shell.domain.execution.services.graph_node_execution_navigator import (
-    LinearGraphNodeExecutionNavigator,
     GraphNodeExecutionNavigator,
+    LinearGraphNodeExecutionNavigator,
 )
 from shell.domain.execution.services.graph_node_execution_policy import (
     AbortDecision,
     ContinueDecision,
     FailFastGraphNodeExecutionPolicy,
     GraphNodeExecutionPolicy,
-    RouteToErrorHandlerDecision,
 )
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.platform.value_objects.transition_type import TransitionType
@@ -51,10 +50,9 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
-GraphNodeExecutionResultEvent = Union[GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent]
+GraphNodeExecutionResultEvent = GraphNodeExecutionCompletedEvent | GraphNodeExecutionFailedEvent
 
 
 class GraphNodeExecutionCompletedHandler:

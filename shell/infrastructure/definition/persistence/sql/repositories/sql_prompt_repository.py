@@ -2,21 +2,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
 from shell.domain.definition.repositories.prompt_repository import PromptRepository
-from shell.domain.definition.value_objects.ids import PromptId
-
+from shell.domain.definition.value_objects.ids import (
+    PromptId,  # noqa: TC002 — PromptId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     prompt_entity_to_model,
     prompt_model_to_entity,
 )
+from sqlalchemy import select
+
 from ..models import PromptModel
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.definition.entities.prompt import Prompt
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlPromptRepository(PromptRepository):

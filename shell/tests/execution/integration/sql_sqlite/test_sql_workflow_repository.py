@@ -14,15 +14,15 @@ from shell.application.platform.commands.commands import (
 )
 from shell.application.platform.queries.queries import GetWorkflowQuery
 from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
+from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
     FakeIdGenerator,
     FakeLogger,
-    FakeTaskLoader
+    FakeTaskLoader,
 )
-from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -41,16 +41,14 @@ class TestSqlWorkflowRepository:
         imp = ImportTaskExecutionHandler(sql_uow, clock, id_gen, task_execution_loader, FakeLogger())
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
-        from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
-        from shell.domain.definition.value_objects.ids import (
-            GraphDefinitionId
+        from shell.domain.definition.value_objects.ids import GraphDefinitionId
+        from shell.domain.execution.aggregates.graph_execution import (
+            GraphExecution,
+            GraphNodeExecution,
         )
-        from shell.domain.execution.value_objects.ids import (
-            GraphExecutionId,
-            GraphNodeExecutionId
-        )
-        from shell.domain.platform.value_objects.mode import Mode
+        from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+        from shell.domain.platform.value_objects.mode import Mode
 
         async with sql_uow as u:
             task_execution = await u.task_executions.get_current_by_name(

@@ -19,16 +19,13 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlTaskExecutionRepository,
     SqlWorkflowRepository,
 )
-from shell.infrastructure.platform.persistence.sql.models import (
-    OutboxEventModel
-)
+from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
 from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
     from shell.domain.platform.events import DomainEvent
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class SqlAlchemyUnitOfWork(UnitOfWork):

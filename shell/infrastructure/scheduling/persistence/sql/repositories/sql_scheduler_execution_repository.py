@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
-
-from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
+from shell.domain.scheduling.value_objects.ids import (
+    SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
+)
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_execution_entity_to_model,
     scheduler_execution_model_to_entity,
@@ -12,13 +12,13 @@ from shell.infrastructure.scheduling.persistence.sql.mappers import (
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
 )
+from sqlalchemy import select
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession
-
     from shell.domain.scheduling.aggregates.scheduler_job import (
         SchedulerJob,
     )
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlSchedulerExecutionRepository:
@@ -36,7 +36,7 @@ class SqlSchedulerExecutionRepository:
 
     async def list_enabled(self) -> list[SchedulerJob]:
         query = select(SchedulerExecutionModel).where(
-            SchedulerExecutionModel.enabled == True
+            SchedulerExecutionModel.enabled
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]

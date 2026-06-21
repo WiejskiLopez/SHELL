@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from shell.domain.scheduling.aggregates.scheduler_definition import (
     SchedulerDefinition,
@@ -28,7 +28,7 @@ from shell.infrastructure.scheduling.persistence.memory.in_memory_scheduler_exec
 class TestInMemorySchedulerDefinitionRepository:
     def setup_method(self) -> None:
         self._repo = InMemorySchedulerDefinitionRepository()
-        self._now = datetime.now(timezone.utc)
+        self._now = datetime.now(UTC)
 
     async def test_save_and_get_by_id(self) -> None:
         definition = self._make_definition("def-1")
@@ -81,7 +81,7 @@ class TestInMemorySchedulerDefinitionRepository:
 class TestInMemorySchedulerExecutionRepository:
     def setup_method(self) -> None:
         self._repo = InMemorySchedulerExecutionRepository()
-        self._now = datetime.now(timezone.utc)
+        self._now = datetime.now(UTC)
 
     async def test_save_and_get_by_id(self) -> None:
         execution = self._make_execution("exec-1")

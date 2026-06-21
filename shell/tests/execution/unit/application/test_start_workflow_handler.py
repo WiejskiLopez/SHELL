@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import pytest
-
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
 from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
-from shell.application.platform.commands.commands import ImportTaskExecutionCommand, StartWorkflowCommand
+from shell.application.platform.commands.commands import (
+    ImportTaskExecutionCommand,
+    StartWorkflowCommand,
+)
 from shell.application.platform.queries.queries import GetWorkflowQuery
 from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
 from shell.domain.execution.events import WorkflowStartedEvent
@@ -19,7 +21,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeLogger,
     FakeTaskLoader,
     InMemoryQueryServices,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
 
 
@@ -38,16 +40,14 @@ class TestStartWorkflowHandler:
 
     @staticmethod
     async def _attach_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
-        from shell.domain.execution.aggregates.graph_execution import GraphExecution, GraphNodeExecution
-        from shell.domain.definition.value_objects.ids import (
-            GraphDefinitionId
+        from shell.domain.definition.value_objects.ids import GraphDefinitionId
+        from shell.domain.execution.aggregates.graph_execution import (
+            GraphExecution,
+            GraphNodeExecution,
         )
-        from shell.domain.execution.value_objects.ids import (
-            GraphExecutionId,
-            GraphNodeExecutionId
-        )
-        from shell.domain.platform.value_objects.mode import Mode
+        from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+        from shell.domain.platform.value_objects.mode import Mode
 
         task_execution = await uow.task_executions.get_current_by_name(
             TaskExecutionName(task_execution_name)

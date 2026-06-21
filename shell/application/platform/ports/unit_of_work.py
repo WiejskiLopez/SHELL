@@ -3,25 +3,31 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.events import DomainEvent
+    from shell.domain.definition.repositories.graph_definition_repository import (
+        GraphDefinitionRepository,
+    )
+    from shell.domain.definition.repositories.prompt_repository import PromptRepository
+    from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+    from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
     from shell.domain.execution.repositories.envelope_repository import (
         EnvelopeArchive,
         EnvelopeRepository,
     )
-    from shell.domain.definition.repositories.graph_definition_repository import GraphDefinitionRepository
-    from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
+    from shell.domain.execution.repositories.graph_execution_repository import (
+        GraphExecutionRepository,
+    )
     from shell.domain.execution.repositories.graph_execution_state_repository import (
         GraphExecutionStateRepository,
     )
     from shell.domain.execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.definition.repositories.prompt_repository import PromptRepository
-    from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-    from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
     from shell.domain.execution.repositories.session_repository import SessionRepository
-    from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
+    from shell.domain.execution.repositories.task_execution_repository import (
+        TaskExecutionRepository,
+    )
     from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
+    from shell.domain.platform.events import DomainEvent
 
 
 class UnitOfWork(Protocol):

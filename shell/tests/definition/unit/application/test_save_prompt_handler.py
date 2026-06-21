@@ -10,7 +10,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
 
 

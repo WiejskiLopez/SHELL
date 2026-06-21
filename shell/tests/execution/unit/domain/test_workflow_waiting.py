@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import (
@@ -14,8 +14,7 @@ from shell.domain.execution.value_objects.workflow_execution_context import (
 )
 from shell.domain.platform.value_objects.status import Status
 
-
-_NOW = datetime.now(timezone.utc)
+_NOW = datetime.now(UTC)
 
 
 class TestWorkflowWaitingState:

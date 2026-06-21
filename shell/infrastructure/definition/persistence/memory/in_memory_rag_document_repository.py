@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.definition.value_objects.ids import RagDocumentId
+from shell.domain.definition.value_objects.ids import (
+    RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.rag_document import RagChunk, RagDocument

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import EnvelopeDto
+from shell.application.platform.dto import (
+    EnvelopeDto,  # noqa: TC002 — EnvelopeDto używany jako typ zwracany w sygnaturze Protocol
+)
 
 
 class EnvelopeQueryService(Protocol):

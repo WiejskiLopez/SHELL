@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
-
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class GraphNodeExecutionStateModel(Base):
@@ -25,4 +24,6 @@ class GraphNodeExecutionStateModel(Base):
     )
 
 
-from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
+from shell.infrastructure.execution.persistence.sql.models.workflow import (  # noqa: E402 — łamie circular import GraphNodeExecutionStateModel ↔ WorkflowModel
+    WorkflowModel,  # noqa: TC002 — WorkflowModel używany w Mapped[WorkflowModel] w relacji SQLAlchemy
+)

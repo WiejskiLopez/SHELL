@@ -5,7 +5,10 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphNodeExecutionId używany w konstruktorach w repozytorium
+    GraphExecutionId,
+    GraphNodeExecutionId,
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution

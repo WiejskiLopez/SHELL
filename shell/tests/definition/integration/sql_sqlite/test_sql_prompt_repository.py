@@ -8,12 +8,9 @@ from shell.application.definition.command_handlers.save_prompt_handler import Sa
 from shell.application.platform.commands.commands import SavePromptCommand
 from shell.application.platform.queries.queries import GetPromptQuery
 from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeIdGenerator
-)
 from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
+from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence.memory import FakeClock, FakeIdGenerator
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

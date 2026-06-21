@@ -7,8 +7,8 @@ import os
 import sys
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
-from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.framework.platform.cli.parser import build_parser
 
 if TYPE_CHECKING:
@@ -61,7 +61,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     try:
         await app_ctx.buses.command_bus().dispatch(cmd)
         return 0
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _run_node
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
@@ -94,7 +94,7 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
         task_execution_id = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Imported task '{task_execution_name}' with id={task_execution_id}")
         return 0
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _import_task_execution
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
@@ -117,7 +117,7 @@ async def _route(argv: Sequence[str]) -> int:
         count = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Routed {count} envelopes.")
         return 0
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _route
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
@@ -157,7 +157,7 @@ async def _run_tasker(argv: Sequence[str]) -> int:
         )
         print(f"Workflow {result.workflow_id} [{result.status}]: {result.message}")
         return 0 if result.status == "done" else 1
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _run_tasker
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 

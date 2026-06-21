@@ -6,7 +6,7 @@ from shell.domain.definition.value_objects.ids import (
     PromptId,
     RagChunkId,
     RagDocumentId,
-    RunnerConfigId
+    RunnerConfigId,
 )
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
@@ -16,7 +16,7 @@ from shell.domain.execution.value_objects.ids import (
     MessageId,
     SessionId,
     TaskExecutionId,
-    WorkflowId
+    WorkflowId,
 )
 
 

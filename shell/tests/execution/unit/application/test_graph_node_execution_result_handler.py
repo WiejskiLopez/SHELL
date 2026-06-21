@@ -16,12 +16,9 @@ from shell.domain.execution.events import (
 )
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
-    FakeGraphNodeExecutionProcessRunner,
-    InMemoryUnitOfWork
+    FakeIdGenerator,
+    InMemoryUnitOfWork,
 )
-
-from shell.infrastructure.platform.persistence.memory import FakeIdGenerator
-
 from shell.tests.conftest import (
     _NOW,
     _build_graph_execution,

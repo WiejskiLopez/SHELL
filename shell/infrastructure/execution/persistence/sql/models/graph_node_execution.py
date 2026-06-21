@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey
-
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from shell.infrastructure.platform.persistence.sql.models.base import Base
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class GraphNodeExecutionModel(Base):
@@ -54,10 +52,12 @@ class GraphNodeExecutionModel(Base):
     )
 
 
-from shell.infrastructure.execution.persistence.sql.models.graph_execution import GraphExecutionModel
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_input_payload import (
-    GraphNodeExecutionInputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphExecutionModel
+    GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_output_payload import (
-    GraphNodeExecutionOutputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_input_payload import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphNodeExecutionInputPayloadModel
+    GraphNodeExecutionInputPayloadModel,  # noqa: TC002 — GraphNodeExecutionInputPayloadModel używany w Mapped[list[...]] w relacji SQLAlchemy
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_output_payload import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphNodeExecutionOutputPayloadModel
+    GraphNodeExecutionOutputPayloadModel,  # noqa: TC002 — GraphNodeExecutionOutputPayloadModel używany w Mapped[list[...]] w relacji SQLAlchemy
 )

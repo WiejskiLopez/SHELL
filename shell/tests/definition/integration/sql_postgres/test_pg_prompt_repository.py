@@ -7,7 +7,6 @@ from shell.application.platform.query_handlers.query_handlers import GetPromptHa
 from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
 
 
-
 class TestPgPromptRepository:
     async def test_save_and_get_prompt(
         self,

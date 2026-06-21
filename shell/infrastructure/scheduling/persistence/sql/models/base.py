@@ -1,1 +1,3 @@
-from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.infrastructure.platform.persistence.sql.models.base import (
+    Base,  # noqa: F401 — re-export dla konsumentów
+)

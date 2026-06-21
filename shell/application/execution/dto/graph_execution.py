@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import (
+    datetime,  # noqa: TC003 — datetime używany w polu timeout_at dataclass GraphExecutionDto
+)
 from typing import Any
-
-from datetime import datetime
 
 
 @dataclass(frozen=True, slots=True)

@@ -4,23 +4,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.ports.sub_graph_policy import Decision, SubGraphExecutionPolicy
-from shell.domain.execution.ports.sub_graph_observer import SubGraphContext, SubGraphObserver
-from shell.domain.execution.ports.sub_graph_governance import (
-    SubGraphGovernance,
-    TokenBudget,
-)
+from shell.domain.execution.exceptions import GraphDefinitionNotFound
 from shell.domain.execution.ports.sub_graph_compensation import (
     CompensationDecision,
     SubGraphCompensation,
 )
+from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
+from shell.domain.execution.ports.sub_graph_governance import (
+    SubGraphGovernance,
+    TokenBudget,
+)
+from shell.domain.execution.ports.sub_graph_observer import SubGraphContext, SubGraphObserver
+from shell.domain.execution.ports.sub_graph_policy import Decision, SubGraphExecutionPolicy
 from shell.domain.execution.ports.sub_graph_security import Scope, SubGraphSecurity
 from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
-from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
-from shell.domain.execution.exceptions import GraphDefinitionNotFound
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
@@ -183,7 +182,6 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
         self._uow_factory = uow_factory
 
     async def find_unique(self, query: str) -> str:
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
         query_lower = query.lower().strip()
 

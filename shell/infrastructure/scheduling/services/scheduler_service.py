@@ -9,18 +9,15 @@ them as APScheduler interval jobs.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-
 from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
     SqlSchedulerExecutionRepository,
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
     from shell.domain.scheduling.aggregates.scheduler_job import (
         SchedulerJob,
     )
@@ -31,6 +28,7 @@ if TYPE_CHECKING:
     from shell.infrastructure.platform.messaging.processor.inbox_processor import (
         InboxProcessor,
     )
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
 

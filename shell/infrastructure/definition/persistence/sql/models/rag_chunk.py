@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 
 class RagChunkModel(Base):
@@ -23,4 +22,6 @@ class RagChunkModel(Base):
     )
 
 
-from shell.infrastructure.definition.persistence.sql.models.rag_document import RagDocumentModel
+from shell.infrastructure.definition.persistence.sql.models.rag_document import (  # noqa: E402 — łamie circular import RagChunkModel ↔ RagDocumentModel
+    RagDocumentModel,  # noqa: TC002 — RagDocumentModel używany w Mapped[RagDocumentModel] w relacji SQLAlchemy
+)

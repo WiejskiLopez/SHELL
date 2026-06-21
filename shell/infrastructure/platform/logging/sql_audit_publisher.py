@@ -5,15 +5,12 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.platform.persistence.sql.models import (
-    AuditEventModel
-)
+from shell.infrastructure.platform.persistence.sql.models import AuditEventModel
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
     from shell.domain.platform.events import DomainEvent
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class SqlAuditPublisher:

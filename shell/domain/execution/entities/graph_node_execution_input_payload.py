@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from shell.domain.platform.base.entity import Entity
+from typing import TYPE_CHECKING
+
 from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
     GraphNodeExecutionInputPayloadId,
 )
-
-from typing import TYPE_CHECKING
+from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:
     from datetime import datetime

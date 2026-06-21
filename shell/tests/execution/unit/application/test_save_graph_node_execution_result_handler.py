@@ -7,12 +7,14 @@ from shell.application.execution.command_handlers.save_graph_node_execution_resu
 )
 from shell.application.platform.commands.commands import SaveGraphNodeExecutionResultCommand
 from shell.application.platform.queries.queries import GetGraphNodeExecutionResultQuery
-from shell.application.platform.query_handlers.query_handlers import GetGraphNodeExecutionResultHandler
+from shell.application.platform.query_handlers.query_handlers import (
+    GetGraphNodeExecutionResultHandler,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     InMemoryQueryServices,
-    InMemoryUnitOfWork
+    InMemoryUnitOfWork,
 )
 
 
@@ -25,7 +27,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         queries: InMemoryQueryServices,
     ) -> None:
         from shell.domain.execution.aggregates.workflow import Workflow
-        from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+        from shell.domain.execution.value_objects.ids import WorkflowId
 
         wf = Workflow.new(
             id_=WorkflowId("wf-1"), now=clock.now()

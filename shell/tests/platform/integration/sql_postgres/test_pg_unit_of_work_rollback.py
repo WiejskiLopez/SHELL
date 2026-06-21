@@ -4,6 +4,7 @@ from shell.application.platform.queries.queries import GetPromptQuery
 from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
 from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
 
+
 class TestPgUnitOfWorkRollback:
     async def test_rollback_on_exception_leaves_db_clean(
         self,

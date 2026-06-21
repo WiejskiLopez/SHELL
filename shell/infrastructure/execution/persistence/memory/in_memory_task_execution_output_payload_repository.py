@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.repositories.task_execution_output_payload_repository import (
     TaskExecutionOutputPayloadRepository,
 )
-from shell.domain.execution.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.ids import (
+    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_output_payload import (

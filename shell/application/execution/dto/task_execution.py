@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
 
 
 @dataclass(frozen=True, slots=True)

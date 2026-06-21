@@ -5,15 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.definition.persistence.sql.models import GraphDefinitionModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
-)
-
-from shell.infrastructure.definition.persistence.sql.models import (
-    GraphDefinitionModel
 )
 
 if TYPE_CHECKING:
@@ -50,8 +47,8 @@ async def run_migrations(url: str) -> None:
     """Run all Alembic migrations up to head (used by tests and bootstrap)."""
     import asyncio
 
-    from alembic.config import Config
     from alembic import command
+    from alembic.config import Config
 
     alembic_cfg = Config(_ALEMBIC_INI)
     alembic_cfg.set_main_option("sqlalchemy.url", url)
@@ -78,9 +75,8 @@ async def seed_base_data(url: str) -> None:
 
 
 def _seed_sync(sync_conn) -> None:
-    from sqlalchemy.orm import Session
-
     from shell.infrastructure.definition.persistence.sql.models import GraphNodeDefinitionModel
+    from sqlalchemy.orm import Session
 
     session = Session(sync_conn)
 

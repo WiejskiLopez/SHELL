@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.platform.events import DomainEvent
 from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-    WorkflowId
+    WorkflowId,
 )
+from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)

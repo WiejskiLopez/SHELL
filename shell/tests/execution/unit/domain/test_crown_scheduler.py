@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.ports.crown_scheduler import SubGraphChildStatus
 from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
     InMemoryCrownScheduler,

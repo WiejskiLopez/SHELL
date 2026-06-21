@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.entities.rag_document.rag_chunk import RagChunk
-from shell.domain.platform.base.entity import Entity
 from shell.domain.definition.value_objects.ids import RagDocumentId
+from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:
     from datetime import datetime

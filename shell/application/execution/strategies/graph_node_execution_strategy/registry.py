@@ -7,7 +7,7 @@ from shell.application.execution.strategies.graph_node_execution_strategy.planne
     PlannerStrategy,
 )
 from shell.application.execution.strategies.graph_node_execution_strategy.protocol import (
-    GraphNodeExecutionStrategy,
+    GraphNodeExecutionStrategy,  # noqa: TC002 — GraphNodeExecutionStrategy używany w słowniku _STRATEGY_MAP i sygnaturze get_strategy()
 )
 from shell.application.execution.strategies.graph_node_execution_strategy.router_strategy import (
     RouterStrategy,

@@ -10,7 +10,6 @@ so new Workflow records can be persisted without it.
 
 from __future__ import annotations
 
-import sqlalchemy as sa
 from alembic import op
 
 revision = "019"
