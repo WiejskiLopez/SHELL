@@ -34,11 +34,11 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_input_payload_repository import (
-    SqlTaskExecutionInputPayloadRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
+    SqlTaskExecutionStateInputRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_output_payload_repository import (
-    SqlTaskExecutionOutputPayloadRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_output_repository import (
+    SqlTaskExecutionStateOutputRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
@@ -59,8 +59,8 @@ __all__ = [
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "SqlSessionRepository",
-    "SqlTaskExecutionInputPayloadRepository",
-    "SqlTaskExecutionOutputPayloadRepository",
+    "SqlTaskExecutionStateInputRepository",
+    "SqlTaskExecutionStateOutputRepository",
     "SqlTaskExecutionRepository",
     "SqlWorkflowRepository",
 ]

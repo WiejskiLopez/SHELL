@@ -6,11 +6,11 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-    from shell.domain.execution.repositories.graph_node_execution_repository import (
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
 
 
 class GraphNodeExecutionNavigator(Protocol):

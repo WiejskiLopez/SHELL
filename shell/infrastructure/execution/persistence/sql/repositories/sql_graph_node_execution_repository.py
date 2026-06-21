@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-from shell.domain.execution.repositories.graph_node_execution_repository import (
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
@@ -57,10 +57,10 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
 def _graph_node_execution_model_to_entity(
     model: GraphNodeExecutionModel,
 ) -> GraphNodeExecution:
-    from shell.domain.execution.entities.graph_node_execution_state_input import (
+    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
         GraphNodeExecutionStateInput,
     )
-    from shell.domain.execution.entities.graph_node_execution_state_output import (
+    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
         GraphNodeExecutionStateOutput,
     )
     from shell.domain.execution.value_objects.ids import (

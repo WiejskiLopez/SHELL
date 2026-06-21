@@ -41,11 +41,11 @@ from shell.infrastructure.execution.persistence.sql.models.session import (
     SessionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.task_execution import TaskExecutionModel
-from shell.infrastructure.execution.persistence.sql.models.task_execution_input_payload import (
-    TaskExecutionInputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.task_execution_state_input import (
+    TaskExecutionStateInputModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.task_execution_output_payload import (
-    TaskExecutionOutputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.models.task_execution_state_output import (
+    TaskExecutionStateOutputModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
 
@@ -69,9 +69,9 @@ __all__ = [
     "Mapped",
     "MessageModel",
     "SessionModel",
-    "TaskExecutionInputPayloadModel",
+    "TaskExecutionStateInputModel",
     "TaskExecutionModel",
-    "TaskExecutionOutputPayloadModel",
+    "TaskExecutionStateOutputModel",
     "WorkflowModel",
     "annotations",
     "datetime",

@@ -7,7 +7,7 @@ class TestFileSystemEnvelopeArchive:
     async def test_archive_writes_json_file(self, tmp_path: object) -> None:
         from datetime import UTC, datetime
 
-        from shell.domain.execution.entities.envelope import Envelope
+        from shell.domain.execution.aggregates.envelope import Envelope
         from shell.domain.execution.value_objects.ids import (
             EnvelopeId,
             GraphNodeExecutionId,

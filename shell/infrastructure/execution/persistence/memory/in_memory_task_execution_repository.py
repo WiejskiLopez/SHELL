@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
+from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import TaskExecutionRepository
 from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution import TaskExecution
+    from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
     from shell.domain.execution.value_objects.ids import WorkflowId
     from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 

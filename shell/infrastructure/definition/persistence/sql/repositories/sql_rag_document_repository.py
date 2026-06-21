@@ -18,7 +18,7 @@ from sqlalchemy.orm import selectinload
 from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
+    from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
     from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
     from sqlalchemy.ext.asyncio import AsyncSession
 

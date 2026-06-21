@@ -17,7 +17,7 @@ from shell.domain.execution.services.graph_node_execution_policy.graph_node_exec
 from shell.domain.execution.services.graph_node_execution_policy.policy_action import (
     PolicyAction,
 )
-from shell.domain.execution.services.graph_node_execution_policy.route_to_error_handler_decision import (
+from shell.domain.execution.aggregates.graph_node_execution.services.route_to_error_handler_decision import (
     RouteToErrorHandlerDecision,
 )
 

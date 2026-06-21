@@ -24,7 +24,7 @@ from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
 )
-from shell.domain.execution.services.compensation_handler import (
+from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
     CompensationHandler,
     NoOpCompensationHandler,
 )

@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
+from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import TaskExecutionRepository
 from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskExecutionId i WorkflowId używane w konstruktorach w repozytorium
     TaskExecutionId,
     WorkflowId,
@@ -20,7 +20,7 @@ from sqlalchemy import select
 from ..models import TaskExecutionModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution import TaskExecution
+    from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

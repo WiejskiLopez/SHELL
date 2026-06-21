@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.entities.session import Session
+from shell.domain.execution.aggregates.session import Session
 from shell.domain.execution.value_objects.ids import (
     SessionId,  # noqa: TC002 — SessionId używany jako typ zwracany handle() i w konstruktorach
 )

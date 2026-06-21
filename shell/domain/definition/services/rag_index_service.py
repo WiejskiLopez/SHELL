@@ -6,7 +6,7 @@ import math
 import struct
 from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.definition.entities.rag_document import RagDocument
+from shell.domain.definition.aggregates.rag_document import RagDocument
 
 if TYPE_CHECKING:
     from datetime import datetime

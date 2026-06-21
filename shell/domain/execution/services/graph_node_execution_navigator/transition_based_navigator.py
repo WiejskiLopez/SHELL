@@ -8,11 +8,11 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-    from shell.domain.execution.repositories.graph_node_execution_repository import (
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
 
 
 class TransitionBasedGraphNodeExecutionNavigator:
@@ -157,7 +157,7 @@ class TransitionBasedGraphNodeExecutionNavigator:
         if not result_ids:
             return []
 
-        from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
         ids = [GraphNodeExecutionId(rid) for rid in result_ids]
         nodes = await node_repo.list_by_ids(ids)
         nodes_by_id = {n.id.value: n for n in nodes}

@@ -31,13 +31,13 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_session_rep
     SessionModel,
     SqlSessionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_input_payload_repository import (
-    SqlTaskExecutionInputPayloadRepository,
-    TaskExecutionInputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
+    SqlTaskExecutionStateInputRepository,
+    TaskExecutionStateInputModel,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_output_payload_repository import (
-    SqlTaskExecutionOutputPayloadRepository,
-    TaskExecutionOutputPayloadModel,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_output_repository import (
+    SqlTaskExecutionStateOutputRepository,
+    TaskExecutionStateOutputModel,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
@@ -62,14 +62,14 @@ __all__ = [
     "SqlGraphExecutionStateOutputRepository",
     "SqlGraphNodeExecutionRepository",
     "SqlSessionRepository",
-    "SqlTaskExecutionInputPayloadRepository",
-    "SqlTaskExecutionOutputPayloadRepository",
+    "SqlTaskExecutionStateInputRepository",
+    "SqlTaskExecutionStateOutputRepository",
     "SqlTaskExecutionRepository",
     "SqlWorkflowRepository",
     "TYPE_CHECKING",
-    "TaskExecutionInputPayloadModel",
+    "TaskExecutionStateInputModel",
     "TaskExecutionModel",
-    "TaskExecutionOutputPayloadModel",
+    "TaskExecutionStateOutputModel",
     "WorkflowModel",
     "annotations",
     "logger",

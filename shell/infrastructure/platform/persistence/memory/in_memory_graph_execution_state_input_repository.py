@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.graph_execution_state_input_repository import (
+from shell.domain.execution.aggregates.graph_execution_state_input.ports.graph_execution_state_input_repository import (
     GraphExecutionStateInputRepository,
 )
 from shell.domain.execution.value_objects.ids import (
@@ -10,7 +10,7 @@ from shell.domain.execution.value_objects.ids import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_state_input import (
+    from shell.domain.execution.aggregates.graph_execution_state_input.graph_execution_state_input import (
         GraphExecutionStateInput,
     )
 

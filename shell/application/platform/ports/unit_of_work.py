@@ -9,27 +9,27 @@ if TYPE_CHECKING:
     from shell.domain.definition.repositories.prompt_repository import PromptRepository
     from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
     from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-    from shell.domain.execution.repositories.envelope_repository import (
+    from shell.domain.execution.aggregates.envelope.ports import (
         EnvelopeArchive,
         EnvelopeRepository,
     )
-    from shell.domain.execution.repositories.graph_execution_repository import (
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_repository import (
         GraphExecutionRepository,
     )
-    from shell.domain.execution.repositories.graph_execution_state_input_repository import (
+    from shell.domain.execution.aggregates.graph_execution_state_input.ports.graph_execution_state_input_repository import (
         GraphExecutionStateInputRepository,
     )
-    from shell.domain.execution.repositories.graph_execution_state_output_repository import (
+    from shell.domain.execution.aggregates.graph_execution_state_output.ports.graph_execution_state_output_repository import (
         GraphExecutionStateOutputRepository,
     )
-    from shell.domain.execution.repositories.graph_node_execution_repository import (
+    from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.execution.repositories.session_repository import SessionRepository
-    from shell.domain.execution.repositories.task_execution_repository import (
+    from shell.domain.execution.aggregates.session.ports.session_repository import SessionRepository
+    from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
         TaskExecutionRepository,
     )
-    from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
+    from shell.domain.execution.aggregates.workflow.ports.workflow_repository import WorkflowRepository
     from shell.domain.platform.events import DomainEvent
 
 

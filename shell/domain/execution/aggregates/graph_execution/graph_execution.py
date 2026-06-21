@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.loop_counter import LoopCounter
-from shell.domain.execution.entities.graph_node_transition_execution import (
+from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import LoopCounter
+from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
-from shell.domain.execution.events import GraphExecutionBuiltEvent
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_built_event import (
+    GraphExecutionBuiltEvent,
+)
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w metodzie from_graph_definition() GraphExecution
 )
@@ -17,11 +19,9 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.ports.identity import IdGenerator
-from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
-    GraphNodeExecutionId,
-    TaskExecutionId,
-)
+from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
 
 
 class GraphExecution(AggregateRoot["GraphExecutionId"]):
@@ -139,7 +139,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def graph_node_executions(self) -> tuple[Any, ...]:
         if self._graph_node_execution_objects:
             return tuple(self._graph_node_execution_objects)
-        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution as GNE
 
         result: list[Any] = []
         for nid in self._graph_node_execution_ids:
@@ -195,7 +195,9 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         correlation_id: str = "",
         depth: int = 0,
     ) -> GraphExecution:
-        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
+        from shell.domain.execution.aggregates.graph_execution.value_objects.ids.graph_node_transition_execution_id import (
+            GraphNodeTransitionExecutionId,
+        )
 
         graph_node_execution_ids: list[GraphNodeExecutionId] = list(node_ids) if node_ids else []
         transitions: list[GraphNodeTransitionExecution] = []

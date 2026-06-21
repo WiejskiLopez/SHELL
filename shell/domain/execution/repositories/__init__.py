@@ -2,23 +2,21 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.repositories.envelope_repository import (
-    EnvelopeArchive,
-    EnvelopeRepository,
-)
-from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.execution.repositories.graph_node_execution_repository import (
+from shell.domain.execution.aggregates.envelope.ports.envelope_archive import EnvelopeArchive
+from shell.domain.execution.aggregates.envelope.ports.envelope_repository import EnvelopeRepository
+from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_repository import GraphExecutionRepository
+from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
-from shell.domain.execution.repositories.session_repository import SessionRepository
-from shell.domain.execution.repositories.task_execution_input_payload_repository import (
-    TaskExecutionInputPayloadRepository,
+from shell.domain.execution.aggregates.session.ports.session_repository import SessionRepository
+from shell.domain.execution.aggregates.task_execution_state_input.ports.task_execution_state_input_repository import (
+    TaskExecutionStateInputRepository,
 )
-from shell.domain.execution.repositories.task_execution_output_payload_repository import (
-    TaskExecutionOutputPayloadRepository,
+from shell.domain.execution.aggregates.task_execution_state_output.ports.task_execution_state_output_repository import (
+    TaskExecutionStateOutputRepository,
 )
-from shell.domain.execution.repositories.task_execution_repository import TaskExecutionRepository
-from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
+from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import TaskExecutionRepository
+from shell.domain.execution.aggregates.workflow.ports.workflow_repository import WorkflowRepository
 
 __all__ = [
     "EnvelopeArchive",
@@ -26,8 +24,8 @@ __all__ = [
     "GraphExecutionRepository",
     "GraphNodeExecutionRepository",
     "SessionRepository",
-    "TaskExecutionInputPayloadRepository",
-    "TaskExecutionOutputPayloadRepository",
+    "TaskExecutionStateInputRepository",
+    "TaskExecutionStateOutputRepository",
     "TaskExecutionRepository",
     "WorkflowRepository",
 ]

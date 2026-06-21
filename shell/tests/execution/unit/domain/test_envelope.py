@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-from shell.domain.execution.entities.envelope import Envelope
+from shell.domain.execution.aggregates.envelope import Envelope
 from shell.domain.execution.exceptions import InvalidEnvelopeTransition
 from shell.domain.execution.value_objects.ids import EnvelopeId, GraphNodeExecutionId, WorkflowId
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus

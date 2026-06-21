@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.workflow_repository import WorkflowRepository
+from shell.domain.execution.aggregates.workflow.ports.workflow_repository import WorkflowRepository
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
 )

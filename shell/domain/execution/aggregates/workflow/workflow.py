@@ -2,22 +2,38 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.workflow.graph_node_execution_state import (
+from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
-from shell.domain.execution.events import (
+from shell.domain.execution.aggregates.workflow.events.child_graphs_completed_event import (
     ChildGraphsCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_failed_event import (
     GraphNodeExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
     GraphNodeExecutionRequestedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_started_event import (
     GraphNodeExecutionStartedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
     WorkflowFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
-from shell.domain.execution.exceptions import InvalidWorkflowTransition
-from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
+from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import InvalidWorkflowTransition
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -27,17 +43,17 @@ from shell.domain.platform.value_objects.status import Status
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.entities.graph_node_execution_result import (
+    from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
         GraphNodeExecutionResult,
     )
-    from shell.domain.execution.services.compensation_handler import CompensationHandler
-    from shell.domain.execution.value_objects.ids import (
-        GraphExecutionId,
-        GraphNodeExecutionId,
+    from shell.domain.execution.aggregates.workflow.services.compensation_handler import CompensationHandler
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
+    from shell.domain.execution.aggregates.workflow.value_objects.ids.graph_node_execution_result_id import (
         GraphNodeExecutionResultId,
-        TaskExecutionId,
-        WorkflowId,
     )
+    from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
@@ -234,7 +250,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
         now: datetime,
         step: int = 0,
     ) -> None:
-        from shell.domain.execution.value_objects.ids import GraphNodeExecutionStateId
+        from shell.domain.execution.aggregates.workflow.value_objects.ids.graph_node_execution_state_id import (
+            GraphNodeExecutionStateId,
+        )
 
         existing = self._graph_node_execution_states.get(graph_node_execution_id.value)
         state_id = existing.id if existing else GraphNodeExecutionStateId.generate()
@@ -273,7 +291,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         artifact_uri: str = "",
         reason: str = "",
     ) -> GraphNodeExecutionResult:
-        from shell.domain.execution.entities.graph_node_execution_result import (
+        from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
             GraphNodeExecutionResult,
         )
 

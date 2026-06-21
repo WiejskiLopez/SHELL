@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.graph_node_execution_state_output_repository import (
+from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_state_output_repository import (
     GraphNodeExecutionStateOutputRepository,
 )
 from shell.domain.execution.value_objects.ids import (
@@ -17,7 +17,7 @@ from sqlalchemy import select
 from ..models.graph_node_execution_state_output import GraphNodeExecutionStateOutputModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.graph_node_execution_state_output import (
+    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
         GraphNodeExecutionStateOutput,
     )
     from sqlalchemy.ext.asyncio import AsyncSession

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-from shell.domain.execution.entities.session import Session
+from shell.domain.execution.aggregates.session import Session
 from shell.domain.execution.value_objects.ids import MessageId, SessionId
 from shell.domain.platform.value_objects.ids import CorrelationId
 

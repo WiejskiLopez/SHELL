@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.session_repository import SessionRepository
+from shell.domain.execution.aggregates.session.ports.session_repository import SessionRepository
 from shell.domain.execution.value_objects.ids import (
     SessionId,  # noqa: TC002 — SessionId używany w konstruktorach w repozytorium
 )
@@ -18,7 +18,7 @@ from sqlalchemy.orm import selectinload
 from ..models import MessageModel, SessionModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.session import Message, Session
+    from shell.domain.execution.aggregates.session import Message, Session
     from sqlalchemy.ext.asyncio import AsyncSession
 
 

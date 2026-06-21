@@ -13,7 +13,7 @@ from shell.domain.execution.services.graph_node_execution_output_interpreter imp
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
     from shell.domain.platform.ports.logging import Logger
 
 

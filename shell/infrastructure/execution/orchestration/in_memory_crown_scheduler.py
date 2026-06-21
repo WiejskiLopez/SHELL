@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.ports.crown_scheduler import (
+from shell.domain.execution.aggregates.graph_execution.ports.crown_scheduler import (
     CrownScheduler,
     SubGraphChildStatus,
 )

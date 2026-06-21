@@ -11,7 +11,7 @@ from shell.domain.execution.events import (
     EnvelopeRoutedEvent,
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
-from shell.domain.execution.services.envelope_lifecycle_service import EnvelopeLifecycleService
+from shell.domain.execution.aggregates.envelope.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExcetutionRoutingService,
 )

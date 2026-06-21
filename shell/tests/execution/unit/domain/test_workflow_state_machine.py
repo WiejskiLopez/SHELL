@@ -17,7 +17,7 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )

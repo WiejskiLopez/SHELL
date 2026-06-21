@@ -19,7 +19,7 @@ from shell.domain.execution.ports.graph_execution_definition_provider import (
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
         SubGraphObserver,
@@ -113,7 +113,7 @@ class SubGraphExecutionService:
 
         # ── Build child GraphNodeExecutions first ──────────────────────────
         sub_graph_execution_id = self._id_gen.new_graph_execution_id()
-        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution as GNE
 
         node_ids: list = []
         for node_def in graph_definition.graph_node_execution_definitions:

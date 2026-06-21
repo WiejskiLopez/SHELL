@@ -11,7 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.rag_document import RagChunk
+    from shell.domain.definition.aggregates.rag_document import RagChunk
     from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)

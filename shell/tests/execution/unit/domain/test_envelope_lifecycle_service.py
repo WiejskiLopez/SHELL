@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.entities.envelope import Envelope
-from shell.domain.execution.services.envelope_lifecycle_service import EnvelopeLifecycleService
+from shell.domain.execution.aggregates.envelope import Envelope
+from shell.domain.execution.aggregates.envelope.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.execution.value_objects.ids import EnvelopeId, GraphNodeExecutionId, WorkflowId
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
 

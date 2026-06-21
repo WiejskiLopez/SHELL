@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.graph_execution.loop_counter import LoopCounter
+from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import LoopCounter
 
 
 class TestLoopCounter:

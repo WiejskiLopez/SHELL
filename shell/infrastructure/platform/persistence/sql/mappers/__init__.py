@@ -10,7 +10,7 @@ from shell.domain.definition.entities.graph_node_transition_definition import (
     GraphNodeTransitionDefinition,
 )
 from shell.domain.definition.entities.prompt import Prompt
-from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
+from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
@@ -22,26 +22,26 @@ from shell.domain.definition.value_objects.ids import (
     RunnerConfigId,
 )
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution_input_payload import (
-    TaskExecutionInputPayload,
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.aggregates.task_execution_state_input.task_execution_state_input import (
+    TaskExecutionStateInput,
 )
-from shell.domain.execution.aggregates.task_execution_output_payload import (
-    TaskExecutionOutputPayload,
+from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output import (
+    TaskExecutionStateOutput,
 )
 from shell.domain.execution.aggregates.workflow import GraphNodeExecutionState, Workflow
-from shell.domain.execution.entities.envelope import Envelope, EnvelopeEvent
-from shell.domain.execution.entities.graph_node_execution_state_input import (
+from shell.domain.execution.aggregates.envelope import Envelope, EnvelopeEvent
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
     GraphNodeExecutionStateInput,
 )
-from shell.domain.execution.entities.graph_node_execution_state_output import (
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
     GraphNodeExecutionStateOutput,
 )
-from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
-from shell.domain.execution.entities.graph_node_transition_execution import (
+from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import GraphNodeExecutionResult
+from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
-from shell.domain.execution.entities.session import Message, Session
+from shell.domain.execution.aggregates.session import Message, Session
 from shell.domain.execution.value_objects.ids import (
     EnvelopeEventId,
     EnvelopeId,
@@ -55,8 +55,8 @@ from shell.domain.execution.value_objects.ids import (
     MessageId,
     SessionId,
     TaskExecutionId,
-    TaskExecutionInputPayloadId,
-    TaskExecutionOutputPayloadId,
+    TaskExecutionStateInputId,
+    TaskExecutionStateOutputId,
     WorkflowId,
 )
 from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
@@ -87,9 +87,9 @@ from shell.infrastructure.execution.persistence.sql.models import (
     GraphNodeExecutionStateModel,
     GraphNodeTransitionExecutionModel,
     SessionModel,
-    TaskExecutionInputPayloadModel,
+    TaskExecutionStateInputModel,
     TaskExecutionModel,
-    TaskExecutionOutputPayloadModel,
+    TaskExecutionStateOutputModel,
     WorkflowModel,
 )
 from shell.infrastructure.platform.persistence.sql.models import MessageModel
@@ -154,10 +154,10 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
 
 
 def task_execution_input_payload_model_to_entity(
-    model: TaskExecutionInputPayloadModel,
-) -> TaskExecutionInputPayload:
-    return TaskExecutionInputPayload(
-        id=TaskExecutionInputPayloadId(model.id),
+    model: TaskExecutionStateInputModel,
+) -> TaskExecutionStateInput:
+    return TaskExecutionStateInput(
+        id=TaskExecutionStateInputId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         payload=dict(model.payload),
         is_current=model.is_current,
@@ -166,9 +166,9 @@ def task_execution_input_payload_model_to_entity(
 
 
 def task_execution_input_payload_entity_to_model(
-    entity: TaskExecutionInputPayload,
-) -> TaskExecutionInputPayloadModel:
-    return TaskExecutionInputPayloadModel(
+    entity: TaskExecutionStateInput,
+) -> TaskExecutionStateInputModel:
+    return TaskExecutionStateInputModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
         payload=entity.payload,
@@ -183,10 +183,10 @@ def task_execution_input_payload_entity_to_model(
 
 
 def task_execution_output_payload_model_to_entity(
-    model: TaskExecutionOutputPayloadModel,
-) -> TaskExecutionOutputPayload:
-    return TaskExecutionOutputPayload(
-        id=TaskExecutionOutputPayloadId(model.id),
+    model: TaskExecutionStateOutputModel,
+) -> TaskExecutionStateOutput:
+    return TaskExecutionStateOutput(
+        id=TaskExecutionStateOutputId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         payload=dict(model.payload),
         is_current=model.is_current,
@@ -195,9 +195,9 @@ def task_execution_output_payload_model_to_entity(
 
 
 def task_execution_output_payload_entity_to_model(
-    entity: TaskExecutionOutputPayload,
-) -> TaskExecutionOutputPayloadModel:
-    return TaskExecutionOutputPayloadModel(
+    entity: TaskExecutionStateOutput,
+) -> TaskExecutionStateOutputModel:
+    return TaskExecutionStateOutputModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
         payload=entity.payload,
@@ -451,7 +451,7 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
         result_model.graph_node_execution_id: graph_node_execution_result_model_to_entity(result_model)
         for result_model in workflow_model.graph_node_execution_result_models
     }
-    from shell.domain.execution.value_objects.workflow_cursor import WorkflowCursor
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
     from shell.domain.execution.value_objects.workflow_execution_context import (
         WorkflowExecutionContext,
     )
@@ -882,7 +882,7 @@ def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
 
 
 def graph_execution_state_input_model_to_entity(model):
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_state_input import (
+    from shell.domain.execution.aggregates.graph_execution_state_input.graph_execution_state_input import (
         GraphExecutionStateInput,
     )
     from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateInputId
@@ -914,7 +914,7 @@ def graph_execution_state_input_entity_to_model(entity):
 
 
 def graph_execution_state_output_model_to_entity(model):
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_state_output import (
+    from shell.domain.execution.aggregates.graph_execution_state_output.graph_execution_state_output import (
         GraphExecutionStateOutput,
     )
     from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateOutputId

@@ -15,11 +15,11 @@ from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_exec
 from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_input_payload_repository import (
-    InMemoryTaskExecutionInputPayloadRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_input_repository import (
+    InMemoryTaskExecutionStateInputRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_output_payload_repository import (
-    InMemoryTaskExecutionOutputPayloadRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_output_repository import (
+    InMemoryTaskExecutionStateOutputRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
@@ -34,8 +34,8 @@ __all__ = [
     "InMemoryGraphExecutionRepository",
     "InMemoryGraphNodeExecutionRepository",
     "InMemorySessionRepository",
-    "InMemoryTaskExecutionInputPayloadRepository",
-    "InMemoryTaskExecutionOutputPayloadRepository",
+    "InMemoryTaskExecutionStateInputRepository",
+    "InMemoryTaskExecutionStateOutputRepository",
     "InMemoryTaskExecutionRepository",
     "InMemoryWorkflowRepository",
     "TYPE_CHECKING",

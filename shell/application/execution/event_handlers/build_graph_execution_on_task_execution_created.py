@@ -69,7 +69,7 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 )
                 return
 
-            from shell.domain.execution.aggregates.graph_node_execution import (
+            from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
                 GraphNodeExecution as GNE,
             )
 

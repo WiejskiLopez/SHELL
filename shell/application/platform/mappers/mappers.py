@@ -13,8 +13,8 @@ from shell.application.platform.dto import (
     PromptDto,
     RunnerConfigDto,
     TaskExecutionDto,
-    TaskExecutionInputPayloadDto,
-    TaskExecutionOutputPayloadDto,
+    TaskExecutionStateInputDto,
+    TaskExecutionStateOutputDto,
     WorkflowDto,
 )
 
@@ -27,16 +27,16 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution_state_output import (
         GraphNodeExecutionStateOutput,
     )
-    from shell.domain.execution.aggregates.task_execution import TaskExecution
-    from shell.domain.execution.aggregates.task_execution_input_payload import (
-        TaskExecutionInputPayload,
+    from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+    from shell.domain.execution.aggregates.task_execution_state_input.task_execution_state_input import (
+        TaskExecutionStateInput,
     )
-    from shell.domain.execution.aggregates.task_execution_output_payload import (
-        TaskExecutionOutputPayload,
+    from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output import (
+        TaskExecutionStateOutput,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.entities.envelope import Envelope
-    from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
+    from shell.domain.execution.aggregates.envelope import Envelope
+    from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import GraphNodeExecutionResult
 
 
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
@@ -134,9 +134,9 @@ def runner_config_to_dto(config: RunnerConfig) -> RunnerConfigDto:
 
 
 def task_execution_input_payload_to_dto(
-    entity: TaskExecutionInputPayload,
-) -> TaskExecutionInputPayloadDto:
-    return TaskExecutionInputPayloadDto(
+    entity: TaskExecutionStateInput,
+) -> TaskExecutionStateInputDto:
+    return TaskExecutionStateInputDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
         payload=entity.payload,
@@ -146,9 +146,9 @@ def task_execution_input_payload_to_dto(
 
 
 def task_execution_output_payload_to_dto(
-    entity: TaskExecutionOutputPayload,
-) -> TaskExecutionOutputPayloadDto:
-    return TaskExecutionOutputPayloadDto(
+    entity: TaskExecutionStateOutput,
+) -> TaskExecutionStateOutputDto:
+    return TaskExecutionStateOutputDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
         payload=entity.payload,

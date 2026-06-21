@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.envelope import Envelope
+    from shell.domain.execution.aggregates.envelope import Envelope
 
 
 class FileSystemEnvelopeArchive:

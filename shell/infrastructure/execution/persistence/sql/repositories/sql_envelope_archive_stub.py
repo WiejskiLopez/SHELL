@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.repositories.envelope_repository.envelope_archive import EnvelopeArchive
+from shell.domain.execution.aggregates.envelope.ports.envelope_archive import EnvelopeArchive
 
 if TYPE_CHECKING:
-    from shell.domain.execution.entities.envelope import Envelope
+    from shell.domain.execution.aggregates.envelope import Envelope
 
 
 class SqlEnvelopeArchiveStub(EnvelopeArchive):
