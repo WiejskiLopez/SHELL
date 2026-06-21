@@ -5,9 +5,11 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True, slots=True)
-class Hash:
+class Hash(ValueObject):
     value: str  # hex digest
 
     def __post_init__(self) -> None:

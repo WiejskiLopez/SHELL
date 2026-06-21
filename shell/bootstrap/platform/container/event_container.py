@@ -22,8 +22,14 @@ from shell.application.execution.event_handlers.graph_node_execution_timed_out_h
 from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
     NotifyParentOnChildCompletionHandler,
 )
-from shell.application.execution.event_handlers.spawn_sub_graphs_on_planner_completion_handler import (
-    SpawnSubGraphsOnPlannerCompletionHandler,
+from shell.application.execution.event_handlers.planner_result_handler import (
+    PlannerResultHandler,
+)
+from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
+    SubGraphSpawnRequestedHandler,
+)
+from shell.application.execution.event_handlers.planner_spawns_queued_handler import (
+    PlannerSpawnsQueuedHandler,
 )
 
 
@@ -86,13 +92,24 @@ class EventContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
         crown_scheduler=infra.crown_scheduler_factory,
     )
-    spawn_sub_graphs_on_planner_completion_handler_factory = providers.Factory(
-        SpawnSubGraphsOnPlannerCompletionHandler,
+    planner_result_handler_factory = providers.Factory(
+        PlannerResultHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
         logger=infra.stdlib_logger,
+    )
+    sub_graph_spawn_requested_handler_factory = providers.Factory(
+        SubGraphSpawnRequestedHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+        discovery=domain.sub_graph_discovery_factory,
         sub_graph_service=domain.sub_graph_execution_service_factory,
-        crown_scheduler=infra.crown_scheduler_factory,
+    )
+    planner_spawns_queued_handler_factory = providers.Factory(
+        PlannerSpawnsQueuedHandler,
+        uow=buses.uow_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
     )
 

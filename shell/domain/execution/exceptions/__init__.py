@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from shell.domain.execution.exceptions.envelope_not_found import EnvelopeNotFound
+from shell.domain.execution.exceptions.graph_definition_not_found import GraphDefinitionNotFound
 from shell.domain.execution.exceptions.invalid_envelope_transition import InvalidEnvelopeTransition
 from shell.domain.execution.exceptions.invalid_node_mode import InvalidNodeMode
 from shell.domain.execution.exceptions.invalid_task_definition import InvalidTaskDefinition
@@ -19,6 +20,7 @@ from shell.domain.execution.exceptions.workflow_not_found import WorkflowNotFoun
 
 __all__ = [
     "EnvelopeNotFound",
+    "GraphDefinitionNotFound",
     "InvalidEnvelopeTransition",
     "InvalidNodeMode",
     "InvalidTaskDefinition",

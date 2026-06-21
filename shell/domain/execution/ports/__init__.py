@@ -27,6 +27,9 @@ from shell.domain.execution.ports.sub_graph_security import (
 from shell.domain.execution.ports.sub_graph_versioning import (
     SubGraphVersioning,
 )
+from shell.domain.execution.ports.sub_graph_discovery import (
+    SubGraphDiscovery,
+)
 
 __all__ = [
     "CompensationDecision",
@@ -39,6 +42,7 @@ __all__ = [
     "SubGraphChildStatus",
     "SubGraphCompensation",
     "SubGraphContext",
+    "SubGraphDiscovery",
     "SubGraphExecutionPolicy",
     "SubGraphGovernance",
     "SubGraphObserver",

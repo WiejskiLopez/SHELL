@@ -7,11 +7,8 @@ from shell.domain.execution.repositories.envelope_repository import (
     EnvelopeRepository,
 )
 from shell.domain.execution.repositories.graph_execution_repository import GraphExecutionRepository
-from shell.domain.execution.repositories.graph_node_execution_input_payload_repository import (
-    GraphNodeExecutionInputPayloadRepository,
-)
-from shell.domain.execution.repositories.graph_node_execution_output_payload_repository import (
-    GraphNodeExecutionOutputPayloadRepository,
+from shell.domain.execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
 )
 from shell.domain.execution.repositories.session_repository import SessionRepository
 from shell.domain.execution.repositories.task_execution_input_payload_repository import (
@@ -27,8 +24,7 @@ __all__ = [
     "EnvelopeArchive",
     "EnvelopeRepository",
     "GraphExecutionRepository",
-    "GraphNodeExecutionInputPayloadRepository",
-    "GraphNodeExecutionOutputPayloadRepository",
+    "GraphNodeExecutionRepository",
     "SessionRepository",
     "TaskExecutionInputPayloadRepository",
     "TaskExecutionOutputPayloadRepository",

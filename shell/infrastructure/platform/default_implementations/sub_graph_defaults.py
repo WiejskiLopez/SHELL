@@ -16,6 +16,8 @@ from shell.domain.execution.ports.sub_graph_compensation import (
 )
 from shell.domain.execution.ports.sub_graph_security import Scope, SubGraphSecurity
 from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
+from shell.domain.execution.exceptions import GraphDefinitionNotFound
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_definition import GraphDefinition
@@ -165,3 +167,58 @@ class LatestVersionStrategy(SubGraphVersioning):
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
             return definition
+
+
+# ── Discovery ────────────────────────────────────────────────────────────────
+
+
+class DefaultSubGraphDiscovery(SubGraphDiscovery):
+    """Default discovery: searches by name/purpose match.
+
+    This is a basic fallback. Replace with VectorSubGraphDiscovery
+    for semantic search via vector DB.
+    """
+
+    def __init__(self, uow_factory: Any) -> None:
+        self._uow_factory = uow_factory
+
+    async def find_unique(self, query: str) -> str:
+        from shell.domain.definition.value_objects.ids import GraphDefinitionId
+
+        query_lower = query.lower().strip()
+
+        async with self._uow_factory() as uow:
+            # Try exact name match first
+            all_defs = await uow.graph_definitions.list_all()
+            if all_defs is None:
+                raise GraphDefinitionNotFound(query)
+
+            best_match = None
+            best_score = 0
+
+            for definition in all_defs:
+                name_lower = (definition.name or "").lower()
+                purpose_lower = (definition.purpose or "").lower()
+                score = 0
+
+                if query_lower in name_lower:
+                    score += 3
+                if query_lower in purpose_lower:
+                    score += 2
+
+                # Check name/purpose words
+                query_words = set(query_lower.split())
+                name_words = set(name_lower.split())
+                purpose_words = set(purpose_lower.split())
+
+                score += len(query_words & name_words)
+                score += len(query_words & purpose_words) * 0.5
+
+                if score > best_score:
+                    best_score = score
+                    best_match = definition
+
+            if best_match is None or best_score == 0:
+                raise GraphDefinitionNotFound(query)
+
+            return best_match.id.value

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from enum import StrEnum
 
+from shell.domain.platform.base.value_object import ValueObject
 
-class TransitionType(StrEnum):
+
+class TransitionType(ValueObject, StrEnum):
     SEQUENCE = "sequence"
     CONDITIONAL = "conditional"
     PARALLEL = "parallel"

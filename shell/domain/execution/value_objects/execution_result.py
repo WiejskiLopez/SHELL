@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True, slots=True)
-class ExecutionResult:
+class ExecutionResult(ValueObject):
     returncode: int
     stdout: str = field(default="")
     stderr: str = field(default="")

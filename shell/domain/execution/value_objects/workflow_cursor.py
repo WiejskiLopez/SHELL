@@ -10,10 +10,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+from shell.domain.platform.base.value_object import ValueObject
 
 
 @dataclass(frozen=True, slots=True)
-class WorkflowCursor:
+class WorkflowCursor(ValueObject):
     """Immutable VO pointing to the node currently scheduled for execution."""
 
     current_graph_node_execution_id: GraphNodeExecutionId | None = None

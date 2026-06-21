@@ -49,7 +49,8 @@ class StartWorkflowHandler:
 
             graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
             first_graph_node_execution = (
-                self._navigator.first(graph_execution) if graph_execution is not None else None
+                await self._navigator.first_async(graph_execution, uow.graph_node_executions)
+                if graph_execution is not None else None
             )
             if first_graph_node_execution is None:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)

@@ -74,7 +74,7 @@ class GraphNodeExecutionWorker:
     async def handle(self, event: GraphNodeExecutionRequestedEvent) -> None:
         """Handle exactly one ``GraphNodeExecutionRequestedEvent``."""
 
-        # ── 1. Load aggregate + graph_execution ─────────────────────────────────────
+        # ── 1. Load aggregate + graph_execution + node ──────────────────────────────
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
             if workflow is None:
@@ -99,10 +99,11 @@ class GraphNodeExecutionWorker:
             )
             work_dir = task_execution.work_dir if task_execution else ""
 
+            node = await uow.graph_node_executions.get_by_id(event.graph_node_execution_id)
+
         if not await self._is_event_relevant(workflow, event):
             return
 
-        node = self._find_graph_node_execution(graph_execution, event.graph_node_execution_id)
         if node is None:
             self._logger.error(
                 "graph_node_execution_worker.node_missing",
@@ -124,6 +125,8 @@ class GraphNodeExecutionWorker:
                 success=success,
                 stdout=stdout,
                 stderr=stderr,
+                graph_execution=graph_execution,
+                node_mode=node.mode.value if node else None,
             )
         except WorkflowConcurrentlyModified as exc:
             self._logger.warning(
@@ -207,6 +210,8 @@ class GraphNodeExecutionWorker:
         success: bool,
         stdout: str,
         stderr: str,
+        graph_execution: GraphExecution | None = None,
+        node_mode: str | None = None,
     ) -> None:
         """Record the node execution result and stage events.
 
@@ -214,6 +219,10 @@ class GraphNodeExecutionWorker:
         finish / abort) is handled by ``GraphNodeExecutionResultHandler``
         (Cycle B), which subscribes to the ``GraphNodeExecutionCompletedEvent``
         / ``GraphNodeExecutionFailedEvent`` events emitted here.
+
+        For PLANNER nodes with valid JSON output, delegates to
+        ``GraphNodeExecution.record_planner_result()`` which emits
+        ``PlannerResultEvent`` from the node itself.
         """
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
@@ -223,7 +232,7 @@ class GraphNodeExecutionWorker:
             graph_executions = await uow.graph_executions.get_by_workflow_id(
                 workflow.id
             )
-            graph_execution = graph_executions[0] if graph_executions else None
+            current_graph_execution = graph_executions[0] if graph_executions else None
 
             if not await self._is_event_relevant(workflow, event):
                 return
@@ -240,19 +249,24 @@ class GraphNodeExecutionWorker:
                 reason=stderr,
             )
 
+            staged_events: list = list(workflow.pull_events())
+
+            # ── Let GraphNodeExecution emit PlannerResultEvent if PLANNER ──
+            if success and node_mode == "planner" and stdout:
+                planner_node = await uow.graph_node_executions.get_by_id(
+                    event.graph_node_execution_id,
+                )
+                if planner_node is not None and current_graph_execution is not None:
+                    planner_node.record_planner_result(
+                        stdout=stdout,
+                        graph_execution_id=current_graph_execution.id,
+                        now=now,
+                    )
+                    await uow.graph_node_executions.save(planner_node)
+                    staged_events.extend(planner_node.pull_events())
+
             await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
-
-    # ── Pure helpers ─────────────────────────────────────────────────────
-
-    @staticmethod
-    def _find_graph_node_execution(
-        graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
-    ) -> GraphNodeExecution | None:
-        for graph_node_execution in graph_execution.graph_node_executions:
-            if graph_node_execution.id == graph_node_execution_id:
-                return graph_node_execution
-        return None
+            uow.stage_events(staged_events)
 
     @staticmethod
     def _build_manifest(graph_node_execution: GraphNodeExecution) -> Manifest:

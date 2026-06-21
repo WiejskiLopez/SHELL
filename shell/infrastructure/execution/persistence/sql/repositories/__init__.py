@@ -2,8 +2,7 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_ar
 from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_repository import *
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import *
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_repository import *
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_input_payload_repository import *
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_output_payload_repository import *
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import *
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import *
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_input_payload_repository import *
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_output_payload_repository import *

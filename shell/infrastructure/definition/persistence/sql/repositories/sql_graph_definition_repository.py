@@ -48,3 +48,8 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
     async def save(self, graph_definition: GraphDefinition) -> None:
         graph_definition_model = graph_definition_entity_to_model(graph_definition)
         await self._session.merge(graph_definition_model)
+
+    async def list_all(self) -> list[GraphDefinition]:
+        query = self._base_query()
+        rows = (await self._session.execute(query)).scalars().all()
+        return [graph_definition_model_to_entity(r) for r in rows if r is not None]

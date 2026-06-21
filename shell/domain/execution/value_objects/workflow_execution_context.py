@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True, slots=True)
-class WorkflowExecutionContext:
+class WorkflowExecutionContext(ValueObject):
     """Immutable VO carrying per-workflow execution context."""
 
     correlation_id: str

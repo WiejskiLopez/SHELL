@@ -46,6 +46,9 @@ from shell.domain.execution.events.child_graphs_completed_event import ChildGrap
 from shell.domain.execution.events.sub_graph_execution_started_event import (
     SubGraphExecutionStartedEvent,
 )
+from shell.domain.execution.events.planner_result_event import PlannerResultEvent
+from shell.domain.execution.events.planner_spawns_queued_event import PlannerSpawnsQueuedEvent
+from shell.domain.execution.events.sub_graph_spawn_requested_event import SubGraphSpawnRequestedEvent
 from shell.domain.execution.events.workflow_completed_event import WorkflowCompletedEvent
 from shell.domain.execution.events.workflow_failed_event import WorkflowFailedEvent
 from shell.domain.execution.events.workflow_started_event import WorkflowStartedEvent
@@ -58,7 +61,6 @@ __all__ = [
     "EnvelopeExpiredEvent",
     "EnvelopeRoutedEvent",
     "GraphExecutionBuiltEvent",
-    "SubGraphExecutionStartedEvent",
     "GraphExecutionStateChangedEvent",
     "GraphNodeExecutionAdvancedEvent",
     "GraphNodeExecutionCompletedEvent",
@@ -69,6 +71,10 @@ __all__ = [
     "GraphNodeExecutionStartedEvent",
     "GraphNodeExecutionTimedOutEvent",
     "GraphNodeParallelExecutionRequestedEvent",
+    "PlannerResultEvent",
+    "PlannerSpawnsQueuedEvent",
+    "SubGraphExecutionStartedEvent",
+    "SubGraphSpawnRequestedEvent",
     "TaskExecutionCompletedEvent",
     "TaskExecutionCreatedEvent",
     "WorkflowCompletedEvent",

@@ -3,9 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True)
-class GraphNodeExecutionDefinition:
+class GraphNodeExecutionDefinition(ValueObject):
     position: int
     mode: str
     role: str
@@ -25,7 +27,7 @@ class GraphNodeExecutionDefinition:
 
 
 @dataclass(frozen=True)
-class GraphExecutionDefinition:
+class GraphExecutionDefinition(ValueObject):
     id: str
     name: str
     graph_node_execution_definitions: list[GraphNodeExecutionDefinition] = field(default_factory=list)

@@ -60,3 +60,13 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     async def save(self, graph_execution: GraphExecution) -> None:
         graph_execution_model = graph_execution_entity_to_model(graph_execution)
         await self._session.merge(graph_execution_model)
+
+        for node in graph_execution.graph_node_executions:
+            if hasattr(node, 'id') and hasattr(node, 'mode') and node.mode is not None:
+                if node.graph_execution_id is None:
+                    setattr(node, '_graph_execution_id', graph_execution.id)
+                from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
+                    _graph_node_execution_entity_to_model,
+                )
+                node_model = _graph_node_execution_entity_to_model(node)
+                await self._session.merge(node_model)

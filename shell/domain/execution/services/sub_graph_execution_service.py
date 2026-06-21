@@ -109,11 +109,43 @@ class SubGraphExecutionService:
             scope = await self._security.resolve_scope(parent_graph_execution_id_value, graph_definition_id)
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
+        # ── Build child GraphNodeExecutions first ──────────────────────────
+        sub_graph_execution_id = self._id_gen.new_graph_execution_id()
+        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+
+        node_ids: list = []
+        for node_def in graph_definition.graph_node_execution_definitions:
+            node_id = self._id_gen.new_graph_node_execution_id()
+            node = GNE(
+                id=node_id,
+                position=node_def.position,
+                mode=node_def.mode,
+                role=node_def.role,
+                node_type=node_def.node_type,
+                model=node_def.model,
+                command=node_def.command,
+                timeout=node_def.timeout,
+                retries=node_def.retries,
+                log_level=node_def.log_level,
+                max_step=node_def.max_step or 0,
+                no_ask_user=node_def.no_ask_user,
+                autopilot=node_def.autopilot,
+                status_initial=node_def.status_initial,
+                extra=dict(node_def.extra),
+                sub_graph_definition_id=node_def.extra.get("sub_graph_definition_id"),
+                timeout_seconds=node_def.timeout,
+                max_retries=node_def.retries,
+                graph_execution_id=sub_graph_execution_id,
+            )
+            await _uow.graph_node_executions.save(node)
+            node_ids.append(node_id)
+
         # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
         sub_graph_execution = GraphExecution.from_graph_definition(
-            id_=self._id_gen.new_graph_execution_id(),
+            id_=sub_graph_execution_id,
             task_execution_id=parent_graph_execution.task_execution_id,
             graph_definition=graph_definition,
+            node_ids=node_ids,
             id_gen=self._id_gen,
             now=now,
             parent_graph_execution_id=parent_graph_execution.id,

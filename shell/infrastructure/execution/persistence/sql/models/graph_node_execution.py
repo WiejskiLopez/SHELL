@@ -41,5 +41,23 @@ class GraphNodeExecutionModel(Base):
         "GraphExecutionModel", back_populates="graph_node_execution_models"
     )
 
+    input_payload_models: Mapped[list[GraphNodeExecutionInputPayloadModel]] = relationship(
+        "GraphNodeExecutionInputPayloadModel",
+        back_populates="graph_node_execution_model",
+        cascade="all, delete-orphan",
+    )
+
+    output_payload_models: Mapped[list[GraphNodeExecutionOutputPayloadModel]] = relationship(
+        "GraphNodeExecutionOutputPayloadModel",
+        back_populates="graph_node_execution_model",
+        cascade="all, delete-orphan",
+    )
+
 
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import GraphExecutionModel
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_input_payload import (
+    GraphNodeExecutionInputPayloadModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_output_payload import (
+    GraphNodeExecutionOutputPayloadModel,
+)

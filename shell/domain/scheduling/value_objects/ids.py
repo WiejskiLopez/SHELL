@@ -3,9 +3,11 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True, slots=True)
-class SchedulerDefinitionId:
+class SchedulerDefinitionId(ValueObject):
     value: str
 
     def __post_init__(self) -> None:
@@ -21,7 +23,7 @@ class SchedulerDefinitionId:
 
 
 @dataclass(frozen=True, slots=True)
-class SchedulerExecutionId:
+class SchedulerExecutionId(ValueObject):
     value: str
 
     def __post_init__(self) -> None:

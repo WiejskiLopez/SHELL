@@ -5,12 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from shell.domain.platform.base.value_object import ValueObject
+
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.mode import Mode
 
 
 @dataclass(frozen=True, slots=True)
-class Manifest:
+class Manifest(ValueObject):
     name: str
     mode: Mode
     role: str

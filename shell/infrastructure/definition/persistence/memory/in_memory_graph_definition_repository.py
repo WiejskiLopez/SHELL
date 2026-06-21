@@ -27,3 +27,6 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
 
     async def save(self, graph: GraphDefinition) -> None:
         self._store[graph.id.value] = graph
+
+    async def list_all(self) -> list[GraphDefinition]:
+        return list(self._store.values())

@@ -109,6 +109,13 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         )
         return SqlSchedulerExecutionRepository(self._active_session)
 
+    @property
+    def graph_node_executions(self):
+        from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
+            SqlGraphNodeExecutionRepository,
+        )
+        return SqlGraphNodeExecutionRepository(self._active_session)
+
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
 

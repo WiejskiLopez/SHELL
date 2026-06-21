@@ -5,9 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from shell.domain.platform.base.value_object import ValueObject
+
 
 @dataclass(frozen=True, slots=True)
-class Timestamp:
+class Timestamp(ValueObject):
     value: datetime
 
     def __post_init__(self) -> None:

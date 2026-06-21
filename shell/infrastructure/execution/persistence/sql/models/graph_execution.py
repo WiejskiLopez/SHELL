@@ -34,7 +34,6 @@ class GraphExecutionModel(Base):
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
         "GraphNodeExecutionModel",
         back_populates="graph_execution_model",
-        cascade="all, delete-orphan",
     )
 
     graph_node_transition_execution_models: Mapped[list[GraphNodeTransitionExecutionModel]] = relationship(

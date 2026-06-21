@@ -6,7 +6,10 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.repositories.graph_node_execution_repository import (
+        GraphNodeExecutionRepository,
+    )
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
 
@@ -18,5 +21,20 @@ class GraphNodeExecutionNavigator(Protocol):
 
     def next_after(
         self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
+    ) -> Iterable[GraphNodeExecution]:
+        ...
+
+    async def first_async(
+        self,
+        graph_execution: GraphExecution,
+        node_repo: GraphNodeExecutionRepository,
+    ) -> GraphNodeExecution | None:
+        ...
+
+    async def next_after_async(
+        self,
+        graph_execution: GraphExecution,
+        graph_node_execution_id: GraphNodeExecutionId,
+        node_repo: GraphNodeExecutionRepository,
     ) -> Iterable[GraphNodeExecution]:
         ...

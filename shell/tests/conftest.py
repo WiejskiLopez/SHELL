@@ -352,6 +352,9 @@ def _build_graph_execution(
         graph_definition_id=GraphDefinitionId("tpl"),
         graph_node_executions=graph_node_executions,
     )
+    for node in graph_node_executions:
+        setattr(node, '_graph_execution_id', graph_execution.id)
+        uow.graph_node_executions._store[node.id.value] = node
     uow.graph_executions._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
@@ -540,6 +543,9 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
         id=GraphExecutionId.generate(), task_execution_id=task_execution.id,
         graph_definition_id=GraphDefinitionId("tpl"), graph_node_executions=graph_node_executions,
     )
+    for node in graph_node_executions:
+        setattr(node, '_graph_execution_id', graph_execution.id)
+        uow.graph_node_executions._store[node.id.value] = node
     uow.graph_executions._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 

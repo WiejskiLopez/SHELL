@@ -13,6 +13,9 @@ from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
     GraphNodeExecutionStartedEvent,
     GraphNodeExecutionTimedOutEvent,
+    PlannerResultEvent,
+    PlannerSpawnsQueuedEvent,
+    SubGraphSpawnRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -53,7 +56,7 @@ def register_events(core_container: CoreContainer) -> None:
         GraphNodeExecutionCompletedEvent, events.graph_node_execution_completed_handler_factory
     )
     event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent, events.spawn_sub_graphs_on_planner_completion_handler_factory
+        PlannerResultEvent, events.planner_result_handler_factory
     )
     event_bus.subscribe(
         GraphNodeExecutionFailedEvent, events.graph_node_execution_completed_handler_factory
@@ -65,5 +68,13 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(
         WorkflowCompletedEvent,
         events.notify_parent_on_child_completion_handler_factory,
+    )
+    event_bus.subscribe(
+        SubGraphSpawnRequestedEvent,
+        events.sub_graph_spawn_requested_handler_factory,
+    )
+    event_bus.subscribe(
+        PlannerSpawnsQueuedEvent,
+        events.planner_spawns_queued_handler_factory,
     )
 

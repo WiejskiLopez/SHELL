@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.repositories.graph_execution_state_repository import (
         GraphExecutionStateRepository,
     )
+    from shell.domain.execution.repositories.graph_node_execution_repository import (
+        GraphNodeExecutionRepository,
+    )
     from shell.domain.definition.repositories.prompt_repository import PromptRepository
     from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
     from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
@@ -54,6 +57,9 @@ class UnitOfWork(Protocol):
 
     @property
     def graph_execution_states(self) -> GraphExecutionStateRepository: ...
+
+    @property
+    def graph_node_executions(self) -> GraphNodeExecutionRepository: ...
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
 

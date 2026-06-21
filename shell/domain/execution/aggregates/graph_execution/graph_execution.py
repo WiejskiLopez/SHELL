@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_execution.loop_counter import LoopCounter
-from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
@@ -28,7 +27,7 @@ from shell.domain.execution.value_objects.ids import (
 
 
 class GraphExecution(AggregateRoot["GraphExecutionId"]):
-    """Graph aggregate root — owns its GraphNodeExecutions and GraphNodeTransitionExecutions."""
+    """Graph aggregate root — owns transitions, loop counters, references node IDs."""
 
     __slots__ = (
         "_task_execution_id",
@@ -40,7 +39,8 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         "_timeout_at",
         "_correlation_id",
         "_tags",
-        "_graph_node_executions",
+        "_graph_node_execution_ids",
+        "_graph_node_execution_objects",
         "_transitions",
         "_loop_counters",
     )
@@ -54,7 +54,8 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     _timeout_at: datetime | None
     _correlation_id: str
     _tags: dict[str, Any]
-    _graph_node_executions: list[GraphNodeExecution]
+    _graph_node_execution_ids: list[GraphNodeExecutionId]
+    _graph_node_execution_objects: list[Any]
     _transitions: list[GraphNodeTransitionExecution]
     _loop_counters: dict[str, LoopCounter]
 
@@ -63,7 +64,8 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition_id: str,
-        graph_node_executions: list[GraphNodeExecution] | None = None,
+        graph_node_execution_ids: list[GraphNodeExecutionId] | None = None,
+        graph_node_executions: Any = None,
         transitions: list[GraphNodeTransitionExecution] | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
         state_input: dict[str, Any] | None = None,
@@ -83,7 +85,12 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         self._timeout_at = timeout_at
         self._correlation_id = correlation_id
         self._tags = tags or {}
-        self._graph_node_executions = list(graph_node_executions) if graph_node_executions else []
+        combined_nodes = graph_node_execution_ids or graph_node_executions or []
+        self._graph_node_execution_ids = _ensure_node_ids(combined_nodes)
+        self._graph_node_execution_objects = [
+            n for n in combined_nodes
+            if not isinstance(n, (GraphNodeExecutionId, str))
+        ]
         self._transitions = list(transitions) if transitions else []
         self._loop_counters = {}
 
@@ -127,8 +134,22 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         return dict(self._tags)
 
     @property
-    def graph_node_executions(self) -> tuple[GraphNodeExecution, ...]:
-        return tuple(self._graph_node_executions)
+    def graph_node_execution_ids(self) -> tuple[GraphNodeExecutionId, ...]:
+        return tuple(self._graph_node_execution_ids)
+
+    @property
+    def graph_node_executions(self) -> tuple[Any, ...]:
+        if self._graph_node_execution_objects:
+            return tuple(self._graph_node_execution_objects)
+        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+
+        result: list[Any] = []
+        for nid in self._graph_node_execution_ids:
+            if isinstance(nid, GraphNodeExecutionId):
+                result.append(GNE(id=nid, position=0, mode=None, role="", node_type=""))
+            else:
+                result.append(nid)
+        return tuple(result)
 
     @property
     def transitions(self) -> tuple[GraphNodeTransitionExecution, ...]:
@@ -158,6 +179,9 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def add_transition(self, transition: GraphNodeTransitionExecution) -> None:
         self._transitions.append(transition)
 
+    def add_graph_node_execution_id(self, node_id: GraphNodeExecutionId) -> None:
+        self._graph_node_execution_ids.append(node_id)
+
     @classmethod
     def from_graph_definition(
         cls,
@@ -165,6 +189,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition: GraphExecutionDefinition,
+        node_ids: list[GraphNodeExecutionId] | None = None,
         id_gen: IdGenerator,
         now: datetime,
         parent_graph_execution_id: GraphExecutionId | None = None,
@@ -172,52 +197,38 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         correlation_id: str = "",
         depth: int = 0,
     ) -> GraphExecution:
-        from shell.domain.platform.value_objects.mode import Mode
+        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
 
-        graph_node_executions: list[GraphNodeExecution] = []
-        previous_node_id: GraphNodeExecutionId | None = None
+        graph_node_execution_ids: list[GraphNodeExecutionId] = list(node_ids) if node_ids else []
+        transitions: list[GraphNodeTransitionExecution] = []
 
-        for graph_node_definition in graph_definition.graph_node_execution_definitions:
-            mode = Mode(graph_node_definition.mode)
-            node_id = id_gen.new_graph_node_execution_id()
-            graph_node_executions.append(
-                GraphNodeExecution(
-                    id=node_id,
-                    position=graph_node_definition.position,
-                    mode=mode,
-                    role=graph_node_definition.role,
-                    node_type=graph_node_definition.node_type,
-                    model=graph_node_definition.model,
-                    command=graph_node_definition.command,
-                    timeout=graph_node_definition.timeout,
-                    retries=graph_node_definition.retries,
-                    log_level=graph_node_definition.log_level,
-                    max_step=graph_node_definition.max_step or 0,
-                    no_ask_user=graph_node_definition.no_ask_user,
-                    autopilot=graph_node_definition.autopilot,
-                    task_execution_id="",
-                    source_dir="",
-                    status_initial=graph_node_definition.status_initial,
-                    extra=dict(graph_node_definition.extra),
-                    sub_graph_definition_id=graph_node_definition.extra.get("sub_graph_definition_id"),
-                    timeout_seconds=graph_node_definition.timeout,
-                    max_retries=graph_node_definition.retries,
+        if graph_node_execution_ids:
+            sorted_ids = list(graph_node_execution_ids)
+            for i in range(len(sorted_ids) - 1):
+                transitions.append(
+                    GraphNodeTransitionExecution(
+                        id=GraphNodeTransitionExecutionId.generate(),
+                        graph_execution_id=id_,
+                        source_node_execution_id=sorted_ids[i],
+                        target_node_execution_id=sorted_ids[i + 1],
+                        transition_type=TransitionType.SEQUENCE,
+                        priority=0,
+                        label=f"sequence_{i}_to_{i + 1}",
+                    )
                 )
-            )
-            previous_node_id = node_id
 
         graph_execution = cls(
             id=id_,
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition.id,
-            graph_node_executions=graph_node_executions,
+            graph_node_execution_ids=graph_node_execution_ids,
+            transitions=transitions,
             parent_graph_execution_id=parent_graph_execution_id,
             state_input=state_input,
             depth=depth,
             correlation_id=correlation_id,
         )
 
-        graph_execution._build_sequence_transitions(previous_node_id)
         graph_execution.append_event(
             GraphExecutionBuiltEvent.now(
                 graph_execution_id=id_,
@@ -227,9 +238,6 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             )
         )
         return graph_execution
-
-    def add_graph_node_execution(self, graph_node_execution: GraphNodeExecution) -> None:
-        self._graph_node_executions.append(graph_node_execution)
 
     # ── Loop counter management ───────────────────────────────────────────
 
@@ -247,23 +255,14 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
             )
         return self._loop_counters[transition_id]
 
-    # ── Private helpers ──────────────────────────────────────────────────
 
-    def _build_sequence_transitions(
-        self, last_node_id: GraphNodeExecutionId | None
-    ) -> None:
-        from shell.domain.execution.value_objects.ids import GraphNodeTransitionExecutionId
-
-        sorted_nodes = sorted(self._graph_node_executions, key=lambda n: n.position)
-        for i in range(len(sorted_nodes) - 1):
-            self._transitions.append(
-                GraphNodeTransitionExecution(
-                    id=GraphNodeTransitionExecutionId.generate(),
-                    graph_execution_id=self.id,
-                    source_node_execution_id=sorted_nodes[i].id,
-                    target_node_execution_id=sorted_nodes[i + 1].id,
-                    transition_type=TransitionType.SEQUENCE,
-                    priority=0,
-                    label=f"sequence_{sorted_nodes[i].position}_to_{sorted_nodes[i + 1].position}",
-                )
-            )
+def _ensure_node_ids(items: list[Any]) -> list[GraphNodeExecutionId]:
+    result: list[GraphNodeExecutionId] = []
+    for item in items:
+        if isinstance(item, GraphNodeExecutionId):
+            result.append(item)
+        elif hasattr(item, 'id') and isinstance(getattr(item, 'id'), GraphNodeExecutionId):
+            result.append(item.id)
+        else:
+            result.append(GraphNodeExecutionId(str(item)))
+    return result

@@ -64,6 +64,8 @@ Property agregatu zwracające kolekcję zwraca kopię (`dict(...)`, `tuple(...)`
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")
 - Nie jesteś pewien nazewnictwa albo struktury pliku → `references/checklists.md` (sekcje "Nazewnictwo" i "Cross-cutting")
+- Pracujesz z Workflow/GraphExecution/GraphNodeExecution → `references/execution-hierarchy.md` (poziomy, relacje, Mode enum)
+- Dodajesz sub-graf, PLANNER, TASKER, extension point → `references/sub-graph-extension-points.md` (przepływy, Protocols, reguły)
 
 ## Przepis: nowa funkcjonalność (wersja skrócona)
 

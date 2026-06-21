@@ -16,6 +16,9 @@ from shell.infrastructure.definition.persistence.memory.in_memory_graph_definiti
 from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_repository import (
     InMemoryGraphExecutionStateRepository,
 )
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
@@ -24,8 +27,10 @@ if TYPE_CHECKING:
 class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self._task_executions = InMemoryTaskExecutionRepository()
+        self._graph_node_executions = InMemoryGraphNodeExecutionRepository()
         self._graph_executions = InMemoryGraphExecutionRepository()
         self._graph_executions.link_task_executions(self._task_executions)
+        self._graph_executions.link_graph_node_executions(self._graph_node_executions)
         self._workflows = InMemoryWorkflowRepository()
         self._envelopes = InMemoryEnvelopeRepository()
         self._prompts = InMemoryPromptRepository()
@@ -104,6 +109,10 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def graph_execution_states(self) -> InMemoryGraphExecutionStateRepository:
         return self._graph_execution_states
+
+    @property
+    def graph_node_executions(self) -> InMemoryGraphNodeExecutionRepository:
+        return self._graph_node_executions
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

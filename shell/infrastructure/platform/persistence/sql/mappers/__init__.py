@@ -9,14 +9,14 @@ from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.rag_document import RagChunk, RagDocument
 from shell.domain.execution.entities.session import Message, Session
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_node_execution_input_payload import (
+from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
+from shell.domain.execution.entities.graph_node_execution_input_payload import (
     GraphNodeExecutionInputPayload,
 )
-from shell.domain.execution.aggregates.graph_node_execution_output_payload import (
+from shell.domain.execution.entities.graph_node_execution_output_payload import (
     GraphNodeExecutionOutputPayload,
 )
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-from shell.domain.execution.entities.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.entities.graph_node_execution_result import GraphNodeExecutionResult
 from shell.domain.execution.entities.graph_node_transition_execution import GraphNodeTransitionExecution
 from shell.domain.definition.entities.graph_node_transition_definition import GraphNodeTransitionDefinition
@@ -272,32 +272,9 @@ def graph_node_execution_output_payload_entity_to_model(
 
 
 def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
-    graph_node_executions = [
-        GraphNodeExecution(
-            id=GraphNodeExecutionId(graph_node_execution_model.id),
-            position=graph_node_execution_model.position,
-            mode=Mode(graph_node_execution_model.mode),
-            role=graph_node_execution_model.role,
-            node_type=graph_node_execution_model.node_type,
-            model=graph_node_execution_model.model,
-            command=graph_node_execution_model.command,
-            timeout=graph_node_execution_model.timeout,
-            retries=graph_node_execution_model.retries,
-            log_level=graph_node_execution_model.log_level,
-            max_step=graph_node_execution_model.max_step,
-            no_ask_user=graph_node_execution_model.no_ask_user,
-            autopilot=graph_node_execution_model.autopilot,
-            task_execution_id=graph_node_execution_model.task_execution_id,
-            source_dir=graph_node_execution_model.source_dir,
-            status_initial=graph_node_execution_model.status_initial,
-            sub_graph_definition_id=graph_node_execution_model.sub_graph_definition_id,
-            sub_graph_definition_version=graph_node_execution_model.sub_graph_definition_version,
-            timeout_seconds=graph_node_execution_model.timeout_seconds,
-            max_retries=graph_node_execution_model.max_retries,
-            retry_delay_seconds=graph_node_execution_model.retry_delay_seconds,
-            extra=dict(graph_node_execution_model.extra),
-        )
-        for graph_node_execution_model in graph_execution_model.graph_node_execution_models
+    graph_node_execution_ids = [
+        GraphNodeExecutionId(node_model.id)
+        for node_model in graph_execution_model.graph_node_execution_models
     ]
     transitions = [
         graph_node_transition_execution_model_to_entity(t)
@@ -306,8 +283,8 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
     return GraphExecution(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
-        graph_definition_id=GraphDefinitionId(graph_execution_model.graph_definition_id),
-        graph_node_executions=graph_node_executions,
+        graph_definition_id=str(graph_execution_model.graph_definition_id),
+        graph_node_execution_ids=graph_node_execution_ids,
         transitions=transitions,
         parent_graph_execution_id=(
             GraphExecutionId(graph_execution_model.parent_graph_execution_id)
@@ -448,34 +425,6 @@ def graph_execution_entity_to_model(
         correlation_id=graph_execution.correlation_id,
         tags=graph_execution.tags,
     )
-    graph_execution_model.graph_node_execution_models = [
-        GraphNodeExecutionModel(
-            id=graph_node_execution.id.value,
-            graph_execution_id=graph_execution.id.value,
-            position=graph_node_execution.position,
-            mode=graph_node_execution.mode.value,
-            role=graph_node_execution.role,
-            node_type=graph_node_execution.node_type,
-            model=graph_node_execution.model,
-            command=graph_node_execution.command,
-            timeout=graph_node_execution.timeout,
-            retries=graph_node_execution.retries,
-            log_level=graph_node_execution.log_level,
-            max_step=graph_node_execution.max_step,
-            no_ask_user=graph_node_execution.no_ask_user,
-            autopilot=graph_node_execution.autopilot,
-            task_execution_id=graph_node_execution.task_execution_id,
-            source_dir=graph_node_execution.source_dir,
-            status_initial=graph_node_execution.status_initial,
-            sub_graph_definition_id=graph_node_execution.sub_graph_definition_id,
-            sub_graph_definition_version=graph_node_execution.sub_graph_definition_version,
-            timeout_seconds=graph_node_execution.timeout_seconds,
-            max_retries=graph_node_execution.max_retries,
-            retry_delay_seconds=graph_node_execution.retry_delay_seconds,
-            extra=graph_node_execution.extra,
-        )
-        for graph_node_execution in graph_execution.graph_node_executions
-    ]
     _now = datetime.now(UTC)
     graph_execution_model.graph_node_transition_execution_models = [
         graph_node_transition_execution_entity_to_model(t, _now)

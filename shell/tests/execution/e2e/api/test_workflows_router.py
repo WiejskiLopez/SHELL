@@ -53,32 +53,26 @@ class TestWorkflowsRouter:
                 existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(
                     task_execution.id
                 )
+                ge_id = existing_graph_execution.id if existing_graph_execution else GraphExecutionId.generate()
+                node = GraphNodeExecution(
+                    id=GraphNodeExecutionId("wf_task-node-0"),
+                    position=0,
+                    mode=Mode("agent"),
+                    role="agent",
+                    node_type="agent",
+                    graph_execution_id=ge_id,
+                )
+                await uow.graph_node_executions.save(node)
                 if existing_graph_execution:
-                    existing_graph_execution.add_node(
-                        GraphNodeExecution(
-                            id=GraphNodeExecutionId("wf_task-node-0"),
-                            position=0,
-                            mode=Mode("agent"),
-                            role="agent",
-                            node_type="agent",
-                        )
-                    )
+                    existing_graph_execution.add_graph_node_execution_id(node.id)
                     await uow.graph_executions.save(existing_graph_execution)
                     await uow.commit()
                 else:
                     graph_execution = GraphExecution(
-                        id=GraphExecutionId.generate(),
+                        id=ge_id,
                         task_execution_id=task_execution.id,
                         graph_definition_id=GraphDefinitionId("tpl"),
-                        graph_node_executions=[
-                            GraphNodeExecution(
-                                id=GraphNodeExecutionId("wf_task-node-0"),
-                                position=0,
-                                mode=Mode("agent"),
-                                role="agent",
-                                node_type="agent",
-                            )
-                        ],
+                        graph_node_execution_ids=[node.id],
                     )
                     await uow.graph_executions.save(graph_execution)
                     await uow.commit()

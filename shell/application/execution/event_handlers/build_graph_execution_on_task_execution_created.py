@@ -48,10 +48,6 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
         self._name = name
 
     async def handle(self, event: TaskExecutionCreatedEvent) -> None:
-        self._logger.info(
-            "Handle TaskExecutionCreatedEvent:",
-            task_execution_id=event.task_execution_id.value,
-        )
         now = self._clock.now()
 
         graph_definition = await self._definition_provider.get_graph_definition_by_name(
@@ -71,10 +67,40 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 )
                 return
 
+            from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution as GNE
+
+            node_ids: list = []
+            for node_def in graph_definition.graph_node_execution_definitions:
+                node_id = self._id_gen.new_graph_node_execution_id()
+                node = GNE(
+                    id=node_id,
+                    position=node_def.position,
+                    mode=node_def.mode,
+                    role=node_def.role,
+                    node_type=node_def.node_type,
+                    model=node_def.model,
+                    command=node_def.command,
+                    timeout=node_def.timeout,
+                    retries=node_def.retries,
+                    log_level=node_def.log_level,
+                    max_step=node_def.max_step or 0,
+                    no_ask_user=node_def.no_ask_user,
+                    autopilot=node_def.autopilot,
+                    status_initial=node_def.status_initial,
+                    extra=dict(node_def.extra),
+                    sub_graph_definition_id=node_def.extra.get("sub_graph_definition_id"),
+                    timeout_seconds=node_def.timeout,
+                    max_retries=node_def.retries,
+                )
+                await uow.graph_node_executions.save(node)
+                node_ids.append(node_id)
+
+            graph_execution_id = self._id_gen.new_graph_execution_id()
             graph_execution = GraphExecution.from_graph_definition(
-                id_=self._id_gen.new_graph_execution_id(),
+                id_=graph_execution_id,
                 task_execution_id=event.task_execution_id,
                 graph_definition=graph_definition,
+                node_ids=node_ids,
                 id_gen=self._id_gen,
                 now=now,
             )

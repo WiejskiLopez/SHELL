@@ -11,6 +11,7 @@ from shell.domain.execution.services.graph_node_execution_policy import FailFast
 from shell.domain.execution.services.sub_graph_execution_service import SubGraphExecutionService
 
 from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
+    DefaultSubGraphDiscovery,
     DefaultSubGraphObserver,
     FullAccessSubGraphSecurity,
     LatestVersionStrategy,
@@ -36,6 +37,10 @@ class DomainContainer(containers.DeclarativeContainer):
     sub_graph_observer_factory = providers.Singleton(DefaultSubGraphObserver)
     sub_graph_versioning_factory = providers.Singleton(
         LatestVersionStrategy,
+        uow_factory=buses.uow_factory,
+    )
+    sub_graph_discovery_factory = providers.Singleton(
+        DefaultSubGraphDiscovery,
         uow_factory=buses.uow_factory,
     )
 
