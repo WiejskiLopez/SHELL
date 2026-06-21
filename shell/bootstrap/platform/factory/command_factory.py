@@ -25,7 +25,7 @@ def register_commands(core_container: CoreContainer) -> None:
 
     # Wyciągamy podkontener do zmiennej typu Any.
     # Uciszamy mypy tylko RAZ w tym miejscu.
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
 
     cmd_bus = app_ctx.buses.command_bus()
     commands = app_ctx.commands

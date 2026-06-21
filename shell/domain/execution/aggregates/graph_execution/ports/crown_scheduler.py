@@ -6,7 +6,7 @@ Notifies parent when all children are done.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
     GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze SubGraphChildStatus i sygnaturach Protocol
@@ -28,7 +28,7 @@ class SubGraphChildStatus:
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
         status: str = "pending",
-        result: dict | None = None,
+        result: dict[str, Any] | None = None,
     ) -> None:
         self.parent_graph_execution_id = parent_graph_execution_id
         self.child_graph_execution_id = child_graph_execution_id
@@ -60,7 +60,7 @@ class CrownScheduler(Protocol):
     async def on_child_completed(
         self,
         child_graph_execution_id: GraphExecutionId,
-        result: dict | None = None,
+        result: dict[str, Any] | None = None,
     ) -> list[SubGraphChildStatus]:
         """Notify that a child sub-graph completed.
 

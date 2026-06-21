@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
@@ -14,7 +13,7 @@ def _make_graph_execution() -> GraphExecution:
     return GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=TaskExecutionId("t1"),
-        graph_definition_id=GraphDefinitionId("g1"),
+        graph_definition_id="g1",
     )
 
 

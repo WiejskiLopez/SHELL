@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -19,4 +19,4 @@ class TaskExecutionDto:
     body: str = ""
     work_dir: str = ""
     workflow_id: str | None = None
-    graph_node_executions: tuple = field(default_factory=tuple)
+    graph_node_executions: tuple[Any, ...] = field(default_factory=tuple)

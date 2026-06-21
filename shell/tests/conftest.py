@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import logging
 import os
-import pathlib
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -29,7 +28,6 @@ from shell.application.execution.event_handlers.graph_node_execution_worker impo
 )
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
@@ -236,7 +234,7 @@ def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecuti
     return GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=TaskExecutionId.generate(),
-        graph_definition_id=GraphDefinitionId("tpl"),
+        graph_definition_id="tpl",
         graph_node_executions=list(graph_node_executions),
     )
 
@@ -337,7 +335,7 @@ def _build_graph_execution(
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
-        graph_definition_id=GraphDefinitionId("tpl"),
+        graph_definition_id="tpl",
         graph_node_executions=graph_node_executions,
     )
     for node in graph_node_executions:
@@ -477,7 +475,7 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
-        graph_definition_id=GraphDefinitionId("tpl"),
+        graph_definition_id="tpl",
         graph_node_executions=graph_node_executions,
     )
     for node in graph_node_executions:

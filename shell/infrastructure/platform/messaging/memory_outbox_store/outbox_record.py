@@ -9,7 +9,7 @@ class OutboxRecord:
     id: str
     event_type: str
     occurred_at: datetime
-    payload: dict  # type: ignore[type-arg]
+    payload: dict
     published_at: datetime | None = None
 
     @property

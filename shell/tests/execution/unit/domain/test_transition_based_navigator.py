@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
@@ -58,7 +57,7 @@ def _make_graph(
     return GraphExecution(
         id=GraphExecutionId("ge"),
         task_execution_id=TaskExecutionId("t1"),
-        graph_definition_id=GraphDefinitionId("g1"),
+        graph_definition_id="g1",
         graph_node_executions=list(nodes),
         transitions=transitions,
     )

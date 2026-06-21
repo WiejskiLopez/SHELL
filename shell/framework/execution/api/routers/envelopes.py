@@ -27,7 +27,7 @@ def get_core_container(request: _Request) -> CoreContainer:
 
 def get_query_bus(container: CoreContainer = Depends(get_core_container)) -> QueryBus:
     """Ekstrahuje QueryBus i izoluje dynamiczne typowanie na granicy infrastruktury."""
-    return container.app.buses.query_bus()  # type: ignore[attr-defined, no-any-return]
+    return container.app.buses.query_bus()  # type: ignore[attr-defined]
 
 
 # ------------------------------------------------------------------
@@ -40,7 +40,7 @@ async def list_by_workflow(
     workflow_id: str,
     pending_only: bool = False,
     query_bus: QueryBus = Depends(get_query_bus),  # Wstrzyknięty czysty konkret
-) -> dict:  # type: ignore[type-arg]
+) -> dict:
     result = await query_bus.dispatch(
         GetEnvelopesByWorkflowQuery(workflow_id=workflow_id, pending_only=pending_only)
     )

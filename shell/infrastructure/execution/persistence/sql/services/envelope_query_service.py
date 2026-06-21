@@ -39,3 +39,11 @@ class EnvelopeQueryService:
                 )
                 for envelope_model in res.scalars()
             ]
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "EnvelopeQueryService",
+    "annotations",
+    "select",
+]

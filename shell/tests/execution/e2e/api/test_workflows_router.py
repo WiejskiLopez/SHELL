@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
@@ -76,7 +75,7 @@ class TestWorkflowsRouter:
                     graph_execution = GraphExecution(
                         id=ge_id,
                         task_execution_id=task_execution.id,
-                        graph_definition_id=GraphDefinitionId("tpl"),
+                        graph_definition_id="tpl",
                         graph_node_execution_ids=[node.id],
                     )
                     await uow.graph_executions.save(graph_execution)

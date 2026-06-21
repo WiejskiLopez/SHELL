@@ -9,13 +9,14 @@ events (``GraphExecutionBuiltEvent``) downstream.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.ports.graph_execution_definition_provider import (  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze handlera
-    GraphExecutionDefinitionProvider,
+from shell.domain.execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze handlera
 )
+from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -73,12 +74,26 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 GraphNodeExecution,
             )
 
-            node_ids: list = []
+            node_ids: list[Any] = []
             for node_def in graph_definition.graph_node_execution_definitions:
                 node_id = self._id_gen.new_graph_node_execution_id()
-                node = GraphNodeExecution.from_node_definition(
-                    id_=node_id,
-                    node_def=node_def,
+                node = GraphNodeExecution(
+                    id=node_id,
+                    position=node_def.position,
+                    mode=Mode(node_def.mode),
+                    role=node_def.role,
+                    node_type=node_def.node_type,
+                    model=node_def.model,
+                    command=node_def.command,
+                    timeout=node_def.timeout,
+                    retries=node_def.retries,
+                    log_level=node_def.log_level,
+                    max_step=node_def.max_step or 0,
+                    no_ask_user=node_def.no_ask_user,
+                    autopilot=node_def.autopilot,
+                    status_initial=node_def.status_initial,
+                    timeout_seconds=node_def.timeout,
+                    max_retries=node_def.retries,
                 )
                 await uow.graph_node_executions.save(node)
                 node_ids.append(node_id)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.platform.base import AggregateRoot
 
@@ -24,7 +24,7 @@ class TaskExecutionStateInput(AggregateRoot["TaskExecutionStateInputId"]):
     )
 
     _task_execution_id: TaskExecutionId
-    _payload: dict
+    _payload: dict[str, Any]
     _is_current: bool
     _created_at: datetime
 
@@ -32,7 +32,7 @@ class TaskExecutionStateInput(AggregateRoot["TaskExecutionStateInputId"]):
         self,
         id: TaskExecutionStateInputId,
         task_execution_id: TaskExecutionId,
-        payload: dict,
+        payload: dict[str, Any],
         is_current: bool,
         created_at: datetime,
     ) -> None:
@@ -47,7 +47,7 @@ class TaskExecutionStateInput(AggregateRoot["TaskExecutionStateInputId"]):
         return self._task_execution_id
 
     @property
-    def payload(self) -> dict:
+    def payload(self) -> dict[str, Any]:
         return self._payload
 
     @property
@@ -64,7 +64,7 @@ class TaskExecutionStateInput(AggregateRoot["TaskExecutionStateInputId"]):
         *,
         id_: TaskExecutionStateInputId,
         task_execution_id: TaskExecutionId,
-        payload: dict,
+        payload: dict[str, Any],
         now: datetime,
     ) -> TaskExecutionStateInput:
         return cls(

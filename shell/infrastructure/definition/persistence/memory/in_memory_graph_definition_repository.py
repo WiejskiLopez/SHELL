@@ -36,3 +36,10 @@ class InMemoryGraphDefinitionRepository(GraphDefinitionRepository):
 
     async def list_all(self) -> list[GraphDefinition]:
         return list(self._store.values())
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "InMemoryGraphDefinitionRepository",
+    "annotations",
+]

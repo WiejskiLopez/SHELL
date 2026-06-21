@@ -14,6 +14,14 @@ from shell.infrastructure.platform.logging.stdlib_logger.stdlib_logger import (
     StdlibLogger,  # noqa: F401 — re-export dla konsumentów
 )
 
+__all__ = [
+    "StdlibLogger",
+    "JsonFormatter",
+    "correlation_id_var",
+    "get_correlation_id",
+    "set_correlation_id",
+]
+
 
 def _make_handler() -> logging.StreamHandler:
     handler = logging.StreamHandler()

@@ -8,7 +8,7 @@ emits ChildGraphsCompletedEvent to unblock the parent workflow.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.events import (
     WorkflowCompletedEvent,  # noqa: TC002 — WorkflowCompletedEvent używany w sygnaturze handle() handlera
@@ -109,7 +109,7 @@ class NotifyParentOnChildCompletionHandler:
                 )
                 return
 
-            combined_output: dict = {}
+            combined_output: dict[str, Any] = {}
             for child_status in children:
                 if child_status.result:
                     combined_output.update(child_status.result)

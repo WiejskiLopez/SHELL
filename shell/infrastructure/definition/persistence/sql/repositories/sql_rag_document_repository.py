@@ -34,14 +34,14 @@ class SqlRagDocumentRepository(RagDocumentRepository):
         self._session = session
         self._search_strategy = search_strategy
 
-    def _get_strategy(self) -> RagSearchStrategy:  # type: ignore[return]
+    def _get_strategy(self) -> RagSearchStrategy:
         if self._search_strategy is None:
             from shell.infrastructure.platform.persistence.sql.rag_search import (
                 InMemoryRagSearchStrategy,
             )
 
             self._search_strategy = InMemoryRagSearchStrategy()
-        return self._search_strategy  # type: ignore[return]
+        return self._search_strategy
 
     async def save(self, document: RagDocument) -> None:
         doc_model = rag_document_entity_to_model(document)
@@ -78,3 +78,12 @@ class SqlRagDocumentRepository(RagDocumentRepository):
             top_k=top_k,
             domain=domain,
         )
+
+
+__all__ = [
+    "RagChunkModel",
+    "RagDocumentModel",
+    "SqlRagDocumentRepository",
+    "logger",
+    "sa_delete",
+]

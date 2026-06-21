@@ -48,3 +48,9 @@ class NodeResultQueryService:
                 artifact_uri=result_model.artifact_uri,
                 created_at=result_model.created_at,
             )
+
+
+__all__ = [
+    "NodeResultQueryService",
+    "selectinload",
+]

@@ -19,6 +19,8 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from shell.application.platform.ports.ports import EventPublisher
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -69,7 +71,7 @@ class OutboxToInboxRelay:
     async def _batch_insert_postgres(
         self,
         session: AsyncSession,
-        rows: list[OutboxEventModel],
+        rows: Sequence[OutboxEventModel],
         now: datetime,
     ) -> None:
         values = [
@@ -93,7 +95,7 @@ class OutboxToInboxRelay:
     async def _batch_insert_sqlite(
         self,
         session: AsyncSession,
-        rows: list[OutboxEventModel],
+        rows: Sequence[OutboxEventModel],
         now: datetime,
     ) -> None:
         import sqlalchemy as sa

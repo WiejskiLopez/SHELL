@@ -60,8 +60,9 @@ class TestGraphDefinition:
         n2 = _make_node(2, "tool")
         gd.add_graph_node_definition(n1)
         gd.add_graph_node_definition(n2)
-        assert gd.get_graph_node_definition(1) is not None
-        assert gd.get_graph_node_definition(1).position == 1
+        node_at_1 = gd.get_graph_node_definition(1)
+        assert node_at_1 is not None
+        assert node_at_1.position == 1
         assert gd.get_graph_node_definition(3) is None
 
     def test_remove_node_by_id(self) -> None:

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-    from shell.domain.definition.value_objects.ids import GraphNodeDefinitionId
+    from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 
 class GraphNodeDefinitionRepository(Protocol):
@@ -12,4 +12,6 @@ class GraphNodeDefinitionRepository(Protocol):
         self, graph_node_execution_id: GraphNodeDefinitionId
     ) -> GraphNodeDefinition | None: ...
 
-    async def save(self, node: GraphNodeDefinition) -> None: ...
+    async def save(
+        self, node: GraphNodeDefinition, graph_definition_id: GraphDefinitionId
+    ) -> None: ...

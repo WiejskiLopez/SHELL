@@ -5,12 +5,10 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.repositories.graph_definition_repository import (
     GraphNodeDefinitionRepository,
 )
-from shell.domain.definition.value_objects.ids import (
-    GraphNodeDefinitionId,  # noqa: TC002 — GraphNodeDefinitionId używany w konstruktorach w repozytorium
-)
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
+    from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 
 
 class InMemoryGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
@@ -22,5 +20,5 @@ class InMemoryGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
     ) -> GraphNodeDefinition | None:
         return self._store.get(graph_node_execution_id.value)
 
-    async def save(self, node: GraphNodeDefinition) -> None:
+    async def save(self, node: GraphNodeDefinition, graph_definition_id: GraphDefinitionId) -> None:
         self._store[node.id.value] = node

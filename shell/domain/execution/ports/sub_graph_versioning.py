@@ -5,13 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
+    from shell.domain.execution.value_objects.graph_execution_definition import (
+        GraphExecutionDefinition,
+    )
 
 
 class SubGraphVersioning(Protocol):
     """Wybiera wersję definicji przy spawnie sub-grafu.
 
-    GraphDefinition → GraphExecution materialization is a snapshot.
+    Returns a materialized GraphExecutionDefinition snapshot.
     Once spawned, the execution is independent of definition changes.
     """
 
@@ -20,4 +22,4 @@ class SubGraphVersioning(Protocol):
         definition_id: str,
         version: int | None,
         parent_graph_execution_id: str,
-    ) -> GraphDefinition: ...
+    ) -> GraphExecutionDefinition: ...

@@ -11,8 +11,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
+from apscheduler.triggers.interval import IntervalTrigger  # type: ignore[import-untyped]
 from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
     SqlSchedulerExecutionRepository,
 )
@@ -97,7 +97,7 @@ class SchedulerService:
         if self._scheduler.get_job(job_id):
             self._scheduler.reschedule_job(
                 job_id,
-                trigger=IntervalTrigger(seconds=job.interval_seconds),
+                trigger=IntervalTrigger(seconds=int(job.interval_seconds)),
             )
             return
 
@@ -109,7 +109,7 @@ class SchedulerService:
 
         self._scheduler.add_job(
             job_fn,
-            trigger=IntervalTrigger(seconds=job.interval_seconds),
+            trigger=IntervalTrigger(seconds=int(job.interval_seconds)),
             id=job_id,
             name=job.name or job.id.value,
             replace_existing=True,

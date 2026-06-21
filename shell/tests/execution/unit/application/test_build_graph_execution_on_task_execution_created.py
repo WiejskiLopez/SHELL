@@ -134,9 +134,9 @@ async def _seed_graph_definition(
     )
     # Clear any existing graph_definition with the same name (constructor seeds one)
     repo = uow.graph_definitions
-    keys_to_remove = [k for k, v in repo._store.items() if v.name == name]  # type: ignore[attr-defined]
+    keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
     for k in keys_to_remove:
-        del repo._store[k]  # type: ignore[attr-defined]
+        del repo._store[k]
     await repo.save(graph_definition)
     return graph_definition
 

@@ -52,3 +52,13 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
         query = self._base_query()
         rows = (await self._session.execute(query)).scalars().all()
         return [graph_definition_model_to_entity(r) for r in rows if r is not None]
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "GraphDefinitionModel",
+    "SqlGraphDefinitionRepository",
+    "annotations",
+    "select",
+    "selectinload",
+]

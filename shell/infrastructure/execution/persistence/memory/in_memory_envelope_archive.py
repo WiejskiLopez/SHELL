@@ -19,3 +19,10 @@ class InMemoryEnvelopeArchive(EnvelopeArchive):
 
     async def get(self, archive_uri: str) -> Envelope | None:
         return self._store.get(archive_uri)
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "InMemoryEnvelopeArchive",
+    "annotations",
+]

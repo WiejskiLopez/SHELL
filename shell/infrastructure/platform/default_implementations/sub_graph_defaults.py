@@ -18,6 +18,10 @@ from shell.domain.execution.ports.sub_graph_observer import SubGraphContext, Sub
 from shell.domain.execution.ports.sub_graph_policy import Decision, SubGraphExecutionPolicy
 from shell.domain.execution.ports.sub_graph_security import Scope, SubGraphSecurity
 from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
@@ -160,14 +164,38 @@ class LatestVersionStrategy(SubGraphVersioning):
         definition_id: str,
         version: int | None,
         parent_graph_execution_id: str,
-    ) -> Any:
+    ) -> GraphExecutionDefinition:
         from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
         async with self._uow_factory() as uow:
             definition = await uow.graph_definitions.get_by_id(GraphDefinitionId(definition_id))
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
-            return definition
+            node_defs = [
+                GraphNodeExecutionDefinition(
+                    position=n.position,
+                    mode=str(n.mode),
+                    role=n.role,
+                    node_type=n.node_type,
+                    model=n.model,
+                    command=n.command,
+                    timeout=n.timeout,
+                    retries=n.retries,
+                    log_level=n.log_level,
+                    max_step=n.max_step,
+                    no_ask_user=n.no_ask_user,
+                    autopilot=n.autopilot,
+                    status_initial=n.status_initial,
+                    script=n.script,
+                    script_type=n.script_type,
+                )
+                for n in definition.graph_node_definitions
+            ]
+            return GraphExecutionDefinition(
+                id=definition.id.value,
+                name=definition.name,
+                graph_node_execution_definitions=node_defs,
+            )
 
 
 # ── Discovery ────────────────────────────────────────────────────────────────
@@ -194,12 +222,12 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
                 raise GraphDefinitionNotFound(query)
 
             best_match = None
-            best_score = 0
+            best_score: float = 0
 
             for definition in all_defs:
                 name_lower = (definition.name or "").lower()
                 purpose_lower = (definition.purpose or "").lower()
-                score = 0
+                score: float = 0
 
                 if query_lower in name_lower:
                     score += 3

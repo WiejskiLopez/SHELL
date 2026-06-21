@@ -13,11 +13,13 @@ from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w metodzie from_graph_definition() GraphExecution
 )
 from shell.domain.platform.base import AggregateRoot
+from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
     from shell.domain.platform.ports.identity import IdGenerator
 from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
     GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze i typach propertisów GraphExecution
@@ -47,6 +49,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         "_graph_node_execution_objects",
         "_transitions",
         "_loop_counters",
+        "_workflow_id",
     )
 
     _task_execution_id: TaskExecutionId
@@ -62,6 +65,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     _graph_node_execution_objects: list[Any]
     _transitions: list[GraphNodeTransitionExecution]
     _loop_counters: dict[str, LoopCounter]
+    _workflow_id: WorkflowId | None
 
     def __init__(
         self,
@@ -78,6 +82,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         timeout_at: datetime | None = None,
         correlation_id: str = "",
         tags: dict[str, Any] | None = None,
+        workflow_id: WorkflowId | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -96,6 +101,15 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         ]
         self._transitions = list(transitions) if transitions else []
         self._loop_counters = {}
+        self._workflow_id = workflow_id
+
+    @property
+    def workflow_id(self) -> WorkflowId | None:
+        return self._workflow_id
+
+    @workflow_id.setter
+    def workflow_id(self, value: WorkflowId | None) -> None:
+        self._workflow_id = value
 
     @property
     def task_execution_id(self) -> TaskExecutionId:
@@ -151,7 +165,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         result: list[Any] = []
         for nid in self._graph_node_execution_ids:
             if isinstance(nid, GraphNodeExecutionId):
-                result.append(GNE(id=nid, position=0, mode=None, role="", node_type=""))
+                result.append(GNE(id=nid, position=0, mode=Mode.WORKER, role="", node_type=""))
             else:
                 result.append(nid)
         return tuple(result)

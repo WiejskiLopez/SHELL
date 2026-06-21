@@ -49,7 +49,7 @@ def create_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(graph_node_execution.router)
 
     @app.get("/health", tags=["health"])
-    async def health() -> dict:  # type: ignore[type-arg]
+    async def health() -> dict:
         return {"status": "ok"}
 
     return app

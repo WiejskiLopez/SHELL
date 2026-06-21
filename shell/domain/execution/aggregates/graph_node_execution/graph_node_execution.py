@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime  # noqa: TC003 — używane runtime w record_planner_result
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
@@ -129,7 +130,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         *,
         stdout: str,
         graph_execution_id: GraphExecutionId,
-        now: object = None,
+        now: datetime | None = None,
     ) -> None:
         from datetime import datetime as dt
 

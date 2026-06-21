@@ -23,3 +23,8 @@ class SessionModel(Base):
 from shell.infrastructure.platform.persistence.sql.models.message import (  # noqa: E402 — łamie circular import SessionModel ↔ MessageModel
     MessageModel,  # noqa: TC002 — MessageModel używany w Mapped[list[MessageModel]] w relacji SQLAlchemy
 )
+
+__all__ = [
+    "MessageModel",
+    "SessionModel",
+]

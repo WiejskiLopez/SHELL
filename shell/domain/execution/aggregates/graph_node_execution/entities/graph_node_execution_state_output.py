@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
     GraphNodeExecutionId,  # noqa: TC002 — GraphNodeExecutionId używany w konstruktorze i typach propertisów
@@ -25,7 +25,7 @@ class GraphNodeExecutionStateOutput(Entity[GraphNodeExecutionStateOutputId]):
     )
 
     _graph_node_execution_id: GraphNodeExecutionId
-    _payload: dict
+    _payload: dict[str, Any]
     _is_current: bool
     _created_at: datetime
 
@@ -33,7 +33,7 @@ class GraphNodeExecutionStateOutput(Entity[GraphNodeExecutionStateOutputId]):
         self,
         id: GraphNodeExecutionStateOutputId,
         graph_node_execution_id: GraphNodeExecutionId,
-        payload: dict,
+        payload: dict[str, Any],
         is_current: bool,
         created_at: datetime,
     ) -> None:
@@ -48,7 +48,7 @@ class GraphNodeExecutionStateOutput(Entity[GraphNodeExecutionStateOutputId]):
         return self._graph_node_execution_id
 
     @property
-    def payload(self) -> dict:
+    def payload(self) -> dict[str, Any]:
         return self._payload
 
     @property
@@ -65,7 +65,7 @@ class GraphNodeExecutionStateOutput(Entity[GraphNodeExecutionStateOutputId]):
         *,
         id_: GraphNodeExecutionStateOutputId,
         graph_node_execution_id: GraphNodeExecutionId,
-        payload: dict,
+        payload: dict[str, Any],
         now: datetime,
     ) -> GraphNodeExecutionStateOutput:
         return cls(

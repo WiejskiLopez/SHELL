@@ -1,7 +1,7 @@
+from dataclasses import dataclass
+
 from shell.application.execution.queries.envelope_queries import (
     GetEnvelopesByWorkflowQuery,
-    annotations,
-    dataclass,
 )
 from shell.application.execution.queries.graph_node_execution_queries import (
     GetGraphNodeExecutionResultQuery,
@@ -14,6 +14,5 @@ __all__ = [
     "GetGraphNodeExecutionResultQuery",
     "GetSessionHistoryQuery",
     "GetWorkflowQuery",
-    "annotations",
     "dataclass",
 ]

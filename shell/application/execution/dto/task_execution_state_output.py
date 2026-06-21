@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -11,6 +11,6 @@ if TYPE_CHECKING:
 class TaskExecutionStateOutputDto:
     id: str
     task_execution_id: str
-    payload: dict
+    payload: dict[str, Any]
     is_current: bool
     created_at: datetime

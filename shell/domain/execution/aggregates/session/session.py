@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.session.entities.message import Message
 from shell.domain.execution.aggregates.session.session_id import SessionId
@@ -65,7 +65,7 @@ class Session(AggregateRoot[SessionId]):
         correlation_id: CorrelationId,
         sender: str,
         receiver: str,
-        payload: dict,
+        payload: dict[str, Any],
         now: datetime,
     ) -> Message:
         if self.status != "open":

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from shell.domain.platform.base.value_object import ValueObject
 
@@ -9,4 +10,4 @@ from shell.domain.platform.base.value_object import ValueObject
 class TriggerConfig(ValueObject):
     source_context: str
     trigger_event_type: str
-    trigger_filter: dict | None = None
+    trigger_filter: dict[str, Any] | None = None

@@ -79,3 +79,9 @@ class SqlWorkflowRepository(WorkflowRepository):
         workflow.apply_new_version(new_version)
         model = workflow_entity_to_model(workflow)
         await self._session.merge(model)
+
+
+__all__ = [
+    "SqlWorkflowRepository",
+    "WorkflowModel",
+]

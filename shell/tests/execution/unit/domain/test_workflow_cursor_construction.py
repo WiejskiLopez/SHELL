@@ -26,4 +26,4 @@ class TestWorkflowCursorConstruction:
     def test_cursor_is_immutable(self) -> None:
         cur = WorkflowCursor.at(GraphNodeExecutionId("x"))
         with pytest.raises(FrozenInstanceError):
-            cur.current_graph_node_execution_id = GraphNodeExecutionId("y")  # type: ignore[attr-defined]
+            cur.current_graph_node_execution_id = GraphNodeExecutionId("y")  # type: ignore[misc]

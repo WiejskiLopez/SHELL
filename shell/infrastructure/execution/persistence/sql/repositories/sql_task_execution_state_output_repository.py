@@ -44,3 +44,9 @@ class SqlTaskExecutionStateOutputRepository(TaskExecutionStateOutputRepository):
     async def save(self, payload: TaskExecutionStateOutput) -> None:
         model = task_execution_output_payload_entity_to_model(payload)
         await self._session.merge(model)
+
+
+__all__ = [
+    "SqlTaskExecutionStateOutputRepository",
+    "TaskExecutionStateOutputModel",
+]

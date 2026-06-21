@@ -18,7 +18,7 @@ Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
     CompensationHandler,
@@ -196,7 +196,7 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-        outgoing: list,
+        outgoing: list[Any],
         uow: UnitOfWork,
     ) -> None:
         parallel_ids = [
@@ -228,7 +228,7 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-        outgoing: list,
+        outgoing: list[Any],
         uow: UnitOfWork,
     ) -> None:
         loop_transition = None

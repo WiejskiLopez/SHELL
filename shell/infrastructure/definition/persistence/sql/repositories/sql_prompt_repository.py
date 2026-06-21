@@ -38,3 +38,9 @@ class SqlPromptRepository(PromptRepository):
     async def save(self, prompt: Prompt) -> None:
         model = prompt_entity_to_model(prompt)
         await self._session.merge(model)
+
+
+__all__ = [
+    "PromptModel",
+    "SqlPromptRepository",
+]

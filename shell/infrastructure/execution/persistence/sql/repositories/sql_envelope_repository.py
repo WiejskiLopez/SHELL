@@ -71,3 +71,11 @@ class SqlEnvelopeRepository(EnvelopeRepository):
             query = query.limit(limit)
         rows = (await self._session.execute(query)).scalars().all()
         return [envelope_model_to_entity(row) for row in rows]
+
+
+__all__ = [
+    "EnvelopeModel",
+    "SqlEnvelopeRepository",
+    "select",
+    "selectinload",
+]

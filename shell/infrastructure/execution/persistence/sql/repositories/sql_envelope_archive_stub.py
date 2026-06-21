@@ -16,3 +16,10 @@ class SqlEnvelopeArchiveStub(EnvelopeArchive):
 
     async def get(self, archive_uri: str) -> Envelope | None:
         return None
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "SqlEnvelopeArchiveStub",
+    "annotations",
+]

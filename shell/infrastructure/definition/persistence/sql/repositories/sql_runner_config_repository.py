@@ -36,3 +36,9 @@ class SqlRunnerConfigRepository(RunnerConfigRepository):
     async def save(self, config: RunnerConfig) -> None:
         model = runner_config_entity_to_model(config)
         await self._session.merge(model)
+
+
+__all__ = [
+    "RunnerConfigModel",
+    "SqlRunnerConfigRepository",
+]

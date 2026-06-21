@@ -11,7 +11,7 @@ from shell.domain.platform.value_objects.mode import Mode
 
 class TestPlannerMode:
     def test_planner_mode_exists(self) -> None:
-        assert Mode.PLANNER == "planner"
+        assert Mode.PLANNER.value == "planner"
 
     def test_planner_strategy_registered(self) -> None:
         strategy = get_strategy("planner")

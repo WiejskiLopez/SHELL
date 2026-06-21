@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import (
     datetime,  # noqa: TC003 — datetime używany w parametrach konstruktora SubGraphContext i __slots__
 )
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
@@ -28,7 +28,7 @@ class SubGraphContext:
         parent_graph_execution_id: str | None = None,
         depth: int = 0,
         correlation_id: str = "",
-        tags: dict | None = None,
+        tags: dict[str, Any] | None = None,
         started_at: datetime | None = None,
         duration_ms: float | None = None,
     ) -> None:

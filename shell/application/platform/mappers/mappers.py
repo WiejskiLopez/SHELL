@@ -22,10 +22,10 @@ if TYPE_CHECKING:
     from shell.domain.definition.entities.prompt import Prompt
     from shell.domain.definition.entities.runner_config import RunnerConfig
     from shell.domain.execution.aggregates.envelope import Envelope
-    from shell.domain.execution.aggregates.graph_node_execution_state_input import (
+    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
         GraphNodeExecutionStateInput,
     )
-    from shell.domain.execution.aggregates.graph_node_execution_state_output import (
+    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
         GraphNodeExecutionStateOutput,
     )
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution

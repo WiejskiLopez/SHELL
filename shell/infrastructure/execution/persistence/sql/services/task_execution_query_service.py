@@ -62,7 +62,7 @@ class TaskExecutionQueryService:
                 is_current=model.is_current,
                 created_at=model.created_at,
                 body=model.body,
-                graph_node_executions=graph_node_executions,
+                graph_node_executions=tuple(graph_node_executions),
             )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:

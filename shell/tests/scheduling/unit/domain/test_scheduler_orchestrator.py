@@ -89,7 +89,7 @@ class TestSchedulerOrchestrator:
             action_ref_type="graph_execution",
             now=self._now,
         )
-        assert execution.status == ExecutionStatus.EXECUTING
+        assert execution.status == ExecutionStatus.EXECUTING  # type: ignore[comparison-overlap]
         assert execution.action_ref == "graph-exec-1"
         assert execution.action_ref_type == "graph_execution"
         assert len(events) == 1

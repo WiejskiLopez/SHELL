@@ -25,3 +25,13 @@ class EnvelopeEventModel(Base):
 from shell.infrastructure.execution.persistence.sql.models.envelope import (  # noqa: E402 — łamie circular import EnvelopeEventModel ↔ EnvelopeModel
     EnvelopeModel,  # noqa: TC002 — EnvelopeModel używany w Mapped[EnvelopeModel] w relacji SQLAlchemy
 )
+
+__all__ = [
+    "datetime",
+    "EnvelopeEventModel",
+    "EnvelopeModel",
+    "ForeignKey",
+    "Mapped",
+    "mapped_column",
+    "relationship",
+]

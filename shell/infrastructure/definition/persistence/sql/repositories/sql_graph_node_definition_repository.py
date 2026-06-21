@@ -52,3 +52,9 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
             graph_node_definition, graph_definition_id.value
         )
         await self._session.merge(graph_node_definition_model)
+
+
+__all__ = [
+    "GraphNodeDefinitionModel",
+    "SqlGraphNodeDefinitionRepository",
+]

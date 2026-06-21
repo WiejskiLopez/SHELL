@@ -27,11 +27,11 @@ def get_core_container(request: Request) -> CoreContainer:
 
 
 def get_command_bus(container: CoreContainer = Depends(get_core_container)) -> CommandBus:
-    return container.app.buses.command_bus()  # type: ignore[attr-defined, no-any-return]
+    return container.app.buses.command_bus()  # type: ignore[attr-defined]
 
 
 def get_query_bus(container: CoreContainer = Depends(get_core_container)) -> QueryBus:
-    return container.app.buses.query_bus()  # type: ignore[attr-defined, no-any-return]
+    return container.app.buses.query_bus()  # type: ignore[attr-defined]
 
 
 @router.post("/import", response_model=ImportTaskResponse, status_code=201)

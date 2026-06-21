@@ -1,7 +1,5 @@
 from shell.application.execution.query_handlers.query_handlers.get_current_task_execution_handler import (
-    TYPE_CHECKING,
     GetCurrentTaskExecutionHandler,
-    annotations,
 )
 from shell.application.execution.query_handlers.query_handlers.get_envelopes_by_workflow_handler import (
     GetEnvelopesByWorkflowHandler,
@@ -26,6 +24,4 @@ __all__ = [
     "GetSessionHistoryHandler",
     "GetTaskExecutionByNameHandler",
     "GetWorkflowHandler",
-    "TYPE_CHECKING",
-    "annotations",
 ]

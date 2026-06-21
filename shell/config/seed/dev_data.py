@@ -9,7 +9,7 @@ Only invoked when seed_dev_data is enabled (dev profile or SHELL_SEED_DEV_DATA=t
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -410,7 +410,7 @@ def _seed_task_executions(session: Session) -> None:
         TaskExecutionStateOutputModel,
     )
 
-    tasks = [
+    tasks: list[dict[str, Any]] = [
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-simple-agent",

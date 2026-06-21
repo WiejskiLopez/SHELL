@@ -45,7 +45,6 @@ class TestSqlWorkflowRepository:
         )
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId
         from shell.domain.execution.aggregates.graph_execution import GraphExecution
         from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
         from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
@@ -61,7 +60,7 @@ class TestSqlWorkflowRepository:
             graph_execution = GraphExecution(
                 id=GraphExecutionId.generate(),
                 task_execution_id=task_execution.id,
-                graph_definition_id=GraphDefinitionId("tpl"),
+                graph_definition_id="tpl",
                 graph_node_executions=[
                     GraphNodeExecution(
                         id=GraphNodeExecutionId("wf-task-node-0"),

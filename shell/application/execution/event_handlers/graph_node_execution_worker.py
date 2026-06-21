@@ -26,7 +26,7 @@ Idempotency model (four-tier defence in depth)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,  # noqa: TC002 — GraphNodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
@@ -250,7 +250,7 @@ class GraphNodeExecutionWorker:
                 reason=stderr,
             )
 
-            staged_events: list = list(workflow.pull_events())
+            staged_events: list[Any] = list(workflow.pull_events())
 
             # ── Let GraphNodeExecution emit PlannerResultEvent if PLANNER ──
             if success and node_mode == "planner" and stdout:

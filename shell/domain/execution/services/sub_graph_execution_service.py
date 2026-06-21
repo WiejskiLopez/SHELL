@@ -17,8 +17,12 @@ from shell.domain.execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
 )
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
+from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
+    from shell.application.platform.ports.logging import Logger
+    from shell.application.platform.ports.time import Clock
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,
     )
@@ -28,10 +32,10 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.ports.sub_graph_security import SubGraphSecurity
     from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+    from shell.domain.execution.value_objects.graph_execution_definition import (
+        GraphExecutionDefinition,
+    )
     from shell.domain.platform.ports.identity import IdGenerator
-    from shell.domain.platform.ports.logging import Logger
-    from shell.domain.platform.ports.time import Clock
-    from shell.domain.platform.ports.unit_of_work import UnitOfWork
 
 
 class SubGraphExecutionService:
@@ -98,6 +102,7 @@ class SubGraphExecutionService:
 
         # ── Versioning: resolve definition ────────────────────────────────
         version = None
+        graph_definition: GraphExecutionDefinition
         if self._versioning is not None:
             graph_definition = await self._versioning.resolve_definition(
                 definition_id=graph_definition_id,
@@ -105,11 +110,10 @@ class SubGraphExecutionService:
                 parent_graph_execution_id=parent_graph_execution_id_value,
             )
         else:
-            graph_definition = await self._definition_provider.get_graph_definition(
-                graph_definition_id
-            )
-            if graph_definition is None:
+            gd = await self._definition_provider.get_graph_definition(graph_definition_id)
+            if gd is None:
                 raise ValueError(f"GraphDefinition {graph_definition_id!r} not found")
+            graph_definition = gd
 
         # ── Security: resolve scope + filter state ────────────────────────
         resolved_state: dict[str, Any] = dict(state_input) if state_input else {}
@@ -125,13 +129,13 @@ class SubGraphExecutionService:
             GraphNodeExecution as GNE,
         )
 
-        node_ids: list = []
+        node_ids: list[Any] = []
         for node_def in graph_definition.graph_node_execution_definitions:
             node_id = self._id_gen.new_graph_node_execution_id()
             node = GNE(
                 id=node_id,
                 position=node_def.position,
-                mode=node_def.mode,
+                mode=Mode(node_def.mode),
                 role=node_def.role,
                 node_type=node_def.node_type,
                 model=node_def.model,

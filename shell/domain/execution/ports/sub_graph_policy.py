@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
@@ -16,7 +16,7 @@ class Decision:
 
     __slots__ = ("action", "payload")
 
-    def __init__(self, action: str, payload: dict | None = None) -> None:
+    def __init__(self, action: str, payload: dict[str, Any] | None = None) -> None:
         self.action = action
         self.payload = payload or {}
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -22,7 +22,7 @@ class Message:
     correlation_id: CorrelationId
     sender: str
     receiver: str
-    payload: dict
+    payload: dict[str, Any]
     created_at: datetime
 
     def __post_init__(self) -> None:

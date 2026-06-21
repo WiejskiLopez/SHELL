@@ -27,7 +27,7 @@ class SmokeCommand(RunnableCommand):
         core_container = await ApplicationFactory(config).build()
 
         # Wyciągamy kontekst aplikacji do Any, uciszając mypy tylko raz
-        app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+        app_ctx: Any = core_container.app
 
         command_bus = app_ctx.buses.command_bus()
         query_bus = app_ctx.buses.query_bus()

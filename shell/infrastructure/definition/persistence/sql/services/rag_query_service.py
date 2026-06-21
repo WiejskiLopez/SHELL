@@ -36,3 +36,9 @@ class RagQueryService:
                 )
                 for rag_chunk_model in res.scalars()
             ][:top_k]
+
+
+__all__ = [
+    "RagQueryService",
+    "joinedload",
+]

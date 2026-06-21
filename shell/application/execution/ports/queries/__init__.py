@@ -1,7 +1,7 @@
+from typing import Protocol
+
 from shell.application.execution.ports.queries.envelope_query_service import (
     EnvelopeQueryService,
-    Protocol,
-    annotations,
 )
 from shell.application.execution.ports.queries.graph_node_execution_result_query_service import (
     GraphNodeExecutionResultQueryService,
@@ -19,5 +19,4 @@ __all__ = [
     "SessionQueryService",
     "TaskExecutionQueryService",
     "WorkflowQueryService",
-    "annotations",
 ]

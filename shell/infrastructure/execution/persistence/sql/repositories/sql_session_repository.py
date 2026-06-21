@@ -51,3 +51,10 @@ class SqlSessionRepository(SessionRepository):
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [message_model_to_entity(row) for row in rows]
+
+
+__all__ = [
+    "MessageModel",
+    "SessionModel",
+    "SqlSessionRepository",
+]

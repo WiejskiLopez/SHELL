@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.scheduling.aggregates.scheduler_execution import (
     SchedulerExecution,
@@ -26,7 +26,7 @@ class SchedulerOrchestrator:
         definition: SchedulerDefinition,
         trigger_event_id: str | None = None,
         trigger_event_type: str | None = None,
-        input_state: dict | None = None,
+        input_state: dict[str, Any] | None = None,
         can_execute: bool,
         now: datetime,
     ) -> SchedulerExecution:
@@ -77,7 +77,7 @@ class SchedulerOrchestrator:
         self,
         execution: SchedulerExecution,
         *,
-        output_state: dict | None = None,
+        output_state: dict[str, Any] | None = None,
         error: str | None = None,
         now: datetime,
     ) -> list[DomainEvent]:

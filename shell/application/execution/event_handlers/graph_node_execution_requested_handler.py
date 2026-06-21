@@ -26,7 +26,7 @@ Idempotency model (four-tier defence in depth)
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 from shell.domain.execution.value_objects.manifest import Manifest
@@ -237,7 +237,7 @@ class GraphNodeExecutionWorker:
                 reason=stderr,
             )
 
-            staged_events: list = list(workflow.pull_events())
+            staged_events: list[Any] = list(workflow.pull_events())
 
             if success and node_mode == "planner" and stdout:
                 planner_node = await uow.graph_node_executions.get_by_id(

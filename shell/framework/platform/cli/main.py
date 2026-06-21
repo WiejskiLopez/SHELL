@@ -61,7 +61,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     )
 
     # Rzutowanie na Any wycisza błąd dynamicznego providera w jednym miejscu
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
     try:
         await app_ctx.buses.command_bus().dispatch(cmd)
         return 0
@@ -93,7 +93,7 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
     core_container = await ApplicationFactory(config).build()
     cmd = ImportTaskExecutionCommand(md_path=md_path, task_execution_name=task_execution_name)
 
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
     try:
         task_execution_id = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Imported task '{task_execution_name}' with id={task_execution_id}")
@@ -117,7 +117,7 @@ async def _route(argv: Sequence[str]) -> int:
     workflow_id = ns.workflow_id or "default"
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
 
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
     try:
         count = await app_ctx.buses.command_bus().dispatch(cmd)
         print(f"Routed {count} envelopes.")
@@ -143,8 +143,8 @@ async def _run_tasker(argv: Sequence[str]) -> int:
     config = _get_config()
     core_container = await ApplicationFactory(config).build()
 
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
-    messaging_ctx: Any = core_container.messaging  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
+    messaging_ctx: Any = core_container.messaging
 
     # Build the synchronous workflow runner
     runner = SyncWorkflowRunner(

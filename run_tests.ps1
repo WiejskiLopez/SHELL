@@ -23,6 +23,11 @@ $projectRoot = $PSScriptRoot
 Write-Host "=== SHELL Project Test Runner ===" -ForegroundColor Cyan
 Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 
+# Type check (mypy) — uses --no-incremental to avoid a cache corruption bug
+# in mypy 2.1.0 on Windows where stub packages (e.g. types-PyYAML) are
+# spuriously reported as "not installed" after the first incremental build.
+$env:MYPY_NO_INCREMENTAL = "1"
+
 function Run-Command {
     param(
         [string]$Command,
@@ -77,7 +82,7 @@ if (-not $SkipLint) {
 
 # Type check (mypy) - only if not skipped
 if (-not $SkipTypeCheck) {
-    Run-Command "python -m mypy --config-file shell/pyproject.toml shell" "Type Check (mypy)" -AllowFailure
+    Run-Command "python -m mypy --no-incremental --config-file shell/pyproject.toml shell" "Type Check (mypy)" -AllowFailure
 }
 
 if (-not $SkipArchCheck) {

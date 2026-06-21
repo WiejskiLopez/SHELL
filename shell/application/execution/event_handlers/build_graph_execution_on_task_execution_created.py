@@ -9,13 +9,14 @@ events (``GraphExecutionBuiltEvent``) downstream.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze handlera
 )
+from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -73,13 +74,13 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 GraphNodeExecution as GNE,
             )
 
-            node_ids: list = []
+            node_ids: list[Any] = []
             for node_def in graph_definition.graph_node_execution_definitions:
                 node_id = self._id_gen.new_graph_node_execution_id()
                 node = GNE(
                     id=node_id,
                     position=node_def.position,
-                    mode=node_def.mode,
+                    mode=Mode(node_def.mode),
                     role=node_def.role,
                     node_type=node_def.node_type,
                     model=node_def.model,

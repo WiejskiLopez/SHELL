@@ -11,6 +11,9 @@ from shell.domain.execution.value_objects.ids import (
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
+        GraphNodeExecutionRepository,
+    )
     from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
     from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
         InMemoryTaskExecutionRepository,
@@ -21,12 +24,12 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphExecution] = {}
         self._task_executions: InMemoryTaskExecutionRepository | None = None
-        self._graph_node_executions: object | None = None
+        self._graph_node_executions: GraphNodeExecutionRepository | None = None
 
     def link_task_executions(self, repo: InMemoryTaskExecutionRepository) -> None:
         self._task_executions = repo
 
-    def link_graph_node_executions(self, repo: object) -> None:
+    def link_graph_node_executions(self, repo: GraphNodeExecutionRepository) -> None:
         self._graph_node_executions = repo
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:

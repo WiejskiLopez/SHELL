@@ -31,7 +31,7 @@ def register_events(core_container: CoreContainer) -> None:
 
     # Wyciągamy podkontener do zmiennej typu Any.
     # Uciszamy mypy tylko RAZ w tym miejscu.
-    app_ctx: Any = core_container.app  # type: ignore[attr-defined]
+    app_ctx: Any = core_container.app
 
     event_bus = app_ctx.buses.event_bus()
     events = app_ctx.events

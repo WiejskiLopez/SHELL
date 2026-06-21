@@ -59,7 +59,7 @@ class InMemoryQueryServices:
             is_current=task_execution.is_current,
             created_at=task_execution.created_at,
             body=task_execution.body.value,
-            graph_node_executions=graph_node_executions,
+            graph_node_executions=tuple(graph_node_executions),
         )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:

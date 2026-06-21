@@ -30,3 +30,11 @@ class PromptQueryService:
                 is_current=prompt_model.is_current,
                 created_at=prompt_model.created_at,
             )
+
+
+__all__ = [
+    "TYPE_CHECKING",
+    "PromptQueryService",
+    "annotations",
+    "select",
+]
