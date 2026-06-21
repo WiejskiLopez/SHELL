@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import LoopCounter
 from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
     GraphNodeTransitionExecution,
 )
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_built_event import (
     GraphExecutionBuiltEvent,
 )
+from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import LoopCounter
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w metodzie from_graph_definition() GraphExecution
 )
@@ -20,7 +20,9 @@ if TYPE_CHECKING:
 
     from shell.domain.platform.ports.identity import IdGenerator
 from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
 
 
@@ -86,8 +88,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
         combined_nodes = graph_node_execution_ids or graph_node_executions or []
         self._graph_node_execution_ids = _ensure_node_ids(combined_nodes)
         self._graph_node_execution_objects = [
-            n for n in combined_nodes
-            if not isinstance(n, (GraphNodeExecutionId, str))
+            n for n in combined_nodes if not isinstance(n, (GraphNodeExecutionId, str))
         ]
         self._transitions = list(transitions) if transitions else []
         self._loop_counters = {}
@@ -139,7 +140,9 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def graph_node_executions(self) -> tuple[Any, ...]:
         if self._graph_node_execution_objects:
             return tuple(self._graph_node_execution_objects)
-        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution as GNE
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+            GraphNodeExecution as GNE,
+        )
 
         result: list[Any] = []
         for nid in self._graph_node_execution_ids:
@@ -245,9 +248,7 @@ class GraphExecution(AggregateRoot["GraphExecutionId"]):
     def loop_counters(self) -> dict[str, LoopCounter]:
         return dict(self._loop_counters)
 
-    def get_or_create_loop_counter(
-        self, transition_id: str, max_loop_count: int
-    ) -> LoopCounter:
+    def get_or_create_loop_counter(self, transition_id: str, max_loop_count: int) -> LoopCounter:
         if transition_id not in self._loop_counters:
             self._loop_counters[transition_id] = LoopCounter(
                 transition_id=transition_id,
@@ -261,7 +262,7 @@ def _ensure_node_ids(items: list[Any]) -> list[GraphNodeExecutionId]:
     for item in items:
         if isinstance(item, GraphNodeExecutionId):
             result.append(item)
-        elif hasattr(item, 'id') and isinstance(item.id, GraphNodeExecutionId):
+        elif hasattr(item, "id") and isinstance(item.id, GraphNodeExecutionId):
             result.append(item.id)
         else:
             result.append(GraphNodeExecutionId(str(item)))

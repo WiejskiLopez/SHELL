@@ -78,20 +78,22 @@ class InMemoryUnitOfWork(UnitOfWork):
         )
         from shell.domain.platform.value_objects.mode import Mode
 
-        await self._graph_definitions.save(GraphDefinition(
-            id=GraphDefinitionId("base-planner-id"),
-            name="base_planner",
-            purpose="default_planning",
-            graph_node_definitions=[
-                GraphNodeDefinition(
-                    id=GraphNodeDefinitionId("base-planner-node-1"),
-                    position=0,
-                    mode=Mode("agent"),
-                    role="agent",
-                    node_type="agent",
-                ),
-            ],
-        ))
+        await self._graph_definitions.save(
+            GraphDefinition(
+                id=GraphDefinitionId("base-planner-id"),
+                name="base_planner",
+                purpose="default_planning",
+                graph_node_definitions=[
+                    GraphNodeDefinition(
+                        id=GraphNodeDefinitionId("base-planner-node-1"),
+                        position=0,
+                        mode=Mode("agent"),
+                        role="agent",
+                        node_type="agent",
+                    ),
+                ],
+            )
+        )
 
     @property
     def task_executions(self) -> InMemoryTaskExecutionRepository:

@@ -29,9 +29,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         from shell.domain.execution.aggregates.workflow import Workflow
         from shell.domain.execution.value_objects.ids import WorkflowId
 
-        wf = Workflow.new(
-            id_=WorkflowId("wf-1"), now=clock.now()
-        )
+        wf = Workflow.new(id_=WorkflowId("wf-1"), now=clock.now())
         await uow.workflows.save(wf)
 
         handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)

@@ -46,7 +46,8 @@ class SqlGraphExecutionStateOutputRepository(GraphExecutionStateOutputRepository
             await self._session.execute(
                 update(GraphExecutionStateOutputModel)
                 .where(
-                    GraphExecutionStateOutputModel.graph_execution_id == state.graph_execution_id.value,
+                    GraphExecutionStateOutputModel.graph_execution_id
+                    == state.graph_execution_id.value,
                     GraphExecutionStateOutputModel.is_current.is_(True),
                 )
                 .values(is_current=False)

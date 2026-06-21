@@ -19,7 +19,9 @@ from shell.domain.execution.ports.graph_execution_definition_provider import (
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
         SubGraphObserver,
@@ -86,7 +88,9 @@ class SubGraphExecutionService:
 
         # ── Governance check ──────────────────────────────────────────────
         if self._governance is not None:
-            allowed = await self._governance.can_spawn(parent_graph_execution_id_value, graph_definition_id, depth)
+            allowed = await self._governance.can_spawn(
+                parent_graph_execution_id_value, graph_definition_id, depth
+            )
             if not allowed:
                 raise PermissionError(
                     f"Governance rejected sub-graph spawn: def={graph_definition_id}, depth={depth}"
@@ -101,19 +105,25 @@ class SubGraphExecutionService:
                 parent_graph_execution_id=parent_graph_execution_id_value,
             )
         else:
-            graph_definition = await self._definition_provider.get_graph_definition(graph_definition_id)
+            graph_definition = await self._definition_provider.get_graph_definition(
+                graph_definition_id
+            )
             if graph_definition is None:
                 raise ValueError(f"GraphDefinition {graph_definition_id!r} not found")
 
         # ── Security: resolve scope + filter state ────────────────────────
         resolved_state: dict[str, Any] = dict(state_input) if state_input else {}
         if self._security is not None:
-            scope = await self._security.resolve_scope(parent_graph_execution_id_value, graph_definition_id)
+            scope = await self._security.resolve_scope(
+                parent_graph_execution_id_value, graph_definition_id
+            )
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphNodeExecutions first ──────────────────────────
         sub_graph_execution_id = self._id_gen.new_graph_execution_id()
-        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution as GNE
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+            GraphNodeExecution as GNE,
+        )
 
         node_ids: list = []
         for node_def in graph_definition.graph_node_execution_definitions:

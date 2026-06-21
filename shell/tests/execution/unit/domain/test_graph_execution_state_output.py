@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.aggregates.graph_execution_state_output.graph_execution_state_output import (
-    GraphExecutionStateOutput,
-)
 from shell.domain.execution.aggregates.graph_execution_state_output.events.graph_execution_state_output_changed_event import (
     GraphExecutionStateOutputChangedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution_state_output.graph_execution_state_output import (
+    GraphExecutionStateOutput,
 )
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateOutputId
 

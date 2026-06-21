@@ -19,12 +19,10 @@ class SubGraphSecurity(Protocol):
         self,
         parent_graph_execution_id: str,
         sub_graph_definition_id: str,
-    ) -> Scope:
-        ...
+    ) -> Scope: ...
 
     async def filter_state(
         self,
         parent_state: dict[str, Any],
         scope: Scope,
-    ) -> dict[str, Any]:
-        ...
+    ) -> dict[str, Any]: ...

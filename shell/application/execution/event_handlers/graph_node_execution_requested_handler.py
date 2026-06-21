@@ -40,8 +40,10 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 

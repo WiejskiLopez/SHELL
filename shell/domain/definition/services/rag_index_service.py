@@ -91,7 +91,10 @@ def build_rag_document(
 def cosine_similarity(vector_a: list[float], vector_b: list[float]) -> float:
     if len(vector_a) != len(vector_b) or not vector_a:
         return 0.0
-    dot = sum(component_a * component_b for component_a, component_b in zip(vector_a, vector_b, strict=False))
+    dot = sum(
+        component_a * component_b
+        for component_a, component_b in zip(vector_a, vector_b, strict=False)
+    )
     norm_a = math.sqrt(sum(component * component for component in vector_a))
     norm_b = math.sqrt(sum(component * component for component in vector_b))
     if norm_a == 0.0 or norm_b == 0.0:

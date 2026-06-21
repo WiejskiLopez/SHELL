@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import (
+    WorkflowCursor,
+)
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import (
     GraphNodeExecutionAdvancedEvent,
@@ -17,7 +20,6 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -57,7 +59,9 @@ class TestWorkflowStateMachine:
         first_graph_node_execution_id = GraphNodeExecutionId("node-start")
 
         wf.start_at(
-            first_graph_node_execution_id=first_graph_node_execution_id, context=_ctx(), now=_NOW,
+            first_graph_node_execution_id=first_graph_node_execution_id,
+            context=_ctx(),
+            now=_NOW,
             task_execution_id=TaskExecutionId("task-456"),
         )
 
@@ -137,7 +141,11 @@ class TestWorkflowStateMachine:
         )
         wf.pull_events()
 
-        wf.abort(reason="Wymuszone zatrzymanie awaryjne", now=_NOW, task_execution_id=TaskExecutionId("task-456"))
+        wf.abort(
+            reason="Wymuszone zatrzymanie awaryjne",
+            now=_NOW,
+            task_execution_id=TaskExecutionId("task-456"),
+        )
 
         assert wf.status == Status.failed()
         assert wf.cursor == WorkflowCursor.empty()

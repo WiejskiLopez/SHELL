@@ -8,15 +8,18 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
 
 
 class TransitionBasedGraphNodeExecutionNavigator:
-
     @staticmethod
     def first(graph_execution: GraphExecution) -> GraphNodeExecution | None:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
@@ -25,9 +28,7 @@ class TransitionBasedGraphNodeExecutionNavigator:
         if not transitions:
             return TransitionBasedGraphNodeExecutionNavigator._fallback_first(graph_execution)
 
-        start_transitions = [
-            t for t in transitions if t.source_node_execution_id is None
-        ]
+        start_transitions = [t for t in transitions if t.source_node_execution_id is None]
         if not start_transitions:
             return TransitionBasedGraphNodeExecutionNavigator._fallback_first(graph_execution)
 
@@ -119,14 +120,14 @@ class TransitionBasedGraphNodeExecutionNavigator:
         transitions = graph_execution.transitions
         if not transitions:
             return await TransitionBasedGraphNodeExecutionNavigator._fallback_first_async(
-                graph_execution, node_repo,
+                graph_execution,
+                node_repo,
             )
-        start_transitions = [
-            t for t in transitions if t.source_node_execution_id is None
-        ]
+        start_transitions = [t for t in transitions if t.source_node_execution_id is None]
         if not start_transitions:
             return await TransitionBasedGraphNodeExecutionNavigator._fallback_first_async(
-                graph_execution, node_repo,
+                graph_execution,
+                node_repo,
             )
         start_transition = min(start_transitions, key=lambda t: t.priority)
         return await node_repo.get_by_id(start_transition.target_node_execution_id)
@@ -157,7 +158,10 @@ class TransitionBasedGraphNodeExecutionNavigator:
         if not result_ids:
             return []
 
-        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+            GraphNodeExecutionId,
+        )
+
         ids = [GraphNodeExecutionId(rid) for rid in result_ids]
         nodes = await node_repo.list_by_ids(ids)
         nodes_by_id = {n.id.value: n for n in nodes}

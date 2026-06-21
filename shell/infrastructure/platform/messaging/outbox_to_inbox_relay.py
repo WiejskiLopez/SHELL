@@ -29,8 +29,7 @@ class OutboxToInboxRelay:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        downstream: EventPublisher
-        | None = None,
+        downstream: EventPublisher | None = None,
         batch_size: int = 100,
     ) -> None:
         self._session_factory = session_factory

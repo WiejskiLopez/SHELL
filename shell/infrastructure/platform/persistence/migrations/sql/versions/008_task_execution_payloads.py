@@ -20,7 +20,12 @@ def upgrade() -> None:
     op.create_table(
         "task_execution_input_payload",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("task_execution_id", sa.String(36), sa.ForeignKey("task_execution.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "task_execution_id",
+            sa.String(36),
+            sa.ForeignKey("task_execution.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -42,7 +47,12 @@ def upgrade() -> None:
     op.create_table(
         "task_execution_output_payload",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("task_execution_id", sa.String(36), sa.ForeignKey("task_execution.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "task_execution_id",
+            sa.String(36),
+            sa.ForeignKey("task_execution.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -63,9 +73,19 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("uq_task_execution_output_payload_is_current", table_name="task_execution_output_payload")
-    op.drop_index("ix_task_execution_output_payload_task_execution_id", table_name="task_execution_output_payload")
+    op.drop_index(
+        "uq_task_execution_output_payload_is_current", table_name="task_execution_output_payload"
+    )
+    op.drop_index(
+        "ix_task_execution_output_payload_task_execution_id",
+        table_name="task_execution_output_payload",
+    )
     op.drop_table("task_execution_output_payload")
-    op.drop_index("uq_task_execution_input_payload_is_current", table_name="task_execution_input_payload")
-    op.drop_index("ix_task_execution_input_payload_task_execution_id", table_name="task_execution_input_payload")
+    op.drop_index(
+        "uq_task_execution_input_payload_is_current", table_name="task_execution_input_payload"
+    )
+    op.drop_index(
+        "ix_task_execution_input_payload_task_execution_id",
+        table_name="task_execution_input_payload",
+    )
     op.drop_table("task_execution_input_payload")

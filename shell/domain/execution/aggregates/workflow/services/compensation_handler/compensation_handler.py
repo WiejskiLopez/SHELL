@@ -9,5 +9,4 @@ if TYPE_CHECKING:
 class CompensationHandler(Protocol):
     """Synchronous compensation hook called from ``Workflow.abort``."""
 
-    def compensate(self, workflow: Workflow, reason: str) -> None:
-        ...
+    def compensate(self, workflow: Workflow, reason: str) -> None: ...

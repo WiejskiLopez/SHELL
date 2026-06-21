@@ -38,7 +38,9 @@ class TestSqlWorkflowRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskExecutionHandler(sql_uow, clock, id_gen, task_execution_loader, FakeLogger())
+        imp = ImportTaskExecutionHandler(
+            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         from shell.domain.definition.value_objects.ids import GraphDefinitionId

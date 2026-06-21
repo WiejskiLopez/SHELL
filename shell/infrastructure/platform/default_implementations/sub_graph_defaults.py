@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.exceptions import GraphDefinitionNotFound
 from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensation import (
     CompensationDecision,
     SubGraphCompensation,
 )
+from shell.domain.execution.exceptions import GraphDefinitionNotFound
 from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
 from shell.domain.execution.ports.sub_graph_governance import (
     SubGraphGovernance,
@@ -21,7 +21,9 @@ from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 
 

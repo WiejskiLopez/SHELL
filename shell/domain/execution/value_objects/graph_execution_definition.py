@@ -28,4 +28,6 @@ class GraphNodeExecutionDefinition(ValueObject):
 class GraphExecutionDefinition(ValueObject):
     id: str
     name: str
-    graph_node_execution_definitions: list[GraphNodeExecutionDefinition] = field(default_factory=list)
+    graph_node_execution_definitions: list[GraphNodeExecutionDefinition] = field(
+        default_factory=list
+    )

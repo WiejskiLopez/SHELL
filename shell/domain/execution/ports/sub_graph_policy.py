@@ -6,11 +6,14 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
 
 
 class Decision:
     """Open extension point for policy decisions."""
+
     __slots__ = ("action", "payload")
 
     def __init__(self, action: str, payload: dict | None = None) -> None:
@@ -45,20 +48,17 @@ class SubGraphExecutionPolicy(Protocol):
         self,
         graph_execution: GraphExecution,
         node: GraphNodeExecution,
-    ) -> Decision:
-        ...
+    ) -> Decision: ...
 
     async def on_failure(
         self,
         graph_execution: GraphExecution,
         node: GraphNodeExecution,
         reason: str,
-    ) -> Decision:
-        ...
+    ) -> Decision: ...
 
     async def on_depth_exceeded(
         self,
         graph_execution: GraphExecution,
         max_depth: int,
-    ) -> Decision:
-        ...
+    ) -> Decision: ...

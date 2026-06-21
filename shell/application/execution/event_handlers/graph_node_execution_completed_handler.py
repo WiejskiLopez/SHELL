@@ -20,13 +20,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import (
-    GraphNodeExecutionCompletedEvent,
-    GraphNodeExecutionFailedEvent,
-)
 from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
     CompensationHandler,
     NoOpCompensationHandler,
+)
+from shell.domain.execution.events import (
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
 )
 from shell.domain.execution.services.graph_node_execution_navigator import (
     GraphNodeExecutionNavigator,
@@ -78,7 +78,9 @@ class GraphNodeExecutionCompletedHandler:
         self._clock = clock
         self._id_gen = id_gen
         self._logger = logger
-        self._navigator: GraphNodeExecutionNavigator = navigator or LinearGraphNodeExecutionNavigator()
+        self._navigator: GraphNodeExecutionNavigator = (
+            navigator or LinearGraphNodeExecutionNavigator()
+        )
         self._policy: GraphNodeExecutionPolicy = policy or FailFastGraphNodeExecutionPolicy()
         self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
 
@@ -101,9 +103,7 @@ class GraphNodeExecutionCompletedHandler:
                 )
                 return
 
-            graph_executions = await uow.graph_executions.get_by_workflow_id(
-                workflow.id
-            )
+            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.no_graph",
@@ -279,15 +279,15 @@ class GraphNodeExecutionCompletedHandler:
         uow: UnitOfWork,
     ) -> None:
         next_nodes = list(
-            await self._navigator.next_after_async(graph_execution, graph_node_execution_id, uow.graph_node_executions)
+            await self._navigator.next_after_async(
+                graph_execution, graph_node_execution_id, uow.graph_node_executions
+            )
         )
         if not next_nodes:
             workflow.finish(now, task_execution_id=graph_execution.task_execution_id)
             return
         next_node = next_nodes[0]
-        workflow.advance_and_request(
-            next_graph_node_execution_id=next_node.id, now=now
-        )
+        workflow.advance_and_request(next_graph_node_execution_id=next_node.id, now=now)
 
     async def _handle_failure(
         self,
@@ -304,9 +304,7 @@ class GraphNodeExecutionCompletedHandler:
         )
 
         if error_handler_node is not None:
-            workflow.advance_and_request(
-                next_graph_node_execution_id=error_handler_node, now=now
-            )
+            workflow.advance_and_request(next_graph_node_execution_id=error_handler_node, now=now)
             return
 
         decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)

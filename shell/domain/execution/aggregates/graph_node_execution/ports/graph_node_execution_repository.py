@@ -3,9 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
 
 
 class GraphNodeExecutionRepository(Protocol):

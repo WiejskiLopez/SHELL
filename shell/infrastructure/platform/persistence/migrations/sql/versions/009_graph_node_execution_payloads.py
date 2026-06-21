@@ -20,7 +20,12 @@ def upgrade() -> None:
     op.create_table(
         "graph_node_execution_input_payload",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("graph_node_execution_id", sa.String(36), sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "graph_node_execution_id",
+            sa.String(36),
+            sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -42,7 +47,12 @@ def upgrade() -> None:
     op.create_table(
         "graph_node_execution_output_payload",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("graph_node_execution_id", sa.String(36), sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "graph_node_execution_id",
+            sa.String(36),
+            sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -63,9 +73,21 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("uq_graph_node_execution_output_payload_is_current", table_name="graph_node_execution_output_payload")
-    op.drop_index("ix_graph_node_execution_output_payload_graph_node_execution_id", table_name="graph_node_execution_output_payload")
+    op.drop_index(
+        "uq_graph_node_execution_output_payload_is_current",
+        table_name="graph_node_execution_output_payload",
+    )
+    op.drop_index(
+        "ix_graph_node_execution_output_payload_graph_node_execution_id",
+        table_name="graph_node_execution_output_payload",
+    )
     op.drop_table("graph_node_execution_output_payload")
-    op.drop_index("uq_graph_node_execution_input_payload_is_current", table_name="graph_node_execution_input_payload")
-    op.drop_index("ix_graph_node_execution_input_payload_graph_node_execution_id", table_name="graph_node_execution_input_payload")
+    op.drop_index(
+        "uq_graph_node_execution_input_payload_is_current",
+        table_name="graph_node_execution_input_payload",
+    )
+    op.drop_index(
+        "ix_graph_node_execution_input_payload_graph_node_execution_id",
+        table_name="graph_node_execution_input_payload",
+    )
     op.drop_table("graph_node_execution_input_payload")

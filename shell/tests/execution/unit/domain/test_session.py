@@ -52,6 +52,4 @@ class TestSession:
         s = self._make_session()
         s.close(_LATER)
         with pytest.raises(ValueError, match="closed"):
-            s.append_message(
-                MessageId.generate(), CorrelationId.generate(), "a", "b", {}, _NOW
-            )
+            s.append_message(MessageId.generate(), CorrelationId.generate(), "a", "b", {}, _NOW)

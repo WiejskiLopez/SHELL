@@ -42,7 +42,9 @@ def upgrade() -> None:
             )
         )
         batch.drop_index("ix_graph_execution_task_execution_id")
-        batch.create_index("uq_graph_execution_task_execution_id", ["task_execution_id"], unique=True)
+        batch.create_index(
+            "uq_graph_execution_task_execution_id", ["task_execution_id"], unique=True
+        )
 
 
 def downgrade() -> None:

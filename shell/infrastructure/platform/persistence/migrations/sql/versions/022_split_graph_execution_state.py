@@ -113,10 +113,20 @@ def downgrade() -> None:
     )
 
     # --- drop new tables ---
-    op.drop_index("uq_graph_execution_state_output_is_current", table_name="graph_execution_state_output")
-    op.drop_index("ix_graph_execution_state_output_graph_execution_id", table_name="graph_execution_state_output")
+    op.drop_index(
+        "uq_graph_execution_state_output_is_current", table_name="graph_execution_state_output"
+    )
+    op.drop_index(
+        "ix_graph_execution_state_output_graph_execution_id",
+        table_name="graph_execution_state_output",
+    )
     op.drop_table("graph_execution_state_output")
 
-    op.drop_index("uq_graph_execution_state_input_is_current", table_name="graph_execution_state_input")
-    op.drop_index("ix_graph_execution_state_input_graph_execution_id", table_name="graph_execution_state_input")
+    op.drop_index(
+        "uq_graph_execution_state_input_is_current", table_name="graph_execution_state_input"
+    )
+    op.drop_index(
+        "ix_graph_execution_state_input_graph_execution_id",
+        table_name="graph_execution_state_input",
+    )
     op.drop_table("graph_execution_state_input")

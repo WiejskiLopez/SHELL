@@ -1,4 +1,5 @@
 """Session + Message — conversation session aggregate."""
+
 from __future__ import annotations
 
 from shell.domain.execution.aggregates.session.entities.message import Message

@@ -33,7 +33,8 @@ class SqlGraphNodeExecutionStateInputRepository(GraphNodeExecutionStateInputRepo
         query = (
             select(GraphNodeExecutionStateInputModel)
             .where(
-                GraphNodeExecutionStateInputModel.graph_node_execution_id == graph_node_execution_id.value,
+                GraphNodeExecutionStateInputModel.graph_node_execution_id
+                == graph_node_execution_id.value,
                 GraphNodeExecutionStateInputModel.is_current.is_(True),
             )
             .limit(1)

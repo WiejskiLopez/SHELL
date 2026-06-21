@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
 from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
@@ -110,9 +112,7 @@ def _graph_node_execution_model_to_entity(
         max_retries=model.max_retries,
         retry_delay_seconds=model.retry_delay_seconds,
         graph_execution_id=(
-            GraphExecutionId(model.graph_execution_id)
-            if model.graph_execution_id
-            else None
+            GraphExecutionId(model.graph_execution_id) if model.graph_execution_id else None
         ),
         input_states=input_states,
         output_states=output_states,

@@ -51,6 +51,7 @@ def _seed_dev_sync(sync_conn) -> None:
 # Prompts
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_prompts(session: Session) -> None:
     from shell.infrastructure.definition.persistence.sql.models.prompt import PromptModel
 
@@ -100,7 +101,9 @@ def _seed_prompts(session: Session) -> None:
     ]
 
     for p in prompts:
-        existing = session.execute(select(PromptModel).where(PromptModel.id == p.id)).scalar_one_or_none()
+        existing = session.execute(
+            select(PromptModel).where(PromptModel.id == p.id)
+        ).scalar_one_or_none()
         if existing is None:
             session.add(p)
 
@@ -108,6 +111,7 @@ def _seed_prompts(session: Session) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Runner Configs
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _seed_runner_configs(session: Session) -> None:
     from shell.infrastructure.definition.persistence.sql.models.runner_config import (
@@ -146,7 +150,9 @@ def _seed_runner_configs(session: Session) -> None:
     ]
 
     for c in configs:
-        existing = session.execute(select(RunnerConfigModel).where(RunnerConfigModel.id == c.id)).scalar_one_or_none()
+        existing = session.execute(
+            select(RunnerConfigModel).where(RunnerConfigModel.id == c.id)
+        ).scalar_one_or_none()
         if existing is None:
             session.add(c)
 
@@ -154,6 +160,7 @@ def _seed_runner_configs(session: Session) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Graph Definitions + Nodes + Transitions
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _seed_graph_definitions(session: Session) -> None:
     from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
@@ -391,6 +398,7 @@ def _seed_graph_definitions(session: Session) -> None:
 # Task Executions + Input/Output Payloads
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_task_executions(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.task_execution import (
         TaskExecutionModel,
@@ -491,6 +499,7 @@ def _seed_task_executions(session: Session) -> None:
 # Workflow Scenario — full execution with envelopes and results
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.envelope import EnvelopeModel
     from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
@@ -517,7 +526,9 @@ def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
 
     WF_ID = f"{_DEV_ID_PREFIX}-workflow-1"
-    existing = session.execute(select(WorkflowModel).where(WorkflowModel.id == WF_ID)).scalar_one_or_none()
+    existing = session.execute(
+        select(WorkflowModel).where(WorkflowModel.id == WF_ID)
+    ).scalar_one_or_none()
     if existing is not None:
         return
 
@@ -670,6 +681,7 @@ def _seed_workflow_scenario(session: Session) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 # Scheduler
 # ──────────────────────────────────────────────────────────────────────────────
+
 
 def _seed_scheduler(session: Session) -> None:
     from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (

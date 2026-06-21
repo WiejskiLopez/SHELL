@@ -53,7 +53,14 @@ async def run_migrations(url: str) -> None:
 
     alembic_cfg = Config(_ALEMBIC_INI)
     alembic_cfg.set_main_option("sqlalchemy.url", url)
-    script_location = str(Path(_ALEMBIC_INI).parent / "infrastructure" / "platform" / "persistence" / "migrations" / "sql")
+    script_location = str(
+        Path(_ALEMBIC_INI).parent
+        / "infrastructure"
+        / "platform"
+        / "persistence"
+        / "migrations"
+        / "sql"
+    )
     alembic_cfg.set_main_option("script_location", script_location)
     await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
 
@@ -74,7 +81,14 @@ async def reset_database(url: str) -> None:
 
     alembic_cfg = Config(_ALEMBIC_INI)
     alembic_cfg.set_main_option("sqlalchemy.url", url)
-    script_location = str(Path(_ALEMBIC_INI).parent / "infrastructure" / "platform" / "persistence" / "migrations" / "sql")
+    script_location = str(
+        Path(_ALEMBIC_INI).parent
+        / "infrastructure"
+        / "platform"
+        / "persistence"
+        / "migrations"
+        / "sql"
+    )
     alembic_cfg.set_main_option("script_location", script_location)
 
     if "sqlite" in url:

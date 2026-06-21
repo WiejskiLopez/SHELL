@@ -54,7 +54,11 @@ class TestWorkflowsRouter:
                 existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(
                     task_execution.id
                 )
-                ge_id = existing_graph_execution.id if existing_graph_execution else GraphExecutionId.generate()
+                ge_id = (
+                    existing_graph_execution.id
+                    if existing_graph_execution
+                    else GraphExecutionId.generate()
+                )
                 node = GraphNodeExecution(
                     id=GraphNodeExecutionId("wf_task-node-0"),
                     position=0,

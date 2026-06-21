@@ -58,18 +58,14 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     node_result_query_service = providers.Singleton(
         NodeResultQueryService, session_factory=session_factory
     )
-    prompt_query_service = providers.Singleton(
-        PromptQueryService, session_factory=session_factory
-    )
+    prompt_query_service = providers.Singleton(PromptQueryService, session_factory=session_factory)
     runner_config_query_service = providers.Singleton(
         RunnerConfigQueryService, session_factory=session_factory
     )
     session_query_service = providers.Singleton(
         SessionQueryService, session_factory=session_factory
     )
-    rag_query_service = providers.Singleton(
-        RagQueryService, session_factory=session_factory
-    )
+    rag_query_service = providers.Singleton(RagQueryService, session_factory=session_factory)
     uow_factory = providers.Factory(SqlAlchemyUnitOfWork, session_factory=session_factory)
 
     # 2. Narzędzia i adaptery portów

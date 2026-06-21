@@ -9,15 +9,78 @@ Provides fixtures for all three persistence backends:
 
 from __future__ import annotations
 
+import logging
 import os
+import pathlib
 import uuid
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import pytest  # noqa: F401 — used in type annotations and fixtures
-from shell.infrastructure.platform.logging.stdlib_logger import correlation_id_var
+from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
+    RunTaskerWorkflowHandler,
+)
+from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
+    GraphNodeExecutionCompletedHandler,
+)
+from shell.application.execution.event_handlers.graph_node_execution_worker import (
+    GraphNodeExecutionWorker,
+)
+from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+from shell.domain.definition.value_objects.ids import GraphDefinitionId
+from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.events import (
+    GraphNodeExecutionCompletedEvent,
+    GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
+    TaskExecutionCreatedEvent,
+    WorkflowStartedEvent,
+)
+from shell.domain.execution.value_objects.ids import (
+    GraphExecutionId,
+    GraphNodeExecutionId,
+    TaskExecutionId,
+    WorkflowId,
+)
+from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.workflow_execution_context import (
+    WorkflowExecutionContext,
+)
+from shell.domain.platform.base import AggregateRoot, Entity
+from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.hash import Hash
+from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.platform.value_objects.version import Version
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+from shell.infrastructure.platform.logging.stdlib_logger import (
+    StdlibLogger,
+    correlation_id_var,
+)
+from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
+    FakeClock,
+    FakeEventPublisher,
+    FakeGraphNodeExecutionProcessRunner,
+    FakeIdGenerator,
+    FakeLogger,
+    FakeTaskLoader,
     InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
+from shell.infrastructure.platform.persistence.sql import build_session_factory
+
+if TYPE_CHECKING:
+    import pathlib
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 # ---------------------------------------------------------------------------
 # Markers
@@ -91,30 +154,8 @@ def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
     return InMemoryQueryServices(uow)
 
 
-# ─── Domain fixtures ───
-
-from dataclasses import dataclass
-from datetime import UTC, datetime
-
-from shell.domain.definition.value_objects.ids import GraphDefinitionId
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
-from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
-    GraphNodeExecutionId,
-    TaskExecutionId,
-    WorkflowId,
-)
-from shell.domain.execution.value_objects.workflow_execution_context import (
-    WorkflowExecutionContext,
-)
-from shell.domain.platform.base import AggregateRoot, Entity
-from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.mode import Mode
-
 # ---------------------------------------------------------------------------
-# Entity base test helpers (used by test_entity_identity, test_aggregate_*)
+# Domain fixtures — Entity base test helpers
 # ---------------------------------------------------------------------------
 
 
@@ -167,9 +208,7 @@ _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 
 def _new_workflow() -> Workflow:
-    return Workflow.new(
-        id_=WorkflowId.generate(), now=_NOW
-    )
+    return Workflow.new(id_=WorkflowId.generate(), now=_NOW)
 
 
 def _ctx() -> WorkflowExecutionContext:
@@ -202,32 +241,9 @@ def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecuti
     )
 
 
-# ─── Application fixtures ───
-
-import logging
-from datetime import UTC, datetime
-
-import pytest
-from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
-    GraphNodeExecutionCompletedHandler,
-)
-from shell.application.execution.event_handlers.graph_node_execution_worker import (
-    GraphNodeExecutionWorker,
-)
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.version import Version
-from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeGraphNodeExecutionProcessRunner,
-    FakeIdGenerator,
-    FakeLogger,
-    FakeTaskLoader,
-)
+# ---------------------------------------------------------------------------
+# Application fixtures
+# ---------------------------------------------------------------------------
 
 
 def _task_imported() -> TaskExecutionCreatedEvent:
@@ -281,7 +297,7 @@ def id_gen() -> FakeIdGenerator:
 
 @pytest.fixture()
 def task_execution_loader() -> FakeTaskLoader:
-    return FakeTaskLoader(md="# My Task")
+    return FakeTaskLoader(md="# SQL Task")
 
 
 @pytest.fixture()
@@ -289,16 +305,9 @@ def fake_logger() -> FakeLogger:
     return FakeLogger()
 
 
-@pytest.fixture()
-def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
-    return InMemoryQueryServices(uow)
-
-
 # ---------------------------------------------------------------------------
 # GraphNodeExecutionWorker test helpers
 # ---------------------------------------------------------------------------
-
-_NOW = datetime(2026, 6, 1, tzinfo=UTC)
 
 
 def _build_graph_execution(
@@ -381,20 +390,9 @@ def _make_result_handler(
     )
 
 
-# ─── SQLite integration fixtures ───
-
-from typing import TYPE_CHECKING
-
-import pytest
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import (
-    FakeEventPublisher,
-)
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
+# ---------------------------------------------------------------------------
+# SQLite integration fixtures
+# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -420,23 +418,9 @@ def sql_uow(
     return SqlAlchemyUnitOfWork(session_factory)
 
 
-@pytest.fixture()
-def clock() -> FakeClock:
-    return FakeClock()
-
-
-@pytest.fixture()
-def id_gen() -> FakeIdGenerator:
-    return FakeIdGenerator()
-
-
-@pytest.fixture()
-def task_execution_loader() -> FakeTaskLoader:
-    return FakeTaskLoader(md="# SQL Task")
-
-
-# ─── PostgreSQL integration fixtures ───
-import os
+# ---------------------------------------------------------------------------
+# PostgreSQL integration fixtures
+# ---------------------------------------------------------------------------
 
 
 def pytest_collection_modifyitems(config, items):
@@ -447,15 +431,14 @@ def pytest_collection_modifyitems(config, items):
                 item.add_marker(skip_pg)
 
 
-# ─── E2E helpers ───
-import pathlib
-
-from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+# ---------------------------------------------------------------------------
+# E2E helpers
+# ---------------------------------------------------------------------------
 
 
 async def _make_app(tmp_path: pathlib.Path):
     from shell.framework.platform.api.app import create_app
+
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
     return create_app(core_container)
@@ -465,48 +448,37 @@ def _db_url(tmp_path: pathlib.Path) -> str:
     return f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
 
 
-# ─── E2E API fixtures ───
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import pathlib
-
-
-async def _make_app(tmp_path: pathlib.Path):
-    from shell.framework.platform.api.app import create_app
-
-    db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-    core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
-    return create_app(core_container)
-
-
-
-
-
-
-# ─── E2E CLI task helpers ───
-from datetime import UTC, datetime
-
-from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
-    RunTaskerWorkflowHandler,
-)
+# ---------------------------------------------------------------------------
+# E2E CLI task helpers
+# ---------------------------------------------------------------------------
 
 
 def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
     task_execution = TaskExecution(
-        id=TaskExecutionId.generate(), name=TaskExecutionName(task_execution_name),
-        version=Version.initial(), hash=Hash.of("x"), body=TaskExecutionBody("# Task Body"),
-        is_current=True, created_at=now,
+        id=TaskExecutionId.generate(),
+        name=TaskExecutionName(task_execution_name),
+        version=Version.initial(),
+        hash=Hash.of("x"),
+        body=TaskExecutionBody("# Task Body"),
+        is_current=True,
+        created_at=now,
     )
     uow.task_executions._store[task_execution.id.value] = task_execution
     graph_node_executions = [
-        GraphNodeExecution(id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"), position=i, mode=Mode(m), role=m, node_type=m)
+        GraphNodeExecution(
+            id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
+            position=i,
+            mode=Mode(m),
+            role=m,
+            node_type=m,
+        )
         for i, m in enumerate(modes)
     ]
     graph_execution = GraphExecution(
-        id=GraphExecutionId.generate(), task_execution_id=task_execution.id,
-        graph_definition_id=GraphDefinitionId("tpl"), graph_node_executions=graph_node_executions,
+        id=GraphExecutionId.generate(),
+        task_execution_id=task_execution.id,
+        graph_definition_id=GraphDefinitionId("tpl"),
+        graph_node_executions=graph_node_executions,
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
@@ -514,11 +486,17 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
     uow.graph_executions._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
+
 async def _run_tasker_full(uow, clock, id_gen, cmd, runner=None):
     logger = FakeLogger()
-    if runner is None: runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
-    worker = GraphNodeExecutionWorker(uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner)
-    result_handler = GraphNodeExecutionCompletedHandler(uow=uow, clock=clock, id_gen=id_gen, logger=logger)
+    if runner is None:
+        runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
+    worker = GraphNodeExecutionWorker(
+        uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner
+    )
+    result_handler = GraphNodeExecutionCompletedHandler(
+        uow=uow, clock=clock, id_gen=id_gen, logger=logger
+    )
     bootstrap_handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
     all_events = []
     await bootstrap_handler.handle(cmd)
@@ -526,18 +504,20 @@ async def _run_tasker_full(uow, clock, id_gen, cmd, runner=None):
     max_iterations = 100
     for _ in range(max_iterations):
         batch = list(uow.committed_events)
-        if not batch: break
+        if not batch:
+            break
         has_work = False
         for event in batch:
             if isinstance(event, GraphNodeExecutionRequestedEvent):
-                await worker.handle(event); all_events.extend(uow.committed_events); has_work = True
-            elif isinstance(event, (GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent)):
-                await result_handler.handle(event); all_events.extend(uow.committed_events); has_work = True
-        if not has_work: break
+                await worker.handle(event)
+                all_events.extend(uow.committed_events)
+                has_work = True
+            elif isinstance(
+                event, (GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent)
+            ):
+                await result_handler.handle(event)
+                all_events.extend(uow.committed_events)
+                has_work = True
+        if not has_work:
+            break
     return all_events
-
-from shell.domain.execution.events import (
-    GraphNodeExecutionCompletedEvent,
-    GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionRequestedEvent,
-)

@@ -8,17 +8,17 @@ from shell.application.definition.dto.runner_config import RunnerConfigDto
 from shell.application.execution.dto.envelope import EnvelopeDto
 from shell.application.execution.dto.graph_execution import GraphExecutionDto
 from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
-from shell.application.execution.dto.graph_node_execution_state_input import (
-    GraphNodeExecutionStateInputDto,
-)
-from shell.application.execution.dto.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutputDto,
-)
 from shell.application.execution.dto.graph_node_execution_result import (
     GraphNodeExecutionResultDto,
 )
 from shell.application.execution.dto.graph_node_execution_state import (
     GraphNodeExecutionStateDto,
+)
+from shell.application.execution.dto.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInputDto,
+)
+from shell.application.execution.dto.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputDto,
 )
 from shell.application.execution.dto.message import MessageDto
 from shell.application.execution.dto.session import SessionDto

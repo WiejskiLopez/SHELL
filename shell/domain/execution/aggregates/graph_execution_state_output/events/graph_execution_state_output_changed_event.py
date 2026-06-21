@@ -8,7 +8,9 @@ from shell.domain.platform.events import DomainEvent
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution_state_output.graph_execution_state_output_id import (
         GraphExecutionStateOutputId,
     )

@@ -120,7 +120,9 @@ class InMemoryQueryServices:
         if workflow is None:
             return None
 
-        result = workflow.get_graph_node_execution_result(GraphNodeExecutionId(graph_node_execution_id))
+        result = workflow.get_graph_node_execution_result(
+            GraphNodeExecutionId(graph_node_execution_id)
+        )
         if result is None:
             return None
         return GraphNodeExecutionResultDto(

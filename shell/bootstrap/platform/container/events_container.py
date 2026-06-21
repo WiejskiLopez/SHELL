@@ -54,4 +54,3 @@ class EventsContainer(containers.DeclarativeContainer):
         event_publisher=event_bus_publisher,
         batch_size=config.inbox_batch_size,
     )
-

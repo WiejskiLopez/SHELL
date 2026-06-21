@@ -1,4 +1,8 @@
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import GraphNodeExecutionStateInput
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import GraphNodeExecutionStateOutput
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInput,
+)
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutput,
+)
 
 __all__ = ["GraphNodeExecutionStateInput", "GraphNodeExecutionStateOutput"]

@@ -21,17 +21,17 @@ from shell.infrastructure.execution.persistence.sql.models.graph_execution_state
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
-    GraphNodeExecutionStateInputModel,
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutputModel,
-)
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_result import (
     GraphNodeExecutionResultModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state import (
     GraphNodeExecutionStateModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInputModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,

@@ -9,7 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.platform.base.value_object import ValueObject
 
 
@@ -20,8 +22,12 @@ class WorkflowCursor(ValueObject):
     current_graph_node_execution_id: GraphNodeExecutionId | None = None
 
     def __post_init__(self) -> None:
-        if self.current_graph_node_execution_id is not None and not isinstance(self.current_graph_node_execution_id, GraphNodeExecutionId):
-            raise ValueError("current_graph_node_execution_id must be a GraphNodeExecutionId or None")
+        if self.current_graph_node_execution_id is not None and not isinstance(
+            self.current_graph_node_execution_id, GraphNodeExecutionId
+        ):
+            raise ValueError(
+                "current_graph_node_execution_id must be a GraphNodeExecutionId or None"
+            )
 
     def __str__(self) -> str:
         return f"WorkflowCursor(current={self.current_graph_node_execution_id})"

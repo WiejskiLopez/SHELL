@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import TaskExecutionRepository
+from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
+    TaskExecutionRepository,
+)
 from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
 )
@@ -41,13 +43,10 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
     async def save(self, task_execution: TaskExecution) -> None:
         self._store[task_execution.id.value] = task_execution
 
-    async def get_by_workflow_id(
-        self, workflow_id: WorkflowId
-    ) -> list[TaskExecution]:
-        return [
-            te for te in self._store.values()
-            if te.workflow_id == workflow_id
-        ]
+    async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[TaskExecution]:
+        return [te for te in self._store.values() if te.workflow_id == workflow_id]
 
     async def list_current(self) -> list[TaskExecution]:
-        return [task_execution for task_execution in self._store.values() if task_execution.is_current]
+        return [
+            task_execution for task_execution in self._store.values() if task_execution.is_current
+        ]

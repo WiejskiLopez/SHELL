@@ -20,5 +20,4 @@ class SubGraphVersioning(Protocol):
         definition_id: str,
         version: int | None,
         parent_graph_execution_id: str,
-    ) -> GraphDefinition:
-        ...
+    ) -> GraphDefinition: ...

@@ -29,7 +29,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
         TaskExecutionRepository,
     )
-    from shell.domain.execution.aggregates.workflow.ports.workflow_repository import WorkflowRepository
+    from shell.domain.execution.aggregates.workflow.ports.workflow_repository import (
+        WorkflowRepository,
+    )
     from shell.domain.platform.events import DomainEvent
 
 

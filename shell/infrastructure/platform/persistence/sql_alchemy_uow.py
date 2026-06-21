@@ -102,6 +102,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
             SqlSchedulerDefinitionRepository,
         )
+
         return SqlSchedulerDefinitionRepository(self._active_session)
 
     @property
@@ -109,6 +110,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
             SqlSchedulerExecutionRepository,
         )
+
         return SqlSchedulerExecutionRepository(self._active_session)
 
     @property
@@ -116,6 +118,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
             SqlGraphNodeExecutionRepository,
         )
+
         return SqlGraphNodeExecutionRepository(self._active_session)
 
     def stage_events(self, events: list[DomainEvent]) -> None:

@@ -13,26 +13,17 @@ class InMemorySchedulerExecutionRepository:
     def __init__(self) -> None:
         self._store: dict[str, SchedulerExecution] = {}
 
-    async def get_by_id(
-        self, id: SchedulerExecutionId
-    ) -> SchedulerExecution | None:
+    async def get_by_id(self, id: SchedulerExecutionId) -> SchedulerExecution | None:
         return self._store.get(id.value)
 
-    async def get_by_action_ref(
-        self, action_ref: str
-    ) -> list[SchedulerExecution]:
-        return [
-            e for e in self._store.values() if e.action_ref == action_ref
-        ]
+    async def get_by_action_ref(self, action_ref: str) -> list[SchedulerExecution]:
+        return [e for e in self._store.values() if e.action_ref == action_ref]
 
-    async def count_by_definition_and_status(
-        self, definition_id: str, status: str
-    ) -> int:
+    async def count_by_definition_and_status(self, definition_id: str, status: str) -> int:
         return sum(
             1
             for e in self._store.values()
-            if e.scheduler_definition_id.value == definition_id
-            and e.status.value == status
+            if e.scheduler_definition_id.value == definition_id and e.status.value == status
         )
 
     async def save(self, execution: SchedulerExecution) -> None:

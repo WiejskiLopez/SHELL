@@ -24,9 +24,7 @@ depends_on = None
 def upgrade() -> None:
     # --- task_execution: add work_dir ---
     with op.batch_alter_table("task_execution") as batch:
-        batch.add_column(
-            sa.Column("work_dir", sa.String(512), nullable=False, server_default="")
-        )
+        batch.add_column(sa.Column("work_dir", sa.String(512), nullable=False, server_default=""))
 
     # --- workflow: drop work_dir ---
     with op.batch_alter_table("workflow") as batch:
@@ -40,17 +38,11 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     with op.batch_alter_table("graph_node_execution") as batch:
-        batch.add_column(
-            sa.Column("work_dir", sa.String(512), nullable=False, server_default="")
-        )
-        batch.add_column(
-            sa.Column("node_dir", sa.String(512), nullable=False, server_default="")
-        )
+        batch.add_column(sa.Column("work_dir", sa.String(512), nullable=False, server_default=""))
+        batch.add_column(sa.Column("node_dir", sa.String(512), nullable=False, server_default=""))
 
     with op.batch_alter_table("workflow") as batch:
-        batch.add_column(
-            sa.Column("work_dir", sa.String(1024), nullable=False, server_default="")
-        )
+        batch.add_column(sa.Column("work_dir", sa.String(1024), nullable=False, server_default=""))
 
     with op.batch_alter_table("task_execution") as batch:
         batch.drop_column("work_dir")

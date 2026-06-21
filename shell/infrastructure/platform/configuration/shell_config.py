@@ -119,8 +119,12 @@ class ShellConfig:
             events=EventsConfig(
                 outbox_batch_size=int(merged.get("events", {}).get("outbox_batch_size", 100)),
                 inbox_batch_size=int(merged.get("events", {}).get("inbox_batch_size", 50)),
-                worker_poll_interval=float(merged.get("events", {}).get("worker_poll_interval", 1.0)),
-                worker_backoff_factor=float(merged.get("events", {}).get("worker_backoff_factor", 2.0)),
+                worker_poll_interval=float(
+                    merged.get("events", {}).get("worker_poll_interval", 1.0)
+                ),
+                worker_backoff_factor=float(
+                    merged.get("events", {}).get("worker_backoff_factor", 2.0)
+                ),
                 worker_max_backoff=float(merged.get("events", {}).get("worker_max_backoff", 30.0)),
             ),
         )

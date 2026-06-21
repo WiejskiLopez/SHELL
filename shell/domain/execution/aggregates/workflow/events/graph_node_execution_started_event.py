@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
 from shell.domain.platform.events import DomainEvent
 

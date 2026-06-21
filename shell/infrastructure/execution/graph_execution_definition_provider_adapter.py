@@ -33,7 +33,9 @@ class GraphExecutionDefinitionProviderAdapter(GraphExecutionDefinitionProvider):
             return None
         return self._map_to_execution(graph_definition_dto)
 
-    def _map_to_execution(self, graph_definition_dto: GraphDefinitionDto) -> GraphExecutionDefinition:
+    def _map_to_execution(
+        self, graph_definition_dto: GraphDefinitionDto
+    ) -> GraphExecutionDefinition:
         return GraphExecutionDefinition(
             id=graph_definition_dto.id,
             name=graph_definition_dto.name,

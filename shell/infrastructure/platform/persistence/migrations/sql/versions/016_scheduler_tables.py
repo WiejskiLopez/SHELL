@@ -31,9 +31,7 @@ def upgrade() -> None:
         sa.Column("trigger_filter", sa.JSON(), nullable=True),
         sa.Column("action_type", sa.String(64), nullable=False),
         sa.Column("action_config", sa.JSON(), nullable=False, server_default="{}"),
-        sa.Column(
-            "execution_policy", sa.JSON(), nullable=True
-        ),
+        sa.Column("execution_policy", sa.JSON(), nullable=True),
         sa.Column("enabled", sa.Boolean(), nullable=False, server_default="true"),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),

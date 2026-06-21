@@ -28,7 +28,9 @@ class EnvelopeRoutedEvent(DomainEvent):
         )
 
     @classmethod
-    def now(cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime) -> EnvelopeRoutedEvent:
+    def now(
+        cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, now: datetime
+    ) -> EnvelopeRoutedEvent:
         return cls(
             occurred_at=now,
             envelope_id=envelope_id,

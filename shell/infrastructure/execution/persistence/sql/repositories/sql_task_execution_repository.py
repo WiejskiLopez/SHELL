@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import TaskExecutionRepository
+from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
+    TaskExecutionRepository,
+)
 from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskExecutionId i WorkflowId używane w konstruktorach w repozytorium
     TaskExecutionId,
     WorkflowId,
@@ -92,12 +94,9 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         model = task_execution_entity_to_model(task_execution)
         await self._session.merge(model)
 
-    async def get_by_workflow_id(
-        self, workflow_id: WorkflowId
-    ) -> list[TaskExecution]:
-        query = (
-            select(TaskExecutionModel)
-            .where(TaskExecutionModel.workflow_id == workflow_id.value)
+    async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[TaskExecution]:
+        query = select(TaskExecutionModel).where(
+            TaskExecutionModel.workflow_id == workflow_id.value
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [task_execution_model_to_entity(row) for row in rows]

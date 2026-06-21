@@ -1,4 +1,5 @@
 """Production background scheduler command."""
+
 from __future__ import annotations
 
 import asyncio

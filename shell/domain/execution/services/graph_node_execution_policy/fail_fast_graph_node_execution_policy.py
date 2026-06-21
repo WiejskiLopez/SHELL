@@ -10,8 +10,10 @@ from shell.domain.execution.services.graph_node_execution_policy.graph_node_exec
 )
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
 
 
 class FailFastGraphNodeExecutionPolicy:

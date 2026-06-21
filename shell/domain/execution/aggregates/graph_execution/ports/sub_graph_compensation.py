@@ -35,13 +35,11 @@ class SubGraphCompensation(Protocol):
         self,
         graph_execution: GraphExecution,
         reason: str,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def on_child_failed(
         self,
         parent_graph: GraphExecution,
         child_graph: GraphExecution,
         tasker_node_id: str,
-    ) -> CompensationDecision:
-        ...
+    ) -> CompensationDecision: ...

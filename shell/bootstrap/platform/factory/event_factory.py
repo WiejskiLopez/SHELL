@@ -51,13 +51,13 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionStartedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(GraphNodeExecutionAdvancedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionRequestedEvent, events.graph_node_execution_worker_factory)
+    event_bus.subscribe(
+        GraphNodeExecutionRequestedEvent, events.graph_node_execution_worker_factory
+    )
     event_bus.subscribe(
         GraphNodeExecutionCompletedEvent, events.graph_node_execution_completed_handler_factory
     )
-    event_bus.subscribe(
-        PlannerResultEvent, events.planner_result_handler_factory
-    )
+    event_bus.subscribe(PlannerResultEvent, events.planner_result_handler_factory)
     event_bus.subscribe(
         GraphNodeExecutionFailedEvent, events.graph_node_execution_completed_handler_factory
     )
@@ -77,4 +77,3 @@ def register_events(core_container: CoreContainer) -> None:
         PlannerSpawnsQueuedEvent,
         events.planner_spawns_queued_handler_factory,
     )
-

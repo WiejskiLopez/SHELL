@@ -3,15 +3,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.envelope.entities.envelope_event import EnvelopeEvent
-from shell.domain.execution.aggregates.envelope.exceptions.invalid_envelope_transition import InvalidEnvelopeTransition
 from shell.domain.execution.aggregates.envelope.envelope_id import EnvelopeId
+from shell.domain.execution.aggregates.envelope.exceptions.invalid_envelope_transition import (
+    InvalidEnvelopeTransition,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
     from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
 
 _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
@@ -134,7 +138,9 @@ class Envelope(AggregateRoot[EnvelopeId]):
             )
         self.status = new_status
         self.updated_at = now
-        from shell.domain.execution.aggregates.envelope.value_objects.ids.envelope_event_id import EnvelopeEventId
+        from shell.domain.execution.aggregates.envelope.value_objects.ids.envelope_event_id import (
+            EnvelopeEventId,
+        )
 
         self._envelope_events.append(
             EnvelopeEvent(

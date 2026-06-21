@@ -5,13 +5,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.envelope.services.envelope_lifecycle_service import (
+    EnvelopeLifecycleService,
+)
 from shell.domain.execution.events import (
     EnvelopeDeadletteredEvent,
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
-from shell.domain.execution.aggregates.envelope.services.envelope_lifecycle_service import EnvelopeLifecycleService
 from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExcetutionRoutingService,
 )
@@ -84,21 +86,26 @@ class RouteEnvelopesHandler:
                     except Exception as e:
                         logger.warning(
                             "Envelope %s dead-lettered after routing failure: %s",
-                            envelope.id.value, e,
+                            envelope.id.value,
+                            e,
                         )
                         envelope.transition_status(EnvelopeStatus.DEAD, now)
                         await uow.envelopes.save(envelope)
                         uow.stage_events(
-                            [EnvelopeDeadletteredEvent.now(
-                                envelope.id, envelope.workflow_id, reason=str(e), now=now
-                            )]
+                            [
+                                EnvelopeDeadletteredEvent.now(
+                                    envelope.id, envelope.workflow_id, reason=str(e), now=now
+                                )
+                            ]
                         )
                         continue
 
                 envelope.transition_status(EnvelopeStatus.ACTIVE, now)
                 envelope.transition_stage(EnvelopeStage.SENT, now)
                 await uow.envelopes.save(envelope)
-                uow.stage_events([EnvelopeRoutedEvent.now(envelope.id, envelope.workflow_id, now=now)])
+                uow.stage_events(
+                    [EnvelopeRoutedEvent.now(envelope.id, envelope.workflow_id, now=now)]
+                )
                 routed += 1
 
         return routed

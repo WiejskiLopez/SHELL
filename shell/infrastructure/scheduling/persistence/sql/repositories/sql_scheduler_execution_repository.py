@@ -25,19 +25,13 @@ class SqlSchedulerExecutionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(
-        self, id: SchedulerExecutionId
-    ) -> SchedulerJob | None:
-        query = select(SchedulerExecutionModel).where(
-            SchedulerExecutionModel.id == id.value
-        )
+    async def get_by_id(self, id: SchedulerExecutionId) -> SchedulerJob | None:
+        query = select(SchedulerExecutionModel).where(SchedulerExecutionModel.id == id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return scheduler_execution_model_to_entity(row) if row else None
 
     async def list_enabled(self) -> list[SchedulerJob]:
-        query = select(SchedulerExecutionModel).where(
-            SchedulerExecutionModel.enabled
-        )
+        query = select(SchedulerExecutionModel).where(SchedulerExecutionModel.enabled)
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 

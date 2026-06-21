@@ -17,9 +17,7 @@ class RagChunkModel(Base):
     embedding: Mapped[bytes] = mapped_column(nullable=False)
     embedding_model: Mapped[str] = mapped_column(nullable=False)
 
-    document: Mapped[RagDocumentModel] = relationship(
-        "RagDocumentModel", back_populates="chunks"
-    )
+    document: Mapped[RagDocumentModel] = relationship("RagDocumentModel", back_populates="chunks")
 
 
 from shell.infrastructure.definition.persistence.sql.models.rag_document import (  # noqa: E402 — łamie circular import RagChunkModel ↔ RagDocumentModel

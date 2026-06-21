@@ -24,8 +24,7 @@ class RagSearchStrategy(Protocol):
         query_embedding: bytes,
         top_k: int = 5,
         domain: str | None = None,
-    ) -> list[RagChunk]:
-        ...
+    ) -> list[RagChunk]: ...
 
 
 class InMemoryRagSearchStrategy:

@@ -1,4 +1,5 @@
 """SQL repository adapters (SQLite + PostgreSQL via SQLAlchemy 2.x async)."""
+
 from __future__ import annotations
 
 from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_repository import (
@@ -34,14 +35,14 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
+    SqlTaskExecutionRepository,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
     SqlTaskExecutionStateInputRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_output_repository import (
     SqlTaskExecutionStateOutputRepository,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
-    SqlTaskExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,

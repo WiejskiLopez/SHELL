@@ -110,4 +110,3 @@ class EventContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         logger=infra.stdlib_logger,
     )
-

@@ -131,6 +131,7 @@ def _build_job_fn(
     inbox_processor: InboxProcessor,
 ):
     if job_type == "messaging":
+
         async def _run() -> None:
             try:
                 await outbox_relay.run_once()

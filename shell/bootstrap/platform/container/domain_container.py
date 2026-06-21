@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 from shell.application.execution.strategies.graph_node_execution_strategy import get_strategy
-from shell.domain.execution.aggregates.workflow.services.compensation_handler import NoOpCompensationHandler
+from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
+    NoOpCompensationHandler,
+)
 from shell.domain.execution.services.graph_node_execution_navigator import (
     TransitionBasedGraphNodeExecutionNavigator,
 )
@@ -59,5 +61,3 @@ class DomainContainer(containers.DeclarativeContainer):
         versioning=sub_graph_versioning_factory,
         observer=sub_graph_observer_factory,
     )
-
-

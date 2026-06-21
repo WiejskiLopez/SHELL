@@ -6,11 +6,15 @@ from typing import TYPE_CHECKING
 from shell.domain.platform.value_objects.transition_type import TransitionType
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution.value_objects.ids.graph_node_transition_execution_id import (
         GraphNodeTransitionExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
 
 
 @dataclass(slots=True)

@@ -28,7 +28,9 @@ class TestPgWorkflowRepository:
         task_execution_loader,
         session_factory,
     ) -> None:
-        imp = ImportTaskExecutionHandler(sql_uow, clock, id_gen, task_execution_loader, FakeLogger())
+        imp = ImportTaskExecutionHandler(
+            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
+        )
         await imp.handle(ImportTaskExecutionCommand("t.md", "pg-wf-task"))
 
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName

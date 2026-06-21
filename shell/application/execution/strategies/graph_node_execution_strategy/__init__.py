@@ -1,4 +1,5 @@
 """GraphNodeExecutionStrategy — port and 6 concrete implementations."""
+
 from __future__ import annotations
 
 from shell.application.execution.strategies.graph_node_execution_strategy.agent_strategy import (

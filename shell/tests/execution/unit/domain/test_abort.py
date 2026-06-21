@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import pytest
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import (
+    WorkflowCursor,
+)
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import WorkflowFailedEvent
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
@@ -9,7 +12,6 @@ from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionResultId,
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
 from shell.domain.platform.value_objects.status import Status
 from shell.tests.conftest import _NOW, _ctx, _new_workflow
 

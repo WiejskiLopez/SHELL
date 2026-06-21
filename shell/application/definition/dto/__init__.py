@@ -1,11 +1,9 @@
-from shell.application.definition.dto.graph_definition import (
-    GraphDefinitionDto,
-    annotations,
-    dataclass,
-    field,
-)
-from shell.application.definition.dto.graph_node_definition import Any, GraphNodeDefinitionDto
-from shell.application.definition.dto.prompt import TYPE_CHECKING, PromptDto
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
+
+from shell.application.definition.dto.graph_definition import GraphDefinitionDto
+from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
+from shell.application.definition.dto.prompt import PromptDto
 from shell.application.definition.dto.rag_chunk import RagChunkDto
 from shell.application.definition.dto.runner_config import RunnerConfigDto
 
@@ -17,7 +15,6 @@ __all__ = [
     "RagChunkDto",
     "RunnerConfigDto",
     "TYPE_CHECKING",
-    "annotations",
     "dataclass",
     "field",
 ]

@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution_state_input.graph_execution_state_input import (
         GraphExecutionStateInput,
     )
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
 
 
 class GraphExecutionStateInputRepository(Protocol):

@@ -61,7 +61,9 @@ class RunTaskerWorkflowHandler:
         self._uow = uow
         self._clock = clock
         self._id_gen = id_gen
-        self._navigator: GraphNodeExecutionNavigator = navigator or LinearGraphNodeExecutionNavigator()
+        self._navigator: GraphNodeExecutionNavigator = (
+            navigator or LinearGraphNodeExecutionNavigator()
+        )
 
     async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow and request execution; return the workflow id."""
@@ -76,7 +78,8 @@ class RunTaskerWorkflowHandler:
             graph_execution = await uow.graph_executions.get_by_task_execution_id(task_execution.id)
             first_graph_node_execution = (
                 await self._navigator.first_async(graph_execution, uow.graph_node_executions)
-                if graph_execution is not None else None
+                if graph_execution is not None
+                else None
             )
             if first_graph_node_execution is None:
                 raise WorkflowHasNoNodes(cmd.task_execution_id)

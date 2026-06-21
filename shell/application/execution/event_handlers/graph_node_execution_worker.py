@@ -43,8 +43,10 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 
 
@@ -85,9 +87,7 @@ class GraphNodeExecutionWorker:
                 )
                 return
 
-            graph_executions = await uow.graph_executions.get_by_workflow_id(
-                workflow.id
-            )
+            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_worker.no_graph_execution",
@@ -115,7 +115,9 @@ class GraphNodeExecutionWorker:
 
         # ── 2. Execute subprocess outside the UoW ────────────────────────
         task_execution_id = graph_execution.task_execution_id.value
-        success, stdout, stderr = await self._run_node(workflow, node, event, work_dir, task_execution_id)
+        success, stdout, stderr = await self._run_node(
+            workflow, node, event, work_dir, task_execution_id
+        )
 
         # ── 3. Reload + record result (transactional) ───────────────────
         # NOTE: next-step decision (advance / finish / abort) is handled
@@ -230,9 +232,7 @@ class GraphNodeExecutionWorker:
             if workflow is None:
                 return
 
-            graph_executions = await uow.graph_executions.get_by_workflow_id(
-                workflow.id
-            )
+            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
             current_graph_execution = graph_executions[0] if graph_executions else None
 
             if not await self._is_event_relevant(workflow, event):

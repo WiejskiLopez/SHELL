@@ -9,7 +9,9 @@ if TYPE_CHECKING:
 from shell.domain.execution.aggregates.graph_execution.value_objects.ids.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
 from shell.domain.platform.events import DomainEvent
 

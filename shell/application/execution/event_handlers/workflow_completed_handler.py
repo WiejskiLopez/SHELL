@@ -18,9 +18,11 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_execution.ports.crown_scheduler import (
+        CrownScheduler,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.events import WorkflowCompletedEvent
-    from shell.domain.execution.aggregates.graph_execution.ports.crown_scheduler import CrownScheduler
     from shell.domain.execution.value_objects.ids import (
         GraphNodeExecutionId,
     )

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import (
+    WorkflowCursor,
+)
 from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
@@ -32,8 +35,9 @@ from shell.domain.execution.aggregates.workflow.events.workflow_failed_event imp
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
-from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import InvalidWorkflowTransition
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import WorkflowCursor
+from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
+    InvalidWorkflowTransition,
+)
 from shell.domain.execution.value_objects.workflow_execution_context import (
     WorkflowExecutionContext,
 )
@@ -43,13 +47,19 @@ from shell.domain.platform.value_objects.status import Status
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
     from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
         GraphNodeExecutionResult,
     )
-    from shell.domain.execution.aggregates.workflow.services.compensation_handler import CompensationHandler
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
-    from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
+    from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
+        CompensationHandler,
+    )
     from shell.domain.execution.aggregates.workflow.value_objects.ids.graph_node_execution_result_id import (
         GraphNodeExecutionResultId,
     )
@@ -102,6 +112,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._version = version
         self._graph_node_execution_states = graph_node_execution_states or {}
         self._graph_node_execution_results = graph_node_execution_results or {}
+
     @property
     def status(self) -> Status:
         return self._status
@@ -275,9 +286,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             raise InvalidWorkflowTransition(
                 f"wait_for_children requires status=running, got {self._status.value!r}"
             )
-        self.update_graph_node_execution_state(
-            graph_node_execution_id, Status.waiting(), now=now
-        )
+        self.update_graph_node_execution_state(graph_node_execution_id, Status.waiting(), now=now)
 
     def record_graph_node_execution_result(
         self,

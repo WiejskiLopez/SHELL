@@ -21,23 +21,19 @@ class SubGraphGovernance(Protocol):
         parent_graph_execution_id: str,
         definition_id: str,
         depth: int,
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
     async def max_parallel_sub_graphs(
         self,
         graph_execution_id: str,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     async def max_depth(
         self,
         root_graph_execution_id: str,
-    ) -> int:
-        ...
+    ) -> int: ...
 
     async def token_budget(
         self,
         graph_execution_id: str,
-    ) -> TokenBudget | None:
-        ...
+    ) -> TokenBudget | None: ...

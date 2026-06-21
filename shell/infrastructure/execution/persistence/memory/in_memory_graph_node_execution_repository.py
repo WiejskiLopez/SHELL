@@ -11,7 +11,9 @@ from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphN
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
 
 
 class InMemoryGraphNodeExecutionRepository(GraphNodeExecutionRepository):
@@ -31,6 +33,7 @@ class InMemoryGraphNodeExecutionRepository(GraphNodeExecutionRepository):
         self, graph_execution_id: GraphExecutionId
     ) -> list[GraphNodeExecution]:
         return [
-            n for n in self._store.values()
+            n
+            for n in self._store.values()
             if n.graph_execution_id and n.graph_execution_id == graph_execution_id
         ]

@@ -54,12 +54,16 @@ class _InMemoryGraphDefinitionQueryService:
 
         graph_definition: GraphDefinition = entity  # type: ignore[assignment]
         return GraphExecutionDefinition(
-            id=graph_definition.id.value if hasattr(graph_definition.id, "value") else str(graph_definition.id),
+            id=graph_definition.id.value
+            if hasattr(graph_definition.id, "value")
+            else str(graph_definition.id),
             name=graph_definition.name,
             graph_node_execution_definitions=[
                 GraphNodeExecutionDefinition(
                     position=graph_node_definition.position,
-                    mode=graph_node_definition.mode.value if hasattr(graph_node_definition.mode, "value") else str(graph_node_definition.mode),
+                    mode=graph_node_definition.mode.value
+                    if hasattr(graph_node_definition.mode, "value")
+                    else str(graph_node_definition.mode),
                     role=graph_node_definition.role,
                     node_type=graph_node_definition.node_type,
                     model=graph_node_definition.model,
@@ -159,7 +163,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
+            uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger
+        )
 
         await handler.handle(_task_created_event(clock.now()))
 
@@ -185,7 +191,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
+            fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger
+        )
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
@@ -198,7 +206,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
         logger: FakeLogger,
     ) -> None:
         await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
+            uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger
+        )
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
@@ -233,7 +243,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
 
         fresh_uow = InMemoryUnitOfWork()
         fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
+            fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger
+        )
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))

@@ -84,7 +84,9 @@ class TestGraphDefinition:
         n1 = _make_node(1, "agent")
         t = _make_transition(1, 2)
         gd = GraphDefinition(
-            GraphDefinitionId("g1"), "x", "y",
+            GraphDefinitionId("g1"),
+            "x",
+            "y",
             graph_node_definitions=[n1],
             transition_definitions=[t],
         )

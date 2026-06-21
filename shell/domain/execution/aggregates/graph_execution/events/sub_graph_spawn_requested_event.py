@@ -9,7 +9,9 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.platform.events import DomainEvent
 
 

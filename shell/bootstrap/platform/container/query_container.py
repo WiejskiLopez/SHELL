@@ -65,7 +65,9 @@ class QueryContainer(containers.DeclarativeContainer):
     get_graph_node_execution_result_handler_factory = providers.Factory(
         GetGraphNodeExecutionResultHandler, queries=infra.node_result_query_service
     )
-    get_prompt_handler_factory = providers.Factory(GetPromptHandler, queries=infra.prompt_query_service)
+    get_prompt_handler_factory = providers.Factory(
+        GetPromptHandler, queries=infra.prompt_query_service
+    )
     get_runner_config_handler_factory = providers.Factory(
         GetRunnerConfigHandler, queries=infra.runner_config_query_service
     )

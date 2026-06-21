@@ -31,6 +31,10 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_session_rep
     SessionModel,
     SqlSessionRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
+    SqlTaskExecutionRepository,
+    logger,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
     SqlTaskExecutionStateInputRepository,
     TaskExecutionStateInputModel,
@@ -38,10 +42,6 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execut
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_output_repository import (
     SqlTaskExecutionStateOutputRepository,
     TaskExecutionStateOutputModel,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
-    SqlTaskExecutionRepository,
-    logger,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,

@@ -25,12 +25,8 @@ class SqlSchedulerDefinitionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(
-        self, id: SchedulerDefinitionId
-    ) -> SchedulerDefinition | None:
-        query = select(SchedulerDefinitionModel).where(
-            SchedulerDefinitionModel.id == id.value
-        )
+    async def get_by_id(self, id: SchedulerDefinitionId) -> SchedulerDefinition | None:
+        query = select(SchedulerDefinitionModel).where(SchedulerDefinitionModel.id == id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return scheduler_definition_model_to_entity(row) if row else None
 

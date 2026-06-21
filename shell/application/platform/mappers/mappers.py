@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.dto import (
     EnvelopeDto,
-    GraphNodeExecutionStateInputDto,
-    GraphNodeExecutionStateOutputDto,
     GraphNodeExecutionResultDto,
     GraphNodeExecutionStateDto,
+    GraphNodeExecutionStateInputDto,
+    GraphNodeExecutionStateOutputDto,
     PromptDto,
     RunnerConfigDto,
     TaskExecutionDto,
@@ -21,6 +21,7 @@ from shell.application.platform.dto import (
 if TYPE_CHECKING:
     from shell.domain.definition.entities.prompt import Prompt
     from shell.domain.definition.entities.runner_config import RunnerConfig
+    from shell.domain.execution.aggregates.envelope import Envelope
     from shell.domain.execution.aggregates.graph_node_execution_state_input import (
         GraphNodeExecutionStateInput,
     )
@@ -35,8 +36,9 @@ if TYPE_CHECKING:
         TaskExecutionStateOutput,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.envelope import Envelope
-    from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import GraphNodeExecutionResult
+    from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
+        GraphNodeExecutionResult,
+    )
 
 
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:

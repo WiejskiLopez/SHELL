@@ -28,7 +28,9 @@ from shell.domain.platform.base import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution_state_input.graph_execution_state_input_id import (
         GraphExecutionStateInputId,
     )

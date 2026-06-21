@@ -1,4 +1,5 @@
 """Porty dla ścieżki odczytu (CQRS). Zwracają bezpośrednio DTO."""
+
 from __future__ import annotations
 
 from shell.application.definition.ports.queries.graph_definition_query_service import (

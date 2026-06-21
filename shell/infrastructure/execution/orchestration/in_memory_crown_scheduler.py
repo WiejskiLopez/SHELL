@@ -15,7 +15,9 @@ class InMemoryCrownScheduler(CrownScheduler):
     """In-memory CrownScheduler for unit tests."""
 
     def __init__(self) -> None:
-        self._children: dict[str, dict[str, SubGraphChildStatus]] = {}  # parent_id -> {child_id -> status}
+        self._children: dict[
+            str, dict[str, SubGraphChildStatus]
+        ] = {}  # parent_id -> {child_id -> status}
         self._waiting: set[str] = set()
 
     async def register_child(

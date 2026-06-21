@@ -69,7 +69,9 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 )
                 return
 
-            from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+            from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+                GraphNodeExecution,
+            )
 
             node_ids: list = []
             for node_def in graph_definition.graph_node_execution_definitions:

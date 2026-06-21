@@ -27,7 +27,9 @@ class GraphDefinition(Entity[GraphDefinitionId]):
         self.name = name
         self.purpose = purpose
         self.graph_node_definitions = graph_node_definitions or []
-        self._transition_definitions = list(transition_definitions) if transition_definitions else []
+        self._transition_definitions = (
+            list(transition_definitions) if transition_definitions else []
+        )
 
     @property
     def transition_definitions(self) -> tuple[GraphNodeTransitionDefinition, ...]:

@@ -1,4 +1,5 @@
 """Re-eksportuje wszystkie QueryService klasy."""
+
 from __future__ import annotations
 
 from shell.infrastructure.definition.persistence.sql.services.prompt_query_service import (

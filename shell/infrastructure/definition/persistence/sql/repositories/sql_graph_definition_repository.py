@@ -40,10 +40,7 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
     async def get_graph_definition_by_name(
         self, graph_definition_by_name: str
     ) -> GraphDefinition | None:
-        query = (
-            self._base_query()
-            .where(GraphDefinitionModel.name == graph_definition_by_name)
-        )
+        query = self._base_query().where(GraphDefinitionModel.name == graph_definition_by_name)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None
 

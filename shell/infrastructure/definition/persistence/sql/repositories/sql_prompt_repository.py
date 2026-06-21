@@ -29,7 +29,9 @@ class SqlPromptRepository(PromptRepository):
         return prompt_model_to_entity(row) if row else None
 
     async def get_current_by_name(self, name: str) -> Prompt | None:
-        query = select(PromptModel).where(PromptModel.name == name, PromptModel.is_current.is_(True))
+        query = select(PromptModel).where(
+            PromptModel.name == name, PromptModel.is_current.is_(True)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return prompt_model_to_entity(row) if row else None
 

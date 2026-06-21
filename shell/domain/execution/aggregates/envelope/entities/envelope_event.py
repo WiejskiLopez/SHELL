@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.envelope.value_objects.ids.envelope_event_id import EnvelopeEventId
+from shell.domain.execution.aggregates.envelope.value_objects.ids.envelope_event_id import (
+    EnvelopeEventId,
+)
 from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:

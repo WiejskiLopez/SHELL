@@ -22,9 +22,25 @@ def upgrade() -> None:
     op.create_table(
         "graph_node_transition",
         sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("graph_execution_id", sa.String(36), sa.ForeignKey("graph_execution.id", ondelete="CASCADE"), nullable=False, index=True),
-        sa.Column("source_node_execution_id", sa.String(36), sa.ForeignKey("graph_node_execution.id", ondelete="SET NULL"), nullable=True),
-        sa.Column("target_node_execution_id", sa.String(36), sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "graph_execution_id",
+            sa.String(36),
+            sa.ForeignKey("graph_execution.id", ondelete="CASCADE"),
+            nullable=False,
+            index=True,
+        ),
+        sa.Column(
+            "source_node_execution_id",
+            sa.String(36),
+            sa.ForeignKey("graph_node_execution.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+        sa.Column(
+            "target_node_execution_id",
+            sa.String(36),
+            sa.ForeignKey("graph_node_execution.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("transition_type", sa.String(20), nullable=False, server_default="sequence"),
         sa.Column("priority", sa.Integer, nullable=False, server_default="0"),
         sa.Column("condition_expression", sa.Text, nullable=True),

@@ -28,9 +28,7 @@ class TestSchedulerOrchestrator:
         self._now = datetime.now(UTC)
 
     def test_evaluate_definition_can_execute_returns_pending(self) -> None:
-        definition = self._make_definition(
-            action_type="spawn_graph", graph_definition_id="graph-1"
-        )
+        definition = self._make_definition(action_type="spawn_graph", graph_definition_id="graph-1")
         execution = self._orchestrator.evaluate_definition(
             definition=definition,
             trigger_event_id="evt-1",
@@ -45,9 +43,7 @@ class TestSchedulerOrchestrator:
         assert execution.input_state == {"key": "value"}
 
     def test_evaluate_definition_cannot_execute_returns_skipped(self) -> None:
-        definition = self._make_definition(
-            action_type="spawn_graph", graph_definition_id="graph-1"
-        )
+        definition = self._make_definition(action_type="spawn_graph", graph_definition_id="graph-1")
         execution = self._orchestrator.evaluate_definition(
             definition=definition,
             can_execute=False,
@@ -61,9 +57,7 @@ class TestSchedulerOrchestrator:
     def test_evaluate_definition_unsupported_action_returns_skipped(
         self,
     ) -> None:
-        definition = self._make_definition(
-            action_type="unknown_action", graph_definition_id=None
-        )
+        definition = self._make_definition(action_type="unknown_action", graph_definition_id=None)
         execution = self._orchestrator.evaluate_definition(
             definition=definition,
             can_execute=True,
@@ -72,9 +66,7 @@ class TestSchedulerOrchestrator:
         assert execution.status == ExecutionStatus.SKIPPED
 
     def test_evaluate_definition_no_graph_id_returns_skipped(self) -> None:
-        definition = self._make_definition(
-            action_type="spawn_graph", graph_definition_id=None
-        )
+        definition = self._make_definition(action_type="spawn_graph", graph_definition_id=None)
         execution = self._orchestrator.evaluate_definition(
             definition=definition,
             can_execute=True,
@@ -83,9 +75,7 @@ class TestSchedulerOrchestrator:
         assert execution.status == ExecutionStatus.SKIPPED
 
     def test_start_execution_marks_as_executing(self) -> None:
-        definition = self._make_definition(
-            action_type="spawn_graph", graph_definition_id="graph-1"
-        )
+        definition = self._make_definition(action_type="spawn_graph", graph_definition_id="graph-1")
         execution = self._orchestrator.evaluate_definition(
             definition=definition,
             can_execute=True,

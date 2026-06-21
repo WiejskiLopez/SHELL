@@ -26,7 +26,9 @@ class InMemoryEnvelopeRepository(EnvelopeRepository):
     async def list_by_workflow(
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0
     ) -> list[Envelope]:
-        results = [envelope for envelope in self._store.values() if envelope.workflow_id == workflow_id]
+        results = [
+            envelope for envelope in self._store.values() if envelope.workflow_id == workflow_id
+        ]
         results = results[offset:]
         if limit is not None:
             results = results[:limit]

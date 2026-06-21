@@ -96,7 +96,9 @@ class SyncWorkflowRunner:
             if elapsed > self._max_timeout:
                 logger.warning(
                     "Workflow %s exceeded max timeout %.1fs after %d iterations",
-                    workflow_id_str, self._max_timeout, iteration,
+                    workflow_id_str,
+                    self._max_timeout,
+                    iteration,
                 )
                 break
 
@@ -115,7 +117,8 @@ class SyncWorkflowRunner:
                 if metrics.idle_consecutive >= self._max_idle_before_break:
                     logger.info(
                         "Workflow %s idle for %d consecutive iterations, breaking",
-                        workflow_id_str, metrics.idle_consecutive,
+                        workflow_id_str,
+                        metrics.idle_consecutive,
                     )
                     break
             else:

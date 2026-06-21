@@ -4,15 +4,18 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import GraphNodeExecution
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import GraphNodeExecutionId
 
 
 class LinearGraphNodeExecutionNavigator:
-
     @staticmethod
     def first(graph_execution: GraphExecution) -> GraphNodeExecution | None:
         ordered = sorted(graph_execution.graph_node_executions, key=lambda n: n.position)

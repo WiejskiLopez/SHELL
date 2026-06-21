@@ -14,5 +14,4 @@ class ConditionEvaluator(Protocol):
         language: str | None,
         graph_execution: GraphExecution,
         source_node_execution_id: GraphNodeExecutionId,
-    ) -> bool:
-        ...
+    ) -> bool: ...

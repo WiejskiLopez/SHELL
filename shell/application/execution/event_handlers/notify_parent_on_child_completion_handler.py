@@ -21,8 +21,10 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
     from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_execution.ports.crown_scheduler import (
+        CrownScheduler,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.graph_execution.ports.crown_scheduler import CrownScheduler
     from shell.domain.execution.value_objects.ids import (
         GraphNodeExecutionId,
     )
@@ -73,14 +75,14 @@ class NotifyParentOnChildCompletionHandler:
             )
 
             # Check if all children of parent are done
-            all_done = await self._crown_scheduler.has_all_children_completed(parent_graph_execution_id)
+            all_done = await self._crown_scheduler.has_all_children_completed(
+                parent_graph_execution_id
+            )
             if not all_done:
                 return
 
             # All children done — emit ChildGraphsCompletedEvent for parent
-            completed_ids = tuple(
-                c.child_graph_execution_id for c in children
-            )
+            completed_ids = tuple(c.child_graph_execution_id for c in children)
 
             # Load parent workflow and mark the waiting node as complete
             parent_graph = await uow.graph_executions.get_by_id(parent_graph_execution_id)
