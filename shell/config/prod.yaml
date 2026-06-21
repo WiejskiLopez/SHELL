@@ -1,0 +1,7 @@
+# Shell DDD — production profile
+
+database_url: "sqlite+aiosqlite:///shell_prod.db"
+
+seed_dev_data: false
+
+log_level: "INFO"

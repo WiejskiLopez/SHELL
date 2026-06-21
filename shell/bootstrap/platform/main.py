@@ -7,6 +7,7 @@ import sys
 from shell.bootstrap.execution.cli.command.relay_command import RelayCommand
 from shell.bootstrap.execution.cli.command.smoke_command import SmokeCommand
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 
 def main() -> int:
@@ -14,11 +15,16 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description="Shell DDD Admin CLI")
     parser.add_argument("command", choices=["smoke", "relay"], help="Command to execute")
-    parser.add_argument("--db-url", default="sqlite+aiosqlite:///shell.db", help="Database URL")
+    parser.add_argument("--db-url", default=None, help="Database URL (overrides config)")
 
     args = parser.parse_args()
 
-    # Rejestr poleceń (Command Registry)
+    config = ShellConfig.from_environment()
+    if args.db_url:
+        config.database_url = args.db_url
+
+    args.shell_config = config
+
     commands = {"smoke": SmokeCommand(), "relay": RelayCommand()}
 
     command = commands.get(args.command)

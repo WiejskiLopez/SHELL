@@ -84,6 +84,7 @@ module = [
     "shell.framework.*",
     "shell.bootstrap.*",
     "shell.tests.*",
+    "shell.config.*",
 ]
 disallow_untyped_defs = false
 disallow_incomplete_defs = false

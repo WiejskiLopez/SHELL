@@ -2,9 +2,8 @@
 
 Subscribes to PlannerResultEvent (emitted by GraphNodeExecutionWorker for
 PLANNER-mode nodes with valid JSON output). For each event:
-1. Saves stage in GraphNodeExecution.extra["planner_stage"]
-2. Emits SubGraphSpawnRequestedEvent for each spawn entry
-3. Emits PlannerSpawnsQueuedEvent with total spawn count
+1. Emits SubGraphSpawnRequestedEvent for each spawn entry
+2. Emits PlannerSpawnsQueuedEvent with total spawn count
 """
 
 from __future__ import annotations
@@ -27,7 +26,7 @@ if TYPE_CHECKING:
 
 
 class PlannerResultHandler:
-    """Processes PlannerResultEvent — saves stage, emits spawn events."""
+    """Processes PlannerResultEvent — emits spawn events."""
 
     def __init__(
         self,
@@ -51,11 +50,6 @@ class PlannerResultHandler:
                     node_id=event.graph_node_execution_id.value,
                 )
                 return
-
-            # ── Save stage in planner node extra ────────────────────────────
-            if event.stage:
-                node.extra["planner_stage"] = event.stage
-                await uow.graph_node_executions.save(node)
 
             # ── Collect events to stage ─────────────────────────────────────
             staged_events: list[DomainEvent] = []

@@ -4,18 +4,21 @@ from __future__ import annotations
 from argparse import (
     Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
 )
+from typing import TYPE_CHECKING
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+
+if TYPE_CHECKING:
+    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 
 class PipelineCommand(RunnableCommand):
     """Runs full outbox → inbox → eventbus pipeline once."""
 
     async def run(self, args: Namespace) -> None:
-        await bootstrap_database(args.db_url)
-        core_container = await ApplicationFactory(database_url=args.db_url).build()
+        config: ShellConfig = args.shell_config
+        core_container = await ApplicationFactory(config).build()
 
         relay = core_container.events.outbox_to_inbox_relay()
         processor = core_container.events.inbox_processor()

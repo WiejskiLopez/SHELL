@@ -9,6 +9,7 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution, Gr
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.tests.conftest import _make_app
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ class TestWorkflowsRouter:
         md.write_text("# WF Task", encoding="utf-8")
 
         db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-        core_container = await ApplicationFactory(database_url=db_url).build()
+        core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
         from shell.framework.platform.api.app import create_app
 
         app = create_app(core_container)

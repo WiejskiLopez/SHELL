@@ -65,7 +65,6 @@ class SqlGraphDefinitionQueryService:
                     no_ask_user=graph_node_definition.no_ask_user,
                     autopilot=graph_node_definition.autopilot,
                     status_initial=graph_node_definition.status_initial,
-                    extra=graph_node_definition.extra or {},
                     script=graph_node_definition.script or "",
                     script_type=graph_node_definition.script_type or "",
                 )

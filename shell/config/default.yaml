@@ -1,0 +1,9 @@
+active_profile: dev
+events:
+  inbox_batch_size: 50
+  outbox_batch_size: 100
+  worker_backoff_factor: 2.0
+  worker_max_backoff: 30.0
+  worker_poll_interval: 1.0
+max_parallel: 4
+max_step: 20

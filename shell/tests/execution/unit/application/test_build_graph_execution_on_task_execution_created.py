@@ -71,7 +71,6 @@ class _InMemoryGraphDefinitionQueryService:
                     no_ask_user=graph_node_definition.no_ask_user,
                     autopilot=graph_node_definition.autopilot,
                     status_initial=graph_node_definition.status_initial,
-                    extra=dict(graph_node_definition.extra) if graph_node_definition.extra else {},
                     script=getattr(graph_node_definition, "script", ""),
                     script_type=getattr(graph_node_definition, "script_type", ""),
                 )

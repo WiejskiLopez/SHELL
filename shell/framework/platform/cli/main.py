@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.framework.platform.cli.parser import build_parser
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -25,8 +26,10 @@ _MODE_RUNNER_ROOTS: dict[str, str] = {
 }
 
 
-def _get_database_url() -> str:
-    return os.environ.get("SHELL_DATABASE_URL", "sqlite+aiosqlite:///shell.db")
+def _get_config() -> ShellConfig:
+    config = ShellConfig.from_environment()
+    config.max_step = _get_max_step()
+    return config
 
 
 def _get_max_step() -> int:
@@ -42,9 +45,10 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     parser = build_parser(prog=f"shell {mode}")
     ns = parser.parse_args(list(argv))
 
-    database_url = _get_database_url()
-    max_step = ns.max_step if ns.max_step is not None else _get_max_step()
-    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
+    config = _get_config()
+    max_step = ns.max_step if ns.max_step is not None else config.max_step
+    config.max_step = max_step
+    core_container = await ApplicationFactory(config).build()
 
     graph_node_execution_id = ns.node_dir or mode
     workflow_id = ns.workflow_id or "default"
@@ -85,8 +89,8 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
 
     md_path = str(pathlib.Path(task_dir) / f"{task_execution_name}.md")
 
-    database_url = _get_database_url()
-    core_container = await ApplicationFactory(database_url=database_url).build()
+    config = _get_config()
+    core_container = await ApplicationFactory(config).build()
     cmd = ImportTaskExecutionCommand(md_path=md_path, task_execution_name=task_execution_name)
 
     app_ctx: Any = core_container.app  # type: ignore[attr-defined]
@@ -105,9 +109,10 @@ async def _route(argv: Sequence[str]) -> int:
     parser = build_parser(prog="shell route")
     ns = parser.parse_args(list(argv))
 
-    database_url = _get_database_url()
-    max_step = ns.max_step if ns.max_step is not None else _get_max_step()
-    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
+    config = _get_config()
+    max_step = ns.max_step if ns.max_step is not None else config.max_step
+    config.max_step = max_step
+    core_container = await ApplicationFactory(config).build()
 
     workflow_id = ns.workflow_id or "default"
     cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
@@ -135,9 +140,8 @@ async def _run_tasker(argv: Sequence[str]) -> int:
 
     work_dir = ns.work_dir or os.getcwd()
 
-    database_url = _get_database_url()
-    max_step = _get_max_step()
-    core_container = await ApplicationFactory(database_url=database_url, max_step=max_step).build()
+    config = _get_config()
+    core_container = await ApplicationFactory(config).build()
 
     app_ctx: Any = core_container.app  # type: ignore[attr-defined]
     messaging_ctx: Any = core_container.messaging  # type: ignore[attr-defined]

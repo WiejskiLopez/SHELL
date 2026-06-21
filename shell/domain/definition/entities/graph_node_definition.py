@@ -24,7 +24,6 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
         "no_ask_user",
         "autopilot",
         "status_initial",
-        "extra",
         "script",
         "script_type",
     )
@@ -45,7 +44,6 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
         no_ask_user: bool = False,
         autopilot: bool = False,
         status_initial: str = "",
-        extra: dict[str, object] | None = None,
         script: str = "",
         script_type: str = "",
     ) -> None:
@@ -63,6 +61,5 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
         self.no_ask_user = no_ask_user
         self.autopilot = autopilot
         self.status_initial = status_initial
-        self.extra = extra or {}
         self.script = script
         self.script_type = script_type

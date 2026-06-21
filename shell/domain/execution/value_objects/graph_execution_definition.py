@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from shell.domain.platform.base.value_object import ValueObject
 
@@ -21,7 +20,6 @@ class GraphNodeExecutionDefinition(ValueObject):
     no_ask_user: bool
     autopilot: bool
     status_initial: str
-    extra: dict[str, Any]
     script: str
     script_type: str
 

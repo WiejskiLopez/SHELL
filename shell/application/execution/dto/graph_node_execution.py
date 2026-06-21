@@ -12,5 +12,3 @@ class GraphNodeExecutionDto:
     node_type: str
     model: str
     command: str
-    sub_graph_definition_id: str | None = None
-    sub_graph_definition_version: int | None = None

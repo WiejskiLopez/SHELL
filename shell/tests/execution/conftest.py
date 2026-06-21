@@ -400,7 +400,7 @@ async def session_factory(
 ) -> async_sessionmaker:
     db = tmp_path_factory.mktemp("sqlite") / "test.db"
     url = f"sqlite+aiosqlite:///{db}"
-    await bootstrap_database(url)
+    await bootstrap_database(ShellConfig(database_url=url))
     return build_session_factory(url)
 
 
@@ -448,12 +448,13 @@ def pytest_collection_modifyitems(config, items):
 import pathlib
 
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 
 async def _make_app(tmp_path: pathlib.Path):
     from shell.framework.platform.api.app import create_app
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-    core_container = await ApplicationFactory(database_url=db_url).build()
+    core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
     return create_app(core_container)
 
 
@@ -473,7 +474,7 @@ async def _make_app(tmp_path: pathlib.Path):
     from shell.framework.platform.api.app import create_app
 
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-    core_container = await ApplicationFactory(database_url=db_url).build()
+    core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
     return create_app(core_container)
 
 

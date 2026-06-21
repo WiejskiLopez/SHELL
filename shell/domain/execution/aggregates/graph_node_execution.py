@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.domain.execution.entities.graph_node_execution_input_payload import (
     GraphNodeExecutionInputPayload,  # noqa: TC002 — GraphNodeExecutionInputPayload używany w konstruktorze i typach propertisów GraphNodeExecution
@@ -42,12 +42,9 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "task_execution_id",
         "source_dir",
         "status_initial",
-        "sub_graph_definition_id",
-        "sub_graph_definition_version",
         "timeout_seconds",
         "max_retries",
         "retry_delay_seconds",
-        "extra",
         "_input_payloads",
         "_output_payloads",
     )
@@ -70,12 +67,9 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         task_execution_id: str = "",
         source_dir: str = "",
         status_initial: str = "",
-        sub_graph_definition_id: str | None = None,
-        sub_graph_definition_version: int | None = None,
         timeout_seconds: int = 0,
         max_retries: int = 0,
         retry_delay_seconds: int = 0,
-        extra: dict[str, Any] | None = None,
         graph_execution_id: GraphExecutionId | None = None,
         input_payloads: list[GraphNodeExecutionInputPayload] | None = None,
         output_payloads: list[GraphNodeExecutionOutputPayload] | None = None,
@@ -97,12 +91,9 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self.task_execution_id = task_execution_id
         self.source_dir = source_dir
         self.status_initial = status_initial
-        self.sub_graph_definition_id = sub_graph_definition_id
-        self.sub_graph_definition_version = sub_graph_definition_version
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.retry_delay_seconds = retry_delay_seconds
-        self.extra = extra or {}
         self._input_payloads = list(input_payloads) if input_payloads else []
         self._output_payloads = list(output_payloads) if output_payloads else []
 

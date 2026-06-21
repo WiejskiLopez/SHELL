@@ -20,6 +20,7 @@ __all__ = [
     "build_session_factory",
     "get_session",
     "run_migrations",
+    "reset_database",
     "seed_base_data",
 ]
 
@@ -54,6 +55,48 @@ async def run_migrations(url: str) -> None:
     alembic_cfg.set_main_option("sqlalchemy.url", url)
     script_location = str(Path(_ALEMBIC_INI).parent / "infrastructure" / "platform" / "persistence" / "migrations" / "sql")
     alembic_cfg.set_main_option("script_location", script_location)
+    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+
+
+async def reset_database(url: str) -> None:
+    """Drop all tables and re-create schema from scratch.
+
+    For SQLite: deletes the database file and builds from scratch.
+    For PostgreSQL: drops all user tables and rebuilds via alembic.
+
+    Use with SHELL_RESET_DB=true for a clean development database.
+    """
+    import asyncio
+    import os
+
+    from alembic import command
+    from alembic.config import Config
+
+    alembic_cfg = Config(_ALEMBIC_INI)
+    alembic_cfg.set_main_option("sqlalchemy.url", url)
+    script_location = str(Path(_ALEMBIC_INI).parent / "infrastructure" / "platform" / "persistence" / "migrations" / "sql")
+    alembic_cfg.set_main_option("script_location", script_location)
+
+    if "sqlite" in url:
+        # SQLite: just delete the file — cleanest reset
+        from sqlalchemy import make_url
+
+        parsed = make_url(url)
+        db_path = parsed.database
+        if db_path and os.path.exists(db_path):
+            os.remove(db_path)
+    else:
+        # PostgreSQL / other: drop all user tables via metadata
+        from shell.infrastructure.platform.persistence.sql.models import Base
+        from sqlalchemy import text
+
+        engine = create_async_engine(url, echo=False, future=True)
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
+        await engine.dispose()
+
+    # Re-create everything with migrations
     await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
 
 

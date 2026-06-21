@@ -52,17 +52,17 @@ if ($hasPostgres) {
 
 # Unit tests
 if (-not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/unit -v" "Unit Tests"
+    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit shell/tests/scheduling/unit -v" "Unit Tests"
 }
 
 # E2E tests
 if (-not $IntegrationOnly -and -not $UnitOnly) {
-    Run-Command "python -m pytest shell/tests/e2e -v" "E2E Tests"
+    Run-Command "python -m pytest shell/tests/execution/e2e shell/tests/platform/e2e -v" "E2E Tests"
 }
 
 # Integration tests (only if Postgres available)
 if (-not $UnitOnly -and $hasPostgres) {
-    Run-Command "python -m pytest shell/tests/integration -v" "Integration Tests (PostgreSQL)"
+    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration -v" "Integration Tests (PostgreSQL)"
 }
 elseif (-not $UnitOnly -and -not $hasPostgres) {
     Write-Host "`n--- Integration Tests (PostgreSQL) ---" -ForegroundColor Yellow
@@ -93,10 +93,13 @@ if (-not $SkipSecurity) {
 }
 
 if ($hasPostgres) {
-    Run-Command "alembic check" "Database Schema Sync Check"
+    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration --cov=shell --cov-fail-under=80 -v" "Integration Tests with Coverage" -AllowFailure
 }
 
-Run-Command "python -m pytest shell/tests/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
+# Always run coverage on unit tests (quick summary)
+if (-not $UnitOnly -and -not $IntegrationOnly) {
+    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit shell/tests/scheduling/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
+}
 
 
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green

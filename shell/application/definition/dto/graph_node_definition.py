@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +19,5 @@ class GraphNodeDefinitionDto:
     no_ask_user: bool = False
     autopilot: bool = False
     status_initial: str = ""
-    extra: dict[str, Any] = field(default_factory=dict)
     script: str = ""
     script_type: str = ""

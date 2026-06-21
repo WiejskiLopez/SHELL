@@ -733,7 +733,6 @@ def graph_node_definition_model_to_entity(
         no_ask_user=bool(graph_node_definition_model.no_ask_user),
         autopilot=bool(graph_node_definition_model.autopilot),
         status_initial=graph_node_definition_model.status_initial,
-        extra=dict(graph_node_definition_model.extra or {}),
         script=graph_node_definition_model.script or "",
         script_type=graph_node_definition_model.script_type or "",
     )
@@ -759,7 +758,6 @@ def graph_node_definition_entity_to_model(
         no_ask_user=graph_node_definition.no_ask_user,
         autopilot=graph_node_definition.autopilot,
         status_initial=graph_node_definition.status_initial,
-        extra=graph_node_definition.extra,
         script=graph_node_definition.script,
         script_type=graph_node_definition.script_type,
     )

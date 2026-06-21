@@ -91,8 +91,6 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                     no_ask_user=node_def.no_ask_user,
                     autopilot=node_def.autopilot,
                     status_initial=node_def.status_initial,
-                    extra=dict(node_def.extra),
-                    sub_graph_definition_id=node_def.extra.get("sub_graph_definition_id"),
                     timeout_seconds=node_def.timeout,
                     max_retries=node_def.retries,
                 )

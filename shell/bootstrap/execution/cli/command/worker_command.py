@@ -5,18 +5,23 @@ import asyncio
 from argparse import (
     Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
 )
+from typing import TYPE_CHECKING
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+
+if TYPE_CHECKING:
+    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 
 class WorkerCommand(RunnableCommand):
     """Long-running APScheduler job runner."""
 
     async def run(self, args: Namespace) -> None:
-        print(f"[scheduler] starting with database: {args.db_url}")
+        config: ShellConfig = args.shell_config
+        print(f"[scheduler] starting with database: {config.database_url}")
 
-        core_container = await ApplicationFactory(database_url=args.db_url).build()
+        core_container = await ApplicationFactory(config).build()
 
         scheduler = core_container.scheduler_service()
 

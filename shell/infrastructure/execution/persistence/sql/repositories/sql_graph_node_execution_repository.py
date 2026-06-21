@@ -106,12 +106,9 @@ def _graph_node_execution_model_to_entity(
         task_execution_id=model.task_execution_id,
         source_dir=model.source_dir,
         status_initial=model.status_initial,
-        sub_graph_definition_id=model.sub_graph_definition_id,
-        sub_graph_definition_version=model.sub_graph_definition_version,
         timeout_seconds=model.timeout_seconds,
         max_retries=model.max_retries,
         retry_delay_seconds=model.retry_delay_seconds,
-        extra=dict(model.extra),
         graph_execution_id=(
             GraphExecutionId(model.graph_execution_id)
             if model.graph_execution_id
@@ -148,12 +145,9 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         task_execution_id=node.task_execution_id,
         source_dir=node.source_dir,
         status_initial=node.status_initial,
-        sub_graph_definition_id=node.sub_graph_definition_id,
-        sub_graph_definition_version=node.sub_graph_definition_version,
         timeout_seconds=node.timeout_seconds,
         max_retries=node.max_retries,
         retry_delay_seconds=node.retry_delay_seconds,
-        extra=node.extra,
     )
     model.input_payload_models = [
         GraphNodeExecutionInputPayloadModel(

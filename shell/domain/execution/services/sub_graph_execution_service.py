@@ -93,7 +93,7 @@ class SubGraphExecutionService:
                 )
 
         # ── Versioning: resolve definition ────────────────────────────────
-        version = parent_tasker_node.sub_graph_definition_version
+        version = None
         if self._versioning is not None:
             graph_definition = await self._versioning.resolve_definition(
                 definition_id=graph_definition_id,
@@ -133,8 +133,6 @@ class SubGraphExecutionService:
                 no_ask_user=node_def.no_ask_user,
                 autopilot=node_def.autopilot,
                 status_initial=node_def.status_initial,
-                extra=dict(node_def.extra),
-                sub_graph_definition_id=node_def.extra.get("sub_graph_definition_id"),
                 timeout_seconds=node_def.timeout,
                 max_retries=node_def.retries,
                 graph_execution_id=sub_graph_execution_id,
