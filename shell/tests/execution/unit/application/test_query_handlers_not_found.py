@@ -10,7 +10,9 @@ from shell.application.platform.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
     GetWorkflowHandler,
 )
-from shell.infrastructure.platform.persistence.memory import InMemoryQueryServices
+from shell.infrastructure.platform.persistence.memory import (
+    InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
+)
 
 
 class TestQueryHandlersNotFound:

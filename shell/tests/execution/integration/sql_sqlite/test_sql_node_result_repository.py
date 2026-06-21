@@ -17,11 +17,13 @@ from shell.application.platform.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence import (
+    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+)
 from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeEventPublisher,
-    FakeIdGenerator,
+    FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
+    FakeEventPublisher,  # noqa: TC002 — FakeEventPublisher używany w sygnaturach fixture'ów pytest
+    FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
 )
 
 if TYPE_CHECKING:

@@ -5,7 +5,9 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze i typach propertisów GraphNodeExecution
+)
 from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
     GraphNodeExecutionStateInput,  # noqa: TC002 — GraphNodeExecutionStateInput używany w konstruktorze i typach propertisów GraphNodeExecution
 )

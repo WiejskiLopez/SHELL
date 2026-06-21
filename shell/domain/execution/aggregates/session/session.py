@@ -10,7 +10,9 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.value_objects.ids import CorrelationId
-from shell.domain.execution.aggregates.session.value_objects.ids.message_id import MessageId
+from shell.domain.execution.aggregates.session.value_objects.ids.message_id import (
+    MessageId,  # noqa: TC002 — MessageId używany w konstruktorze i typach propertisów Session
+)
 
 
 class Session(AggregateRoot[SessionId]):

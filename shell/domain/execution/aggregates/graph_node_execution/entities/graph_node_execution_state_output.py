@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
-    GraphNodeExecutionId,
+    GraphNodeExecutionId,  # noqa: TC002 — GraphNodeExecutionId używany w konstruktorze i typach propertisów
 )
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_output_id import (
     GraphNodeExecutionStateOutputId,

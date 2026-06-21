@@ -19,11 +19,15 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.ports.identity import IdGenerator
-from shell.domain.execution.aggregates.graph_execution.graph_execution_id import GraphExecutionId
+from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze i typach propertisów GraphExecution
+)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
+from shell.domain.execution.aggregates.task_execution.task_execution_id import (
+    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorze i typach propertisów GraphExecution
+)
 
 
 class GraphExecution(AggregateRoot["GraphExecutionId"]):

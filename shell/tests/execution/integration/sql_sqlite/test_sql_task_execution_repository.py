@@ -13,7 +13,9 @@ from shell.application.platform.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
 )
 from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence import (
+    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,

@@ -77,7 +77,7 @@ if (-not $SkipLint) {
 
 # Type check (mypy) - only if not skipped
 if (-not $SkipTypeCheck) {
-    Run-Command "python -m mypy shell" "Type Check (mypy)" -AllowFailure
+    Run-Command "python -m mypy --config-file shell/pyproject.toml shell" "Type Check (mypy)" -AllowFailure
 }
 
 if (-not $SkipArchCheck) {

@@ -71,6 +71,7 @@ runtime-evaluated-base-classes = [
 [tool.mypy]
 python_version = "3.11"
 strict = true
+explicit_package_bases = true
 exclude = []
 
 # Strict mode applies only to domain + application (Clean Architecture core).

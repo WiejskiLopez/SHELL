@@ -15,7 +15,9 @@ from shell.application.platform.commands.commands import (
 from shell.application.platform.queries.queries import GetWorkflowQuery
 from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+from shell.infrastructure.platform.persistence import (
+    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,

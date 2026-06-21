@@ -10,10 +10,10 @@ from shell.application.platform.queries.queries import SearchSimilarQuery
 from shell.application.platform.query_handlers.query_handlers import SearchSimilarHandler
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeIdGenerator,
-    InMemoryQueryServices,
-    InMemoryUnitOfWork,
+    FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
+    FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
+    InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
+    InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
 )
 
 

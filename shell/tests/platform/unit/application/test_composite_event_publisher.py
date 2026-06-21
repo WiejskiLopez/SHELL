@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock
 
-from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.events import (
+    DomainEvent,  # noqa: TC002 — DomainEvent używany w typowaniu listy eventów
+)
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
 from shell.tests.conftest import _task_imported
 

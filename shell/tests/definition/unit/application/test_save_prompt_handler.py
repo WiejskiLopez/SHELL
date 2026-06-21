@@ -7,10 +7,10 @@ from shell.application.platform.commands.commands import SavePromptCommand
 from shell.application.platform.queries.queries import GetPromptQuery
 from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
 from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
-    FakeIdGenerator,
-    InMemoryQueryServices,
-    InMemoryUnitOfWork,
+    FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
+    FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
+    InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
+    InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
 )
 
 

@@ -5,8 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.definition.persistence.sql.services import RagQueryService
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import FakeClock, FakeIdGenerator
+from shell.infrastructure.platform.persistence import (
+    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+)
+from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
+    FakeClock,
+    FakeIdGenerator,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
