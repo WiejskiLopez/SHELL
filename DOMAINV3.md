@@ -1,8 +1,6 @@
 # Domain Architecture v3 — SHELL
 
-> **Cel V3:** czysty, enterprise-grade flow oparty na `DOMAINV2.md` + opisie funkcjonalnym.
-> Tam gdzie opis funkcjonalny i V2 są spójne — trzymam się projektu.
-> Tam gdzie jest **nawet najmniejszy logiczny rozdźwięk** — trzymam się zasad enterprise (DDD + Event-Driven + CQRS-read).
+> **Cel:** czysty, enterprise-grade flow oparty na opisie funkcjonalnym i zasadach enterprise (DDD + Event-Driven + CQRS-read).
 >
 > **Zasada redakcyjna:** tylko to, co musi istnieć, by maszyneria ruszyła. Encje, agregaty, eventy, maszyny stanów, reguły. Bez opisów implementacji infrastruktury.
 
@@ -10,20 +8,20 @@
 
 ## 0. Decyzje architektoniczne (rozstrzygnięcia rozdźwięków)
 
-Zanim opiszę model, фиксuję decyzje, w których opis funkcjonalny i V2 się nie zgadzają. Enterprise rules wygrywają.
+Zanim opiszę model, фиксuję kluczowe decyzje architektoniczne.
 
-| # | Rozdźwięk | Decyzja V3 | Uzasadnienie (enterprise) |
+| # | Wymaganie | Decyzja | Uzasadnienie (enterprise) |
 |---|-----------|-----------|---------------------------|
-| **D1** | Opis: *"wszystkie nody mają skille"* vs V2: skille tylko na Session/Workflow/Task/Agent. | **Skille są wszędzie**: User, Project, Session, Workflow, TaskExecution, GraphExecution, AgentExecution. Każdy poziom może je **dziedziczyć i rozszerzać**. | Opis definiuje kontrakt domenowy. Spójny model dziedziczenia skilli = jeden mechanizm freeze-and-snapshot na wszystkich poziomach. |
-| **D2** | Opis: *"krawędzie podejmują decyzje, edge emituje eventy decyzyjne; node emituje komunikacyjne"* vs V2: przejścia w edge, ale eventy głównie z nodów. | **Dualna odpowiedzialność**: Node emituje `*NodeExecution*Event` (co się stało, jaki result). Edge emituje `*Transition*Event` (jaka decyzja routingowa, co dalej). Node NIE decyduje o routing — to Edge. | Single Responsibility. Node = "wykonałem pracę", Edge = "zdecydowałem o przepływie". |
-| **D3** | Opis: *"eventy komunikacyjne zawsze obsługiwane przed decyzyjnymi — decyzja wymaga poprawnych danych"* vs V2: brak tego wymogu. | **Kolejka dwuwarstwowa**: warstwa komunikacyjna (state changes) jest przetwarzana pierwsza; warstwa decyzyjna (routing) jest ewaluowana gdy inbox komunikacyjny dla danego noda jest pusty. | Eventualna konsystencja z gwarancją: decyzja nigdy na nieświeżych danych. |
-| **D4** | Opis: *"input/output stage na każdym poziomie (node, graph, task, workflow, session, user, project)"* vs V2: state_input/output tylko na GraphExecution. | **Stage I/O wszędzie, jako osobne tabele per agregat**: każdy agregat ma własne `*StateInput` (dostaje) i `*StateOutput` (generuje) z FK do roota — bez polimorficznego dyskryminatora. Reguła propagacji: output dziecka → input rodzica. | Jednolity kontrakt danych, pełna integralność referencyjna (FK+CASCADE), symetrycznie do wzorca `*Skill`. |
-| **D5** | V2: zagnieżdżone sub-grafy rekurencyjne + rekursywne `SubGraphSettledEvent`. | Zachowane, ale z **jawnym limitem `max_subgraph_depth`** i zakazem samozawołań cyklicznych między grafami. | Ochrona przed nieskończoną rekurencją. |
-| **D6** | V2 §16: PARALLEL jako współbieżne nody wewnątrz grafu vs Sub-graf. | **Brak PARALLEL/JOIN**. Graf to pipeline sekwencyjny — nodów w grafie nie dodaje się dynamicznie; definiuje je PLANNER w fazie planowania. Współbieżność i podział pracy = **wyłącznie** spawn 1..N sub-grafów. | Jeden mechanizm współbieżności (sub-grafy); każda jednostka ma pełny cykl życiowy, własną weryfikację i własny stan. |
-| **D7** | V2: replan jako nowy GraphExecution z `parent=None` + `current_cycle` na TaskExecution. | Zachowane. **Kluczowe**: jedynym ogranicznikiem replanu jest `max_planning_cycles`. Każdy FAILED rundy głównej → replan. | Brak flagi "replanowalności" = mniej stanu ukrytego. |
+| **D1** | Opis: *"wszystkie nody mają skille"*. | **Skille są wszędzie**: User, Project, Session, Workflow, TaskExecution, GraphExecution, AgentExecution. Każdy poziom może je **dziedziczyć i rozszerzać**. | Opis definiuje kontrakt domenowy. Spójny model dziedziczenia skilli = jeden mechanizm freeze-and-snapshot na wszystkich poziomach. |
+| **D2** | Opis: *"krawędzie podejmują decyzje, edge emituje eventy decyzyjne; node emituje komunikacyjne"*. | **Dualna odpowiedzialność**: Node emituje `*NodeExecution*Event` (co się stało, jaki result). Edge emituje `*Transition*Event` (jaka decyzja routingowa, co dalej). Node NIE decyduje o routing — to Edge. | Single Responsibility. Node = "wykonałem pracę", Edge = "zdecydowałem o przepływie". |
+| **D3** | Opis: *"eventy komunikacyjne zawsze obsługiwane przed decyzyjnymi — decyzja wymaga poprawnych danych"*. | **Kolejka dwuwarstwowa**: warstwa komunikacyjna (state changes) jest przetwarzana pierwsza; warstwa decyzyjna (routing) jest ewaluowana gdy inbox komunikacyjny dla danego noda jest pusty. | Eventualna konsystencja z gwarancją: decyzja nigdy na nieświeżych danych. |
+| **D4** | Opis: *"input/output stage na każdym poziomie (node, graph, task, workflow, session, user, project)"*. | **Stage I/O wszędzie, jako osobne tabele per agregat**: każdy agregat ma własne `*StateInput` (dostaje) i `*StateOutput` (generuje) z FK do roota — bez polimorficznego dyskryminatora. Reguła propagacji: output dziecka → input rodzica. | Jednolity kontrakt danych, pełna integralność referencyjna (FK+CASCADE), symetrycznie do wzorca `*Skill`. |
+| **D5** | Zagnieżdżone sub-grafy rekurencyjne + rekursywne `SubGraphSettledEvent`. | Zachowane, ale z **jawnym limitem `max_subgraph_depth`** i zakazem samozawołań cyklicznych między grafami. | Ochrona przed nieskończoną rekurencją. |
+| **D6** | Dylemat: PARALLEL jako współbieżne nody wewnątrz grafu vs Sub-graf. | **Brak PARALLEL/JOIN**. Graf to pipeline sekwencyjny — nodów w grafie nie dodaje się dynamicznie; definiuje je PLANNER w fazie planowania. Współbieżność i podział pracy = **wyłącznie** spawn 1..N sub-grafów. | Jeden mechanizm współbieżności (sub-grafy); każda jednostka ma pełny cykl życiowy, własną weryfikację i własny stan. |
+| **D7** | Replan jako nowy GraphExecution z `parent=None` + `current_cycle` na TaskExecution. | Zachowane. **Kluczowe**: jedynym ogranicznikiem replanu jest `max_planning_cycles`. Każdy FAILED rundy głównej → replan. | Brak flagi "replanowalności" = mniej stanu ukrytego. |
 | **D8** | Opis: *"Workflow zbiera podsumowania tasków, mogą być wejściem do kolejnego tasku"*. | **Workflow ma własny `WorkflowStateOutput`** = agregat podsumowań zakończonych tasków. | Workflow jest realnym agregatem zbierającym artefakty, nie tylko kontenerem. |
-| **D9** | V2: GraphExecution bez skilli. | **GraphExecution ma własne skille** (dziedziczone z TaskExecution + rozszerzenia od PLANNERA). | Spójność z D1 — każdy poziom executionowy ma skille. |
-| **D10** | V2: User/Project tylko referencje w Session. | **`User` i `Project` jako agregaty persistentne** (poza sesją), z własnymi skillami i state. Session tylko snapshotuje ich skille. | Źródło prawdy o userze/projekcie żyje poza sesją; Session jest zamrożonym snapshotem wykonania. |
+| **D9** | GraphExecution wymaga własnych skili. | **GraphExecution ma własne skille** (dziedziczone z TaskExecution + rozszerzenia od PLANNERA). | Spójność z D1 — każdy poziom executionowy ma skille. |
+| **D10** | User/Project wymagają własnych agregatów persistentnych. | **`User` i `Project` jako agregaty persistentne** (poza sesją), z własnymi skillami i state. Session tylko snapshotuje ich skille. | Źródło prawdy o userze/projekcie żyje poza sesją; Session jest zamrożonym snapshotem wykonania. |
 
 ---
 
@@ -776,24 +774,7 @@ Mogą być dodawane warstwowo bez wpływu na agregaty rdzenia.
 
 ---
 
-## 19. Co V3 naprawia vs V2 (skrócone)
-
-| Luka V2 / napięcie z opisem | Naprawa V3 |
-|----------------------------|-----------|
-| Skille tylko na 4 poziomach (opis: wszędzie) | Skille na **każdym** poziomie execution (User, Project, Session, Workflow, Task, Graph, Agent) + dziedziczenie+freeze (D1, §7) |
-| Stage I/O tylko na GraphExecution (opis: wszędzie) | Osobne tabele `*StateInput`/`*StateOutput` per agregat; brak polimorficznego dyskryminatora (D4, §1, §12) |
-| Edge jako "future concept" / eventy mieszane | Edge pełnoprawny agregat; **dualna odpowiedzialność**: node=komunikacyjne, edge=decyzyjne (D2, §11, §13.4) |
-| Brak gwarancji kolejności eventów (opis: komunikacyjne przed decyzyjnymi) | Kolejka dwuwarstwowa w schedulerze (D3, §14) |
-| Workflow tylko kontener (opis: agregat artefaktów) | `WorkflowStateOutput` jako agregat podsumowań (D8, §6) |
-| Rekurencja sub-grafów bez limitu | `max_subgraph_depth` + `depth` (D5, §9.1, §15.4) |
-| `config_snapshot` nieaudytowalny | Snapshot configu na `AgentExecution` (§10.3) |
-| PARALLEL vs SPAWN_SUBGRAPH nieostre | **Usunięto PARALLEL/JOIN** — współbieżność tylko przez `SPAWN_SUBGRAPH` (1..N sub-grafów); graf = pipeline sekwencyjny (D6, §11.2, §11.4) |
-| Nierówne traktowanie skilli przez poziomy | Jeden mechanizm `*Skill` per agregat (§7) |
-| User/Project tylko referencje w Session | `User` i `Project` jako agregaty persistentne ze skillami i state (D10, §3) |
-
----
-
-## 20. Minimalny zestaw do startu maszynerii
+## 19. Minimalny zestaw do startu maszynerii
 
 Aby system ruszył, **muszą istnieć**:
 
