@@ -6,7 +6,7 @@
 > - definiuje pełen katalog eventów i jednoznaczną maszynę stanów,
 > - precyzuje reguły inkrementacji `current_cycle`,
 > - określa zachowanie rodzica przy `FAILED` sub-grafu,
-> - określa domyślną kolejność nodów (PLANNER → AGENT → TOOLS → VERIFIER), z dopuszczeniem niestandardowych przejść przez `GraphNodeTransitionExecution` jako koncept przyszłościowy (§16),
+> - określa domyślną kolejność nodów (PLANNER → AGENT → TOOLS → VERIFIER), z niestandardowymi przejściami przez `GraphNodeTransitionExecution` jako mechanizm decyzyjny krawędzi grafu (§16),
 > - usuwa sztuczną flagę `replanable` — każdy FAILED idzie do replanu, jedynym ograniczeniem jest `max_planning_cycles`.
 
 ---
@@ -74,6 +74,7 @@ Session
  ├── id
  ├── user_id
  ├── project_id
+ ├── status: OPEN | CLOSED
  ├── opened_at
  └── closed_at (nullable)
 ```
@@ -109,7 +110,7 @@ AgentConfigExecution
 ```
 
 - **`session_id` ma CONSTRAINT UNIQUE** — wymuszone na poziomie bazy, że na jedną sesję przypada co najwyżej jeden `AgentConfigExecution`. Próba INSERT drugiego rekordu dla tego samego `session_id` → błąd bazy (np. `UNIQUE constraint failed`).
-- Gdy `GraphNodeExecution(role=AGENT)` tworzy `AgentExecution`, config jest pobierany z jedynego `AgentConfigExecution` dla `session_id`.
+- `AgentConfigExecution` jest źródłem configu LLM dla **wszystkich nodów typu LLM** — zarówno `PLANNER` jak i `AGENT`. Gdy `GraphNodeExecution(role=AGENT)` tworzy `AgentExecution`, config jest pobierany z jedynego `AgentConfigExecution` dla `session_id`.
 - Pierwszy INSERT dla sesji tworzy rekord; kolejne zmiany konfiguracji w ramach sesji to **UPDATE** istniejącego rekordu, nie INSERT (append-only nie ma tu sensu — chcemy jednego aktualnego configu).
 - Jeśli sesja nie ma jeszcze rekordu → agent używa configu domyślnego (zdefiniowanego w kodzie) LUB tworzenie agenta failuje (decyzja implementacyjna; zalecane: domyślny config).
 
@@ -155,19 +156,34 @@ Workflow
  ├── architecture_skill.payload
  └── requirement_skill.payload
      │
-     ▼ (snapshot w momencie tworzenia TaskExecution)
-TaskExecution
- └── skills: List[SkillSnapshot]   # FROZEN kopia skilli z Session+Workflow
+     ▼ (kopia w momencie tworzenia TaskExecution)
+TaskExecutionSkill
+ └── task_execution_id, payload  # zamrożona kopia skilli z Session+Workflow
      │
-     ▼ (PLANNER/AGENT czytają bezpośrednio z TaskExecution.skills)
+     ▼ (PLANNER/AGENT czytają bezpośrednio z TaskExecutionSkill po task_execution_id)
 GraphNodeExecution(role=AGENT)
  └── AgentExecution
       └── AgentSkillExecution (append-only archive — co agent faktycznie dostał)
 ```
 
-**Reguły snapshotów:**
-- `TaskExecution.skills` to **frozen snapshot** z momentu utworzenia TaskExecution (z Session + Workflow). Zmiany skilli w sesji/workflow po utworzeniu TaskExecution nie wpływają na to zadanie.
-- `AgentSkillExecution` jest archiwum — zapisywane w momencie uruchomienia agenta, dokładnie to, co agent otrzymał (subset z `TaskExecution.skills` wybrany przez Planera).
+**Reguły:**
+- W momencie utworzenia `TaskExecution` wszystkie skille z `Session` + `Workflow` są kopiowane do tabeli `TaskExecutionSkill` (jeden wiersz na skill). Zmiany w sesji/workflow po utworzeniu `TaskExecution` nie wpływają na to zadanie.
+- `AgentSkillExecution` jest archiwum — zapisywane w momencie uruchomienia agenta, dokładnie to, co agent otrzymał (subset z `TaskExecutionSkill` wybrany przez Planera).
+
+### 6.1 TaskExecutionSkill — zamrożone skille zadania
+
+```
+TaskExecutionSkill
+ ├── id: str (PK)
+ ├── task_execution_id: str (FK → task_execution.id CASCADE)
+ ├── skill_source: str          # "session.user" | "session.project" | "workflow.project" | "workflow.architecture" | "workflow.requirement"
+ ├── payload: JSON
+ └── created_at: datetime
+```
+
+- Append-only: wiersze są dodawane w momencie utworzenia `TaskExecution` i nigdy nie są modyfikowane.
+- `skill_source` określa pochodzenie (dla audytowalności).
+- PLANNER/AGENT czytają skille zadania przez query po `task_execution_id`.
 
 ## 7. TaskExecution — cykl życia
 
@@ -179,12 +195,10 @@ TaskExecution
  ├── workflow_id
  ├── name: str                        # nazwa zadania (z importu/API)
  ├── description: str                 # cel zadania (z pierwszego StateInput)
- ├── skills: List[SkillSnapshot]      # FROZEN snapshot skilli
  ├── max_planning_cycles: int         # limit rund głównych (np. 5)
  ├── current_cycle: int               # liczba rozpoczętych rund głównych
  ├── status: CREATED | IN_PROGRESS | COMPLETED | FAILED | EXHAUSTED
  ├── work_dir: str                    # katalog roboczy zadania
- ├── hash: Hash                       # skrót treści zadania
  └── state_inputs: List[TaskExecutionStateInput]  # append-only log payloadów
 ```
 
@@ -310,7 +324,7 @@ PLANNER (order=0) → AGENT (order=1, opcjonalny) → TOOLS (order=2, opcjonalny
 - Jeśli `role=AGENT` → `agent_execution_id` wskazuje na `AgentExecution`. W przeciwnym razie `agent_execution_id=None`.
 - VERIFIER może zakończyć graf `COMPLETED` (OK) lub `FAILED` (FAIL → replan w TaskExecution, patrz §12).
 
-**Niestandardowe przejścia:** dla przypadków wymagających rozgałęzień, pętli, warunków lub równoległości, routing między nodami może być definiowany przez `GraphNodeTransitionExecution` (patrz §16 — koncept przyszłościowy). Domyślny pipeline liniowy jest szczególnym przypadkiem takiego grafu.
+**Niestandardowe przejścia:** dla przypadków wymagających rozgałęzień, pętli, warunków lub równoległości, routing między nodami jest definiowany przez `GraphNodeTransitionExecution` (patrz §16). Domyślny pipeline liniowy jest szczególnym przypadkiem — automatycznie tworzy `SEQUENCE` krawędzie między kolejnymi nodami.
 
 ### 9.3 AgentExecution i AgentSkillExecution
 
@@ -335,6 +349,13 @@ AgentSkillExecution
 - `skill_source` określa pochodzenie (dla audytowalności).
 
 ## 10. Katalog eventów (kompletny)
+
+**Własność eventów:** Każdy event jest własnością agregatu, który go emituje:
+- `TaskExecution*Event` → `TaskExecution`
+- `GraphExecution*Event` → `GraphExecution`
+- `GraphNodeExecution*Event` → `GraphNodeExecution`
+
+To oznacza, że event jest zapisywany w outboxie w tej samej transakcji co zmiana stanu agregatu. Inne agregaty mogą nasłuchiwać (subskrybować) eventy innych agregatów, ale nie są ich właścicielami.
 
 ### 10.1 TaskExecution
 
@@ -551,41 +572,100 @@ PLANNER G1:
 | WAITING "nigdzie nie zapisywany" | Jawny stan w maszynie (§8.2) |
 | Brak limitu rekurencji sub-grafów | `max_subgraph_depth` (§11.4) |
 | Sub-grafy mogły replanować wewnętrznie (niejednoznaczne) | Sub-grafy NIE replanują — failure bubluje do parent PLANNER (§11.3) |
+| GraphNodeTransitionExecution jako "future concept" | Transitions są pełnoprawną częścią V2 (§16); SEQUENCE/CONDITIONAL/PARALLEL/JOIN/LOOP/ERROR_HANDLER/TIMEOUT/DEFAULT |
+| TaskExecution.skills jako embedded List[SkillSnapshot] | TaskExecution to osobna tabela `TaskExecutionSkill` (§6.1); brak embedded snapshotów |
+| hash na TaskExecution | Usunięty — deduplikacja poza zakresem V2 |
+| Session.goal istniał | Usunięty — cel zadania w TaskExecution.description |
+| AgentConfigExecution tylko dla AGENT | AgentConfigExecution dla wszystkich nodów LLM (PLANNER + AGENT) (§4) |
+| Eventy bez określonego ownershipu | Każdy event należy do emitenta (§10) — GraphExecution*, GraphNodeExecution*, TaskExecution* |
+| Session bez statusu | Dodany status OPEN/CLOSED (§3) |
 
 ---
 
-## 16. Koncepty przyszłościowe (poza zakresem V2)
+## 16. GraphNodeTransitionExecution — krawędzie grafu
 
-Poniższe koncepty istnieją w kodzie i są **ortogonalne** względem modelu V2. Nie są częścią podstawowej pętli planowania → wykonania → weryfikacji, ale mogą być używane jako rozszerzenia.
+Domyślny pipeline V2 jest liniowy (`order`). Dla przypadków wymagających nie-linearnego przepływu routing między nodami definiowany jest przez `GraphNodeTransitionExecution`. Każda tranzycja łączy `source_node_execution_id` → `target_node_execution_id` i określa typ przejścia.
 
-### 16.1 GraphNodeTransitionExecution — krawędzie grafu
+### 16.1 Typy krawędzi
 
-Domyślny pipeline V2 jest liniowy (`order`). Dla przypadków wymagających nie-linearnego przepływu (rozgałęzienia, pętle, warunki, równoległość, error handling) routing między nodami definiowany jest przez `GraphNodeTransitionExecution`. Każda tranzycja łączy `source_node_execution_id` → `target_node_execution_id` i określa typ przejścia:
+| Typ | Kto podejmuje decyzję | Zachowanie |
+|-----|----------------------|------------|
+| **SEQUENCE** | Domyślna (automat) | Przejście do następnego noda wg `order`. Brak decyzji — pipeline liniowy. |
+| **CONDITIONAL** | AGENT / TOOLS (wynik noda) | Wynik noda zawiera dane dla ewaluacji `condition_expression`. Scheduler ewaluuje warunek na outputcie → różne targety dla `true` / `false`. Np. AGENT zwraca `{"quality": 0.9}` → jeśli `>0.8` idź do VERIFIER, inaczej do PLANNER (popraw). |
+| **PARALLEL** | PLANNER (`GraphPlannedEvent`) | PLANNER określa fork — wiele nodów AGENT/TOOLS uruchamianych współbieżnie w ramach tego samego `GraphExecution`. Różnica od sub-grafów (§11): to nody w bieżącym grafie, nie osobne `GraphExecution`. |
+| **JOIN** | Automat (po PARALLEL) | Sync point. Scheduler nie rusza następnego noda, dopóki wszystkie wejściowe nody (z PARALLEL) nie skończą. Połączone wyniki trafiają do `state_input` target noda. |
+| **LOOP** | PLANNER / AGENT (wynik noda) | Powrót do poprzedniego noda (np. PLANNER) z `state_input` wzbogaconym o wyniki iteracji. Zabezpieczony `max_iterations`. Jeśli przekroczony → VERIFIER z błędem (graf kończy się FAILED). |
+| **ERROR_HANDLER** | Scheduler (automat po FAILED) | Gdy node zakończy się `GraphNodeExecutionFailedEvent`, scheduler sprawdza czy istnieje krawędź `ERROR_HANDLER` → przekierowuje do noda obsługi błędów. Jeśli brak → `GraphExecutionFailedEvent` (standardowy fail). |
+| **TIMEOUT** | Scheduler (po przekroczeniu czasu) | Analogicznie do ERROR_HANDLER, triggerowany przez timeout noda. |
+| **DEFAULT** | Fallback | Gdy żaden warunek CONDITIONAL nie pasuje. |
 
-| Typ | Znaczenie |
-|-----|-----------|
-| `SEQUENCE` | Kolejny node po zakończeniu poprzedniego |
-| `CONDITIONAL` | Przejście warunkowe (zależne od `condition_expression`) |
-| `PARALLEL` | Fork — wiele nodów uruchamianych równolegle |
-| `JOIN` | Sync point — czeka aż wszystkie wejściowe nody się zakończą |
-| `LOOP` | Powrót do poprzedniego noda (iteracja) |
-| `ERROR_HANDLER` | Skok do noda obsługi błędów |
-| `TIMEOUT` | Przejście po przekroczeniu czasu |
-| `DEFAULT` | Fallback gdy żaden warunek nie pasuje |
+### 16.2 Przepływ decyzyjny
 
-Graf zdefiniowany przez `GraphNodeTransitionExecution` nadpisuje domyślny pipeline liniowy. Scheduler używa tranzycji do wyznaczenia następnego noda zamiast `order`.
+```
+GraphNodeExecution zakończony (COMPLETED / FAILED / TIMEOUT)
+    │
+    ▼
+Scheduler pobiera outgoing transitions dla tego noda
+    │
+    ├── Brak tranzycji → koniec pipeline (VERIFIER → GraphExecutionCompletedEvent)
+    │
+    ├── SEQUENCE → uruchom następny node wg order
+    ├── CONDITIONAL → ewaluuj condition_expression na result; wybierz target
+    ├── PARALLEL → uruchom wszystkie targety współbieżnie; czekaj na JOIN
+    ├── LOOP → sprawdź max_iterations; jeśli nie przekroczone → wróć do source noda
+    ├── ERROR_HANDLER → (tylko przy FAILED) przekieruj do error handler noda
+    ├── TIMEOUT → (tylko przy TIMEOUT) przekieruj do timeout handler noda
+    └── DEFAULT → fallback gdy CONDITIONAL nie matchuje
+```
 
-**Powiązane encje:**
+### 16.3 Relacja z sub-grafami
+
+**PARALLEL (nody w tym samym grafie) ≠ spawn sub-grafów (osobne GraphExecution):**
+
+| Aspekt | PARALLEL | Sub-graf |
+|--------|----------|----------|
+| Scope | W ramach bieżącego `GraphExecution` | Nowy `GraphExecution` z własnym PLANNERem |
+| Pipeline | Tylko nody AGENT/TOOLS (współbieżne) | Pełny pipeline PLANNER→...→VERIFIER |
+| Rezultat | Wyniki trafiają do JOIN → następny node | Wyniki trafiają do `SubGraphSettledEvent` → parent PLANNER |
+| Użycie | Współbieżne tool calls / agent calls | Niezależne pod-zadania, human-in-the-loop, analiza |
+
+### 16.4 Powiązane encje
+
 - `GraphNodeTransitionExecution` — tranzycja w ramach wykonania (runtime)
 - `GraphNodeTransitionDefinition` — szablon tranzycji (definicja, wielokrotnego użytku)
 - `GraphDefinition` / `GraphNodeDefinition` — statyczne definicje grafów i nodów, z których runtime instantuje `GraphExecution` / `GraphNodeExecution`
 
-### 16.2 RAG (Retrieval-Augmented Generation)
+---
 
-`RagDocument` i `RagChunk` z embeddingiem służą do wyszukiwania semantycznego (`SearchSimilarQuery`). Używane przez AGENT/PLANNER jako źródło wiedzy. Niezależne od cyklu życia TaskExecution/GraphExecution.
+## 17. Message — wspólny value object dla komunikacji
 
-### 16.3 RunnerConfig
+W domenie wszystkie wiadomości (komendy, eventy, zapytania) używają wspólnego value object:
 
-`RunnerConfig` przechowuje konfiguracje runnerów (np. `kind: "python"`, `body: {"script": "..."}`). Używane przez TOOLS do deterministycznego wykonania. Niezależne od cyklu życia V2.
+```
+Message
+ ├── id: str              # UUID / korrelation ID
+ ├── type: str            # nazwa typu wiadomości
+ ├── payload: dict        # treść
+ ├── occurred_at: datetime
+ └── schema_version: int
+```
 
-> **Zasada:** Żaden z powyższych konceptów nie wpływa na maszynę stanów TaskExecution, GraphExecution, GraphNodeExecution, ani na pętlę replanowania. Są to mechanizmy rozszerzające, które mogą być dodawane warstwowo.
+- `Message` jest value objectem platformy (`shell.domain.platform`), dostępnym dla wszystkich bounded contextów.
+- Mechanizm Envelope (routing, gwarancja dostarczenia, deadletter) jest implementacją w warstwie **infrastruktury**, nie domeny. Domenowy handler pracuje na `Message`, nie na `Envelope`.
+- Scheduler (patrz §13) operuje na `Message` — inbox/outbox to lista `Message` do przetworzenia.
+
+---
+
+## 18. Inne mechanizmy (ortogonalne)
+
+Poniższe koncepty istnieją w kodzie i są **ortogonalne** względem modelu V2. Nie wpływają na maszynę stanów TaskExecution, GraphExecution, GraphNodeExecution, ani na pętlę replanowania.
+
+### 18.1 RAG (Retrieval-Augmented Generation)
+
+`RagDocument` i `RagChunk` z embeddingiem służą do wyszukiwania semantycznego (`SearchSimilarQuery`). Używane przez AGENT/PLANNER jako źródło wiedzy.
+
+### 18.2 RunnerConfig
+
+`RunnerConfig` przechowuje konfiguracje runnerów (np. `kind: "python"`, `body: {"script": "..."}`). Używane przez TOOLS do deterministycznego wykonania.
+
+> **Zasada:** Powyższe mechanizmy są rozszerzeniami — mogą być dodawane warstwowo bez wpływu na rdzeń V2.
