@@ -50,6 +50,20 @@ Infrastruktura (ORM, migracje, repo) + Handlery + Testy — per agregat, równol
 
 ---
 
+## Reguła globalna: Value Objects Only (VO)
+
+> **Źródło:** DOMAINV3.md §19 pkt 9
+>
+> W warstwie domeny **nie używamy typów prymitywnych** (`str`, `int`, `bool`, `dict`, `list`) w polach agregatów, encji, eventów ani sygnaturach metod. Każda dana domenowa musi być opakowana w Value Object:
+> - `str` → `SessionId`, `Goal`, `Description`, `Reason`, `EnvironmentJson`, `IdentityJson`, `RepoUrl`, `WorkDir`, `SkillPayload`, `StatePayload`
+> - `dict` → `SkillPayload`, `StatePayload`, `EnvironmentJson`, `IdentityJson`
+> - `int` → `GraphDepth`, `PlanningCycle`, `NodeOrder`, `MaxPlanningCycles`, `MaxSubgraphDepth`
+> - `bool` → (zastąpione przez enum lub VO z `@validator`)
+>
+> W planie oznaczono `⚠️ VO` przy polach wymagających enkapsulacji.
+
+---
+
 ## ETAP 0 — VALUE OBJECTS + DOMAIN EVENTS
 
 **Czas:** ~2h | **Zależności:** brak | **Ryzyko:** niskie (tylko nowe pliki)
@@ -74,6 +88,10 @@ Dla subdomen `user` i `projekt`:
 |---|------|-------|
 | 0.1.6 | `[NEW]` `shell/domain/user/value_objects/user_id.py` | `UserId` |
 | 0.1.7 | `[NEW]` `shell/domain/projekt/value_objects/project_id.py` | `ProjectId` |
+| 0.1.8 | `[NEW]` `graph_execution/graph_execution_skill_id.py` | `GraphExecutionSkillId` | frozen dataclass, `value: str`, UUID |
+| 0.1.9 | `[NEW]` `task_execution/task_execution_skill_id.py` | `TaskExecutionSkillId` | jw. |
+| 0.1.10 | `[NEW]` `workflow/workflow_skill_id.py` | `WorkflowSkillId` | jw. |
+| 0.1.11 | `[NEW]` `session/session_skill_id.py` | `SessionSkillId` | jw. |
 
 > **✓ Weryfikacja:** `import` każdego ID działa, `isinstance(UserId("..."), UserId)` → True.
 
@@ -85,7 +103,7 @@ Dla subdomen `user` i `projekt`:
 | 0.2.2 | `[NEW]` `execution/value_objects/graph_execution_status.py` | `GraphExecutionStatus` (StrEnum) | `PENDING`, `PLANNING`, `EXECUTING`, `VERIFYING`, `COMPLETED`, `FAILED` |
 | 0.2.3 | `[NEW]` `execution/value_objects/graph_node_execution_status.py` | `GraphNodeExecutionStatus` (StrEnum) | `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `TIMED_OUT` |
 | 0.2.4 | `[NEW]` `execution/value_objects/transition_status.py` | `TransitionStatus` (StrEnum) | `EVALUATED`, `TAKEN`, `SKIPPED` |
-| 0.2.5 | `[NEW]` `execution/value_objects/node_role.py` | `NodeRole` (StrEnum) | `PLANNER`, `AGENT`, `TOOLS`, `VERIFIER` |
+| 0.2.5 | `[NEW]` `execution/value_objects/node_role.py` | `NodeRole` (StrEnum) | `PLANNER`, `AGENT`, `TOOLS`, `VERIFIER` + dowolna `<custom agent role>` (StrEnum extensible) |
 | 0.2.6 | `[NEW]` `execution/value_objects/edge_type.py` | `EdgeType` (StrEnum) | `SEQUENCE`, `CONDITIONAL`, `LOOP`, `SPAWN_SUBGRAPH`, `ERROR_HANDLER`, `TIMEOUT`, `DEFAULT` |
 | 0.2.7 | `[NEW]` `execution/value_objects/session_status.py` | `SessionStatus` (StrEnum) | `OPEN`, `CLOSED` |
 | 0.2.8 | `[NEW]` `execution/value_objects/workflow_status.py` | `WorkflowStatus` (StrEnum) | `ACTIVE`, `COMPLETED`, `ABORTED` |
@@ -93,6 +111,7 @@ Dla subdomen `user` i `projekt`:
 | 0.2.10 | `[NEW]` `execution/value_objects/project_status.py` | `ProjectStatus` (StrEnum) | `ACTIVE`, `ARCHIVED` |
 
 > **✓ Weryfikacja:** każdy StrEnum ma poprawne wartości, `EdgeType` nie zawiera `PARALLEL` ani `JOIN`.
+> **Uwaga:** `EdgeType` zastępuje istniejący `TransitionType` (platform VO). Po ETAPIE 9 wszystkie referencje do `TransitionType` są przeniesione na `EdgeType`, a `TransitionType` usunięty.
 
 ### 0.3 Value objects domenowe
 
@@ -103,7 +122,15 @@ Dla subdomen `user` i `projekt`:
 | 0.3.3 | `[NEW]` `execution/value_objects/planning_cycle.py` | `PlanningCycle` | int >= 0 |
 | 0.3.4 | `[NEW]` `execution/value_objects/max_planning_cycles.py` | `MaxPlanningCycles` | int >= 1 |
 | 0.3.5 | `[NEW]` `execution/value_objects/node_order.py` | `NodeOrder` | int >= 0 |
-| 0.3.6 | `[NEW]` `execution/value_objects/agent_config.py` | `AgentConfig` | frozen dataclass: `model`, `temperature`, `max_tokens`, `top_p` |
+| 0.3.6 | `[NEW]` `execution/value_objects/agent_config.py` | `Config` | frozen dataclass: `model`, `temperature`, `max_tokens`, `top_p` |
+| 0.3.7 | `[NEW]` `execution/value_objects/skill_payload.py` | `SkillPayload` | frozen dataclass, `value: dict` |
+| 0.3.8 | `[NEW]` `execution/value_objects/environment.py` | `Environment` | frozen dataclass: `os`, `runtime`, `cwd` |
+| 0.3.9 | `[NEW]` `execution/value_objects/identity.py` | `Identity` | frozen dataclass, `value: dict` (auth, profil) |
+| 0.3.10 | `[NEW]` `execution/value_objects/task_name.py` | `TaskName` | frozen dataclass, `value: str`, niepuste |
+| 0.3.11 | `[NEW]` `execution/value_objects/task_description.py` | `TaskDescription` | frozen dataclass, `value: str` |
+| 0.3.12 | `[NEW]` `execution/value_objects/work_dir.py` | `WorkDir` | frozen dataclass, `value: str`, istniejący katalog |
+| 0.3.13 | `[NEW]` `shell/domain/projekt/value_objects/project_name.py` | `ProjectName` | frozen dataclass, `value: str`, niepuste |
+| 0.3.14 | `[NEW]` `shell/domain/projekt/value_objects/repo_url.py` | `RepoUrl` | frozen dataclass, `value: str | None` |
 
 > **✓ Weryfikacja:** `GraphDepth(-1)` rzuca `ValueError`. `MaxSubgraphDepth()` → default=5.
 
@@ -111,11 +138,11 @@ Dla subdomen `user` i `projekt`:
 
 | # | Plik | Zmiana |
 |---|------|--------|
-| 0.4.1 | `[MOD]` `platform/value_objects/transition_type.py` — `TransitionType` | Usuń `parallel`, `join`. Dodaj `spawn_subgraph`. Brakujące typy już ma (`sequence`, `conditional`, `error_handler`, `loop`, `timeout`, `default`). |
+| 0.4.1 | `[MOD]` `platform/value_objects/transition_type.py` — `TransitionType` | Oznacz jako `@deprecated` — zastąpiony przez `EdgeType` (0.2.6). **Nie modyfikuj wartości** — nie usuwaj `parallel`/`join`, nie dodawaj `spawn_subgraph`. Usunięcie w ETAPIE 9 po przepięciu wszystkich referencji na `EdgeType`. |
 | 0.4.2 | `[MOD]` `platform/value_objects/status.py` — `Status` | Oznacz jako `@deprecated` — zastąpiony przez dedykowane statusy per agregat (0.2.1–0.2.3, 0.2.7, 0.2.8). **Nie usuwaj jeszcze** — używany przez istniejący Workflow. |
 | 0.4.3 | `[MOD]` `platform/value_objects/mode.py` — `Mode` | Oznacz jako `@deprecated` — zastąpiony przez `NodeRole` (0.2.5). **Nie usuwaj jeszcze** — używany przez GraphNodeExecution. |
 
-> **✓ Weryfikacja:** `TransitionType` nie ma `parallel`/`join`, ma `spawn_subgraph`.
+> **✓ Weryfikacja:** `TransitionType` oznaczony `@deprecated`. Wszystkie referencje do `TransitionType` przepięte na `EdgeType` w ETAPACH 2-8.
 
 ### 0.5 Nowe eventy domenowe — TaskExecution (§13.1)
 
@@ -126,7 +153,7 @@ Katalog: `shell/domain/execution/aggregates/task_execution/events/`
 | 0.5.1 | `task_execution_started_event.py` | `TaskExecutionStartedEvent` | `task_execution_id` |
 | 0.5.2 | `task_execution_completed_event.py` | `TaskExecutionCompletedEvent` | `task_execution_id`, `output` |
 | 0.5.3 | `task_execution_failed_event.py` | `TaskExecutionFailedEvent` | `task_execution_id`, `reason` |
-| 0.5.4 | `task_execution_exhausted_event.py` | `TaskExecutionExhaustedEvent` | `task_execution_id`, `current_cycle`, `max_cycles` |
+| 0.5.4 | `task_execution_exhausted_event.py` | `TaskExecutionExhaustedEvent` | `task_execution_id`, `current_cycle`, `max` |
 
 > Zachować istniejący `TaskExecutionCreatedEvent`.
 
@@ -140,7 +167,7 @@ Katalog: `shell/domain/execution/aggregates/graph_execution/events/`
 | 0.6.2 | `graph_planning_started_event.py` | `GraphPlanningStartedEvent` | `graph_execution_id` |
 | 0.6.3 | `graph_spawned_event.py` | `GraphSpawnedEvent` | `parent_id`, `child_id`, `goal` |
 | 0.6.4 | `graph_planned_event.py` | `GraphPlannedEvent` | `graph_execution_id`, `plan` |
-| 0.6.5 | `sub_graph_settled_event.py` | `SubGraphSettledEvent` | `parent_id`, `children_results: list[{id, status, result}]` |
+| 0.6.5 | `sub_graph_settled_event.py` | `SubGraphSettledEvent` | `parent_id`, `child_results: list[{id, status, result}]` |
 | 0.6.6 | `graph_execution_completed_event.py` | `GraphExecutionCompletedEvent` | `graph_execution_id`, `verifier_result` |
 | 0.6.7 | `graph_execution_failed_event.py` | `GraphExecutionFailedEvent` | `graph_execution_id`, `reason` |
 
@@ -155,6 +182,7 @@ Katalog: `shell/domain/execution/aggregates/graph_node_execution/events/`
 | 0.7.1 | `graph_node_execution_started_event.py` | `GraphNodeExecutionStartedEvent` | `node_id`, `role` |
 | 0.7.2 | `graph_node_execution_completed_event.py` | `GraphNodeExecutionCompletedEvent` | `node_id`, `role`, `result` |
 | 0.7.3 | `graph_node_execution_failed_event.py` | `GraphNodeExecutionFailedEvent` | `node_id`, `role`, `error` |
+| 0.7.4 | `graph_node_execution_timed_out_event.py` | `GraphNodeExecutionTimedOutEvent` | `node_id`, `role` |
 
 > Era „komunikacyjnych” — co node zrobił, bez decyzji routingowych.
 
@@ -181,6 +209,7 @@ Katalog: `shell/domain/execution/aggregates/graph_node_transition_execution/even
 > Istniejące Workflow eventy (`WorkflowStartedEvent`, `WorkflowCompletedEvent`, `WorkflowFailedEvent`) — zachować. Dostosować payload w etapie 5.
 
 > **✓ Weryfikacja etapu 0:** Wszystkie 35+ nowych plików istnieje. `python -c "from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus; print(TaskExecutionStatus.CREATED)"` działa. Żaden istniejący test nie jest złamany.
+> **✓ VO rule:** Żadne pole agregatu/encji/eventu w nowych plikach nie używa typu `str`, `dict`, `int`, `bool` — wszystkie dane domenowe opakowane w Value Object (patrz Reguła globalna).
 
 ---
 
@@ -219,7 +248,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = ("_graph_node_execution_id", "_config_snapshot", "_skills")
 
     _graph_node_execution_id: GraphNodeExecutionId
-    _config_snapshot: AgentConfig
+    _config_snapshot: Config
     _skills: list[AgentSkillExecution]
 
     # Factory: tworzony gdy GraphNodeExecution z role=AGENT
@@ -235,7 +264,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
 Pola:
 - `id: AgentExecutionId`
 - `graph_node_execution_id: GraphNodeExecutionId` — relacja 1:1 z nodem AGENT
-- `config_snapshot: AgentConfig` — kopia configu LLM z `AgentConfigExecution` (audyt)
+- `config_snapshot: Config` — kopia configu LLM z `AgentConfigExecution` (audyt)
 - `skills: list[AgentSkillExecution]` — append-only archiwum skili użytych przy wykonaniu
 
 > **Brak FSM** — AgentExecution jest znacznikiem + archiwum. Nie ma własnych przejść stanu.
@@ -248,7 +277,7 @@ Pola:
 class AgentSkillExecution:
     id: AgentSkillExecutionId
     agent_execution_id: AgentExecutionId
-    payload: dict
+    payload: dict            # ⚠️ VO: SkillPayload
     created_at: datetime
 ```
 
@@ -472,21 +501,27 @@ FSM (§9.2):
                                     │
                       ┌─────────────┴─────────────┐
                       │                           │
-                  spawn_subgraph()            plan_complete()
-                      │                           │
-                      ▼                           ▼
-               [PLANNING]                    [EXECUTING]
-               (utrzymane)                       │
-                      │              node_completed / node_failed
-                      │                           │
-              sub_graph_settled()                 ▼
-                      │                      [VERIFYING]
+              absorb_child_results()         plan_complete()
+              (SPAWN_SUBGRAPH edge              │
+               emituje GraphSpawnedEvent)       ▼
+                      │                    [EXECUTING]
                       ▼                           │
-                 [EXECUTING]          ┌───────────┴───────────┐
-                                      │                       │
-                                  complete()               fail()
-                                      │                       │
-                                 [COMPLETED]              [FAILED]
+               [PLANNING]              node_completed / node_failed
+               (utrzymane)                       │
+                      │                          ▼
+                      │                     [VERIFYING]
+                      │                          │
+                      └───────────────┐    ┌─────┴─────┐
+                                      │    │           │
+                                  complete()  fail()
+                                      │    │           │
+                                      ▼    ▼           ▼
+                                 [COMPLETED]       [FAILED]
+
+> **Parent czeka na sub-grafy w PLANNING.** Scheduler nie rusza nodów parenta
+> gdy istnieją dzieci z `parent_graph_execution_id = parent.id` w stanie ≠ końcowym.
+> `SubGraphSettledEvent` (emitowany przez krawędź) sygnalizuje wznowienie →
+> handler woła `absorb_child_results()` na agregacie.
 ```
 
 ### 3.2 Metody i eventy
@@ -494,11 +529,13 @@ FSM (§9.2):
 | Metoda | Przejście | Emitowany event |
 |--------|-----------|-----------------|
 | `start_planning()` | PENDING → PLANNING | `GraphPlanningStartedEvent` |
-| `spawn_subgraph(child_id, goal)` | PLANNING → PLANNING (utrzymane) | `GraphSpawnedEvent` |
 | `plan_complete(plan)` | PLANNING → EXECUTING | `GraphPlannedEvent` |
-| `settle_sub_graphs(children_results)` | PLANNING → EXECUTING | `SubGraphSettledEvent` |
+| `absorb_child_results(children_results)` | PLANNING → PLANNING (utrzymane) | — (przyjmuje wyniki, nie emituje eventu) |
 | `complete(verifier_result)` | VERIFYING → COMPLETED | `GraphExecutionCompletedEvent` |
 | `fail(reason)` | VERIFYING → FAILED | `GraphExecutionFailedEvent` |
+
+> `absorb_child_results()`: wypełnia `GraphExecutionStateInput` danymi `children_results`.
+> **Emisja `SubGraphSettledEvent`** i **tworzenie `GraphSpawnedEvent`** to odpowiedzialność **krawędzi** `SPAWN_SUBGRAPH` (§11.2, §13.2), a nie agregatu GraphExecution. Agregat tylko przyjmuje wyniki. Decyzję o spawnie podejmuje PLANNER → handler tworzy transition typu `SPAWN_SUBGRAPH` → transition emituje `GraphSpawnedEvent`.
 
 ### 3.3 GraphExecutionSkill — encja `[NEW]`
 
@@ -508,7 +545,7 @@ FSM (§9.2):
 class GraphExecutionSkill:
     id: GraphExecutionSkillId         # NOWY VO
     graph_execution_id: GraphExecutionId
-    payload: dict
+    payload: dict            # ⚠️ VO: SkillPayload
     created_at: datetime
 ```
 
@@ -597,12 +634,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     )
 
     _workflow_id: WorkflowId
-    _name: str
-    _description: str
+    _name: str                 # ⚠️ VO: TaskName
+    _description: str          # ⚠️ VO: TaskDescription
     _status: TaskExecutionStatus
     _max_planning_cycles: MaxPlanningCycles
     _current_cycle: PlanningCycle           # start=0
-    _work_dir: str
+    _work_dir: str             # ⚠️ VO: WorkDir
     _skills: list[TaskExecutionSkill]        # frozen snapshot
     _state_inputs: list[TaskExecutionStateInput]
     _state_outputs: list[TaskExecutionStateOutput]
@@ -646,7 +683,7 @@ FSM (§8.2):
 class TaskExecutionSkill:
     id: TaskExecutionSkillId            # NOWY VO (dodaj do ETAPU 0.1)
     task_execution_id: TaskExecutionId
-    payload: dict
+    payload: dict            # ⚠️ VO: SkillPayload
     created_at: datetime
 ```
 
@@ -712,7 +749,7 @@ FSM:
 class WorkflowSkill:
     id: WorkflowSkillId                 # NOWY VO (dodaj do ETAPU 0.1)
     workflow_id: WorkflowId
-    payload: dict
+    payload: dict            # ⚠️ VO: SkillPayload
     created_at: datetime
 ```
 
@@ -742,7 +779,7 @@ class Session(AggregateRoot[SessionId]):
 
     _user_id: UserId                # FK → User
     _project_id: ProjectId          # FK → Project
-    _environment: dict              # {os, runtime, ...}
+    _environment: dict              # ⚠️ VO: Environment {os, runtime, ...}
     _status: SessionStatus
     _opened_at: datetime
     _closed_at: datetime | None
@@ -763,7 +800,7 @@ FSM:
 class SessionSkill:
     id: SessionSkillId                  # NOWY VO (dodaj do ETAPU 0.1)
     session_id: SessionId
-    payload: dict
+    payload: dict            # ⚠️ VO: SkillPayload
     created_at: datetime
 ```
 
@@ -771,16 +808,16 @@ Zamrażanie: przy `Session.open(user_id, project_id)` → kopia `UserSkill` + `P
 
 ### 5.7 Propagacja Stage I/O (§2.2)
 
-Handler-y (implementacja w ETAPIE 10):
+Handler-y (sekcja HANDLERY poniżej, każde przejście ma przypisany event → handler):
 
-```
-GraphNodeExecutionStateOutput       →  GraphExecutionStateInput    (node completed → graf)
-GraphExecutionStateOutput           →  TaskExecutionStateInput     (GraphExecutionCompletedEvent)
-GraphExecutionStateOutput(child)    →  GraphExecutionStateInput(parent) (SubGraphSettledEvent)
-TaskExecutionStateOutput            →  WorkflowStateInput          (TaskExecutionCompletedEvent)
-WorkflowStateOutput                 →  TaskExecutionStateInput     (wejście kolejnego tasku)
-SessionStateOutput                  →  WorkflowStateInput          (kontekst startu)
-```
+| Przejście | Event triggerujący | Handler |
+|-----------|-------------------|---------|
+| `GraphNodeExecutionStateOutput → GraphExecutionStateInput` | `GraphNodeExecutionCompletedEvent` | `[NEW]` |
+| `GraphExecutionStateOutput → TaskExecutionStateInput` | `GraphExecutionCompletedEvent` dla `parent=None` | `[NEW]` |
+| `GraphExecutionStateOutput(child) → GraphExecutionStateInput(parent)` | `SubGraphSettledEvent` | `[NEW]` |
+| `TaskExecutionStateOutput → WorkflowStateInput` | `TaskExecutionCompletedEvent` | `[NEW]` |
+| `WorkflowStateOutput → TaskExecutionStateInput` | `WorkflowCompletedEvent` | `[NEW]` |
+| `SessionStateOutput → WorkflowStateInput` | `SessionOpenedEvent` | `[NEW]` |
 
 > **✓ Weryfikacja etapu 5:** Workflow z nowym FSM i encjami. `GraphNodeExecutionResult` usunięty. Session z `user_id`/`project_id` (po ETAPIE 6). Testy jednostkowe.
 
@@ -825,7 +862,7 @@ SessionStateOutput                  →  WorkflowStateInput          (kontekst s
 class User(AggregateRoot[UserId]):
     __slots__ = ("_identity", "_status", "_skills", "_state_inputs", "_state_outputs")
 
-    _identity: dict            # auth, profil
+    _identity: dict            # ⚠️ VO: Identity {auth, profil}
     _status: UserStatus
     _skills: list[UserSkill]
     _state_inputs: list[UserStateInput]
@@ -870,8 +907,8 @@ Repozytorium: `UserRepository` — `get_by_id`, `save`.
 class Project(AggregateRoot[ProjectId]):
     __slots__ = ("_name", "_repo_url", "_status", "_skills", "_state_inputs", "_state_outputs")
 
-    _name: str
-    _repo_url: str | None
+    _name: str                 # ⚠️ VO: ProjectName
+    _repo_url: str | None      # ⚠️ VO: RepoUrl
     _status: ProjectStatus
     _skills: list[ProjectSkill]
     _state_inputs: list[ProjectStateInput]
@@ -912,7 +949,7 @@ Session używa ACL do pobrania User/Project przy `open()` → zamraża skille do
   ├── entities/ (puste)
   ├── value_objects/
   │   ├── __init__.py
-  │   └── agent_config.py              # ETAP 0.3.6
+    │   └── agent_config.py              # ETAP 0.3.6 — klasa `Config`
   ├── ports/
   │   ├── __init__.py
   │   └── agent_config_execution_repository.py
@@ -928,7 +965,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     __slots__ = ("_session_id", "_config", "_created_at", "_updated_at")
 
     _session_id: SessionId
-    _config: AgentConfig
+    _config: Config
     _created_at: datetime
     _updated_at: datetime
 ```
@@ -1068,8 +1105,10 @@ Eventy, które nie są już emitowane przez żaden agregat:
 | `graph_node_execution/events/planner_spawns_queued_event.py` | handler |
 | `graph_node_execution/events/graph_node_execution_condition_evaluated_event.py` | handler → TransitionConditionEvaluatedEvent |
 | `graph_node_execution/events/graph_node_execution_loop_iteration_event.py` | handler → TransitionLoopedEvent |
-| `graph_node_execution/events/graph_node_execution_timed_out_event.py` | handler → TransitionTimedOutEvent |
 | `graph_node_execution/events/graph_node_parallel_execution_requested_event.py` | handler |
+| `application/execution/event_handlers/graph_node_execution_timed_out_handler.py` | stary handler TIMED_OUT → zastąpiony przez mechanizm TransitionTimedOutEvent w ETAPIE 8 |
+
+> **Uwaga:** `graph_node_execution/events/graph_node_execution_timed_out_event.py` **NIE jest usuwany** — jest nadpisywany w ETAPIE 0.7.4 nową treścią (payload zgodny z DOMAINV3 §13.3).
 
 ### 9.3 Usunięcie starych agregatów state I/O
 
@@ -1095,12 +1134,12 @@ Eventy, które nie są już emitowane przez żaden agregat:
 
 - `[DEL]` `Status` z `platform/value_objects/status.py` — zastąpiony dedykowanymi
 - `[DEL]` `Mode` z `platform/value_objects/mode.py` — zastąpiony `NodeRole`
+- `[DEL]` `TransitionType` z `platform/value_objects/transition_type.py` — zastąpiony `EdgeType` (0.2.6). Przed usunięciem: wszystkie referencje (7 plików) przepięte na `EdgeType`.
 
 ### 9.7 Wyczyść TODO V2
 
 - `[MOD]` `shell/application/execution/event_handlers/graph_node_execution_requested_handler.py` — usuń komentarze TODO V2
 - `[MOD]` `shell/application/execution/event_handlers/graph_node_execution_worker.py` — usuń TODO V2
-- `[MOD]` `shell/application/execution/event_handlers/graph_node_execution_timed_out_handler.py` — usuń TODO V2
 - `[MOD]` `shell/application/execution/command_handlers/run_graph_node_execution_handler.py` — usuń TODO V2
 - `[MOD]` `shell/tests/definition/conftest.py` — usuń `# TODO V2: WorkflowExecutionContext removed`
 - `[MOD]` `shell/tests/execution/conftest.py` — jw.
@@ -1185,7 +1224,12 @@ else:
 | Event | Handler | Co robi |
 |-------|---------|---------|
 | `GraphNodeExecutionStartedEvent` | `[NEW]` | Jeśli `role=AGENT` → utwórz `AgentExecution` z configiem i skilami |
-| `GraphNodeExecutionCompletedEvent` | `[NEW]` | Result → `GraphNodeExecutionStateOutput`. Jeśli `role=VERIFIER` → `GraphExecutionCompletedEvent`/`FailedEvent`. Edge → ewaluuj outgoing transitions |
+| `GraphNodeExecutionCompletedEvent` | `[NEW]` | **Zależnie od roli:** |
+| | | **`role=PLANNER`**: analizuj `result.stage`. `"direct"` → utwórz nody/krawędzie z planu, emit `GraphPlannedEvent`. `"spawn"` → utwórz transition `SPAWN_SUBGRAPH` dla każdego spawna, transition emituje `GraphSpawnedEvent`. `"abort"` → emit `GraphExecutionFailedEvent`. |
+| | | **`role=AGENT`**: result → `GraphNodeExecutionStateOutput`. Edge → ewaluuj outgoing transitions. |
+| | | **`role=TOOLS`**: jw. |
+| | | **`role=VERIFIER`**: result → `GraphNodeExecutionStateOutput`. Jeśli verdict=PASS → emit `GraphExecutionCompletedEvent`. Jeśli FAIL → emit `GraphExecutionFailedEvent`. |
+| | | > **PLANNER resume po SubGraphSettledEvent:** tworzony jest **nowy** `GraphNodeExecution` z `role=PLANNER` i enriched `state_input` (zawierającym `children_results`). Nie jest to ten sam node co pierwotny PLANNER (`GraphNodeExecution` nie restartuje się w miejscu). |
 | `GraphNodeExecutionFailedEvent` | `[NEW]` | Jeśli `role=VERIFIER` → `GraphExecutionFailedEvent`. Jeśli `role=PLANNER` → `GraphExecutionFailedEvent`. Jeśli `AGENT/TOOLS` → Edge `ERROR_HANDLER` LUB VERIFIER z błędem |
 
 #### Skill freeze handler-y
@@ -1212,6 +1256,7 @@ else:
 
 ## CHECKLISTA GLOBALNA (końcowa)
 
+- [ ] **VO rule:** W warstwie domeny (agregaty, encje, eventy) **zero** typów `str`, `dict`, `int`, `bool` — każda dana opakowana w Value Object (patrz Reguła globalna)
 - [ ] Wszystkie agregaty z §1 DOMAINV3.md istnieją: User, Project, Session, AgentConfigExecution, Workflow, TaskExecution, GraphExecution, GraphNodeExecution, GraphNodeTransitionExecution, AgentExecution
 - [ ] Wszystkie encje skili istnieją: `UserSkill`, `ProjectSkill`, `SessionSkill`, `WorkflowSkill`, `TaskExecutionSkill`, `GraphExecutionSkill`, `AgentSkillExecution`
 - [ ] Wszystkie encje State I/O istnieją (append-only, bez `is_current`, per agregat): `*StateInput`, `*StateOutput` dla User, Project, Session, Workflow, TaskExecution, GraphExecution, GraphNodeExecution

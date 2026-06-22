@@ -35,7 +35,7 @@ S1.5  [PLANNER wykonuje pracę — LLM analizuje zadanie, produkuje plan bezpoś
       → GraphNodeExecutionCompletedEvent(node_id="N1", role="PLANNER",
            result={"stage":"direct","plan":{"agents":[{"role":"AGENT","prompt":"..."}],
            "tools":[{"kind":"python","script":"pytest"}]}})
-         ├─ Handler: result → GraphNodeStateOutput(N1)
+         ├─ Handler: result → GraphNodeExecutionStateOutput(N1)
          ├─ Handler: tworzy GraphNodeExecution[] wg planu (N2=AGENT, N3=TOOLS, N4=VERIFIER)
          ├─ Handler: tworzy SEQUENCE krawędzie N1→N2, N2→N3, N3→N4
          └─ Handler: emit GraphPlannedEvent(graph_execution_id="G1", plan={...})
@@ -54,7 +54,7 @@ S1.8  → GraphNodeExecutionStartedEvent(N2, AGENT) → N2 → RUNNING
 S1.9  [AGENT wykonuje — LLM z skillami z TaskExecutionSkill]
       → GraphNodeExecutionCompletedEvent(node_id="N2", role="AGENT",
            result={"files_written":["test_x.py"], "summary":"Testy utworzone"})
-         ├─ Handler: result → GraphNodeStateOutput(N2)
+         ├─ Handler: result → GraphNodeExecutionStateOutput(N2)
          └─ N2 → COMPLETED
 
 S1.10 [Scheduler decision: N2 → SEQUENCE N2→N3]
@@ -66,7 +66,7 @@ S1.11 → GraphNodeExecutionStartedEvent(N3, TOOLS) → N3 → RUNNING
 S1.12 [TOOLS wykonuje deterministycznie `pytest`]
       → GraphNodeExecutionCompletedEvent(node_id="N3", role="TOOLS",
            result={"exit_code":0, "output":"42 passed"})
-         ├─ result → GraphNodeStateOutput(N3)
+         ├─ result → GraphNodeExecutionStateOutput(N3)
          └─ N3 → COMPLETED
 
 S1.13 [Scheduler decision: N3 → SEQUENCE N3→N4]
@@ -78,7 +78,7 @@ S1.14 → GraphNodeExecutionStartedEvent(N4, VERIFIER) → N4 → RUNNING
 S1.15 [VERIFIER ocenia — porównuje output z goal]
       → GraphNodeExecutionCompletedEvent(node_id="N4", role="VERIFIER",
            result={"verdict":"PASS","summary":"Wszystkie testy przechodzą"})
-         ├─ result → GraphNodeStateOutput(N4)
+         ├─ result → GraphNodeExecutionStateOutput(N4)
          ├─ Handler: role=VERIFIER + verdict=PASS → emit GraphExecutionCompletedEvent(G1)
          └─ N4 → COMPLETED
 
@@ -355,7 +355,7 @@ S7.8  → TransitionTakenEvent("T_cond1", N1, N2)  [SEQUENCE/start AGENT]
 
 S7.9  → GraphNodeExecutionCompletedEvent(N2, AGENT,
            result={"files":["draft.py"],"quality":0.45})
-         ├─ result → GraphNodeStateOutput(N2)
+         ├─ result → GraphNodeExecutionStateOutput(N2)
          └─ N2 → COMPLETED
 
 S7.10 [Scheduler decision layer: N2 ma outgoing CONDITIONAL]
@@ -464,7 +464,7 @@ S9.8  → GraphNodeExecutionStartedEvent(N3, TOOLS) → N3.RUNNING
 S9.9  [TOOLS crash — np. brak narzędzia w środowisku]
       → GraphNodeExecutionFailedEvent(node_id="N3", role="TOOLS",
            error="RuntimeError: brak narzędzia 'pytest' w PATH")
-         ├─ error → GraphNodeStateOutput(N3)
+         ├─ error → GraphNodeExecutionStateOutput(N3)
          └─ N3 → FAILED
 
 S9.10 [Scheduler decision: N3.FAILED + ma outgoing ERROR_HANDLER]
