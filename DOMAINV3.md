@@ -50,7 +50,7 @@ Zanim opiszę model, фиксuję kluczowe decyzje architektoniczne.
 | Workflow | `WorkflowSkill` | `WorkflowStateInput` | `WorkflowStateOutput` |
 | TaskExecution | `TaskExecutionSkill` | `TaskExecutionStateInput` | `TaskExecutionStateOutput` |
 | GraphExecution | `GraphExecutionSkill` | `GraphExecutionStateInput` | `GraphExecutionStateOutput` |
-| GraphNodeExecution | — (skille przez `AgentSkillExecution`) | `GraphNodeStateInput` | `GraphNodeStateOutput` |
+| GraphNodeExecution | — (skille przez `AgentSkillExecution`) | `GraphNodeExecutionStateInput` | `GraphNodeExecutionStateOutput` |
 | AgentExecution | `AgentSkillExecution` | — | — |
 
 Brak polimorficznego `owner_type` — każda tabela ma bezpośredni FK do swojego agregatu. To eliminuje błędy referencji i upraszcza query/indexy (symetrycznie do istniejącego wzorca skilli).
@@ -79,7 +79,7 @@ Session
            │    ├── GraphNodeExecution: AGENT ─┬─ AgentExecution
            │    │                              └─ AgentSkillExecution[]
            │    ├── GraphNodeExecution: TOOLS
-           │    │   └── GraphNodeStateInput[] / GraphNodeStateOutput[] (per node)
+           │    │   └── GraphNodeExecutionStateInput[] / GraphNodeExecutionStateOutput[] (per node)
            │    ├── GraphNodeExecution: VERIFIER
            │    └── GraphNodeTransitionExecution[] (krawędzie, w tym SEQUENCE auto)
            │
@@ -103,7 +103,7 @@ Session
 ### 2.2 Reguła propagacji Stage I/O (D4)
 
 ```
-GraphNodeStateOutput       →  GraphExecutionStateInput    # node generuje → graf to otrzymał
+GraphNodeExecutionStateOutput       →  GraphExecutionStateInput    # node generuje → graf to otrzymał
 GraphExecutionStateOutput  →  TaskExecutionStateInput     # (przez GraphExecutionCompletedEvent)
 GraphExecutionStateOutput(child) → GraphExecutionStateInput(parent)  # (przez SubGraphSettledEvent)
 TaskExecutionStateOutput   →  WorkflowStateInput          # (przez TaskExecutionCompletedEvent)
@@ -420,17 +420,17 @@ GraphNodeExecution
  ├── role: PLANNER | AGENT | TOOLS | VERIFIER | <custom agent role>
  ├── order: int                           # domyślna kolejność liniowa
  ├── status: PENDING | RUNNING | COMPLETED | FAILED | TIMED_OUT
- ├── GraphNodeStateInput[]                # co node dostał (append-only)
- └── GraphNodeStateOutput[]               # co node wygenerował (append-only)
+ ├── GraphNodeExecutionStateInput[]                # co node dostał (append-only)
+ └── GraphNodeExecutionStateOutput[]               # co node wygenerował (append-only)
 ```
 
 ```
-GraphNodeStateInput
+GraphNodeExecutionStateInput
  ├── id, graph_node_execution_id (FK CASCADE)
  ├── payload: JSON
  └── created_at
 
-GraphNodeStateOutput
+GraphNodeExecutionStateOutput
  ├── id, graph_node_execution_id (FK CASCADE)
  ├── payload: JSON                        # result noda
  └── created_at
@@ -438,7 +438,7 @@ GraphNodeStateOutput
 
 - Jeśli `role=AGENT` → powiązany `AgentExecution`.
 - **Node NIE decyduje o routing** (D2). Node emituje eventy komunikacyjne (co zrobiłem, jaki result). Routing jest domeną **Edge** (§11).
-- `result` noda = `payload` najnowszego wiersza `GraphNodeStateOutput`. Brak duplikacji pola na encji noda — output żyje w swojej tabeli.
+- `result` noda = `payload` najnowszego wiersza `GraphNodeExecutionStateOutput`. Brak duplikacji pola na encji noda — output żyje w swojej tabeli.
 
 ### 10.2 Domyślny pipeline (liniowy)
 
@@ -549,7 +549,7 @@ Każdy agregat ma **własne tabele** `*StateInput` i `*StateOutput` (symetryczni
  └── created_at
 ```
 
-**Konkretne instancje (katalog w §1):** `UserStateInput/Output`, `ProjectStateInput/Output`, `SessionStateInput/Output`, `WorkflowStateInput/Output`, `TaskExecutionStateInput/Output`, `GraphExecutionStateInput/Output`, `GraphNodeStateInput/Output`.
+**Konkretne instancje (katalog w §1):** `UserStateInput/Output`, `ProjectStateInput/Output`, `SessionStateInput/Output`, `WorkflowStateInput/Output`, `TaskExecutionStateInput/Output`, `GraphExecutionStateInput/Output`, `GraphNodeExecutionStateInput/Output`.
 
 **Reguły:**
 - **Append-only**: zmiana = nowy rekord. Nigdy nie modyfikujemy istniejących.
@@ -594,7 +594,7 @@ Każdy agregat ma **własne tabele** `*StateInput` i `*StateOutput` (symetryczni
 | Event | Payload | Efekt |
 |-------|---------|-------|
 | `GraphNodeExecutionStartedEvent` | `node_id, role` | `Node → RUNNING`. |
-| `GraphNodeExecutionCompletedEvent` | `node_id, role, result` | `Node → COMPLETED`; result → `GraphNodeStateOutput`. Jeśli `role=VERIFIER` → `GraphExecutionCompletedEvent`/`FailedEvent`. |
+| `GraphNodeExecutionCompletedEvent` | `node_id, role, result` | `Node → COMPLETED`; result → `GraphNodeExecutionStateOutput`. Jeśli `role=VERIFIER` → `GraphExecutionCompletedEvent`/`FailedEvent`. |
 | `GraphNodeExecutionFailedEvent` | `node_id, role, error` | `Node → FAILED`. Jeśli `role=VERIFIER` → `GraphExecutionFailedEvent`. Jeśli `role=PLANNER` → `GraphExecutionFailedEvent`. Jeśli `AGENT/TOOLS` → Edge `ERROR_HANDLER` LUB → VERIFIER z błędem. |
 
 ### 13.4 GraphNodeTransitionExecution (decyzyjne)
