@@ -786,5 +786,8 @@ Aby system ruszył, **muszą istnieć**:
 6. **Katalog eventów**: §13 (komunikacyjne + decyzyjne).
 7. **Scheduler**: pętla inbox→outbox + podnoszenie PENDING (§14).
 8. **Reguły**: `parent_graph_execution_id` (§2.1), propagacja Stage (§2.2), `current_cycle` (§8.3), replan (§16), sub-grafy (§15).
+9. **Value objects only**: agregaty używają wyłącznie value objectów (VO) — żadnych prymitywów (`str`, `int`, `bool`, `dict`) w sygnaturach metod, polach stanu ani eventach. Każda dana domenowa musi być opakowana w VO (np. `TaskId`, `NodeRole`, `SkillPayload`, `ExecutionStatus`). Zapewnia to samowalidację, type safety i eliminuje primitive obsession.
+10. **Subdomena `user`**: agregat `User` znajduje się w wydzielonej subdomenie o nazwie `user`. Jest to osobny bounded context z własnym modelem, repozytorium i portami. Reszta systemu komunikuje się z nim wyłącznie przez porty (ACL).
+11. **Subdomena `projekt`**: agregat `Project` znajduje się w wydzielonej subdomenie o nazwie `projekt`. Jest to osobny bounded context z własnym modelem, repozytorium i portami. Reszta systemu komunikuje się z nim wyłącznie przez porty (ACL).
 
 Reszta (RAG, RunnerConfig, UI, persystencja, infrastruktura Envelope) to warstwy ortogonalne i mogą być dodawane niezależnie.
