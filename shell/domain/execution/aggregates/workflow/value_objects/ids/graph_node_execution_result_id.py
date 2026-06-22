@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass
 
 from shell.domain.platform.base.value_object import ValueObject
@@ -14,9 +13,10 @@ class GraphNodeExecutionResultId(ValueObject):
         if not self.value:
             raise ValueError("GraphNodeExecutionResultId cannot be empty")
 
-    def __str__(self) -> str:
-        return self.value
-
     @classmethod
     def generate(cls) -> GraphNodeExecutionResultId:
+        import uuid
         return cls(str(uuid.uuid4()))
+
+    def __str__(self) -> str:
+        return self.value

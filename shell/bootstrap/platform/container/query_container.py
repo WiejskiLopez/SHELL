@@ -12,7 +12,6 @@ if TYPE_CHECKING:
         GetCurrentTaskExecutionHandler,
         GetEnvelopesByWorkflowHandler,
         GetGraphNodeExecutionResultHandler,
-        GetPromptHandler,
         GetRunnerConfigHandler,
         GetSessionHistoryHandler,
         GetTaskExecutionByNameHandler,
@@ -26,7 +25,6 @@ if TYPE_CHECKING:
         get_workflow_handler_factory: Factory[GetWorkflowHandler]
         get_envelopes_by_workflow_handler_factory: Factory[GetEnvelopesByWorkflowHandler]
         get_graph_node_execution_result_handler_factory: Factory[GetGraphNodeExecutionResultHandler]
-        get_prompt_handler_factory: Factory[GetPromptHandler]
         get_runner_config_handler_factory: Factory[GetRunnerConfigHandler]
         get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
         search_similar_handler_factory: Factory[SearchSimilarHandler]
@@ -36,7 +34,6 @@ from shell.application.platform.query_handlers.query_handlers import (
     GetCurrentTaskExecutionHandler,
     GetEnvelopesByWorkflowHandler,
     GetGraphNodeExecutionResultHandler,
-    GetPromptHandler,
     GetRunnerConfigHandler,
     GetSessionHistoryHandler,
     GetTaskExecutionByNameHandler,
@@ -64,9 +61,6 @@ class QueryContainer(containers.DeclarativeContainer):
     )
     get_graph_node_execution_result_handler_factory = providers.Factory(
         GetGraphNodeExecutionResultHandler, queries=infra.node_result_query_service
-    )
-    get_prompt_handler_factory = providers.Factory(
-        GetPromptHandler, queries=infra.prompt_query_service
     )
     get_runner_config_handler_factory = providers.Factory(
         GetRunnerConfigHandler, queries=infra.runner_config_query_service

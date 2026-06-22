@@ -43,6 +43,15 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
                 return graph_execution
         return None
 
+    async def get_by_parent_id(
+        self, parent_graph_execution_id: GraphExecutionId
+    ) -> list[GraphExecution]:
+        return [
+            ge
+            for ge in self._store.values()
+            if ge.parent_graph_execution_id == parent_graph_execution_id
+        ]
+
     async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[GraphExecution]:
         if self._task_executions is None:
             return []

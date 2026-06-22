@@ -1,98 +1,94 @@
-"""Tests for InMemoryCrownScheduler."""
+"""Tests for QueryBasedCrownScheduler — stateless, query-based parent-child orchestration."""
 
 from __future__ import annotations
 
-from shell.domain.execution.value_objects.ids import GraphExecutionId
-from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
-    InMemoryCrownScheduler,
+from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+    GraphExecutionId,
 )
+from shell.domain.execution.aggregates.task_execution.task_execution_id import (
+    TaskExecutionId,
+)
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
+)
+from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
+    QueryBasedCrownScheduler,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+    InMemoryGraphExecutionRepository,
+)
+from shell.domain.platform.value_objects.mode import Mode
 
 
-class TestInMemoryCrownScheduler:
-    async def test_register_child(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child_id = GraphExecutionId("child-1")
+def _make_graph(
+    id_: GraphExecutionId,
+    task_execution_id: TaskExecutionId,
+    parent_id: GraphExecutionId | None = None,
+    state_output: dict | None = None,
+) -> GraphExecution:
+    """Helper: create a minimal GraphExecution for testing."""
+    return GraphExecution(
+        id=id_,
+        task_execution_id=task_execution_id,
+        graph_definition_id="test-def",
+        parent_graph_execution_id=parent_id,
+        state_output=state_output or {},
+    )
 
-        await scheduler.register_child(parent_id, child_id)
 
-        children = await scheduler.get_children(parent_id)
-        assert len(children) == 1
-        assert children[0].child_graph_execution_id == child_id
-        assert children[0].status == "pending"
+class TestQueryBasedCrownScheduler:
+    async def test_no_parent_returns_none(self) -> None:
+        scheduler = QueryBasedCrownScheduler()
+        repo = InMemoryGraphExecutionRepository()
+        task_id = TaskExecutionId("task-1")
+        root = _make_graph(GraphExecutionId("root"), task_id)
+        await repo.save(root)
 
-    async def test_mark_waiting(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        graph_id = GraphExecutionId("graph-1")
+        result = await scheduler.compute_settled_status(
+            child_graph_execution_id=GraphExecutionId("root"),
+            repo=repo,
+        )
+        assert result is None
 
-        await scheduler.mark_waiting(graph_id)
+    async def test_child_returns_parent_and_siblings(self) -> None:
+        scheduler = QueryBasedCrownScheduler()
+        repo = InMemoryGraphExecutionRepository()
+        task_id = TaskExecutionId("task-1")
+        parent_id = GraphExecutionId("parent")
+        child1 = _make_graph(
+            GraphExecutionId("child-1"),
+            task_id,
+            parent_id=parent_id,
+            state_output={"out": 1},
+        )
+        child2 = _make_graph(
+            GraphExecutionId("child-2"),
+            task_id,
+            parent_id=parent_id,
+            state_output={"out": 2},
+        )
 
-        assert graph_id.value in scheduler._waiting
+        await repo.save(child1)
+        await repo.save(child2)
 
-    async def test_on_child_completed(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child_id = GraphExecutionId("child-1")
-        await scheduler.register_child(parent_id, child_id)
+        result = await scheduler.compute_settled_status(
+            child_graph_execution_id=GraphExecutionId("child-1"),
+            repo=repo,
+        )
+        assert result is not None
+        assert result.parent_graph_execution_id == parent_id
+        assert len(result.children_statuses) == 2
+        ids = {s.child_graph_execution_id for s in result.children_statuses}
+        assert ids == {GraphExecutionId("child-1"), GraphExecutionId("child-2")}
 
-        result = {"output": "done"}
-        children = await scheduler.on_child_completed(child_id, result)
+    async def test_unknown_graph_returns_none(self) -> None:
+        scheduler = QueryBasedCrownScheduler()
+        repo = InMemoryGraphExecutionRepository()
 
-        assert len(children) == 1
-        assert children[0].status == "completed"
-        assert children[0].result == result
-
-    async def test_on_child_failed(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child_id = GraphExecutionId("child-1")
-        await scheduler.register_child(parent_id, child_id)
-
-        children = await scheduler.on_child_failed(child_id, "error occurred")
-
-        assert len(children) == 1
-        assert children[0].status == "failed"
-
-    async def test_has_all_children_completed_no_children(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-
-        result = await scheduler.has_all_children_completed(parent_id)
-        assert result is True
-
-    async def test_has_all_children_completed_pending(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child_id = GraphExecutionId("child-1")
-        await scheduler.register_child(parent_id, child_id)
-
-        result = await scheduler.has_all_children_completed(parent_id)
-        assert result is False
-
-    async def test_has_all_children_completed_all_done(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child1 = GraphExecutionId("child-1")
-        child2 = GraphExecutionId("child-2")
-        await scheduler.register_child(parent_id, child1)
-        await scheduler.register_child(parent_id, child2)
-
-        await scheduler.on_child_completed(child1)
-        await scheduler.on_child_completed(child2)
-
-        result = await scheduler.has_all_children_completed(parent_id)
-        assert result is True
-
-    async def test_get_pending_children(self) -> None:
-        scheduler = InMemoryCrownScheduler()
-        parent_id = GraphExecutionId("parent-1")
-        child1 = GraphExecutionId("child-1")
-        child2 = GraphExecutionId("child-2")
-        await scheduler.register_child(parent_id, child1)
-        await scheduler.register_child(parent_id, child2)
-
-        await scheduler.on_child_completed(child1)
-
-        pending = await scheduler.get_pending_children(parent_id)
-        assert len(pending) == 1
-        assert pending[0] == child2
+        result = await scheduler.compute_settled_status(
+            child_graph_execution_id=GraphExecutionId("nonexistent"),
+            repo=repo,
+        )
+        assert result is None

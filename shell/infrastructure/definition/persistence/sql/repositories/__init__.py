@@ -10,10 +10,6 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node
     GraphNodeDefinitionModel,
     SqlGraphNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_prompt_repository import (
-    PromptModel,
-    SqlPromptRepository,
-)
 from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_document_repository import (
     RagChunkModel,
     RagDocumentModel,
@@ -29,13 +25,11 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_runner_con
 __all__ = [
     "GraphDefinitionModel",
     "GraphNodeDefinitionModel",
-    "PromptModel",
     "RagChunkModel",
     "RagDocumentModel",
     "RunnerConfigModel",
     "SqlGraphDefinitionRepository",
     "SqlGraphNodeDefinitionRepository",
-    "SqlPromptRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "TYPE_CHECKING",

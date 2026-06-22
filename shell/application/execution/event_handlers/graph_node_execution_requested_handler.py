@@ -146,29 +146,31 @@ class GraphNodeExecutionWorker:
             )
             return False
 
-        state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-        if state is None and not workflow.cursor.points_to(event.graph_node_execution_id):
-            self._logger.debug(
-                "graph_node_execution_worker.skip_stale_cursor",
-                workflow_id=workflow.id.value,
-                cursor=(
-                    workflow.cursor.current_graph_node_execution_id.value
-                    if workflow.cursor.current_graph_node_execution_id
-                    else None
-                ),
-                requested=event.graph_node_execution_id.value,
-            )
-            return False
+        # TODO V2: cursor and node-state guards removed — cursor, _states removed from Workflow
+        # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
+        # if state is None and not workflow.cursor.points_to(event.graph_node_execution_id):
+        #     self._logger.debug(
+        #         "graph_node_execution_worker.skip_stale_cursor",
+        #         workflow_id=workflow.id.value,
+        #         cursor=(
+        #             workflow.cursor.current_graph_node_execution_id.value
+        #             if workflow.cursor.current_graph_node_execution_id
+        #             else None
+        #         ),
+        #         requested=event.graph_node_execution_id.value,
+        #     )
+        #     return False
 
-        state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-        if state is not None and state.status in (Status.done(), Status.failed(), Status.waiting()):
-            self._logger.debug(
-                "graph_node_execution_worker.skip_already_executed",
-                workflow_id=workflow.id.value,
-                graph_node_execution_id=event.graph_node_execution_id.value,
-                node_status=state.status.value,
-            )
-            return False
+        # TODO V2: node-state guard also removed
+        # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
+        # if state is not None and state.status in (Status.done(), Status.failed(), Status.waiting()):
+        #     self._logger.debug(
+        #         "graph_node_execution_worker.skip_already_executed",
+        #         workflow_id=workflow.id.value,
+        #         graph_node_execution_id=event.graph_node_execution_id.value,
+        #         node_status=state.status.value,
+        #     )
+        #     return False
         return True
 
     async def _run_node(
@@ -227,15 +229,16 @@ class GraphNodeExecutionWorker:
 
             now = self._clock.now()
             node_status = Status.done() if success else Status.failed()
-            workflow.record_graph_node_execution_result(
-                result_id=self._id_gen.new_graph_node_execution_result_id(),
-                graph_node_execution_id=event.graph_node_execution_id,
-                status=node_status,
-                now=now,
-                stdout=stdout,
-                stderr=stderr,
-                reason=stderr,
-            )
+            # TODO V2: record_graph_node_execution_result removed — _results removed from Workflow
+            # workflow.record_graph_node_execution_result(
+            #     result_id=self._id_gen.new_graph_node_execution_result_id(),
+            #     graph_node_execution_id=event.graph_node_execution_id,
+            #     status=node_status,
+            #     now=now,
+            #     stdout=stdout,
+            #     stderr=stderr,
+            #     reason=stderr,
+            # )
 
             staged_events: list[Any] = list(workflow.pull_events())
 
@@ -280,5 +283,6 @@ class GraphNodeExecutionWorker:
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_GRAPH_NODE_EXECUTION_ID": graph_node_execution.id.value,
             "SHELL_TASK_EXECUTION_ID": task_execution_id,
-            "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
+            # TODO V2: execution_context removed from Workflow
+            # "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
         }

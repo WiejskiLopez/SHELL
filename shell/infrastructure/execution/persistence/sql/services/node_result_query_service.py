@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.platform.dto import GraphNodeExecutionResultDto
-from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputModel,
+)
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -20,37 +21,28 @@ class NodeResultQueryService:
     ) -> GraphNodeExecutionResultDto | None:
         async with self._session_factory() as session:
             stmt = (
-                select(WorkflowModel)
-                .options(selectinload(WorkflowModel.graph_node_execution_result_models))
-                .where(WorkflowModel.id == workflow_id)
+                select(GraphNodeExecutionStateOutputModel)
+                .where(GraphNodeExecutionStateOutputModel.graph_node_execution_id == graph_node_execution_id)
+                .where(GraphNodeExecutionStateOutputModel.is_current == True)  # noqa: E712
+                .limit(1)
             )
             res = await session.execute(stmt)
-            wf = res.scalar_one_or_none()
-            if not wf:
+            model = res.scalar_one_or_none()
+            if not model:
                 return None
-            result_model = next(
-                (
-                    node_result_model
-                    for node_result_model in wf.graph_node_execution_result_models
-                    if node_result_model.graph_node_execution_id == graph_node_execution_id
-                ),
-                None,
-            )
-            if not result_model:
-                return None
+            payload = model.payload or {}
             return GraphNodeExecutionResultDto(
-                id=result_model.id,
-                graph_node_execution_id=result_model.graph_node_execution_id,
-                workflow_id=result_model.workflow_id,
-                status=result_model.status,
-                stdout=result_model.stdout,
-                stderr=result_model.stderr,
-                artifact_uri=result_model.artifact_uri,
-                created_at=result_model.created_at,
+                id=model.id,
+                graph_node_execution_id=model.graph_node_execution_id,
+                workflow_id=workflow_id,
+                status=payload.get("status", ""),
+                stdout=payload.get("stdout", ""),
+                stderr=payload.get("stderr", ""),
+                artifact_uri=payload.get("artifact_uri", ""),
+                created_at=model.created_at,
             )
 
 
 __all__ = [
     "NodeResultQueryService",
-    "selectinload",
 ]

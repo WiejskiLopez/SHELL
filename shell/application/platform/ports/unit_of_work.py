@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.repositories.graph_definition_repository import (
         GraphDefinitionRepository,
     )
-    from shell.domain.definition.repositories.prompt_repository import PromptRepository
     from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
     from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
     from shell.domain.execution.aggregates.envelope.ports import (
@@ -29,6 +28,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
         TaskExecutionRepository,
     )
+    from shell.domain.execution.aggregates.task_execution_state_input.ports.task_execution_state_input_repository import (
+        TaskExecutionStateInputRepository,
+    )
     from shell.domain.execution.aggregates.workflow.ports.workflow_repository import (
         WorkflowRepository,
     )
@@ -40,6 +42,9 @@ class UnitOfWork(Protocol):
     def task_executions(self) -> TaskExecutionRepository: ...
 
     @property
+    def task_execution_state_inputs(self) -> TaskExecutionStateInputRepository: ...
+
+    @property
     def graph_executions(self) -> GraphExecutionRepository: ...
 
     @property
@@ -47,9 +52,6 @@ class UnitOfWork(Protocol):
 
     @property
     def envelopes(self) -> EnvelopeRepository: ...
-
-    @property
-    def prompts(self) -> PromptRepository: ...
 
     @property
     def runner_configs(self) -> RunnerConfigRepository: ...

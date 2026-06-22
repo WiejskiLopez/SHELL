@@ -1,4 +1,4 @@
-"""Unit tests for application command handlers (using InMemory adapters)."""
+"""Unit tests for SaveGraphNodeExecutionResultHandler."""
 
 from __future__ import annotations
 
@@ -6,16 +6,17 @@ from shell.application.execution.command_handlers.save_graph_node_execution_resu
     SaveGraphNodeExecutionResultHandler,
 )
 from shell.application.platform.commands.commands import SaveGraphNodeExecutionResultCommand
-from shell.application.platform.queries.queries import GetGraphNodeExecutionResultQuery
-from shell.application.platform.query_handlers.query_handlers import (
-    GetGraphNodeExecutionResultHandler,
-)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
-    InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
     InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
 )
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.platform.value_objects.mode import Mode
 
 
 class TestSaveGraphNodeExecutionResultHandler:
@@ -24,13 +25,18 @@ class TestSaveGraphNodeExecutionResultHandler:
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
         id_gen: FakeIdGenerator,
-        queries: InMemoryQueryServices,
     ) -> None:
-        from shell.domain.execution.aggregates.workflow import Workflow
-        from shell.domain.execution.value_objects.ids import WorkflowId
-
         wf = Workflow.new(id_=WorkflowId("wf-1"), now=clock.now())
         await uow.workflows.save(wf)
+
+        node = GraphNodeExecution(
+            id=GraphNodeExecutionId("node-1"),
+            position=0,
+            mode=Mode.WORKER,
+            role="worker",
+            node_type="worker",
+        )
+        await uow.graph_node_executions.save(node)
 
         handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
         result_id = await handler.handle(
@@ -42,7 +48,9 @@ class TestSaveGraphNodeExecutionResultHandler:
             )
         )
         assert result_id
-        q_handler = GetGraphNodeExecutionResultHandler(queries)
-        dto = await q_handler.handle(GetGraphNodeExecutionResultQuery("node-1", "wf-1"))
-        assert dto is not None
-        assert dto.stdout == "ok"
+
+        stored = await uow.graph_node_executions.get_by_id(GraphNodeExecutionId("node-1"))
+        assert stored is not None
+        output = stored.get_latest_output_state()
+        assert output is not None
+        assert output.payload.get("stdout") == "ok"

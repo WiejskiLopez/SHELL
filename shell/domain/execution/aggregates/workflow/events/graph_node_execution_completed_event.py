@@ -20,7 +20,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphNodeExecutionCompletedEvent(DomainEvent):
     graph_node_execution_id: GraphNodeExecutionId
     workflow_id: WorkflowId
-    graph_node_execution_result_id: GraphNodeExecutionResultId
+    result_id: GraphNodeExecutionResultId
 
     @classmethod
     def from_payload(
@@ -31,9 +31,7 @@ class GraphNodeExecutionCompletedEvent(DomainEvent):
             schema_version=schema_version,
             graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             workflow_id=WorkflowId(payload["workflow_id"]),
-            graph_node_execution_result_id=GraphNodeExecutionResultId(
-                payload["graph_node_execution_result_id"]
-            ),
+            result_id=GraphNodeExecutionResultId(payload["result_id"]),
         )
 
     @classmethod
@@ -41,12 +39,12 @@ class GraphNodeExecutionCompletedEvent(DomainEvent):
         cls,
         graph_node_execution_id: GraphNodeExecutionId,
         workflow_id: WorkflowId,
-        graph_node_execution_result_id: GraphNodeExecutionResultId,
+        result_id: GraphNodeExecutionResultId,
         now: datetime,
     ) -> GraphNodeExecutionCompletedEvent:
         return cls(
             occurred_at=now,
             graph_node_execution_id=graph_node_execution_id,
             workflow_id=workflow_id,
-            graph_node_execution_result_id=graph_node_execution_result_id,
+            result_id=result_id,
         )

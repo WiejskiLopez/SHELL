@@ -1,9 +1,8 @@
 """PlannerResultHandler — processes PlannerResultEvent from PLANNER nodes.
 
 Subscribes to PlannerResultEvent (emitted by GraphNodeExecutionWorker for
-PLANNER-mode nodes with valid JSON output). For each event:
-1. Emits SubGraphSpawnRequestedEvent for each spawn entry
-2. Emits PlannerSpawnsQueuedEvent with total spawn count
+PLANNER-mode nodes with valid JSON output). Emits SubGraphSpawnRequestedEvent
+for each spawn entry.
 """
 
 from __future__ import annotations
@@ -12,7 +11,6 @@ from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import (
     PlannerResultEvent,
-    PlannerSpawnsQueuedEvent,
     SubGraphSpawnRequestedEvent,
 )
 from shell.domain.platform.events import (
@@ -66,16 +64,6 @@ class PlannerResultHandler:
                         now=event.occurred_at,
                     )
                 )
-
-            # ── Emit PlannerSpawnsQueuedEvent with total count ──────────────
-            staged_events.append(
-                PlannerSpawnsQueuedEvent.now(
-                    parent_graph_execution_id=event.graph_execution_id,
-                    parent_graph_node_id=node.id,
-                    spawn_count=len(event.spawn),
-                    now=event.occurred_at,
-                )
-            )
 
             # ── Stage all events at once ────────────────────────────────────
             if staged_events:

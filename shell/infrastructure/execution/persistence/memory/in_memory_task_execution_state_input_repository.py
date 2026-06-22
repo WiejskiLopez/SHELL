@@ -28,4 +28,7 @@ class InMemoryTaskExecutionStateInputRepository(TaskExecutionStateInputRepositor
         return None
 
     async def save(self, payload: TaskExecutionStateInput) -> None:
+        existing = await self.get_latest_by_task_id(payload.task_execution_id)
+        if existing is not None:
+            existing.supersede()
         self._store[payload.id.value] = payload

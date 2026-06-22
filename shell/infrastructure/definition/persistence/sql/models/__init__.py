@@ -12,7 +12,6 @@ from shell.infrastructure.definition.persistence.sql.models.graph_node_definitio
 from shell.infrastructure.definition.persistence.sql.models.graph_node_transition_definition import (
     GraphNodeTransitionDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.prompt import PromptModel
 from shell.infrastructure.definition.persistence.sql.models.rag_chunk import RagChunkModel
 from shell.infrastructure.definition.persistence.sql.models.rag_document import RagDocumentModel
 from shell.infrastructure.definition.persistence.sql.models.runner_config import RunnerConfigModel
@@ -30,7 +29,6 @@ __all__ = [
     "JSON",
     "JSONB",
     "Mapped",
-    "PromptModel",
     "RagChunkModel",
     "RagDocumentModel",
     "RunnerConfigModel",

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.task_execution.ports.task_execution_repository import (
@@ -25,8 +24,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
     from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = logging.getLogger(__name__)
-
 
 class SqlTaskExecutionRepository(TaskExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
@@ -38,57 +35,15 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         return task_execution_model_to_entity(row) if row else None
 
     async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        query = (
-            select(TaskExecutionModel)
-            .where(TaskExecutionModel.name == name.value)
-            .order_by(TaskExecutionModel.version.desc())
-            .limit(1)
-        )
+        query = select(TaskExecutionModel).where(TaskExecutionModel.name == name.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_model_to_entity(row) if row else None
 
     async def get_current_by_id(self, id: TaskExecutionId) -> TaskExecution | None:
-        logger.info("Querying current Task by id=%s", id.value)
-        query = (
-            select(TaskExecutionModel)
-            .where(
-                TaskExecutionModel.id == id.value,
-                TaskExecutionModel.is_current.is_(True),
-            )
-            .limit(1)
-        )
-        row = (await self._session.execute(query)).scalar_one_or_none()
-        if not row:
-            logger.info("No current Task found for id=%s", id.value)
-            return None
-
-        logger.info(
-            "TaskExecutionModel found: id=%s name=%s is_current=%s",
-            row.id,
-            row.name,
-            row.is_current,
-        )
-        return task_execution_model_to_entity(row)
+        return await self.get_by_id(id)
 
     async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
-        logger.info("Querying current Task by name=%s", name.value)
-        query = (
-            select(TaskExecutionModel)
-            .where(TaskExecutionModel.name == name.value, TaskExecutionModel.is_current.is_(True))
-            .limit(1)
-        )
-        row = (await self._session.execute(query)).scalar_one_or_none()
-        if not row:
-            logger.info("No current Task found for name=%s", name.value)
-            return None
-
-        logger.info(
-            "TaskExecutionModel found: id=%s name=%s is_current=%s",
-            row.id,
-            row.name,
-            row.is_current,
-        )
-        return task_execution_model_to_entity(row)
+        return await self.get_by_name(name)
 
     async def save(self, task_execution: TaskExecution) -> None:
         model = task_execution_entity_to_model(task_execution)
@@ -102,6 +57,5 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         return [task_execution_model_to_entity(row) for row in rows]
 
     async def list_current(self) -> list[TaskExecution]:
-        query = select(TaskExecutionModel).where(TaskExecutionModel.is_current.is_(True))
-        rows = (await self._session.execute(query)).scalars().all()
+        rows = (await self._session.execute(select(TaskExecutionModel))).scalars().all()
         return [task_execution_model_to_entity(row) for row in rows]

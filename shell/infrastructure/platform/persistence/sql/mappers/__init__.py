@@ -10,13 +10,11 @@ from shell.domain.definition.entities.graph_node_definition import GraphNodeDefi
 from shell.domain.definition.entities.graph_node_transition_definition import (
     GraphNodeTransitionDefinition,
 )
-from shell.domain.definition.entities.prompt import Prompt
 from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
-    PromptId,
     RagChunkId,
     RagDocumentId,
     RunnerConfigId,
@@ -32,7 +30,7 @@ from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_
 from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
     GraphNodeExecutionStateOutput,
 )
-from shell.domain.execution.aggregates.session import Message, Session
+from shell.domain.execution.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state_input.task_execution_state_input import (
     TaskExecutionStateInput,
@@ -40,7 +38,7 @@ from shell.domain.execution.aggregates.task_execution_state_input.task_execution
 from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output import (
     TaskExecutionStateOutput,
 )
-from shell.domain.execution.aggregates.workflow import GraphNodeExecutionState, Workflow
+from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
     GraphNodeExecutionResult,
 )
@@ -50,31 +48,25 @@ from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-    GraphNodeExecutionStateId,
     GraphNodeExecutionStateInputId,
     GraphNodeExecutionStateOutputId,
     GraphNodeTransitionExecutionId,
-    MessageId,
     SessionId,
     TaskExecutionId,
     TaskExecutionStateInputId,
     TaskExecutionStateOutputId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.ids import CorrelationId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.platform.value_objects.transition_type import TransitionType
-from shell.domain.platform.value_objects.version import Version
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
     GraphNodeTransitionDefinitionModel,
-    PromptModel,
     RagChunkModel,
     RagDocumentModel,
     RunnerConfigModel,
@@ -85,7 +77,6 @@ from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     GraphNodeExecutionResultModel,
     GraphNodeExecutionStateInputModel,
-    GraphNodeExecutionStateModel,
     GraphNodeExecutionStateOutputModel,
     GraphNodeTransitionExecutionModel,
     SessionModel,
@@ -94,7 +85,6 @@ from shell.infrastructure.execution.persistence.sql.models import (
     TaskExecutionStateOutputModel,
     WorkflowModel,
 )
-from shell.infrastructure.platform.persistence.sql.models import MessageModel
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -111,16 +101,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
-        parent_task_execution_id=(
-            TaskExecutionId(task_execution_model.parent_task_execution_id)
-            if task_execution_model.parent_task_execution_id
-            else None
-        ),
         name=TaskExecutionName(task_execution_model.name),
-        version=Version(task_execution_model.version),
-        hash=Hash(task_execution_model.hash),
-        body=TaskExecutionBody(task_execution_model.body),
-        is_current=task_execution_model.is_current,
         created_at=_ensure_utc(task_execution_model.created_at),
         work_dir=task_execution_model.work_dir or "",
         workflow_id=(
@@ -134,16 +115,7 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
 def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
     return TaskExecutionModel(
         id=task_execution.id.value,
-        parent_task_execution_id=(
-            task_execution.parent_task_execution_id.value
-            if task_execution.parent_task_execution_id
-            else None
-        ),
         name=task_execution.name.value,
-        version=task_execution.version.value,
-        hash=task_execution.hash.value,
-        body=task_execution.body.value,
-        is_current=task_execution.is_current,
         work_dir=task_execution.work_dir,
         created_at=task_execution.created_at,
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
@@ -439,77 +411,21 @@ def graph_execution_entity_to_model(
 
 
 def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
-    graph_node_execution_states = {
-        state_model.graph_node_execution_id: GraphNodeExecutionState(
-            id=GraphNodeExecutionStateId(state_model.id),
-            graph_node_execution_id=GraphNodeExecutionId(state_model.graph_node_execution_id),
-            status=Status(state_model.status),
-            step=state_model.step,
-            updated_at=_ensure_utc(state_model.updated_at),
-        )
-        for state_model in workflow_model.graph_node_execution_state_models
-    }
-    graph_node_execution_results = {
-        result_model.graph_node_execution_id: graph_node_execution_result_model_to_entity(
-            result_model
-        )
-        for result_model in workflow_model.graph_node_execution_result_models
-    }
-    from shell.domain.execution.aggregates.graph_node_execution.value_objects.workflow_cursor import (
-        WorkflowCursor,
-    )
-    from shell.domain.execution.value_objects.workflow_execution_context import (
-        WorkflowExecutionContext,
-    )
-
-    cursor = (
-        WorkflowCursor.at(GraphNodeExecutionId(workflow_model.current_graph_node_execution_id))
-        if workflow_model.current_graph_node_execution_id
-        else WorkflowCursor.empty()
-    )
-    context = WorkflowExecutionContext(
-        correlation_id=workflow_model.correlation_id or "",
-    )
     return Workflow(
         id=WorkflowId(workflow_model.id),
         status=Status(workflow_model.status),
+        session_id=SessionId(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=_ensure_utc(workflow_model.created_at),
-        cursor=cursor,
-        execution_context=context,
-        version=workflow_model.version,
-        graph_node_execution_states=graph_node_execution_states,
-        graph_node_execution_results=graph_node_execution_results,
     )
 
 
 def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
-    work_flow_model = WorkflowModel(
+    return WorkflowModel(
         id=work_flow.id.value,
         status=work_flow.status.value,
-        current_graph_node_execution_id=work_flow.cursor.current_graph_node_execution_id.value
-        if work_flow.cursor.current_graph_node_execution_id
-        else None,
-        correlation_id=work_flow.execution_context.correlation_id,
-        version=work_flow.version,
+        session_id=work_flow.session_id.value if work_flow.session_id else None,
         created_at=work_flow.created_at,
     )
-    # POPRAWKA: Zmiana nazwy na graph_node_execution_state_models
-    work_flow_model.graph_node_execution_state_models = [
-        GraphNodeExecutionStateModel(
-            id=node_state.id.value,
-            workflow_id=work_flow.id.value,
-            graph_node_execution_id=node_state.graph_node_execution_id.value,
-            status=node_state.status.value,
-            step=node_state.step,
-            updated_at=node_state.updated_at,
-        )
-        for node_state in work_flow.graph_node_execution_states
-    ]
-    work_flow_model.graph_node_execution_result_models = [
-        graph_node_execution_result_entity_to_model(node_result)
-        for node_result in work_flow.graph_node_execution_results
-    ]
-    return work_flow_model
 
 
 # ---------------------------------------------------------------------------
@@ -584,37 +500,6 @@ def envelope_entity_to_model(envelope: Envelope) -> EnvelopeModel:
         for envelope_event in envelope.events
     ]
     return envelope_model
-
-
-# ---------------------------------------------------------------------------
-# Prompt
-# ---------------------------------------------------------------------------
-
-
-def prompt_model_to_entity(prompt_model: PromptModel) -> Prompt:
-    return Prompt(
-        id=PromptId(prompt_model.id),
-        name=prompt_model.name,
-        version=prompt_model.version,
-        hash=Hash(prompt_model.hash),
-        body=prompt_model.body,
-        source_uri=prompt_model.source_uri,
-        is_current=prompt_model.is_current,
-        created_at=_ensure_utc(prompt_model.created_at),
-    )
-
-
-def prompt_entity_to_model(prompt: Prompt) -> PromptModel:
-    return PromptModel(
-        id=prompt.id.value,
-        name=prompt.name,
-        version=prompt.version,
-        hash=prompt.hash.value,
-        body=prompt.body,
-        source_uri=prompt.source_uri,
-        is_current=prompt.is_current,
-        created_at=prompt.created_at,
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -785,48 +670,16 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         status=session_model.status,
         opened_at=_ensure_utc(session_model.opened_at),
         closed_at=_ensure_utc(session_model.closed_at) if session_model.closed_at else None,
-        messages=[message_model_to_entity(m) for m in session_model.messages],
     )
 
 
 def session_entity_to_model(session: Session) -> SessionModel:
-    model = SessionModel(
+    return SessionModel(
         id=session.id.value,
         goal=session.goal,
         status=session.status,
         opened_at=session.opened_at,
         closed_at=session.closed_at,
-    )
-    model.messages = [message_entity_to_model(m) for m in session.messages]
-    return model
-
-
-# ---------------------------------------------------------------------------
-# Message
-# ---------------------------------------------------------------------------
-
-
-def message_model_to_entity(message_model: MessageModel) -> Message:
-    return Message(
-        id=MessageId(message_model.id),
-        session_id=SessionId(message_model.session_id),
-        correlation_id=CorrelationId(message_model.correlation_id),
-        sender=message_model.sender,
-        receiver=message_model.receiver,
-        payload=dict(message_model.payload),
-        created_at=_ensure_utc(message_model.created_at),
-    )
-
-
-def message_entity_to_model(message: Message) -> MessageModel:
-    return MessageModel(
-        id=message.id.value,
-        session_id=message.session_id.value,
-        correlation_id=message.correlation_id.value,
-        sender=message.sender,
-        receiver=message.receiver,
-        payload=message.payload,
-        created_at=message.created_at,
     )
 
 

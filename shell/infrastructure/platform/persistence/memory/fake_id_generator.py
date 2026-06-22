@@ -3,7 +3,6 @@ from __future__ import annotations
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
-    PromptId,
     RagChunkId,
     RagDocumentId,
     RunnerConfigId,
@@ -13,9 +12,9 @@ from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-    MessageId,
     SessionId,
     TaskExecutionId,
+    TaskExecutionStateInputId,
     WorkflowId,
 )
 
@@ -37,9 +36,6 @@ class FakeIdGenerator:
     def new_envelope_id(self) -> EnvelopeId:
         return EnvelopeId(self._next())
 
-    def new_prompt_id(self) -> PromptId:
-        return PromptId(self._next())
-
     def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
         return GraphNodeExecutionResultId(self._next())
 
@@ -55,9 +51,6 @@ class FakeIdGenerator:
     def new_session_id(self) -> SessionId:
         return SessionId(self._next())
 
-    def new_message_id(self) -> MessageId:
-        return MessageId(self._next())
-
     def new_graph_definition_id(self) -> GraphDefinitionId:
         return GraphDefinitionId(self._next())
 
@@ -69,3 +62,6 @@ class FakeIdGenerator:
 
     def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
         return GraphNodeExecutionId(self._next())
+
+    def new_task_execution_state_input_id(self) -> TaskExecutionStateInputId:
+        return TaskExecutionStateInputId(self._next())

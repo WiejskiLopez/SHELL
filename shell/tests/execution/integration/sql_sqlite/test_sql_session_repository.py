@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.execution.persistence.sql.services import SessionQueryService
-from shell.infrastructure.platform.logging.stdlib_logger import get_correlation_id
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
 )
@@ -19,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class TestSqlSessionRepository:
-    async def test_open_append_close_and_history(
+    async def test_open_close_and_history(
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
@@ -27,12 +26,10 @@ class TestSqlSessionRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.execution.command_handlers.session_handlers import (
-            AppendMessageHandler,
             CloseSessionHandler,
             OpenSessionHandler,
         )
         from shell.application.platform.commands.commands import (
-            AppendMessageCommand,
             CloseSessionCommand,
             OpenSessionCommand,
         )
@@ -44,24 +41,6 @@ class TestSqlSessionRepository:
         session_id = await OpenSessionHandler(sql_uow, clock, id_gen).handle(
             OpenSessionCommand(goal="integration test")
         )
-        await AppendMessageHandler(sql_uow, clock, id_gen).handle(
-            AppendMessageCommand(
-                session_id=session_id.value,
-                correlation_id=get_correlation_id(),
-                sender="sql-agent",
-                receiver="router",
-                payload={"k": 1},
-            )
-        )
-        await AppendMessageHandler(sql_uow, clock, id_gen).handle(
-            AppendMessageCommand(
-                session_id=session_id.value,
-                correlation_id=get_correlation_id(),
-                sender="router",
-                receiver="sql-agent",
-                payload={"k": 2},
-            )
-        )
         await CloseSessionHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
@@ -71,4 +50,3 @@ class TestSqlSessionRepository:
         )
         assert dto is not None
         assert dto.status == "closed"
-        assert len(dto.messages) == 2

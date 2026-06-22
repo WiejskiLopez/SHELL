@@ -5,13 +5,14 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from shell.domain.definition.value_objects.ids import PromptId, RunnerConfigId
+from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
     TaskExecutionId,
+    TaskExecutionStateInputId,
     WorkflowId,
 )
 
@@ -35,9 +36,6 @@ class UuidIdGenerator:
     def new_envelope_id(self) -> EnvelopeId:
         return EnvelopeId(str(uuid.uuid4()))
 
-    def new_prompt_id(self) -> PromptId:
-        return PromptId(str(uuid.uuid4()))
-
     def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
         return GraphNodeExecutionResultId(str(uuid.uuid4()))
 
@@ -49,3 +47,6 @@ class UuidIdGenerator:
 
     def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
         return GraphNodeExecutionId(str(uuid.uuid4()))
+
+    def new_task_execution_state_input_id(self) -> TaskExecutionStateInputId:
+        return TaskExecutionStateInputId(str(uuid.uuid4()))

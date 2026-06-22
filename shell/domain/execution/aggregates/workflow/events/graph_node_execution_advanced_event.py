@@ -15,8 +15,6 @@ from shell.domain.platform.events import DomainEvent
 
 @dataclass(frozen=True, slots=True)
 class GraphNodeExecutionAdvancedEvent(DomainEvent):
-    """Workflow cursor moved from one node to another (audit trail)."""
-
     workflow_id: WorkflowId
     from_graph_node_execution_id: GraphNodeExecutionId
     to_graph_node_execution_id: GraphNodeExecutionId
@@ -29,9 +27,7 @@ class GraphNodeExecutionAdvancedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload["workflow_id"]),
-            from_graph_node_execution_id=GraphNodeExecutionId(
-                payload["from_graph_node_execution_id"]
-            ),
+            from_graph_node_execution_id=GraphNodeExecutionId(payload["from_graph_node_execution_id"]),
             to_graph_node_execution_id=GraphNodeExecutionId(payload["to_graph_node_execution_id"]),
         )
 

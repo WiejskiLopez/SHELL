@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from shell.infrastructure.definition.persistence.sql.services.prompt_query_service import (
-    PromptQueryService,
-)
 from shell.infrastructure.definition.persistence.sql.services.rag_query_service import (
     RagQueryService,
 )
@@ -30,7 +27,6 @@ from shell.infrastructure.execution.persistence.sql.services.workflow_query_serv
 __all__ = [
     "EnvelopeQueryService",
     "NodeResultQueryService",
-    "PromptQueryService",
     "RagQueryService",
     "RunnerConfigQueryService",
     "SessionQueryService",

@@ -1,6 +1,6 @@
 """Dev seed data — comprehensive test data for local development.
 
-Creates realistic sample Prompts, RunnerConfigs, GraphDefinitions (with nodes
+Creates realistic sample RunnerConfigs, GraphDefinitions (with nodes
 and transitions), TaskExecutions, Workflows, Envelopes, Results, and Schedulers.
 
 Only invoked when seed_dev_data is enabled (dev profile or SHELL_SEED_DEV_DATA=true).
@@ -37,7 +37,6 @@ def _seed_dev_sync(sync_conn) -> None:
 
     session = Session(sync_conn)
 
-    _seed_prompts(session)
     _seed_runner_configs(session)
     _seed_graph_definitions(session)
     _seed_task_executions(session)
@@ -45,67 +44,6 @@ def _seed_dev_sync(sync_conn) -> None:
     _seed_scheduler(session)
 
     session.commit()
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Prompts
-# ──────────────────────────────────────────────────────────────────────────────
-
-
-def _seed_prompts(session: Session) -> None:
-    from shell.infrastructure.definition.persistence.sql.models.prompt import PromptModel
-
-    prompts = [
-        PromptModel(
-            id=f"{_DEV_ID_PREFIX}-prompt-code-review",
-            name="code-review",
-            version=1,
-            hash="sha256:abc123def456",
-            body=(
-                "You are a senior code reviewer. Carefully analyze the following code "
-                "for bugs, performance issues, security vulnerabilities, and style violations.\n"
-                "Provide a structured review with categories: Bugs, Performance, Security, Style.\n"
-                "Be constructive and suggest concrete improvements."
-            ),
-            source_uri="file:///prompts/code-review.md",
-            is_current=True,
-            created_at=_NOW,
-        ),
-        PromptModel(
-            id=f"{_DEV_ID_PREFIX}-prompt-summarize",
-            name="summarize",
-            version=1,
-            hash="sha256:def789ghi012",
-            body=(
-                "Summarize the following text concisely. Focus on key points, decisions, "
-                "and action items. The summary should be no longer than 3 paragraphs."
-            ),
-            source_uri="file:///prompts/summarize.md",
-            is_current=True,
-            created_at=_NOW,
-        ),
-        PromptModel(
-            id=f"{_DEV_ID_PREFIX}-prompt-refactor",
-            name="refactor",
-            version=1,
-            hash="sha256:ghi345jkl678",
-            body=(
-                "You are an expert code refactoring assistant. Analyze the given code and "
-                "suggest refactoring improvements. Focus on readability, maintainability, "
-                "and adherence to SOLID principles. Provide the refactored code."
-            ),
-            source_uri="file:///prompts/refactor.md",
-            is_current=True,
-            created_at=_NOW,
-        ),
-    ]
-
-    for p in prompts:
-        existing = session.execute(
-            select(PromptModel).where(PromptModel.id == p.id)
-        ).scalar_one_or_none()
-        if existing is None:
-            session.add(p)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -414,52 +352,46 @@ def _seed_task_executions(session: Session) -> None:
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-simple-agent",
-                parent_task_execution_id=None,
                 status="CREATED",
                 name="dev-simple-agent-task",
-                version=1,
-                hash="sha256:task1hash",
-                body="# Simple Agent Task\nExecute autonomously.",
-                is_current=True,
                 work_dir="/tmp/shell/dev/simple-agent",
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input_payload": {"repo_url": "https://github.com/example/repo", "branch": "main"},
+            "input_payload": {
+                "description": "# Simple Agent Task\nExecute autonomously.",
+                "repo_url": "https://github.com/example/repo",
+                "branch": "main",
+            },
             "output_payload": {},  # not yet executed
         },
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-planner-worker",
-                parent_task_execution_id=None,
                 status="CREATED",
                 name="dev-planner-worker-task",
-                version=1,
-                hash="sha256:task2hash",
-                body="# Planner Worker Task\nPlan and execute.",
-                is_current=True,
                 work_dir="/tmp/shell/dev/planner-worker",
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input_payload": {"objective": "Refactor authentication module", "language": "python"},
+            "input_payload": {
+                "description": "# Planner Worker Task\nPlan and execute.",
+                "objective": "Refactor authentication module",
+                "language": "python",
+            },
             "output_payload": {},
         },
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-full-pipeline",
-                parent_task_execution_id=None,
                 status="CREATED",
                 name="dev-full-pipeline-task",
-                version=1,
-                hash="sha256:task3hash",
-                body="# Full Pipeline Task\nEnd-to-end orchestration.",
-                is_current=True,
                 work_dir="/tmp/shell/dev/full-pipeline",
                 workflow_id=None,
                 created_at=_NOW,
             ),
             "input_payload": {
+                "description": "# Full Pipeline Task\nEnd-to-end orchestration.",
                 "project_path": "/tmp/shell/dev/project",
                 "pipeline_stage": "analysis",
             },
@@ -541,9 +473,6 @@ def _seed_workflow_scenario(session: Session) -> None:
     wf = WorkflowModel(
         id=WF_ID,
         status="done",
-        current_graph_node_execution_id=None,
-        correlation_id="dev-correlation-1",
-        version=1,
         created_at=_NOW,
     )
     session.add(wf)

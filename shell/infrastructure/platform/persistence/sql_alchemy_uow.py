@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionRepository,
-    SqlPromptRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
 )
@@ -18,6 +17,7 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphExecutionStateOutputRepository,
     SqlSessionRepository,
     SqlTaskExecutionRepository,
+    SqlTaskExecutionStateInputRepository,
     SqlWorkflowRepository,
 )
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
@@ -51,6 +51,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlTaskExecutionRepository(self._active_session)
 
     @property
+    def task_execution_state_inputs(self) -> SqlTaskExecutionStateInputRepository:
+        return SqlTaskExecutionStateInputRepository(self._active_session)
+
+    @property
     def graph_executions(self) -> SqlGraphExecutionRepository:
         return SqlGraphExecutionRepository(self._active_session)
 
@@ -69,10 +73,6 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     @property
     def graph_execution_state_outputs(self) -> SqlGraphExecutionStateOutputRepository:
         return SqlGraphExecutionStateOutputRepository(self._active_session)
-
-    @property
-    def prompts(self) -> SqlPromptRepository:
-        return SqlPromptRepository(self._active_session)
 
     @property
     def runner_configs(self) -> SqlRunnerConfigRepository:

@@ -37,7 +37,6 @@ from shell.infrastructure.execution.persistence.sql.models.graph_node_transition
     GraphNodeTransitionExecutionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.session import (
-    MessageModel,
     SessionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.task_execution import TaskExecutionModel
@@ -67,7 +66,6 @@ __all__ = [
     "JSON",
     "JSONB",
     "Mapped",
-    "MessageModel",
     "SessionModel",
     "TaskExecutionStateInputModel",
     "TaskExecutionModel",

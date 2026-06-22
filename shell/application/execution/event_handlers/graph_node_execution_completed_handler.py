@@ -20,9 +20,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
-    CompensationHandler,
-    NoOpCompensationHandler,
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
+    GraphNodeExecutionAdvancedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
+    GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
@@ -72,7 +74,7 @@ class GraphNodeExecutionCompletedHandler:
         logger: Logger,
         navigator: GraphNodeExecutionNavigator | None = None,
         policy: GraphNodeExecutionPolicy | None = None,
-        compensation: CompensationHandler | None = None,
+
     ) -> None:
         self._uow = uow
         self._clock = clock
@@ -82,7 +84,6 @@ class GraphNodeExecutionCompletedHandler:
             navigator or LinearGraphNodeExecutionNavigator()
         )
         self._policy: GraphNodeExecutionPolicy = policy or FailFastGraphNodeExecutionPolicy()
-        self._compensation: CompensationHandler = compensation or NoOpCompensationHandler()
 
     async def handle(self, event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
@@ -215,11 +216,10 @@ class GraphNodeExecutionCompletedHandler:
             )
             return
 
+        staged: list[Any] = []
         for target_id in parallel_ids:
-            workflow.request_node_execution(
-                graph_node_execution_id=target_id,
-                now=now,
-            )
+            staged.append(GraphNodeExecutionRequestedEvent.now(workflow.id, target_id, now))
+        uow.stage_events(staged)
 
     async def _handle_loop(
         self,
@@ -255,10 +255,10 @@ class GraphNodeExecutionCompletedHandler:
         counter.increment()
 
         if not counter.is_exhausted:
-            workflow.advance_and_request(
-                next_graph_node_execution_id=loop_transition.target_node_execution_id,
-                now=now,
-            )
+            uow.stage_events([
+                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, loop_transition.target_node_execution_id, now),
+                GraphNodeExecutionRequestedEvent.now(workflow.id, loop_transition.target_node_execution_id, now),
+            ])
             return
 
         await self._advance_or_finish(
@@ -287,7 +287,10 @@ class GraphNodeExecutionCompletedHandler:
             workflow.finish(now, task_execution_id=graph_execution.task_execution_id)
             return
         next_node = next_nodes[0]
-        workflow.advance_and_request(next_graph_node_execution_id=next_node.id, now=now)
+        uow.stage_events([
+            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, next_node.id, now),
+            GraphNodeExecutionRequestedEvent.now(workflow.id, next_node.id, now),
+        ])
 
     async def _handle_failure(
         self,
@@ -304,7 +307,10 @@ class GraphNodeExecutionCompletedHandler:
         )
 
         if error_handler_node is not None:
-            workflow.advance_and_request(next_graph_node_execution_id=error_handler_node, now=now)
+            uow.stage_events([
+                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, error_handler_node, now),
+                GraphNodeExecutionRequestedEvent.now(workflow.id, error_handler_node, now),
+            ])
             return
 
         decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)
@@ -322,7 +328,6 @@ class GraphNodeExecutionCompletedHandler:
         workflow.abort(
             reason=abort_reason,
             now=now,
-            compensation=self._compensation,
             task_execution_id=graph_execution.task_execution_id,
         )
 
@@ -336,3 +341,4 @@ class GraphNodeExecutionCompletedHandler:
             if t.transition_type == TransitionType.ERROR_HANDLER:
                 return t.target_node_execution_id
         return None
+

@@ -42,8 +42,13 @@ class SqlTaskExecutionStateInputRepository(TaskExecutionStateInputRepository):
         return task_execution_input_payload_model_to_entity(row) if row else None
 
     async def save(self, payload: TaskExecutionStateInput) -> None:
+        existing = await self.get_latest_by_task_id(payload.task_execution_id)
+        if existing is not None:
+            existing.supersede()
+            old_model = task_execution_input_payload_entity_to_model(existing)
+            await self._session.merge(old_model)
         model = task_execution_input_payload_entity_to_model(payload)
-        await self._session.merge(model)
+        self._session.add(model)
 
 
 __all__ = [

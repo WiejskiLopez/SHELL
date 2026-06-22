@@ -12,7 +12,6 @@ from shell.application.platform.commands.commands import (
     RunGraphNodeExecutionCommand,
     RunTaskerWorkflowCommand,
     SaveGraphNodeExecutionResultCommand,
-    SavePromptCommand,
     StartWorkflowCommand,
 )
 
@@ -42,7 +41,6 @@ def register_commands(core_container: CoreContainer) -> None:
         SaveGraphNodeExecutionResultCommand,
         commands.save_graph_node_execution_result_handler_factory,
     )
-    cmd_bus.register(SavePromptCommand, commands.save_prompt_handler_factory)
     cmd_bus.register(
         BootstrapRunnerConfigCommand,
         commands.bootstrap_runner_config_handler_factory,

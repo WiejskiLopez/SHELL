@@ -29,14 +29,11 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return None
 
     async def get_current_by_id(self, id: TaskExecutionId) -> TaskExecution | None:
-        task_execution = self._store.get(id.value)
-        if task_execution and task_execution.is_current:
-            return task_execution
-        return None
+        return self._store.get(id.value)
 
     async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
         for task_execution in self._store.values():
-            if task_execution.name == name and task_execution.is_current:
+            if task_execution.name == name:
                 return task_execution
         return None
 
@@ -47,6 +44,4 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return [te for te in self._store.values() if te.workflow_id == workflow_id]
 
     async def list_current(self) -> list[TaskExecution]:
-        return [
-            task_execution for task_execution in self._store.values() if task_execution.is_current
-        ]
+        return list(self._store.values())

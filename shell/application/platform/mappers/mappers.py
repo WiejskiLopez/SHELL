@@ -7,10 +7,8 @@ from typing import TYPE_CHECKING
 from shell.application.platform.dto import (
     EnvelopeDto,
     GraphNodeExecutionResultDto,
-    GraphNodeExecutionStateDto,
     GraphNodeExecutionStateInputDto,
     GraphNodeExecutionStateOutputDto,
-    PromptDto,
     RunnerConfigDto,
     TaskExecutionDto,
     TaskExecutionStateInputDto,
@@ -19,7 +17,6 @@ from shell.application.platform.dto import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.prompt import Prompt
     from shell.domain.definition.entities.runner_config import RunnerConfig
     from shell.domain.execution.aggregates.envelope import Envelope
     from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
@@ -44,41 +41,18 @@ if TYPE_CHECKING:
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
     return TaskExecutionDto(
         id=task_execution.id.value,
-        parent_task_execution_id=(
-            task_execution.parent_task_execution_id.value
-            if task_execution.parent_task_execution_id
-            else None
-        ),
         name=task_execution.name.value,
-        version=task_execution.version.value,
-        hash=task_execution.hash.value,
-        is_current=task_execution.is_current,
         created_at=task_execution.created_at,
-        body=task_execution.body.value,
         work_dir=task_execution.work_dir,
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
     )
 
 
 def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
-    graph_node_execution_states = {
-        state.graph_node_execution_id.value: GraphNodeExecutionStateDto(
-            graph_node_execution_id=state.graph_node_execution_id.value,
-            status=state.status.value,
-            step=state.step,
-            updated_at=state.updated_at,
-        )
-        for state in workflow.graph_node_execution_states
-    }
     return WorkflowDto(
         id=workflow.id.value,
         status=workflow.status.value,
         created_at=workflow.created_at,
-        version=workflow.version,
-        cursor=workflow.cursor.current_graph_node_execution_id.value
-        if workflow.cursor.current_graph_node_execution_id
-        else None,
-        graph_node_execution_states=graph_node_execution_states,
     )
 
 
@@ -109,18 +83,6 @@ def node_result_to_dto(result: GraphNodeExecutionResult) -> GraphNodeExecutionRe
         stderr=result.stderr,
         artifact_uri=result.artifact_uri,
         created_at=result.created_at,
-    )
-
-
-def prompt_to_dto(prompt: Prompt) -> PromptDto:
-    return PromptDto(
-        id=prompt.id.value,
-        name=prompt.name,
-        version=prompt.version,
-        hash=prompt.hash.value,
-        body=prompt.body,
-        is_current=prompt.is_current,
-        created_at=prompt.created_at,
     )
 
 

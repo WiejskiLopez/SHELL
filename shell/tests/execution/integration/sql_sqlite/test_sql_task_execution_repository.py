@@ -14,7 +14,7 @@ from shell.application.platform.query_handlers.query_handlers import (
 )
 from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService
 from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    SqlAlchemyUnitOfWork,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -44,24 +44,3 @@ class TestSqlTaskExecutionRepository:
         dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task"))
         assert dto is not None
         assert dto.name == "sql-task"
-        assert dto.is_current is True
-
-    async def test_reimport_marks_old_non_current(
-        self,
-        sql_uow: SqlAlchemyUnitOfWork,
-        clock: FakeClock,
-        id_gen: FakeIdGenerator,
-        events: FakeEventPublisher,
-        task_execution_loader: FakeTaskLoader,
-        session_factory,
-    ) -> None:
-        handler = ImportTaskExecutionHandler(
-            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
-        )
-        await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
-        await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task-v"))
-
-        q = GetCurrentTaskExecutionHandler(TaskExecutionQueryService(session_factory))
-        dto = await q.handle(GetCurrentTaskExecutionQuery("sql-task-v"))
-        assert dto is not None
-        assert dto.is_current is True

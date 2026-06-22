@@ -8,7 +8,6 @@ from shell.application.platform.queries.queries import (
     GetCurrentTaskExecutionQuery,
     GetEnvelopesByWorkflowQuery,
     GetGraphNodeExecutionResultQuery,
-    GetPromptQuery,
     GetRunnerConfigQuery,
     GetSessionHistoryQuery,
     GetTaskExecutionByNameQuery,
@@ -42,7 +41,6 @@ def register_queries(core_container: CoreContainer) -> None:
     q_bus.register(
         GetGraphNodeExecutionResultQuery, queries.get_graph_node_execution_result_handler_factory
     )
-    q_bus.register(GetPromptQuery, queries.get_prompt_handler_factory)
     q_bus.register(GetRunnerConfigQuery, queries.get_runner_config_handler_factory)
     q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)
     q_bus.register(SearchSimilarQuery, queries.search_similar_handler_factory)

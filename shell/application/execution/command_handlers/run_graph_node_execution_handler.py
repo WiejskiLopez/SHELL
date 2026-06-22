@@ -56,9 +56,10 @@ class RunGraphNodeExecutionHandler:
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
 
-            workflow.update_graph_node_execution_state(
-                graph_node_execution_id, Status.running(), now=now
-            )
+            # TODO V2: update_graph_node_execution_state removed — _states removed from Workflow
+            # workflow.update_graph_node_execution_state(
+            #     graph_node_execution_id, Status.running(), now=now
+            # )
             await uow.workflows.save(workflow)
 
         # Execute strategy (outside UoW — may take a long time)
@@ -82,16 +83,17 @@ class RunGraphNodeExecutionHandler:
             workflow = await uow.workflows.get_by_id(workflow_id)
             if workflow is None:
                 raise WorkflowNotFound(cmd.workflow_id)
-            result = workflow.record_graph_node_execution_result(
-                result_id=self._id_gen.new_graph_node_execution_result_id(),
-                graph_node_execution_id=graph_node_execution_id,
-                status=node_status,
-                now=now,
-                stdout=stdout,
-                stderr=stderr,
-                reason=failure_reason,
-            )
+            # TODO V2: record_graph_node_execution_result removed — _results removed from Workflow
+            # result = workflow.record_graph_node_execution_result(
+            #     result_id=self._id_gen.new_graph_node_execution_result_id(),
+            #     graph_node_execution_id=graph_node_execution_id,
+            #     status=node_status,
+            #     now=now,
+            #     stdout=stdout,
+            #     stderr=stderr,
+            #     reason=failure_reason,
+            # )
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())
 
-        return result.id.value
+        return ""

@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-from shell.application.definition.query_handlers.query_handlers.get_prompt_handler import (
-    GetPromptHandler,
-)
 from shell.application.definition.query_handlers.query_handlers.get_runner_config_handler import (
     GetRunnerConfigHandler,
 )
@@ -36,7 +33,6 @@ __all__ = [
     "GetWorkflowHandler",
     "GetEnvelopesByWorkflowHandler",
     "GetGraphNodeExecutionResultHandler",
-    "GetPromptHandler",
     "GetRunnerConfigHandler",
     "SearchSimilarHandler",
     "GetSessionHistoryHandler",

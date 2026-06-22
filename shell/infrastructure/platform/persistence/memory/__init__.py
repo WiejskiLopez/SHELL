@@ -10,9 +10,6 @@ from shell.infrastructure.definition.persistence.memory.in_memory_graph_definiti
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
     InMemoryGraphNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_prompt_repository import (
-    InMemoryPromptRepository,
-)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
@@ -69,7 +66,6 @@ __all__ = [
     "InMemoryUnitOfWork",
     "InMemoryGraphDefinitionRepository",
     "InMemoryGraphNodeDefinitionRepository",
-    "InMemoryPromptRepository",
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
     "InMemoryEnvelopeArchive",

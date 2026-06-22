@@ -34,7 +34,7 @@ class TestImportTaskExecutionHandler:
         assert len(uow.committed_events) == 1
         assert isinstance(uow.committed_events[0], TaskExecutionCreatedEvent)
 
-    async def test_task_saved_as_current(
+    async def test_creates_task_execution_state_input_with_description(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
@@ -44,15 +44,17 @@ class TestImportTaskExecutionHandler:
         handler = ImportTaskExecutionHandler(
             uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
-        await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
+        task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+        from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        task_execution = await uow.task_executions.get_current_by_name(TaskExecutionName("my-task"))
-        assert task_execution is not None
-        assert task_execution.is_current is True
+        state_input = await uow.task_execution_state_inputs.get_latest_by_task_id(
+            TaskExecutionId(task_execution_id)
+        )
+        assert state_input is not None
+        assert state_input.payload == {"description": "# SQL Task"}
 
-    async def test_reimport_marks_previous_non_current(
+    async def test_reimport_creates_new_state_input(
         self,
         uow: InMemoryUnitOfWork,
         clock: FakeClock,
@@ -63,15 +65,9 @@ class TestImportTaskExecutionHandler:
             uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
         first_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
-        await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
+        second_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        old = await uow.task_executions.get_by_id(
-            __import__(
-                "shell.domain.execution.value_objects.ids", fromlist=["TaskExecutionId"]
-            ).TaskExecutionId(first_id)
-        )
-        assert old is not None
-        assert old.is_current is False
+        assert first_id != second_id
 
     async def test_invalid_task_execution_name_raises(
         self,

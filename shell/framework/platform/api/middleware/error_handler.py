@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
-from shell.domain.definition.exceptions import PromptNotFound, RunnerConfigNotFound
+from shell.domain.definition.exceptions import RunnerConfigNotFound
 from shell.domain.execution.exceptions import (
     EnvelopeNotFound,
     NodeNotFound,
@@ -24,7 +24,6 @@ _NOT_FOUND = {
     WorkflowNotFound,
     EnvelopeNotFound,
     NodeNotFound,
-    PromptNotFound,
     RunnerConfigNotFound,
 }
 

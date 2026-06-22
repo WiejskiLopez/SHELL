@@ -53,8 +53,11 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_comp
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.child_graphs_completed_event import (
-    ChildGraphsCompletedEvent,
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+    WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
+    WorkflowFailedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
@@ -68,15 +71,6 @@ from shell.domain.execution.aggregates.workflow.events.graph_node_execution_fail
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
     GraphNodeExecutionRequestedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_started_event import (
-    GraphNodeExecutionStartedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
-    WorkflowCompletedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
-    WorkflowFailedEvent,
-)
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
@@ -84,7 +78,6 @@ from shell.domain.platform.events import DomainEvent
 
 __all__ = [
     "ChildGraphCompletedEvent",
-    "ChildGraphsCompletedEvent",
     "DomainEvent",
     "EnvelopeDeadletteredEvent",
     "EnvelopeExpiredEvent",
@@ -98,7 +91,6 @@ __all__ = [
     "GraphNodeExecutionFailedEvent",
     "GraphNodeExecutionLoopIterationEvent",
     "GraphNodeExecutionRequestedEvent",
-    "GraphNodeExecutionStartedEvent",
     "GraphNodeExecutionTimedOutEvent",
     "GraphNodeParallelExecutionRequestedEvent",
     "PlannerResultEvent",

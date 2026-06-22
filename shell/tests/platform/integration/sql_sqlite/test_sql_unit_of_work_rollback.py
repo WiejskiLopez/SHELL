@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.queries.queries import GetPromptQuery
-from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
-from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
+from shell.application.platform.queries.queries import GetRunnerConfigQuery
+from shell.application.platform.query_handlers.query_handlers import GetRunnerConfigHandler
+from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
+    RunnerConfigQueryService as SqlRunnerConfigQueryService,
+)
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
 )
@@ -27,14 +29,17 @@ class TestSqlUnitOfWorkRollback:
     ) -> None:
         try:
             async with sql_uow as u:
-                from shell.domain.definition.entities.prompt import Prompt
-                from shell.domain.definition.value_objects.ids import PromptId
+                from shell.domain.definition.entities.runner_config import RunnerConfig
+                from shell.domain.definition.value_objects.ids import RunnerConfigId
+                from shell.domain.platform.value_objects.hash import Hash
 
-                await u.prompts.save(
-                    Prompt.new(
-                        id_=PromptId("rollback-prompt-x"),
-                        name="rollback-prompt-x",
-                        body="should not persist",
+                await u.runner_configs.save(
+                    RunnerConfig.new(
+                        id_=RunnerConfigId("rollback-runner-x"),
+                        package_name="rollback-runner-x",
+                        kind="python",
+                        body={"key": "value"},
+                        config_hash=Hash.of("test"),
                         now=clock.now(),
                     )
                 )
@@ -42,6 +47,6 @@ class TestSqlUnitOfWorkRollback:
         except RuntimeError:
             pass
 
-        q = GetPromptHandler(PromptQueryService(session_factory))
-        dto = await q.handle(GetPromptQuery("rollback-prompt-x"))
+        q = GetRunnerConfigHandler(SqlRunnerConfigQueryService(session_factory))
+        dto = await q.handle(GetRunnerConfigQuery("rollback-runner-x"))
         assert dto is None

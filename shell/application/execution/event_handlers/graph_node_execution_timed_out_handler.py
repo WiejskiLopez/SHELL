@@ -42,20 +42,22 @@ class GraphNodeExecutionTimedOutHandler:
             if workflow.status != Status.running():
                 return
 
-            state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-            if state is None or state.status != Status.running():
-                return
+            # TODO V2: get_graph_node_execution_state removed — _states removed from Workflow
+            # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
+            # if state is None or state.status != Status.running():
+            #     return
 
             now = self._clock.now()
-            workflow.record_graph_node_execution_result(
-                result_id=self._id_gen.new_graph_node_execution_result_id(),
-                graph_node_execution_id=event.graph_node_execution_id,
-                status=Status.failed(),
-                now=now,
-                stdout="",
-                stderr=f"Node timed out after {event.timeout_seconds}s",
-                reason=f"timeout after {event.timeout_seconds}s",
-            )
+            # TODO V2: record_graph_node_execution_result removed — _results removed from Workflow
+            # workflow.record_graph_node_execution_result(
+            #     result_id=self._id_gen.new_graph_node_execution_result_id(),
+            #     graph_node_execution_id=event.graph_node_execution_id,
+            #     status=Status.failed(),
+            #     now=now,
+            #     stdout="",
+            #     stderr=f"Node timed out after {event.timeout_seconds}s",
+            #     reason=f"timeout after {event.timeout_seconds}s",
+            # )
 
             await uow.workflows.save(workflow)
             uow.stage_events(workflow.pull_events())

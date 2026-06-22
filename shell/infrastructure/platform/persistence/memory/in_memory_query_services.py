@@ -2,10 +2,6 @@ from __future__ import annotations
 
 from shell.application.platform.dto import (
     EnvelopeDto,
-    GraphNodeExecutionResultDto,
-    GraphNodeExecutionStateDto,
-    MessageDto,
-    PromptDto,
     RagChunkDto,
     RunnerConfigDto,
     SessionDto,
@@ -13,7 +9,6 @@ from shell.application.platform.dto import (
     WorkflowDto,
 )
 from shell.domain.execution.value_objects.ids import (
-    GraphNodeExecutionId,
     SessionId,
     WorkflowId,
 )
@@ -54,11 +49,7 @@ class InMemoryQueryServices:
         return TaskExecutionDto(
             id=task_execution.id.value,
             name=task_execution.name.value,
-            version=task_execution.version.value,
-            hash=task_execution.hash.value,
-            is_current=task_execution.is_current,
             created_at=task_execution.created_at,
-            body=task_execution.body.value,
             graph_node_executions=tuple(graph_node_executions),
         )
 
@@ -73,19 +64,6 @@ class InMemoryQueryServices:
             id=str(workflow.id),
             status=workflow.status.value,
             created_at=workflow.created_at,
-            version=workflow.version,
-            cursor=workflow.cursor.current_graph_node_execution_id.value
-            if workflow.cursor.current_graph_node_execution_id
-            else None,
-            graph_node_execution_states={
-                str(state.graph_node_execution_id): GraphNodeExecutionStateDto(
-                    graph_node_execution_id=str(state.graph_node_execution_id),
-                    status=state.status.value,
-                    step=state.step,
-                    updated_at=state.updated_at,
-                )
-                for state in workflow.graph_node_execution_states
-            },
         )
 
     async def get_envelopes_by_workflow(
@@ -113,43 +91,6 @@ class InMemoryQueryServices:
             for envelope in envelopes
         ]
 
-    async def get_graph_node_execution_result(
-        self, graph_node_execution_id: str, workflow_id: str
-    ) -> GraphNodeExecutionResultDto | None:
-        workflow = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
-        if workflow is None:
-            return None
-
-        result = workflow.get_graph_node_execution_result(
-            GraphNodeExecutionId(graph_node_execution_id)
-        )
-        if result is None:
-            return None
-        return GraphNodeExecutionResultDto(
-            id=str(result.id),
-            graph_node_execution_id=str(result.graph_node_execution_id),
-            workflow_id=str(result.workflow_id),
-            status=result.status.value,
-            stdout=result.stdout,
-            stderr=result.stderr,
-            artifact_uri=result.artifact_uri,
-            created_at=result.created_at,
-        )
-
-    async def get_prompt(self, name: str) -> PromptDto | None:
-        prompt = await self._uow.prompts.get_current_by_name(name)
-        if not prompt:
-            return None
-        return PromptDto(
-            id=str(prompt.id),
-            name=prompt.name,
-            version=prompt.version,
-            hash=str(prompt.hash),
-            body=prompt.body,
-            is_current=prompt.is_current,
-            created_at=prompt.created_at,
-        )
-
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
         runner_config = await self._uow.runner_configs.get_by_package(package_name)
         if not runner_config:
@@ -174,18 +115,6 @@ class InMemoryQueryServices:
             status=session.status,
             opened_at=session.opened_at,
             closed_at=session.closed_at,
-            messages=[
-                MessageDto(
-                    id=message.id.value,
-                    session_id=message.session_id.value,
-                    correlation_id=message.correlation_id.value,
-                    sender=message.sender,
-                    receiver=message.receiver,
-                    payload=message.payload,
-                    created_at=message.created_at,
-                )
-                for message in session.messages
-            ],
         )
 
     async def search_similar(

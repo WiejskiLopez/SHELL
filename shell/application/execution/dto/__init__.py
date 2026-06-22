@@ -13,7 +13,6 @@ from shell.application.execution.dto.graph_node_execution_state_input import (
 from shell.application.execution.dto.graph_node_execution_state_output import (
     GraphNodeExecutionStateOutputDto,
 )
-from shell.application.execution.dto.message import MessageDto
 from shell.application.execution.dto.session import SessionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.task_execution_state_input import (
@@ -33,7 +32,6 @@ __all__ = [
     "GraphNodeExecutionStateOutputDto",
     "GraphNodeExecutionResultDto",
     "GraphNodeExecutionStateDto",
-    "MessageDto",
     "SessionDto",
     "TYPE_CHECKING",
     "TaskExecutionDto",

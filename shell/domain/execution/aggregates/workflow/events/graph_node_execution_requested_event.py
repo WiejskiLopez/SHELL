@@ -15,14 +15,6 @@ from shell.domain.platform.events import DomainEvent
 
 @dataclass(frozen=True, slots=True)
 class GraphNodeExecutionRequestedEvent(DomainEvent):
-    """Request to execute exactly one node identified by ``node_execution_id``.
-
-    Emitted by the Workflow aggregate (start_at / advance_to) and dispatched
-    via the EventBus to ``GraphNodeExecutionWorker``. The worker is expected to be
-    idempotent: it must compare the request against ``Workflow.cursor`` and
-    no-op if they do not match (re-delivery / out-of-order delivery).
-    """
-
     workflow_id: WorkflowId
     graph_node_execution_id: GraphNodeExecutionId
 

@@ -20,11 +20,7 @@ class TaskExecutionQueryService:
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = (
-                select(TaskExecutionModel)
-                .where(TaskExecutionModel.name == name)
-                .where(TaskExecutionModel.is_current)
-            )
+            stmt = select(TaskExecutionModel).where(TaskExecutionModel.name == name)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -55,13 +51,8 @@ class TaskExecutionQueryService:
 
             return TaskExecutionDto(
                 id=model.id,
-                parent_task_execution_id=model.parent_task_execution_id,
                 name=model.name,
-                version=model.version,
-                hash=model.hash,
-                is_current=model.is_current,
                 created_at=model.created_at,
-                body=model.body,
                 graph_node_executions=tuple(graph_node_executions),
             )
 

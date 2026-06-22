@@ -49,6 +49,15 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_execution_model_to_entity(row) if row else None
 
+    async def get_by_parent_id(
+        self, parent_graph_execution_id: GraphExecutionId
+    ) -> list[GraphExecution]:
+        query = self._base_query().where(
+            GraphExecutionModel.parent_graph_execution_id == parent_graph_execution_id.value
+        )
+        rows = (await self._session.execute(query)).scalars().all()
+        return [graph_execution_model_to_entity(row) for row in rows if row is not None]
+
     async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[GraphExecution]:
         query = (
             self._base_query()

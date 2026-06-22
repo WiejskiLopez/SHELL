@@ -7,14 +7,8 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.domain.execution.events import (
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
-    GraphNodeExecutionAdvancedEvent,
-    GraphNodeExecutionCompletedEvent,
-    GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionRequestedEvent,
-    GraphNodeExecutionStartedEvent,
     GraphNodeExecutionTimedOutEvent,
     PlannerResultEvent,
-    PlannerSpawnsQueuedEvent,
     SubGraphSpawnRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
@@ -40,8 +34,6 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(EnvelopeRoutedEvent, events.archive_on_delivered_handler_factory)
     event_bus.subscribe(EnvelopeRoutedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(EnvelopeExpiredEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionCompletedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionFailedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(TaskExecutionCreatedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
         TaskExecutionCreatedEvent, events.build_graph_execution_on_task_execution_created_factory
@@ -49,18 +41,7 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowStartedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowCompletedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionStartedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(GraphNodeExecutionAdvancedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(
-        GraphNodeExecutionRequestedEvent, events.graph_node_execution_worker_factory
-    )
-    event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent, events.graph_node_execution_completed_handler_factory
-    )
     event_bus.subscribe(PlannerResultEvent, events.planner_result_handler_factory)
-    event_bus.subscribe(
-        GraphNodeExecutionFailedEvent, events.graph_node_execution_completed_handler_factory
-    )
     event_bus.subscribe(
         GraphNodeExecutionTimedOutEvent,
         events.graph_node_execution_timed_out_handler_factory,
@@ -72,8 +53,4 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(
         SubGraphSpawnRequestedEvent,
         events.sub_graph_spawn_requested_handler_factory,
-    )
-    event_bus.subscribe(
-        PlannerSpawnsQueuedEvent,
-        events.planner_spawns_queued_handler_factory,
     )

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from shell.application.definition.commands.config_commands import BootstrapRunnerConfigCommand
-from shell.application.definition.commands.prompt_commands import SavePromptCommand
 from shell.application.definition.commands.rag_commands import IndexDocumentCommand
 from shell.application.execution.commands.envelope_commands import ArchiveEnvelopeCommand
 from shell.application.execution.commands.graph_node_execution_commands import (
@@ -11,7 +10,6 @@ from shell.application.execution.commands.graph_node_execution_commands import (
     SaveGraphNodeExecutionResultCommand,
 )
 from shell.application.execution.commands.session_commands import (
-    AppendMessageCommand,
     CloseSessionCommand,
     OpenSessionCommand,
 )
@@ -23,7 +21,6 @@ from shell.application.execution.commands.workflow_commands import (
 )
 
 __all__ = [
-    "AppendMessageCommand",
     "ArchiveEnvelopeCommand",
     "BootstrapRunnerConfigCommand",
     "CloseSessionCommand",
@@ -34,6 +31,5 @@ __all__ = [
     "RunGraphNodeExecutionCommand",
     "RunTaskerWorkflowCommand",
     "SaveGraphNodeExecutionResultCommand",
-    "SavePromptCommand",
     "StartWorkflowCommand",
 ]

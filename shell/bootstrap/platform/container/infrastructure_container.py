@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 from shell.infrastructure.definition.persistence.sql.services import (
-    PromptQueryService,
     RagQueryService,
     RunnerConfigQueryService,
 )
@@ -17,7 +16,7 @@ from shell.infrastructure.execution.graph_execution_definition_provider_adapter 
     GraphExecutionDefinitionProviderAdapter,
 )
 from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
-    InMemoryCrownScheduler,
+    QueryBasedCrownScheduler,
 )
 from shell.infrastructure.execution.persistence.sql.services import (
     EnvelopeQueryService,
@@ -58,7 +57,6 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     node_result_query_service = providers.Singleton(
         NodeResultQueryService, session_factory=session_factory
     )
-    prompt_query_service = providers.Singleton(PromptQueryService, session_factory=session_factory)
     runner_config_query_service = providers.Singleton(
         RunnerConfigQueryService, session_factory=session_factory
     )
@@ -87,8 +85,8 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         query_service=graph_definition_query_service_factory,
     )
 
-    # 4. Crown-Scheduler (parent-child sub-graph orchestration)
-    crown_scheduler_factory = providers.Singleton(InMemoryCrownScheduler)
+    # 4. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
+    crown_scheduler_factory = providers.Singleton(QueryBasedCrownScheduler)
 
     # 6. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)

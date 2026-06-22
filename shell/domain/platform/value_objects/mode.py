@@ -1,4 +1,4 @@
-"""Mode — execution mode of a node (agent/router/tasker/tool/worker)."""
+"""Mode — execution mode of a node (agent/router/tasker/tool/worker/planner/verifier)."""
 
 from __future__ import annotations
 
@@ -16,3 +16,4 @@ class Mode(ValueObject, StrEnum):
     TOOL = "tool"
     WORKER = "worker"
     PLANNER = "planner"
+    VERIFIER = "verifier"

@@ -1,9 +1,3 @@
-"""Unit tests for GraphNodeExecutionWorker — happy path (Cycle A only).
-
-The worker only records the result and emits completion/failure.
-Next-step decisions are verified in the GraphNodeExecutionResultHandler tests.
-"""
-
 from __future__ import annotations
 
 from shell.domain.execution.events import (
@@ -43,16 +37,10 @@ class TestGraphNodeExecutionWorkerHappyPath:
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
-        # Cursor MUST NOT advance — that's Cycle B's job
         assert stored.status == Status.running()
-        assert (
-            stored.cursor.current_graph_node_execution_id
-            == graph_execution.graph_node_executions[0].id
-        )
 
         types = [type(e) for e in uow.committed_events]
         assert GraphNodeExecutionCompletedEvent in types
-        # These are emitted by Cycle B (GraphNodeExecutionResultHandler):
         assert GraphNodeExecutionFailedEvent not in types
 
     async def test_last_node_success_records_result_and_does_not_finish(self) -> None:
@@ -73,9 +61,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
-        # Worker must NOT finish the workflow — only record the result
         assert stored.status == Status.running()
-        assert stored.cursor.current_graph_node_execution_id is not None
 
         types = [type(e) for e in uow.committed_events]
         assert GraphNodeExecutionCompletedEvent in types

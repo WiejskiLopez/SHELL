@@ -8,6 +8,12 @@ from shell.application.platform.queries.queries import GetGraphNodeExecutionResu
 from shell.application.platform.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 
 
@@ -20,15 +26,20 @@ class TestPgNodeResultRepository:
         events,
         session_factory,
     ) -> None:
-        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
-        await handler.handle(
-            SaveGraphNodeExecutionResultCommand(
-                workflow_id="pg-wf-nr-1",
-                graph_node_execution_id="pg-node-nr-1",
-                status="done",
-                stdout="pg success",
+        async with sql_uow as u:
+            await u.workflows.save(
+                Workflow.new(id_=WorkflowId("pg-wf-nr-1"), now=clock.now())
             )
-        )
+            node = GraphNodeExecution(
+                id=GraphNodeExecutionId("pg-node-nr-1"),
+                position=0,
+                mode=Mode.WORKER,
+                role="worker",
+                node_type="worker",
+            )
+            await u.graph_node_executions.save(node)
+
+        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
 
         q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
         dto = await q.handle(GetGraphNodeExecutionResultQuery("pg-node-nr-1", "pg-wf-nr-1"))

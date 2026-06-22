@@ -28,7 +28,7 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
             schema_version=schema_version,
             graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             workflow_id=WorkflowId(payload["workflow_id"]),
-            reason=str(payload["reason"]),
+            reason=payload["reason"],
         )
 
     @classmethod

@@ -6,9 +6,6 @@ from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_prompt_repository import (
-    InMemoryPromptRepository,
-)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
@@ -33,6 +30,9 @@ from shell.infrastructure.execution.persistence.memory.in_memory_session_reposit
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_input_repository import (
+    InMemoryTaskExecutionStateInputRepository,
+)
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
@@ -50,13 +50,13 @@ if TYPE_CHECKING:
 class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self._task_executions = InMemoryTaskExecutionRepository()
+        self._task_execution_state_inputs = InMemoryTaskExecutionStateInputRepository()
         self._graph_node_executions = InMemoryGraphNodeExecutionRepository()
         self._graph_executions = InMemoryGraphExecutionRepository()
         self._graph_executions.link_task_executions(self._task_executions)
         self._graph_executions.link_graph_node_executions(self._graph_node_executions)
         self._workflows = InMemoryWorkflowRepository()
         self._envelopes = InMemoryEnvelopeRepository()
-        self._prompts = InMemoryPromptRepository()
         self._runner_configs = InMemoryRunnerConfigRepository()
         self._envelope_archive = InMemoryEnvelopeArchive()
         self._rag_documents = InMemoryRagDocumentRepository()
@@ -100,6 +100,10 @@ class InMemoryUnitOfWork(UnitOfWork):
         return self._task_executions
 
     @property
+    def task_execution_state_inputs(self) -> InMemoryTaskExecutionStateInputRepository:
+        return self._task_execution_state_inputs
+
+    @property
     def graph_executions(self) -> InMemoryGraphExecutionRepository:
         return self._graph_executions
 
@@ -110,10 +114,6 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def envelopes(self) -> InMemoryEnvelopeRepository:
         return self._envelopes
-
-    @property
-    def prompts(self) -> InMemoryPromptRepository:
-        return self._prompts
 
     @property
     def runner_configs(self) -> InMemoryRunnerConfigRepository:

@@ -1,16 +1,21 @@
-"""CrownScheduler — orchestrates parent-child graph execution lifecycle.
+"""CrownScheduler — query-based parent-child sub-graph orchestration.
 
-Tracks which graph executions are waiting for child sub-graphs to complete.
-Notifies parent when all children are done.
+No state stored — all parent-child status is computed on the fly
+by querying GraphExecutionRepository.
 """
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Protocol
 
-from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
-    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze SubGraphChildStatus i sygnaturach Protocol
-)
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_repository import (
+        GraphExecutionRepository,
+    )
 
 
 class SubGraphChildStatus:
@@ -36,66 +41,28 @@ class SubGraphChildStatus:
         self.result = result or {}
 
 
-class CrownScheduler(Protocol):
-    """Orchestrates parent-child graph execution lifecycle.
+@dataclass(frozen=True)
+class SubGraphSettledResult:
+    """Result of a settled-status check — purely query-based, no derived booleans."""
 
-    Implementations are infrastructure adapters (database, in-memory).
+    parent_graph_execution_id: GraphExecutionId
+    children_statuses: tuple[SubGraphChildStatus, ...] = field(default_factory=tuple)
+
+
+class CrownScheduler(Protocol):
+    """Query-based parent-child sub-graph orchestrator.
+
+    All state is computed on the fly by querying the repository.
     """
 
-    async def register_child(
-        self,
-        parent_graph_execution_id: GraphExecutionId,
-        child_graph_execution_id: GraphExecutionId,
-    ) -> None:
-        """Register a child sub-graph for a parent graph execution."""
-        ...
-
-    async def mark_waiting(
-        self,
-        graph_execution_id: GraphExecutionId,
-    ) -> None:
-        """Mark a graph execution as waiting for its children."""
-        ...
-
-    async def on_child_completed(
+    async def compute_settled_status(
         self,
         child_graph_execution_id: GraphExecutionId,
-        result: dict[str, Any] | None = None,
-    ) -> list[SubGraphChildStatus]:
-        """Notify that a child sub-graph completed.
+        repo: GraphExecutionRepository,
+    ) -> SubGraphSettledResult | None:
+        """Compute settled status for a child graph.
 
-        Returns updated status of all children for the parent.
+        Returns None if the graph has no parent (is a root graph).
+        Returns SubGraphSettledResult with all children of the parent otherwise.
         """
-        ...
-
-    async def on_child_failed(
-        self,
-        child_graph_execution_id: GraphExecutionId,
-        error: str = "",
-    ) -> list[SubGraphChildStatus]:
-        """Notify that a child sub-graph failed.
-
-        Returns updated status of all children for the parent.
-        """
-        ...
-
-    async def get_pending_children(
-        self,
-        parent_graph_execution_id: GraphExecutionId,
-    ) -> list[GraphExecutionId]:
-        """Get IDs of all children still pending for a parent."""
-        ...
-
-    async def has_all_children_completed(
-        self,
-        parent_graph_execution_id: GraphExecutionId,
-    ) -> bool:
-        """Check if all children of a parent have completed."""
-        ...
-
-    async def get_children(
-        self,
-        parent_graph_execution_id: GraphExecutionId,
-    ) -> list[SubGraphChildStatus]:
-        """Get all children (pending and completed) for a parent."""
         ...

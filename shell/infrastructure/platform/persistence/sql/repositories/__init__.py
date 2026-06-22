@@ -8,9 +8,6 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_defi
 from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_definition_repository import (
     SqlGraphNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_prompt_repository import (
-    SqlPromptRepository,
-)
 from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_document_repository import (
     SqlRagDocumentRepository,
 )
@@ -56,7 +53,6 @@ __all__ = [
     "SqlGraphNodeDefinitionRepository",
     "SqlGraphNodeExecutionStateInputRepository",
     "SqlGraphNodeExecutionStateOutputRepository",
-    "SqlPromptRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "SqlSessionRepository",

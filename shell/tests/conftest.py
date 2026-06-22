@@ -47,16 +47,11 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.workflow_execution_context import (
-    WorkflowExecutionContext,
-)
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.platform.value_objects.version import Version
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import (
     StdlibLogger,
@@ -209,8 +204,6 @@ def _new_workflow() -> Workflow:
     return Workflow.new(id_=WorkflowId.generate(), now=_NOW)
 
 
-def _ctx() -> WorkflowExecutionContext:
-    return WorkflowExecutionContext(correlation_id="cid-1")
 
 
 # ---------------------------------------------------------------------------
@@ -314,11 +307,7 @@ def _build_graph_execution(
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskExecutionName(task_execution_name),
-        version=Version.initial(),
-        hash=Hash.of("x"),
-        body=TaskExecutionBody("# Task"),
-        is_current=True,
-        created_at=_NOW,
+                created_at=_NOW,
     )
     uow.task_executions._store[task_execution.id.value] = task_execution
 
@@ -349,12 +338,7 @@ async def _persist_running_workflow(
     uow: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-    wf.start_at(
-        first_graph_node_execution_id=first_node,
-        context=WorkflowExecutionContext(correlation_id="cid"),
-        now=_NOW,
-        task_execution_id=task_execution_id,
-    )
+    wf.start_at(now=_NOW, task_execution_id=task_execution_id)
     for te in list(uow.task_executions._store.values()):
         if te.id == task_execution_id:
             te.execute_in_workflow(wf.id)
@@ -455,11 +439,7 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskExecutionName(task_execution_name),
-        version=Version.initial(),
-        hash=Hash.of("x"),
-        body=TaskExecutionBody("# Task Body"),
-        is_current=True,
-        created_at=now,
+                created_at=now,
     )
     uow.task_executions._store[task_execution.id.value] = task_execution
     graph_node_executions = [

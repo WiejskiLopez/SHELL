@@ -1,10 +1,3 @@
-"""Unit tests for GraphNodeExecutionWorker — failure path (Cycle A only).
-
-The worker only records the result and emits the failure event.
-Next-step decisions (abort/continue) are verified in the
-GraphNodeExecutionResultHandler tests.
-"""
-
 from __future__ import annotations
 
 from shell.domain.execution.events import (
@@ -43,12 +36,7 @@ class TestGraphNodeExecutionWorkerFailure:
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
-        # Worker must NOT abort — only record the failed result
         assert stored.status == Status.running()
-        assert (
-            stored.cursor.current_graph_node_execution_id
-            == graph_execution.graph_node_executions[0].id
-        )
 
         types = [type(e) for e in uow.committed_events]
         assert GraphNodeExecutionFailedEvent in types

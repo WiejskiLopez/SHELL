@@ -27,13 +27,11 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
     SqlGraphNodeExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
-    MessageModel,
     SessionModel,
     SqlSessionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
-    logger,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
     SqlTaskExecutionStateInputRepository,
@@ -53,7 +51,6 @@ __all__ = [
     "GraphExecutionModel",
     "GraphExecutionStateInputModel",
     "GraphExecutionStateOutputModel",
-    "MessageModel",
     "SessionModel",
     "SqlEnvelopeArchiveStub",
     "SqlEnvelopeRepository",
@@ -72,7 +69,6 @@ __all__ = [
     "TaskExecutionStateOutputModel",
     "WorkflowModel",
     "annotations",
-    "logger",
     "select",
     "selectinload",
     "update",

@@ -6,7 +6,6 @@ from dependency_injector import containers, providers
 from shell.application.definition.command_handlers.bootstrap_runner_config_handler import (
     BootstrapRunnerConfigHandler,
 )
-from shell.application.definition.command_handlers.save_prompt_handler import SavePromptHandler
 from shell.application.execution.command_handlers.archive_envelope_handler import (
     ArchiveEnvelopeHandler,
 )
@@ -49,7 +48,6 @@ class CommandContainer(containers.DeclarativeContainer):
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,
-        navigator=domain.node_navigator_factory,
     )
     route_envelopes_handler_factory = providers.Factory(
         RouteEnvelopesHandler,
@@ -73,12 +71,6 @@ class CommandContainer(containers.DeclarativeContainer):
     )
     save_graph_node_execution_result_handler_factory = providers.Factory(
         SaveGraphNodeExecutionResultHandler,
-        uow=buses.uow_factory,
-        clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
-    )
-    save_prompt_handler_factory = providers.Factory(
-        SavePromptHandler,
         uow=buses.uow_factory,
         clock=infra.clock_factory,
         id_gen=infra.id_gen_factory,

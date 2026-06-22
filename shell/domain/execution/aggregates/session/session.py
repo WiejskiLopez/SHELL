@@ -1,22 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.session.entities.message import Message
 from shell.domain.execution.aggregates.session.session_id import SessionId
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.ids import CorrelationId
-from shell.domain.execution.aggregates.session.value_objects.ids.message_id import (
-    MessageId,  # noqa: TC002 — MessageId używany w konstruktorze i typach propertisów Session
-)
-
 
 class Session(AggregateRoot[SessionId]):
-    __slots__ = ("goal", "status", "opened_at", "closed_at", "messages")
+    __slots__ = ("goal", "status", "opened_at", "closed_at")
 
     def __init__(
         self,
@@ -25,7 +19,6 @@ class Session(AggregateRoot[SessionId]):
         status: str,
         opened_at: datetime,
         closed_at: datetime | None,
-        messages: list[Message] | None = None,
     ) -> None:
         if not goal:
             raise ValueError("goal cannot be empty")
@@ -36,7 +29,6 @@ class Session(AggregateRoot[SessionId]):
         self.status = status
         self.opened_at = opened_at
         self.closed_at = closed_at
-        self.messages = list(messages) if messages is not None else []
 
     @classmethod
     def open(
@@ -58,26 +50,3 @@ class Session(AggregateRoot[SessionId]):
             raise ValueError("Session already closed")
         self.status = "closed"
         self.closed_at = now
-
-    def append_message(
-        self,
-        msg_id: MessageId,
-        correlation_id: CorrelationId,
-        sender: str,
-        receiver: str,
-        payload: dict[str, Any],
-        now: datetime,
-    ) -> Message:
-        if self.status != "open":
-            raise ValueError("Cannot append message to a closed session")
-        msg = Message(
-            id=msg_id,
-            session_id=self.id,
-            correlation_id=correlation_id,
-            sender=sender,
-            receiver=receiver,
-            payload=payload,
-            created_at=now,
-        )
-        self.messages.append(msg)
-        return msg

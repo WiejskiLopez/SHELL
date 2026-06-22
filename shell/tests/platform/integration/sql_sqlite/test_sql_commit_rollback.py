@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.queries.queries import GetPromptQuery
-from shell.application.platform.query_handlers.query_handlers import GetPromptHandler
-from shell.domain.definition.entities.prompt import Prompt
-from shell.infrastructure.definition.persistence.sql.services import PromptQueryService
+from shell.application.platform.queries.queries import GetRunnerConfigQuery
+from shell.application.platform.query_handlers.query_handlers import GetRunnerConfigHandler
+from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
+    RunnerConfigQueryService as SqlRunnerConfigQueryService,
+)
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
 )
@@ -30,11 +31,16 @@ class TestSqlCommitRollback:
         sql_uow = SqlAlchemyUnitOfWork(session_factory)
         try:
             async with sql_uow as u:
-                await u.prompts.save(
-                    Prompt.new(
-                        id_=id_gen.new_prompt_id(),
-                        name="rollback-prompt",
-                        body="body",
+                from shell.domain.definition.entities.runner_config import RunnerConfig
+                from shell.domain.platform.value_objects.hash import Hash
+
+                await u.runner_configs.save(
+                    RunnerConfig.new(
+                        id_=id_gen.new_runner_config_id(),
+                        package_name="rollback-runner",
+                        kind="python",
+                        body={"key": "value"},
+                        config_hash=Hash.of("test"),
                         now=clock.now(),
                     )
                 )
@@ -42,6 +48,6 @@ class TestSqlCommitRollback:
         except RuntimeError:
             pass
 
-        q = GetPromptHandler(PromptQueryService(session_factory))
-        dto = await q.handle(GetPromptQuery("rollback-prompt"))
+        q = GetRunnerConfigHandler(SqlRunnerConfigQueryService(session_factory))
+        dto = await q.handle(GetRunnerConfigQuery("rollback-runner"))
         assert dto is None

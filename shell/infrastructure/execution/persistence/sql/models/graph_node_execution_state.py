@@ -19,9 +19,7 @@ class GraphNodeExecutionStateModel(Base):
     step: Mapped[int] = mapped_column(nullable=False, default=0)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
-    workflow_model: Mapped[WorkflowModel] = relationship(
-        "WorkflowModel", back_populates="graph_node_execution_state_models"
-    )
+    workflow_model: Mapped[WorkflowModel] = relationship("WorkflowModel")
 
 
 from shell.infrastructure.execution.persistence.sql.models.workflow import (  # noqa: E402 — łamie circular import GraphNodeExecutionStateModel ↔ WorkflowModel

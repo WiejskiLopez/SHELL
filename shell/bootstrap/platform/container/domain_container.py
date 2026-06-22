@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 from shell.application.execution.strategies.graph_node_execution_strategy import get_strategy
-from shell.domain.execution.aggregates.workflow.services.compensation_handler import (
-    NoOpCompensationHandler,
-)
 from shell.domain.execution.services.graph_node_execution_navigator import (
     TransitionBasedGraphNodeExecutionNavigator,
 )
@@ -31,7 +28,6 @@ class DomainContainer(containers.DeclarativeContainer):
 
     node_navigator_factory = providers.Singleton(TransitionBasedGraphNodeExecutionNavigator)
     graph_node_execution_policy_factory = providers.Singleton(FailFastGraphNodeExecutionPolicy)
-    compensation_handler_factory = providers.Singleton(NoOpCompensationHandler)
 
     strategy = providers.Object(get_strategy("agent"))
 

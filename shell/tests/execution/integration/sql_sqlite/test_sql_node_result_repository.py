@@ -16,6 +16,12 @@ from shell.application.platform.queries.queries import (
 from shell.application.platform.query_handlers.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
@@ -39,9 +45,6 @@ class TestSqlNodeResultRepository:
         events: FakeEventPublisher,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.domain.execution.aggregates.workflow import Workflow
-        from shell.domain.execution.value_objects.ids import WorkflowId
-
         async with sql_uow as u:
             await u.workflows.save(
                 Workflow.new(
@@ -49,6 +52,14 @@ class TestSqlNodeResultRepository:
                     now=clock.now(),
                 )
             )
+            node = GraphNodeExecution(
+                id=GraphNodeExecutionId("node-sql-nr-1"),
+                position=0,
+                mode=Mode.WORKER,
+                role="worker",
+                node_type="worker",
+            )
+            await u.graph_node_executions.save(node)
 
         handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
         await handler.handle(

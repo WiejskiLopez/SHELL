@@ -1,22 +1,19 @@
-"""Unit tests for GraphNodeExecutionResultHandler — Cycle B of the saga.
-
-Each test verifies that, given a workflow with a recorded result,
-the handler correctly decides the next step (advance / finish / abort).
-"""
-
 from __future__ import annotations
 
-from shell.domain.execution.events import (
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
+    GraphNodeExecutionRequestedEvent,
+)
+from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionRequestedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
 )
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
-    FakeIdGenerator,
     InMemoryUnitOfWork,
 )
 from shell.tests.conftest import (
@@ -35,39 +32,20 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        # Arrange: simulate that Cycle A already ran — record result manually
-        id_gen = FakeIdGenerator()
-        wf.record_graph_node_execution_result(
-            result_id=id_gen.new_graph_node_execution_result_id(),
-            graph_node_execution_id=graph_execution.graph_node_executions[0].id,
-            status=Status.done(),
-            now=_NOW,
-        )
-        async with uow:
-            await uow.workflows.save(wf)
-            await uow.commit()
-
         handler = _make_result_handler(uow)
 
-        # Act: Cycle B — result handler decides next step
-        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
-                graph_node_execution_result_id=result_id,
+                result_id=None,
                 now=_NOW,
             )
         )
 
-        # Assert: cursor advanced to the second node
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
-        assert (
-            stored.cursor.current_graph_node_execution_id
-            == graph_execution.graph_node_executions[1].id
-        )
 
         types = [type(e) for e in uow.committed_events]
         assert GraphNodeExecutionAdvancedEvent in types
@@ -80,26 +58,13 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        # Arrange: Cycle A already ran
-        id_gen = FakeIdGenerator()
-        wf.record_graph_node_execution_result(
-            result_id=id_gen.new_graph_node_execution_result_id(),
-            graph_node_execution_id=graph_execution.graph_node_executions[0].id,
-            status=Status.done(),
-            now=_NOW,
-        )
-        async with uow:
-            await uow.workflows.save(wf)
-            await uow.commit()
-
         handler = _make_result_handler(uow)
 
-        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
-                graph_node_execution_result_id=result_id,
+                result_id=None,
                 now=_NOW,
             )
         )
@@ -107,7 +72,6 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.done()
-        assert stored.cursor.current_graph_node_execution_id is None
 
         types = [type(e) for e in uow.committed_events]
         assert WorkflowCompletedEvent in types
@@ -120,20 +84,6 @@ class TestGraphNodeExecutionResultHandlerFailure:
         wf = await _persist_running_workflow(
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
-
-        # Arrange: Cycle A already ran, node failed
-        id_gen = FakeIdGenerator()
-        wf.record_graph_node_execution_result(
-            result_id=id_gen.new_graph_node_execution_result_id(),
-            graph_node_execution_id=graph_execution.graph_node_executions[0].id,
-            status=Status.failed(),
-            now=_NOW,
-            stdout="",
-            stderr="boom",
-        )
-        async with uow:
-            await uow.workflows.save(wf)
-            await uow.commit()
 
         handler = _make_result_handler(uow)
 
@@ -149,7 +99,6 @@ class TestGraphNodeExecutionResultHandlerFailure:
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.failed()
-        assert stored.cursor.current_graph_node_execution_id is None
 
         types = [type(e) for e in uow.committed_events]
         assert WorkflowFailedEvent in types
@@ -165,32 +114,22 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
             uow, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        # Make workflow terminal
-        id_gen = FakeIdGenerator()
-        wf.record_graph_node_execution_result(
-            result_id=id_gen.new_graph_node_execution_result_id(),
-            graph_node_execution_id=graph_execution.graph_node_executions[0].id,
-            status=Status.done(),
-            now=_NOW,
-        )
-        wf.finish(_NOW)
+        wf.finish(now=_NOW)
         async with uow:
             await uow.workflows.save(wf)
             await uow.commit()
 
         handler = _make_result_handler(uow)
 
-        # Re-delivery of completed event after finish
-        result_id = wf.graph_node_execution_results[0].id
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
                 graph_node_execution_id=graph_execution.graph_node_executions[0].id,
                 workflow_id=wf.id,
-                graph_node_execution_result_id=result_id,
+                result_id=None,
                 now=_NOW,
             )
         )
 
         stored = await uow.workflows.get_by_id(wf.id)
         assert stored is not None
-        assert stored.status == Status.done()  # unchanged
+        assert stored.status == Status.done()

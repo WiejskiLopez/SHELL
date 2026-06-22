@@ -1,10 +1,7 @@
-"""OpenSessionHandler, CloseSessionHandler, AppendMessageHandler."""
+"""OpenSessionHandler, CloseSessionHandler."""
 
 from __future__ import annotations
 
-from shell.application.execution.command_handlers.session_handlers.append_message_handler import (
-    AppendMessageHandler,
-)
 from shell.application.execution.command_handlers.session_handlers.close_session_handler import (
     CloseSessionHandler,
 )
@@ -19,5 +16,4 @@ __all__ = [
     "SessionNotFound",
     "OpenSessionHandler",
     "CloseSessionHandler",
-    "AppendMessageHandler",
 ]
