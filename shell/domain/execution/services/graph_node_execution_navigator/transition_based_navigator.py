@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.edge_type import EdgeType
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -51,16 +51,11 @@ class TransitionBasedGraphNodeExecutionNavigator:
         default_target: GraphNodeExecution | None = None
 
         for t in outgoing:
-            if t.transition_type == TransitionType.DEFAULT:
+            if t.transition_type == EdgeType.DEFAULT:
                 has_default = True
                 default_target = nodes_by_id.get(t.target_node_execution_id.value)
                 continue
-            if t.transition_type == TransitionType.PARALLEL:
-                node = nodes_by_id.get(t.target_node_execution_id.value)
-                if node:
-                    matched.append(node)
-                continue
-            if t.transition_type == TransitionType.SEQUENCE:
+            if t.transition_type == EdgeType.SEQUENCE:
                 node = nodes_by_id.get(t.target_node_execution_id.value)
                 if node:
                     matched.append(node)
@@ -80,7 +75,7 @@ class TransitionBasedGraphNodeExecutionNavigator:
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         results: list[tuple[GraphNodeExecution, str]] = []
         for t in outgoing:
-            if t.transition_type == TransitionType.CONDITIONAL:
+            if t.transition_type == EdgeType.CONDITIONAL:
                 node = nodes_by_id.get(t.target_node_execution_id.value)
                 if node and t.condition_expression:
                     results.append((node, t.condition_expression))
@@ -94,7 +89,7 @@ class TransitionBasedGraphNodeExecutionNavigator:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == TransitionType.ERROR_HANDLER:
+            if t.transition_type == EdgeType.ERROR_HANDLER:
                 return nodes_by_id.get(t.target_node_execution_id.value)
         return None
 
@@ -106,7 +101,7 @@ class TransitionBasedGraphNodeExecutionNavigator:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == TransitionType.LOOP:
+            if t.transition_type == EdgeType.LOOP:
                 return nodes_by_id.get(t.target_node_execution_id.value)
         return None
 
@@ -147,11 +142,11 @@ class TransitionBasedGraphNodeExecutionNavigator:
         default_target_id: str | None = None
         for t in outgoing:
             tid = t.target_node_execution_id.value
-            if t.transition_type == TransitionType.DEFAULT:
+            if t.transition_type == EdgeType.DEFAULT:
                 has_default = True
                 default_target_id = tid
                 continue
-            if t.transition_type in (TransitionType.PARALLEL, TransitionType.SEQUENCE):
+            if t.transition_type == EdgeType.SEQUENCE:
                 result_ids.append(tid)
         if not result_ids and has_default and default_target_id:
             result_ids.append(default_target_id)

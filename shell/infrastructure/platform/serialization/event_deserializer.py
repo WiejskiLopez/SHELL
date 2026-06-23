@@ -11,11 +11,7 @@ from shell.domain.execution.events import (
     EnvelopeDeadletteredEvent,
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
-    GraphExecutionBuiltEvent,
-    GraphNodeExecutionConditionEvaluatedEvent,
-    GraphNodeExecutionLoopIterationEvent,
     GraphNodeExecutionTimedOutEvent,
-    GraphNodeParallelExecutionRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -31,15 +27,12 @@ class EventDeserializer:
         self._registry: dict[str, type[DomainEvent]] = {
             "EnvelopeDeadlettered": EnvelopeDeadletteredEvent,
             "TaskExecutionCreated": TaskExecutionCreatedEvent,
-            "GraphExecutionBuilt": GraphExecutionBuiltEvent,
             "WorkflowStarted": WorkflowStartedEvent,
             "EnvelopeRouted": EnvelopeRoutedEvent,
             "EnvelopeExpired": EnvelopeExpiredEvent,
             "WorkflowCompleted": WorkflowCompletedEvent,
             "WorkflowFailed": WorkflowFailedEvent,
-            "GraphNodeParallelExecutionRequested": GraphNodeParallelExecutionRequestedEvent,
-            "GraphNodeExecutionConditionEvaluated": GraphNodeExecutionConditionEvaluatedEvent,
-            "GraphNodeExecutionLoopIteration": GraphNodeExecutionLoopIterationEvent,
+
             "GraphNodeExecutionTimedOut": GraphNodeExecutionTimedOutEvent,
         }
         self._serializer = DomainEventSerializer()

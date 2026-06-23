@@ -18,8 +18,18 @@ from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_
 )
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.graph_execution import (
+        GraphExecution,
+    )
     from shell.domain.scheduling.aggregates.scheduler_job import (
         SchedulerJob,
+    )
+        from shell.domain.scheduling.services.pending_graph_finder import (
+        GraphExecutionRepository as PendingGraphRepo,
+        PendingGraphFinder,
+    )
+    from shell.domain.execution.aggregates.graph_execution.graph_execution import (
+        GraphExecution,
     )
     from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
     from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import (
@@ -43,10 +53,14 @@ class SchedulerService:
         session_factory: async_sessionmaker[AsyncSession],
         outbox_to_inbox_relay: OutboxToInboxRelay,
         inbox_processor: InboxProcessor,
+        pending_graph_finder: PendingGraphFinder | None = None,
+        graph_execution_repo: PendingGraphRepo | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._outbox_to_inbox_relay = outbox_to_inbox_relay
         self._inbox_processor = inbox_processor
+        self._pending_graph_finder = pending_graph_finder
+        self._graph_execution_repo = graph_execution_repo
         self._scheduler = AsyncIOScheduler()
         self._running = False
 
@@ -105,6 +119,8 @@ class SchedulerService:
             job_type=job.job_type,
             outbox_relay=self._outbox_to_inbox_relay,
             inbox_processor=self._inbox_processor,
+            pending_graph_finder=self._pending_graph_finder,
+            graph_execution_repo=self._graph_execution_repo,
         )
 
         self._scheduler.add_job(
@@ -129,13 +145,22 @@ def _build_job_fn(
     job_type: str,
     outbox_relay: OutboxToInboxRelay,
     inbox_processor: InboxProcessor,
+    pending_graph_finder: PendingGraphFinder | None = None,
+    graph_execution_repo: PendingGraphRepo | None = None,
 ):
     if job_type == "messaging":
 
         async def _run() -> None:
             try:
                 await outbox_relay.run_once()
-                await inbox_processor.run_once()
+                processed = await inbox_processor.run_once()
+                if processed == 0 and pending_graph_finder is not None and graph_execution_repo is not None:
+                    graph = await pending_graph_finder.find_next(graph_execution_repo)
+                    if graph is not None:
+                        logger.info(
+                            "scheduler_service.pending_graph_found",
+                            extra={"graph_id": graph.id.value},
+                        )
             except Exception:
                 logger.exception("scheduler_service.job_error")
 

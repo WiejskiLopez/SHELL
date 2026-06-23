@@ -23,8 +23,10 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return self._store.get(task_execution_id.value)
 
     async def get_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
+        name_value = name.value if hasattr(name, 'value') else str(name)
         for task_execution in self._store.values():
-            if task_execution.name == name:
+            stored_name = task_execution.name.value if hasattr(task_execution.name, 'value') else str(task_execution.name)
+            if stored_name == name_value:
                 return task_execution
         return None
 
@@ -32,8 +34,10 @@ class InMemoryTaskExecutionRepository(TaskExecutionRepository):
         return self._store.get(id.value)
 
     async def get_current_by_name(self, name: TaskExecutionName) -> TaskExecution | None:
+        name_value = name.value if hasattr(name, 'value') else str(name)
         for task_execution in self._store.values():
-            if task_execution.name == name:
+            stored_name = task_execution.name.value if hasattr(task_execution.name, 'value') else str(task_execution.name)
+            if stored_name == name_value:
                 return task_execution
         return None
 

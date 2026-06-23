@@ -9,29 +9,26 @@ if TYPE_CHECKING:
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)
 class GraphNodeExecutionTimedOutEvent(DomainEvent):
-    workflow_id: WorkflowId
-    graph_node_execution_id: GraphNodeExecutionId
-    timeout_seconds: int
+    node_id: GraphNodeExecutionId
+    role: NodeRole
 
     @classmethod
     def now(
         cls,
-        workflow_id: WorkflowId,
-        graph_node_execution_id: GraphNodeExecutionId,
-        timeout_seconds: int,
+        node_id: GraphNodeExecutionId,
+        role: NodeRole,
         now: datetime,
     ) -> GraphNodeExecutionTimedOutEvent:
         return cls(
             occurred_at=now,
-            workflow_id=workflow_id,
-            graph_node_execution_id=graph_node_execution_id,
-            timeout_seconds=timeout_seconds,
+            node_id=node_id,
+            role=role,
         )
 
     @classmethod
@@ -41,7 +38,6 @@ class GraphNodeExecutionTimedOutEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            workflow_id=WorkflowId(payload["workflow_id"]),
-            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
-            timeout_seconds=payload["timeout_seconds"],
+            node_id=GraphNodeExecutionId(payload["node_id"]),
+            role=NodeRole(payload["role"]),
         )

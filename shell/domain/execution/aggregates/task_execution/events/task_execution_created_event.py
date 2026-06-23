@@ -15,6 +15,8 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
+    description: str = ""
+    skills: list[dict[str, Any]] | None = None
 
     @classmethod
     def now(
@@ -22,11 +24,15 @@ class TaskExecutionCreatedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
         now: datetime,
+        description: str = "",
+        skills: list[dict[str, Any]] | None = None,
     ) -> TaskExecutionCreatedEvent:
         return cls(
             occurred_at=now,
             task_execution_id=task_execution_id,
             task_execution_name=task_execution_name,
+            description=description,
+            skills=skills,
         )
 
     @classmethod
@@ -37,5 +43,7 @@ class TaskExecutionCreatedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
-            task_execution_name=TaskExecutionName(payload["task_execution_name"]),
+            task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
+            description=payload.get("description", ""),
+            skills=payload.get("skills"),
         )

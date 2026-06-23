@@ -24,3 +24,7 @@ class GraphNodeExecutionRepository(Protocol):
     async def list_by_graph_execution_id(
         self, graph_execution_id: GraphExecutionId
     ) -> list[GraphNodeExecution]: ...
+
+    async def get_next_pending(
+        self, graph_execution_id: GraphExecutionId
+    ) -> GraphNodeExecution | None: ...

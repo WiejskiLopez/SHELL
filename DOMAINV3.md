@@ -596,6 +596,7 @@ Każdy agregat ma **własne tabele** `*StateInput` i `*StateOutput` (symetryczni
 | `GraphNodeExecutionStartedEvent` | `node_id, role` | `Node → RUNNING`. |
 | `GraphNodeExecutionCompletedEvent` | `node_id, role, result` | `Node → COMPLETED`; result → `GraphNodeExecutionStateOutput`. Jeśli `role=VERIFIER` → `GraphExecutionCompletedEvent`/`FailedEvent`. |
 | `GraphNodeExecutionFailedEvent` | `node_id, role, error` | `Node → FAILED`. Jeśli `role=VERIFIER` → `GraphExecutionFailedEvent`. Jeśli `role=PLANNER` → `GraphExecutionFailedEvent`. Jeśli `AGENT/TOOLS` → Edge `ERROR_HANDLER` LUB → VERIFIER z błędem. |
+| `GraphNodeExecutionTimedOutEvent` | `node_id, role` | `Node → TIMED_OUT`. Powiązany z krawędzią `TIMEOUT` (§11.2). |
 
 ### 13.4 GraphNodeTransitionExecution (decyzyjne)
 

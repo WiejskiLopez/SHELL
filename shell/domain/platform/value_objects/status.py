@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 
 from shell.domain.platform.base.value_object import ValueObject
+
+warnings.warn(
+    "Status is deprecated — use dedicated status enums from shell.domain.execution.value_objects instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @dataclass(frozen=True, slots=True)

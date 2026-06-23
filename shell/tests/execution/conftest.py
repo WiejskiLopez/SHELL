@@ -204,7 +204,7 @@ def _new_workflow() -> Workflow:
     return Workflow.new(id_=WorkflowId.generate(), now=_NOW)
 
 
-def _ctx() -> object | None: return None  # TODO V2: WorkflowExecutionContext removed
+def _ctx() -> object | None: return None
 
 # ---------------------------------------------------------------------------
 # Navigator test helpers

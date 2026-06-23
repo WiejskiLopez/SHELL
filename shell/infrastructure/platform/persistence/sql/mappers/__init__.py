@@ -62,7 +62,7 @@ from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, E
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.status import Status
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
@@ -284,7 +284,7 @@ def graph_node_transition_execution_model_to_entity(
             else None
         ),
         target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id),
-        transition_type=TransitionType(model.transition_type),
+        transition_type=EdgeType(model.transition_type.upper()),
         priority=model.priority,
         condition_expression=model.condition_expression,
         condition_language=model.condition_language,
@@ -337,7 +337,7 @@ def graph_node_transition_definition_model_to_entity(
             else None
         ),
         target_node_definition_id=GraphNodeDefinitionId(model.target_node_definition_id),
-        transition_type=TransitionType(model.transition_type),
+        transition_type=EdgeType(model.transition_type.upper()),
         priority=model.priority,
         condition_expression=model.condition_expression,
         condition_language=model.condition_language,

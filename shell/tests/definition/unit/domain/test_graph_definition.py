@@ -11,7 +11,7 @@ from shell.domain.definition.value_objects.ids import (
     GraphNodeTransitionDefinitionId,
 )
 from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.edge_type import EdgeType
 
 
 def _make_node(pos: int, mode: str) -> GraphNodeDefinition:
@@ -32,7 +32,7 @@ def _make_transition(from_pos: int | None, to_pos: int) -> GraphNodeTransitionDe
             GraphNodeDefinitionId(f"n{from_pos}") if from_pos is not None else None
         ),
         target_node_definition_id=GraphNodeDefinitionId(f"n{to_pos}"),
-        transition_type=TransitionType.SEQUENCE,
+        transition_type=EdgeType.SEQUENCE,
     )
 
 

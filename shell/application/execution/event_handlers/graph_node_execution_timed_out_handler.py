@@ -1,17 +1,12 @@
-"""GraphNodeTimeoutHandler — handles node execution timeouts.
-
-Subscribes to :class:`GraphNodeExecutionTimedOutEvent` and marks
-the timed-out node as failed if it hasn't completed yet.
-"""
+"""GraphNodeTimeoutHandler — handles node execution timeouts."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.events import (
-    GraphNodeExecutionTimedOutEvent,  # noqa: TC002 — GraphNodeExecutionTimedOutEvent używany w sygnaturze handle() handlera
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timed_out_event import (
+    GraphNodeExecutionTimedOutEvent,
 )
-from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -35,29 +30,14 @@ class GraphNodeExecutionTimedOutHandler:
 
     async def handle(self, event: GraphNodeExecutionTimedOutEvent) -> None:
         async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(event.workflow_id)
-            if workflow is None:
+            node = await uow.graph_node_executions.get_by_id(event.node_id)
+            if node is None:
+                self._logger.warning(
+                    "graph_node_timed_out.node_not_found",
+                    node_id=event.node_id.value,
+                )
                 return
 
-            if workflow.status != Status.running():
-                return
-
-            # TODO V2: get_graph_node_execution_state removed — _states removed from Workflow
-            # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-            # if state is None or state.status != Status.running():
-            #     return
-
-            now = self._clock.now()
-            # TODO V2: record_graph_node_execution_result removed — _results removed from Workflow
-            # workflow.record_graph_node_execution_result(
-            #     result_id=self._id_gen.new_graph_node_execution_result_id(),
-            #     graph_node_execution_id=event.graph_node_execution_id,
-            #     status=Status.failed(),
-            #     now=now,
-            #     stdout="",
-            #     stderr=f"Node timed out after {event.timeout_seconds}s",
-            #     reason=f"timeout after {event.timeout_seconds}s",
-            # )
-
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+            node.timeout()
+            await uow.graph_node_executions.save(node)
+            uow.stage_events(node.pull_events())

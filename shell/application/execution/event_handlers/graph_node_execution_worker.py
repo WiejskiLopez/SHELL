@@ -26,6 +26,7 @@ Idempotency model (four-tier defence in depth)
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_completed_event import (
@@ -40,7 +41,7 @@ from shell.domain.execution.events import (
 from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.platform.value_objects.status import Status
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.execution import GraphNodeExecutionProcessRunner
@@ -153,39 +154,14 @@ class GraphNodeExecutionWorker:
         event: GraphNodeExecutionRequestedEvent,
     ) -> bool:
         """Check if event is still relevant — guards against stale/duplicate events."""
-        if workflow.status != Status.running():
-            self._logger.debug(
-                "graph_node_execution_worker.skip_terminal",
-                workflow_id=workflow.id.value,
+        if workflow.status != WorkflowStatus.ACTIVE:
+            self._logger.warning(
+                "graph_node_execution_worker.skip_workflow_not_active",
+                workflow_id=event.workflow_id.value,
                 status=workflow.status.value,
             )
             return False
 
-        # TODO V2: cursor and node-state guards removed — cursor, _states removed from Workflow
-        # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-        # if state is None and not workflow.cursor.points_to(event.graph_node_execution_id):
-        #     self._logger.debug(
-        #         "graph_node_execution_worker.skip_stale_cursor",
-        #         workflow_id=workflow.id.value,
-        #         cursor=(
-        #             workflow.cursor.current_graph_node_execution_id.value
-        #             if workflow.cursor.current_graph_node_execution_id
-        #             else None
-        #         ),
-        #         requested=event.graph_node_execution_id.value,
-        #     )
-        #     return False
-
-        # TODO V2: node-state guard also removed
-        # state = workflow.get_graph_node_execution_state(event.graph_node_execution_id)
-        # if state is not None and state.status in (Status.done(), Status.failed(), Status.waiting()):
-        #     self._logger.debug(
-        #         "graph_node_execution_worker.skip_already_executed",
-        #         workflow_id=workflow.id.value,
-        #         graph_node_execution_id=event.graph_node_execution_id.value,
-        #         node_status=state.status.value,
-        #     )
-        #     return False
         return True
 
     async def _run_node(
@@ -229,7 +205,7 @@ class GraphNodeExecutionWorker:
 
         For PLANNER nodes with valid JSON output, delegates to
         ``GraphNodeExecution.record_planner_result()`` which emits
-        ``PlannerResultEvent`` from the node itself.
+        ``GraphNodeExecutionCompletedEvent`` from the node itself.
         """
         async with self._uow as uow:
             workflow = await uow.workflows.get_by_id(event.workflow_id)
@@ -243,18 +219,6 @@ class GraphNodeExecutionWorker:
                 return
 
             now = self._clock.now()
-            node_status = Status.done() if success else Status.failed()
-            # TODO V2: record_graph_node_execution_result removed — _results removed from Workflow
-            # workflow.record_graph_node_execution_result(
-            #     result_id=self._id_gen.new_graph_node_execution_result_id(),
-            #     graph_node_execution_id=event.graph_node_execution_id,
-            #     status=node_status,
-            #     now=now,
-            #     stdout=stdout,
-            #     stderr=stderr,
-            #     reason=stderr,
-            # )
-
             staged_events: list[Any] = list(workflow.pull_events())
             if success:
                 staged_events.append(
@@ -275,17 +239,17 @@ class GraphNodeExecutionWorker:
                     )
                 )
 
-            # ── Let GraphNodeExecution emit PlannerResultEvent if PLANNER ──
+            # ── Complete PLANNER node (emits GraphNodeExecutionCompletedEvent with role=PLANNER) ──
             if success and node_mode == "planner" and stdout:
                 planner_node = await uow.graph_node_executions.get_by_id(
                     event.graph_node_execution_id,
                 )
-                if planner_node is not None and current_graph_execution is not None:
-                    planner_node.record_planner_result(
-                        stdout=stdout,
-                        graph_execution_id=current_graph_execution.id,
-                        now=now,
-                    )
+                if planner_node is not None:
+                    try:
+                        result = json.loads(stdout)
+                    except (json.JSONDecodeError, ValueError):
+                        result = {"raw": stdout}
+                    planner_node.complete(result, now)
                     await uow.graph_node_executions.save(planner_node)
                     staged_events.extend(planner_node.pull_events())
 
@@ -317,6 +281,5 @@ class GraphNodeExecutionWorker:
             "SHELL_WORKFLOW_ID": workflow.id.value,
             "SHELL_GRAPH_NODE_EXECUTION_ID": graph_node_execution.id.value,
             "SHELL_TASK_EXECUTION_ID": task_execution_id,
-            # TODO V2: execution_context removed from Workflow
-            # "SHELL_CORRELATION_ID": workflow.execution_context.correlation_id,
+
         }

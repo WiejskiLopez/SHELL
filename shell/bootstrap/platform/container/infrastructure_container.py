@@ -15,9 +15,7 @@ from shell.infrastructure.execution.filesystem.workspace import Workspace
 from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
     GraphExecutionDefinitionProviderAdapter,
 )
-from shell.infrastructure.execution.orchestration.in_memory_crown_scheduler import (
-    QueryBasedCrownScheduler,
-)
+
 from shell.infrastructure.execution.persistence.sql.services import (
     EnvelopeQueryService,
     NodeResultQueryService,
@@ -86,7 +84,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     )
 
     # 4. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
-    crown_scheduler_factory = providers.Singleton(QueryBasedCrownScheduler)
+
 
     # 6. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)

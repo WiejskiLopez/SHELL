@@ -1,21 +1,23 @@
-"""PlannerResultHandler — processes PlannerResultEvent from PLANNER nodes.
+"""PlannerResultHandler — processes GraphNodeExecutionCompletedEvent for PLANNER nodes.
 
-Subscribes to PlannerResultEvent (emitted by GraphNodeExecutionWorker for
-PLANNER-mode nodes with valid JSON output). Emits SubGraphSpawnRequestedEvent
-for each spawn entry.
+Subscribes to GraphNodeExecutionCompletedEvent with role=PLANNER.
+Emits GraphSpawnedEvent for each spawn entry, or GraphPlannedEvent for direct plans.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.events import (
-    PlannerResultEvent,
-    SubGraphSpawnRequestedEvent,
+from shell.domain.execution.aggregates.graph_execution.events.graph_planned_event import (
+    GraphPlannedEvent,
 )
-from shell.domain.platform.events import (
-    DomainEvent,  # noqa: TC002 — DomainEvent używany jako klasa bazowa w isinstance() i konstruktorze eventów
+from shell.domain.execution.aggregates.graph_execution.events.graph_spawned_event import (
+    GraphSpawnedEvent,
 )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+    GraphNodeExecutionCompletedEvent,
+)
+from shell.domain.execution.value_objects.node_role import NodeRole
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.logging import Logger
@@ -24,8 +26,6 @@ if TYPE_CHECKING:
 
 
 class PlannerResultHandler:
-    """Processes PlannerResultEvent — emits spawn events."""
-
     def __init__(
         self,
         uow: UnitOfWork,
@@ -36,42 +36,68 @@ class PlannerResultHandler:
         self._clock = clock
         self._logger = logger
 
-    async def handle(self, event: PlannerResultEvent) -> None:
-        """Handle planner result — save stage, emit spawn events."""
+    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
+        if event.role != NodeRole.PLANNER:
+            return
+
         async with self._uow as uow:
-            node = await uow.graph_node_executions.get_by_id(
-                event.graph_node_execution_id,
-            )
-            if node is None:
+            node = await uow.graph_node_executions.get_by_id(event.node_id)
+            if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "planner_result_handler.node_not_found",
-                    node_id=event.graph_node_execution_id.value,
+                    node_id=event.node_id.value,
                 )
                 return
 
-            # ── Collect events to stage ─────────────────────────────────────
-            staged_events: list[DomainEvent] = []
+            graph_execution = await uow.graph_executions.get_by_id(
+                node.graph_execution_id
+            )
+            if graph_execution is None:
+                self._logger.warning(
+                    "planner_result_handler.graph_not_found",
+                    graph_execution_id=node.graph_execution_id.value,
+                )
+                return
 
-            # ── Emit SubGraphSpawnRequestedEvent for each spawn entry ───────
-            for query in event.spawn:
-                if not query or not query.strip():
+            result = event.result or {}
+            stage = result.get("stage", "")
+            spawns: list[dict[str, Any]] = result.get("spawns", [])
+            plan = result.get("plan", {})
+
+            staged_events: list[Any] = []
+
+            for spawn in spawns:
+                goal = spawn.get("goal", "")
+                if not goal:
                     continue
+                from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+                    GraphExecutionId,
+                )
+                child_id = GraphExecutionId.generate()
                 staged_events.append(
-                    SubGraphSpawnRequestedEvent.now(
-                        query=query.strip(),
-                        parent_graph_execution_id=event.graph_execution_id,
-                        parent_graph_node_id=node.id,
+                    GraphSpawnedEvent.now(
+                        parent_graph_execution_id=graph_execution.id,
+                        child_graph_execution_id=child_id,
+                        goal=goal,
                         now=event.occurred_at,
                     )
                 )
 
-            # ── Stage all events at once ────────────────────────────────────
+            if stage == "direct" and plan:
+                staged_events.append(
+                    GraphPlannedEvent.now(
+                        graph_execution_id=graph_execution.id,
+                        plan=plan,
+                        now=event.occurred_at,
+                    )
+                )
+
             if staged_events:
                 uow.stage_events(staged_events)
 
             self._logger.info(
                 "planner_result_handler.processed",
-                planner_node_id=event.graph_node_execution_id.value,
-                spawn_count=len(event.spawn),
-                has_stage=bool(event.stage),
+                planner_node_id=event.node_id.value,
+                spawn_count=len(spawns),
+                stage=stage,
             )

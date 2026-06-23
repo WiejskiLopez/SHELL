@@ -17,7 +17,7 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
 )
 from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.edge_type import EdgeType
 
 
 def _make_node(node_id: str, position: int, mode: str = "agent") -> GraphNodeExecution:
@@ -34,7 +34,7 @@ def _make_transition(
     transition_id: str,
     from_node_id: str | None,
     to_node_id: str,
-    ttype: TransitionType = TransitionType.SEQUENCE,
+    ttype: EdgeType = EdgeType.SEQUENCE,
     priority: int = 0,
     condition: str | None = None,
 ) -> GraphNodeTransitionExecution:
@@ -121,34 +121,19 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextAfter:
             self._a,
             self._b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.SEQUENCE),
+                _make_transition("t1", "a", "b", EdgeType.SEQUENCE),
             ],
         )
         result = list(self._nav.next_after(ge, GraphNodeExecutionId("a")))
         assert len(result) == 1
         assert result[0].id == GraphNodeExecutionId("b")
 
-    def test_parallel_returns_all_targets(self) -> None:
-        ge = _make_graph(
-            self._a,
-            self._b,
-            self._c,
-            transitions=[
-                _make_transition("t1", "a", "b", TransitionType.PARALLEL),
-                _make_transition("t2", "a", "c", TransitionType.PARALLEL),
-            ],
-        )
-        result = list(self._nav.next_after(ge, GraphNodeExecutionId("a")))
-        assert len(result) == 2
-        ids = {n.id for n in result}
-        assert ids == {GraphNodeExecutionId("b"), GraphNodeExecutionId("c")}
-
     def test_conditional_transitions_are_skipped_in_next_after(self) -> None:
         ge = _make_graph(
             self._a,
             self._b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.CONDITIONAL, condition="true"),
+                _make_transition("t1", "a", "b", EdgeType.CONDITIONAL, condition="true"),
             ],
         )
         result = list(self._nav.next_after(ge, GraphNodeExecutionId("a")))
@@ -159,7 +144,7 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextAfter:
             self._a,
             self._b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.ERROR_HANDLER),
+                _make_transition("t1", "a", "b", EdgeType.ERROR_HANDLER),
             ],
         )
         result = list(self._nav.next_after(ge, GraphNodeExecutionId("a")))
@@ -170,7 +155,7 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextAfter:
             self._a,
             self._b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.DEFAULT),
+                _make_transition("t1", "a", "b", EdgeType.DEFAULT),
             ],
         )
         result = list(self._nav.next_after(ge, GraphNodeExecutionId("a")))
@@ -194,9 +179,9 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextConditional:
             b,
             c,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.CONDITIONAL, condition="true"),
-                _make_transition("t2", "a", "c", TransitionType.CONDITIONAL, condition="false"),
-                _make_transition("t3", "a", "c", TransitionType.SEQUENCE),
+                _make_transition("t1", "a", "b", EdgeType.CONDITIONAL, condition="true"),
+                _make_transition("t2", "a", "c", EdgeType.CONDITIONAL, condition="false"),
+                _make_transition("t3", "a", "c", EdgeType.SEQUENCE),
             ],
         )
         result = nav.next_conditional(ge, GraphNodeExecutionId("a"))
@@ -210,7 +195,7 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextConditional:
             a,
             b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.CONDITIONAL, condition=None),
+                _make_transition("t1", "a", "b", EdgeType.CONDITIONAL, condition=None),
             ],
         )
         result = nav.next_conditional(ge, GraphNodeExecutionId("a"))
@@ -226,7 +211,7 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextErrorHandler:
             a,
             b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.ERROR_HANDLER),
+                _make_transition("t1", "a", "b", EdgeType.ERROR_HANDLER),
             ],
         )
         result = nav.next_error_handler(ge, GraphNodeExecutionId("a"))
@@ -250,7 +235,7 @@ class TestTransitionBasedGraphNodeExecutionNavigatorNextLoopTarget:
             a,
             b,
             transitions=[
-                _make_transition("t1", "a", "b", TransitionType.LOOP),
+                _make_transition("t1", "a", "b", EdgeType.LOOP),
             ],
         )
         result = nav.next_loop_target(ge, GraphNodeExecutionId("a"))

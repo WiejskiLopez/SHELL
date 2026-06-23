@@ -4,12 +4,40 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
+    GraphExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
+    GraphExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
+    GraphExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_planning_started_event import (
+    GraphPlanningStartedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.sub_graph_settled_event import (
+    SubGraphSettledEvent,
+)
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+    GraphNodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
+    GraphNodeExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
+    GraphNodeExecutionStartedEvent,
+)
+from shell.domain.execution.aggregates.session.events.session_opened_event import (
+    SessionOpenedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
+    TaskExecutionCompletedEvent,
+)
 from shell.domain.execution.events import (
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
     GraphNodeExecutionTimedOutEvent,
-    PlannerResultEvent,
-    SubGraphSpawnRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -41,7 +69,6 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowStartedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowCompletedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(PlannerResultEvent, events.planner_result_handler_factory)
     event_bus.subscribe(
         GraphNodeExecutionTimedOutEvent,
         events.graph_node_execution_timed_out_handler_factory,
@@ -51,6 +78,58 @@ def register_events(core_container: CoreContainer) -> None:
         events.notify_parent_on_child_completion_handler_factory,
     )
     event_bus.subscribe(
-        SubGraphSpawnRequestedEvent,
-        events.sub_graph_spawn_requested_handler_factory,
+        GraphNodeExecutionCompletedEvent,
+        events.propagate_node_output_to_graph_input_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionCompletedEvent,
+        events.planner_result_handler_factory,
+    )
+    event_bus.subscribe(
+        GraphExecutionCompletedEvent,
+        events.propagate_graph_output_to_task_input_factory,
+    )
+    event_bus.subscribe(
+        SubGraphSettledEvent,
+        events.propagate_subgraph_results_to_parent_factory,
+    )
+    event_bus.subscribe(
+        TaskExecutionCompletedEvent,
+        events.propagate_task_output_to_workflow_input_factory,
+    )
+    event_bus.subscribe(
+        WorkflowCompletedEvent,
+        events.propagate_workflow_output_to_task_input_factory,
+    )
+    event_bus.subscribe(
+        SessionOpenedEvent,
+        events.propagate_session_output_to_workflow_input_factory,
+    )
+    event_bus.subscribe(
+        GraphExecutionCreatedEvent,
+        events.handle_graph_execution_created_factory,
+    )
+    event_bus.subscribe(
+        GraphPlanningStartedEvent,
+        events.handle_graph_planning_started_factory,
+    )
+    event_bus.subscribe(
+        GraphExecutionCompletedEvent,
+        events.handle_graph_execution_completed_factory,
+    )
+    event_bus.subscribe(
+        GraphExecutionFailedEvent,
+        events.handle_graph_execution_failed_factory,
+    )
+    event_bus.subscribe(
+        SubGraphSettledEvent,
+        events.handle_sub_graph_settled_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionStartedEvent,
+        events.handle_graph_node_execution_started_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionFailedEvent,
+        events.handle_graph_node_execution_failed_factory,
     )

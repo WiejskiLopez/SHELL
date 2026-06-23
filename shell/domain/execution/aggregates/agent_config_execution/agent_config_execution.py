@@ -1,0 +1,73 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.domain.execution.aggregates.agent_config_execution.agent_config_execution_id import (
+    AgentConfigExecutionId,
+)
+from shell.domain.execution.value_objects.config import Config
+from shell.domain.platform.base.aggregate_root import AggregateRoot
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell.domain.execution.aggregates.session.session_id import SessionId
+
+
+class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
+    __slots__ = ("_session_id", "_config", "_created_at", "_updated_at")
+
+    _session_id: SessionId
+    _config: Config
+    _created_at: datetime
+    _updated_at: datetime
+
+    def __init__(
+        self,
+        id: AgentConfigExecutionId,
+        session_id: SessionId,
+        config: Config,
+        created_at: datetime,
+        updated_at: datetime,
+    ) -> None:
+        super().__init__(id)
+        self._session_id = session_id
+        self._config = config
+        self._created_at = created_at
+        self._updated_at = updated_at
+
+    @classmethod
+    def create(
+        cls,
+        id: AgentConfigExecutionId,
+        session_id: SessionId,
+        config: Config,
+        now: datetime,
+    ) -> AgentConfigExecution:
+        return cls(
+            id=id,
+            session_id=session_id,
+            config=config,
+            created_at=now,
+            updated_at=now,
+        )
+
+    def update_config(self, config: Config, now: datetime) -> None:
+        self._config = config
+        self._updated_at = now
+
+    @property
+    def session_id(self) -> SessionId:
+        return self._session_id
+
+    @property
+    def config(self) -> Config:
+        return self._config
+
+    @property
+    def created_at(self) -> datetime:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> datetime:
+        return self._updated_at

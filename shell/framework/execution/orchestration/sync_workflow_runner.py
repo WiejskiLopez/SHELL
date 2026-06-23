@@ -78,7 +78,7 @@ class SyncWorkflowRunner:
     ) -> SyncWorkflowResult:
         from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
         from shell.domain.execution.value_objects.ids import WorkflowId
-        from shell.domain.platform.value_objects.status import Status
+        from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
         start_time = time.monotonic()
 
@@ -137,11 +137,11 @@ class SyncWorkflowRunner:
                         total_outbox_processed=metrics.outbox_total,
                         total_inbox_processed=metrics.inbox_total,
                     )
-                if workflow.status in (Status.done(), Status.failed()):
+                if workflow.status in (WorkflowStatus.COMPLETED, WorkflowStatus.ABORTED):
                     elapsed = time.monotonic() - start_time
                     message = (
                         "Workflow completed successfully"
-                        if workflow.status == Status.done()
+                        if workflow.status == WorkflowStatus.COMPLETED
                         else f"Workflow failed: {workflow.status.value}"
                     )
                     return SyncWorkflowResult(

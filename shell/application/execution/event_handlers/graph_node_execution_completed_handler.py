@@ -40,8 +40,8 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     FailFastGraphNodeExecutionPolicy,
     GraphNodeExecutionPolicy,
 )
-from shell.domain.platform.value_objects.status import Status
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.execution.value_objects.edge_type import EdgeType
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -96,10 +96,10 @@ class GraphNodeExecutionCompletedHandler:
                 )
                 return
 
-            if workflow.status != Status.running():
-                self._logger.debug(
-                    "graph_node_execution_completed_handler.skip_non_running",
-                    workflow_id=workflow.id.value,
+            if workflow.status != WorkflowStatus.ACTIVE:
+                logger.warning(
+                    "graph_node_execution_completed_handler.skip_workflow_not_active",
+                    workflow_id=event.workflow_id.value,
                     status=workflow.status.value,
                 )
                 return
@@ -160,18 +160,7 @@ class GraphNodeExecutionCompletedHandler:
 
         transition_types = {t.transition_type for t in outgoing}
 
-        if TransitionType.PARALLEL in transition_types:
-            await self._handle_parallel(
-                workflow=workflow,
-                graph_execution=graph_execution,
-                graph_node_execution_id=graph_node_execution_id,
-                now=now,
-                outgoing=list(outgoing),
-                uow=uow,
-            )
-            return
-
-        if TransitionType.LOOP in transition_types:
+        if EdgeType.LOOP in transition_types:
             await self._handle_loop(
                 workflow=workflow,
                 graph_execution=graph_execution,
@@ -190,37 +179,6 @@ class GraphNodeExecutionCompletedHandler:
             uow=uow,
         )
 
-    async def _handle_parallel(
-        self,
-        *,
-        workflow: Workflow,
-        graph_execution: GraphExecution,
-        graph_node_execution_id: GraphNodeExecutionId,
-        now: datetime,
-        outgoing: list[Any],
-        uow: UnitOfWork,
-    ) -> None:
-        parallel_ids = [
-            t.target_node_execution_id
-            for t in outgoing
-            if t.transition_type == TransitionType.PARALLEL
-        ]
-
-        if not parallel_ids:
-            await self._advance_or_finish(
-                workflow=workflow,
-                graph_execution=graph_execution,
-                graph_node_execution_id=graph_node_execution_id,
-                now=now,
-                uow=uow,
-            )
-            return
-
-        staged: list[Any] = []
-        for target_id in parallel_ids:
-            staged.append(GraphNodeExecutionRequestedEvent.now(workflow.id, target_id, now))
-        uow.stage_events(staged)
-
     async def _handle_loop(
         self,
         *,
@@ -234,7 +192,7 @@ class GraphNodeExecutionCompletedHandler:
         loop_transition = None
 
         for t in outgoing:
-            if t.transition_type == TransitionType.LOOP:
+            if t.transition_type == EdgeType.LOOP:
                 loop_transition = t
                 break
 
@@ -338,7 +296,7 @@ class GraphNodeExecutionCompletedHandler:
     ) -> GraphNodeExecutionId | None:
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == TransitionType.ERROR_HANDLER:
+            if t.transition_type == EdgeType.ERROR_HANDLER:
                 return t.target_node_execution_id
         return None
 

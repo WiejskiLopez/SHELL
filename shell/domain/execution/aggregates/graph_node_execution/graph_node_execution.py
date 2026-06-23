@@ -1,41 +1,49 @@
-"""GraphNodeExecution AggregateRoot — owns its payloads and emits PlannerResultEvent."""
-
 from __future__ import annotations
 
 import json
-from datetime import datetime  # noqa: TC003 — używane runtime w record_planner_result
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
-    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorze i typach propertisów GraphNodeExecution
-)
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
-    GraphNodeExecutionStateInput,  # noqa: TC002 — GraphNodeExecutionStateInput używany w konstruktorze i typach propertisów GraphNodeExecution
-)
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutput,  # noqa: TC002 — GraphNodeExecutionStateOutput używany w konstruktorze i typach propertisów GraphNodeExecution
-)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.platform.base import AggregateRoot
+from shell.domain.execution.value_objects.graph_node_execution_status import (
+    GraphNodeExecutionStatus,
+)
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
+    GraphNodeExecutionStateInput,
+)
+from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutput,
+)
+from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.mode import Mode
+    from datetime import datetime
+
+    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+        GraphExecutionId,
+    )
 
 
 class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
-    """A single node in a graph execution — owns its input/output payloads."""
-
     __slots__ = (
+        # V3 fields
         "_graph_execution_id",
+        "_order",
+        "_status",
+        "_state_inputs",
+        "_state_outputs",
+        # Legacy (deprecated)
+        "_role",
         "position",
         "mode",
-        "role",
         "node_type",
         "model",
         "command",
-        "timeout",
+        "_legacy_timeout",
         "retries",
         "log_level",
         "max_step",
@@ -47,20 +55,22 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "timeout_seconds",
         "max_retries",
         "retry_delay_seconds",
-        "_input_states",
-        "_output_states",
     )
 
     def __init__(
         self,
         id: GraphNodeExecutionId,
-        position: int,
-        mode: Mode,
-        role: str,
-        node_type: str,
+        graph_execution_id: GraphExecutionId | None = None,
+        role: NodeRole = NodeRole.PLANNER,
+        order: NodeOrder | None = None,
+        # Legacy params
+        position: int = 0,
+        mode: Any = None,
+        node_type: str = "",
         model: str = "",
         command: str = "",
-        timeout: int = 0,
+        timeout: int | None = None,  # deprecated — use _legacy_timeout
+        _legacy_timeout: int = 0,
         retries: int = 0,
         log_level: str = "INFO",
         max_step: int = 0,
@@ -72,19 +82,24 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         timeout_seconds: int = 0,
         max_retries: int = 0,
         retry_delay_seconds: int = 0,
-        graph_execution_id: GraphExecutionId | None = None,
         input_states: list[GraphNodeExecutionStateInput] | None = None,
         output_states: list[GraphNodeExecutionStateOutput] | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
+        self._order = order or NodeOrder(0)
+        self._role = role
+        self._status = GraphNodeExecutionStatus.PENDING
+        self._state_inputs = list(input_states) if input_states else []
+        self._state_outputs = list(output_states) if output_states else []
+
+        # Legacy fields
         self.position = position
         self.mode = mode
-        self.role = role
         self.node_type = node_type
         self.model = model
         self.command = command
-        self.timeout = timeout
+        self._legacy_timeout = timeout if timeout is not None else _legacy_timeout
         self.retries = retries
         self.log_level = log_level
         self.max_step = max_step
@@ -96,66 +111,169 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self.timeout_seconds = timeout_seconds
         self.max_retries = max_retries
         self.retry_delay_seconds = retry_delay_seconds
-        self._input_states = list(input_states) if input_states else []
-        self._output_states = list(output_states) if output_states else []
+
+    # --- V3 FSM ---
+
+    def start(self, now: datetime) -> None:
+        if self._status != GraphNodeExecutionStatus.PENDING:
+            raise InvalidNodeStateError(
+                f"Cannot start node in status {self._status}"
+            )
+        self._status = GraphNodeExecutionStatus.RUNNING
+        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
+            GraphNodeExecutionStartedEvent,
+        )
+
+        self.append_event(
+            GraphNodeExecutionStartedEvent.now(
+                node_id=self._id,
+                role=self._role,
+                now=now,
+            )
+        )
+
+    def complete(self, result: dict[str, Any] | None, now: datetime) -> None:
+        if self._status != GraphNodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(
+                f"Cannot complete node in status {self._status}"
+            )
+        self._status = GraphNodeExecutionStatus.COMPLETED
+        if result:
+            self._append_output(result, now)
+        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+            GraphNodeExecutionCompletedEvent,
+        )
+
+        self.append_event(
+            GraphNodeExecutionCompletedEvent.now(
+                node_id=self._id,
+                role=self._role,
+                now=now,
+                result=result,
+            )
+        )
+
+    def fail(self, error: ErrorDescription | str, now: datetime) -> None:
+        if self._status != GraphNodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(
+                f"Cannot fail node in status {self._status}"
+            )
+        self._status = GraphNodeExecutionStatus.FAILED
+        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
+            GraphNodeExecutionFailedEvent,
+        )
+
+        if isinstance(error, str):
+            error = ErrorDescription(error)
+
+        self.append_event(
+            GraphNodeExecutionFailedEvent.now(
+                node_id=self._id,
+                role=self._role,
+                now=now,
+                error=error,
+            )
+        )
+
+    def timeout(self, now: datetime) -> None:
+        if self._status != GraphNodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(
+                f"Cannot timeout node in status {self._status}"
+            )
+        self._status = GraphNodeExecutionStatus.TIMED_OUT
+        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timed_out_event import (
+            GraphNodeExecutionTimedOutEvent,
+        )
+
+        self.append_event(
+            GraphNodeExecutionTimedOutEvent.now(
+                node_id=self._id,
+                role=self._role,
+                now=now,
+            )
+        )
+
+    # --- State I/O ---
+
+    def add_output_state(self, state: GraphNodeExecutionStateOutput) -> None:
+        self._state_outputs.append(state)
+
+    def add_input_state(self, payload: dict[str, Any], now: datetime) -> None:
+        from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
+            GraphNodeExecutionStateInput,
+        )
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_input_id import (
+            GraphNodeExecutionStateInputId,
+        )
+
+        state = GraphNodeExecutionStateInput(
+            id=GraphNodeExecutionStateInputId.generate(),
+            graph_node_execution_id=self._id,
+            payload=payload,
+            created_at=now,
+        )
+        self._state_inputs.append(state)
+
+    def _append_output(self, payload: dict[str, Any], now: datetime) -> None:
+        from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
+            GraphNodeExecutionStateOutput,
+        )
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_output_id import (
+            GraphNodeExecutionStateOutputId,
+        )
+
+        state = GraphNodeExecutionStateOutput(
+            id=GraphNodeExecutionStateOutputId.generate(),
+            graph_node_execution_id=self._id,
+            payload=payload,
+            created_at=now,
+        )
+        self._state_outputs.append(state)
+
+    # --- Properties ---
 
     @property
     def graph_execution_id(self) -> GraphExecutionId | None:
         return self._graph_execution_id
 
-    @property
-    def input_states(self) -> tuple[GraphNodeExecutionStateInput, ...]:
-        return tuple(self._input_states)
-
-    @property
-    def output_states(self) -> tuple[GraphNodeExecutionStateOutput, ...]:
-        return tuple(self._output_states)
-
-    def add_input_state(self, payload: GraphNodeExecutionStateInput) -> None:
-        self._input_states.append(payload)
-
-    def add_output_state(self, payload: GraphNodeExecutionStateOutput) -> None:
-        self._output_states.append(payload)
-
     def get_latest_input_state(self) -> GraphNodeExecutionStateInput | None:
-        current = [p for p in self._input_states if p.is_current]
-        return current[0] if current else None
+        if not self._state_inputs:
+            return None
+        return self._state_inputs[-1]
 
     def get_latest_output_state(self) -> GraphNodeExecutionStateOutput | None:
-        current = [p for p in self._output_states if p.is_current]
-        return current[0] if current else None
+        if not self._state_outputs:
+            return None
+        return self._state_outputs[-1]
 
-    def record_planner_result(
-        self,
-        *,
-        stdout: str,
-        graph_execution_id: GraphExecutionId,
-        now: datetime | None = None,
-    ) -> None:
-        from datetime import datetime as dt
+    @property
+    def role(self) -> NodeRole:
+        return self._role
 
-        try:
-            plan = json.loads(stdout)
-        except (json.JSONDecodeError, ValueError):
-            return
+    @property
+    def order(self) -> NodeOrder:
+        return self._order
 
-        stage = plan.get("stage", "")
-        spawn = tuple(plan.get("spawn", []))
+    @property
+    def status(self) -> GraphNodeExecutionStatus:
+        return self._status
 
-        if not stage and not spawn:
-            return
+    @property
+    def state_inputs(self) -> tuple:
+        return tuple(self._state_inputs)
 
-        from shell.domain.execution.aggregates.graph_node_execution.events.planner_result_event import (
-            PlannerResultEvent,
-        )
+    @property
+    def state_outputs(self) -> tuple:
+        return tuple(self._state_outputs)
 
-        self.append_event(
-            PlannerResultEvent.now(
-                graph_node_execution_id=self.id,
-                graph_execution_id=graph_execution_id,
-                stage=stage,
-                spawn=spawn,
-                raw_json=stdout,
-                now=now or dt.now(),
-            )
-        )
+    @property
+    def input_states(self) -> tuple:
+        return tuple(self._state_inputs)
+
+    @property
+    def output_states(self) -> tuple:
+        return tuple(self._state_outputs)
+
+
+class InvalidNodeStateError(Exception):
+    pass

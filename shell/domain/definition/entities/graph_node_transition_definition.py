@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.value_objects.transition_type import TransitionType
+from shell.domain.execution.value_objects.edge_type import EdgeType
 
 if TYPE_CHECKING:
     from shell.domain.definition.value_objects.ids import (
@@ -19,7 +19,7 @@ class GraphNodeTransitionDefinition:
     graph_definition_id: GraphDefinitionId
     source_node_definition_id: GraphNodeDefinitionId | None
     target_node_definition_id: GraphNodeDefinitionId
-    transition_type: TransitionType
+    transition_type: EdgeType
     priority: int = 0
     condition_expression: str | None = None
     condition_language: str | None = None
@@ -31,5 +31,5 @@ class GraphNodeTransitionDefinition:
     label: str = ""
 
     def __post_init__(self) -> None:
-        if self.transition_type == TransitionType.CONDITIONAL and not self.condition_expression:
+        if self.transition_type == EdgeType.CONDITIONAL and not self.condition_expression:
             raise ValueError("CONDITIONAL transition requires condition_expression")

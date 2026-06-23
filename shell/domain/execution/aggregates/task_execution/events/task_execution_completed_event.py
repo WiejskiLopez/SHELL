@@ -15,21 +15,22 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCompletedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
-    status: str
+    output: str = ""
 
     @classmethod
     def now(
         cls,
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
-        status: str,
-        now: datetime,
+        output: str = "",
+        now: datetime | None = None,
     ) -> TaskExecutionCompletedEvent:
+        from datetime import datetime as _dt
         return cls(
-            occurred_at=now,
+            occurred_at=now or _dt.now(),
             task_execution_id=task_execution_id,
             task_execution_name=task_execution_name,
-            status=status,
+            output=output,
         )
 
     @classmethod
@@ -40,6 +41,6 @@ class TaskExecutionCompletedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
-            task_execution_name=TaskExecutionName(payload["task_execution_name"]),
-            status=payload["status"],
+            task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
+            output=payload.get("output", ""),
         )
