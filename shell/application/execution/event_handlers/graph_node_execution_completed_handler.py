@@ -68,17 +68,17 @@ class GraphNodeExecutionCompletedHandler:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
         navigator: GraphNodeExecutionNavigator | None = None,
         policy: GraphNodeExecutionPolicy | None = None,
 
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
         self._navigator: GraphNodeExecutionNavigator = (
             navigator or LinearGraphNodeExecutionNavigator()
@@ -87,8 +87,8 @@ class GraphNodeExecutionCompletedHandler:
 
     async def handle(self, event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(event.workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(event.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.workflow_not_found",
@@ -104,7 +104,7 @@ class GraphNodeExecutionCompletedHandler:
                 )
                 return
 
-            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.graph_executions.get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.no_graph",
@@ -121,7 +121,7 @@ class GraphNodeExecutionCompletedHandler:
                     graph_execution=graph_execution,
                     graph_node_execution_id=event.graph_node_execution_id,
                     now=now,
-                    uow=uow,
+                    unit_of_work=unit_of_work,
                 )
             else:
                 await self._handle_failure(
@@ -130,11 +130,11 @@ class GraphNodeExecutionCompletedHandler:
                     graph_node_execution_id=event.graph_node_execution_id,
                     reason=event.reason,
                     now=now,
-                    uow=uow,
+                    unit_of_work=unit_of_work,
                 )
 
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+            await unit_of_work.workflows.save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())
 
     # ── Private helpers ───────────────────────────────────────────────────
 
@@ -145,7 +145,7 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
     ) -> None:
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         if not outgoing:
@@ -154,7 +154,7 @@ class GraphNodeExecutionCompletedHandler:
                 graph_execution=graph_execution,
                 graph_node_execution_id=graph_node_execution_id,
                 now=now,
-                uow=uow,
+                unit_of_work=unit_of_work,
             )
             return
 
@@ -167,7 +167,7 @@ class GraphNodeExecutionCompletedHandler:
                 graph_node_execution_id=graph_node_execution_id,
                 now=now,
                 outgoing=list(outgoing),
-                uow=uow,
+                unit_of_work=unit_of_work,
             )
             return
 
@@ -176,7 +176,7 @@ class GraphNodeExecutionCompletedHandler:
             graph_execution=graph_execution,
             graph_node_execution_id=graph_node_execution_id,
             now=now,
-            uow=uow,
+            unit_of_work=unit_of_work,
         )
 
     async def _handle_loop(
@@ -187,7 +187,7 @@ class GraphNodeExecutionCompletedHandler:
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
         outgoing: list[Any],
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
     ) -> None:
         loop_transition = None
 
@@ -202,7 +202,7 @@ class GraphNodeExecutionCompletedHandler:
                 graph_execution=graph_execution,
                 graph_node_execution_id=graph_node_execution_id,
                 now=now,
-                uow=uow,
+                unit_of_work=unit_of_work,
             )
             return
 
@@ -212,7 +212,7 @@ class GraphNodeExecutionCompletedHandler:
         )
 
         if not counter.is_exhausted:
-            uow.stage_events([
+            unit_of_work.stage_events([
                 GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, loop_transition.target_node_execution_id, now),
                 GraphNodeExecutionRequestedEvent.now(workflow.id, loop_transition.target_node_execution_id, now),
             ])
@@ -223,7 +223,7 @@ class GraphNodeExecutionCompletedHandler:
             graph_execution=graph_execution,
             graph_node_execution_id=graph_node_execution_id,
             now=now,
-            uow=uow,
+            unit_of_work=unit_of_work,
         )
 
     async def _advance_or_finish(
@@ -233,18 +233,18 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
     ) -> None:
         next_nodes = list(
             await self._navigator.next_after_async(
-                graph_execution, graph_node_execution_id, uow.graph_node_executions
+                graph_execution, graph_node_execution_id, unit_of_work.graph_node_executions
             )
         )
         if not next_nodes:
             workflow.finish(now, task_execution_id=graph_execution.task_execution_id)
             return
         next_node = next_nodes[0]
-        uow.stage_events([
+        unit_of_work.stage_events([
             GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, next_node.id, now),
             GraphNodeExecutionRequestedEvent.now(workflow.id, next_node.id, now),
         ])
@@ -257,14 +257,14 @@ class GraphNodeExecutionCompletedHandler:
         graph_node_execution_id: GraphNodeExecutionId,
         reason: str,
         now: datetime,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
     ) -> None:
         error_handler_node = self._find_error_handler_transition(
             graph_execution, graph_node_execution_id
         )
 
         if error_handler_node is not None:
-            uow.stage_events([
+            unit_of_work.stage_events([
                 GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, error_handler_node, now),
                 GraphNodeExecutionRequestedEvent.now(workflow.id, error_handler_node, now),
             ])
@@ -277,7 +277,7 @@ class GraphNodeExecutionCompletedHandler:
                 graph_execution=graph_execution,
                 graph_node_execution_id=graph_node_execution_id,
                 now=now,
-                uow=uow,
+                unit_of_work=unit_of_work,
             )
             return
 

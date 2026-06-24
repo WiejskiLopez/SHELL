@@ -49,7 +49,7 @@ InMemory repo implementuje pełen kontrakt portu z identyczną semantyką co SQL
 
 ### 6. `stage_events(pull_events())` po każdej mutacji w handlerze
 
-W handlerze po mutacji agregatu wołaj `uow.stage_events(aggregate.pull_events())`. Bez tego eventy domenowe nie trafią do outboxu i sagi ich nie dostaną.
+W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull_events())`. Bez tego eventy domenowe nie trafią do outboxu i sagi ich nie dostaną.
 
 ### 7. Enkapsulacja kolekcji — property zwracają kopie
 
@@ -63,7 +63,7 @@ Property agregatu zwracające kolekcję zwraca kopię (`dict(...)`, `tuple(...)`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")
-- Nie jesteś pewien nazewnictwa albo struktury pliku → `references/checklists.md` (sekcje "Nazewnictwo" i "Cross-cutting")
+- Nie jesteś pewien struktury pliku → `references/checklists.md` (sekcja "Cross-cutting")
 - Pracujesz z Workflow/GraphExecution/GraphNodeExecution → `references/execution-hierarchy.md` (poziomy, relacje, Mode enum)
 - Dodajesz sub-graf, PLANNER, TASKER, extension point → `references/sub-graph-extension-points.md` (przepływy, Protocols, reguły)
 

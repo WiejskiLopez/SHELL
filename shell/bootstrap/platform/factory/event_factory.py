@@ -13,11 +13,11 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_cr
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
     GraphExecutionFailedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution.events.graph_planning_started_event import (
-    GraphPlanningStartedEvent,
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
+    GraphExecutionPlanningStartedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution.events.sub_graph_settled_event import (
-    SubGraphSettledEvent,
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
+    GraphExecutionSubGraphSettledEvent,
 )
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
@@ -90,7 +90,7 @@ def register_events(core_container: CoreContainer) -> None:
         events.propagate_graph_output_to_task_input_factory,
     )
     event_bus.subscribe(
-        SubGraphSettledEvent,
+        GraphExecutionSubGraphSettledEvent,
         events.propagate_subgraph_results_to_parent_factory,
     )
     event_bus.subscribe(
@@ -110,7 +110,7 @@ def register_events(core_container: CoreContainer) -> None:
         events.handle_graph_execution_created_factory,
     )
     event_bus.subscribe(
-        GraphPlanningStartedEvent,
+        GraphExecutionPlanningStartedEvent,
         events.handle_graph_planning_started_factory,
     )
     event_bus.subscribe(
@@ -122,7 +122,7 @@ def register_events(core_container: CoreContainer) -> None:
         events.handle_graph_execution_failed_factory,
     )
     event_bus.subscribe(
-        SubGraphSettledEvent,
+        GraphExecutionSubGraphSettledEvent,
         events.handle_sub_graph_settled_factory,
     )
     event_bus.subscribe(

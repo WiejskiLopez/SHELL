@@ -8,7 +8,7 @@ Output state represents data produced by the graph's own nodes during execution.
 Nodes write and read this state as they progress through the graph.
 
 Lifecycle:
-    1. Created when a GraphExecution is built (BuildGraphExecutionOnTaskExecutionCreated).
+    1. Created when a GraphExecution is built (BuildGraphExecutionOnTaskExecutionCreatedEventHandler).
     2. Mutated by node execution handlers via `.update(key, value)`.
        Each mutation appends a :class:`GraphExecutionStateOutputChangedEvent`.
     3. Superseded on change (previous row marked is_current=False, new row inserted)

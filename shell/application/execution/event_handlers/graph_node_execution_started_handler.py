@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 class GraphNodeExecutionStartedHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
     async def handle(self, event: GraphNodeExecutionStartedEvent) -> None:
-        async with self._uow as uow:
-            node = await uow.graph_node_executions.get_by_id(event.node_id)
+        async with self._unit_of_work as unit_of_work:
+            node = await unit_of_work.graph_node_executions.get_by_id(event.node_id)
             if node is None:
                 self._logger.warning(
                     "graph_node_execution_started_handler.node_not_found",
@@ -37,5 +37,5 @@ class GraphNodeExecutionStartedHandler:
                 return
 
             node.start()
-            await uow.graph_node_executions.save(node)
-            uow.stage_events(node.pull_events())
+            await unit_of_work.graph_node_executions.save(node)
+            unit_of_work.stage_events(node.pull_events())

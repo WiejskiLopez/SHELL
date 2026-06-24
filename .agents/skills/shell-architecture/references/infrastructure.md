@@ -9,7 +9,7 @@ Każdy adapter infrastrukturalny (SQL + InMemory) jawnie implementuje port domen
 ```python
 # DOMAIN PORT
 class WorkflowRepository(Protocol):
-    async def get_by_id(self, id: WorkflowId) -> Workflow | None: ...
+    async def get_by_id(self, entity_id: WorkflowId) -> Workflow | None: ...
     async def get_by_task_execution_id(self, task_execution_id: TaskExecutionId) -> Workflow | None: ...
 
 # SQL ADAPTER — jawna implementacja
@@ -37,7 +37,7 @@ Jeśli metoda portu jest zbyt trudna do zaimplementowania w InMemory, to znaczy 
 - Mapowanie ORM → Domain w `infrastructure/persistence/sql/mappers/` (nie w repozytorium)
 - Nigdy nie importują domain entity w runtime — zawsze pod `TYPE_CHECKING` + mapper
 - Każda operacja w kontekście `UnitOfWork` — nigdy samodzielnego zarządzania sesją
-- Konwencja nazewnictwa: `get_by_id()`, `save()`, `delete()`, `list_by_*()`, `get_latest_by_*()`
+
 
 ## Mapper symmetry (KRYTYCZNE)
 

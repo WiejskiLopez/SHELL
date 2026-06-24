@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 class GraphExecutionSubGraphSettledPropagateResultsHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
     async def handle(self, event: GraphExecutionSubGraphSettledEvent) -> None:
-        async with self._uow as uow:
-            parent_graph = await uow.graph_executions.get_by_id(
+        async with self._unit_of_work as unit_of_work:
+            parent_graph = await unit_of_work.graph_executions.get_by_id(
                 event.parent_graph_execution_id
             )
             if parent_graph is None:
@@ -40,5 +40,5 @@ class GraphExecutionSubGraphSettledPropagateResultsHandler:
 
             now = self._clock.now()
             parent_graph.absorb_child_results(event.child_results, now)
-            await uow.graph_executions.save(parent_graph)
-            uow.stage_events(parent_graph.pull_events())
+            await unit_of_work.graph_executions.save(parent_graph)
+            unit_of_work.stage_events(parent_graph.pull_events())

@@ -95,10 +95,10 @@ class LegacyCrmGateway:
     def _parse_customer_xml(self, xml: str) -> dict:
         root = ET.fromstring(xml)
         return {
-            "cust_id": root.findtext("CUSTID"),
+            "customer_id": root.findtext("CUSTID"),
             "name": root.findtext("NAME"),
             "email": root.findtext("EMAIL"),
-            "credit_amt": root.findtext("CREDITAMT"),
+            "credit_amount": root.findtext("CREDITAMT"),
             "type_code": root.findtext("TYPECODE"),
             "is_active": root.findtext("ACTIVE") == "Y",
         }
@@ -118,10 +118,10 @@ class LegacyCrmMapper:
 
     def to_customer_summary(self, raw: dict) -> CustomerSummary:
         return CustomerSummary(
-            id=raw["cust_id"],
+            id=raw["customer_id"],
             name=raw["name"].strip() if raw.get("name") else "Unknown",
             email=raw.get("email") or "",
-            credit_limit=self._parse_decimal(raw.get("credit_amt")),
+            credit_limit=self._parse_decimal(raw.get("credit_amount")),
             customer_type=self._map_type_code(raw.get("type_code", "")),
             is_active=raw.get("is_active", False),
         )
@@ -166,7 +166,7 @@ class LegacyCustomerAdapter(LegacyCustomerPort):
         raw = await self._gateway.fetch_customer(customer_id)
         if raw is None:
             return Decimal("0")
-        return self._mapper._parse_decimal(raw.get("credit_amt"))
+        return self._mapper._parse_decimal(raw.get("credit_amount"))
 ```
 
 ## ACL a testy
@@ -176,10 +176,10 @@ Gateway jest izolowany — możesz testować mapper i adapter bez łączenia si�
 ```python
 async def test_customer_mapping():
     raw_data = {
-        "cust_id": "C123",
+        "customer_id": "C123",
         "name": "Acme Corp",
         "email": "acme@example.com",
-        "credit_amt": "5000.00",
+        "credit_amount": "5000.00",
         "type_code": "V",
         "is_active": True,
     }
@@ -195,8 +195,8 @@ async def test_customer_mapping():
 async def test_adapter_with_mock_gateway():
     class MockGateway:
         async def fetch_customer(self, customer_id: str):
-            return {"cust_id": customer_id, "name": "Test", "email": "t@t.com",
-                    "credit_amt": "100", "type_code": "R", "is_active": True}
+            return {"customer_id": customer_id, "name": "Test", "email": "t@t.com",
+                    "credit_amount": "100", "type_code": "R", "is_active": True}
 
     adapter = LegacyCustomerAdapter(
         gateway=MockGateway(),

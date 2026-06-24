@@ -151,21 +151,6 @@ class CancelStaleExecutionsHandler:
             execution.cancel(reason="stale")
 ```
 
-## 7. Lokalizacja i Nazewnictwo
-
-- **Lokalizacja**: `shell/domain/<bc>/specifications/`
-- **Nazwa klasy**: `<Reguła>Specification` — np. `ActiveExecutionSpecification`
-- **Jeden plik = jedna specyfikacja**
-
-```
-shell/domain/execution/specifications/
-├── __init__.py
-├── active_execution_specification.py
-├── timeout_execution_specification.py
-├── has_pending_tasks_specification.py
-└── not_exceeded_retry_limit_specification.py
-```
-
 ## 8. Specification vs Wyrażenia Warunkowe
 
 | Sytuacja | if/else w kodzie | Specification |
@@ -199,6 +184,5 @@ Tworząc Specification:
 - [ ] Jest komponowalna przez `&`, `|`, `~`
 - [ ] Lokalizacja: `shell/domain/<bc>/specifications/`
 - [ ] Lokalizacja base: `shell/domain/platform/base/specification.py`
-- [ ] Nazwa: `<Reguła>Specification`
 - [ ] Nie ma zależności infrastrukturalnych
 - [ ] Testowana w isolation (unit test)

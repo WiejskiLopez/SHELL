@@ -6,6 +6,6 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class WorkflowStatus(ValueObject, StrEnum):
-    ACTIVE = "ACTIVE"
-    COMPLETED = "COMPLETED"
-    ABORTED = "ABORTED"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ABORTED = "aborted"

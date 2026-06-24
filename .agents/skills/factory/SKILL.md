@@ -195,29 +195,17 @@ class CreateExecutionHandler:
     def __init__(
         self,
         factory: ExecutionFactory,
-        graph_repo: GraphRepository,
-        uow: UnitOfWork,
+        graph_repository: GraphRepository,
+        unit_of_work: UnitOfWork,
     ) -> None:
         ...
 
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
-            execution = self.factory.create_from_graph(graph, cmd.config)
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        async with self.unit_of_work:
+            graph = await self.graph_repository.get(GraphId(command.graph_id))
+            execution = self.factory.create_from_graph(graph, command.config)
             await self.execution_repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
-```
-
-## 7. Lokalizacja i Nazewnictwo
-
-- **Factory class**: `shell/domain/<bc>/factories/<aggregate>_factory.py`
-- **Nazwa klasy**: `<Aggregate>Factory`
-- **Factory methods na agregacie**: `restore()` i `create()` (jeśli proste)
-
-```
-shell/domain/execution/factories/
-├── __init__.py
-└── execution_factory.py
+            self.unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 8. Podsumowanie — Checklista
@@ -228,7 +216,7 @@ Projektując Factory:
 - [ ] `restore()` dostępne dla każdego agregatu (rekonstrukcja z bazy)
 - [ ] `restore()` pomija walidację biznesową
 - [ ] Factory może mieć zależności (Domain Services, IdGenerator, Clock)
-- [ ] Factory zwraca w pełni skonstruowany agregat
+- [ ] Factory zwraca w pełni skonstrunit_of_workany agregat
 - [ ] Factory w domenie — brak importów infrastrukturalnych
 - [ ] Lokalizacja: `shell/domain/<bc>/factories/`
 - [ ] Testy jednostkowe dla każdej ścieżki tworzenia

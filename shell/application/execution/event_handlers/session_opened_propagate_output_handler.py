@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 class SessionOpenedPropagateOutputHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
     async def handle(self, event: SessionOpenedEvent) -> None:
-        async with self._uow as uow:
-            workflows = await uow.workflows.get_by_session_id(event.session_id)
+        async with self._unit_of_work as unit_of_work:
+            workflows = await unit_of_work.workflows.get_by_session_id(event.session_id)
             if not workflows:
                 self._logger.warning(
                     "session_opened_propagate_output_handler.no_workflows",
@@ -44,5 +44,5 @@ class SessionOpenedPropagateOutputHandler:
             }
             for workflow in workflows:
                 workflow.add_state_input(session_payload, now)
-                await uow.workflows.save(workflow)
-                uow.stage_events(workflow.pull_events())
+                await unit_of_work.workflows.save(workflow)
+                unit_of_work.stage_events(workflow.pull_events())

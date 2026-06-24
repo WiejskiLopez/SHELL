@@ -1,6 +1,6 @@
 ---
 name: domain-event-handler
-description: Zasady budowy handlerów zdarzeń domenowych — nazewnictwo, struktura, rejestracja, idempotencja, UoW.
+description: Zasady budowy handlerów zdarzeń domenowych — struktura, rejestracja, idempotencja, UoW.
 Używaj gdy dodajesz nowy event handler, poprawiasz istniejący, zmieniasz schemat rejestracji, albo review'ujesz poprawność handlerów.
 ---
 
@@ -13,35 +13,6 @@ Event Handler to komponent warstwy aplikacyjnej, który subskrybuje konkretny Do
 ## Lokalizacja
 
 Handlery zdarzeń domenowych znajdują się w katalogu `application/<bounded_context>/event_handlers/`.
-
-## Nazewnictwo
-
-### Główny handler (main)
-
-Jeden event może mieć wielu subskrybentów. **Tylko jeden** (główny) przyjmuje nazwę zgodną z eventem.
-
-```
-Plik:  <domain_event_name>_handler.py
-Klasa: <DomainEventName>Handler
-```
-
-Przykłady:
-- `GraphNodeExecutionTimedOutEvent` → plik `graph_node_execution_timed_out_handler.py` → klasa `GraphNodeExecutionTimedOutHandler`
-- `GraphExecutionCreatedEvent` → plik `graph_execution_created_handler.py` → klasa `GraphExecutionCreatedHandler`
-
-### Handler wtórny (secondary)
-
-Gdy jeden event ma wielu subskrybentów, dodatkowe handlery otrzymują kwalifikator biznesowy:
-
-```
-Plik:  <domain_event_name>_<qualifier>_handler.py
-Klasa: <DomainEventName><Qualifier>Handler
-```
-
-Przykłady:
-- `GraphNodeExecutionCompletedEvent` (main) → `GraphNodeExecutionCompletedHandler`
-- `GraphNodeExecutionCompletedEvent` (secondary — propagacja outputu) → `propagate_node_output_to_graph_input.py` → **`graph_node_execution_completed_propagate_output_handler.py`** → `GraphNodeExecutionCompletedPropagateOutputHandler`
-- `GraphNodeExecutionCompletedEvent` (secondary — planner) → `planner_result_handler.py` → **`graph_node_execution_completed_planner_handler.py`** → `GraphNodeExecutionCompletedPlannerHandler`
 
 ## Struktura handlera
 
@@ -56,20 +27,20 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 class SomeEventHandler:
-    def __init__(self, uow: UnitOfWork, clock: Clock, logger: Logger) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock, logger: Logger) -> None:
+        self._unit_of_work = unit_of_work
         self._clock = clock
         self._logger = logger
 
     async def handle(self, event: SomeEvent) -> None:
-        async with self._uow as uow:
-            aggregate = await uow.some_repo.get_by_id(event.aggregate_id)
+        async with self._unit_of_work as unit_of_work:
+            aggregate = await unit_of_work.some_repository.get_by_id(event.aggregate_id)
             if aggregate is None:
                 self._logger.warning("...")
                 return
             aggregate.do_something(self._clock.now())
-            await uow.some_repo.save(aggregate)
-            uow.stage_events(aggregate.pull_events())
+            await unit_of_work.some_repository.save(aggregate)
+            unit_of_work.stage_events(aggregate.pull_events())
 ```
 
 ## Zasady
@@ -97,15 +68,11 @@ Handler jest wstrzykiwany przez DI (Dependency Injection) — fabryka w `EventCo
 ```python
 some_event_handler_factory = providers.Factory(
     SomeEventHandler,
-    uow=buses.uow_factory,
+    unit_of_work=buses.unit_of_work_factory,
     clock=infra.clock_factory,
     logger=infra.stdlib_logger,
 )
 ```
-
-## Metody wywoływane na agregatach w handlerze
-
-Handler **może wywoływać na agregatach wyłącznie metody, których nazwy wyrażają intencję biznesową** — nigdy techniczne operacje (`save`, `update`, `merge`, `persist`).
 
 Agregat sam zarządza swoim stanem wewnętrznym. Handler jedynie wywołuje metody domenowe, a agregat wewnętrznie (w swojej metodzie biznesowej) wykonuje niezbędne operacje na swoich polach i za pomocą `append_event()` rejestruje zdarzenia domenowe.
 

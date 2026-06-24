@@ -22,12 +22,12 @@ from shell.domain.platform.value_objects.mode import Mode
 class TestSaveGraphNodeExecutionResultHandler:
     async def test_happy_path(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
         wf = Workflow.new(id_=WorkflowId("wf-1"), now=clock.now())
-        await uow.workflows.save(wf)
+        await unit_of_work.workflows.save(wf)
 
         node = GraphNodeExecution(
             id=GraphNodeExecutionId("node-1"),
@@ -36,9 +36,9 @@ class TestSaveGraphNodeExecutionResultHandler:
             role="worker",
             node_type="worker",
         )
-        await uow.graph_node_executions.save(node)
+        await unit_of_work.graph_node_executions.save(node)
 
-        handler = SaveGraphNodeExecutionResultHandler(uow, clock, id_gen)
+        handler = SaveGraphNodeExecutionResultHandler(unit_of_work, clock, id_generator)
         result_id = await handler.handle(
             SaveGraphNodeExecutionResultCommand(
                 workflow_id="wf-1",
@@ -49,7 +49,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         )
         assert result_id
 
-        stored = await uow.graph_node_executions.get_by_id(GraphNodeExecutionId("node-1"))
+        stored = await unit_of_work.graph_node_executions.get_by_id(GraphNodeExecutionId("node-1"))
         assert stored is not None
         output = stored.get_latest_output_state()
         assert output is not None

@@ -1,6 +1,6 @@
 ---
 name: query-handler
-description: Zasady budowy handlerów zapytań (Query Handlers) — nazewnictwo, struktura, lokalizacja, read model. Używaj gdy dodajesz nowy query handler, poprawiasz istniejący, albo review'ujesz poprawność handlerów zapytań.
+description: Zasady budowy handlerów zapytań (Query Handlers) — struktura, lokalizacja, read model. Używaj gdy dodajesz nowy query handler, poprawiasz istniejący, albo review'ujesz poprawność handlerów zapytań.
 ---
 
 # Query Handler — obsługa zapytań
@@ -25,17 +25,6 @@ shell/application/
             search_similar_handler.py
             get_runner_config_handler.py
 ```
-
-## Nazewnictwo
-
-```
-Plik:  <query_name>_handler.py
-Klasa: <QueryName>Handler
-```
-
-Przykłady:
-- `GetWorkflowQuery` → plik `get_workflow_handler.py` → klasa `GetWorkflowHandler`
-- `SearchSimilarQuery` → plik `search_similar_handler.py` → klasa `SearchSimilarHandler`
 
 ## Struktura handlera
 
@@ -62,8 +51,6 @@ class GetWorkflowHandler:
 3. **Stateless** — handler nie przechowuje stanu między wywołaniami
 4. **Zwraca DTO / read model** — nigdy encji domenowych (to narusza warstwy)
 5. **QueryService w TYPE_CHECKING** — serwis odczytu wstrzykiwany przez DI
-6. **Nazwa klasy = `<QueryName>Handler`** — musi korespondować z zapytaniem
-7. **Nazwa pliku = `<query_name>_handler.py`**
 
 ## Query Service
 

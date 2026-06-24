@@ -100,12 +100,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                 f"Cannot start planning in status {self._status}"
             )
         self._status = GraphExecutionStatus.PLANNING
-        from shell.domain.execution.aggregates.graph_execution.events.graph_planning_started_event import (
-            GraphPlanningStartedEvent,
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
+            GraphExecutionPlanningStartedEvent,
         )
 
         self.append_event(
-            GraphPlanningStartedEvent.now(
+            GraphExecutionPlanningStartedEvent.now(
                 graph_execution_id=self._id,
                 now=now,
             )
@@ -117,12 +117,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                 f"Cannot complete planning in status {self._status}"
             )
         self._status = GraphExecutionStatus.EXECUTING
-        from shell.domain.execution.aggregates.graph_execution.events.graph_planned_event import (
-            GraphPlannedEvent,
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planned_event import (
+            GraphExecutionPlannedEvent,
         )
 
         self.append_event(
-            GraphPlannedEvent.now(
+            GraphExecutionPlannedEvent.now(
                 graph_execution_id=self._id,
                 now=now,
                 plan=plan,
@@ -420,7 +420,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         task_execution_id: TaskExecutionId,
         graph_definition: Any,
         node_ids: list[Any] | None = None,
-        id_gen: Any = None,
+        id_generator: Any = None,
         now: datetime,
         parent_graph_execution_id: GraphExecutionId | None = None,
         state_input: dict[str, Any] | None = None,

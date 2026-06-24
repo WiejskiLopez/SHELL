@@ -21,18 +21,18 @@ class CreateExecutionHandler:
     def __init__(
         self,
         factory: ExecutionFactory,
-        repo: ExecutionRepository,
-        graph_repo: GraphRepository,
-        uow: UnitOfWork,
+        repository: ExecutionRepository,
+        graph_repository: GraphRepository,
+        unit_of_work: UnitOfWork,
     ) -> None:
         ...
 
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        async with self._unit_of_work:
+            graph = await self.graph_repository.get(GraphId(command.graph_id))
             execution = self.factory.create_from_graph(graph)
-            await self.repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self._repository.add(execution)
+            self._unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 2. Odpowiedzialność Application Service
@@ -50,19 +50,19 @@ Application Service **koordynuje**, ale nie zawiera logiki biznesowej. Jego odpo
 
 ```python
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
+    async def handle(self, command: CreateExecutionCommand) -> None:
         # 1. Walidacja wejściowa (jeśli nie zrobiona wcześniej)
         # 2. Autoryzacja
-        self._auth.assert_can_create(cmd.user_id)
+        self._authorization_service.assert_can_create(command.user_id)
         
         # 3. Koordynacja domeny
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
+        async with self._unit_of_work:
+            graph = await self.graph_repository.get(GraphId(command.graph_id))
             execution = self.factory.create_from_graph(graph)
-            await self.repo.add(execution)
+            await self._repository.add(execution)
             
             # 4. Eventy
-            self.uow.stage_events(execution.pull_events())
+            self._unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 3. Application Service Nie Zawiera Logiki Biznesowej
@@ -72,8 +72,8 @@ Jeśli w handlerze pojawia się **if/else** z regułami biznesowymi → przenie�
 ```python
 # ŹLE — logika biznesowa w handlerze
 class SubmitOrderHandler:
-    async def handle(self, cmd: SubmitOrderCommand) -> None:
-        order = await self.order_repo.get(cmd.order_id)
+    async def handle(self, command: SubmitOrderCommand) -> None:
+        order = await self.order_repository.get(command.order_id)
         if order.total.amount > 10000:  # Logika biznesowa!
             raise OrderTooLargeError()
         ...
@@ -101,15 +101,15 @@ Gdy Use Case wymaga koordynacji między BC → Application Service inicjuje Sag�
 
 ```python
 class SubmitOrderHandler:
-    async def handle(self, cmd: SubmitOrderCommand) -> None:
+    async def handle(self, command: SubmitOrderCommand) -> None:
         # Walidacja i autoryzacja
-        async with self.uow:
-            order = Order.create(cmd.customer_id, cmd.items)
-            await self.order_repo.add(order)
+        async with self._unit_of_work:
+            order = Order.create(command.customer_id, command.items)
+            await self.order_repository.add(order)
             # Inicjalizacja sagi — reszta asynchronicznie
             saga = OrderSaga(order.id)
-            await self.saga_repo.save(saga)
-            self.uow.stage_events([
+            await self.saga_repository.save(saga)
+            self._unit_of_work.stage_events([
                 OrderSubmittedEvent(order_id=order.id),
                 SagaStartedEvent(saga_id=saga.id),
             ])
@@ -121,16 +121,16 @@ Autoryzacja jest sprawdzana na poziomie aplikacji, zanim logika domenowa zostani
 
 ```python
 class DeleteExecutionHandler:
-    def __init__(self, auth: AuthorizationService, repo: ExecutionRepository, uow: UnitOfWork) -> None:
+    def __init__(self, authorization_service: AuthorizationService, repository: ExecutionRepository, unit_of_work: UnitOfWork) -> None:
         ...
 
-    async def handle(self, cmd: DeleteExecutionCommand) -> None:
-        self._auth.assert_can_delete(cmd.user_id, cmd.execution_id)
-        async with self.uow:
-            execution = await self.repo.get(ExecutionId(cmd.execution_id))
+    async def handle(self, command: DeleteExecutionCommand) -> None:
+        self._authorization_service.assert_can_delete(command.user_id, command.execution_id)
+        async with self._unit_of_work:
+            execution = await self._repository.get(ExecutionId(command.execution_id))
             execution.delete()
-            await self.repo.update(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self._repository.save(execution)
+            self._unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 7. Walidacja Wejściowa
@@ -167,41 +167,18 @@ class TestCreateExecutionHandler:
     async def test_happy_path(self) -> None:
         handler = CreateExecutionHandler(
             factory=ExecutionFactory(IdGenerator(), SystemClock()),
-            graph_repo=InMemoryGraphRepository(),
-            repo=InMemoryExecutionRepository(),
-            uow=InMemoryUnitOfWork(),
-            auth=AlwaysAllowAuth(),
+            graph_repository=InMemoryGraphRepository(),
+            repository=InMemoryExecutionRepository(),
+            unit_of_work=InMemoryUnitOfWork(),
+            authorization_service=AlwaysAllowAuth(),
         )
         graph = GraphFactory.create()
-        await handler.graph_repo.add(graph)
+        await handler.graph_repository.add(graph)
         
         await handler.handle(CreateExecutionCommand(graph_id=str(graph.id)))
         
-        executions = await handler.repo.find(AnySpecification())
+        executions = await handler._repository.find(AnySpecification())
         assert len(executions) == 1
-```
-
-## 9. Lokalizacja
-
-```
-shell/application/<bc>/
-├── commands/                          # Komendy (DTO)
-│   ├── create_execution_command.py
-│   └── complete_execution_command.py
-├── command_handlers/                  # Handlery komend
-│   ├── create_execution_handler.py
-│   └── complete_execution_handler.py
-├── queries/                           # Query (DTO)
-│   └── get_execution_query.py
-├── query_handlers/                    # Handlery query
-│   └── get_execution_handler.py
-├── query_services/                    # QueryService
-│   └── execution_query_service.py
-├── mappers/                           # Mappery
-│   ├── execution_dto_mapper.py
-│   └── create_execution_mapper.py
-└── dto/                               # DTO odpowiedzi
-    └── execution_dto.py
 ```
 
 ## 10. Podsumowanie — Checklista

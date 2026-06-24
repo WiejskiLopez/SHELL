@@ -21,7 +21,7 @@ class GetExecutionQuery:
 
 # Command handler — modyfikuje
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None: ...
+    async def handle(self, command: CreateExecutionCommand) -> None: ...
 
 # Query handler — odczytuje (QueryService)
 class GetExecutionHandler:
@@ -41,17 +41,17 @@ class CreateExecutionHandler:
     def __init__(
         self,
         factory: ExecutionFactory,
-        repo: ExecutionRepository,
-        uow: UnitOfWork,
+        repository: ExecutionRepository,
+        unit_of_work: UnitOfWork,
     ) -> None:
         ...
 
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        async with self._unit_of_work:
+            graph = await self._graph_repository.get(GraphId(command.graph_id))
             execution = self.factory.create_from_graph(graph)
-            await self.execution_repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self.execution_repository.add(execution)
+            self._unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 3. Query Side (Read Model)
@@ -67,7 +67,7 @@ class CreateExecutionHandler:
 class ExecutionQueryService:
     """QueryService — zoptymalizowany odczyt, pomija agregaty."""
     
-    async def get_details(self, id: ExecutionId) -> ExecutionDetailsDTO:
+    async def get_details(self, execution_id: ExecutionId) -> ExecutionDetailsDTO:
         # Bezpośrednie zapytanie SQL / zoptymalizowany widok
         row = await self._db.fetch_one(
             "SELECT * FROM execution_details WHERE id = :id",
@@ -152,12 +152,12 @@ Read model może być **eventual consistent** — aktualizowany asynchronicznie 
 ```python
 # Write side — zapisuje i emituje event
 class CompleteExecutionHandler:
-    async def handle(self, cmd: CompleteExecutionCommand) -> None:
-        async with self.uow:
-            execution = await self.repo.get(ExecutionId(cmd.execution_id))
+    async def handle(self, command: CompleteExecutionCommand) -> None:
+        async with self._unit_of_work:
+            execution = await self._repository.get(ExecutionId(command.execution_id))
             execution.complete()
-            await self.repo.update(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self._repository.save(execution)
+            self._unit_of_work.stage_events(execution.pull_events())
         # W tym momencie read model może być jeszcze nieaktualny
 
 # Read side — aktualizowany przez event handler (asynchronicznie)

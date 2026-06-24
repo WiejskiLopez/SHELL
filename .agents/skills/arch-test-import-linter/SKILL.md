@@ -160,7 +160,7 @@ class TestImportLinter:
     def test_no_forbidden_imports(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "lint_imports"],
-            cwd=Path(__file__).resolve().parents[3],
+            cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
             text=True,
         )

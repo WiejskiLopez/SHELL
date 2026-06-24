@@ -13,18 +13,18 @@ if TYPE_CHECKING:
 
 
 class OpenSessionHandler:
-    def __init__(self, uow: UnitOfWork, clock: Clock, id_gen: IdGenerator) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock, id_generator: IdGenerator) -> None:
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
 
-    async def handle(self, cmd: OpenSessionCommand) -> SessionId:
-        session_id = self._id_gen.new_session_id()
+    async def handle(self, command: OpenSessionCommand) -> SessionId:
+        session_id = self._id_generator.new_session_id()
         session = Session.open(
             id_=session_id,
-            goal=cmd.goal,
+            goal=command.goal,
             now=self._clock.now(),
         )
-        async with self._uow as uow:
-            await uow.sessions.save(session)
+        async with self._unit_of_work as unit_of_work:
+            await unit_of_work.sessions.save(session)
         return session_id

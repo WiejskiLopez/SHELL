@@ -10,22 +10,22 @@ class Order(AggregateRoot[OrderId]):
     @property
     def status(self) -> Status: return self._status
     @status.setter
-    def status(self, v): self._status = v
+    def status(self, value): self._status = value
 
     @property
     def items(self) -> list[OrderItem]: return self._items
     @items.setter
-    def items(self, v): self._items = v
+    def items(self, value): self._items = value
 
 # Handler robi wszystko:
-async def handle(self, cmd: ConfirmOrderCommand) -> None:
-    async with self._uow as uow:
-        order = await uow.orders.get_by_id(cmd.order_id)
+async def handle(self, command: ConfirmOrderCommand) -> None:
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.orders.get_by_id(command.order_id)
         if order.status != Status.pending():
             raise InvalidState()
         order.status = Status.confirmed()        # setter z zewnątrz!
         order.confirmed_at = datetime.now()      # setter!
-        await uow.orders.save(order)
+        await unit_of_work.orders.save(order)
 ```
 
 **Dlaczego to boli.** Logika biznesowa rozproszona po handlerach — każdy handler implementuje własną wersję tych samych reguł. Invarianty nie są egzekwowane w jednym miejscu. Nie da się stwierdzić czy stan agregatu jest prawidłowy patrząc tylko na niego.
@@ -43,11 +43,11 @@ class Order(AggregateRoot[OrderId]):
         self.append_event(OrderConfirmedEvent.now(self.id, now=now))
 
 # Handler tylko orkiestruje:
-async def handle(self, cmd: ConfirmOrderCommand) -> None:
-    async with self._uow as uow:
-        order = await uow.orders.get_by_id(cmd.order_id)
+async def handle(self, command: ConfirmOrderCommand) -> None:
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.orders.get_by_id(command.order_id)
         order.confirm(now=datetime.now())
-        uow.stage_events(order.pull_events())
+        unit_of_work.stage_events(order.pull_events())
 ```
 
 ## 2. Za duży agregat (Big Ball of Mud Aggregate)
@@ -98,7 +98,7 @@ class Order(AggregateRoot[OrderId]):
     __slots__ = ("_customer", ...)  # obiekt Customer, nie CustomerId
 
 # Handler:
-order = await uow.orders.get_by_id(order_id)
+order = await unit_of_work.orders.get_by_id(order_id)
 customer_name = order.customer.name  # lazy load, N+1, transakcja rozszerzona
 ```
 
@@ -115,7 +115,7 @@ class Order(AggregateRoot[OrderId]):
     __slots__ = ("_customer_id", ...)  # tylko ID
 
 # Handler gdy potrzebuje danych klienta:
-customer = await uow.customers.get_by_id(order.customer_id)
+customer = await unit_of_work.customers.get_by_id(order.customer_id)
 ```
 
 ## 4. Brak enkapsulacji — publiczne settery dla stanu domenowego
@@ -142,9 +142,9 @@ workflow.advance_to(node_index=3, now=datetime.now())
 
 ```python
 # ŹLE — handler sprawdza reguły
-async def handle(self, cmd):
-    async with self._uow as uow:
-        order = await uow.orders.get_by_id(cmd.order_id)
+async def handle(self, command):
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.orders.get_by_id(command.order_id)
         # Reguła biznesowa w handlerze:
         if order.total_value > 10000 and not customer.is_vip():
             raise OrderRequiresApproval()
@@ -172,13 +172,13 @@ class Order(AggregateRoot[OrderId]):
 
 ```python
 # ŹLE
-async with uow as uow:
-    order = await uow.orders.get_by_id(order_id)
-    inventory = await uow.inventories.get_by_product_id(product_id)
+async with unit_of_work as unit_of_work:
+    order = await unit_of_work.orders.get_by_id(order_id)
+    inventory = await unit_of_work.inventories.get_by_product_id(product_id)
     order.confirm(now)
     inventory.reserve(order_id, quantity)
-    uow.stage_events(order.pull_events())
-    uow.stage_events(inventory.pull_events())
+    unit_of_work.stage_events(order.pull_events())
+    unit_of_work.stage_events(inventory.pull_events())
 ```
 
 **Dlaczego to boli.**
@@ -190,14 +190,14 @@ async with uow as uow:
 
 ```python
 # T1: Order
-async with uow as uow:
-    order = await uow.orders.get_by_id(order_id)
+async with unit_of_work as unit_of_work:
+    order = await unit_of_work.orders.get_by_id(order_id)
     order.confirm(now)
 
 # T2: Inventory (osobna transakcja, wywołana przez event handler)
 async def handle(self, event: OrderConfirmedEvent):
-    async with self._uow as uow:
-        inventory = await uow.inventories.get_by_product_id(event.product_id)
+    async with self._unit_of_work as unit_of_work:
+        inventory = await unit_of_work.inventories.get_by_product_id(event.product_id)
         inventory.reserve(event.order_id, event.quantity)
 ```
 

@@ -37,25 +37,25 @@ class RouteEnvelopesHandler:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
         max_step: int = 0,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
         self._max_step = max_step
 
-    async def handle(self, cmd: RouteEnvelopesCommand) -> int:
+    async def handle(self, command: RouteEnvelopesCommand) -> int:
         """Process envelopes and return the number of envelopes routed."""
-        workflow_id = WorkflowId(cmd.workflow_id)
+        workflow_id = WorkflowId(command.workflow_id)
 
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(cmd.workflow_id)
+                raise WorkflowNotFound(command.workflow_id)
 
-            pending = await uow.envelopes.list_pending(workflow_id)
-            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
+            pending = await unit_of_work.envelopes.list_pending(workflow_id)
+            graph_executions = await unit_of_work.graph_executions.get_by_workflow_id(workflow.id)
             graph_execution = graph_executions[0] if graph_executions else None
 
             now = self._clock.now()
@@ -66,8 +66,8 @@ class RouteEnvelopesHandler:
                 new_status = EnvelopeLifecycleService.advance(envelope, self._max_step)
                 if new_status == EnvelopeStatus.DEAD:
                     envelope.transition_status(EnvelopeStatus.DEAD, now)
-                    await uow.envelopes.save(envelope)
-                    uow.stage_events(
+                    await unit_of_work.envelopes.save(envelope)
+                    unit_of_work.stage_events(
                         [EnvelopeExpiredEvent.now(envelope.id, envelope.workflow_id, now=now)]
                     )
                     expired += 1
@@ -90,8 +90,8 @@ class RouteEnvelopesHandler:
                             e,
                         )
                         envelope.transition_status(EnvelopeStatus.DEAD, now)
-                        await uow.envelopes.save(envelope)
-                        uow.stage_events(
+                        await unit_of_work.envelopes.save(envelope)
+                        unit_of_work.stage_events(
                             [
                                 EnvelopeDeadletteredEvent.now(
                                     envelope.id, envelope.workflow_id, reason=str(e), now=now
@@ -102,8 +102,8 @@ class RouteEnvelopesHandler:
 
                 envelope.transition_status(EnvelopeStatus.ACTIVE, now)
                 envelope.transition_stage(EnvelopeStage.SENT, now)
-                await uow.envelopes.save(envelope)
-                uow.stage_events(
+                await unit_of_work.envelopes.save(envelope)
+                unit_of_work.stage_events(
                     [EnvelopeRoutedEvent.now(envelope.id, envelope.workflow_id, now=now)]
                 )
                 routed += 1

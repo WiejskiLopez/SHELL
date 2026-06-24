@@ -19,15 +19,15 @@ from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work imp
 
 
 class InMemoryQueryServices:
-    def __init__(self, uow: InMemoryUnitOfWork) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
+        self._unit_of_work = unit_of_work
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
 
-        task_execution = await self._uow.task_executions.get_by_name(TaskExecutionName(name))
+        task_execution = await self._unit_of_work.task_executions.get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
-        graph_execution = await self._uow.graph_executions.get_by_task_execution_id(
+        graph_execution = await self._unit_of_work.graph_executions.get_by_task_execution_id(
             task_execution.id
         )
         graph_node_executions = []
@@ -57,7 +57,7 @@ class InMemoryQueryServices:
         return await self.get_task_execution_by_name(name)
 
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
-        workflow = await self._uow.workflows.get_by_id(WorkflowId(workflow_id))
+        workflow = await self._unit_of_work.workflows.get_by_id(WorkflowId(workflow_id))
         if not workflow:
             return None
         return WorkflowDto(
@@ -69,7 +69,7 @@ class InMemoryQueryServices:
     async def get_envelopes_by_workflow(
         self, workflow_id: str, pending_only: bool = False
     ) -> list[EnvelopeDto]:
-        envelopes = await self._uow.envelopes.list_by_workflow(WorkflowId(workflow_id))
+        envelopes = await self._unit_of_work.envelopes.list_by_workflow(WorkflowId(workflow_id))
         if pending_only:
             envelopes = [envelope for envelope in envelopes if envelope.status.value == "pending"]
 
@@ -92,7 +92,7 @@ class InMemoryQueryServices:
         ]
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        runner_config = await self._uow.runner_configs.get_by_package(package_name)
+        runner_config = await self._unit_of_work.runner_configs.get_by_package(package_name)
         if not runner_config:
             return None
         return RunnerConfigDto(
@@ -105,7 +105,7 @@ class InMemoryQueryServices:
         )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
-        session = await self._uow.sessions.get_by_id(SessionId(session_id))
+        session = await self._unit_of_work.sessions.get_by_id(SessionId(session_id))
         if session is None:
             return None
 
@@ -120,7 +120,7 @@ class InMemoryQueryServices:
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
-        chunks = await self._uow.rag_documents.search_similar(query_embedding, top_k, domain)
+        chunks = await self._unit_of_work.rag_documents.search_similar(query_embedding, top_k, domain)
         return [
             RagChunkDto(
                 chunk_id=chunk.id.value,

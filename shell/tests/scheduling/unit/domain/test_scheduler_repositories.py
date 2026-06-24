@@ -103,9 +103,9 @@ class TestInMemorySchedulerExecutionRepository:
         assert len(results) == 2
 
     async def test_count_by_definition_and_status(self) -> None:
-        e1 = self._make_execution("exec-1", def_id="def-1", status="executing")
-        e2 = self._make_execution("exec-2", def_id="def-1", status="executing")
-        e3 = self._make_execution("exec-3", def_id="def-1", status="completed")
+        e1 = self._make_execution("exec-1", definition_id="def-1", status="executing")
+        e2 = self._make_execution("exec-2", definition_id="def-1", status="executing")
+        e3 = self._make_execution("exec-3", definition_id="def-1", status="completed")
         await self._repo.save(e1)
         await self._repo.save(e2)
         await self._repo.save(e3)
@@ -116,13 +116,13 @@ class TestInMemorySchedulerExecutionRepository:
     @staticmethod
     def _make_execution(
         id: str,
-        def_id: str = "def-1",
+        definition_id: str = "def-1",
         action_ref: str | None = None,
         status: str = "pending",
     ) -> SchedulerExecution:
         return SchedulerExecution(
             id=SchedulerExecutionId(id),
-            scheduler_definition_id=SchedulerDefinitionId(def_id),
+            scheduler_definition_id=SchedulerDefinitionId(definition_id),
             status=ExecutionStatus(status),
             action_ref=action_ref,
             action_ref_type="graph_execution",

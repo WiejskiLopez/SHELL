@@ -34,42 +34,42 @@ class RunTaskerWorkflowHandler:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
 
-    async def handle(self, cmd: RunTaskerWorkflowCommand) -> str:
+    async def handle(self, command: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow and request execution; return the workflow id."""
-        task_execution_id = TaskExecutionId(cmd.task_execution_id)
+        task_execution_id = TaskExecutionId(command.task_execution_id)
         now = self._clock.now()
 
-        async with self._uow as uow:
-            task_execution = await uow.task_executions.get_current_by_id(task_execution_id)
+        async with self._unit_of_work as unit_of_work:
+            task_execution = await unit_of_work.task_executions.get_current_by_id(task_execution_id)
             if task_execution is None:
-                raise TaskExecutionNotFound(cmd.task_execution_id)
+                raise TaskExecutionNotFound(command.task_execution_id)
 
             workflow = Workflow.new(
-                id_=self._id_gen.new_workflow_id(),
+                id_=self._id_generator.new_workflow_id(),
                 now=now,
             )
-            task_execution.prepare_workspace(cmd.work_dir)
+            task_execution.prepare_workspace(command.work_dir)
             task_execution.execute_in_workflow(workflow.id)
-            await uow.task_executions.save(task_execution)
+            await unit_of_work.task_executions.save(task_execution)
 
             workflow.start_at(
                 now=now,
                 task_execution_id=task_execution_id,
             )
 
-            graph_executions = await uow.graph_executions.get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.graph_executions.get_by_workflow_id(workflow.id)
             if graph_executions:
                 first_node_ids = graph_executions[0].graph_node_execution_ids
                 if first_node_ids:
-                    uow.stage_events([
+                    unit_of_work.stage_events([
                         GraphNodeExecutionRequestedEvent.now(
                             workflow_id=workflow.id,
                             graph_node_execution_id=first_node_ids[0],
@@ -77,7 +77,7 @@ class RunTaskerWorkflowHandler:
                         ),
                     ])
 
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+            await unit_of_work.workflows.save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())
 
         return workflow.id.value

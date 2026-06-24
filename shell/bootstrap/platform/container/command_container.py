@@ -37,54 +37,54 @@ class CommandContainer(containers.DeclarativeContainer):
 
     import_task_execution_handler_factory = providers.Factory(
         ImportTaskExecutionHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
         task_execution_loader=infra.task_execution_loader_factory,
         logger=infra.stdlib_logger,
     )
     start_workflow_handler_factory = providers.Factory(
         StartWorkflowHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
     )
     route_envelopes_handler_factory = providers.Factory(
         RouteEnvelopesHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         max_step=config.max_step,
     )
     run_graph_node_execution_handler_factory = providers.Factory(
         RunGraphNodeExecutionHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
         workspace=infra.workspace_factory,
         runner=infra.runner_factory,
         strategy=domain.strategy,
     )
     archive_envelope_handler_factory = providers.Factory(
         ArchiveEnvelopeHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
     )
     save_graph_node_execution_result_handler_factory = providers.Factory(
         SaveGraphNodeExecutionResultHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
     )
     bootstrap_runner_config_handler_factory = providers.Factory(
         BootstrapRunnerConfigHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
     )
     run_tasker_workflow_handler_factory = providers.Factory(
         RunTaskerWorkflowHandler,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
         navigator=domain.node_navigator_factory,
     )

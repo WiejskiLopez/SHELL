@@ -25,67 +25,6 @@ Przykład:
 
 To samo dotyczy komunikacji z **elementami spoza systemu domenowego** (np. zewnętrzne API, biblioteki systemowe, bazy danych). Zawsze przez port w warstwie aplikacyjnej/domenowej, z implementacją adaptera w `infrastructure/`.
 
-## Metody wywoływane na agregatach w handlerze
-
-### Tylko metody o nazwie biznesowej
-
-Handler **może wywoływać na agregatach wyłącznie metody, których nazwy wyrażają intencję biznesową** w języku domeny — nigdy metody techniczne.
-
-- ✅ **Dobrze**: `order.confirm()`, `workflow.mark_completed()`, `task.assign_to(user)`, `invoice.cancel()`
-- ❌ **Źle**: `order.save()`, `workflow.update()`, `task.merge()`, `invoice.set_status()`, `aggregate.persist()`
-
-Nazwa metody musi mówić **co się dzieje z biznesowego punktu widzenia**, a nie jaką operację techniczną wykonujemy.
-
-### Metody techniczne (`save`, `update`, `merge`, `persist` itp.) są wewnętrzne dla agregatu
-
-Wszelkie metody techniczne, które dotyczą zapisu, scalania, aktualizacji czy synchronizacji stanu — **służą wyłącznie do użytku wewnątrz agregatu**. Nie mogą być wołane przez handler ani żaden inny element zewnętrzny.
-
 Agregat sam zarządza swoim stanem wewnętrznym. Handler jedynie wywołuje metody domenowe (biznesowe), a agregat wewnętrznie (w swojej metodzie biznesowej) wykonuje niezbędne operacje techniczne na swoich polach i za pomocą `append_event()` rejestruje zdarzenia domenowe.
 
-## Nazewnictwo handlerów i eventów — reguła korespondencji
 
-Nazwy klas handlerów i eventów/komend muszą być **biznesowe** i **korespondować ze sobą**.
-
-### Command handlers
-
-Handler komendy **przyjmuje nazwę dokładnie taką samą jak komenda**, tylko z sufiksem `Handler` zamiast `Command`:
-
-- ✅ `StartWorkflowCommand` → `StartWorkflowHandler`
-- ✅ `ImportTaskExecutionCommand` → `ImportTaskExecutionHandler`
-- ✅ `ArchiveEnvelopeCommand` → `ArchiveEnvelopeHandler`
-- ❌ `ImportTaskExecutionCommand` → `ImportTaskFromFileHandler` (inna nazwa biznesowa)
-- ❌ `StartWorkflowCommand` → `PrepareWorkflowHandler` (inna nazwa biznesowa)
-
-Handler dla komendy jest **jeden** — jego nazwa zawsze odwzorowuje nazwę komendy.
-
-### Event handlers
-
-Główny handler eventu **przyjmuje nazwę taką samą jak event**, z sufiksem `Handler` zamiast `Event`:
-
-- ✅ `GraphNodeExecutionCompletedEvent` → `GraphNodeExecutionCompletedHandler`
-- ✅ `GraphNodeExecutionTimedOutEvent` → `GraphNodeExecutionTimedOutHandler`
-- ❌ `GraphNodeExecutionCompletedEvent` → `AdvanceWorkflowOnNodeResultHandler` (brak korespondencji)
-
-Jeśli ten sam event ma **wielu subskrybentów**, **tylko jeden** (główny) przyjmuje nazwę zgodną z eventem. Pozostali mogą mieć nazwy rozszerzone o specyficzne kwalifikatory biznesowe:
-
-- `GraphNodeExecutionCompletedEvent` → `GraphNodeExecutionCompletedHandler` _(główny — przejście workflow)_
-- `GraphNodeExecutionCompletedEvent` → `SpawnSubGraphsOnPlannerCompletionHandler` _(drugorzędny — tylko dla węzłów PLANNER)_
-- `GraphNodeExecutionCompletedEvent` → `LogAuditHandler` _(drugorzędny — logowanie)_
-
-### Nazwy eventów i komend muszą być biznesowe
-
-Zdarzenia domenowe i komendy opisują **fakty biznesowe** w języku domeny, nie techniczne operacje:
-
-- ✅ `WorkflowCompletedEvent`, `EnvelopeRoutedEvent`, `TaskExecutionCreatedEvent`
-- ❌ `GraphNodeStateUpdatedEvent`, `DataSavedEvent`, `ProcessFinishedEvent`
-
-### Dlaczego?
-
-1. **Czytelność** — nazwa handlera od razu mówi, który przypadek użycia realizuje
-2. **Łatwość nawigacji** — `Ctrl+Click` z eventu na handler działa intuicyjnie
-3. **Konsystencja** — jednakowy wzorzec w całej warstwie aplikacyjnej
-4. **Biznesowy język** — kod mówi językiem domeny, nie implementacji
-
-## Zakaz skróconych nazw zmiennych
-
-Obowiązują zasady opisane w [naming-standards.md](naming-standards.md). W skrócie: **nigdy nie skracaj nazw zmiennych** — każda zmienna musi mieć pełną, biznesową nazwę.

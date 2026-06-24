@@ -10,20 +10,20 @@ if TYPE_CHECKING:
 
 
 class ArchiveOnDeliveredHandler:
-    def __init__(self, uow: UnitOfWork, clock: Clock) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock) -> None:
+        self._unit_of_work = unit_of_work
         self._clock = clock
 
     async def handle(self, event: EnvelopeRoutedEvent) -> None:
         from shell.domain.execution.value_objects.ids import EnvelopeId
         from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
 
-        async with self._uow as uow:
-            envelope = await uow.envelopes.get_by_id(EnvelopeId(event.envelope_id.value))
+        async with self._unit_of_work as unit_of_work:
+            envelope = await unit_of_work.envelopes.get_by_id(EnvelopeId(event.envelope_id.value))
             if envelope is None:
                 return
             if envelope.status != EnvelopeStatus.DELIVERED:
                 return
-            archive_uri = await uow.envelope_archive.archive(envelope)
+            archive_uri = await unit_of_work.envelope_archive.archive(envelope)
             envelope.archive(archive_uri, self._clock.now())
-            await uow.envelopes.save(envelope)
+            await unit_of_work.envelopes.save(envelope)

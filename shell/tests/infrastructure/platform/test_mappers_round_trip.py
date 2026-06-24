@@ -83,11 +83,11 @@ class TestWorkflowMapper:
     def test_model_to_entity(self) -> None:
         from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
 
-        model = WorkflowModel(id="wf-2", status="ACTIVE", session_id="sess-2", created_at=_NOW)
+        model = WorkflowModel(id="wf-2", status="active", session_id="sess-2", created_at=_NOW)
         entity = workflow_model_to_entity(model)
 
         assert entity.id.value == "wf-2"
-        assert entity.status.value == "ACTIVE"
+        assert entity.status.value == "active"
         assert entity.session_id is not None
         assert entity.session_id.value == "sess-2"
 

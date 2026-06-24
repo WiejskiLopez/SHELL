@@ -17,9 +17,9 @@ Domain Service to **statelessowa operacja domenowa**, która nie pasuje naturaln
 ```python
 # ŹLE — logika wyciekła do handlera aplikacyjnego
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateCommand) -> None:
-        graph = await self.graph_repo.get(cmd.graph_id)
-        tasks = await self.task_repo.get_by_graph(cmd.graph_id)
+    async def handle(self, command: CreateCommand) -> None:
+        graph = await self.graph_repo.get(command.graph_id)
+        tasks = await self.task_repo.get_by_graph(command.graph_id)
         # Logika domenowa w handlerze — to nie jest miejsce handlera!
         if not tasks:
             raise NoTasksError()
@@ -52,20 +52,6 @@ class PricingService:
         return [item.apply_discount(tier.discount_rate) for item in items]
 ```
 
-## 3. Lokalizacja i Nazewnictwo
-
-- **Lokalizacja**: `shell/domain/<bc>/services/<nazwa_uslugi>.py`
-- **Nazwa klasy**: `<Domena>Service` lub `<Czynność>Service` — np. `PricingService`, `ExecutionCreationService`
-- **Jeden plik = jedna usługa** (chyba że usługi są bardzo małe i powiązane)
-
-```
-shell/domain/execution/services/
-├── __init__.py
-├── execution_creation_service.py
-├── execution_validation_service.py
-└── scheduling_service.py
-```
-
 ## 4. Domain Service vs Handler Aplikacyjny
 
 Domain Service zawiera **logikę domenową**. Handler aplikacyjny zawiera **koordynację infrastrukturalną** (transakcje, eventy, repozytoria).
@@ -84,14 +70,14 @@ class SubmitOrderHandler:
     def __init__(self, fulfillment_service: OrderFulfillmentService, ...):
         ...
 
-    async def handle(self, cmd: SubmitOrderCommand) -> None:
-        async with self.uow:
-            order = await self.order_repo.get(cmd.order_id)
+    async def handle(self, command: SubmitOrderCommand) -> None:
+        async with self.unit_of_work:
+            order = await self.order_repo.get(command.order_id)
             inventory = await self.inventory_repo.get_for_order(order)
             if not self.fulfillment_service.can_fulfill(order, inventory):
                 raise CannotFulfillError()
             order.submit()
-            self.uow.stage_events(order.pull_events())
+            self.unit_of_work.stage_events(order.pull_events())
 ```
 
 ## 5. Domain Service vs Entity vs VO

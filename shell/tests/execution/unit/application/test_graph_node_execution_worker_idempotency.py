@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_completed_event import (
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
 from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
@@ -19,19 +19,19 @@ from shell.tests.conftest import (
 
 class TestGraphNodeExecutionWorkerIdempotency:
     async def test_terminal_workflow_ignores_event(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "terminal", ["agent"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "terminal", ["agent"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
         wf.finish(now=_NOW)
-        async with uow:
-            await uow.workflows.save(wf)
-            await uow.commit()
+        async with unit_of_work:
+            await unit_of_work.workflows.save(wf)
+            await unit_of_work.commit()
 
         runner = FakeGraphNodeExecutionProcessRunner(returncode=0)
-        worker = _make_worker(uow, runner)
+        worker = _make_worker(unit_of_work, runner)
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
@@ -40,4 +40,4 @@ class TestGraphNodeExecutionWorkerIdempotency:
         )
 
         assert runner.calls == []
-        assert uow.committed_events == []
+        assert unit_of_work.committed_events == []

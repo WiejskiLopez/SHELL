@@ -28,11 +28,11 @@ if TYPE_CHECKING:
 class GraphNodeExecutionCompletedPlannerHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
         self._logger = logger
 
@@ -40,8 +40,8 @@ class GraphNodeExecutionCompletedPlannerHandler:
         if event.role != NodeRole.PLANNER:
             return
 
-        async with self._uow as uow:
-            node = await uow.graph_node_executions.get_by_id(event.node_id)
+        async with self._unit_of_work as unit_of_work:
+            node = await unit_of_work.graph_node_executions.get_by_id(event.node_id)
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "graph_node_execution_completed_planner_handler.node_not_found",
@@ -49,7 +49,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
                 )
                 return
 
-            graph_execution = await uow.graph_executions.get_by_id(
+            graph_execution = await unit_of_work.graph_executions.get_by_id(
                 node.graph_execution_id
             )
             if graph_execution is None:
@@ -93,7 +93,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
                 )
 
             if staged_events:
-                uow.stage_events(staged_events)
+                unit_of_work.stage_events(staged_events)
 
             self._logger.info(
                 "graph_node_execution_completed_planner_handler.processed",

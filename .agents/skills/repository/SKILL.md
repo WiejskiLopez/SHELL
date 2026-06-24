@@ -28,10 +28,7 @@ class ExecutionRepository(ABC):
     async def get(self, id: TaskExecutionId) -> Execution: ...
 
     @abstractmethod
-    async def add(self, execution: Execution) -> None: ...
-
-    @abstractmethod
-    async def update(self, execution: Execution) -> None: ...
+    async def save(self, execution: Execution) -> None: ...
 ```
 
 ```python
@@ -59,11 +56,7 @@ class SqlExecutionRepository(BaseRepository, ExecutionRepository):
             raise ExecutionNotFoundError(id)
         return self._mapper.to_domain(model)
 
-    async def add(self, execution: Execution) -> None:
-        model = self._mapper.to_model(execution)
-        self._session.add(model)
-
-    async def update(self, execution: Execution) -> None:
+    async def save(self, execution: Execution) -> None:
         model = self._mapper.to_model(execution)
         await self._session.merge(model)
 ```
@@ -75,29 +68,15 @@ Repozytorium oferuje metody na poziomie **agregatu**, nie encji dziecięcych. Ka
 ```
 # DOBRZE — metody na poziomie agregatu
 - get(id: AggregateId) -> Aggregate
-- add(aggregate: Aggregate) -> None
-- update(aggregate: Aggregate) -> None
+- save(aggregate: Aggregate) -> None
 - delete(id: AggregateId) -> None
-- find(spec: Specification[Aggregate]) -> list[Aggregate]
+- find(specification: Specification[Aggregate]) -> list[Aggregate]
 
 # ŹLE — metody na poziomie encji dziecięcych
 - get_items(order_id: OrderId) -> list[OrderItem]     # ŹLE
 - add_item(order_id: OrderId, item: OrderItem) -> None  # ŹLE
 - update_item(item: OrderItem) -> None                   # ŹLE
 ```
-
-## 3. Konwencje Nazewnicze Metod
-
-| Metoda | Zachowanie | Rzuca |
-|--------|-----------|-------|
-| `get(id)` | Zwraca 1 agregat | `NotFoundError` jeśli nie istnieje |
-| `find(id)` / `try_get(id)` | Zwraca agregat lub `None` | Nie rzuca |
-| `find(spec)` | Zwraca listę spełniającą specyfikację | Nie rzuca |
-| `add(agg)` | Zapisuje nowy agregat | `DuplicateError` jeśli istnieje |
-| `update(agg)` | Aktualizuje istniejący agregat | `NotFoundError` jeśli nie istnieje |
-| `delete(id)` | Usuwa agregat | `NotFoundError` jeśli nie istnieje |
-| `exists(id)` | Zwraca `bool` | Nie rzuca |
-| `count(spec)` | Zwraca `int` | Nie rzuca |
 
 ## 4. Repozytorium a Transakcyjność (Unit of Work)
 
@@ -106,11 +85,11 @@ Repozytorium **nie zarządza transakcjami** — to rola Unit of Work. Repozytori
 ```python
 # DOBRZE — handler zarządza transakcją przez UoW
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        async with self.uow:
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        async with self.unit_of_work:
             execution = Execution.create(...)
-            await self.execution_repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self.execution_repo.save(execution)
+            self.unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 5. Metody Kwerend a Komendy (CQRS)
@@ -122,8 +101,7 @@ class CreateExecutionHandler:
 # Command repository — minimalistyczny
 class ExecutionRepository(ABC):
     async def get(self, id: ExecutionId) -> Execution: ...
-    async def add(self, execution: Execution) -> None: ...
-    async def update(self, execution: Execution) -> None: ...
+    async def save(self, execution: Execution) -> None: ...
 
 # Query service — osobny, zoptymalizowany pod odczyty
 class ExecutionQueryService:
@@ -148,16 +126,8 @@ class InMemoryExecutionRepository(ExecutionRepository):
             raise ExecutionNotFoundError(id)
         return copy.deepcopy(self._store[key])
 
-    async def add(self, execution: Execution) -> None:
+    async def save(self, execution: Execution) -> None:
         key = str(execution.id)
-        if key in self._store:
-            raise DuplicateExecutionError(execution.id)
-        self._store[key] = copy.deepcopy(execution)
-
-    async def update(self, execution: Execution) -> None:
-        key = str(execution.id)
-        if key not in self._store:
-            raise ExecutionNotFoundError(execution.id)
         self._store[key] = copy.deepcopy(execution)
 ```
 
@@ -169,15 +139,15 @@ Repozytorium może akceptować `Specification` do filtrowania — implementacja 
 # Port
 class ExecutionRepository(ABC):
     @abstractmethod
-    async def find(self, spec: Specification[Execution]) -> list[Execution]: ...
+    async def find(self, specification: Specification[Execution]) -> list[Execution]: ...
     @abstractmethod
-    async def count(self, spec: Specification[Execution]) -> int: ...
+    async def count(self, specification: Specification[Execution]) -> int: ...
 
 # Adapter SQL (uproszczony)
 class SqlExecutionRepository(ExecutionRepository):
-    async def find(self, spec: Specification[Execution]) -> list[Execution]:
+    async def find(self, specification: Specification[Execution]) -> list[Execution]:
         query = select(ExecutionModel)
-        query = self._apply_specification(query, spec)
+        query = self._apply_specification(query, specification)
         result = await self._session.execute(query)
         return [self._mapper.to_domain(row) for row in result.scalars()]
 ```
@@ -198,12 +168,12 @@ class ExecutionRepository(ABC):
     @abstractmethod
     async def find(
         self,
-        spec: Specification[Execution],
+        specification: Specification[Execution],
         options: QueryOptions | None = None,
     ) -> list[Execution]: ...
 
     @abstractmethod
-    async def count(self, spec: Specification[Execution]) -> int: ...
+    async def count(self, specification: Specification[Execution]) -> int: ...
 ```
 
 ## 9. Lokalizacja
@@ -229,8 +199,8 @@ Projektując repozytorium:
 - [ ] Implementacja InMemory w domenie do testów
 - [ ] Metody operują na poziomie agregatu
 - [ ] `get()` rzuca `NotFoundError`
-- [ ] `add()`/`update()`/`delete()` dostępne
-- [ ] `find(spec)` dla filtrowania (opcjonalnie)
+- [ ] `save()`/`delete()` dostępne
+- [ ] `find(specification)` dla filtrowania (opcjonalnie)
 - [ ] QueryOptions dla paginacji (opcjonalnie)
 - [ ] Brak zarządzania transakcjami — to rola UoW
 - [ ] Mapper użyty do konwersji domain ↔ model

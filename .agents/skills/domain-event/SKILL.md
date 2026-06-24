@@ -1,6 +1,6 @@
 ---
 name: domain-event
-description: Zasady projektowania zdarzeń domenowych (Domain Events) — struktura, nazewnictwo, emisja, wersjonowanie, backward compatibility.
+description: Zasady projektowania zdarzeń domenowych (Domain Events) — struktura, emisja, wersjonowanie, backward compatibility.
 Używaj gdy dodajesz nowy event, poprawiasz istniejący, zmieniasz schemat eventu, albo review'ujesz poprawność emisji w agregacie.
 ---
 
@@ -40,52 +40,6 @@ class WorkflowCompletedEvent(DomainEvent):
 | `correlation_id` | str \| None | ID procesu biznesowego (łączy eventy w jeden łańcuch) |
 | `causation_id` | str \| None | ID eventu który bezpośrednio to spowodował |
 | `schema_version` | int | Wersja schematu eventu (dla ewolucji) |
-
-## Nazewnictwo
-
-### Klasa eventu
-
-```
-<AggregateName><PastVerb>Event
-```
-
-- `AggregateName` — pełna, biznesowa nazwa agregatu (np. `Workflow`, `GraphExecution`, `TaskExecution`, `GraphNodeExecution`, `Session`, `SchedulerExecution`)
-- `PastVerb` — czas przeszły dokonany, opisujący co się stało (`Created`, `Started`, `Completed`, `Failed`, `Aborted`, `Exhausted`, `Opened`, `Closed`, `Taken`, `Looped`)
-- Sufiks `Event` — obowiązkowy
-
-Przykłady:
-- `WorkflowStartedEvent`
-- `GraphExecutionCompletedEvent`
-- `TaskExecutionCreatedEvent`
-- `SessionOpenedEvent`
-- `GraphNodeTransitionExecutionConditionEvaluatedEvent`
-
-### Plik eventu
-
-```
-<aggregate_name>_<past_verb>_event.py
-```
-
-- `snake_case` z sufiksem `_event`
-- Nazwa pliku odpowiada nazwie klasy
-
-Przykłady:
-- `workflow_started_event.py`
-- `graph_execution_completed_event.py`
-- `task_execution_created_event.py`
-- `session_opened_event.py`
-- `graph_node_transition_execution_condition_evaluated_event.py`
-
-### Lokalizacja
-
-Event leży w podfolderze `events/` wewnątrz swojego agregatu:
-
-```
-aggregates/my_aggregate/
-    events/
-        __init__.py
-        my_aggregate_<verb>_event.py
-```
 
 ## Emisja zdarzeń — bezwarunkowa dla przejść stanu
 
@@ -139,13 +93,10 @@ def from_payload(cls, payload: dict) -> "OrderConfirmedEvent":
 
 - Event rozszerza `DomainEvent` z `domain/platform/events/domain_event.py`
 - `@dataclass(frozen=True, slots=True)` — absolutnie niemutowalny
-- Nazwa w czasie przeszłym dokonanym — opisuje co SIĘ STAŁO, nie co MA SIĘ STAĆ
-- Nazwa zawiera nazwę agregatu który emituje event
 - Jeden event = jeden plik
 - `from_payload()` obsługuje stare wersje schematu
 - Payload zawiera tylko fakty, nigdy instrukcje
 - `schema_version` inkrementowane przy każdej zmianie struktury
-- Metoda `now()` jako factory classmethod przyjmująca `now: datetime`
 
 ## Powiązane skille
 

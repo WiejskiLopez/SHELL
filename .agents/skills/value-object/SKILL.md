@@ -174,8 +174,6 @@ class Hash(ValueObject):
         return cls(hex_str)
 ```
 
-Nazwy factory method powinny dokumentować intencję: `of()`, `from_hex()`, `from_string()`, `now()`, `initial()`, `default()`, `generate()`.
-
 ## 10. VO z Jednostką Miary
 
 Gdy VO opakowuje liczbę, która ma jednostkę, MUSI być ona częścią VO.

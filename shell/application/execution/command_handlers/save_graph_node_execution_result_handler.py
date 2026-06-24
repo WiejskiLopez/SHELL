@@ -19,44 +19,44 @@ if TYPE_CHECKING:
 class SaveGraphNodeExecutionResultHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
 
-    async def handle(self, cmd: SaveGraphNodeExecutionResultCommand) -> str:
-        graph_node_execution_id = GraphNodeExecutionId(cmd.graph_node_execution_id)
-        workflow_id = WorkflowId(cmd.workflow_id)
-        status = Status(cmd.status)
+    async def handle(self, command: SaveGraphNodeExecutionResultCommand) -> str:
+        graph_node_execution_id = GraphNodeExecutionId(command.graph_node_execution_id)
+        workflow_id = WorkflowId(command.workflow_id)
+        status = Status(command.status)
         now = self._clock.now()
 
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(cmd.workflow_id)
+                raise WorkflowNotFound(command.workflow_id)
 
-            node = await uow.graph_node_executions.get_by_id(graph_node_execution_id)
+            node = await unit_of_work.graph_node_executions.get_by_id(graph_node_execution_id)
             if node is not None:
-                result_id = self._id_gen.new_graph_node_execution_result_id()
+                result_id = self._id_generator.new_graph_node_execution_result_id()
                 output = GraphNodeExecutionStateOutput.create(
                     id_=result_id,
                     graph_node_execution_id=graph_node_execution_id,
                     payload={
                         "status": status.value,
-                        "stdout": cmd.stdout or "",
-                        "stderr": cmd.stderr or "",
-                        "artifact_uri": cmd.artifact_uri or "",
+                        "stdout": command.stdout or "",
+                        "stderr": command.stderr or "",
+                        "artifact_uri": command.artifact_uri or "",
                     },
                     now=now,
                 )
                 if hasattr(node, "output_states") and hasattr(node, "add_output_state"):
                     node.add_output_state(output)
-                await uow.graph_node_executions.save(node)
-                await uow.workflows.save(workflow)
-                uow.stage_events(workflow.pull_events())
+                await unit_of_work.graph_node_executions.save(node)
+                await unit_of_work.workflows.save(workflow)
+                unit_of_work.stage_events(workflow.pull_events())
 
                 return result_id.value
 

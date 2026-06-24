@@ -6,5 +6,5 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class UserStatus(ValueObject, StrEnum):
-    ACTIVE = "ACTIVE"
-    DISABLED = "DISABLED"
+    ACTIVE = "active"
+    DISABLED = "disabled"

@@ -41,9 +41,9 @@ async def start_workflow(
     start_workflow_request: StartWorkflowRequest,
     command_bus: CommandBus = Depends(get_command_bus),
 ) -> StartWorkflowResponse:
-    cmd = StartWorkflowCommand(task_execution_id=start_workflow_request.task_execution_id)
-    wf_id = await command_bus.dispatch(cmd)
-    return StartWorkflowResponse(workflow_id=str(wf_id))
+    command = StartWorkflowCommand(task_execution_id=start_workflow_request.task_execution_id)
+    workflow_id = await command_bus.dispatch(command)
+    return StartWorkflowResponse(workflow_id=str(workflow_id))
 
 
 @router.get("/{workflow_id}")
@@ -61,6 +61,6 @@ async def get_workflow(
 async def route_envelopes(
     workflow_id: str, command_bus: CommandBus = Depends(get_command_bus)
 ) -> RouteResponse:
-    cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
-    count = await command_bus.dispatch(cmd)
+    command = RouteEnvelopesCommand(workflow_id=workflow_id)
+    count = await command_bus.dispatch(command)
     return RouteResponse(routed=count or 0)

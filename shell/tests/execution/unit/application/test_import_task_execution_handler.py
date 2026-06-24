@@ -20,35 +20,35 @@ from shell.infrastructure.platform.persistence.memory import (
 class TestImportTaskExecutionHandler:
     async def test_happy_path(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            unit_of_work, clock, id_generator, task_execution_loader, FakeLogger()
         )
         task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
         assert task_execution_id
-        assert len(uow.committed_events) == 1
-        assert isinstance(uow.committed_events[0], TaskExecutionCreatedEvent)
+        assert len(unit_of_work.committed_events) == 1
+        assert isinstance(unit_of_work.committed_events[0], TaskExecutionCreatedEvent)
 
     async def test_creates_task_execution_state_input_with_description(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            unit_of_work, clock, id_generator, task_execution_loader, FakeLogger()
         )
         task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await uow.task_execution_state_inputs.get_latest_by_task_id(
+        state_input = await unit_of_work.task_execution_state_inputs.get_latest_by_task_id(
             TaskExecutionId(task_execution_id)
         )
         assert state_input is not None
@@ -56,13 +56,13 @@ class TestImportTaskExecutionHandler:
 
     async def test_reimport_creates_new_state_input(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            unit_of_work, clock, id_generator, task_execution_loader, FakeLogger()
         )
         first_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
         second_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
@@ -71,13 +71,13 @@ class TestImportTaskExecutionHandler:
 
     async def test_invalid_task_execution_name_raises(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            uow, clock, id_gen, task_execution_loader, FakeLogger()
+            unit_of_work, clock, id_generator, task_execution_loader, FakeLogger()
         )
         with pytest.raises(ValueError):
             await handler.handle(ImportTaskExecutionCommand("t.md", ""))

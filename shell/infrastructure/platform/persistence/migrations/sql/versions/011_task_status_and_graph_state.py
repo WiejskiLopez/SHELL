@@ -20,13 +20,13 @@ def upgrade() -> None:
     # --- task_execution.status ---
     with op.batch_alter_table("task_execution") as batch:
         batch.add_column(
-            sa.Column("status", sa.String(20), nullable=False, server_default="PENDING")
+            sa.Column("status", sa.String(20), nullable=False, server_default="pending")
         )
 
     # --- graph_execution.status ---
     with op.batch_alter_table("graph_execution") as batch:
         batch.add_column(
-            sa.Column("status", sa.String(20), nullable=False, server_default="RUNNING")
+            sa.Column("status", sa.String(20), nullable=False, server_default="running")
         )
 
     # --- graph_execution_state table ---

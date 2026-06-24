@@ -23,10 +23,10 @@
 
 ```python
 async def handle(self, command: SomeCommand) -> None:
-    async with self._uow as uow:
-        aggregate = await uow.some_repo.get_by_id(command.some_id)
+    async with self._unit_of_work as unit_of_work:
+        aggregate = await unit_of_work.some_repo.get_by_id(command.some_id)
         aggregate.do_something()                      # append_event() wewnątrz
-        uow.stage_events(aggregate.pull_events())     # OBOWIĄZKOWE
+        unit_of_work.stage_events(aggregate.pull_events())     # OBOWIĄZKOWE
     # commit() przez __aexit__
 ```
 
@@ -44,20 +44,20 @@ Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewn
 ```python
 async def handle(self, command: SomeCommand) -> None:
     # Phase 1: załaduj + ustaw status "w trakcie" + commit
-    async with self._uow as uow:
-        workflow = await uow.workflows.get_by_id(command.workflow_id)
+    async with self._unit_of_work as unit_of_work:
+        workflow = await unit_of_work.workflows.get_by_id(command.workflow_id)
         workflow.mark_running()
-        uow.stage_events(workflow.pull_events())
+        unit_of_work.stage_events(workflow.pull_events())
     # transakcja zapisana, sesja zwolniona
 
     # Długotrwała operacja zewnętrzna — bez otwartej transakcji
     result = await self._runner.run(...)
 
     # Phase 2: załaduj ponownie (wersja mogła się zmienić) + zapisz wynik
-    async with self._uow as uow:
-        workflow = await uow.workflows.get_by_id(command.workflow_id)
+    async with self._unit_of_work as unit_of_work:
+        workflow = await unit_of_work.workflows.get_by_id(command.workflow_id)
         workflow.record_result(result)
-        uow.stage_events(workflow.pull_events())
+        unit_of_work.stage_events(workflow.pull_events())
 ```
 
 Dlaczego ponowne załadowanie w Phase 2: między fazami inny worker mógł zmienić wersję agregatu. Praca na nieświeżej wersji prowadzi do `WorkflowConcurrentlyModified` lub cichej utraty zmian konkurencyjnych.

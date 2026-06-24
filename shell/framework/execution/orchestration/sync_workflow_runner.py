@@ -58,7 +58,7 @@ class SyncWorkflowRunner:
         handler: RunTaskerWorkflowHandler,
         relay: OutboxToInboxRelay,
         processor: InboxProcessor,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         max_iterations: int = 1000,
         max_timeout: float = 300.0,
         max_idle_before_break: int = 10,
@@ -66,7 +66,7 @@ class SyncWorkflowRunner:
         self._handler = handler
         self._relay = relay
         self._processor = processor
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._max_iterations = max_iterations
         self._max_timeout = max_timeout
         self._max_idle_before_break = max_idle_before_break
@@ -124,8 +124,8 @@ class SyncWorkflowRunner:
             else:
                 metrics.idle_consecutive = 0
 
-            async with self._uow as uow:
-                workflow = await uow.workflows.get_by_id(workflow_id)
+            async with self._unit_of_work as unit_of_work:
+                workflow = await unit_of_work.workflows.get_by_id(workflow_id)
                 if workflow is None:
                     elapsed = time.monotonic() - start_time
                     return SyncWorkflowResult(
@@ -155,8 +155,8 @@ class SyncWorkflowRunner:
                     )
 
         elapsed = time.monotonic() - start_time
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
             status = workflow.status.value if workflow else "unknown"
 
         return SyncWorkflowResult(

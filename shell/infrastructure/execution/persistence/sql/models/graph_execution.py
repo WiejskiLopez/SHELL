@@ -17,7 +17,7 @@ class GraphExecutionModel(Base):
         nullable=False,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
-    status: Mapped[str] = mapped_column(nullable=False, default="CREATED")
+    status: Mapped[str] = mapped_column(nullable=False, default="created")
 
     parent_graph_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("graph_execution.id", ondelete="SET NULL"),

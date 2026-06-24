@@ -124,7 +124,7 @@ class SqlExecutionRepository(ExecutionRepository):
 ### 4.1 Test pytest, który uruchamia mypy
 
 ```python
-# tests/platform/architecture/test_mypy_strict.py
+# tests/architecture/test_mypy_strict.py
 """Sprawdza, że mypy --strict przechodzi dla wybranych warstw."""
 
 import subprocess
@@ -144,7 +144,7 @@ class TestMypyStrict:
     def test_domain_passes_mypy_strict(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "--strict", "shell/domain"],
-            cwd=Path(__file__).resolve().parents[3],
+            cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
             text=True,
         )
@@ -155,7 +155,7 @@ class TestMypyStrict:
     def test_application_passes_mypy_strict(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "--strict", "shell/application"],
-            cwd=Path(__file__).resolve().parents[3],
+            cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
             text=True,
         )
@@ -167,7 +167,7 @@ class TestMypyStrict:
         # infrastructure ma luźniejsze reguły (SQLAlchemy declarative)
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "shell/infrastructure"],
-            cwd=Path(__file__).resolve().parents[3],
+            cwd=Path(__file__).resolve().parents[2],
             capture_output=True,
             text=True,
         )
@@ -226,47 +226,57 @@ Money = NewType("Money", Decimal)
 
 ### 5.3 Sprawdzanie kontraktów Protocol w testach
 
+Protokół w Pythonie (`typing.Protocol`) używa **strukturalnego subtypowania** — klasa implementująca nie musi jawnie dziedziczyć po protokole, wystarczy że ma zgodne sygnatury metod. To oznacza, że:
+
+- `__bases__` nie zawiera `Protocol` (nie ma dziedziczenia)
+- `isinstance()` nie działa bez `@runtime_checkable`
+- Jedynym wiarygodnym narzędziem weryfikacji jest **mypy --strict**
+
+Testy runtime dla protokołów ograniczają się więc do sprawdzeń konwencji nazewniczych i istnienia plików — zgodność typów jest zweryfikowana przez warstwę 3 (mypy).
+
 ```python
-# tests/platform/architecture/infrastructure/test_repository_protocol.py
-"""Sprawdza, że implementacje repozytoriów spełniają protokoły domenowe."""
+# tests/architecture/infrastructure/test_repository_protocol_convention.py
+"""Sprawdza konwencje nazewnicze portów i implementacji.
 
-from collections.abc import AsyncIterator
+Zgodność typów między portem (Protocol) a implementacją weryfikuje mypy --strict
+— patrz test_mypy_strict w tej samej grupie.
+"""
+
 from pathlib import Path
-import importlib
-import inspect
-import pkgutil
-
-import pytest
-
-import shell.domain as domain
-from shell.domain.execution.repositories.execution_repository import ExecutionRepository
 
 
-class TestRepositoryProtocolConformance:
-    """Każde repozytorium w infrastructure jest zgodne z portem w domain."""
+class TestRepositoryProtocolConvention:
+    """Porty w domain mają nazwę kończącą się na Repository,
+    implementacje w infrastructure mają nazwę zaczynającą się od sql_ lub in_memory_."""
 
-    @pytest.fixture(scope="session")
-    def repo_ports(self) -> dict[str, type]:
-        ports: dict[str, type] = {}
-        domain_path = Path(domain.__file__).parent
-        for importer, modname, _ in pkgutil.walk_packages(
-            path=[str(domain_path)],
-            prefix="shell.domain.",
-        ):
-            module = importlib.import_module(modname)
-            for name, obj in inspect.getmembers(module, inspect.isclass):
-                if name.endswith("Repository") and "Protocol" in (
-                    getattr(obj, "__bases__", ()) or ()
-                ):
-                    ports[name] = obj
-        return ports
+    def test_port_files_end_with_repository(self) -> None:
+        violations: list[str] = []
+        domain_repos = Path(__file__).resolve().parents[3] / "shell" / "domain"
+        for repo_file in domain_repos.rglob("*repository*.py"):
+            if repo_file.name == "__init__.py":
+                continue
+            # Sprawdzamy tylko pliki definiujące port (nie __init__)
+            if not repo_file.name.endswith("_repository.py"):
+                continue
+            class_name = repo_file.stem.replace("_", " ").title().replace(" ", "")
+            if not class_name.endswith("Repository"):
+                violations.append(
+                    f"{repo_file.relative_to(domain_repos)} — expected class name ending with Repository"
+                )
+        assert not violations, "\n".join(violations)
 
-    def test_sql_repository_conforms_to_port(self, repo_ports: dict[str, type]) -> None:
-        from shell.infrastructure.execution.repositories.sql_execution_repository import (
-            SqlExecutionRepository,
-        )
-
-        assert isinstance(SqlExecutionRepository, ExecutionRepository)  # type: ignore
+    def test_every_infra_implementation_follows_naming(self) -> None:
+        violations: list[str] = []
+        infra = Path(__file__).resolve().parents[3] / "shell" / "infrastructure"
+        for impl_file in infra.rglob("*repository*.py"):
+            if impl_file.name == "__init__.py":
+                continue
+            stem = impl_file.stem.lower()
+            if not (stem.startswith("sql_") or stem.startswith("in_memory_")):
+                violations.append(
+                    f"{impl_file.relative_to(infra)} — expected sql_ or in_memory_ prefix"
+                )
+        assert not violations, "\n".join(violations)
 ```
 
 ### 5.4 pytest-mypy-plugins (alternatywa)
@@ -297,7 +307,7 @@ Jeśli wolisz testy w formacie pytest, użyj `pytest-mypy-plugins`:
 ## 6. Struktura testów
 
 ```
-tests/platform/architecture/
+tests/architecture/
 ├── application/
 │   └── test_handler_type_safety.py     # pytest + mypy subprocess
 ├── domain/
@@ -312,10 +322,10 @@ tests/platform/architecture/
 
 ```bash
 # całość
-pytest tests/platform/architecture/ -v
+pytest tests/architecture/ -v
 
 # tylko mypy subprocess test
-pytest tests/platform/architecture/test_mypy_strict.py -v
+pytest tests/architecture/test_mypy_strict.py -v
 
 # mypy bezpośrednio
 mypy --strict shell/domain

@@ -54,7 +54,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     workflow_id = ns.workflow_id or "default"
     work_dir = ns.work_dir or os.getcwd()
 
-    cmd = RunGraphNodeExecutionCommand(
+    command = RunGraphNodeExecutionCommand(
         graph_node_execution_id=graph_node_execution_id,
         workflow_id=workflow_id,
         workspace_path=work_dir,
@@ -63,10 +63,10 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     # Rzutowanie na Any wycisza błąd dynamicznego providera w jednym miejscu
     app_ctx: Any = core_container.app
     try:
-        await app_ctx.buses.command_bus().dispatch(cmd)
+        await app_ctx.buses.command_bus().dispatch(command)
         return 0
-    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _run_node
-        print(f"ERROR: {exc}", file=sys.stderr)
+    except Exception as exception:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _run_node
+        print(f"ERROR: {exception}", file=sys.stderr)
         return 1
 
 
@@ -91,15 +91,15 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
 
     config = _get_config()
     core_container = await ApplicationFactory(config).build()
-    cmd = ImportTaskExecutionCommand(md_path=md_path, task_execution_name=task_execution_name)
+    command = ImportTaskExecutionCommand(md_path=md_path, task_execution_name=task_execution_name)
 
     app_ctx: Any = core_container.app
     try:
-        task_execution_id = await app_ctx.buses.command_bus().dispatch(cmd)
+        task_execution_id = await app_ctx.buses.command_bus().dispatch(command)
         print(f"Imported task '{task_execution_name}' with id={task_execution_id}")
         return 0
-    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _import_task_execution
-        print(f"ERROR: {exc}", file=sys.stderr)
+    except Exception as exception:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _import_task_execution
+        print(f"ERROR: {exception}", file=sys.stderr)
         return 1
 
 
@@ -115,15 +115,15 @@ async def _route(argv: Sequence[str]) -> int:
     core_container = await ApplicationFactory(config).build()
 
     workflow_id = ns.workflow_id or "default"
-    cmd = RouteEnvelopesCommand(workflow_id=workflow_id)
+    command = RouteEnvelopesCommand(workflow_id=workflow_id)
 
     app_ctx: Any = core_container.app
     try:
-        count = await app_ctx.buses.command_bus().dispatch(cmd)
+        count = await app_ctx.buses.command_bus().dispatch(command)
         print(f"Routed {count} envelopes.")
         return 0
-    except Exception as exc:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _route
-        print(f"ERROR: {exc}", file=sys.stderr)
+    except Exception as exception:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _route
+        print(f"ERROR: {exception}", file=sys.stderr)
         return 1
 
 
@@ -151,7 +151,7 @@ async def _run_tasker(argv: Sequence[str]) -> int:
         handler=app_ctx.commands.run_tasker_workflow_handler_factory(),
         relay=messaging_ctx.outbox_to_inbox_relay(),
         processor=messaging_ctx.inbox_processor(),
-        uow=app_ctx.buses.uow_factory(),
+        unit_of_work=app_ctx.buses.unit_of_work_factory(),
     )
 
     try:
@@ -168,9 +168,9 @@ async def _run_tasker(argv: Sequence[str]) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """CLI entry-point — first positional arg is the mode/subcommand."""
-    args = list(argv) if argv is not None else sys.argv[1:]
+    arguments = list(argv) if argv is not None else sys.argv[1:]
     setup_logging()
-    if not args:
+    if not arguments:
         print("Usage: shell <mode> [options]", file=sys.stderr)
         print(
             f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task', 'route'])}",
@@ -178,8 +178,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         return 1
 
-    mode = args[0]
-    rest = args[1:]
+    mode = arguments[0]
+    rest = arguments[1:]
 
     if mode in _MODE_RUNNER_ROOTS:
         return asyncio.run(_run_node(mode, rest))

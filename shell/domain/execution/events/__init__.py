@@ -32,14 +32,14 @@ from shell.domain.execution.aggregates.workflow.events.workflow_completed_event 
 from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
     WorkflowFailedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
-    GraphNodeExecutionAdvancedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_completed_event import (
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_failed_event import (
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
     GraphNodeExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
+    GraphNodeExecutionAdvancedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
     GraphNodeExecutionRequestedEvent,

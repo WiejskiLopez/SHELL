@@ -79,8 +79,8 @@ container.register(ExecutionRepository, SqlExecutionRepository)
 
 # Użycie — handler dostaje port, nie adapter
 class CreateExecutionHandler:
-    def __init__(self, repo: ExecutionRepository) -> None:
-        self._repo = repo  # Nie wie czy SQL, InMemory czy mock
+    def __init__(self, repository: ExecutionRepository) -> None:
+        self._repository = repository  # Nie wie czy SQL, InMemory czy mock
 ```
 
 ## 4. Lifecycle Management
@@ -190,14 +190,14 @@ Nigdy nie używaj kontenera jako Service Locator w kodzie produkcyjnym. Kontener
 ```python
 # ŹLE — Service Locator antypattern
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        repo = container.resolve(ExecutionRepository)  # ŹLE!
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        repository = container.resolve(ExecutionRepository)  # ŹLE!
         ...
 
 # DOBRZE — Dependency Injection
 class CreateExecutionHandler:
-    def __init__(self, repo: ExecutionRepository) -> None:  # DOBRZE
-        self._repo = repo
+    def __init__(self, repository: ExecutionRepository) -> None:  # DOBRZE
+        self._repository = repository
 ```
 
 ## 9. Konfiguracja a DI

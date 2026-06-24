@@ -31,38 +31,38 @@ class RunGraphNodeExecutionHandler:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         workspace: GraphNodeExecutionWorkspace,
         runner: GraphNodeExecutionProcessRunner,
         strategy: GraphNodeExecutionStrategy,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._workspace = workspace
         self._runner = runner
         self._strategy = strategy
 
-    async def handle(self, cmd: RunGraphNodeExecutionCommand) -> str:
+    async def handle(self, command: RunGraphNodeExecutionCommand) -> str:
         """Execute node and return NodeResult id."""
-        workflow_id = WorkflowId(cmd.workflow_id)
-        graph_node_execution_id = GraphNodeExecutionId(cmd.graph_node_execution_id)
+        workflow_id = WorkflowId(command.workflow_id)
+        graph_node_execution_id = GraphNodeExecutionId(command.graph_node_execution_id)
         now = self._clock.now()
 
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(cmd.workflow_id)
+                raise WorkflowNotFound(command.workflow_id)
 
-            await uow.workflows.save(workflow)
+            await unit_of_work.workflows.save(workflow)
 
         # Execute strategy (outside UoW — may take a long time)
         try:
             exec_result = await self._strategy.execute(
-                graph_node_execution_id=cmd.graph_node_execution_id,
-                workspace_path=cmd.workspace_path,
+                graph_node_execution_id=command.graph_node_execution_id,
+                workspace_path=command.workspace_path,
                 runner=self._runner,
             )
             stdout = exec_result.stdout
@@ -75,11 +75,11 @@ class RunGraphNodeExecutionHandler:
             node_status = Status.failed()
             failure_reason = str(exc)
 
-        async with self._uow as uow:
-            workflow = await uow.workflows.get_by_id(workflow_id)
+        async with self._unit_of_work as unit_of_work:
+            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(cmd.workflow_id)
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+                raise WorkflowNotFound(command.workflow_id)
+            await unit_of_work.workflows.save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())
 
         return ""

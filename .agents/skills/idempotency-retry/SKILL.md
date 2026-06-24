@@ -161,9 +161,9 @@ Dla zewnętrznych zasobów (API, baza) — Circuit Breaker zapobiega kaskadowym 
 ```python
 # shell/infrastructure/platform/circuit_breaker/circuit_breaker.py
 class CircuitState(StrEnum):
-    CLOSED = "CLOSED"        # Normalne działanie
-    OPEN = "OPEN"            # Awaria — odrzucaj requesty
-    HALF_OPEN = "HALF_OPEN"  # Test — sprawdź czy wróciło
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
 
 class CircuitBreaker:
     def __init__(

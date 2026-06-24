@@ -13,14 +13,14 @@ if TYPE_CHECKING:
 
 
 class CloseSessionHandler:
-    def __init__(self, uow: UnitOfWork, clock: Clock) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock) -> None:
+        self._unit_of_work = unit_of_work
         self._clock = clock
 
-    async def handle(self, cmd: CloseSessionCommand) -> None:
-        async with self._uow as uow:
-            session = await uow.sessions.get_by_id(SessionId(cmd.session_id))
+    async def handle(self, command: CloseSessionCommand) -> None:
+        async with self._unit_of_work as unit_of_work:
+            session = await unit_of_work.sessions.get_by_id(SessionId(command.session_id))
             if session is None:
-                raise SessionNotFound(f"Session not found: {cmd.session_id}")
+                raise SessionNotFound(f"Session not found: {command.session_id}")
             session.close(self._clock.now())
-            await uow.sessions.save(session)
+            await unit_of_work.sessions.save(session)

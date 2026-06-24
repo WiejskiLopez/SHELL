@@ -79,9 +79,6 @@ Mutacja stanu odbywa się wyłącznie przez metody domenowe (`start_at()`, `adva
 
 - Niezmienne dataclasses w `domain/events/events/`
 - Każdy event w osobnym pliku
-- Nazwa pliku: snake_case z sufiksem `_event` (`task_execution_created_event.py`)
-- Klasa: PascalCase z sufiksem `Event` (`TaskExecutionCreatedEvent`)
-- Część opisowa: przeszłość dokonana (`Created`, `Completed`, `Failed`)
 - Eventy są faktami — zawierają tylko dane które się wydarzyły, nie instrukcje
 
 ### Emisja zdarzeń — bezwarunkowa dla przejść stanu

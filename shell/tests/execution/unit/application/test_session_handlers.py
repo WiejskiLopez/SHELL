@@ -25,12 +25,12 @@ from shell.infrastructure.platform.persistence.memory import (
 class TestSessionHandlers:
     async def test_open_and_get_history(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
+        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="do work")
         )
         dto = await GetSessionHistoryHandler(queries).handle(
@@ -41,15 +41,15 @@ class TestSessionHandlers:
 
     async def test_close_session(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await OpenSessionHandler(uow, clock, id_gen).handle(
+        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="close test")
         )
-        await CloseSessionHandler(uow, clock).handle(
+        await CloseSessionHandler(unit_of_work, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
         dto = await GetSessionHistoryHandler(queries).handle(
@@ -60,11 +60,11 @@ class TestSessionHandlers:
 
     async def test_close_not_found_raises(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
     ) -> None:
         with pytest.raises(SessionNotFound):
-            await CloseSessionHandler(uow, clock).handle(
+            await CloseSessionHandler(unit_of_work, clock).handle(
                 CloseSessionCommand(session_id="no-such-id")
             )
 

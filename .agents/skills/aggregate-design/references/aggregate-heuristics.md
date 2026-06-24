@@ -113,7 +113,7 @@ T1: Order.confirm()
     → OrderConfirmedEvent { order_id, product_id, quantity }
 
 T2: InventoryHandler.handle(OrderConfirmedEvent)
-    → inventory = repo.get_by_product_id(event.product_id)
+    → inventory = repository.get_by_product_id(event.product_id)
     → inventory.reserve(event.order_id, event.quantity)
     → save + stage_events
 

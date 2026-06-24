@@ -20,19 +20,19 @@ from shell.infrastructure.platform.persistence.memory import (
 class TestIndexDocumentHandler:
     async def test_index_and_search_returns_chunks(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
         embedder = HashEmbedder(dim=64)
-        cmd = IndexDocumentCommand(
+        command = IndexDocumentCommand(
             source_uri="file:///doc.md",
             title="Doc",
             domain="test",
             text="Hello world " * 50,
         )
-        doc_id = await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
+        doc_id = await IndexDocumentHandler(unit_of_work, clock, id_generator, embedder).handle(command)
         assert doc_id is not None
 
         results = await SearchSimilarHandler(queries, embedder).handle(
@@ -43,16 +43,16 @@ class TestIndexDocumentHandler:
 
     async def test_index_empty_text_creates_no_chunks(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
         embedder = HashEmbedder(dim=64)
-        cmd = IndexDocumentCommand(
+        command = IndexDocumentCommand(
             source_uri="file:///empty.md", title="Empty", domain="x", text=""
         )
-        doc_id = await IndexDocumentHandler(uow, clock, id_gen, embedder).handle(cmd)
+        doc_id = await IndexDocumentHandler(unit_of_work, clock, id_generator, embedder).handle(command)
         assert doc_id is not None
-        doc = await uow.rag_documents.get_by_id(doc_id)
+        doc = await unit_of_work.rag_documents.get_by_id(doc_id)
         assert doc is not None
         assert list(doc.chunks) == []

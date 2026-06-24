@@ -8,11 +8,11 @@ Handler zapisuje eventy do tabeli `outbox_event` w tej samej transakcji co zmian
 
 ```python
 # W handlerze:
-async def handle(self, cmd: ConfirmOrderCommand) -> None:
-    async with self._uow as uow:
-        order = await uow.orders.get_by_id(cmd.order_id)
+async def handle(self, command: ConfirmOrderCommand) -> None:
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.orders.get_by_id(command.order_id)
         order.confirm(now=datetime.utcnow())
-        uow.stage_events(order.pull_events())  # ← eventy trafiają do outbox w tej samej transakcji
+        unit_of_work.stage_events(order.pull_events())  # ← eventy trafiają do outbox w tej samej transakcji
 ```
 
 ### 2. Schemat tabeli (SQL)
@@ -46,13 +46,13 @@ class OutboxRelay:
 
     def __init__(
         self,
-        uow_factory: Callable[[], AsyncContextManager[UnitOfWork]],
+        unit_of_work_factory: Callable[[], AsyncContextManager[UnitOfWork]],
         publisher: EventPublisher,
         poll_interval: float = 0.5,
         batch_size: int = 100,
         lock_timeout: int = 60,
     ) -> None:
-        self._uow_factory = uow_factory
+        self._unit_of_work_factory = unit_of_work_factory
         self._publisher = publisher
         self._poll_interval = poll_interval
         self._batch_size = batch_size
@@ -62,8 +62,8 @@ class OutboxRelay:
     async def run(self) -> None:
         while True:
             try:
-                async with self._uow_factory() as uow:
-                    events = await uow.outbox.get_unprocessed(
+                async with self._unit_of_work_factory() as unit_of_work:
+                    events = await unit_of_work.outbox.get_unprocessed(
                         batch_size=self._batch_size,
                         locked_by=self._worker_id,
                         lock_timeout=self._lock_timeout,
@@ -72,11 +72,11 @@ class OutboxRelay:
                         try:
                             await self._publisher.publish(event)
                             event.mark_processed()
-                        except Exception as exc:
-                            event.mark_failed(str(exc))
+                        except Exception as exception:
+                            event.mark_failed(str(exception))
                 await asyncio.sleep(self._poll_interval)
-            except Exception as exc:
-                logger.exception("OutboxRelay loop error: %s", exc)
+            except Exception as exception:
+                logger.exception("OutboxRelay loop error: %s", exception)
                 await asyncio.sleep(self._poll_interval * 10)
 ```
 
@@ -109,19 +109,19 @@ CREATE TABLE inbox_event (
 
 ```python
 class InventoryReservationHandler:
-    def __init__(self, uow: UnitOfWork) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork) -> None:
+        self._unit_of_work = unit_of_work
 
     async def handle(self, event: OrderConfirmedEvent) -> None:
-        async with self._uow as uow:
-            if await uow.inbox.contains(event.event_id):
+        async with self._unit_of_work as unit_of_work:
+            if await unit_of_work.inbox.contains(event.event_id):
                 return  # idempotencja — już przetworzone
 
-            inventory = await uow.inventories.get_by_product_id(event.product_id)
+            inventory = await unit_of_work.inventories.get_by_product_id(event.product_id)
             inventory.reserve(event.order_id, event.quantity)
 
-            await uow.inbox.add(event.event_id)
-            uow.stage_events(inventory.pull_events())
+            await unit_of_work.inbox.add(event.event_id)
+            unit_of_work.stage_events(inventory.pull_events())
 ```
 
 ### 3. Implementacja inbox.contains()
@@ -151,9 +151,9 @@ Eventy z tym samym `aggregate_id` muszą być przetwarzane w kolejności. Gwaran
 class OrderingEventRelay(OutboxRelay):
     async def run(self) -> None:
         while True:
-            async with self._uow_factory() as uow:
+            async with self._unit_of_work_factory() as unit_of_work:
                 # Pobierz najstarszy nieprzetworzony event dla każdego aggregate_id
-                events = await uow.outbox.get_unprocessed_per_aggregate(
+                events = await unit_of_work.outbox.get_unprocessed_per_aggregate(
                     batch_size=self._batch_size,
                 )
                 for event in events:

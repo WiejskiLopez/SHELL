@@ -47,9 +47,9 @@ class SubGraphExecutionService:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
         definition_provider: GraphExecutionDefinitionProvider,
         governance: SubGraphGovernance | None = None,
@@ -57,9 +57,9 @@ class SubGraphExecutionService:
         versioning: SubGraphVersioning | None = None,
         observer: SubGraphObserver | None = None,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
         self._definition_provider = definition_provider
         self._governance = governance
@@ -75,7 +75,7 @@ class SubGraphExecutionService:
         graph_definition_id: str,
         state_input: dict[str, Any] | None = None,
         correlation_id: str = "",
-        uow: UnitOfWork | None = None,
+        unit_of_work: UnitOfWork | None = None,
     ) -> GraphExecution:
         """Create a child GraphExecution from a graph definition.
 
@@ -85,7 +85,7 @@ class SubGraphExecutionService:
         4. Builds child GraphExecution (no child TaskExecution, no child Workflow)
         5. Observer: on_start notification
         """
-        _uow = uow or self._uow
+        _unit_of_work = unit_of_work or self._unit_of_work
         now = self._clock.now()
         depth = parent_graph_execution.depth + 1
         parent_graph_execution_id_value = parent_graph_execution.id.value
@@ -124,14 +124,14 @@ class SubGraphExecutionService:
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphNodeExecutions first ──────────────────────────
-        sub_graph_execution_id = self._id_gen.new_graph_execution_id()
+        sub_graph_execution_id = self._id_generator.new_graph_execution_id()
         from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
             GraphNodeExecution as GNE,
         )
 
         node_ids: list[Any] = []
         for node_def in graph_definition.graph_node_execution_definitions:
-            node_id = self._id_gen.new_graph_node_execution_id()
+            node_id = self._id_generator.new_graph_node_execution_id()
             node = GNE(
                 id=node_id,
                 position=node_def.position,
@@ -151,7 +151,7 @@ class SubGraphExecutionService:
                 max_retries=node_def.retries,
                 graph_execution_id=sub_graph_execution_id,
             )
-            await _uow.graph_node_executions.save(node)
+            await _unit_of_work.graph_node_executions.save(node)
             node_ids.append(node_id)
 
         # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
@@ -160,7 +160,7 @@ class SubGraphExecutionService:
             task_execution_id=parent_graph_execution.task_execution_id,
             graph_definition=graph_definition,
             node_ids=node_ids,
-            id_gen=self._id_gen,
+            id_generator=self._id_generator,
             now=now,
             parent_graph_execution_id=parent_graph_execution.id,
             state_input=resolved_state,
@@ -169,9 +169,9 @@ class SubGraphExecutionService:
         )
 
         # ── Persist ───────────────────────────────────────────────────────
-        await _uow.graph_executions.save(sub_graph_execution)
+        await _unit_of_work.graph_executions.save(sub_graph_execution)
 
-        _uow.stage_events(list(sub_graph_execution.pull_events()))
+        _unit_of_work.stage_events(list(sub_graph_execution.pull_events()))
 
         # ── Observer notification ─────────────────────────────────────────
         if self._observer is not None:

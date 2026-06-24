@@ -256,39 +256,14 @@ class TestCreateAndCompleteExecution:
         assert get_resp.json()["status"] == "COMPLETED"
 ```
 
-## 10. Konwencje Nazewnicze w Testach
-
-```
-tests/
-├── architecture/           # Testy architektury
-│   └── test_layer_imports.py
-├── domain/                  # Testy jednostkowe domeny
-│   └── execution/
-│       ├── test_execution.py
-│       ├── test_execution_factory.py
-│       ├── test_execution_service.py
-│       └── value_objects/
-│           └── test_task_execution_name.py
-├── application/             # Testy handlerów
-│   └── execution/
-│       ├── test_create_execution_handler.py
-│       └── test_complete_execution_handler.py
-├── infrastructure/          # Testy integracyjne
-│   └── execution/
-│       ├── test_sql_execution_repository.py
-│       └── test_execution_mapper.py
-└── e2e/                     # Testy end-to-end
-    └── test_execution_flow.py
-```
-
-## 11. Fixture Strategy
+## 10. Fixture Strategy
 
 - **Domain fixtures**: `tests/domain/conftest.py` — factory methods dla agregatów
 - **Infrastructure fixtures**: `tests/infrastructure/conftest.py` — db_session, mapper
 - **Application fixtures**: `tests/application/conftest.py` — handler + InMemory repos
 - **E2E fixtures**: `tests/e2e/conftest.py` — async_client, baza testowa
 
-## 12. Podsumowanie — Checklista
+## 11. Podsumowanie — Checklista
 
 Pisząc testy:
 - [ ] Domain testy — czysta domena, bez mocków
@@ -299,5 +274,4 @@ Pisząc testy:
 - [ ] Integracyjne — z prawdziwą bazą (oznaczone `@pytest.mark.integration`)
 - [ ] E2E — tylko kluczowe ścieżki (oznaczone `@pytest.mark.e2e`)
 - [ ] Fixtures — scentralizowane w conftest.py
-- [ ] Nazewnictwo zgodne z konwencją
-- [ ] test_ przed nazwą funkcji i pliku
+

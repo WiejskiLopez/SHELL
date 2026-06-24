@@ -14,8 +14,8 @@ Encja jest jedynym typem domenowym, który ma **tożsamość**. Dwie encje z tym
 class Entity(ABC, Generic[TId]):
     __slots__ = ("_id",)
 
-    def __init__(self, id: TId) -> None:
-        self._id = id
+    def __init__(self, entity_id: TId) -> None:
+        self._id = entity_id
 
     @property
     def id(self) -> TId:
@@ -34,28 +34,6 @@ class Entity(ABC, Generic[TId]):
 - `__eq__` i `__hash__` bazują **wyłącznie na ID** — nigdy na stanie
 - Nigdy `@dataclass` dla encji (tożsamość != równość strukturalna)
 - ID jest niemutowalne po utworzeniu — brak settera dla `_id`
-
-## 2. Lokalizacja Encji
-
-Każda encja-child (niebędąca Aggregate Root) leży w podfolderze `entities/` swojego agregatu:
-
-```
-aggregates/my_aggregate/
-    __init__.py
-    my_aggregate.py                           # Aggregate Root
-    entities/
-        __init__.py
-        my_child_entity.py                    # child entity
-        another_child_entity.py
-```
-
-Encje współdzielone między agregatami (rzadkość) leżą w `shell/domain/<subdomain>/entities/`.
-
-```python
-# shell/domain/execution/aggregates/envelope/entities/envelope_event.py
-class EnvelopeEvent(Entity[EnvelopeEventId]):
-    ...
-```
 
 ## 3. Enkapsulacja Stanu
 

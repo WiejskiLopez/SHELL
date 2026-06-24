@@ -6,5 +6,5 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class SessionStatus(ValueObject, StrEnum):
-    OPEN = "OPEN"
-    CLOSED = "CLOSED"
+    OPEN = "open"
+    CLOSED = "closed"

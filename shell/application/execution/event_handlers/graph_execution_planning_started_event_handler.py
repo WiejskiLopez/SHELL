@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution.events.graph_planning_started_event import (
-    GraphPlanningStartedEvent,
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
+    GraphExecutionPlanningStartedEvent,
 )
 
 if TYPE_CHECKING:
@@ -13,22 +13,22 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
-class HandleGraphPlanningStarted:
+class GraphExecutionPlanningStartedEventHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, event: GraphPlanningStartedEvent) -> None:
-        async with self._uow as uow:
-            graph_execution = await uow.graph_executions.get_by_id(event.graph_execution_id)
+    async def handle(self, event: GraphExecutionPlanningStartedEvent) -> None:
+        async with self._unit_of_work as unit_of_work:
+            graph_execution = await unit_of_work.graph_executions.get_by_id(event.graph_execution_id)
             if graph_execution is None:
                 self._logger.warning(
                     "handle_graph_planning_started.graph_not_found",
@@ -37,5 +37,5 @@ class HandleGraphPlanningStarted:
                 return
 
             graph_execution.start_planning()
-            await uow.graph_executions.save(graph_execution)
-            uow.stage_events(graph_execution.pull_events())
+            await unit_of_work.graph_executions.save(graph_execution)
+            unit_of_work.stage_events(graph_execution.pull_events())

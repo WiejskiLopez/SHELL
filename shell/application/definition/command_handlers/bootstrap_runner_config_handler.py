@@ -14,22 +14,22 @@ if TYPE_CHECKING:
 
 
 class BootstrapRunnerConfigHandler:
-    def __init__(self, uow: UnitOfWork, clock: Clock, id_gen: IdGenerator) -> None:
-        self._uow = uow
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock, id_generator: IdGenerator) -> None:
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
 
-    async def handle(self, cmd: BootstrapRunnerConfigCommand) -> str:
-        serialized = json.dumps(cmd.body, sort_keys=True)
+    async def handle(self, command: BootstrapRunnerConfigCommand) -> str:
+        serialized = json.dumps(command.body, sort_keys=True)
         config_hash = Hash.of(serialized)
-        async with self._uow as uow:
+        async with self._unit_of_work as unit_of_work:
             config = RunnerConfig.new(
-                id_=self._id_gen.new_runner_config_id(),
-                package_name=cmd.package_name,
-                kind=cmd.kind,
-                body=cmd.body,
+                id_=self._id_generator.new_runner_config_id(),
+                package_name=command.package_name,
+                kind=command.kind,
+                body=command.body,
                 config_hash=config_hash,
                 now=self._clock.now(),
             )
-            await uow.runner_configs.save(config)
+            await unit_of_work.runner_configs.save(config)
         return config.id.value

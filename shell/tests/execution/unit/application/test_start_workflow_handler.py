@@ -28,25 +28,25 @@ from shell.infrastructure.platform.persistence.memory import (
 class TestStartWorkflowHandler:
     async def _import_task_execution(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> str:
-        h = ImportTaskExecutionHandler(uow, clock, id_gen, task_execution_loader, FakeLogger())
+        h = ImportTaskExecutionHandler(unit_of_work, clock, id_generator, task_execution_loader, FakeLogger())
         task_execution_id = await h.handle(ImportTaskExecutionCommand("t.md", "my-task"))
-        await self._attach_graph_execution(uow, "my-task")
+        await self._attach_graph_execution(unit_of_work, "my-task")
         return task_execution_id
 
     @staticmethod
-    async def _attach_graph_execution(uow: InMemoryUnitOfWork, task_execution_name: str) -> None:
+    async def _attach_graph_execution(unit_of_work: InMemoryUnitOfWork, task_execution_name: str) -> None:
         from shell.domain.execution.aggregates.graph_execution import GraphExecution
         from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
         from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
         from shell.domain.platform.value_objects.mode import Mode
 
-        task_execution = await uow.task_executions.get_current_by_name(
+        task_execution = await unit_of_work.task_executions.get_current_by_name(
             TaskExecutionName(task_execution_name)
         )
         assert task_execution is not None
@@ -64,46 +64,46 @@ class TestStartWorkflowHandler:
                 )
             ],
         )
-        await uow.graph_executions.save(graph_execution)
+        await unit_of_work.graph_executions.save(graph_execution)
 
     async def test_happy_path(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
     ) -> None:
         task_execution_id = await self._import_task_execution(
-            uow, clock, id_gen, task_execution_loader
+            unit_of_work, clock, id_generator, task_execution_loader
         )
-        handler = StartWorkflowHandler(uow, clock, id_gen)
+        handler = StartWorkflowHandler(unit_of_work, clock, id_generator)
         wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
         assert wf_id
-        assert any(isinstance(e, WorkflowStartedEvent) for e in uow.committed_events)
+        assert any(isinstance(e, WorkflowStartedEvent) for e in unit_of_work.committed_events)
 
     async def test_task_not_found_raises(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
-        handler = StartWorkflowHandler(uow, clock, id_gen)
+        handler = StartWorkflowHandler(unit_of_work, clock, id_generator)
         with pytest.raises(TaskExecutionNotFound):
             await handler.handle(StartWorkflowCommand("nonexistent"))
 
     async def test_workflow_persisted(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         task_execution_loader: FakeTaskLoader,
         queries: InMemoryQueryServices,
     ) -> None:
         task_execution_id = await self._import_task_execution(
-            uow, clock, id_gen, task_execution_loader
+            unit_of_work, clock, id_generator, task_execution_loader
         )
-        handler = StartWorkflowHandler(uow, clock, id_gen)
+        handler = StartWorkflowHandler(unit_of_work, clock, id_generator)
         wf_id = await handler.handle(StartWorkflowCommand(task_execution_id))
 
         q_handler = GetWorkflowHandler(queries)

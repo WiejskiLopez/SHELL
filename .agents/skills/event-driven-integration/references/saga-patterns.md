@@ -28,27 +28,27 @@ Handler C: subskrybuje StockReservedEvent
 ```python
 class CreateInvoiceOnOrderPlacedHandler:
     async def handle(self, event: OrderPlacedEvent) -> None:
-        async with self._uow as uow:
-            if await uow.inbox.contains(event.event_id):
+        async with self._unit_of_work as unit_of_work:
+            if await unit_of_work.inbox.contains(event.event_id):
                 return
             invoice = Invoice.create(
                 order_id=event.order_id,
                 amount=event.total_amount,
                 customer_id=event.customer_id,
             )
-            await uow.invoices.save(invoice)
-            await uow.inbox.add(event.event_id)
-            uow.stage_events(invoice.pull_events())  # InvoiceCreatedEvent
+            await unit_of_work.invoices.save(invoice)
+            await unit_of_work.inbox.add(event.event_id)
+            unit_of_work.stage_events(invoice.pull_events())  # InvoiceCreatedEvent
 
 
 class ReserveStockOnInvoiceCreatedHandler:
     async def handle(self, event: InvoiceCreatedEvent) -> None:
-        async with self._uow as uow:
-            if await uow.inbox.contains(event.event_id):
+        async with self._unit_of_work as unit_of_work:
+            if await unit_of_work.inbox.contains(event.event_id):
                 return
             # ... rezerwacja stocku ...
-            await uow.inbox.add(event.event_id)
-            uow.stage_events(inventory.pull_events())  # StockReservedEvent
+            await unit_of_work.inbox.add(event.event_id)
+            unit_of_work.stage_events(inventory.pull_events())  # StockReservedEvent
 ```
 
 ### Zalety choreografii
@@ -70,7 +70,7 @@ Saga Manager jest stanowym procesem który śledzi postęp i wywołuje kolejne k
 class OrderFulfillmentSaga:
     """Proces: zamówienie → faktura → rezerwacja → płatność → wysyłka"""
 
-    class State(Enum):
+    class State(StrEnum):
         STARTED = "started"
         INVOICE_CREATED = "invoice_created"
         STOCK_RESERVED = "stock_reserved"
@@ -149,13 +149,13 @@ Każdy krok ma osobny handler dla swojego przypadku błędu. Gdy krok C fejluje,
 ```python
 class ReleaseStockOnPaymentFailedHandler:
     async def handle(self, event: PaymentFailedEvent) -> None:
-        async with self._uow as uow:
-            if await uow.inbox.contains(event.event_id):
+        async with self._unit_of_work as unit_of_work:
+            if await unit_of_work.inbox.contains(event.event_id):
                 return
-            inventory = await uow.inventories.get_by_order_id(event.order_id)
+            inventory = await unit_of_work.inventories.get_by_order_id(event.order_id)
             inventory.release(event.order_id)
-            await uow.inbox.add(event.event_id)
-            uow.stage_events(inventory.pull_events())  # StockReleasedEvent → kolejny handler cofa fakturę
+            await unit_of_work.inbox.add(event.event_id)
+            unit_of_work.stage_events(inventory.pull_events())  # StockReleasedEvent → kolejny handler cofa fakturę
 ```
 
 ### Kompensacja w orkiestracji
@@ -181,13 +181,13 @@ Kompensacja też musi być idempotentna. `ReleaseStockCommand` może przyjść d
 
 ```python
 class ReleaseStockHandler:
-    async def handle(self, cmd: ReleaseStockCommand) -> None:
-        async with self._uow as uow:
-            inventory = await uow.inventories.get_by_order_id(cmd.order_id)
-            if inventory.is_already_released(cmd.order_id):
+    async def handle(self, command: ReleaseStockCommand) -> None:
+        async with self._unit_of_work as unit_of_work:
+            inventory = await unit_of_work.inventories.get_by_order_id(command.order_id)
+            if inventory.is_already_released(command.order_id):
                 return  # idempotencja — już zwolnione
-            inventory.release(cmd.order_id)
-            uow.stage_events(inventory.pull_events())
+            inventory.release(command.order_id)
+            unit_of_work.stage_events(inventory.pull_events())
 ```
 
 ## Timeouty w sagach
@@ -198,16 +198,16 @@ Saga z timeoutem: "jeśli płatność nie zostanie zakończona w ciągu 5 minut 
 
 ```python
 class SagaTimeoutChecker:
-    def __init__(self, uow_factory, scheduler) -> None:
-        self._uow_factory = uow_factory
+    def __init__(self, unit_of_work_factory, scheduler) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
         self._scheduler = scheduler
 
     async def check_timeouts(self) -> None:
-        async with self._uow_factory() as uow:
-            expired_sagas = await uow.sagas.get_expired(now=datetime.utcnow())
+        async with self._unit_of_work_factory() as unit_of_work:
+            expired_sagas = await unit_of_work.sagas.get_expired(now=datetime.utcnow())
             for saga in expired_sagas:
                 saga.mark_timeout()
-                uow.stage_events(saga.pull_events())  # SagaTimedOutEvent
+                unit_of_work.stage_events(saga.pull_events())  # SagaTimedOutEvent
                 await self._scheduler.schedule_compensation(saga)
 
     async def run(self) -> None:

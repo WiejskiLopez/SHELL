@@ -16,19 +16,19 @@ if TYPE_CHECKING:
 class PropagateTaskOutputToWorkflowInput:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
     async def handle(self, event: TaskExecutionCompletedEvent) -> None:
-        async with self._uow as uow:
-            task_execution = await uow.task_executions.get_by_id(event.task_execution_id)
+        async with self._unit_of_work as unit_of_work:
+            task_execution = await unit_of_work.task_executions.get_by_id(event.task_execution_id)
             if task_execution is None or task_execution.workflow_id is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.task_not_found",
@@ -36,7 +36,7 @@ class PropagateTaskOutputToWorkflowInput:
                 )
                 return
 
-            workflow = await uow.workflows.get_by_id(task_execution.workflow_id)
+            workflow = await unit_of_work.workflows.get_by_id(task_execution.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.workflow_not_found",
@@ -51,5 +51,5 @@ class PropagateTaskOutputToWorkflowInput:
                 "output": event.output,
             }
             workflow.add_state_input(output_payload, now)
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+            await unit_of_work.workflows.save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())

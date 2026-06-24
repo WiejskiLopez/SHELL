@@ -125,14 +125,14 @@ Saga ma swój **stan** — przechowywany w bazie, pozwalający na restart po awa
 
 ```python
 class SagaState(StrEnum):
-    PENDING = "PENDING"
-    PAYMENT_PENDING = "PAYMENT_PENDING"
-    INVENTORY_RESERVING = "INVENTORY_RESERVING"
-    SHIPPING_SCHEDULING = "SHIPPING_SCHEDULING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-    COMPENSATING = "COMPENSATING"
-    COMPENSATED = "COMPENSATED"
+    PENDING = "pending"
+    PAYMENT_PENDING = "payment_pending"
+    INVENTORY_RESERVING = "inventory_reserving"
+    SHIPPING_SCHEDULING = "shipping_scheduling"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    COMPENSATING = "compensating"
+    COMPENSATED = "compensated"
 
 # Saga trwałość — zapis w bazie
 @dataclass
@@ -222,24 +222,10 @@ class SqlSagaRepository:
         rows = await self._session.execute(
             select(SagaModel).where(
                 SagaModel.timeout_at <= now,
-                SagaModel.state.not_in(["COMPLETED", "FAILED", "COMPENSATED"]),
+                SagaModel.state.not_in(["completed", "failed", "compensated"]),
             ),
         )
         return [self._to_domain(row) for row in rows.scalars()]
-```
-
-## 8. Lokalizacja i Nazewnictwo
-
-```
-# Process Manager (Orchestrator)
-shell/application/sagas/<nazwa_sagi>_saga.py
-
-# Event handlers dla sagi
-shell/application/sagas/handlers/<nazwa>_handler.py
-
-# Saga persistence
-shell/infrastructure/saga/repositories/
-shell/infrastructure/saga/models/
 ```
 
 ## 9. Podsumowanie — Checklista

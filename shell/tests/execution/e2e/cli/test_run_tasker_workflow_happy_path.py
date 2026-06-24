@@ -20,45 +20,45 @@ from shell.tests.conftest import _make_task_with_graph_execution, _run_tasker_fu
 class TestRunTaskerWorkflowHappyPath:
     async def test_all_nodes_complete_successfully(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
         task_execution, _ = _make_task_with_graph_execution(
-            uow, "happy-path-task", ["agent", "tool"], clock.now()
+            unit_of_work, "happy-path-task", ["agent", "tool"], clock.now()
         )
-        cmd = RunTaskerWorkflowCommand(
+        command = RunTaskerWorkflowCommand(
             task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
         )
-        events = await _run_tasker_full(uow, clock, id_gen, cmd)
+        events = await _run_tasker_full(unit_of_work, clock, id_generator, command)
 
         assert any(isinstance(e, GraphNodeExecutionCompletedEvent) for e in events)
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
         assert not any(isinstance(e, WorkflowFailedEvent) for e in events)
 
-        workflows = list(uow.workflows._store.values())
+        workflows = list(unit_of_work.workflows._store.values())
         assert len(workflows) == 1
 
         get_wf = GetWorkflowHandler(queries)
         dto = await get_wf.handle(GetWorkflowQuery(workflows[0].id.value))
         assert dto is not None
-        assert dto.status == "COMPLETED"
+        assert dto.status == "completed"
 
     async def test_single_node_workflow(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
         task_execution, _ = _make_task_with_graph_execution(
-            uow, "single-node-task", ["agent"], clock.now()
+            unit_of_work, "single-node-task", ["agent"], clock.now()
         )
-        cmd = RunTaskerWorkflowCommand(
+        command = RunTaskerWorkflowCommand(
             task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
         )
-        events = await _run_tasker_full(uow, clock, id_gen, cmd)
+        events = await _run_tasker_full(unit_of_work, clock, id_generator, command)
 
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
-        workflows = list(uow.workflows._store.values())
-        assert workflows[0].status.value == "COMPLETED"
+        workflows = list(unit_of_work.workflows._store.values())
+        assert workflows[0].status.value == "completed"

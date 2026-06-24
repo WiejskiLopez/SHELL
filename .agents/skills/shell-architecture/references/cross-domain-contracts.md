@@ -49,7 +49,7 @@ Definition Domain (źródło)       Infrastructure                   Execution D
 │ GraphDefinitionDto   │───────→│ GraphExecutionDefinitionProviderAdapter   │────────→│ GraphExecutionDefinitionProvider       │
 │ (application/dto/)   │        │ Adapter              │         │ (port — zwraca własne)   │
 └──────────────────────┘        │ mapuje:              │         └──────────────────────────┘
-                                │ src DTO → exec DTO   │                   │
+                                │ source DTO → exec DTO   │                   │
                                 └──────────────────────┘                   ▼
                                                                  ┌──────────────────────────┐
                                                                  │ GraphExecutionDefinition  │

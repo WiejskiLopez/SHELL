@@ -45,11 +45,11 @@ Każdy handler (command/event) musi przejść tę listę:
 
 1. `from __future__ import annotations` na górze pliku
 2. `TYPE_CHECKING` — importy domenowe pod guardem jeśli nie są używane w runtime
-3. `async with self._uow as uow:` — UoW jako async context manager
-4. Pobranie agregatu przez `uow.<repo>.get_by_id()`
+3. `async with self._unit_of_work as unit_of_work:` — UoW jako async context manager
+4. Pobranie agregatu przez `unit_of_work.<repository>.get_by_id()`
 5. Mutacja agregatu przez metody domenowe (które wołają `append_event()`)
-6. `uow.stage_events(aggregate.pull_events())` — po każdej mutacji
-7. Commit przez `__aexit__` — nigdy ręcznego `uow.commit()`
+6. `unit_of_work.stage_events(aggregate.pull_events())` — po każdej mutacji
+7. Commit przez `__aexit__` — nigdy ręcznego `unit_of_work.commit()`
 8. Typowanie: sygnatura `handle` z `-> None` dla command, `-> list[Dto]` dla query
 9. Brak mutowalnego stanu handlera między wywołaniami (`self._cache = {}` itp.)
 
@@ -62,7 +62,7 @@ Przy dodawaniu nowego handlera:
    - Query → `query_container.py`
    - Event → `event_container.py`
 2. **Factory**: zarejestruj handler w odpowiedniej funkcji factory
-   - `command_factory.py` → `cmd_bus.register(NewCommand, app_ctx.commands.new_handler_factory)`
+   - `command_factory.py` → `command_bus.register(NewCommand, app_ctx.commands.new_handler_factory)`
    - `query_factory.py` → `q_bus.register(NewQuery, app_ctx.queries.new_handler_factory)`
    - `event_factory.py` → `event_bus.subscribe(NewEvent, app_ctx.events.new_handler_factory)`
 3. **Weryfikacja**:
@@ -113,24 +113,6 @@ Dla każdego agregatu persystowanego:
 3. Załaduj ponownie przez `get_by_id`
 4. Porównaj wszystkie pola — w tym kolekcje wewnętrzne (counters, groups, nodes)
 5. Powtórz na InMemory repo — wynik musi być identyczny
-
-## Nazewnictwo i konwencje
-
-| Element | Konwencja | Przykład |
-|---------|-----------|----------|
-| Pliki z jedną klasą | snake_case | `task_execution_id.py` |
-| Katalogi | snake_case | `value_objects/`, `command_handlers/` |
-| Klasy | PascalCase | `TaskExecutionId`, `WorkflowStarted` |
-| Metody/funkcje | snake_case | `pull_events()`, `get_by_id()` |
-| Command/Query | PascalCase + suffix | `StartWorkflowCommand`, `GetWorkflowQuery` |
-| Handler | PascalCase + "Handler" | `StartWorkflowHandler` |
-| DTO | PascalCase + "Dto" | `WorkflowDto` |
-| Domain Event class | PascalCase + `Event` | `TaskExecutionCreatedEvent` |
-| Domain Event file | snake_case + `_event` | `task_execution_created_event.py` |
-| Exception | PascalCase + domain context | `WorkflowNotFoundException` |
-| Port/Protocol | PascalCase | `UnitOfWork`, `IdGenerator` |
-| Strategy | PascalCase + "Strategy" | `AgentStrategy` |
-| Zmienna ID | suffix `_id` | `workflow_id`, `task_execution_id` |
 
 ## Cross-cutting
 

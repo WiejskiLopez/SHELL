@@ -156,8 +156,8 @@ class LatestVersionStrategy(SubGraphVersioning):
     with a ``graph_definitions`` repository.
     """
 
-    def __init__(self, uow_factory: Any) -> None:
-        self._uow_factory = uow_factory
+    def __init__(self, unit_of_work_factory: Any) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
 
     async def resolve_definition(
         self,
@@ -167,8 +167,8 @@ class LatestVersionStrategy(SubGraphVersioning):
     ) -> GraphExecutionDefinition:
         from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
-        async with self._uow_factory() as uow:
-            definition = await uow.graph_definitions.get_by_id(GraphDefinitionId(definition_id))
+        async with self._unit_of_work_factory() as unit_of_work:
+            definition = await unit_of_work.graph_definitions.get_by_id(GraphDefinitionId(definition_id))
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
             node_defs = [
@@ -208,16 +208,16 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
     for semantic search via vector DB.
     """
 
-    def __init__(self, uow_factory: Any) -> None:
-        self._uow_factory = uow_factory
+    def __init__(self, unit_of_work_factory: Any) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
 
     async def find_unique(self, query: str) -> str:
 
         query_lower = query.lower().strip()
 
-        async with self._uow_factory() as uow:
+        async with self._unit_of_work_factory() as unit_of_work:
             # Try exact name match first
-            all_defs = await uow.graph_definitions.list_all()
+            all_defs = await unit_of_work.graph_definitions.list_all()
             if all_defs is None:
                 raise GraphDefinitionNotFound(query)
 

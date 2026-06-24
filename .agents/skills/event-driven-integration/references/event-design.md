@@ -93,21 +93,6 @@ Integration Event: między BC, stabilny kontrakt, zmiana wymaga wersjonowania.
 
 Handler subskrybuje Domain Event → przetwarza → publikuje Integration Event (do innych BC).
 
-## Nazewnictwo eventów
-
-Eventy nazywaj w czasie przeszłym dokonanym — opisują co SIĘ STAŁO, nie co MA SIĘ STAĆ.
-
-```
-✅ OrderPlacedEvent        ← fakt: zamówienie zostało złożone
-❌ PlaceOrderEvent         ← komenda: złóż zamówienie
-
-✅ PaymentCompletedEvent   ← fakt: płatność została zakończona
-❌ PaymentEvent            ← niejednoznaczne — rozpoczęcie? zakończenie? błąd?
-
-✅ StockReservedEvent      ← fakt: stock został zarezerwowany
-❌ ReserveStockEvent       ← komenda: zarezerwuj stock
-```
-
 ## Wersjonowanie eventów
 
 Schemat eventu ewoluuje. Dodajesz pole, zmieniasz typ, usuwasz pole. Konsumenci którzy jeszcze nie zaktualizowali swojej logiki nie powinni się wyłożyć.

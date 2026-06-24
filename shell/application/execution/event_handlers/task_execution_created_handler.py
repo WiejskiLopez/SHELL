@@ -36,17 +36,17 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
 
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         definition_provider: GraphExecutionDefinitionProvider,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
         name: str = GRAPH_DEFINITION_NAME,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._definition_provider = definition_provider
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
         self._name = name
 
@@ -61,8 +61,8 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                 f"GraphDefinition {self._name!r} not found",
             )
 
-        async with self._uow as uow:
-            existing = await uow.graph_executions.get_by_task_execution_id(event.task_execution_id)
+        async with self._unit_of_work as unit_of_work:
+            existing = await unit_of_work.graph_executions.get_by_task_execution_id(event.task_execution_id)
             if existing is not None:
                 self._logger.info(
                     "Graph already exists for task — skipping build",
@@ -76,7 +76,7 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
 
             node_ids: list[Any] = []
             for node_def in graph_definition.graph_node_execution_definitions:
-                node_id = self._id_gen.new_graph_node_execution_id()
+                node_id = self._id_generator.new_graph_node_execution_id()
                 node = GraphNodeExecution(
                     id=node_id,
                     position=node_def.position,
@@ -95,20 +95,20 @@ class BuildGraphExecutionOnTaskExecutionCreatedEvent:
                     timeout_seconds=node_def.timeout,
                     max_retries=node_def.retries,
                 )
-                await uow.graph_node_executions.save(node)
+                await unit_of_work.graph_node_executions.save(node)
                 node_ids.append(node_id)
 
-            graph_execution_id = self._id_gen.new_graph_execution_id()
+            graph_execution_id = self._id_generator.new_graph_execution_id()
             graph_execution = GraphExecution.from_graph_definition(
                 id_=graph_execution_id,
                 task_execution_id=event.task_execution_id,
                 graph_definition=graph_definition,
                 node_ids=node_ids,
-                id_gen=self._id_gen,
+                id_generator=self._id_generator,
                 now=now,
             )
-            await uow.graph_executions.save(graph_execution)
-            uow.stage_events(graph_execution.pull_events())
+            await unit_of_work.graph_executions.save(graph_execution)
+            unit_of_work.stage_events(graph_execution.pull_events())
 
         self._logger.info(
             "Graph built for task",

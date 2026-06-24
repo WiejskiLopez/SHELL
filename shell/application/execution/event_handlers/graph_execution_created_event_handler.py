@@ -13,22 +13,22 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
-class HandleGraphExecutionCreated:
+class GraphExecutionCreatedEventHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         logger: Logger,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._logger = logger
 
     async def handle(self, event: GraphExecutionCreatedEvent) -> None:
-        async with self._uow as uow:
-            graph_execution = await uow.graph_executions.get_by_id(event.graph_execution_id)
+        async with self._unit_of_work as unit_of_work:
+            graph_execution = await unit_of_work.graph_executions.get_by_id(event.graph_execution_id)
             if graph_execution is None:
                 self._logger.warning(
                     "handle_graph_execution_created.graph_not_found",
@@ -36,7 +36,7 @@ class HandleGraphExecutionCreated:
                 )
                 return
 
-            task_execution = await uow.task_executions.get_by_id(
+            task_execution = await unit_of_work.task_executions.get_by_id(
                 graph_execution.task_execution_id,
             )
             if task_execution is None:
@@ -52,13 +52,13 @@ class HandleGraphExecutionCreated:
                 can_continue = task_execution.increment_cycle()
                 if not can_continue:
                     task_execution.exhaust(now)
-                    await uow.task_executions.save(task_execution)
-                    uow.stage_events(task_execution.pull_events())
+                    await unit_of_work.task_executions.save(task_execution)
+                    unit_of_work.stage_events(task_execution.pull_events())
                     return
 
                 if event.goal:
                     graph_execution.add_state_input({"goal": event.goal}, now)
 
                 task_execution.start(now)
-                await uow.task_executions.save(task_execution)
-                uow.stage_events(task_execution.pull_events())
+                await unit_of_work.task_executions.save(task_execution)
+                unit_of_work.stage_events(task_execution.pull_events())

@@ -29,12 +29,12 @@ class GraphExecutionRepository(Protocol):
 class PendingGraphFinder:
     async def find_next(
         self,
-        repo: GraphExecutionRepository | None,
+        repository: GraphExecutionRepository | None,
     ) -> GraphExecution | None:
-        if repo is None:
+        if repository is None:
             return None
 
-        graphs = await repo.find_pending(
+        graphs = await repository.find_pending(
             graph_status=GraphExecutionStatus.PENDING,
             parent_is_null=False,
             parent_status=GraphExecutionStatus.PLANNING,

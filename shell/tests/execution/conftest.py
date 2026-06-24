@@ -143,8 +143,8 @@ def auto_correlation_id():
 
 
 @pytest.fixture
-def queries(uow: InMemoryUnitOfWork) -> InMemoryQueryServices:
-    return InMemoryQueryServices(uow)
+def queries(unit_of_work: InMemoryUnitOfWork) -> InMemoryQueryServices:
+    return InMemoryQueryServices(unit_of_work)
 
 
 # ---------------------------------------------------------------------------
@@ -272,7 +272,7 @@ def _spy_logger(
 
 
 @pytest.fixture()
-def uow() -> InMemoryUnitOfWork:
+def unit_of_work() -> InMemoryUnitOfWork:
     return InMemoryUnitOfWork()
 
 
@@ -282,7 +282,7 @@ def clock() -> FakeClock:
 
 
 @pytest.fixture()
-def id_gen() -> FakeIdGenerator:
+def id_generator() -> FakeIdGenerator:
     return FakeIdGenerator()
 
 
@@ -302,14 +302,14 @@ def fake_logger() -> FakeLogger:
 
 
 def _build_graph_execution(
-    uow: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]
+    unit_of_work: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]
 ) -> tuple[TaskExecution, GraphExecution]:
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskExecutionName(task_execution_name),
                 created_at=_NOW,
     )
-    uow.task_executions._store[task_execution.id.value] = task_execution
+    unit_of_work.task_executions._store[task_execution.id.value] = task_execution
 
     graph_node_executions = [
         GraphNodeExecution(
@@ -327,45 +327,48 @@ def _build_graph_execution(
         graph_definition_id="tpl",
         graph_node_execution_ids=[n.id for n in graph_node_executions],
     )
-    uow.graph_executions._store[graph_execution.id.value] = graph_execution
+    for node in graph_node_executions:
+        node._graph_execution_id = graph_execution.id
+        unit_of_work.graph_node_executions._store[node.id.value] = node
+    unit_of_work.graph_executions._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 
 async def _persist_running_workflow(
-    uow: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
+    unit_of_work: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     # Set workflow_id on graph_execution for get_by_workflow_id lookup
-    for ge in list(uow.graph_executions._store.values()):
+    for ge in list(unit_of_work.graph_executions._store.values()):
         if ge.task_execution_id == task_execution_id:
             object.__setattr__(ge, '_workflow_id', wf.id)
     wf.start_at(now=_NOW)
-    async with uow:
-        await uow.workflows.save(wf)
-        await uow.commit()
+    async with unit_of_work:
+        await unit_of_work.workflows.save(wf)
+        await unit_of_work.commit()
     return wf
 
 
 def _make_worker(
-    uow: InMemoryUnitOfWork,
+    unit_of_work: InMemoryUnitOfWork,
     runner: FakeGraphNodeExecutionProcessRunner,
 ) -> GraphNodeExecutionWorker:
     return GraphNodeExecutionWorker(
-        uow=uow,
+        uow=unit_of_work,
         clock=FakeClock(_NOW),
-        id_gen=FakeIdGenerator(),
+        id_generator=FakeIdGenerator(),
         runner=runner,
         logger=FakeLogger(),
     )
 
 
 def _make_result_handler(
-    uow: InMemoryUnitOfWork,
+    unit_of_work: InMemoryUnitOfWork,
 ) -> GraphNodeExecutionCompletedHandler:
     return GraphNodeExecutionCompletedHandler(
-        uow=uow,
+        uow=unit_of_work,
         clock=FakeClock(_NOW),
-        id_gen=FakeIdGenerator(),
+        id_generator=FakeIdGenerator(),
         logger=FakeLogger(),
     )
 
@@ -433,13 +436,13 @@ def _db_url(tmp_path: pathlib.Path) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
+def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, now):
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskExecutionName(task_execution_name),
                 created_at=now,
     )
-    uow.task_executions._store[task_execution.id.value] = task_execution
+    unit_of_work.task_executions._store[task_execution.id.value] = task_execution
     graph_node_executions = [
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
@@ -456,40 +459,43 @@ def _make_task_with_graph_execution(uow, task_execution_name, modes, now):
         graph_definition_id="tpl",
         graph_node_execution_ids=[n.id for n in graph_node_executions],
     )
-    uow.graph_executions._store[graph_execution.id.value] = graph_execution
+    for node in graph_node_executions:
+        node._graph_execution_id = graph_execution.id
+        unit_of_work.graph_node_executions._store[node.id.value] = node
+    unit_of_work.graph_executions._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 
-async def _run_tasker_full(uow, clock, id_gen, cmd, runner=None):
+async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=None):
     logger = FakeLogger()
     if runner is None:
         runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
     worker = GraphNodeExecutionWorker(
-        uow=uow, clock=clock, id_gen=id_gen, logger=logger, runner=runner
+        uow=unit_of_work, clock=clock, id_generator=id_generator, logger=logger, runner=runner
     )
     result_handler = GraphNodeExecutionCompletedHandler(
-        uow=uow, clock=clock, id_gen=id_gen, logger=logger
+        uow=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
-    bootstrap_handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
+    bootstrap_handler = RunTaskerWorkflowHandler(uow=unit_of_work, clock=clock, id_generator=id_generator)
     all_events = []
-    await bootstrap_handler.handle(cmd)
-    all_events.extend(uow.committed_events)
+    await bootstrap_handler.handle(command)
+    all_events.extend(unit_of_work.committed_events)
     max_iterations = 100
     for _ in range(max_iterations):
-        batch = list(uow.committed_events)
+        batch = list(unit_of_work.committed_events)
         if not batch:
             break
         has_work = False
         for event in batch:
             if isinstance(event, GraphNodeExecutionRequestedEvent):
                 await worker.handle(event)
-                all_events.extend(uow.committed_events)
+                all_events.extend(unit_of_work.committed_events)
                 has_work = True
             elif isinstance(
                 event, (GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent)
             ):
                 await result_handler.handle(event)
-                all_events.extend(uow.committed_events)
+                all_events.extend(unit_of_work.committed_events)
                 has_work = True
         if not has_work:
             break

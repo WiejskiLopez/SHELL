@@ -6,6 +6,6 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class TransitionStatus(ValueObject, StrEnum):
-    EVALUATED = "EVALUATED"
-    TAKEN = "TAKEN"
-    SKIPPED = "SKIPPED"
+    EVALUATED = "evaluated"
+    TAKEN = "taken"
+    SKIPPED = "skipped"

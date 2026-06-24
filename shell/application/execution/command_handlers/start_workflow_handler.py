@@ -20,34 +20,34 @@ if TYPE_CHECKING:
 class StartWorkflowHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
 
-    async def handle(self, cmd: StartWorkflowCommand) -> str:
+    async def handle(self, command: StartWorkflowCommand) -> str:
         now = self._clock.now()
-        async with self._uow as uow:
-            task_execution = await uow.task_executions.get_current_by_id(
-                TaskExecutionId(cmd.task_execution_id)
+        async with self._unit_of_work as unit_of_work:
+            task_execution = await unit_of_work.task_executions.get_current_by_id(
+                TaskExecutionId(command.task_execution_id)
             )
             if task_execution is None:
-                raise TaskExecutionNotFound(cmd.task_execution_id)
+                raise TaskExecutionNotFound(command.task_execution_id)
 
             workflow = Workflow.new(
-                id_=self._id_gen.new_workflow_id(),
+                id_=self._id_generator.new_workflow_id(),
                 now=now,
             )
             task_execution.execute_in_workflow(workflow.id)
-            await uow.task_executions.save(task_execution)
+            await unit_of_work.task_executions.save(task_execution)
 
             workflow.start_at(
                 now=now,
                 task_execution_id=task_execution.id,
             )
-            await uow.workflows.save(workflow)
-            uow.stage_events(workflow.pull_events())
+            await unit_of_work.workflows.save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())
         return workflow.id.value

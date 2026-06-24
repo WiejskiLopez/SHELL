@@ -6,8 +6,8 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class TaskExecutionStatus(ValueObject, StrEnum):
-    CREATED = "CREATED"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-    EXHAUSTED = "EXHAUSTED"
+    CREATED = "created"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    EXHAUSTED = "exhausted"

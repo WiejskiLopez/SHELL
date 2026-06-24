@@ -41,16 +41,16 @@ class TestWorkflowsRouter:
                 },
             )
 
-            uow_factory = core_container.infra.uow_factory()
-            async with uow_factory as uow:
-                task_execution = await uow.task_executions.get_current_by_name(
+            unit_of_work_factory = core_container.infra.unit_of_work_factory()
+            async with unit_of_work_factory as unit_of_work:
+                task_execution = await unit_of_work.task_executions.get_current_by_name(
                     TaskExecutionName("wf_task")
                 )
                 assert task_execution is not None
 
                 actual_task_execution_id = task_execution.id.value
 
-                existing_graph_execution = await uow.graph_executions.get_by_task_execution_id(
+                existing_graph_execution = await unit_of_work.graph_executions.get_by_task_execution_id(
                     task_execution.id
                 )
                 ge_id = (
@@ -66,11 +66,11 @@ class TestWorkflowsRouter:
                     node_type="agent",
                     graph_execution_id=ge_id,
                 )
-                await uow.graph_node_executions.save(node)
+                await unit_of_work.graph_node_executions.save(node)
                 if existing_graph_execution:
                     existing_graph_execution.add_graph_node_execution_id(node.id)
-                    await uow.graph_executions.save(existing_graph_execution)
-                    await uow.commit()
+                    await unit_of_work.graph_executions.save(existing_graph_execution)
+                    await unit_of_work.commit()
                 else:
                     graph_execution = GraphExecution(
                         id=ge_id,
@@ -78,8 +78,8 @@ class TestWorkflowsRouter:
                         graph_definition_id="tpl",
                         graph_node_execution_ids=[node.id],
                     )
-                    await uow.graph_executions.save(graph_execution)
-                    await uow.commit()
+                    await unit_of_work.graph_executions.save(graph_execution)
+                    await unit_of_work.commit()
 
             resp = await client.post(
                 "/workflows", json={"task_execution_id": actual_task_execution_id}

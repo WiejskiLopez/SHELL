@@ -16,14 +16,14 @@ from shell.infrastructure.platform.persistence.memory import (
 class TestRunTaskerWorkflowEdgeCases:
     async def test_run_workflow_with_nonexistent_task_raises(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
-        cmd = RunTaskerWorkflowCommand(task_execution_id="ghost-task-id", work_dir="/fake/dir")
-        handler = RunTaskerWorkflowHandler(uow=uow, clock=clock, id_gen=id_gen)
+        command = RunTaskerWorkflowCommand(task_execution_id="ghost-task-id", work_dir="/fake/dir")
+        handler = RunTaskerWorkflowHandler(uow=unit_of_work, clock=clock, id_generator=id_generator)
 
         with pytest.raises(TaskExecutionNotFound):
-            await handler.handle(cmd)
+            await handler.handle(command)
 
-        assert uow.committed_events == []
+        assert unit_of_work.committed_events == []

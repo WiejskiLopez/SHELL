@@ -25,7 +25,7 @@ class ExecutionRepository(ABC):
     @abstractmethod
     async def get(self, id: ExecutionId) -> Execution: ...
     @abstractmethod
-    async def add(self, execution: Execution) -> None: ...
+    async def save(self, execution: Execution) -> None: ...
 ```
 
 ## 2. Adapter — Implementacja w Infrastrukturze
@@ -143,7 +143,7 @@ class TestSqlExecutionRepository:
     async def test_add_and_get(self, db_session: AsyncSession) -> None:
         repo = SqlExecutionRepository(db_session, ExecutionMapper())
         execution = ExecutionFactory.create()
-        await repo.add(execution)
+        await repo.save(execution)
         await db_session.flush()
         result = await repo.get(execution.id)
         assert result.id == execution.id

@@ -122,7 +122,7 @@ class ErpInvoiceAdapter(InvoicePort):
 
     def _map_to_invoice_summary(self, data: ErpInvoiceData) -> InvoiceSummary:
         return InvoiceSummary(
-            invoice_id=str(data.invnum),
+            invoice_id=str(data.invoice_number),
             amount=Decimal(data.amount),
             status=self._map_status(data.status_code),
         )

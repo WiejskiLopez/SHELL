@@ -19,14 +19,14 @@ from shell.tests.conftest import (
 
 class TestGraphNodeExecutionWorkerFailure:
     async def test_node_failure_records_failed_and_does_not_abort(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "fail", ["agent", "tool"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "fail", ["agent", "tool"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
         runner = FakeGraphNodeExecutionProcessRunner(returncode=1, stderr="boom")
-        worker = _make_worker(uow, runner)
+        worker = _make_worker(unit_of_work, runner)
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
@@ -34,9 +34,9 @@ class TestGraphNodeExecutionWorkerFailure:
             )
         )
 
-        stored = await uow.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
 
-        types = [type(e) for e in uow.committed_events]
+        types = [type(e) for e in unit_of_work.committed_events]
         assert GraphNodeExecutionFailedEvent in types

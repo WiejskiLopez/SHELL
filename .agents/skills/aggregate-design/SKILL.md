@@ -62,20 +62,20 @@ Wyjątek: dwa agregaty w jednej transakcji są akceptowalne tylko gdy oba są no
 
 ```python
 # POPRAWNIE — jeden agregat na transakcję
-async with uow as uow:
-    order = await uow.orders.get_by_id(order_id)
+async with unit_of_work as unit_of_work:
+    order = await unit_of_work.orders.get_by_id(order_id)
     order.confirm()
-    uow.stage_events(order.pull_events())
+    unit_of_work.stage_events(order.pull_events())
 # OrderConfirmedEvent → InventoryHandler (osobna transakcja) → rezerwuje stock
 
 # ŹLE — dwa agregaty w jednej transakcji (chyba że oba są nowe)
-async with uow as uow:
-    order = await uow.orders.get_by_id(order_id)
-    inventory = await uow.inventories.get_by_id(product_id)
+async with unit_of_work as unit_of_work:
+    order = await unit_of_work.orders.get_by_id(order_id)
+    inventory = await unit_of_work.inventories.get_by_id(product_id)
     order.confirm()
     inventory.reserve(product_id, order.quantity)  # deadlock, concurrency hell
-    uow.stage_events(order.pull_events())
-    uow.stage_events(inventory.pull_events())
+    unit_of_work.stage_events(order.pull_events())
+    unit_of_work.stage_events(inventory.pull_events())
 ```
 
 ## Enkapsulacja stanu
@@ -180,7 +180,7 @@ async def save(self, aggregate: AggregateRoot) -> None:
 - Agregat dziedziczy po `AggregateRoot[TId]`
 - `__slots__` bez powtarzania `_id` (dziedziczony)
 - Każda metoda biznesowa woła `append_event()`
-- Eventy pullowane przez handler przez `aggregate.pull_events()` + `uow.stage_events()`
+- Eventy pullowane przez handler przez `aggregate.pull_events()` + `unit_of_work.stage_events()`
 - Nigdy `@dataclass` dla agregatu — identity-based equality
 
 ## Struktura folderów agregatu

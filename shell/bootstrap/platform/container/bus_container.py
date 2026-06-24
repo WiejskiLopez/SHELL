@@ -33,7 +33,7 @@ class BusContainer(containers.DeclarativeContainer):
     query_bus = providers.Singleton(QueryBus)
     event_bus = providers.Singleton(EventBus)
 
-    uow_factory = providers.Factory(
+    unit_of_work_factory = providers.Factory(
         SqlAlchemyUnitOfWork,
         session_factory=infra.session_factory,
     )

@@ -1,12 +1,12 @@
-"""Unit tests for ``BuildGraphExecutionOnTaskExecutionCreatedEvent`` event handler."""
+"""Unit tests for ``BuildGraphExecutionOnTaskExecutionCreatedEventHandler`` event handler."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 import pytest
-from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created import (
-    BuildGraphExecutionOnTaskExecutionCreatedEvent,
+from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created_event_handler import (
+    BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
 )
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.definition.entities.graph_definition import GraphDefinition
@@ -32,8 +32,8 @@ if TYPE_CHECKING:
 
 
 class _InMemoryGraphDefinitionQueryService:
-    def __init__(self, uow: InMemoryUnitOfWork) -> None:
-        self._repo = uow.graph_definitions
+    def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
+        self._repo = unit_of_work.graph_definitions
 
     async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
 
@@ -89,7 +89,7 @@ class _InMemoryGraphDefinitionQueryService:
 
 
 @pytest.fixture()
-def uow() -> InMemoryUnitOfWork:
+def unit_of_work() -> InMemoryUnitOfWork:
     return InMemoryUnitOfWork()
 
 
@@ -99,7 +99,7 @@ def clock() -> FakeClock:
 
 
 @pytest.fixture()
-def id_gen() -> FakeIdGenerator:
+def id_generator() -> FakeIdGenerator:
     return FakeIdGenerator()
 
 
@@ -109,7 +109,7 @@ def logger() -> FakeLogger:
 
 
 async def _seed_graph_definition(
-    uow: InMemoryUnitOfWork, name: str = "base_planner"
+    unit_of_work: InMemoryUnitOfWork, name: str = "base_planner"
 ) -> GraphDefinition:
     graph_definition = GraphDefinition(
         id=GraphDefinitionId(f"{name}-id"),
@@ -133,7 +133,7 @@ async def _seed_graph_definition(
         ],
     )
     # Clear any existing graph_definition with the same name (constructor seeds one)
-    repo = uow.graph_definitions
+    repo = unit_of_work.graph_definitions
     keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
     for k in keys_to_remove:
         del repo._store[k]
@@ -154,34 +154,34 @@ def _task_created_event(now: datetime) -> TaskExecutionCreatedEvent:
 # ---------------------------------------------------------------------------
 
 
-class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
+class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
     async def test_happy_path_builds_and_persists_graph_execution(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
-        await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
-            uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger
+        await _seed_graph_definition(unit_of_work)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
+            unit_of_work, _InMemoryGraphDefinitionQueryService(unit_of_work), clock, id_generator, logger
         )
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await uow.graph_executions.get_by_task_execution_id(
+        graph_execution = await unit_of_work.graph_executions.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         assert len(graph_execution.graph_node_executions) == 2
-        assert any(isinstance(e, GraphExecutionBuiltEvent) for e in uow.committed_events)
+        assert any(isinstance(e, GraphExecutionBuiltEvent) for e in unit_of_work.committed_events)
 
     async def test_graph_definition_not_found_raises(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
         # Use a fresh UoW without seeded graph_definition
@@ -189,10 +189,10 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
             InMemoryGraphDefinitionRepository,
         )
 
-        fresh_uow = InMemoryUnitOfWork()
-        fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
-            fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger
+        fresh_unit_of_work = InMemoryUnitOfWork()
+        fresh_unit_of_work._graph_definitions = InMemoryGraphDefinitionRepository()
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
+            fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
         )
 
         with pytest.raises(GraphDefinitionNotFoundException):
@@ -200,40 +200,40 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
 
     async def test_idempotent_when_graph_already_exists(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
-        await _seed_graph_definition(uow)
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
-            uow, _InMemoryGraphDefinitionQueryService(uow), clock, id_gen, logger
+        await _seed_graph_definition(unit_of_work)
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
+            unit_of_work, _InMemoryGraphDefinitionQueryService(unit_of_work), clock, id_generator, logger
         )
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await uow.graph_executions.get_by_task_execution_id(
+        first_graph = await unit_of_work.graph_executions.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert first_graph is not None
         first_graph_execution_id = first_graph.id
 
-        uow.committed_events.clear()
+        unit_of_work.committed_events.clear()
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await uow.graph_executions.get_by_task_execution_id(
+        second_graph = await unit_of_work.graph_executions.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert second_graph is not None
         assert second_graph.id == first_graph_execution_id
-        assert uow.committed_events == []
+        assert unit_of_work.committed_events == []
 
     async def test_no_events_published_on_failure(
         self,
-        uow: InMemoryUnitOfWork,
+        unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         logger: FakeLogger,
     ) -> None:
         # No graph_definition seeded — handler must NOT publish events when failing.
@@ -241,18 +241,18 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEvent:
             InMemoryGraphDefinitionRepository,
         )
 
-        fresh_uow = InMemoryUnitOfWork()
-        fresh_uow._graph_definitions = InMemoryGraphDefinitionRepository()
-        handler = BuildGraphExecutionOnTaskExecutionCreatedEvent(
-            fresh_uow, _InMemoryGraphDefinitionQueryService(fresh_uow), clock, id_gen, logger
+        fresh_unit_of_work = InMemoryUnitOfWork()
+        fresh_unit_of_work._graph_definitions = InMemoryGraphDefinitionRepository()
+        handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
+            fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
         )
 
         with pytest.raises(GraphDefinitionNotFoundException):
             await handler.handle(_task_created_event(clock.now()))
 
-        assert fresh_uow.committed_events == []
+        assert fresh_unit_of_work.committed_events == []
         # Graph must not exist either.
         assert (
-            await fresh_uow.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+            await fresh_unit_of_work.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
             is None
         )

@@ -75,8 +75,8 @@ class OutboxService:
 class OutboxRelay:
     async def run(self) -> None:
         while True:
-            async with self._uow as uow:
-                events = await uow.outbox.get_unprocessed(limit=100)
+            async with self._unit_of_work as unit_of_work:
+                events = await unit_of_work.outbox.get_unprocessed(limit=100)
                 for event in events:
                     await self._publisher.publish(event)
                     event.mark_processed()
@@ -109,15 +109,15 @@ Consumer.handle(event):
 Zapis do inbox jest w TEJ SAMEJ TRANSAKCJI co zmiana domenowa wywołana przez event:
 
 ```python
-async def handle(self, event: OrderConfirmedEvent) -> None:
-    async with self._uow as uow:
-        if await uow.inbox.contains(event.event_id):
-            return  # już przetworzony — idempotencja
+    async def handle(self, event: OrderConfirmedEvent) -> None:
+        async with self._unit_of_work as unit_of_work:
+            if await unit_of_work.inbox.contains(event.event_id):
+                return  # już przetworzony — idempotencja
 
-        inventory = await uow.inventories.get_by_product_id(event.product_id)
-        inventory.reserve(event.order_id, event.quantity)
-        await uow.inbox.add(event.event_id)
-        uow.stage_events(inventory.pull_events())
+            inventory = await unit_of_work.inventories.get_by_product_id(event.product_id)
+            inventory.reserve(event.order_id, event.quantity)
+            await unit_of_work.inbox.add(event.event_id)
+            unit_of_work.stage_events(inventory.pull_events())
 ```
 
 ## Saga — choreografia vs orkiestracja
@@ -174,16 +174,16 @@ Gdy krok sagi fejluje, musisz cofnąć już wykonane kroki:
 class SagaOrchestrator:
     async def handle_payment_failed(self, event: PaymentFailedEvent) -> None:
         # Cofnij rezerwację stocku
-        async with self._uow as uow:
-            inventory = await uow.inventories.get_by_product_id(event.product_id)
+        async with self._unit_of_work as unit_of_work:
+            inventory = await unit_of_work.inventories.get_by_product_id(event.product_id)
             inventory.release(event.order_id, event.quantity)
-            uow.stage_events(inventory.pull_events())
+            unit_of_work.stage_events(inventory.pull_events())
 
         # Anuluj zamówienie
-        async with self._uow as uow:
-            order = await uow.orders.get_by_id(event.order_id)
+        async with self._unit_of_work as unit_of_work:
+            order = await unit_of_work.orders.get_by_id(event.order_id)
             order.cancel(reason=f"Payment failed: {event.reason}")
-            uow.stage_events(order.pull_events())
+            unit_of_work.stage_events(order.pull_events())
 ```
 
 ## Event ordering i śledzenie przyczyn

@@ -12,26 +12,26 @@ Middleware (Pipeline) to warstwa która otacza handler, dodając przekrojowe zac
 ```python
 # Handler — czysta logika aplikacyjna
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
+    async def handle(self, command: CreateExecutionCommand) -> None:
+        async with self.unit_of_work:
+            graph = await self.graph_repository.get(GraphId(command.graph_id))
             execution = self.factory.create_from_graph(graph)
-            await self.repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self.repository.add(execution)
+            self.unit_of_work.stage_events(execution.pull_events())
 
 # Middleware — dodaje logowanie bez modyfikacji handlera
 class LoggingMiddleware(CommandMiddleware):
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
-        logger.info("Handling command: %s", cmd.__class__.__name__)
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
+        logger.info("Handling command: %s", command.__class__.__name__)
         start = time.monotonic()
         try:
-            result = await next(cmd)
+            result = await next(command)
             elapsed = time.monotonic() - start
-            logger.info("Command %s completed in %.3fs", cmd.__class__.__name__, elapsed)
+            logger.info("Command %s completed in %.3fs", command.__class__.__name__, elapsed)
             return result
         except Exception as e:
             elapsed = time.monotonic() - start
-            logger.error("Command %s failed after %.3fs: %s", cmd.__class__.__name__, elapsed, e)
+            logger.error("Command %s failed after %.3fs: %s", command.__class__.__name__, elapsed, e)
             raise
 ```
 
@@ -53,7 +53,7 @@ HandlerFunc = Callable[[Command], Awaitable[Any]]
 
 
 class CommandMiddleware(Protocol):
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any: ...
+    async def handle(self, command: Command, next: HandlerFunc) -> Any: ...
 
 
 class CommandPipeline:
@@ -63,16 +63,16 @@ class CommandPipeline:
         self._handler = handler
         self._middlewares = middlewares
 
-    async def execute(self, cmd: Command) -> Any:
+    async def execute(self, command: Command) -> Any:
         chain = self._build_chain()
-        return await chain(cmd)
+        return await chain(command)
 
     def _build_chain(self) -> HandlerFunc:
         chain = self._handler
         for middleware in reversed(self._middlewares):
             next_handler = chain
             current = middleware
-            chain = lambda cmd, m=current, n=next_handler: m.handle(cmd, n)
+            chain = lambda command, m=current, n=next_handler: m.handle(command, n)
         return chain
 ```
 
@@ -82,14 +82,14 @@ class CommandPipeline:
 
 ```python
 class LoggingMiddleware:
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
-        logger.debug(">> %s %s", cmd.__class__.__name__, cmd)
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
+        logger.debug(">> %s %s", command.__class__.__name__, command)
         try:
-            result = await next(cmd)
-            logger.debug("<< %s OK", cmd.__class__.__name__)
+            result = await next(command)
+            logger.debug("<< %s OK", command.__class__.__name__)
             return result
         except Exception:
-            logger.debug("<< %s FAIL", cmd.__class__.__name__)
+            logger.debug("<< %s FAIL", command.__class__.__name__)
             raise
 ```
 
@@ -97,18 +97,18 @@ class LoggingMiddleware:
 
 ```python
 class TransactionMiddleware:
-    def __init__(self, uow_factory: Callable[[], UnitOfWork]) -> None:
-        self._uow_factory = uow_factory
+    def __init__(self, unit_of_work_factory: Callable[[], UnitOfWork]) -> None:
+        self._unit_of_work_factory = unit_of_work_factory
 
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
-        async with self._uow_factory() as uow:
-            cmd._uow = uow  # Wstrzyknięcie UoW do handlera
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
+        async with self._unit_of_work_factory() as unit_of_work:
+            command._unit_of_work = unit_of_work  # Wstrzyknięcie UoW do handlera
             try:
-                result = await next(cmd)
-                await uow.commit()
+                result = await next(command)
+                await unit_of_work.commit()
                 return result
             except Exception:
-                await uow.rollback()
+                await unit_of_work.rollback()
                 raise
 ```
 
@@ -119,24 +119,24 @@ class AuthorizationMiddleware:
     def __init__(self, auth_service: AuthorizationService) -> None:
         self._auth_service = auth_service
 
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
-        user_id = getattr(cmd, "user_id", None)
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
+        user_id = getattr(command, "user_id", None)
         if user_id:
-            self._auth_service.assert_authorized(user_id, cmd.__class__.__name__)
-        return await next(cmd)
+            self._auth_service.assert_authorized(user_id, command.__class__.__name__)
+        return await next(command)
 ```
 
 ### ValidationMiddleware
 
 ```python
 class ValidationMiddleware:
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
-        validator = getattr(cmd, "validate", None)
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
+        validator = getattr(command, "validate", None)
         if validator:
             errors = validator()
             if errors:
                 raise CommandValidationError(errors)
-        return await next(cmd)
+        return await next(command)
 ```
 
 ### RetryMiddleware
@@ -146,11 +146,11 @@ class RetryMiddleware:
     def __init__(self, policy: RetryPolicy = RetryPolicy()) -> None:
         self._policy = policy
 
-    async def handle(self, cmd: Command, next: HandlerFunc) -> Any:
+    async def handle(self, command: Command, next: HandlerFunc) -> Any:
         last_error = None
         for attempt in range(self._policy.max_retries + 1):
             try:
-                return await next(cmd)
+                return await next(command)
             except TransientError as e:
                 last_error = e
                 if attempt < self._policy.max_retries:
@@ -185,7 +185,7 @@ class ExecutionModule:
         container.register(
             CommandPipeline,
             instance=CommandPipeline(
-                handler=lambda cmd: container.resolve(CreateExecutionHandler).handle(cmd),
+                handler=lambda command: container.resolve(CreateExecutionHandler).handle(command),
                 middlewares=middlewares,
             ),
         )

@@ -37,19 +37,19 @@ class DomainContainer(containers.DeclarativeContainer):
     sub_graph_observer_factory = providers.Singleton(DefaultSubGraphObserver)
     sub_graph_versioning_factory = providers.Singleton(
         LatestVersionStrategy,
-        uow_factory=buses.uow_factory,
+        unit_of_work_factory=buses.unit_of_work_factory,
     )
     sub_graph_discovery_factory = providers.Singleton(
         DefaultSubGraphDiscovery,
-        uow_factory=buses.uow_factory,
+        unit_of_work_factory=buses.unit_of_work_factory,
     )
 
     # ── Sub-graph execution service (used by PlannerResultHandler) ────────
     sub_graph_execution_service_factory = providers.Singleton(
         SubGraphExecutionService,
-        uow=buses.uow_factory,
+        unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
-        id_gen=infra.id_gen_factory,
+        id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
         definition_provider=infra.definition_provider_factory,
         governance=sub_graph_governance_factory,

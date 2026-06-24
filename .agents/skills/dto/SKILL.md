@@ -52,11 +52,11 @@ class InvoiceDTO:
 
 # shell/domain/execution/... — Execution BC mapuje DTO na swoje VO
 class ExecutionInvoiceMapper:
-    def to_domain_payment(self, dto: InvoiceDTO) -> Payment:
+    def to_domain_payment(self, invoice_dto: InvoiceDTO) -> Payment:
         return Payment(
-            amount=Money(Decimal(str(dto.amount)), dto.currency),
-            due_date=Timestamp.from_iso(dto.due_date),
-            status=PaymentStatus(dto.status),
+            amount=Money(Decimal(str(invoice_dto.amount)), invoice_dto.currency),
+            due_date=Timestamp.from_iso(invoice_dto.due_date),
+            status=PaymentStatus(invoice_dto.status),
         )
 ```
 

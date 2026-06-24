@@ -192,12 +192,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
                 f"Cannot take transition in status {self._status}"
             )
         self._status = TransitionStatus.TAKEN
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.transition_taken_event import (
-            TransitionTakenEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_transition_taken_event import (
+            GraphNodeTransitionExecutionTransitionTakenEvent,
         )
 
         self.append_event(
-            TransitionTakenEvent.now(
+            GraphNodeTransitionExecutionTransitionTakenEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
                 target_node_id=self._target_node_execution_id,
@@ -223,12 +223,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             )
         self._current_iteration += 1
         self._status = TransitionStatus.EVALUATED
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.transition_looped_event import (
-            TransitionLoopedEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_looped_event import (
+            GraphNodeTransitionExecutionLoopedEvent,
         )
 
         self.append_event(
-            TransitionLoopedEvent.now(
+            GraphNodeTransitionExecutionLoopedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
                 now=now,
@@ -245,12 +245,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             raise InvalidTransitionError(
                 f"Cannot evaluate condition in status {self._status}"
             )
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.transition_condition_evaluated_event import (
-            TransitionConditionEvaluatedEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_condition_evaluated_event import (
+            GraphNodeTransitionExecutionConditionEvaluatedEvent,
         )
 
         self.append_event(
-            TransitionConditionEvaluatedEvent.now(
+            GraphNodeTransitionExecutionConditionEvaluatedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
                 now=now,
@@ -269,12 +269,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             raise InvalidTransitionError(
                 f"Cannot handle error for non-ERROR_HANDLER transition (type={self._edge_type})"
             )
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.transition_error_handled_event import (
-            TransitionErrorHandledEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_error_handled_event import (
+            GraphNodeTransitionExecutionErrorHandledEvent,
         )
 
         self.append_event(
-            TransitionErrorHandledEvent.now(
+            GraphNodeTransitionExecutionErrorHandledEvent.now(
                 transition_id=self._id,
                 failed_node_id=failed_node_id,
                 handler_node_id=handler_node_id,
@@ -290,12 +290,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             raise InvalidTransitionError(
                 f"Cannot handle timeout for non-TIMEOUT transition (type={self._edge_type})"
             )
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.transition_timed_out_event import (
-            TransitionTimedOutEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_timed_out_event import (
+            GraphNodeTransitionExecutionTimedOutEvent,
         )
 
         self.append_event(
-            TransitionTimedOutEvent.now(
+            GraphNodeTransitionExecutionTimedOutEvent.now(
                 transition_id=self._id,
                 node_id=node_id,
                 handler_node_id=handler_node_id,

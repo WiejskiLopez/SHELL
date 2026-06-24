@@ -26,13 +26,13 @@ from shell.tests.conftest import (
 
 class TestGraphNodeExecutionResultHandlerHappyPath:
     async def test_completed_advances_to_next_node(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "adv", ["agent", "tool"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "adv", ["agent", "tool"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        handler = _make_result_handler(uow)
+        handler = _make_result_handler(unit_of_work)
 
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
@@ -43,22 +43,22 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await uow.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
 
-        types = [type(e) for e in uow.committed_events]
+        types = [type(e) for e in unit_of_work.committed_events]
         assert GraphNodeExecutionAdvancedEvent in types
         assert GraphNodeExecutionRequestedEvent in types
 
     async def test_completed_on_last_node_finishes_workflow(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "fin", ["agent"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "fin", ["agent"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        handler = _make_result_handler(uow)
+        handler = _make_result_handler(unit_of_work)
 
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
@@ -69,23 +69,23 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await uow.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.done()
 
-        types = [type(e) for e in uow.committed_events]
+        types = [type(e) for e in unit_of_work.committed_events]
         assert WorkflowCompletedEvent in types
 
 
 class TestGraphNodeExecutionResultHandlerFailure:
     async def test_failed_aborts_under_fail_fast_policy(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "abort", ["agent", "tool"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "abort", ["agent", "tool"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
-        handler = _make_result_handler(uow)
+        handler = _make_result_handler(unit_of_work)
 
         await handler.handle(
             GraphNodeExecutionFailedEvent.now(
@@ -96,11 +96,11 @@ class TestGraphNodeExecutionResultHandlerFailure:
             )
         )
 
-        stored = await uow.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.failed()
 
-        types = [type(e) for e in uow.committed_events]
+        types = [type(e) for e in unit_of_work.committed_events]
         assert WorkflowFailedEvent in types
         assert GraphNodeExecutionAdvancedEvent not in types
         assert GraphNodeExecutionRequestedEvent not in types
@@ -108,18 +108,18 @@ class TestGraphNodeExecutionResultHandlerFailure:
 
 class TestGraphNodeExecutionResultHandlerIdempotency:
     async def test_terminal_workflow_ignores_result_event(self) -> None:
-        uow = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(uow, "term", ["agent"])
+        unit_of_work = InMemoryUnitOfWork()
+        task_execution, graph_execution = _build_graph_execution(unit_of_work, "term", ["agent"])
         wf = await _persist_running_workflow(
-            uow, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
         )
 
         wf.finish(now=_NOW)
-        async with uow:
-            await uow.workflows.save(wf)
-            await uow.commit()
+        async with unit_of_work:
+            await unit_of_work.workflows.save(wf)
+            await unit_of_work.commit()
 
-        handler = _make_result_handler(uow)
+        handler = _make_result_handler(unit_of_work)
 
         await handler.handle(
             GraphNodeExecutionCompletedEvent.now(
@@ -130,6 +130,6 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
             )
         )
 
-        stored = await uow.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflows.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.done()

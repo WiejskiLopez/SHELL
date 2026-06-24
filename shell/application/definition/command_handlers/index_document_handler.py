@@ -15,33 +15,33 @@ if TYPE_CHECKING:
 class IndexDocumentHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
-        id_gen: IdGenerator,
+        id_generator: IdGenerator,
         embedder: Embedder,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_gen = id_gen
+        self._id_generator = id_generator
         self._embedder = embedder
 
-    async def handle(self, cmd: IndexDocumentCommand) -> RagDocumentId:
-        doc_id = self._id_gen.new_rag_document_id()
+    async def handle(self, command: IndexDocumentCommand) -> RagDocumentId:
+        doc_id = self._id_generator.new_rag_document_id()
         # pre-generate enough chunk IDs (max chunks = ceil(len/step))
-        max_chunks = max(1, len(cmd.text) // max(1, cmd.chunk_size - cmd.overlap) + 2)
-        chunk_ids = [self._id_gen.new_rag_chunk_id() for _ in range(max_chunks)]
+        max_chunks = max(1, len(command.text) // max(1, command.chunk_size - command.overlap) + 2)
+        chunk_ids = [self._id_generator.new_rag_chunk_id() for _ in range(max_chunks)]
         doc = build_rag_document(
             doc_id=doc_id,
             chunk_ids=chunk_ids,
-            source_uri=cmd.source_uri,
-            title=cmd.title,
-            domain=cmd.domain,
-            text=cmd.text,
+            source_uri=command.source_uri,
+            title=command.title,
+            domain=command.domain,
+            text=command.text,
             embedder=self._embedder,
             now=self._clock.now(),
-            chunk_size=cmd.chunk_size,
-            overlap=cmd.overlap,
+            chunk_size=command.chunk_size,
+            overlap=command.overlap,
         )
-        async with self._uow as uow:
-            await uow.rag_documents.save(doc)
+        async with self._unit_of_work as unit_of_work:
+            await unit_of_work.rag_documents.save(doc)
         return doc_id

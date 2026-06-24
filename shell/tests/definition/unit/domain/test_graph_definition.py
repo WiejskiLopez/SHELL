@@ -38,14 +38,14 @@ def _make_transition(from_pos: int | None, to_pos: int) -> GraphNodeTransitionDe
 
 class TestGraphDefinition:
     def test_constructor_sets_name_and_purpose(self) -> None:
-        gd = GraphDefinition(GraphDefinitionId("g1"), "test", "for testing")
-        assert gd.name == "test"
-        assert gd.purpose == "for testing"
+        graph_definition = GraphDefinition(GraphDefinitionId("g1"), "test", "for testing")
+        assert graph_definition.name == "test"
+        assert graph_definition.purpose == "for testing"
 
     def test_constructor_empty_nodes(self) -> None:
-        gd = GraphDefinition(GraphDefinitionId("g1"), "x", "y")
-        assert len(gd.graph_node_definitions) == 0
-        assert len(gd.transition_definitions) == 0
+        graph_definition = GraphDefinition(GraphDefinitionId("g1"), "x", "y")
+        assert len(graph_definition.graph_node_definitions) == 0
+        assert len(graph_definition.transition_definitions) == 0
 
     def test_add_node_sorts_by_position(self) -> None:
         gd = GraphDefinition(GraphDefinitionId("g1"), "x", "y")

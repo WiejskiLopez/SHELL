@@ -66,21 +66,21 @@ Handler wywołuje walidację komendy przed przekazaniem do domeny.
 
 ```python
 class CreateExecutionHandler:
-    async def handle(self, cmd: CreateExecutionCommand) -> None:
+    async def handle(self, command: CreateExecutionCommand) -> None:
         # 1. Walidacja komendy
-        errors = cmd.validate()
+        errors = command.validate()
         if errors:
             raise CommandValidationError(errors)
 
         # 2. Autoryzacja
-        self._auth.assert_can_create(cmd.user_id)
+        self._auth.assert_can_create(command.user_id)
 
         # 3. Delegacja do domeny
-        async with self.uow:
-            graph = await self.graph_repo.get(GraphId(cmd.graph_id))
+        async with self._unit_of_work:
+            graph = await self.graph_repository.get(GraphId(command.graph_id))
             execution = self.factory.create_from_graph(graph)
-            await self.repo.add(execution)
-            self.uow.stage_events(execution.pull_events())
+            await self.repository.add(execution)
+            self._unit_of_work.stage_events(execution.pull_events())
 ```
 
 ## 5. Walidacja Biznesowa — Domain (VO/Agregat)

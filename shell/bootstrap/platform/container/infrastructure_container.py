@@ -62,13 +62,13 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         SessionQueryService, session_factory=session_factory
     )
     rag_query_service = providers.Singleton(RagQueryService, session_factory=session_factory)
-    uow_factory = providers.Factory(SqlAlchemyUnitOfWork, session_factory=session_factory)
+    unit_of_work_factory = providers.Factory(SqlAlchemyUnitOfWork, session_factory=session_factory)
 
     # 2. Narzędzia i adaptery portów
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell")
     embedder = providers.Singleton(HashEmbedder)
     clock_factory = providers.Factory(SystemClock)
-    id_gen_factory = providers.Factory(UuidIdGenerator)
+    id_generator_factory = providers.Factory(UuidIdGenerator)
     task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
     workspace_factory = providers.Factory(Workspace)
     runner_factory = providers.Factory(SubprocessGraphNodeExecutionProcessRunner)

@@ -6,5 +6,5 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class ProjectStatus(ValueObject, StrEnum):
-    ACTIVE = "ACTIVE"
-    ARCHIVED = "ARCHIVED"
+    ACTIVE = "active"
+    ARCHIVED = "archived"

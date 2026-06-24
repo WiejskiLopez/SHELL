@@ -45,16 +45,28 @@ tests/architecture/
 ### 2.1 Helpery w `tests/architecture/conftest.py`
 
 ```python
-"""Wspólne helpery do testów architektonicznych."""
+"""Wspólne helpery do testów architektonicznych.
+
+Uwaga: wszystkie ścieżki są względem katalogu projektu (rodzica `tests/`).
+"""
 
 import ast
 from collections.abc import Generator
 from pathlib import Path
 
 
+def _project_root(marker: str = "pyproject.toml") -> Path:
+    """Znajduje katalog projektu — idzie w górę od conftest.py aż znajdzie marker."""
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / marker).is_file():
+            return parent
+    return current.parents[1]  # fallback: /project
+
+
 def walk_py_files(root: str) -> list[Path]:
     """Zwraca listę plików .py w katalogu (rekurencyjnie), pomijając __init__.py i __pycache__."""
-    base = Path(__file__).resolve().parents[3]  # project root
+    base = _project_root()
     target = base / root
     if not target.is_dir():
         return []
@@ -160,13 +172,14 @@ class TestDomainHasNoFrameworks:
 """Sprawdza, że każdy agregat ma odpowiadającą fabrykę."""
 
 from pathlib import Path
+from tests.architecture.conftest import _project_root
 
 
 class TestAggregateHasFactory:
     """Każdy katalog agregatu w domain/ ma podkatalog factories/ z co najmniej jednym plikiem .py."""
 
     def test_every_aggregate_has_factory(self) -> None:
-        domain = Path(__file__).resolve().parents[3] / "shell" / "domain"
+        domain = _project_root() / "shell" / "domain"
         aggregates = [d for d in domain.iterdir() if d.is_dir() and d.name != "__pycache__"]
         violations: list[str] = []
         for agg in aggregates:
@@ -360,13 +373,17 @@ istnienie wymaganych plików.
 """
 
 from pathlib import Path
+from tests.architecture.conftest import _project_root
+
+
+_PROJECT = _project_root()
 
 
 class TestRepositoryImplementsPortForEachAggregate:
     """Każdy agregat w domain ma port repozytorium, każdy port ma implementację SQL w infrastructure."""
 
     def _find_aggregate_names(self) -> list[str]:
-        domain = Path(__file__).resolve().parents[3] / "shell" / "domain"
+        domain = _PROJECT / "shell" / "domain"
         return sorted(
             d.name for d in domain.iterdir()
             if d.is_dir() and d.name != "__pycache__" and not d.name.startswith("_")
@@ -375,7 +392,7 @@ class TestRepositoryImplementsPortForEachAggregate:
     def test_every_aggregate_has_repository_port(self) -> None:
         violations: list[str] = []
         for agg_name in self._find_aggregate_names():
-            port_path = Path(__file__).resolve().parents[3] / "shell" / "domain" / agg_name / "repositories"
+            port_path = _PROJECT / "shell" / "domain" / agg_name / "repositories"
             if not port_path.is_dir() or not list(port_path.glob("*repository*.py")):
                 violations.append(f"{agg_name} — missing repository port in domain/{agg_name}/repositories/")
         assert not violations, "\n".join(violations)
@@ -383,12 +400,12 @@ class TestRepositoryImplementsPortForEachAggregate:
     def test_every_port_has_sql_implementation(self) -> None:
         violations: list[str] = []
         for agg_name in self._find_aggregate_names():
-            port_dir = Path(__file__).resolve().parents[3] / "shell" / "domain" / agg_name / "repositories"
+            port_dir = _PROJECT / "shell" / "domain" / agg_name / "repositories"
             ports = list(port_dir.glob("*repository*.py"))
             for port_file in ports:
                 port_stem = port_file.stem.replace("repository", "").strip("_")
                 infra_pattern = f"*{port_stem}*repository*.py"
-                infra_dir = Path(__file__).resolve().parents[3] / "shell" / "infrastructure" / agg_name / "repositories"
+                infra_dir = _PROJECT / "shell" / "infrastructure" / agg_name / "repositories"
                 if not infra_dir.is_dir() or not list(infra_dir.rglob(infra_pattern)):
                     violations.append(
                         f"SQL implementation for {port_file.relative_to(port_dir.parents[1])} "
@@ -397,15 +414,20 @@ class TestRepositoryImplementsPortForEachAggregate:
         assert not violations, "\n".join(violations)
 ```
 
-### 5.2 `test_mapper_round_trip_contract.py`
+### 5.2 `test_mapper_has_both_conversion_methods.py`
 
 ```python
-"""Sprawdza, że każdy mapper ma metodę to_domain i to_model."""
+"""Sprawdza, że każdy mapper ma metodę to_domain i to_model.
+
+To jest test AST — sprawdza istnienie metod, nie ich poprawność.
+Rzeczywisty round-trip (domain → model → domain) testuje się w runtime
+— patrz testing skill, sekcja 7 (Testy Mapperów Round-trip).
+"""
 
 from tests.architecture.conftest import walk_py_files, parse_py
 
 
-class TestMapperRoundTripContract:
+class TestMapperHasBothConversionMethods:
     """Każdy mapper musi mieć zarówno to_domain jak i to_model."""
 
     def test_every_mapper_has_both_conversion_methods(self) -> None:
@@ -436,14 +458,18 @@ class TestMapperRoundTripContract:
 """Sprawdza, że dla każdego portu repozytorium istnieje implementacja InMemory."""
 
 from pathlib import Path
+from tests.architecture.conftest import _project_root
+
+
+_PROJECT = _project_root()
 
 
 class TestInMemoryExistsForEachPort:
     """Każdy port repozytorium w domain ma odpowiadającą implementację InMemory w infrastructure."""
 
     def test_each_port_has_in_memory(self) -> None:
-        domain = Path(__file__).resolve().parents[3] / "shell" / "domain"
-        infra = Path(__file__).resolve().parents[3] / "shell" / "infrastructure"
+        domain = _PROJECT / "shell" / "domain"
+        infra = _PROJECT / "shell" / "infrastructure"
         ports = list(domain.rglob("*repository*.py"))
         violations: list[str] = []
         for port_file in ports:
@@ -459,36 +485,37 @@ class TestInMemoryExistsForEachPort:
 
 ```bash
 # wszystkie testy architektury
-pytest tests/platform/architecture/ -v
+pytest tests/architecture/ -v
 
 # tylko domain
-pytest tests/platform/architecture/domain/ -v
+pytest tests/architecture/domain/ -v
 
 # tylko application
-pytest tests/platform/architecture/application/ -v
+pytest tests/architecture/application/ -v
 
 # tylko infrastructure
-pytest tests/platform/architecture/infrastructure/ -v
+pytest tests/architecture/infrastructure/ -v
 
 # CI — wyłączone z normalnego runa, osobna matryca
-pytest tests/platform/architecture/ -v --tb=short
+pytest tests/architecture/ -v --tb=short
 ```
 
 ## 7. Zasady Dodawania Nowego Testu
 
-1. Plik w odpowiednim podfolderze `tests/platform/architecture/{layer}/`
+1. Plik w odpowiednim podfolderze `tests/architecture/{layer}/`
 2. Każda klasa testowa w osobnym pliku
 3. Test sprawdza **jedną regułę architektoniczną**
 4. Komunikaty błędów zawierają nazwę pliku i linię
 5. Używaj helperów z `conftest.py` — nie duplikuj kodu
 6. Testy muszą być szybkie (< 1s łącznie dla warstwy)
+7. **Nie duplikuj reguł z innych skilli** — jeśli dana reguła jest już sprawdzana przez import-linter (warstwa 1) lub mypy strict (warstwa 3), nie dodawaj jej jako testu AST. Patrz też `testing` skill oraz `arch-test-import-linter` i `arch-test-mypy`.
 
 ## 8. Przykład: dodanie nowej reguły
 
 Chcesz sprawdzić, że każdy handler ma type hint dla zwracanego typu:
 
 ```python
-# tests/platform/architecture/application/test_handlers_have_return_type.py
+# tests/architecture/application/test_handlers_have_return_type.py
 """Sprawdza, że każdy handler deklaruje typ zwracany."""
 
 

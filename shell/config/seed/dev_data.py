@@ -352,7 +352,7 @@ def _seed_task_executions(session: Session) -> None:
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-simple-agent",
-                status="CREATED",
+                status="created",
                 name="dev-simple-agent-task",
                 work_dir="/tmp/shell/dev/simple-agent",
                 workflow_id=None,
@@ -368,7 +368,7 @@ def _seed_task_executions(session: Session) -> None:
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-planner-worker",
-                status="CREATED",
+                status="created",
                 name="dev-planner-worker-task",
                 work_dir="/tmp/shell/dev/planner-worker",
                 workflow_id=None,
@@ -384,7 +384,7 @@ def _seed_task_executions(session: Session) -> None:
         {
             "model": TaskExecutionModel(
                 id=f"{_DEV_ID_PREFIX}-task-full-pipeline",
-                status="CREATED",
+                status="created",
                 name="dev-full-pipeline-task",
                 work_dir="/tmp/shell/dev/full-pipeline",
                 workflow_id=None,
@@ -482,7 +482,7 @@ def _seed_workflow_scenario(session: Session) -> None:
         id=ge_id,
         task_execution_id=task_id,
         graph_definition_id=graph_def_id,
-        status="COMPLETED",
+        status="completed",
         parent_graph_execution_id=None,
         state_input={"mode": "autonomous"},
         state_output={"result": "success"},

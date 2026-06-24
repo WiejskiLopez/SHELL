@@ -15,21 +15,21 @@ if TYPE_CHECKING:
 class ArchiveEnvelopeHandler:
     def __init__(
         self,
-        uow: UnitOfWork,
+        unit_of_work: UnitOfWork,
         clock: Clock,
     ) -> None:
-        self._uow = uow
+        self._unit_of_work = unit_of_work
         self._clock = clock
 
-    async def handle(self, cmd: ArchiveEnvelopeCommand) -> None:
-        envelope_id = EnvelopeId(cmd.envelope_id)
+    async def handle(self, command: ArchiveEnvelopeCommand) -> None:
+        envelope_id = EnvelopeId(command.envelope_id)
         now = self._clock.now()
 
-        async with self._uow as uow:
-            envelope = await uow.envelopes.get_by_id(envelope_id)
+        async with self._unit_of_work as unit_of_work:
+            envelope = await unit_of_work.envelopes.get_by_id(envelope_id)
             if envelope is None:
-                raise EnvelopeNotFound(cmd.envelope_id)
+                raise EnvelopeNotFound(command.envelope_id)
 
-            archive_uri = await uow.envelope_archive.archive(envelope)
+            archive_uri = await unit_of_work.envelope_archive.archive(envelope)
             envelope.archive(archive_uri, now)
-            await uow.envelopes.save(envelope)
+            await unit_of_work.envelopes.save(envelope)
