@@ -13,7 +13,7 @@ from shell.domain.execution.services.graph_node_execution_policy.continue_decisi
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
     from shell.domain.execution.aggregates.workflow import Workflow

@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.envelope.envelope_id import EnvelopeId
-from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.envelope.value_objects.envelope_id import EnvelopeId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.platform.events import DomainEvent
 
 

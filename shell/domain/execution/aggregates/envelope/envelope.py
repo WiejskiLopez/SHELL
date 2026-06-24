@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.envelope.entities.envelope_event import EnvelopeEvent
-from shell.domain.execution.aggregates.envelope.envelope_id import EnvelopeId
+from shell.domain.execution.aggregates.envelope.events.envelope_deadlettered_event import EnvelopeDeadletteredEvent
+from shell.domain.execution.aggregates.envelope.events.envelope_routed_event import EnvelopeRoutedEvent
+from shell.domain.execution.aggregates.envelope.value_objects.envelope_id import EnvelopeId
 from shell.domain.execution.aggregates.envelope.exceptions.invalid_envelope_transition import (
     InvalidEnvelopeTransition,
 )
@@ -13,10 +15,10 @@ from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, E
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
-    from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 
 _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
     EnvelopeStatus.PENDING: {EnvelopeStatus.ACTIVE, EnvelopeStatus.DEAD},
@@ -29,22 +31,22 @@ _STATUS_TRANSITIONS: dict[EnvelopeStatus, set[EnvelopeStatus]] = {
 
 class Envelope(AggregateRoot[EnvelopeId]):
     __slots__ = (
-        "workflow_id",
-        "parent_id",
-        "correlation_id",
-        "sender_graph_node_execution_id",
-        "receiver_graph_node_execution_id",
-        "source_role",
-        "target_role",
-        "sequence_id",
-        "step",
-        "status",
-        "stage",
-        "payload",
-        "artifact_uri",
-        "archive_uri",
-        "created_at",
-        "updated_at",
+        "_workflow_id",
+        "_parent_id",
+        "_correlation_id",
+        "_sender_graph_node_execution_id",
+        "_receiver_graph_node_execution_id",
+        "_source_role",
+        "_target_role",
+        "_sequence_id",
+        "_step",
+        "_status",
+        "_stage",
+        "_payload",
+        "_artifact_uri",
+        "_archive_uri",
+        "_created_at",
+        "_updated_at",
         "_envelope_events",
     )
 
@@ -70,23 +72,87 @@ class Envelope(AggregateRoot[EnvelopeId]):
         events: list[EnvelopeEvent] | None = None,
     ) -> None:
         super().__init__(id)
-        self.workflow_id = workflow_id
-        self.parent_id = parent_id
-        self.correlation_id = correlation_id
-        self.sender_graph_node_execution_id = sender_graph_node_execution_id
-        self.receiver_graph_node_execution_id = receiver_graph_node_execution_id
-        self.source_role = source_role
-        self.target_role = target_role
-        self.sequence_id = sequence_id
-        self.step = step
-        self.status = status
-        self.stage = stage
-        self.payload = payload
-        self.artifact_uri = artifact_uri
-        self.archive_uri = archive_uri
-        self.created_at = created_at
-        self.updated_at = updated_at
+        self._workflow_id = workflow_id
+        self._parent_id = parent_id
+        self._correlation_id = correlation_id
+        self._sender_graph_node_execution_id = sender_graph_node_execution_id
+        self._receiver_graph_node_execution_id = receiver_graph_node_execution_id
+        self._source_role = source_role
+        self._target_role = target_role
+        self._sequence_id = sequence_id
+        self._step = step
+        self._status = status
+        self._stage = stage
+        self._payload = payload
+        self._artifact_uri = artifact_uri
+        self._archive_uri = archive_uri
+        self._created_at = created_at
+        self._updated_at = updated_at
         self._envelope_events = events or []
+
+    @property
+    def workflow_id(self) -> WorkflowId:
+        return self._workflow_id
+
+    @property
+    def parent_id(self) -> EnvelopeId | None:
+        return self._parent_id
+
+    @property
+    def correlation_id(self) -> str:
+        return self._correlation_id
+
+    @property
+    def sender_graph_node_execution_id(self) -> GraphNodeExecutionId:
+        return self._sender_graph_node_execution_id
+
+    @property
+    def receiver_graph_node_execution_id(self) -> GraphNodeExecutionId:
+        return self._receiver_graph_node_execution_id
+
+    @property
+    def source_role(self) -> str:
+        return self._source_role
+
+    @property
+    def target_role(self) -> str:
+        return self._target_role
+
+    @property
+    def sequence_id(self) -> int:
+        return self._sequence_id
+
+    @property
+    def step(self) -> int:
+        return self._step
+
+    @property
+    def status(self) -> EnvelopeStatus:
+        return self._status
+
+    @property
+    def stage(self) -> EnvelopeStage:
+        return self._stage
+
+    @property
+    def payload(self) -> dict[str, object]:
+        return dict(self._payload)
+
+    @property
+    def artifact_uri(self) -> str:
+        return self._artifact_uri
+
+    @property
+    def archive_uri(self) -> str:
+        return self._archive_uri
+
+    @property
+    def created_at(self) -> datetime:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> datetime:
+        return self._updated_at
 
     @property
     def events(self) -> list[EnvelopeEvent]:
@@ -130,15 +196,15 @@ class Envelope(AggregateRoot[EnvelopeId]):
         )
 
     def transition_status(self, new_status: EnvelopeStatus, now: datetime) -> None:
-        allowed = _STATUS_TRANSITIONS.get(self.status, set())
+        allowed = _STATUS_TRANSITIONS.get(self._status, set())
         if new_status not in allowed:
             raise InvalidEnvelopeTransition(
                 f"Cannot transition envelope {self.id.value!r} "
-                f"from {self.status.value!r} to {new_status.value!r}"
+                f"from {self._status.value!r} to {new_status.value!r}"
             )
-        self.status = new_status
-        self.updated_at = now
-        from shell.domain.execution.aggregates.envelope.value_objects.ids.envelope_event_id import (
+        self._status = new_status
+        self._updated_at = now
+        from shell.domain.execution.aggregates.envelope.value_objects.envelope_event_id import (
             EnvelopeEventId,
         )
 
@@ -150,14 +216,20 @@ class Envelope(AggregateRoot[EnvelopeId]):
                 created_at=now,
             )
         )
+        if new_status == EnvelopeStatus.DELIVERED:
+            self.append_event(EnvelopeRoutedEvent.now(self.id, self._workflow_id, now=now))
+        elif new_status == EnvelopeStatus.DEAD:
+            self.append_event(
+                EnvelopeDeadletteredEvent.now(self.id, self._workflow_id, reason="deadlettered", now=now)
+            )
 
     def transition_stage(self, new_stage: EnvelopeStage, now: datetime) -> None:
-        self.stage = new_stage
-        self.updated_at = now
+        self._stage = new_stage
+        self._updated_at = now
 
     def deliver_to(self, graph_node_execution_id: GraphNodeExecutionId) -> None:
-        self.receiver_graph_node_execution_id = graph_node_execution_id
+        self._receiver_graph_node_execution_id = graph_node_execution_id
 
     def archive(self, archive_uri: str, now: datetime) -> None:
-        self.archive_uri = archive_uri
+        self._archive_uri = archive_uri
         self.transition_stage(EnvelopeStage.ARCHIVED, now)

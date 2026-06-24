@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_input_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_state_input_id import (
     GraphNodeExecutionStateInputId,
 )
 from shell.domain.platform.base.entity import Entity

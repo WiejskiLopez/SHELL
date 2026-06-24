@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_config_execution.agent_config_execution_id import (
+from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
     AgentConfigExecutionId,
 )
 from shell.domain.execution.value_objects.config import Config
@@ -11,7 +11,7 @@ from shell.domain.platform.base.aggregate_root import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.session.session_id import SessionId
+    from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):

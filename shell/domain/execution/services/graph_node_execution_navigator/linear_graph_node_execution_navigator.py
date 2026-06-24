@@ -7,10 +7,10 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.ports.graph_node_execution_repository import (
+    from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.envelope.ports.envelope_repository import (
+from shell.domain.execution.aggregates.envelope.repositories.envelope_repository import (
     EnvelopeRepository,
 )
 from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — EnvelopeId i WorkflowId używane w konstruktorach w repozytorium

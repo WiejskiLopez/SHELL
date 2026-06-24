@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.session.session_id import SessionId
+from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.platform.events import DomainEvent
 
 

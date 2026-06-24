@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.task_execution_id import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution_skill_id import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_skill_id import (
     TaskExecutionSkillId,
 )
 from shell.domain.execution.value_objects.skill_payload import SkillPayload

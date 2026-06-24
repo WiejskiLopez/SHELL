@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution_state_input.ports.task_execution_state_input_repository import (
+from shell.domain.execution.aggregates.task_execution_state_input.repositories.task_execution_state_input_repository import (
     TaskExecutionStateInputRepository,
 )
 from shell.domain.execution.value_objects.ids import (

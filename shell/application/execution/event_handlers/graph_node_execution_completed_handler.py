@@ -206,11 +206,10 @@ class GraphNodeExecutionCompletedHandler:
             )
             return
 
-        counter = graph_execution.get_or_create_loop_counter(
+        counter = graph_execution.increment_loop_counter(
             transition_id=loop_transition.id.value,
             max_loop_count=loop_transition.max_loop_count or 0,
         )
-        counter.increment()
 
         if not counter.is_exhausted:
             uow.stage_events([

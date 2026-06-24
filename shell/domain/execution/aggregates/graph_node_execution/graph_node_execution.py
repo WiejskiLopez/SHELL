@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
 from shell.domain.execution.value_objects.graph_node_execution_status import (
@@ -23,7 +23,7 @@ from shell.domain.platform.base.aggregate_root import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
 
@@ -38,23 +38,23 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "_state_outputs",
         # Legacy (deprecated)
         "_role",
-        "position",
-        "mode",
-        "node_type",
-        "model",
-        "command",
+        "_position",
+        "_mode",
+        "_node_type",
+        "_model",
+        "_command",
         "_legacy_timeout",
-        "retries",
-        "log_level",
-        "max_step",
-        "no_ask_user",
-        "autopilot",
-        "task_execution_id",
-        "source_dir",
-        "status_initial",
-        "timeout_seconds",
-        "max_retries",
-        "retry_delay_seconds",
+        "_retries",
+        "_log_level",
+        "_max_step",
+        "_no_ask_user",
+        "_autopilot",
+        "_task_execution_id",
+        "_source_dir",
+        "_status_initial",
+        "_timeout_seconds",
+        "_max_retries",
+        "_retry_delay_seconds",
     )
 
     def __init__(
@@ -94,23 +94,23 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._state_outputs = list(output_states) if output_states else []
 
         # Legacy fields
-        self.position = position
-        self.mode = mode
-        self.node_type = node_type
-        self.model = model
-        self.command = command
+        self._position = position
+        self._mode = mode
+        self._node_type = node_type
+        self._model = model
+        self._command = command
         self._legacy_timeout = timeout if timeout is not None else _legacy_timeout
-        self.retries = retries
-        self.log_level = log_level
-        self.max_step = max_step
-        self.no_ask_user = no_ask_user
-        self.autopilot = autopilot
-        self.task_execution_id = task_execution_id
-        self.source_dir = source_dir
-        self.status_initial = status_initial
-        self.timeout_seconds = timeout_seconds
-        self.max_retries = max_retries
-        self.retry_delay_seconds = retry_delay_seconds
+        self._retries = retries
+        self._log_level = log_level
+        self._max_step = max_step
+        self._no_ask_user = no_ask_user
+        self._autopilot = autopilot
+        self._task_execution_id = task_execution_id
+        self._source_dir = source_dir
+        self._status_initial = status_initial
+        self._timeout_seconds = timeout_seconds
+        self._max_retries = max_retries
+        self._retry_delay_seconds = retry_delay_seconds
 
     # --- V3 FSM ---
 
@@ -202,7 +202,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
             GraphNodeExecutionStateInput,
         )
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_input_id import (
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_state_input_id import (
             GraphNodeExecutionStateInputId,
         )
 
@@ -218,7 +218,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
             GraphNodeExecutionStateOutput,
         )
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.ids.graph_node_execution_state_output_id import (
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_state_output_id import (
             GraphNodeExecutionStateOutputId,
         )
 
@@ -273,6 +273,72 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     @property
     def output_states(self) -> tuple:
         return tuple(self._state_outputs)
+
+    # --- Legacy properties (deprecated) ---
+
+    @property
+    def position(self) -> int:
+        return self._position
+
+    @property
+    def mode(self) -> Any:
+        return self._mode
+
+    @property
+    def node_type(self) -> str:
+        return self._node_type
+
+    @property
+    def model(self) -> str:
+        return self._model
+
+    @property
+    def command(self) -> str:
+        return self._command
+
+    @property
+    def retries(self) -> int:
+        return self._retries
+
+    @property
+    def log_level(self) -> str:
+        return self._log_level
+
+    @property
+    def max_step(self) -> int:
+        return self._max_step
+
+    @property
+    def no_ask_user(self) -> bool:
+        return self._no_ask_user
+
+    @property
+    def autopilot(self) -> bool:
+        return self._autopilot
+
+    @property
+    def task_execution_id(self) -> str:
+        return self._task_execution_id
+
+    @property
+    def source_dir(self) -> str:
+        return self._source_dir
+
+    @property
+    def status_initial(self) -> str:
+        return self._status_initial
+
+    @property
+    def timeout_seconds(self) -> int:
+        return self._timeout_seconds
+
+    @property
+    def max_retries(self) -> int:
+        return self._max_retries
+
+    @property
+    def retry_delay_seconds(self) -> int:
+        return self._retry_delay_seconds
 
 
 class InvalidNodeStateError(Exception):

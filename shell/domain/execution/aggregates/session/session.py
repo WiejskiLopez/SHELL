@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
-from shell.domain.execution.aggregates.session.session_id import SessionId
+from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.value_objects.environment import Environment
 from shell.domain.execution.value_objects.session_status import SessionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session.entities.session_state_input import (
         SessionStateInput,
     )
-    from shell.domain.execution.aggregates.session.session_skill_id import SessionSkillId
+    from shell.domain.execution.aggregates.session.value_objects.session_skill_id import SessionSkillId
     from shell.domain.execution.value_objects.skill_payload import SkillPayload
     from shell.domain.execution.aggregates.session.entities.session_state_output import (
         SessionStateOutput,
@@ -170,7 +170,7 @@ class Session(AggregateRoot[SessionId]):
         from shell.domain.execution.aggregates.session.entities.session_skill import (
             SessionSkill,
         )
-        from shell.domain.execution.aggregates.session.session_skill_id import SessionSkillId
+        from shell.domain.execution.aggregates.session.value_objects.session_skill_id import SessionSkillId
 
         skill = SessionSkill(
             id=SessionSkillId.generate(),

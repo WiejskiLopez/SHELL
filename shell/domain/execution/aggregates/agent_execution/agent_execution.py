@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_execution.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.agent_execution.agent_skill_execution_id import (
+    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_skill_execution_id import (
         AgentSkillExecutionId,
     )
     from shell.domain.execution.aggregates.agent_execution.entities.agent_skill_execution import (
         AgentSkillExecution,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
     from shell.domain.execution.value_objects.config import Config
@@ -62,7 +62,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         payload: SkillPayload,
         now: datetime,
     ) -> AgentSkillExecution:
-        from shell.domain.execution.aggregates.agent_execution.agent_skill_execution_id import (
+        from shell.domain.execution.aggregates.agent_execution.value_objects.agent_skill_execution_id import (
             AgentSkillExecutionId,
         )
         from shell.domain.execution.aggregates.agent_execution.entities.agent_skill_execution import (

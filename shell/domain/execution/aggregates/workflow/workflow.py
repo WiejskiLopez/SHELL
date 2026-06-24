@@ -24,8 +24,8 @@ from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session.session_id import SessionId
-    from shell.domain.execution.aggregates.task_execution.task_execution_id import (
+    from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow.entities.workflow_state_output import (
         WorkflowStateOutput,
     )
-    from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
@@ -167,7 +167,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
             WorkflowSkill,
         )
-        from shell.domain.execution.aggregates.workflow.workflow_skill_id import WorkflowSkillId
+        from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import WorkflowSkillId
 
         skill = WorkflowSkill(
             id=WorkflowSkillId.generate(),

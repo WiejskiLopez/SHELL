@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
 from shell.domain.execution.value_objects.task_description import TaskDescription
@@ -15,7 +15,7 @@ from shell.domain.platform.base.aggregate_root import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
@@ -147,7 +147,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         from shell.domain.execution.aggregates.task_execution.entities.task_execution_skill import (
             TaskExecutionSkill,
         )
-        from shell.domain.execution.aggregates.task_execution.task_execution_skill_id import (
+        from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_skill_id import (
             TaskExecutionSkillId,
         )
 

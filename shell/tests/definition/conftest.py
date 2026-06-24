@@ -337,7 +337,7 @@ async def _persist_running_workflow(
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     for ge in list(uow.graph_executions._store.values()):
         if ge.task_execution_id == task_execution_id:
-            ge.workflow_id = wf.id
+            object.__setattr__(ge, '_workflow_id', wf.id)
     wf.start_at(now=_NOW)
     async with uow:
         await uow.workflows.save(wf)

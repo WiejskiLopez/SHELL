@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class GraphDefinition(Entity[GraphDefinitionId]):
-    __slots__ = ("name", "purpose", "graph_node_definitions", "_transition_definitions")
+    __slots__ = ("_name", "_purpose", "_graph_node_definitions", "_transition_definitions")
 
     def __init__(
         self,
@@ -24,28 +24,40 @@ class GraphDefinition(Entity[GraphDefinitionId]):
         transition_definitions: list[GraphNodeTransitionDefinition] | None = None,
     ) -> None:
         super().__init__(id)
-        self.name = name
-        self.purpose = purpose
-        self.graph_node_definitions = graph_node_definitions or []
+        self._name = name
+        self._purpose = purpose
+        self._graph_node_definitions = list(graph_node_definitions) if graph_node_definitions else []
         self._transition_definitions = (
             list(transition_definitions) if transition_definitions else []
         )
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def purpose(self) -> str:
+        return self._purpose
+
+    @property
+    def graph_node_definitions(self) -> tuple[GraphNodeDefinition, ...]:
+        return tuple(self._graph_node_definitions)
 
     @property
     def transition_definitions(self) -> tuple[GraphNodeTransitionDefinition, ...]:
         return tuple(self._transition_definitions)
 
     def add_graph_node_definition(self, node: GraphNodeDefinition) -> None:
-        self.graph_node_definitions.append(node)
-        self.graph_node_definitions.sort(key=lambda n: n.position)
+        self._graph_node_definitions.append(node)
+        self._graph_node_definitions.sort(key=lambda n: n.position)
 
     def remove_graph_node_definition(
         self,
         graph_node_definition_id: GraphNodeDefinitionId,
     ) -> None:
-        self.graph_node_definitions = [
+        self._graph_node_definitions = [
             graph_node_definition
-            for graph_node_definition in self.graph_node_definitions
+            for graph_node_definition in self._graph_node_definitions
             if graph_node_definition.id != graph_node_definition_id
         ]
 
@@ -56,7 +68,7 @@ class GraphDefinition(Entity[GraphDefinitionId]):
         return next(
             (
                 graph_node_definition
-                for graph_node_definition in self.graph_node_definitions
+                for graph_node_definition in self._graph_node_definitions
                 if graph_node_definition.position == position
             ),
             None,

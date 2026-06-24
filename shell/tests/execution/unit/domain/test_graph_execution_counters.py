@@ -6,18 +6,21 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counte
 class TestLoopCounter:
     def test_is_exhausted_zero_max_never_exhausts(self) -> None:
         lc = LoopCounter("t1", max_loop_count=0)
-        lc.increment()
+        lc = lc.increment()
         assert not lc.is_exhausted
 
     def test_is_exhausted_when_current_reaches_max(self) -> None:
         lc = LoopCounter("t1", max_loop_count=3)
-        lc.increment()
-        lc.increment()
+        lc = lc.increment()
+        lc = lc.increment()
         assert not lc.is_exhausted
-        lc.increment()
+        lc = lc.increment()
         assert lc.is_exhausted
 
-    def test_increment_returns_new_count(self) -> None:
+    def test_increment_returns_new_instance(self) -> None:
         lc = LoopCounter("t1")
-        assert lc.increment() == 1
-        assert lc.increment() == 2
+        lc2 = lc.increment()
+        assert lc2.current_iteration == 1
+        assert lc.current_iteration == 0  # original unchanged
+        lc3 = lc2.increment()
+        assert lc3.current_iteration == 2

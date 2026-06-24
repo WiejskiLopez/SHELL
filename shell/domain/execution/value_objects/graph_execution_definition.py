@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from shell.domain.platform.base.value_object import ValueObject
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GraphNodeExecutionDefinition(ValueObject):
     position: int
     mode: str
@@ -24,7 +24,7 @@ class GraphNodeExecutionDefinition(ValueObject):
     script_type: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class GraphExecutionDefinition(ValueObject):
     id: str
     name: str

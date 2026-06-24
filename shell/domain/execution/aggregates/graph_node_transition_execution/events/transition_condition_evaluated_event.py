@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution_id import (
+from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.platform.events import DomainEvent

@@ -55,4 +55,4 @@ class TestIndexDocumentHandler:
         assert doc_id is not None
         doc = await uow.rag_documents.get_by_id(doc_id)
         assert doc is not None
-        assert doc.chunks == []
+        assert list(doc.chunks) == []

@@ -3,13 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.workflow.value_objects.ids.graph_node_execution_result_id import (
+from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
     GraphNodeExecutionResultId,
 )
-from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.platform.base.entity import Entity
 from shell.domain.platform.value_objects.status import Status
 

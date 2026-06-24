@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_execution.agent_execution_id import AgentExecutionId
-from shell.domain.execution.aggregates.agent_execution.agent_skill_execution_id import (
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
 from shell.domain.execution.value_objects.skill_payload import SkillPayload

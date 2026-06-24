@@ -7,8 +7,8 @@ from shell.domain.platform.base import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
-    from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output_id import (
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+    from shell.domain.execution.aggregates.task_execution_state_output.value_objects.task_execution_state_output_id import (
         TaskExecutionStateOutputId,
     )
 

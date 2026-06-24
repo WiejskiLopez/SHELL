@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_repository import (
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium

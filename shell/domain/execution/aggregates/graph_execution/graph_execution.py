@@ -2,17 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution_id import TaskExecutionId
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
 
@@ -252,7 +252,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         from shell.domain.execution.aggregates.graph_execution.entities.graph_execution_skill import (
             GraphExecutionSkill,
         )
-        from shell.domain.execution.aggregates.graph_execution.graph_execution_skill_id import (
+        from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_skill_id import (
             GraphExecutionSkillId,
         )
 
@@ -320,17 +320,20 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             if hasattr(t, 'target_node_execution_id') and t.target_node_execution_id == target_node_execution_id
         )
 
-    def get_or_create_loop_counter(self, transition_id: str, max_loop_count: int) -> Any:
-        if transition_id not in self._loop_counters:
-            from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import (
-                LoopCounter,
-            )
+    def increment_loop_counter(self, transition_id: str, max_loop_count: int = 0) -> LoopCounter:
+        from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import (
+            LoopCounter,
+        )
 
+        if transition_id not in self._loop_counters:
             self._loop_counters[transition_id] = LoopCounter(
                 transition_id=transition_id,
                 max_loop_count=max_loop_count,
             )
-        return self._loop_counters[transition_id]
+        counter = self._loop_counters[transition_id]
+        incremented = counter.increment()
+        self._loop_counters[transition_id] = incremented
+        return incremented
 
     # --- Properties ---
 
@@ -409,10 +412,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
     def workflow_id(self) -> Any:
         return self._workflow_id
 
-    @workflow_id.setter
-    def workflow_id(self, value: Any) -> None:
-        self._workflow_id = value
-
     @property
     def graph_definition_id(self) -> str:
         return self._graph_definition_id
@@ -435,7 +434,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         correlation_id: str = "",
         depth: int = 0,
     ) -> GraphExecution:
-        from shell.domain.execution.aggregates.graph_execution.value_objects.ids.graph_node_transition_execution_id import (
+        from shell.domain.execution.aggregates.graph_execution.value_objects.graph_node_transition_execution_id import (
             GraphNodeTransitionExecutionId,
         )
         from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (

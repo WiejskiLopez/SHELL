@@ -1,6 +1,5 @@
-from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_repository import (
-    GraphExecutionRepository,
-)
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensation import (
     CompensationDecision,
     SubGraphCompensation,
@@ -8,6 +7,5 @@ from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensat
 
 __all__ = [
     "CompensationDecision",
-    "GraphExecutionRepository",
     "SubGraphCompensation",
 ]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution_id import (
+from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.execution.value_objects.edge_type import EdgeType
@@ -12,10 +12,10 @@ from shell.domain.platform.base.aggregate_root import AggregateRoot
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution_id import (
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
     from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.spawn_spec import (

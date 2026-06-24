@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.workflow.workflow_id import WorkflowId
-from shell.domain.execution.aggregates.workflow.workflow_skill_id import WorkflowSkillId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import WorkflowSkillId
 from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 if TYPE_CHECKING:

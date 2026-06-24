@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class RagDocument(AggregateRoot[RagDocumentId]):
-    __slots__ = ("source_uri", "title", "domain", "created_at", "chunks")
+    __slots__ = ("_source_uri", "_title", "_domain", "_created_at", "_chunks")
 
     def __init__(
         self,
@@ -31,11 +31,31 @@ class RagDocument(AggregateRoot[RagDocumentId]):
         if not domain:
             raise ValueError("domain cannot be empty")
         super().__init__(id)
-        self.source_uri = source_uri
-        self.title = title
-        self.domain = domain
-        self.created_at = created_at
-        self.chunks = list(chunks) if chunks is not None else []
+        self._source_uri = source_uri
+        self._title = title
+        self._domain = domain
+        self._created_at = created_at
+        self._chunks = list(chunks) if chunks is not None else []
+
+    @property
+    def source_uri(self) -> str:
+        return self._source_uri
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @property
+    def domain(self) -> str:
+        return self._domain
+
+    @property
+    def created_at(self) -> datetime:
+        return self._created_at
+
+    @property
+    def chunks(self) -> tuple[RagChunk, ...]:
+        return tuple(self._chunks)
 
     @classmethod
     def new(
@@ -64,7 +84,7 @@ class RagDocument(AggregateRoot[RagDocumentId]):
         if not (len(chunk_ids) == len(texts) == len(embeddings)):
             raise ValueError("chunk_ids, texts and embeddings must have equal length")
         for i, (cid, text, emb) in enumerate(zip(chunk_ids, texts, embeddings, strict=False)):
-            self.chunks.append(
+            self._chunks.append(
                 RagChunk(
                     id=cid,
                     document_id=self.id,

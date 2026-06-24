@@ -23,7 +23,7 @@ class TestRagDocument:
 
     def test_new_creates_document_with_no_chunks(self) -> None:
         doc = self._make_doc()
-        assert doc.chunks == []
+        assert list(doc.chunks) == []
         assert doc.source_uri == "file:///a.md"
         assert doc.domain == "test"
 

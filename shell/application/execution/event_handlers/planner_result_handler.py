@@ -70,7 +70,7 @@ class PlannerResultHandler:
                 goal = spawn.get("goal", "")
                 if not goal:
                     continue
-                from shell.domain.execution.aggregates.graph_execution.graph_execution_id import (
+                from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
                     GraphExecutionId,
                 )
                 child_id = GraphExecutionId.generate()
