@@ -1,0 +1,142 @@
+# Value Object Structure
+
+> Reguły struktury klasy Value Object we wszystkich bounded contextach.
+
+## Definicja
+
+- W warstwie domenowej nie wolno używać typów prostych (str, int, bool, datetime itp.) bezpośrednio jako pól encji, agregatów, komend czy zdarzeń.
+- Każde pojęcie biznesowe MUSI być opakowane w Value Object.
+
+## Klasa
+
+- Każdy VO MUSI implementować `ValueObject` z platformy (`shell.domain.platform.base.ValueObject`).
+- VO oparte na pojedynczej wartości → `@dataclass(frozen=True, slots=True)`.
+- VO złożone → `@dataclass(frozen=True)`.
+
+```python
+@dataclass(frozen=True, slots=True)
+class WorkflowName(ValueObject):
+    value: str
+
+    def __post_init__(self) -> None:
+        if not self.value:
+            raise ValueError('Workflow name cannot be empty')
+        if len(self.value) > 100:
+            raise ValueError('Workflow name too long')
+```
+
+```python
+@dataclass(frozen=True)
+class EmailAddress(ValueObject):
+    local_part: str
+    domain: str
+
+    def __post_init__(self) -> None:
+        if not self.local_part or not self.domain:
+            raise ValueError('Invalid email address')
+```
+
+## Walidacja
+
+- Każdy VO waliduje swój stan w `__post_init__` i rzuca `ValueError` jeśli nie spełnia invariantów.
+- Fail-fast — walidacja przy konstrukcji, nie przy użyciu.
+
+## Zachowania biznesowe
+
+- VO to nie worek na dane — to pełnoprawny obiekt domenowy, który zawiera zachowania biznesowe związane z danym pojęciem.
+- Jeśli w encji, serwisie domenowym lub agregacie pojawia się logika operująca na surowej wartości VO (np. `version.value + 1`), tę logikę należy przenieść do VO jako metodę.
+
+```python
+@dataclass(frozen=True, slots=True)
+class Version(ValueObject):
+    value: int
+
+    def next(self) -> Version:
+        return Version(self.value + 1)
+```
+
+## Sygnatury
+
+- Wszystkie metody w warstwie domenowej (encje, agregaty, serwisy domenowe) używają VO w argumentach i typach zwracanych — nigdy typów prostych.
+
+```python
+# Dobrze
+def assign_to(self, user_id: UserId) -> None: ...
+
+# Źle
+def assign_to(self, user_id: int) -> None: ...
+```
+
+## Kompozycja
+
+- VO mogą być komponowane z innych VO.
+
+```python
+@dataclass(frozen=True)
+class Address(ValueObject):
+    street: Street
+    city: City
+    postal_code: PostalCode
+```
+
+- Każda kolekcja o znaczeniu biznesowym powinna być opakowana w VO.
+
+## Factory methods
+
+- Factory methods zamiast bezpośredniego konstruktora, gdy VO wymaga nietrywialnej logiki tworzenia.
+
+```python
+@classmethod
+def from_string(cls, raw: str) -> EmailAddress:
+    local, domain = raw.split('@')
+    return cls(local_part=local, domain=domain)
+
+@classmethod
+def generate(cls) -> WorkflowId:
+    return cls(uuid4())
+```
+
+## Jednostki
+
+- Gdy VO opakowuje liczbę, która ma jednostkę, MUSI być ona częścią VO.
+
+```python
+@dataclass(frozen=True, slots=True)
+class Money(ValueObject):
+    amount: Decimal
+    currency: Currency
+
+    def add(self, other: Money) -> Money:
+        if self.currency != other.currency:
+            raise CurrencyMismatch(...)
+        return Money(self.amount + other.amount, self.currency)
+```
+
+## Uniwersalne VO
+
+- Definiowane na platformie: `shell/domain/platform/value_objects/`
+- Przykłady: `Version`, `Timestamp`, `Hash`, `Enabled`, `CreatedAt`, `UpdatedAt`
+
+## ID
+
+- Każde ID w domenie to osobny Value Object z walidacją i `generate()`.
+
+```python
+@dataclass(frozen=True, slots=True)
+class WorkflowId(ValueObject):
+    value: uuid.UUID
+
+    @classmethod
+    def generate(cls) -> WorkflowId:
+        return cls(uuid4())
+```
+
+## Lokalizacja
+
+- `shell/domain/<bc>/value_objects/`
+- Uniwersalne: `shell/domain/platform/value_objects/`
+
+## Bezpieczeństwo
+
+- VO to czysty kod domenowy.
+- Nie może importować niczego z `shell.infrastructure.*`, `shell.application.*` ani frameworków ORM.
