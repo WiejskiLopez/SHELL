@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
-from shell.domain.execution.value_objects.task_description import TaskDescription
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.execution.value_objects.task_name import TaskName
@@ -29,9 +28,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_skills",
         "_state_inputs",
         "_state_outputs",
-        # Legacy
         "_name",
-        "_description",
         "_work_dir",
         "_created_at",
     )
@@ -40,7 +37,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self,
         id: TaskExecutionId,
         name: TaskName | None = None,
-        description: TaskDescription | None = None,
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
@@ -56,7 +52,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._state_inputs = []
         self._state_outputs = []
         self._name = name if name is not None else TaskName("default")
-        self._description = description if description is not None else TaskDescription("")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at  # type: ignore[assignment]
 
@@ -194,10 +189,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     @property
     def name(self) -> TaskName:
         return self._name
-
-    @property
-    def description(self) -> TaskDescription:
-        return self._description
 
     @property
     def status(self) -> TaskExecutionStatus:

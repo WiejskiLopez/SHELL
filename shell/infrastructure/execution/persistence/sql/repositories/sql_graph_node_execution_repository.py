@@ -99,7 +99,6 @@ def _graph_node_execution_model_to_entity(
         node_type=model.node_type,
         model=model.model,
         command=model.command,
-        timeout=model.timeout,
         retries=model.retries,
         log_level=model.log_level,
         max_step=model.max_step,
@@ -136,7 +135,6 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         node_type=node.node_type,
         model=node.model,
         command=node.command,
-        timeout=node.timeout,
         retries=node.retries,
         log_level=node.log_level,
         max_step=node.max_step,
@@ -154,8 +152,8 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
             id=p.id.value,
             graph_node_execution_id=p.graph_node_execution_id.value,
             payload=p.payload,
-            is_current=p.is_current,
-            created_at=p.created_at,
+            is_current=p.is_current.value if p.is_current else True,
+            created_at=p.created_at.value if p.created_at else None,
         )
         for p in node.input_states
     ]
@@ -164,8 +162,8 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
             id=p.id.value,
             graph_node_execution_id=p.graph_node_execution_id.value,
             payload=p.payload,
-            is_current=p.is_current,
-            created_at=p.created_at,
+            is_current=p.is_current.value if p.is_current else True,
+            created_at=p.created_at.value if p.created_at else None,
         )
         for p in node.output_states
     ]

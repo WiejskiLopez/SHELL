@@ -225,15 +225,14 @@ class GraphNodeExecutionWorker:
     @staticmethod
     def _build_manifest(graph_node_execution: GraphNodeExecution) -> Manifest:
         mode = (
-            graph_node_execution.mode
-            if isinstance(graph_node_execution.mode, Mode)
-            else Mode(graph_node_execution.mode.value)
+            graph_node_execution.mode.value if hasattr(graph_node_execution.mode, "value")
+            else str(graph_node_execution.mode)
         )
         return Manifest(
             name=graph_node_execution.id.value,
             mode=mode,
-            role=graph_node_execution.role or mode.value,
-            node_type=graph_node_execution.node_type or mode.value,
+            role=graph_node_execution.role.value if hasattr(graph_node_execution.role, "value") else str(graph_node_execution.role),
+            node_type=graph_node_execution.node_type or mode,
             version="1",
         )
 

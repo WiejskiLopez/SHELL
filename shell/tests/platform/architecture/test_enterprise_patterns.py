@@ -1,0 +1,291 @@
+"""Architecture test — verifies enterprise patterns across layers.
+
+Uses AST parsing (no imports executed) to check:
+1. framework/ does not import from infrastructure/
+2. Every class extending AggregateRoot has a restore() classmethod
+3. Every repository port has a corresponding InMemory implementation
+4. DTO frozen dataclasses use only primitive types (no datetime/Decimal)
+5. Every command dataclass has a validate() method
+6. Domain services do not import from infrastructure/
+"""
+
+from __future__ import annotations
+
+import ast
+import pathlib
+import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent  # shell/
+BASE = SHELL_SRC
+
+
+def _iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
+    if not directory.exists():
+        return
+    for py_file in directory.rglob("*.py"):
+        if py_file.name == "__init__.py":
+            continue
+        yield py_file
+
+
+def _get_imports(path: pathlib.Path) -> list[str]:
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return []
+    imports: list[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                imports.append(alias.name)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.append(node.module)
+    return imports
+
+
+def _is_aggregate_root_base(base: ast.AST) -> bool:
+    if isinstance(base, ast.Name) and base.id == "AggregateRoot":
+        return True
+    if isinstance(base, ast.Subscript):
+        return _is_aggregate_root_base(base.value)
+    return False
+
+
+def _is_frozen_dataclass(node: ast.ClassDef) -> bool:
+    for dec in node.decorator_list:
+        if isinstance(dec, ast.Call):
+            func = dec.func
+            if isinstance(func, ast.Name) and func.id == "dataclass":
+                for kw in dec.keywords:
+                    if (
+                        kw.arg == "frozen"
+                        and isinstance(kw.value, ast.Constant)
+                        and kw.value.value is True
+                    ):
+                        return True
+    return False
+
+
+def _to_snake_case(pascal: str) -> str:
+    return re.sub(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", "_", pascal).lower()
+
+
+_PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
+_COMPLEX_NAMES = frozenset({"datetime", "Decimal", "Timestamp", "timedelta", "date", "time"})
+
+
+def _has_complex_type(node: ast.AST) -> bool:
+    if isinstance(node, ast.Name):
+        return node.id in _COMPLEX_NAMES
+    if isinstance(node, ast.Attribute):
+        return node.attr in _COMPLEX_NAMES
+    if isinstance(node, ast.Subscript):
+        if _has_complex_type(node.value):
+            return True
+        if isinstance(node.slice, ast.Tuple):
+            return any(_has_complex_type(e) for e in node.slice.elts)
+        return _has_complex_type(node.slice)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.BitOr):
+        return _has_complex_type(node.left) or _has_complex_type(node.right)
+    return False
+
+
+# ── 1. No framework imports infrastructure ──────────────────────────
+
+
+_KNOWN_FRAMEWORK_INFRA_IMPORTS: frozenset[str] = frozenset({
+    # CLI entrypoint — bootstraps config from env, a legitimate wiring exception.
+    "framework/platform/cli/main.py",
+})
+
+
+def test_framework_does_not_import_infrastructure() -> None:
+    violations: list[str] = []
+    for path in _iter_py_files(BASE / "framework"):
+        rel = path.relative_to(BASE).as_posix()
+        if rel in _KNOWN_FRAMEWORK_INFRA_IMPORTS:
+            continue
+        for imp in _get_imports(path):
+            if imp == "shell.infrastructure" or imp.startswith("shell.infrastructure."):
+                violations.append(f"{rel}: imports {imp!r}")
+    assert not violations, (
+        "framework/ must not import from infrastructure/:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 2. All aggregates have restore() ────────────────────────────────
+
+# Known pre-existing violations that should be fixed over time.
+_KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({
+    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: class GraphExecutionStateInput",
+    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: class GraphExecutionStateOutput",
+    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: class GraphNodeTransitionExecution",
+    "domain/execution/aggregates/task_execution_state_input/task_execution_state_input.py: class TaskExecutionStateInput",
+    "domain/execution/aggregates/task_execution_state_output/task_execution_state_output.py: class TaskExecutionStateOutput",
+})
+
+
+def test_all_aggregates_have_restore() -> None:
+    missing: list[str] = []
+    for path in _iter_py_files(BASE / "domain"):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            if not any(_is_aggregate_root_base(b) for b in node.bases):
+                continue
+
+            has_restore = any(
+                isinstance(m, ast.FunctionDef) and m.name == "restore"
+                for m in node.body
+            )
+            if not has_restore:
+                key = f"{path.relative_to(BASE).as_posix()}: class {node.name}"
+                if key not in _KNOWN_MISSING_RESTORE:
+                    missing.append(key)
+    assert not missing, (
+        "Unexpected aggregate(s) missing restore(). If this is intentional, add them to _KNOWN_MISSING_RESTORE:\n"
+        + "\n".join(missing)
+    )
+
+
+# ── 3. All repository ports have InMemory implementations ────────────
+
+
+def _find_repository_ports() -> list[tuple[pathlib.Path, str]]:
+    """Return (file_path, class_name) for every Protocol ending in Repository within domain/."""
+    results: list[tuple[pathlib.Path, str]] = []
+    for repos_dir in (BASE / "domain").rglob("repositories"):
+        if not repos_dir.is_dir():
+            continue
+        for py_file in repos_dir.rglob("*.py"):
+            if py_file.name == "__init__.py":
+                continue
+            try:
+                tree = ast.parse(py_file.read_text(encoding="utf-8"))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                if not node.name.endswith("Repository"):
+                    continue
+                for base in node.bases:
+                    if isinstance(base, ast.Name) and base.id == "Protocol":
+                        results.append((py_file, node.name))
+                        break
+    return results
+
+
+def test_all_repository_ports_have_in_memory() -> None:
+    repos = _find_repository_ports()
+    missing: list[str] = []
+    for file_path, class_name in repos:
+        snake = _to_snake_case(class_name)
+        expected_pat = f"in_memory_{snake}.py"
+        found = any(
+            candidate.is_file()
+            for candidate in (BASE / "infrastructure").rglob(expected_pat)
+        )
+        if not found:
+            missing.append(f"{file_path.relative_to(BASE)}: {class_name}")
+    assert not missing, (
+        "Repository ports must have a corresponding InMemory implementation:\n"
+        + "\n".join(missing)
+    )
+
+
+# ── 4. DTO fields use only primitive types ──────────────────────────
+
+
+def test_dto_fields_use_only_primitives() -> None:
+    violations: list[str] = []
+    for dto_dir in (BASE / "application").rglob("dto"):
+        if not dto_dir.is_dir():
+            continue
+        for py_file in dto_dir.rglob("*.py"):
+            if py_file.name == "__init__.py":
+                continue
+            try:
+                tree = ast.parse(py_file.read_text(encoding="utf-8"))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                if not _is_frozen_dataclass(node):
+                    continue
+                for stmt in node.body:
+                    if isinstance(stmt, ast.AnnAssign) and stmt.annotation:
+                        if _has_complex_type(stmt.annotation):
+                            field_name = (
+                                stmt.target.id
+                                if isinstance(stmt.target, ast.Name)
+                                else repr(stmt.target)
+                            )
+                            violations.append(
+                                f"{py_file.relative_to(BASE)}: {node.name}.{field_name}"
+                            )
+    assert not violations, (
+        "DTO fields must not use datetime/Decimal types (use str instead):\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 5. All commands have validate() ─────────────────────────────────
+
+
+def test_all_commands_have_validate() -> None:
+    missing: list[str] = []
+    for cmd_dir in (BASE / "application").rglob("commands"):
+        if not cmd_dir.is_dir():
+            continue
+        for py_file in cmd_dir.rglob("*.py"):
+            if py_file.name == "__init__.py":
+                continue
+            try:
+                tree = ast.parse(py_file.read_text(encoding="utf-8"))
+            except SyntaxError:
+                continue
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                if not _is_frozen_dataclass(node):
+                    continue
+                has_validate = any(
+                    isinstance(m, ast.FunctionDef) and m.name == "validate"
+                    for m in node.body
+                )
+                if not has_validate:
+                    missing.append(f"{py_file.relative_to(BASE)}: {node.name}")
+    assert not missing, (
+        "Command dataclasses must define validate():\n"
+        + "\n".join(missing)
+    )
+
+
+# ── 6. No Domain Service imports infrastructure ─────────────────────
+
+
+def test_domain_services_do_not_import_infrastructure() -> None:
+    violations: list[str] = []
+    for svc_dir in (BASE / "domain").rglob("services"):
+        if not svc_dir.is_dir():
+            continue
+        for py_file in _iter_py_files(svc_dir):
+            for imp in _get_imports(py_file):
+                if imp == "shell.infrastructure" or imp.startswith("shell.infrastructure."):
+                    violations.append(f"{py_file.relative_to(BASE)}: imports {imp!r}")
+    assert not violations, (
+        "Domain services must not import from infrastructure/:\n"
+        + "\n".join(violations)
+    )

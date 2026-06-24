@@ -16,12 +16,6 @@ from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_r
 from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archive import (
-    InMemoryEnvelopeArchive,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_repository import (
-    InMemoryEnvelopeRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
@@ -68,8 +62,6 @@ __all__ = [
     "InMemoryGraphNodeDefinitionRepository",
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
-    "InMemoryEnvelopeArchive",
-    "InMemoryEnvelopeRepository",
     "InMemoryGraphExecutionRepository",
     "InMemorySessionRepository",
     "InMemoryTaskExecutionRepository",

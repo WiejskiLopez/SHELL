@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_job import (
         SchedulerJob,
     )
-        from shell.domain.scheduling.services.pending_graph_finder import (
+    from shell.domain.scheduling.services.pending_graph_finder import (
         GraphExecutionRepository as PendingGraphRepo,
         PendingGraphFinder,
     )

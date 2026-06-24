@@ -58,6 +58,7 @@ from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
@@ -116,7 +117,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
     return TaskExecutionModel(
         id=task_execution.id.value,
         name=task_execution.name.value,
-        work_dir=task_execution.work_dir,
+        work_dir=task_execution.work_dir.value if hasattr(task_execution.work_dir, 'value') else task_execution.work_dir or "",
         created_at=task_execution.created_at,
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
     )
@@ -392,8 +393,8 @@ def graph_execution_entity_to_model(
         ),
         state_input=graph_execution.state_input,
         state_output=graph_execution.state_output,
-        depth=graph_execution.depth,
-        timeout_at=graph_execution.timeout_at,
+        depth=graph_execution.depth.value if graph_execution.depth else 0,
+        timeout_at=graph_execution.timeout_at.value if graph_execution.timeout_at else None,
         correlation_id=graph_execution.correlation_id,
         tags=graph_execution.tags,
     )

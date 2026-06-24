@@ -523,7 +523,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         node_type="agent",
         model="gpt-4",
         command="",
-        timeout=120,
         retries=1,
         log_level="INFO",
         max_step=10,

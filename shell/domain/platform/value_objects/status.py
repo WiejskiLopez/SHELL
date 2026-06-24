@@ -1,17 +1,15 @@
-"""Status value object — node/workflow/envelope runtime status string."""
+"""Status value object.
+
+.. deprecated::
+   Use dedicated status enums (TaskExecutionStatus, GraphNodeExecutionStatus, WorkflowStatus)
+   from shell.domain.execution.value_objects for new code.
+"""
 
 from __future__ import annotations
 
-import warnings
 from dataclasses import dataclass
 
 from shell.domain.platform.base.value_object import ValueObject
-
-warnings.warn(
-    "Status is deprecated — use dedicated status enums from shell.domain.execution.value_objects instead.",
-    DeprecationWarning,
-    stacklevel=2,
-)
 
 
 @dataclass(frozen=True, slots=True)

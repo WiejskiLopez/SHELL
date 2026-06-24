@@ -12,12 +12,6 @@ from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_r
 from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archive import (
-    InMemoryEnvelopeArchive,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_repository import (
-    InMemoryEnvelopeRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
@@ -56,9 +50,7 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._graph_executions.link_task_executions(self._task_executions)
         self._graph_executions.link_graph_node_executions(self._graph_node_executions)
         self._workflows = InMemoryWorkflowRepository()
-        self._envelopes = InMemoryEnvelopeRepository()
         self._runner_configs = InMemoryRunnerConfigRepository()
-        self._envelope_archive = InMemoryEnvelopeArchive()
         self._rag_documents = InMemoryRagDocumentRepository()
         self._sessions = InMemorySessionRepository()
         self._graph_definitions = InMemoryGraphDefinitionRepository()
@@ -112,17 +104,11 @@ class InMemoryUnitOfWork(UnitOfWork):
         return self._workflows
 
     @property
-    def envelopes(self) -> InMemoryEnvelopeRepository:
-        return self._envelopes
-
     @property
     def runner_configs(self) -> InMemoryRunnerConfigRepository:
         return self._runner_configs
 
     @property
-    def envelope_archive(self) -> InMemoryEnvelopeArchive:
-        return self._envelope_archive
-
     @property
     def rag_documents(self) -> InMemoryRagDocumentRepository:
         return self._rag_documents

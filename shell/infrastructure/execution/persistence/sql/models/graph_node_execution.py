@@ -18,7 +18,6 @@ class GraphNodeExecutionModel(Base):
     node_type: Mapped[str] = mapped_column(nullable=False, default="")
     model: Mapped[str] = mapped_column(nullable=False, default="")
     command: Mapped[str] = mapped_column(nullable=False, default="")
-    timeout: Mapped[int] = mapped_column(nullable=False, default=0)
     retries: Mapped[int] = mapped_column(nullable=False, default=0)
     log_level: Mapped[str] = mapped_column(nullable=False, default="INFO")
     max_step: Mapped[int] = mapped_column(nullable=False, default=0)

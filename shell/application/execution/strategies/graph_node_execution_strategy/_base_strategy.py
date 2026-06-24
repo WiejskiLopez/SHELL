@@ -19,11 +19,10 @@ class _BaseStrategy:
         runner: GraphNodeExecutionProcessRunner,
     ) -> ExecutionResult:
         from shell.domain.execution.value_objects.manifest import Manifest
-        from shell.domain.platform.value_objects.mode import Mode
 
         manifest = Manifest(
             name=graph_node_execution_id,
-            mode=Mode(self.mode),
+            mode=self.mode,
             role=self.mode,
             node_type=self.mode,
             version="1",

@@ -1,11 +1,3 @@
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_archive import (
-    TYPE_CHECKING,
-    InMemoryEnvelopeArchive,
-    annotations,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_envelope_repository import (
-    InMemoryEnvelopeRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
@@ -29,8 +21,6 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_reposi
 )
 
 __all__ = [
-    "InMemoryEnvelopeArchive",
-    "InMemoryEnvelopeRepository",
     "InMemoryGraphExecutionRepository",
     "InMemoryGraphNodeExecutionRepository",
     "InMemorySessionRepository",

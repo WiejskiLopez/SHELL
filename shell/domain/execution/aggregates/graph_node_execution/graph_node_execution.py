@@ -43,7 +43,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "_node_type",
         "_model",
         "_command",
-        "_legacy_timeout",
         "_retries",
         "_log_level",
         "_max_step",
@@ -63,7 +62,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         graph_execution_id: GraphExecutionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
-        # Legacy params
         position: int = 0,
         mode: Any = None,
         node_type: str = "",
@@ -99,7 +97,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._node_type = node_type
         self._model = model
         self._command = command
-        self._legacy_timeout = timeout if timeout is not None else _legacy_timeout
         self._retries = retries
         self._log_level = log_level
         self._max_step = max_step

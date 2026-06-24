@@ -43,7 +43,7 @@ class TestRunTaskerWorkflowHappyPath:
         get_wf = GetWorkflowHandler(queries)
         dto = await get_wf.handle(GetWorkflowQuery(workflows[0].id.value))
         assert dto is not None
-        assert dto.status == "done"
+        assert dto.status == "COMPLETED"
 
     async def test_single_node_workflow(
         self,
@@ -61,4 +61,4 @@ class TestRunTaskerWorkflowHappyPath:
 
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
         workflows = list(uow.workflows._store.values())
-        assert workflows[0].status.value == "done"
+        assert workflows[0].status.value == "COMPLETED"

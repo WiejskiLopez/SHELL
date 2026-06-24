@@ -45,7 +45,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         # Legacy (deprecated)
         "_graph_definition_id",
         "_graph_node_execution_ids",
-        "_graph_node_execution_objects",
         "_transitions",
         "_loop_counters",
         "_state_input",
@@ -53,7 +52,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         "_timeout_at",
         "_correlation_id",
         "_tags",
-        "_workflow_id",
     )
 
     def __init__(
@@ -66,14 +64,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         # Legacy params
         graph_definition_id: str = "",
         graph_node_execution_ids: list[Any] | None = None,
-        graph_node_executions: Any = None,
         transitions: list[Any] | None = None,
         state_input: dict[str, Any] | None = None,
         state_output: dict[str, Any] | None = None,
         timeout_at: Any = None,
         correlation_id: str = "",
         tags: dict[str, Any] | None = None,
-        workflow_id: Any = None,
     ) -> None:
         super().__init__(id)
         # V3
@@ -87,15 +83,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._state_outputs = []
         # Legacy
         self._graph_definition_id = graph_definition_id
-        combined_nodes: list[Any] = list(graph_node_execution_ids) if graph_node_execution_ids else []
-        if graph_node_executions:
-            for item in graph_node_executions:
-                if item not in combined_nodes:
-                    combined_nodes.append(item)
-        self._graph_node_execution_ids = _ensure_node_ids(combined_nodes)
-        self._graph_node_execution_objects = [
-            n for n in combined_nodes if not isinstance(n, (GraphNodeExecutionId, str))
-        ]
+        self._graph_node_execution_ids = _ensure_node_ids(graph_node_execution_ids) if graph_node_execution_ids else []
         self._transitions = list(transitions) if transitions else []
         self._loop_counters = {}
         self._state_input = state_input or {}
@@ -103,7 +91,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._timeout_at = timeout_at
         self._correlation_id = correlation_id
         self._tags = tags or {}
-        self._workflow_id = workflow_id
 
     # --- V3 FSM ---
 
@@ -384,8 +371,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     @property
     def graph_node_executions(self) -> tuple:
-        if self._graph_node_execution_objects:
-            return tuple(self._graph_node_execution_objects)
         from shell.domain.platform.value_objects.mode import Mode
 
         result: list[Any] = []
@@ -409,12 +394,20 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return dict(self._loop_counters)
 
     @property
-    def workflow_id(self) -> Any:
-        return self._workflow_id
-
-    @property
     def graph_definition_id(self) -> str:
         return self._graph_definition_id
+
+    @property
+    def timeout_at(self) -> Timestamp | None:
+        return self._timeout_at
+
+    @property
+    def correlation_id(self) -> str:
+        return self._correlation_id
+
+    @property
+    def tags(self) -> dict[str, Any]:
+        return dict(self._tags)
 
 
     # --- Legacy factory (deprecated) ---
