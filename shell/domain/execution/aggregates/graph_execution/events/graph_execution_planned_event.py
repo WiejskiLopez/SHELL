@@ -37,6 +37,6 @@ class GraphExecutionPlannedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
+            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
             plan=payload.get("plan"),
         )

@@ -38,7 +38,7 @@ class TaskExecutionExhaustedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
-            current_cycle=payload["current_cycle"],
-            max_planning_cycles=payload["max_planning_cycles"],
+            task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
+            current_cycle=payload.get("current_cycle"),
+            max_planning_cycles=payload.get("max_planning_cycles"),
         )

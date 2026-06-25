@@ -23,8 +23,8 @@ class EnvelopeRoutedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            envelope_id=EnvelopeId(payload["envelope_id"]),
-            workflow_id=WorkflowId(payload["workflow_id"]),
+            envelope_id=EnvelopeId(payload.get("envelope_id")),
+            workflow_id=WorkflowId(payload.get("workflow_id")),
         )
 
     @classmethod

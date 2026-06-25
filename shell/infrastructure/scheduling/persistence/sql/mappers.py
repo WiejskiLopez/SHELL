@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.scheduling.aggregates.scheduler_definition import (
+from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
 )
-from shell.domain.scheduling.aggregates.scheduler_job import (
+from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
     SchedulerJob,
 )
 from shell.domain.scheduling.value_objects.action_config import ActionConfig

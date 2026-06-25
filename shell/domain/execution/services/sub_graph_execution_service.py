@@ -20,8 +20,8 @@ from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.logging import Logger
-    from shell.application.platform.ports.time import Clock
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,

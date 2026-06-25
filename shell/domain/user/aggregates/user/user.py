@@ -3,10 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.user.aggregates.user.events.user_disabled_event import UserDisabledEvent
+from shell.domain.user.aggregates.user.events.user_enabled_event import UserEnabledEvent
+from shell.domain.user.aggregates.user.exceptions.invalid_user_transition import InvalidUserTransition
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell.domain.execution.value_objects.identity import Identity
     from shell.domain.user.aggregates.user.entities.user_skill import UserSkill
     from shell.domain.user.aggregates.user.entities.user_state_input import UserStateInput
@@ -65,12 +70,18 @@ class User(AggregateRoot[UserId]):
     def state_outputs(self) -> tuple[UserStateOutput, ...]:
         return tuple(self._state_outputs)
 
-    def enable(self) -> None:
+    def enable(self, now: datetime) -> None:
         if self._status != UserStatus.DISABLED:
-            raise ValueError(f"Cannot enable user in status {self._status!r}")
+            raise InvalidUserTransition(
+                f"Cannot enable user in status {self._status!r}"
+            )
         self._status = UserStatus.ACTIVE
+        self.append_event(UserEnabledEvent.now(self._id, now=now))
 
-    def disable(self) -> None:
+    def disable(self, now: datetime) -> None:
         if self._status != UserStatus.ACTIVE:
-            raise ValueError(f"Cannot disable user in status {self._status!r}")
+            raise InvalidUserTransition(
+                f"Cannot disable user in status {self._status!r}"
+            )
         self._status = UserStatus.DISABLED
+        self.append_event(UserDisabledEvent.now(self._id, now=now))

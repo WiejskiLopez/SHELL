@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.aggregates.rag_document.entities.rag_chunk import RagChunk
+from shell.domain.definition.aggregates.rag_document.events.rag_document_chunks_added_event import (
+    RagDocumentChunksAddedEvent,
+)
 from shell.domain.definition.value_objects.ids import RagDocumentId
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
@@ -94,3 +97,6 @@ class RagDocument(AggregateRoot[RagDocumentId]):
                     embedding_model=model,
                 )
             )
+        self.append_event(
+            RagDocumentChunksAddedEvent.now(self.id, chunk_count=len(chunk_ids), model=model)
+        )

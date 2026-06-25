@@ -40,7 +40,7 @@ class SessionOpenedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            session_id=SessionId(payload["session_id"]),
-            user_id=UserId(payload["user_id"]),
-            project_id=ProjectId(payload["project_id"]),
+            session_id=SessionId(payload.get("session_id")),
+            user_id=UserId(payload.get("user_id")),
+            project_id=ProjectId(payload.get("project_id")),
         )

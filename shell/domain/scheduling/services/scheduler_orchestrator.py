@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.scheduling.aggregates.scheduler_execution import (
+from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
-from shell.domain.scheduling.value_objects.execution_status import ExecutionStatus
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import ExecutionStatus
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerExecutionId,
 )
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.events import DomainEvent
-    from shell.domain.scheduling.aggregates.scheduler_definition import (
+    from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
     )
 

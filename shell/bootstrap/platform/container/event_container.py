@@ -18,8 +18,14 @@ from shell.application.execution.event_handlers.graph_node_execution_worker impo
 from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
     NotifyParentOnChildCompletionHandler,
 )
+from shell.application.execution.event_handlers.graph_node_execution_initialized_handler import (
+    GraphNodeExecutionInitializedHandler,
+)
 from shell.application.execution.event_handlers.planner_result_handler import (
     PlannerResultHandler,
+)
+from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
+    SubGraphSpawnRequestedHandler,
 )
 from shell.application.execution.event_handlers.propagate_node_output_to_graph_input import (
     PropagateNodeOutputToGraphInput,
@@ -121,6 +127,25 @@ class EventContainer(containers.DeclarativeContainer):
     )
     planner_result_handler_factory = providers.Factory(
         PlannerResultHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        clock=infra.clock_factory,
+        logger=infra.stdlib_logger,
+        definition_provider=infra.definition_provider_factory,
+        sub_graph_discovery=domain.sub_graph_discovery_factory,
+    )
+    sub_graph_spawn_requested_handler_factory = providers.Factory(
+        SubGraphSpawnRequestedHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        clock=infra.clock_factory,
+        id_generator=infra.id_generator_factory,
+        logger=infra.stdlib_logger,
+        definition_provider=infra.definition_provider_factory,
+        governance=domain.sub_graph_governance_factory,
+        security=domain.sub_graph_security_factory,
+        versioning=domain.sub_graph_versioning_factory,
+    )
+    graph_node_execution_initialized_handler_factory = providers.Factory(
+        GraphNodeExecutionInitializedHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         logger=infra.stdlib_logger,

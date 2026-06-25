@@ -29,9 +29,9 @@ class WorkflowGraphNodeExecutionCompletedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
-            workflow_id=WorkflowId(payload["workflow_id"]),
-            result_id=GraphNodeExecutionResultId(payload["result_id"]),
+            graph_node_execution_id=GraphNodeExecutionId(payload.get("graph_node_execution_id")),
+            workflow_id=WorkflowId(payload.get("workflow_id")),
+            result_id=GraphNodeExecutionResultId(payload.get("result_id")),
         )
 
     @classmethod

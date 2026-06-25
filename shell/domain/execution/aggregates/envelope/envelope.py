@@ -3,12 +3,25 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.envelope.entities.envelope_event import EnvelopeEvent
-from shell.domain.execution.aggregates.envelope.events.envelope_deadlettered_event import EnvelopeDeadletteredEvent
-from shell.domain.execution.aggregates.envelope.events.envelope_routed_event import EnvelopeRoutedEvent
-from shell.domain.execution.aggregates.envelope.value_objects.envelope_id import EnvelopeId
+from shell.domain.execution.aggregates.envelope.events.envelope_deadlettered_event import (
+    EnvelopeDeadletteredEvent,
+)
+from shell.domain.execution.aggregates.envelope.events.envelope_receiver_changed_event import (
+    EnvelopeReceiverChangedEvent,
+)
+from shell.domain.execution.aggregates.envelope.events.envelope_routed_event import (
+    EnvelopeRoutedEvent,
+)
+from shell.domain.execution.aggregates.envelope.events.envelope_stage_changed_event import (
+    EnvelopeStageChangedEvent,
+)
+from shell.domain.execution.aggregates.envelope.events.envelope_status_changed_event import (
+    EnvelopeStatusChangedEvent,
+)
 from shell.domain.execution.aggregates.envelope.exceptions.invalid_envelope_transition import (
     InvalidEnvelopeTransition,
 )
+from shell.domain.execution.aggregates.envelope.value_objects.envelope_id import EnvelopeId
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 
@@ -202,6 +215,7 @@ class Envelope(AggregateRoot[EnvelopeId]):
                 f"Cannot transition envelope {self.id.value!r} "
                 f"from {self._status.value!r} to {new_status.value!r}"
             )
+        previous_status = self._status
         self._status = new_status
         self._updated_at = now
         from shell.domain.execution.aggregates.envelope.value_objects.envelope_event_id import (
@@ -216,6 +230,9 @@ class Envelope(AggregateRoot[EnvelopeId]):
                 created_at=now,
             )
         )
+        self.append_event(
+            EnvelopeStatusChangedEvent.now(self.id, previous_status, new_status, now=now)
+        )
         if new_status == EnvelopeStatus.DELIVERED:
             self.append_event(EnvelopeRoutedEvent.now(self.id, self._workflow_id, now=now))
         elif new_status == EnvelopeStatus.DEAD:
@@ -226,9 +243,14 @@ class Envelope(AggregateRoot[EnvelopeId]):
     def transition_stage(self, new_stage: EnvelopeStage, now: datetime) -> None:
         self._stage = new_stage
         self._updated_at = now
+        self.append_event(EnvelopeStageChangedEvent.now(self.id, new_stage, now=now))
 
-    def deliver_to(self, graph_node_execution_id: GraphNodeExecutionId) -> None:
+    def deliver_to(self, graph_node_execution_id: GraphNodeExecutionId, now: datetime) -> None:
         self._receiver_graph_node_execution_id = graph_node_execution_id
+        self._updated_at = now
+        self.append_event(
+            EnvelopeReceiverChangedEvent.now(self.id, graph_node_execution_id, now=now)
+        )
 
     def archive(self, archive_uri: str, now: datetime) -> None:
         self._archive_uri = archive_uri

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.services.graph_node_execution_output_interpreter import OutputDecision
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.logging import Logger
+    from shell.domain.platform.ports.log import Logger
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,

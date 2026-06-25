@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.scheduling.aggregates.scheduler_execution import (
+    from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
         SchedulerExecution,
     )
     from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId

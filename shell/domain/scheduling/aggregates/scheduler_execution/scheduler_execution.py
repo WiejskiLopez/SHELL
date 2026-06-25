@@ -4,13 +4,13 @@ from datetime import datetime
 from typing import Any
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.scheduling.events import (
+from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
     SchedulerExecutionFailedEvent,
     SchedulerExecutionSkippedEvent,
     SchedulerExecutionStartedEvent,
 )
-from shell.domain.scheduling.value_objects.execution_status import ExecutionStatus
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import ExecutionStatus
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,
     SchedulerExecutionId,

@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.scheduling.aggregates.scheduler_definition import (
+from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution import (
+from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
 from shell.domain.scheduling.value_objects.action_config import ActionConfig
-from shell.domain.scheduling.value_objects.execution_status import ExecutionStatus
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import ExecutionStatus
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,
     SchedulerExecutionId,

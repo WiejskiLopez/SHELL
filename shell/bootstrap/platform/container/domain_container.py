@@ -10,7 +10,7 @@ from shell.domain.execution.services.graph_node_execution_navigator import (
 from shell.domain.execution.services.graph_node_execution_policy import (
     FailFastGraphNodeExecutionPolicy,
 )
-from shell.domain.execution.services.sub_graph_execution_service import SubGraphExecutionService
+
 from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
     DefaultSubGraphDiscovery,
     DefaultSubGraphObserver,
@@ -44,16 +44,4 @@ class DomainContainer(containers.DeclarativeContainer):
         unit_of_work_factory=buses.unit_of_work_factory,
     )
 
-    # ── Sub-graph execution service (used by PlannerResultHandler) ────────
-    sub_graph_execution_service_factory = providers.Singleton(
-        SubGraphExecutionService,
-        unit_of_work=buses.unit_of_work_factory,
-        clock=infra.clock_factory,
-        id_generator=infra.id_generator_factory,
-        logger=infra.stdlib_logger,
-        definition_provider=infra.definition_provider_factory,
-        governance=sub_graph_governance_factory,
-        security=sub_graph_security_factory,
-        versioning=sub_graph_versioning_factory,
-        observer=sub_graph_observer_factory,
-    )
+    # ── Sub-graph extension points (kept for handler wiring) ──────────────

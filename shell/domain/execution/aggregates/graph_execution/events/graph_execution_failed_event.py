@@ -36,6 +36,6 @@ class GraphExecutionFailedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
+            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
             reason=Reason(payload.get("reason", "")) if payload.get("reason") else None,
         )

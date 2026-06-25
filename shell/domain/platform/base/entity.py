@@ -15,16 +15,25 @@ class Entity(ABC, Generic[TId]):
     regardless of their state.
     """
 
-    __slots__ = ("_id",)
+    __slots__ = ("_id", "_version")
 
     _id: TId
+    _version: int
 
     def __init__(self, id: TId) -> None:
         self._id = id
+        self._version = 0
 
     @property
     def id(self) -> TId:
         return self._id
+
+    @property
+    def version(self) -> int:
+        return self._version
+
+    def _increment_version(self) -> None:
+        self._version += 1
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Entity):

@@ -15,7 +15,7 @@ from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution 
 from sqlalchemy import select
 
 if TYPE_CHECKING:
-    from shell.domain.scheduling.aggregates.scheduler_job import (
+    from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
     from sqlalchemy.ext.asyncio import AsyncSession

@@ -1,0 +1,45 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+    GraphNodeExecutionInitializedEvent,
+)
+
+if TYPE_CHECKING:
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
+
+
+class GraphNodeExecutionInitializedHandler:
+    def __init__(
+        self,
+        unit_of_work: UnitOfWork,
+        clock: Clock,
+        logger: Logger,
+    ) -> None:
+        self._unit_of_work = unit_of_work
+        self._clock = clock
+        self._logger = logger
+
+    async def handle(self, event: GraphNodeExecutionInitializedEvent) -> None:
+        async with self._unit_of_work as unit_of_work:
+            parent = await unit_of_work.graph_execution_repository.get_by_id(event.parent_graph_execution_id)
+            if parent is None:
+                self._logger.warning(
+                    "node_initialized.parent_not_found",
+                    parent_id=event.parent_graph_execution_id.value,
+                )
+                return
+
+            now = self._clock.now()
+            parent.confirm_node_initialized(event.graph_execution_id, now)
+            await unit_of_work.graph_execution_repository.save(parent)
+            unit_of_work.stage_events(list(parent.pull_events()))
+
+            self._logger.info(
+                "node_initialized.confirmed",
+                node_id=event.node_id.value,
+                parent_id=event.parent_graph_execution_id.value,
+            )

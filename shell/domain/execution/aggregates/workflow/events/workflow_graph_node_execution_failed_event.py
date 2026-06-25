@@ -26,9 +26,9 @@ class WorkflowGraphNodeExecutionFailedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
-            workflow_id=WorkflowId(payload["workflow_id"]),
-            reason=payload["reason"],
+            graph_node_execution_id=GraphNodeExecutionId(payload.get("graph_node_execution_id")),
+            workflow_id=WorkflowId(payload.get("workflow_id")),
+            reason=payload.get("reason"),
         )
 
     @classmethod

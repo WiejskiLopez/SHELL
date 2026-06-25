@@ -109,6 +109,74 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._max_retries = max_retries
         self._retry_delay_seconds = retry_delay_seconds
 
+    # --- Factory ---
+
+    @classmethod
+    def new(
+        cls,
+        *,
+        id: GraphNodeExecutionId,
+        graph_execution_id: GraphExecutionId | None = None,
+        parent_graph_execution_id: GraphExecutionId | None = None,
+        role: NodeRole = NodeRole.PLANNER,
+        order: NodeOrder | None = None,
+        position: int = 0,
+        mode: Any = None,
+        node_type: str = "",
+        model: str = "",
+        command: str = "",
+        timeout: int | None = None,
+        retries: int = 0,
+        log_level: str = "INFO",
+        max_step: int = 0,
+        no_ask_user: bool = False,
+        autopilot: bool = False,
+        task_execution_id: str = "",
+        source_dir: str = "",
+        status_initial: str = "",
+        timeout_seconds: int = 0,
+        max_retries: int = 0,
+        retry_delay_seconds: int = 0,
+        now: datetime,
+    ) -> GraphNodeExecution:
+        instance = cls(
+            id=id,
+            graph_execution_id=graph_execution_id,
+            role=role,
+            order=order,
+            position=position,
+            mode=mode,
+            node_type=node_type,
+            model=model,
+            command=command,
+            timeout=timeout,
+            retries=retries,
+            log_level=log_level,
+            max_step=max_step,
+            no_ask_user=no_ask_user,
+            autopilot=autopilot,
+            task_execution_id=task_execution_id,
+            source_dir=source_dir,
+            status_initial=status_initial,
+            timeout_seconds=timeout_seconds,
+            max_retries=max_retries,
+            retry_delay_seconds=retry_delay_seconds,
+        )
+        if parent_graph_execution_id is not None and graph_execution_id is not None:
+            from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+                GraphNodeExecutionInitializedEvent,
+            )
+
+            instance.append_event(
+                GraphNodeExecutionInitializedEvent.now(
+                    node_id=id,
+                    graph_execution_id=graph_execution_id,
+                    parent_graph_execution_id=parent_graph_execution_id,
+                    now=now,
+                )
+            )
+        return instance
+
     # --- V3 FSM ---
 
     def start(self, now: datetime) -> None:

@@ -5,17 +5,23 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
-    WorkflowCompletedEvent,
-)
 from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
-    WorkflowFailedEvent,
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+    WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_skill_added_event import (
+    WorkflowSkillAddedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_state_input_added_event import (
+    WorkflowStateInputAddedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_state_output_added_event import (
+    WorkflowStateOutputAddedEvent,
 )
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
@@ -132,8 +138,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
             raise InvalidWorkflowTransition(
                 f"start_at requires status=ACTIVE, got {self._status.value!r}"
             )
-        if task_execution_id is not None:
-            self.append_event(WorkflowStartedEvent.now(self.id, task_execution_id, now=now))
+        self.append_event(
+            WorkflowStartedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
+        )
 
     def finish(
         self,
@@ -145,8 +152,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
                 f"finish requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.COMPLETED
-        if task_execution_id is not None:
-            self.append_event(WorkflowCompletedEvent.now(self.id, task_execution_id, now=now))
+        self.append_event(
+            WorkflowCompletedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
+        )
 
     def abort(
         self,
@@ -160,14 +168,17 @@ class Workflow(AggregateRoot["WorkflowId"]):
                 f"abort requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.ABORTED
-        if task_execution_id is not None:
-            self.append_event(WorkflowAbortedEvent.now(self.id, task_execution_id, now=now))
+        self.append_event(
+            WorkflowAbortedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
+        )
 
     def add_skill(self, payload: SkillPayload, now: datetime) -> None:
         from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
             WorkflowSkill,
         )
-        from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import WorkflowSkillId
+        from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import (
+            WorkflowSkillId,
+        )
 
         skill = WorkflowSkill(
             id=WorkflowSkillId.generate(),
@@ -176,6 +187,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             created_at=now,
         )
         self._skills.append(skill)
+        self.append_event(WorkflowSkillAddedEvent.now(self._id, skill.id, now=now))
 
     def add_state_input(self, payload: dict, now: datetime) -> None:
         from shell.domain.execution.aggregates.workflow.entities.workflow_state_input import (
@@ -188,6 +200,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             created_at=now,
         )
         self._state_inputs.append(state)
+        self.append_event(WorkflowStateInputAddedEvent.now(self.id, now=now))
 
     def add_state_output(self, payload: dict, now: datetime) -> None:
         from shell.domain.execution.aggregates.workflow.entities.workflow_state_output import (
@@ -200,3 +213,4 @@ class Workflow(AggregateRoot["WorkflowId"]):
             created_at=now,
         )
         self._state_outputs.append(state)
+        self.append_event(WorkflowStateOutputAddedEvent.now(self.id, now=now))

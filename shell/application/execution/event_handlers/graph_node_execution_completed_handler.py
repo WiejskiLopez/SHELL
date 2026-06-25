@@ -47,8 +47,8 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.logging import Logger
-    from shell.application.platform.ports.time import Clock
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.workflow import Workflow

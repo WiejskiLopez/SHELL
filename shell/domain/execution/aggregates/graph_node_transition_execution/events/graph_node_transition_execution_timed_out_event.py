@@ -43,7 +43,7 @@ class GraphNodeTransitionExecutionTimedOutEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            transition_id=GraphNodeTransitionExecutionId(payload["transition_id"]),
-            node_id=GraphNodeExecutionId(payload["node_id"]),
-            handler_node_id=GraphNodeExecutionId(payload["handler_node_id"]),
+            transition_id=GraphNodeTransitionExecutionId(payload.get("transition_id")),
+            node_id=GraphNodeExecutionId(payload.get("node_id")),
+            handler_node_id=GraphNodeExecutionId(payload.get("handler_node_id")),
         )

@@ -3,13 +3,28 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.projekt.aggregates.project.events.project_activated_event import (
+    ProjectActivatedEvent,
+)
+from shell.domain.projekt.aggregates.project.events.project_archived_event import (
+    ProjectArchivedEvent,
+)
+from shell.domain.projekt.aggregates.project.exceptions.invalid_project_transition import (
+    InvalidProjectTransition,
+)
 from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.projekt.value_objects.project_status import ProjectStatus
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell.domain.projekt.aggregates.project.entities.project_skill import ProjectSkill
-    from shell.domain.projekt.aggregates.project.entities.project_state_input import ProjectStateInput
-    from shell.domain.projekt.aggregates.project.entities.project_state_output import ProjectStateOutput
+    from shell.domain.projekt.aggregates.project.entities.project_state_input import (
+        ProjectStateInput,
+    )
+    from shell.domain.projekt.aggregates.project.entities.project_state_output import (
+        ProjectStateOutput,
+    )
     from shell.domain.projekt.value_objects.project_name import ProjectName
     from shell.domain.projekt.value_objects.repo_url import RepoUrl
 
@@ -74,12 +89,18 @@ class Project(AggregateRoot[ProjectId]):
     def state_outputs(self) -> tuple[ProjectStateOutput, ...]:
         return tuple(self._state_outputs)
 
-    def archive(self) -> None:
+    def archive(self, now: datetime) -> None:
         if self._status != ProjectStatus.ACTIVE:
-            raise ValueError(f"Cannot archive project in status {self._status!r}")
+            raise InvalidProjectTransition(
+                f"Cannot archive project in status {self._status!r}"
+            )
         self._status = ProjectStatus.ARCHIVED
+        self.append_event(ProjectArchivedEvent.now(self._id, now=now))
 
-    def activate(self) -> None:
+    def activate(self, now: datetime) -> None:
         if self._status != ProjectStatus.ARCHIVED:
-            raise ValueError(f"Cannot activate project in status {self._status!r}")
+            raise InvalidProjectTransition(
+                f"Cannot activate project in status {self._status!r}"
+            )
         self._status = ProjectStatus.ACTIVE
+        self.append_event(ProjectActivatedEvent.now(self._id, now=now))

@@ -9,8 +9,18 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DomainEvent:
+    event_id: str = ""
+    aggregate_id: str = ""
+    aggregate_type: str = ""
     occurred_at: datetime
+    correlation_id: str = ""
+    causation_id: str = ""
     schema_version: int = 1
+
+    def __post_init__(self) -> None:
+        if not self.event_id:
+            import uuid
+            object.__setattr__(self, "event_id", str(uuid.uuid4()))
 
     @classmethod
     def from_payload(

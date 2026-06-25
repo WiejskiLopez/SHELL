@@ -41,7 +41,7 @@ class GraphNodeExecutionCompletedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            node_id=GraphNodeExecutionId(payload["node_id"]),
-            role=NodeRole(payload["role"]),
+            node_id=GraphNodeExecutionId(payload.get("node_id")),
+            role=NodeRole(payload.get("role")),
             result=payload.get("result"),
         )

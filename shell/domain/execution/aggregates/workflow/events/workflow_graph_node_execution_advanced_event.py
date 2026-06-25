@@ -26,9 +26,9 @@ class WorkflowGraphNodeExecutionAdvancedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            workflow_id=WorkflowId(payload["workflow_id"]),
-            from_graph_node_execution_id=GraphNodeExecutionId(payload["from_graph_node_execution_id"]),
-            to_graph_node_execution_id=GraphNodeExecutionId(payload["to_graph_node_execution_id"]),
+            workflow_id=WorkflowId(payload.get("workflow_id")),
+            from_graph_node_execution_id=GraphNodeExecutionId(payload.get("from_graph_node_execution_id")),
+            to_graph_node_execution_id=GraphNodeExecutionId(payload.get("to_graph_node_execution_id")),
         )
 
     @classmethod

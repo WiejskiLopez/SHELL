@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.aggregates.graph_execution.value_objects.spawning_request import (
+    SpawningRequest,
+)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
@@ -42,6 +45,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         "_skills",
         "_state_inputs",
         "_state_outputs",
+        "_spawning_requests",
         # Legacy (deprecated)
         "_graph_definition_id",
         "_graph_node_execution_ids",
@@ -81,6 +85,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._skills = []
         self._state_inputs = []
         self._state_outputs = []
+        self._spawning_requests: dict[str, SpawningRequest] = {}
         # Legacy
         self._graph_definition_id = graph_definition_id
         self._graph_node_execution_ids = _ensure_node_ids(graph_node_execution_ids) if graph_node_execution_ids else []
@@ -167,7 +172,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def fail(self, reason: Reason, now: datetime) -> None:
-        if self._status not in (GraphExecutionStatus.PLANNING, GraphExecutionStatus.EXECUTING, GraphExecutionStatus.VERIFYING):
+        if self._status not in (GraphExecutionStatus.PLANNING, GraphExecutionStatus.EXECUTING, GraphExecutionStatus.SPAWNING, GraphExecutionStatus.READY, GraphExecutionStatus.VERIFYING):
             raise InvalidGraphStateError(
                 f"Cannot fail graph in status {self._status}"
             )
@@ -185,7 +190,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def mark_verifying(self, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.EXECUTING:
+        if self._status not in (GraphExecutionStatus.EXECUTING, GraphExecutionStatus.READY):
             raise InvalidGraphStateError(
                 f"Cannot start verifying in status {self._status}"
             )
@@ -232,6 +237,107 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             max_subgraph_depth=max_subgraph_depth,
         )
         return instance
+
+    # --- Sub-graph spawning ---
+
+    def request_sub_graph_spawn(
+        self,
+        child_graph_execution_id: GraphExecutionId,
+        graph_definition_id: str,
+        state_input: dict[str, Any] | None,
+        correlation_id: str,
+        expected_node_count: int,
+        now: datetime,
+    ) -> None:
+        if self._status != GraphExecutionStatus.EXECUTING:
+            raise InvalidGraphStateError(
+                f"Cannot request sub-graph spawn in status {self._status}"
+            )
+        self._status = GraphExecutionStatus.SPAWNING
+        request = SpawningRequest(
+            child_graph_execution_id=child_graph_execution_id,
+            expected_node_count=expected_node_count,
+            initialized_node_count=0,
+            definition_id=graph_definition_id,
+            correlation_id=correlation_id,
+        )
+        self._spawning_requests[child_graph_execution_id.value] = request
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
+            GraphExecutionSubGraphSpawnRequestedEvent,
+        )
+
+        self.append_event(
+            GraphExecutionSubGraphSpawnRequestedEvent.now(
+                parent_graph_execution_id=self._id,
+                child_graph_execution_id=child_graph_execution_id,
+                graph_definition_id=graph_definition_id,
+                now=now,
+                state_input=state_input,
+                correlation_id=correlation_id,
+            )
+        )
+
+    def set_spawn_expected_node_count(
+        self,
+        child_graph_execution_id: GraphExecutionId,
+        expected_node_count: int,
+        now: datetime,
+    ) -> None:
+        request = self._spawning_requests.get(child_graph_execution_id.value)
+        if request is None:
+            return
+        updated = SpawningRequest(
+            child_graph_execution_id=request.child_graph_execution_id,
+            expected_node_count=expected_node_count,
+            initialized_node_count=0,
+            definition_id=request.definition_id,
+            correlation_id=request.correlation_id,
+        )
+        self._spawning_requests[child_graph_execution_id.value] = updated
+
+    def confirm_node_initialized(
+        self,
+        child_graph_execution_id: GraphExecutionId,
+        now: datetime,
+    ) -> None:
+        if self._status not in (GraphExecutionStatus.SPAWNING,):
+            raise InvalidGraphStateError(
+                f"Cannot confirm node initialized in status {self._status}"
+            )
+        request = self._spawning_requests.get(child_graph_execution_id.value)
+        if request is None:
+            return
+        updated = SpawningRequest(
+            child_graph_execution_id=request.child_graph_execution_id,
+            expected_node_count=request.expected_node_count,
+            initialized_node_count=request.initialized_node_count + 1,
+            definition_id=request.definition_id,
+            correlation_id=request.correlation_id,
+        )
+        self._spawning_requests[child_graph_execution_id.value] = updated
+        if updated.expected_node_count < 1:
+            return
+        if updated.initialized_node_count >= updated.expected_node_count:
+            self._spawning_requests.pop(child_graph_execution_id.value, None)
+            self._status = GraphExecutionStatus.READY
+            from shell.domain.execution.aggregates.graph_execution.events.graph_execution_ready_event import (
+                GraphExecutionReadyEvent,
+            )
+
+            self.append_event(
+                GraphExecutionReadyEvent.now(
+                    graph_execution_id=self._id,
+                    child_graph_execution_id=child_graph_execution_id,
+                    now=now,
+                )
+            )
+
+    def resume_from_ready(self, now: datetime) -> None:
+        if self._status != GraphExecutionStatus.READY:
+            raise InvalidGraphStateError(
+                f"Cannot resume from ready in status {self._status}"
+            )
+        self._status = GraphExecutionStatus.EXECUTING
 
     # --- Skill management ---
 
@@ -343,6 +449,10 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
     @property
     def status(self) -> GraphExecutionStatus:
         return self._status
+
+    @property
+    def spawning_requests(self) -> dict[str, SpawningRequest]:
+        return dict(self._spawning_requests)
 
     @property
     def skills(self) -> tuple:

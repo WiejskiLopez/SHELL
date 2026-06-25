@@ -82,7 +82,7 @@ class RouteEnvelopesHandler:
                                 envelope.target_role or None,
                             )
                         )
-                        envelope.deliver_to(target_graph_node_execution_id)
+                        envelope.deliver_to(target_graph_node_execution_id, now)
                     except Exception as e:
                         logger.warning(
                             "Envelope %s dead-lettered after routing failure: %s",

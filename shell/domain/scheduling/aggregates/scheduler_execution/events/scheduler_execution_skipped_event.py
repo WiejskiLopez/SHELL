@@ -12,10 +12,9 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class SchedulerExecutionStartedEvent(DomainEvent):
+class SchedulerExecutionSkippedEvent(DomainEvent):
     execution_id: SchedulerExecutionId
-    action_ref: str
-    action_ref_type: str
+    reason: str
 
     @classmethod
     def from_payload(
@@ -23,8 +22,7 @@ class SchedulerExecutionStartedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            execution_id=payload["execution_id"],
-            action_ref=payload["action_ref"],
-            action_ref_type=payload["action_ref_type"],
+            execution_id=payload.get("execution_id"),
+            reason=payload.get("reason"),
             schema_version=schema_version,
         )

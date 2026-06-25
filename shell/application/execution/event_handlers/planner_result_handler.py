@@ -1,28 +1,27 @@
 """PlannerResultHandler — processes GraphNodeExecutionCompletedEvent for PLANNER nodes.
 
 Subscribes to GraphNodeExecutionCompletedEvent with role=PLANNER.
-Emits GraphSpawnedEvent for each spawn entry, or GraphPlannedEvent for direct plans.
+Calls GraphExecution.request_sub_graph_spawn() for each spawn entry,
+or emits GraphPlannedEvent for direct plans.
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planned_event import (
-    GraphExecutionPlannedEvent,
-)
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_spawned_event import (
-    GraphExecutionSpawnedEvent,
-)
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
 from shell.domain.execution.value_objects.node_role import NodeRole
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.logging import Logger
-    from shell.application.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.ports.graph_execution_definition_provider import (
+        GraphExecutionDefinitionProvider,
+    )
+    from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
 
 
 class PlannerResultHandler:
@@ -31,10 +30,14 @@ class PlannerResultHandler:
         unit_of_work: UnitOfWork,
         clock: Clock,
         logger: Logger,
+        definition_provider: GraphExecutionDefinitionProvider,
+        sub_graph_discovery: SubGraphDiscovery,
     ) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock
         self._logger = logger
+        self._definition_provider = definition_provider
+        self._sub_graph_discovery = sub_graph_discovery
 
     async def handle(self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent) -> None:
         if graph_node_execution_completed_event.role != NodeRole.PLANNER:
@@ -63,37 +66,43 @@ class PlannerResultHandler:
             stage = result.get("stage", "")
             spawns: list[dict[str, Any]] = result.get("spawns", [])
             plan = result.get("plan", {})
-
-            staged_events: list[Any] = []
+            now = graph_node_execution_completed_event.occurred_at
 
             for spawn in spawns:
                 goal = spawn.get("goal", "")
                 if not goal:
                     continue
                 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-                    GraphExecutionId,
+                    GraphExecutionId as GEId,
                 )
-                child_id = GraphExecutionId.generate()
-                staged_events.append(
-                    GraphExecutionSpawnedEvent.now(
-                        parent_graph_execution_id=graph_execution.id,
-                        child_graph_execution_id=child_id,
+
+                child_id = GEId.generate()
+                definition_id = ""
+                expected_count = 0
+                try:
+                    definition_id = await self._sub_graph_discovery.find_unique(goal)
+                    definition = await self._definition_provider.get_graph_definition(definition_id)
+                    if definition is not None:
+                        expected_count = len(definition.graph_node_execution_definitions)
+                except Exception:
+                    self._logger.warning(
+                        "planner_result_handler.definition_resolve_failed",
                         goal=goal,
-                        now=graph_node_execution_completed_event.occurred_at,
                     )
+                graph_execution.request_sub_graph_spawn(
+                    child_graph_execution_id=child_id,
+                    graph_definition_id=definition_id,
+                    state_input={},
+                    correlation_id="",
+                    expected_node_count=expected_count,
+                    now=now,
                 )
 
             if stage == "direct" and plan:
-                staged_events.append(
-                    GraphExecutionPlannedEvent.now(
-                        graph_execution_id=graph_execution.id,
-                        plan=plan,
-                        now=graph_node_execution_completed_event.occurred_at,
-                    )
-                )
+                graph_execution.plan_complete(plan=plan, now=now)
 
-            if staged_events:
-                unit_of_work.stage_events(staged_events)
+            await unit_of_work.graph_execution_repository.save(graph_execution)
+            unit_of_work.stage_events(list(graph_execution.pull_events()))
 
             self._logger.info(
                 "planner_result_handler.processed",
