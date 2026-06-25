@@ -1,5 +1,0 @@
-from __future__ import annotations
-
-from shell.domain.execution.aggregates.task_execution_state_output.repositories.task_execution_state_output_repository import TaskExecutionStateOutputRepository
-
-__all__ = ["TaskExecutionStateOutputRepository"]

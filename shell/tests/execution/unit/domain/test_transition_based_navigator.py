@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
-    GraphNodeTransitionExecution,
+from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
+    TransitionDefinition,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
@@ -37,14 +37,11 @@ def _make_transition(
     ttype: EdgeType = EdgeType.SEQUENCE,
     priority: int = 0,
     condition: str | None = None,
-) -> GraphNodeTransitionExecution:
-    source = GraphNodeExecutionId(from_node_id) if from_node_id else None
-    return GraphNodeTransitionExecution(
-        id=GraphNodeTransitionExecutionId(transition_id),
-        graph_execution_id=GraphExecutionId("ge"),
-        source_node_execution_id=source,
-        target_node_execution_id=GraphNodeExecutionId(to_node_id),
-        transition_type=ttype,
+) -> TransitionDefinition:
+    return TransitionDefinition(
+        source_node_execution_id=from_node_id or "",
+        target_node_execution_id=to_node_id,
+        edge_type=ttype,
         priority=priority,
         label=f"{from_node_id}_to_{to_node_id}",
         condition_expression=condition,
@@ -52,13 +49,12 @@ def _make_transition(
 
 
 def _make_graph(
-    *nodes: GraphNodeExecution, transitions: list[GraphNodeTransitionExecution] | None = None
+    *nodes: GraphNodeExecution, transitions: list[TransitionDefinition] | None = None
 ) -> GraphExecution:
     return GraphExecution(
         id=GraphExecutionId("ge"),
         task_execution_id=TaskExecutionId("t1"),
-        graph_definition_id="g1",
-        graph_node_executions=list(nodes),
+        depth=1,
         transitions=transitions,
     )
 

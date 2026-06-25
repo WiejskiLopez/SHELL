@@ -25,16 +25,13 @@ from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_
     InMemoryTaskExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_input_repository import (
-    InMemoryTaskExecutionStateInputRepository,
+    InMemoryTaskExecutionStateRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
 from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
-    InMemoryGraphExecutionStateInputRepository,
-)
-from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_output_repository import (
-    InMemoryGraphExecutionStateOutputRepository,
+    InMemoryGraphExecutionStateRepository,
 )
 
 if TYPE_CHECKING:
@@ -44,7 +41,7 @@ if TYPE_CHECKING:
 class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
         self._task_execution_repository = InMemoryTaskExecutionRepository()
-        self._task_execution_state_input_repository = InMemoryTaskExecutionStateInputRepository()
+        self._task_execution_state_repository = InMemoryTaskExecutionStateRepository()
         self._graph_node_execution_repository = InMemoryGraphNodeExecutionRepository()
         self._graph_execution_repository = InMemoryGraphExecutionRepository()
         self._graph_execution_repository.link_task_executions(self._task_execution_repository)
@@ -54,8 +51,7 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._session_repository = InMemorySessionRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
-        self._graph_execution_state_input_repository = InMemoryGraphExecutionStateInputRepository()
-        self._graph_execution_state_output_repository = InMemoryGraphExecutionStateOutputRepository()
+        self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -92,8 +88,8 @@ class InMemoryUnitOfWork(UnitOfWork):
         return self._task_execution_repository
 
     @property
-    def task_execution_state_input_repository(self) -> InMemoryTaskExecutionStateInputRepository:
-        return self._task_execution_state_input_repository
+    def task_execution_state_repository(self) -> InMemoryTaskExecutionStateRepository:
+        return self._task_execution_state_repository
 
     @property
     def graph_execution_repository(self) -> InMemoryGraphExecutionRepository:
@@ -120,12 +116,8 @@ class InMemoryUnitOfWork(UnitOfWork):
         return self._graph_definition_repository
 
     @property
-    def graph_execution_state_input_repository(self) -> InMemoryGraphExecutionStateInputRepository:
-        return self._graph_execution_state_input_repository
-
-    @property
-    def graph_execution_state_output_repository(self) -> InMemoryGraphExecutionStateOutputRepository:
-        return self._graph_execution_state_output_repository
+    def graph_execution_state_repository(self) -> InMemoryGraphExecutionStateRepository:
+        return self._graph_execution_state_repository
 
     @property
     def graph_node_execution_repository(self) -> InMemoryGraphNodeExecutionRepository:
@@ -148,18 +140,10 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events = []
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        if exc_type is not None:
-            await self.rollback()
-        else:
-            await self.commit()
-
     async def commit(self) -> None:
-        self._committed_events = list(self._staged_events)
-        self._staged_events = []
         self._committed = True
+        self._committed_events.extend(self._staged_events)
+        self._staged_events.clear()
 
     async def rollback(self) -> None:
-        self._staged_events = []
-        self._committed_events = []
-        self._committed = False
+        self._staged_events.clear()

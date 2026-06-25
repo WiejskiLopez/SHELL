@@ -10,4 +10,5 @@ class TaskExecutionStatus(ValueObject, StrEnum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    TIMED_OUT = "timed_out"
     EXHAUSTED = "exhausted"

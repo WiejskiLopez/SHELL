@@ -26,11 +26,8 @@ if TYPE_CHECKING:
         GraphNodeExecutionStateOutput,
     )
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-    from shell.domain.execution.aggregates.task_execution_state_input.task_execution_state_input import (
-        TaskExecutionStateInput,
-    )
-    from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output import (
-        TaskExecutionStateOutput,
+    from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+        TaskExecutionState,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
@@ -98,7 +95,7 @@ def runner_config_to_dto(config: RunnerConfig) -> RunnerConfigDto:
 
 
 def task_execution_input_payload_to_dto(
-    entity: TaskExecutionStateInput,
+    entity: TaskExecutionState,
 ) -> TaskExecutionStateInputDto:
     return TaskExecutionStateInputDto(
         id=entity.id.value,
@@ -110,7 +107,7 @@ def task_execution_input_payload_to_dto(
 
 
 def task_execution_output_payload_to_dto(
-    entity: TaskExecutionStateOutput,
+    entity: TaskExecutionState,
 ) -> TaskExecutionStateOutputDto:
     return TaskExecutionStateOutputDto(
         id=entity.id.value,

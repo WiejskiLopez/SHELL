@@ -12,5 +12,6 @@ class GraphExecutionStatus(ValueObject, StrEnum):
     SPAWNING = "spawning"
     READY = "ready"
     VERIFYING = "verifying"
+    SUSPENDED = "suspended"
     COMPLETED = "completed"
     FAILED = "failed"

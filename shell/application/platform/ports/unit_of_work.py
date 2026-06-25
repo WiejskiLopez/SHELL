@@ -15,11 +15,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
         GraphExecutionRepository,
     )
-    from shell.domain.execution.aggregates.graph_execution_state_input.repositories.graph_execution_state_input_repository import (
-        GraphExecutionStateInputRepository,
-    )
-    from shell.domain.execution.aggregates.graph_execution_state_output.repositories.graph_execution_state_output_repository import (
-        GraphExecutionStateOutputRepository,
+    from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+        GraphExecutionStateRepository,
     )
     from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
@@ -28,8 +25,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
         TaskExecutionRepository,
     )
-    from shell.domain.execution.aggregates.task_execution_state_input.repositories.task_execution_state_input_repository import (
-        TaskExecutionStateInputRepository,
+    from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+        TaskExecutionStateRepository,
     )
     from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
         WorkflowRepository,
@@ -40,9 +37,6 @@ if TYPE_CHECKING:
 class UnitOfWork(Protocol):
     @property
     def task_execution_repository(self) -> TaskExecutionRepository: ...
-
-    @property
-    def task_execution_state_input_repository(self) -> TaskExecutionStateInputRepository: ...
 
     @property
     def graph_execution_repository(self) -> GraphExecutionRepository: ...
@@ -69,10 +63,10 @@ class UnitOfWork(Protocol):
     def graph_definition_repository(self) -> GraphDefinitionRepository: ...
 
     @property
-    def graph_execution_state_input_repository(self) -> GraphExecutionStateInputRepository: ...
+    def graph_execution_state_repository(self) -> GraphExecutionStateRepository: ...
 
     @property
-    def graph_execution_state_output_repository(self) -> GraphExecutionStateOutputRepository: ...
+    def task_execution_state_repository(self) -> TaskExecutionStateRepository: ...
 
     @property
     def graph_node_execution_repository(self) -> GraphNodeExecutionRepository: ...

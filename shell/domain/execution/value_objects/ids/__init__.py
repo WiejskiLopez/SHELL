@@ -10,11 +10,8 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.aggregates.graph_execution_state_input.value_objects.graph_execution_state_input_id import (
-    GraphExecutionStateInputId,
-)
-from shell.domain.execution.aggregates.graph_execution_state_output.value_objects.graph_execution_state_output_id import (
-    GraphExecutionStateOutputId,
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
 )
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
@@ -27,11 +24,8 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 )
 from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
-from shell.domain.execution.aggregates.task_execution_state_input.value_objects.task_execution_state_input_id import (
-    TaskExecutionStateInputId,
-)
-from shell.domain.execution.aggregates.task_execution_state_output.value_objects.task_execution_state_output_id import (
-    TaskExecutionStateOutputId,
+from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
+    TaskExecutionStateId,
 )
 from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
     GraphNodeExecutionResultId,
@@ -42,8 +36,7 @@ __all__ = [
     "EnvelopeEventId",
     "EnvelopeId",
     "GraphExecutionId",
-    "GraphExecutionStateInputId",
-    "GraphExecutionStateOutputId",
+    "GraphExecutionStateId",
     "GraphNodeExecutionId",
     "GraphNodeExecutionStateInputId",
     "GraphNodeExecutionStateOutputId",
@@ -51,7 +44,6 @@ __all__ = [
     "GraphNodeTransitionExecutionId",
     "SessionId",
     "TaskExecutionId",
-    "TaskExecutionStateInputId",
-    "TaskExecutionStateOutputId",
+    "TaskExecutionStateId",
     "WorkflowId",
 ]

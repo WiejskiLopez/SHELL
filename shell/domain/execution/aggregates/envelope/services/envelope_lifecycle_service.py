@@ -21,8 +21,8 @@ class EnvelopeLifecycleService:
         return envelope.step >= max_step
 
     @staticmethod
-    def advance(envelope: Envelope, max_step: int) -> EnvelopeStatus:
-        """Return the new status after considering TTL.
+    def evaluate_status(envelope: Envelope, max_step: int) -> EnvelopeStatus:
+        """Return the status the envelope should transition to based on TTL.
 
         - If step >= max_step → DEAD
         - Else keep current status.

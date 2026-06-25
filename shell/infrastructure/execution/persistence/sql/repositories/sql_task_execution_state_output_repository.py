@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution_state_output.repositories.task_execution_state_output_repository import (
-    TaskExecutionStateOutputRepository,
+from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.ids import (
-    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
 )
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_output_payload_entity_to_model,
@@ -17,19 +17,19 @@ from sqlalchemy import select
 from ..models import TaskExecutionStateOutputModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution_state_output.task_execution_state_output import (
-        TaskExecutionStateOutput,
+    from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+        TaskExecutionState,
     )
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class SqlTaskExecutionStateOutputRepository(TaskExecutionStateOutputRepository):
+class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
     async def get_latest_by_task_id(
         self, task_execution_id: TaskExecutionId
-    ) -> TaskExecutionStateOutput | None:
+    ) -> TaskExecutionState | None:
         query = (
             select(TaskExecutionStateOutputModel)
             .where(
@@ -41,12 +41,18 @@ class SqlTaskExecutionStateOutputRepository(TaskExecutionStateOutputRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_output_payload_model_to_entity(row) if row else None
 
-    async def save(self, payload: TaskExecutionStateOutput) -> None:
+    async def save(self, payload: TaskExecutionState) -> None:
         model = task_execution_output_payload_entity_to_model(payload)
         await self._session.merge(model)
 
+    async def delete(self, id: object) -> None:
+        ...
+
+    async def exists(self, id: object) -> bool:
+        ...
+
 
 __all__ = [
-    "SqlTaskExecutionStateOutputRepository",
+    "SqlTaskExecutionStateRepository",
     "TaskExecutionStateOutputModel",
 ]

@@ -2,22 +2,29 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.aggregates.graph_execution_state_input.events.graph_execution_state_input_changed_event import (
-    GraphExecutionStateInputChangedEvent,
+from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
+    GraphExecutionStateChangedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution_state_input.graph_execution_state_input import (
-    GraphExecutionStateInput,
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphExecutionStateInputId
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.value_objects.state_kind import StateKind
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")
 
 
-def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionStateInput:
-    return GraphExecutionStateInput.create(
-        id_=GraphExecutionStateInputId.generate(),
+def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionState:
+    return GraphExecutionState.create(
+        id_=GraphExecutionStateId.generate(),
         graph_execution_id=_GE_ID,
+        kind=StateKind.INPUT,
         now=_NOW,
     )
 
@@ -30,9 +37,10 @@ class TestGraphExecutionStateInputCreate:
         assert state.graph_execution_id == _GE_ID
 
     def test_create_with_initial_data(self) -> None:
-        state = GraphExecutionStateInput(
-            id=GraphExecutionStateInputId.generate(),
+        state = GraphExecutionState(
+            id=GraphExecutionStateId.generate(),
             graph_execution_id=_GE_ID,
+            kind=StateKind.INPUT,
             state_data={"k": "v"},
             is_current=True,
             created_at=_NOW,
@@ -58,7 +66,7 @@ class TestGraphExecutionStateInputUpdate:
         events = state.pull_events()
         assert len(events) == 1
         event = events[0]
-        assert isinstance(event, GraphExecutionStateInputChangedEvent)
+        assert isinstance(event, GraphExecutionStateChangedEvent)
         assert event.key == "k"
         assert event.old_value is None
         assert event.new_value == "v"

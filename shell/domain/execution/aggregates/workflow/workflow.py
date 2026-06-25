@@ -1,4 +1,4 @@
-"""Workflow aggregate root — V3 with FSM (ACTIVE -> COMPLETED | ABORTED)."""
+"""Workflow aggregate root — V3 with FSM (ACTIVE -> COMPLETED | FAILED | ABORTED | PAUSED)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,15 @@ from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event im
 )
 from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
+    WorkflowFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_paused_event import (
+    WorkflowPausedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_resumed_event import (
+    WorkflowResumedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.workflow_skill_added_event import (
     WorkflowSkillAddedEvent,
@@ -44,6 +53,12 @@ if TYPE_CHECKING:
         WorkflowStateOutput,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_input_id import (
+        WorkflowStateInputId,
+    )
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_output_id import (
+        WorkflowStateOutputId,
+    )
     from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
@@ -178,6 +193,21 @@ class Workflow(AggregateRoot["WorkflowId"]):
             WorkflowCompletedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
         )
 
+    def fail(
+        self,
+        *,
+        now: datetime,
+        task_execution_id: TaskExecutionId | None = None,
+    ) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise InvalidWorkflowTransition(
+                f"fail requires status=ACTIVE, got {self._status.value!r}"
+            )
+        self._status = WorkflowStatus.FAILED
+        self.append_event(
+            WorkflowFailedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
+        )
+
     def abort(
         self,
         *,
@@ -193,6 +223,22 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.append_event(
             WorkflowAbortedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
         )
+
+    def pause(self, *, now: datetime) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise InvalidWorkflowTransition(
+                f"pause requires status=ACTIVE, got {self._status.value!r}"
+            )
+        self._status = WorkflowStatus.PAUSED
+        self.append_event(WorkflowPausedEvent.now(self.id, now=now))
+
+    def resume(self, *, now: datetime) -> None:
+        if self._status != WorkflowStatus.PAUSED:
+            raise InvalidWorkflowTransition(
+                f"resume requires status=PAUSED, got {self._status.value!r}"
+            )
+        self._status = WorkflowStatus.ACTIVE
+        self.append_event(WorkflowResumedEvent.now(self.id, now=now))
 
     def add_skill(self, payload: SkillPayload, now: datetime) -> None:
         from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
@@ -215,9 +261,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         from shell.domain.execution.aggregates.workflow.entities.workflow_state_input import (
             WorkflowStateInput,
         )
+        from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_input_id import (
+            WorkflowStateInputId,
+        )
+
         state = WorkflowStateInput(
-            id=self.id,
-            workflow_id=self.id,
+            id=WorkflowStateInputId.generate(),
+            workflow_id=self._id,
             payload=payload,
             created_at=now,
         )
@@ -228,9 +278,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         from shell.domain.execution.aggregates.workflow.entities.workflow_state_output import (
             WorkflowStateOutput,
         )
+        from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_output_id import (
+            WorkflowStateOutputId,
+        )
+
         state = WorkflowStateOutput(
-            id=self.id,
-            workflow_id=self.id,
+            id=WorkflowStateOutputId.generate(),
+            workflow_id=self._id,
             payload=payload,
             created_at=now,
         )

@@ -7,11 +7,13 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.aggregates.graph_execution.value_objects.loop_counter import LoopCounter
+from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
+    TransitionDefinition,
+)
 
 __all__ = [
     "GraphExecutionId",
     "GraphExecutionSkillId",
     "GraphNodeTransitionExecutionId",
-    "LoopCounter",
+    "TransitionDefinition",
 ]

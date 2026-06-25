@@ -1,5 +1,0 @@
-from shell.domain.execution.aggregates.graph_execution_state_input.events.graph_execution_state_input_changed_event import (
-    GraphExecutionStateInputChangedEvent,
-)
-
-__all__ = ["GraphExecutionStateInputChangedEvent"]

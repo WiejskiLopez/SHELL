@@ -11,11 +11,8 @@ from shell.domain.execution.aggregates.envelope.events.envelope_expired_event im
 from shell.domain.execution.aggregates.envelope.events.envelope_routed_event import (
     EnvelopeRoutedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution_state_input.events.graph_execution_state_input_changed_event import (
-    GraphExecutionStateInputChangedEvent,
-)
-from shell.domain.execution.aggregates.graph_execution_state_output.events.graph_execution_state_output_changed_event import (
-    GraphExecutionStateOutputChangedEvent,
+from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
+    GraphExecutionStateChangedEvent,
 )
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timed_out_event import (
     GraphNodeExecutionTimedOutEvent,
@@ -54,8 +51,7 @@ __all__ = [
     "EnvelopeDeadletteredEvent",
     "EnvelopeExpiredEvent",
     "EnvelopeRoutedEvent",
-    "GraphExecutionStateInputChangedEvent",
-    "GraphExecutionStateOutputChangedEvent",
+    "GraphExecutionStateChangedEvent",
     "GraphNodeExecutionAdvancedEvent",
     "GraphNodeExecutionCompletedEvent",
     "GraphNodeExecutionFailedEvent",

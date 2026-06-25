@@ -20,17 +20,15 @@ if TYPE_CHECKING:
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
-        # V3 fields
         "_workflow_id",
         "_status",
         "_max_planning_cycles",
         "_current_cycle",
         "_skills",
-        "_state_inputs",
-        "_state_outputs",
         "_name",
         "_work_dir",
         "_created_at",
+        "_state_data",
     )
 
     def __init__(
@@ -40,7 +38,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
-        # Legacy compat
         created_at: Any = None,
     ) -> None:
         super().__init__(id)
@@ -49,11 +46,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._max_planning_cycles = max_planning_cycles or MaxPlanningCycles(5)
         self._current_cycle = PlanningCycle(0)
         self._skills = []
-        self._state_inputs = []
-        self._state_outputs = []
         self._name = name if name is not None else TaskName("default")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at  # type: ignore[assignment]
+        self._state_data: dict[str, object] = {}
 
     @classmethod
     def restore(
@@ -130,6 +126,23 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             )
         )
 
+    def timeout(self, now: datetime) -> None:
+        if self._status != TaskExecutionStatus.IN_PROGRESS:
+            raise InvalidTaskStateError(
+                f"Cannot timeout task in status {self._status}"
+            )
+        self._status = TaskExecutionStatus.TIMED_OUT
+        from shell.domain.execution.aggregates.task_execution.events.task_execution_timed_out_event import (
+            TaskExecutionTimedOutEvent,
+        )
+
+        self.append_event(
+            TaskExecutionTimedOutEvent.now(
+                task_execution_id=self._id,
+                now=now,
+            )
+        )
+
     def exhaust(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(
@@ -155,6 +168,16 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._current_cycle = PlanningCycle(self._current_cycle.value + 1)
         return True
 
+    # --- State I/O (delegacja do osobnych agregatów — docelowo) ---
+
+    def add_state_input(self, payload: dict, now: datetime) -> None:
+        if payload:
+            self._state_data.update({f"input_{k}": v for k, v in payload.items()})
+
+    def add_state_output(self, payload: dict, now: datetime) -> None:
+        if payload:
+            self._state_data.update({f"output_{k}": v for k, v in payload.items()})
+
     # --- Skill management ---
 
     def add_skill(self, payload: SkillPayload, now: datetime) -> None:
@@ -172,36 +195,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             created_at=now,
         )
         self._skills.append(skill)
-
-    # --- State I/O ---
-
-    def add_state_input(self, payload: dict, now: datetime) -> None:
-        from shell.domain.execution.aggregates.task_execution.entities.task_execution_state_input import (
-            TaskExecutionStateInput,
-        )
-        from shell.domain.execution.value_objects.ids import TaskExecutionStateInputId
-
-        state = TaskExecutionStateInput(
-            id=TaskExecutionStateInputId.generate(),
-            task_execution_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._state_inputs.append(state)
-
-    def add_state_output(self, payload: dict, now: datetime) -> None:
-        from shell.domain.execution.aggregates.task_execution.entities.task_execution_state_output import (
-            TaskExecutionStateOutput,
-        )
-        from shell.domain.execution.value_objects.ids import TaskExecutionStateOutputId
-
-        state = TaskExecutionStateOutput(
-            id=TaskExecutionStateOutputId.generate(),
-            task_execution_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._state_outputs.append(state)
 
     # --- Properties ---
 
@@ -232,14 +225,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     @property
     def skills(self) -> tuple:
         return tuple(self._skills)
-
-    @property
-    def state_inputs(self) -> tuple:
-        return tuple(self._state_inputs)
-
-    @property
-    def state_outputs(self) -> tuple:
-        return tuple(self._state_outputs)
 
     # Legacy properties
     @property

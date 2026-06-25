@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution_state_input.task_execution_state_input import (
-    TaskExecutionStateInput,
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
 )
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
@@ -51,13 +51,13 @@ class ImportTaskExecutionHandler:
                 name=task_execution_name,
                 now=current_time,
             )
-            state_input = TaskExecutionStateInput.create(
+            state_input = TaskExecutionState.create(
                 id_=self._id_generator.new_task_execution_state_input_id(),
                 task_execution_id=task_execution.id,
                 payload={"description": content},
                 now=current_time,
             )
             await unit_of_work.task_execution_repository.save(task_execution)
-            await unit_of_work.task_execution_state_input_repository.save(state_input)
+            await unit_of_work.task_execution_state_repository.save(state_input)
             unit_of_work.stage_events(task_execution.pull_events())
         return task_execution.id.value

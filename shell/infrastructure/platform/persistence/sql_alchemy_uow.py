@@ -15,9 +15,11 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphExecutionRepository,
     SqlGraphExecutionStateInputRepository,
     SqlGraphExecutionStateOutputRepository,
+    SqlGraphNodeExecutionRepository,
     SqlSessionRepository,
     SqlTaskExecutionRepository,
     SqlTaskExecutionStateInputRepository,
+    SqlTaskExecutionStateOutputRepository,
     SqlWorkflowRepository,
 )
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
@@ -26,9 +28,6 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
-    from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-        SqlGraphNodeExecutionRepository,
-    )
     from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
         SqlSchedulerDefinitionRepository,
     )
@@ -60,7 +59,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlTaskExecutionRepository(self._active_session)
 
     @property
-    def task_execution_state_input_repository(self) -> SqlTaskExecutionStateInputRepository:
+    def task_execution_state_repository(self) -> SqlTaskExecutionStateInputRepository:
         return SqlTaskExecutionStateInputRepository(self._active_session)
 
     @property
@@ -76,12 +75,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlEnvelopeRepository(self._active_session)
 
     @property
-    def graph_execution_state_input_repository(self) -> SqlGraphExecutionStateInputRepository:
+    def graph_execution_state_repository(self) -> SqlGraphExecutionStateInputRepository:
         return SqlGraphExecutionStateInputRepository(self._active_session)
-
-    @property
-    def graph_execution_state_output_repository(self) -> SqlGraphExecutionStateOutputRepository:
-        return SqlGraphExecutionStateOutputRepository(self._active_session)
 
     @property
     def runner_config_repository(self) -> SqlRunnerConfigRepository:
@@ -99,12 +94,32 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         )
 
     @property
-    def session_repository(self) -> SqlSessionRepository:
-        return SqlSessionRepository(self._active_session)
-
-    @property
     def graph_definition_repository(self) -> SqlGraphDefinitionRepository:
         return SqlGraphDefinitionRepository(self._active_session)
+
+    @property
+    def graph_node_execution_repository(self) -> SqlGraphNodeExecutionRepository:
+        return SqlGraphNodeExecutionRepository(self._active_session)
+
+    @property
+    def graph_execution_state_input_repository(self) -> SqlGraphExecutionStateInputRepository:
+        return SqlGraphExecutionStateInputRepository(self._active_session)
+
+    @property
+    def graph_execution_state_output_repository(self) -> SqlGraphExecutionStateOutputRepository:
+        return SqlGraphExecutionStateOutputRepository(self._active_session)
+
+    @property
+    def task_execution_state_input_repository(self) -> SqlTaskExecutionStateInputRepository:
+        return SqlTaskExecutionStateInputRepository(self._active_session)
+
+    @property
+    def task_execution_state_output_repository(self) -> SqlTaskExecutionStateOutputRepository:
+        return SqlTaskExecutionStateOutputRepository(self._active_session)
+
+    @property
+    def session_repository(self) -> SqlSessionRepository:
+        return SqlSessionRepository(self._active_session)
 
     @property
     def scheduler_definition_repository(self) -> SqlSchedulerDefinitionRepository:
@@ -115,75 +130,43 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_job_repository(self) -> SqlSchedulerExecutionRepository:
+    def scheduler_execution_repository(self) -> SqlSchedulerExecutionRepository:
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
             SqlSchedulerExecutionRepository,
         )
 
         return SqlSchedulerExecutionRepository(self._active_session)
 
-    @property
-    def graph_node_execution_repository(self) -> SqlGraphNodeExecutionRepository:
-        from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-            SqlGraphNodeExecutionRepository,
-        )
-
-        return SqlGraphNodeExecutionRepository(self._active_session)
-
-    def stage_events(self, events: list[DomainEvent]) -> None:
-        self._staged_events.extend(events)
-
-    @property
-    def events(self) -> list[DomainEvent]:
-        return list(self._staged_events)
-
     async def __aenter__(self) -> SqlAlchemyUnitOfWork:
-        self._session = self._factory()
-        self._staged_events = []
-        self._committed = False
+        self._session = await self._factory.__aenter__()
         return self
 
-    async def __aexit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        try:
-            if exc_type:
-                await self.rollback()
-            elif not self._committed:
-                await self.commit()
-        finally:
-            if self._session:
-                await self._session.close()
-                self._session = None
+    async def __aexit__(self, *args: object) -> None:
+        if self._session is not None:
+            await self._session.__aexit__(*args)
+            self._session = None
 
     async def commit(self) -> None:
-        session = self._active_session
-        serializer = DomainEventSerializer()
-
+        if self._session is None:
+            return
         for event in self._staged_events:
-            try:
-                payload = serializer.to_payload(event)
-                session.add(
-                    OutboxEventModel(
-                        id=str(uuid.uuid4()),
-                        event_type=type(event).__name__,
-                        occurred_at=event.occurred_at,
-                        payload=payload,
-                        published_at=None,
-                    )
-                )
-            except Exception:
-                import logging
-
-                logging.getLogger(__name__).exception(
-                    "Failed to serialize outbox event %s", type(event).__name__
-                )
-                continue
-
-        self._staged_events = []
-        await session.commit()
+            outbox = OutboxEventModel(
+                id=str(uuid.uuid4()),
+                event_type=type(event).__name__,
+                aggregate_id=event.aggregate_id,
+                aggregate_type=event.aggregate_type,
+                data=DomainEventSerializer.serialize(event),
+                occurred_at=event.occurred_at,
+            )
+            self._session.add(outbox)
+        await self._session.commit()
+        self._staged_events.clear()
         self._committed = True
 
     async def rollback(self) -> None:
-        self._staged_events = []
-        self._committed = False
-        if self._session:
+        if self._session is not None:
             await self._session.rollback()
+        self._staged_events.clear()
+
+    def stage_events(self, events: list[DomainEvent]) -> None:
+        self._staged_events.extend(events)

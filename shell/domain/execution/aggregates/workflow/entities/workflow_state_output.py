@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_output_id import (
+    WorkflowStateOutputId,
+)
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -11,7 +14,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class WorkflowStateOutput:
-    id: WorkflowId
+    id: WorkflowStateOutputId
     workflow_id: WorkflowId
-    payload: dict
+    payload: dict[str, Any]
     created_at: datetime

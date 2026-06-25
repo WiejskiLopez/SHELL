@@ -1,4 +1,4 @@
-"""GraphExcetutionRoutingService — pure domain routing logic."""
+"""GraphExecutionRoutingService — pure domain routing logic."""
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ from shell.domain.execution.aggregates.graph_node_execution.exceptions.role_not_
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,
     )
@@ -18,49 +17,52 @@ if TYPE_CHECKING:
     )
 
 
-class GraphExcetutionRoutingService:
+class GraphExecutionRoutingService:
     """Resolves target_role -> GraphNodeExecutionId using the task graph."""
 
     @staticmethod
     def resolve_target_graph_node_execution(
-        graph_execution: GraphExecution,
+        graph_node_executions: tuple[GraphNodeExecution, ...],
         source_node_execution_id: GraphNodeExecutionId,
         target_role: str | None,
     ) -> GraphNodeExecutionId:
         """Return receiver GraphNodeExecutionId for a given source node and optional target_role.
 
-        Rules (matching legacy _run_router):
-        1. If target_role is set → find first non-router node whose role matches.
-        2. If target_role is None → pick first non-router node that is not the source.
-        3. If nothing found → raise RoleNotResolvable.
+        Rules:
+        1. If target_role is set -> find first non-router node whose role matches.
+        2. If target_role is None -> pick first non-router node that is not the source.
+        3. If nothing found -> raise RoleNotResolvable.
         """
-        non_router: list[GraphNodeExecution] = [
-            graph_node_execution
-            for graph_node_execution in graph_execution.graph_node_executions
-            if str(graph_node_execution.mode) != "router"
+        non_router = [
+            gn for gn in graph_node_executions
+            if graph_node_execution_mode_is_not_router(gn)
         ]
 
         if target_role:
             matched = [
-                graph_node_execution
-                for graph_node_execution in non_router
-                if graph_node_execution.role == target_role
+                gn for gn in non_router if gn.role == target_role
             ]
             if not matched:
                 raise RoleNotResolvable(
-                    f"No graph node with role={target_role!r} found in graph_execution {graph_execution.id}"
+                    f"No graph node with role={target_role!r} found"
                 )
             return matched[0].id
 
         candidates = [
-            graph_node_execution
-            for graph_node_execution in non_router
-            if graph_node_execution.id != source_node_execution_id
+            gn for gn in non_router
+            if gn.id != source_node_execution_id
         ]
         if not candidates and non_router:
-            candidates = non_router  # fallback: send to first non-router even if same
+            candidates = non_router
         if not candidates:
             raise RoleNotResolvable(
-                f"Cannot resolve target: graph_execution {graph_execution.id} has no routable nodes"
+                f"Cannot resolve target: no routable nodes"
             )
         return candidates[0].id
+
+
+def graph_node_execution_mode_is_not_router(gn: GraphNodeExecution) -> bool:
+    mode = getattr(gn, "mode", None)
+    if mode is not None:
+        return str(mode) != "router"
+    return True

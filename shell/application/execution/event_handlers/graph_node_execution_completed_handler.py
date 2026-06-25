@@ -97,7 +97,7 @@ class GraphNodeExecutionCompletedHandler:
                 return
 
             if workflow.status != WorkflowStatus.ACTIVE:
-                logger.warning(
+                self._logger.warning(
                     "graph_node_execution_completed_handler.skip_workflow_not_active",
                     workflow_id=graph_node_execution_result_event.workflow_id.value,
                     status=workflow.status.value,
@@ -158,7 +158,7 @@ class GraphNodeExecutionCompletedHandler:
             )
             return
 
-        transition_types = {t.transition_type for t in outgoing}
+        transition_types = {t.edge_type for t in outgoing}
 
         if EdgeType.LOOP in transition_types:
             await self._handle_loop(
@@ -189,14 +189,17 @@ class GraphNodeExecutionCompletedHandler:
         outgoing: list[Any],
         unit_of_work: UnitOfWork,
     ) -> None:
-        loop_transition = None
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+            GraphNodeExecutionId as GNEId,
+        )
 
+        loop_transition = None
         for t in outgoing:
-            if t.transition_type == EdgeType.LOOP:
+            if t.edge_type == EdgeType.LOOP:
                 loop_transition = t
                 break
 
-        if loop_transition is None:
+        if loop_transition is None or loop_transition.max_iterations <= 0:
             await self._advance_or_finish(
                 workflow=workflow,
                 graph_execution=graph_execution,
@@ -206,25 +209,11 @@ class GraphNodeExecutionCompletedHandler:
             )
             return
 
-        counter = graph_execution.increment_loop_counter(
-            transition_id=loop_transition.id.value,
-            max_loop_count=loop_transition.max_loop_count or 0,
-        )
-
-        if not counter.is_exhausted:
-            unit_of_work.stage_events([
-                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, loop_transition.target_node_execution_id, now),
-                GraphNodeExecutionRequestedEvent.now(workflow.id, loop_transition.target_node_execution_id, now),
-            ])
-            return
-
-        await self._advance_or_finish(
-            workflow=workflow,
-            graph_execution=graph_execution,
-            graph_node_execution_id=graph_node_execution_id,
-            now=now,
-            unit_of_work=unit_of_work,
-        )
+        target_node_id = GNEId(loop_transition.target_node_execution_id)
+        unit_of_work.stage_events([
+            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, target_node_id, now),
+            GraphNodeExecutionRequestedEvent.now(workflow.id, target_node_id, now),
+        ])
 
     async def _advance_or_finish(
         self,
@@ -259,6 +248,10 @@ class GraphNodeExecutionCompletedHandler:
         now: datetime,
         unit_of_work: UnitOfWork,
     ) -> None:
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+            GraphNodeExecutionId as GNEId,
+        )
+
         error_handler_node = self._find_error_handler_transition(
             graph_execution, graph_node_execution_id
         )
@@ -293,9 +286,12 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
     ) -> GraphNodeExecutionId | None:
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+            GraphNodeExecutionId as GNEId,
+        )
+
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == EdgeType.ERROR_HANDLER:
-                return t.target_node_execution_id
+            if t.edge_type == EdgeType.ERROR_HANDLER and t.target_node_execution_id is not None:
+                return GNEId(t.target_node_execution_id)
         return None
-

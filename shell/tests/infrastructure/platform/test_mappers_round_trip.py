@@ -15,8 +15,8 @@ from datetime import UTC, datetime
 import pytest
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
-    GraphNodeTransitionExecution,
+from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
+    TransitionDefinition,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,

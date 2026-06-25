@@ -1,8 +1,7 @@
 """WorkflowTransitionService — decides next step after a node execution result.
 
-Encapsulates the workflow transition logic extracted from
-GraphNodeExecutionCompletedHandler.  Stateless — all data comes from
-parameters.  Returns decision value objects that the caller translates
+Stateless — all data flows through method parameters.
+Returns decision value objects that the caller translates
 into infrastructure calls (staging events, saving aggregates).
 """
 
@@ -18,16 +17,14 @@ from shell.domain.execution.services.graph_node_execution_policy import (
 from shell.domain.execution.value_objects.edge_type import EdgeType
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Sequence
 
-    from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_execution.entities.graph_node_transition_execution import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
+        TransitionDefinition,
+    )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
         GraphNodeTransitionExecution,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-        GraphNodeExecutionId,
-    )
-    from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.services.graph_node_execution_policy import (
         GraphNodeExecutionPolicy,
     )
@@ -38,24 +35,21 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class LoopDecision:
-    """Continue looping — execute the loop target node."""
-    target_node_execution_id: GraphNodeExecutionId
+    target_node_execution_id: str
 
 
 @dataclass(frozen=True, slots=True)
 class AdvanceOrFinishSignal:
-    """Use navigator to find the next node; finish if none."""
+    pass
 
 
 @dataclass(frozen=True, slots=True)
 class ErrorHandlerDecision:
-    """Route to error handler node."""
-    target_node_execution_id: GraphNodeExecutionId
+    target_node_execution_id: str
 
 
 @dataclass(frozen=True, slots=True)
 class AbortWorkflowDecision:
-    """Workflow aborted due to unrecoverable failure."""
     reason: str
 
 
@@ -75,18 +69,24 @@ class WorkflowTransitionService:
     @staticmethod
     def decide_after_completed(
         *,
-        graph_execution: GraphExecution,
-        graph_node_execution_id: GraphNodeExecutionId,
+        outgoing_transitions: Sequence[TransitionDefinition],
+        loop_transition_execution: GraphNodeTransitionExecution | None = None,
     ) -> CompletedNodeDecision:
-        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
-        if not outgoing:
+        """Decide what to do after a node completes successfully.
+
+        Args:
+            outgoing_transitions: Transition definitions outgoing from the completed node.
+            loop_transition_execution: The GraphNodeTransitionExecution aggregate
+                for a LOOP transition, if one exists. Used to check loop exhaustion.
+        """
+        if not outgoing_transitions:
             return AdvanceOrFinishSignal()
 
-        transition_types = {t.transition_type for t in outgoing}
+        transition_types = {t.edge_type for t in outgoing_transitions}
         if EdgeType.LOOP in transition_types:
             return WorkflowTransitionService._evaluate_loop(
-                graph_execution=graph_execution,
-                outgoing=outgoing,
+                outgoing=outgoing_transitions,
+                loop_transition_execution=loop_transition_execution,
             )
 
         return AdvanceOrFinishSignal()
@@ -94,43 +94,47 @@ class WorkflowTransitionService:
     @staticmethod
     def _evaluate_loop(
         *,
-        graph_execution: GraphExecution,
-        outgoing: Iterable[GraphNodeTransitionExecution],
+        outgoing: Sequence[TransitionDefinition],
+        loop_transition_execution: GraphNodeTransitionExecution | None = None,
     ) -> CompletedNodeDecision:
-        loop_transition: GraphNodeTransitionExecution | None = None
+        loop_transition: TransitionDefinition | None = None
         for t in outgoing:
-            if t.transition_type == EdgeType.LOOP:
+            if t.edge_type == EdgeType.LOOP:
                 loop_transition = t
                 break
 
-        if loop_transition is None:
+        if loop_transition is None or loop_transition.target_node_execution_id is None:
             return AdvanceOrFinishSignal()
 
-        counter = graph_execution.increment_loop_counter(
-            transition_id=loop_transition.id.value,
-            max_loop_count=loop_transition.max_loop_count or 0,
+        if loop_transition_execution is None:
+            return AdvanceOrFinishSignal()
+
+        if loop_transition_execution.current_iteration >= loop_transition_execution.max_iterations:
+            return AdvanceOrFinishSignal()
+
+        return LoopDecision(
+            target_node_execution_id=loop_transition.target_node_execution_id,
         )
-
-        if not counter.is_exhausted:
-            return LoopDecision(target_node_execution_id=loop_transition.target_node_execution_id)
-
-        return AdvanceOrFinishSignal()
 
     @staticmethod
     def decide_after_failure(
         *,
-        graph_execution: GraphExecution,
-        graph_node_execution_id: GraphNodeExecutionId,
-        workflow: Workflow,
+        outgoing_transitions: Sequence[TransitionDefinition],
         reason: str,
         policy: GraphNodeExecutionPolicy,
     ) -> FailedNodeDecision:
-        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
-        for t in outgoing:
-            if t.transition_type == EdgeType.ERROR_HANDLER:
+        """Decide what to do after a node fails.
+
+        Args:
+            outgoing_transitions: Transition definitions outgoing from the failed node.
+            reason: The failure reason.
+            policy: Failure policy to consult if no ERROR_HANDLER transition exists.
+        """
+        for t in outgoing_transitions:
+            if t.edge_type == EdgeType.ERROR_HANDLER and t.target_node_execution_id is not None:
                 return ErrorHandlerDecision(target_node_execution_id=t.target_node_execution_id)
 
-        policy_decision = policy.decide_after_failure(workflow, graph_node_execution_id, reason)
+        policy_decision = policy.decide_after_failure(None, None, reason)  # type: ignore[arg-type]
         if isinstance(policy_decision, ContinueDecision):
             return AdvanceOrFinishSignal()
 

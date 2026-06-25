@@ -28,12 +28,15 @@ class TransitionBasedGraphNodeExecutionNavigator:
         if not transitions:
             return TransitionBasedGraphNodeExecutionNavigator._fallback_first(graph_execution)
 
-        start_transitions = [t for t in transitions if t.source_node_execution_id is None]
+        start_transitions = [t for t in transitions if not t.source_node_execution_id]
         if not start_transitions:
             return TransitionBasedGraphNodeExecutionNavigator._fallback_first(graph_execution)
 
         start_transition = min(start_transitions, key=lambda t: t.priority)
-        return nodes_by_id.get(start_transition.target_node_execution_id.value)
+        target_id = start_transition.target_node_execution_id
+        if target_id is None:
+            return None
+        return nodes_by_id.get(target_id)
 
     @staticmethod
     def next_after(
@@ -51,12 +54,14 @@ class TransitionBasedGraphNodeExecutionNavigator:
         default_target: GraphNodeExecution | None = None
 
         for t in outgoing:
-            if t.transition_type == EdgeType.DEFAULT:
-                has_default = True
-                default_target = nodes_by_id.get(t.target_node_execution_id.value)
+            if t.target_node_execution_id is None:
                 continue
-            if t.transition_type == EdgeType.SEQUENCE:
-                node = nodes_by_id.get(t.target_node_execution_id.value)
+            if t.edge_type == EdgeType.DEFAULT:
+                has_default = True
+                default_target = nodes_by_id.get(t.target_node_execution_id)
+                continue
+            if t.edge_type == EdgeType.SEQUENCE:
+                node = nodes_by_id.get(t.target_node_execution_id)
                 if node:
                     matched.append(node)
                 continue
@@ -75,8 +80,10 @@ class TransitionBasedGraphNodeExecutionNavigator:
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         results: list[tuple[GraphNodeExecution, str]] = []
         for t in outgoing:
-            if t.transition_type == EdgeType.CONDITIONAL:
-                node = nodes_by_id.get(t.target_node_execution_id.value)
+            if t.target_node_execution_id is None:
+                continue
+            if t.edge_type == EdgeType.CONDITIONAL:
+                node = nodes_by_id.get(t.target_node_execution_id)
                 if node and t.condition_expression:
                     results.append((node, t.condition_expression))
         return results
@@ -89,8 +96,10 @@ class TransitionBasedGraphNodeExecutionNavigator:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == EdgeType.ERROR_HANDLER:
-                return nodes_by_id.get(t.target_node_execution_id.value)
+            if t.target_node_execution_id is None:
+                continue
+            if t.edge_type == EdgeType.ERROR_HANDLER:
+                return nodes_by_id.get(t.target_node_execution_id)
         return None
 
     @staticmethod
@@ -101,8 +110,10 @@ class TransitionBasedGraphNodeExecutionNavigator:
         nodes_by_id = {n.id.value: n for n in graph_execution.graph_node_executions}
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         for t in outgoing:
-            if t.transition_type == EdgeType.LOOP:
-                return nodes_by_id.get(t.target_node_execution_id.value)
+            if t.target_node_execution_id is None:
+                continue
+            if t.edge_type == EdgeType.LOOP:
+                return nodes_by_id.get(t.target_node_execution_id)
         return None
 
     # ── Async variants (use GraphNodeExecutionRepository) ────────────────────
@@ -112,20 +123,27 @@ class TransitionBasedGraphNodeExecutionNavigator:
         graph_execution: GraphExecution,
         node_repo: GraphNodeExecutionRepository,
     ) -> GraphNodeExecution | None:
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+            GraphNodeExecutionId,
+        )
+
         transitions = graph_execution.transitions
         if not transitions:
             return await TransitionBasedGraphNodeExecutionNavigator._fallback_first_async(
                 graph_execution,
                 node_repo,
             )
-        start_transitions = [t for t in transitions if t.source_node_execution_id is None]
+        start_transitions = [t for t in transitions if not t.source_node_execution_id]
         if not start_transitions:
             return await TransitionBasedGraphNodeExecutionNavigator._fallback_first_async(
                 graph_execution,
                 node_repo,
             )
         start_transition = min(start_transitions, key=lambda t: t.priority)
-        return await node_repo.get_by_id(start_transition.target_node_execution_id)
+        target_id = start_transition.target_node_execution_id
+        if target_id is None:
+            return None
+        return await node_repo.get_by_id(GraphNodeExecutionId(target_id))
 
     @staticmethod
     async def next_after_async(
@@ -133,6 +151,10 @@ class TransitionBasedGraphNodeExecutionNavigator:
         graph_node_execution_id: GraphNodeExecutionId,
         node_repo: GraphNodeExecutionRepository,
     ) -> Iterable[GraphNodeExecution]:
+        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+            GraphNodeExecutionId,
+        )
+
         outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
         if not outgoing:
             return []
@@ -141,21 +163,19 @@ class TransitionBasedGraphNodeExecutionNavigator:
         has_default = False
         default_target_id: str | None = None
         for t in outgoing:
-            tid = t.target_node_execution_id.value
-            if t.transition_type == EdgeType.DEFAULT:
+            if t.target_node_execution_id is None:
+                continue
+            tid = t.target_node_execution_id
+            if t.edge_type == EdgeType.DEFAULT:
                 has_default = True
                 default_target_id = tid
                 continue
-            if t.transition_type == EdgeType.SEQUENCE:
+            if t.edge_type == EdgeType.SEQUENCE:
                 result_ids.append(tid)
         if not result_ids and has_default and default_target_id:
             result_ids.append(default_target_id)
         if not result_ids:
             return []
-
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-            GraphNodeExecutionId,
-        )
 
         ids = [GraphNodeExecutionId(rid) for rid in result_ids]
         nodes = await node_repo.list_by_ids(ids)
