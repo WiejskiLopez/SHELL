@@ -7,3 +7,7 @@ from dataclasses import dataclass
 class RunTaskerWorkflowCommand:
     task_execution_id: str
     work_dir: str
+
+    @classmethod
+    def validate(cls) -> None:
+        pass

@@ -7,3 +7,7 @@ from dataclasses import dataclass
 class ImportTaskExecutionCommand:
     md_path: str
     task_execution_name: str
+
+    @classmethod
+    def validate(cls) -> None:
+        pass

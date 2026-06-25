@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
@@ -96,6 +96,39 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._timeout_at = timeout_at
         self._correlation_id = correlation_id
         self._tags = tags or {}
+
+    @classmethod
+    def restore(
+        cls,
+        id: GraphExecutionId,
+        task_execution_id: TaskExecutionId,
+        parent_graph_execution_id: GraphExecutionId | None = None,
+        depth: int = 0,
+        max_subgraph_depth: int = 5,
+        graph_definition_id: str = "",
+        graph_node_execution_ids: list[Any] | None = None,
+        transitions: list[Any] | None = None,
+        state_input: dict[str, Any] | None = None,
+        state_output: dict[str, Any] | None = None,
+        timeout_at: Any = None,
+        correlation_id: str = "",
+        tags: dict[str, Any] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            task_execution_id=task_execution_id,
+            parent_graph_execution_id=parent_graph_execution_id,
+            depth=depth,
+            max_subgraph_depth=max_subgraph_depth,
+            graph_definition_id=graph_definition_id,
+            graph_node_execution_ids=graph_node_execution_ids,
+            transitions=transitions,
+            state_input=state_input,
+            state_output=state_output,
+            timeout_at=timeout_at,
+            correlation_id=correlation_id,
+            tags=tags,
+        )
 
     # --- V3 FSM ---
 

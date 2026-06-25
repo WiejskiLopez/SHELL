@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.definition.aggregates.rag_document.entities.rag_chunk import RagChunk
 from shell.domain.definition.aggregates.rag_document.events.rag_document_chunks_added_event import (
@@ -39,6 +39,25 @@ class RagDocument(AggregateRoot[RagDocumentId]):
         self._domain = domain
         self._created_at = created_at
         self._chunks = list(chunks) if chunks is not None else []
+
+    @classmethod
+    def restore(
+        cls,
+        id: RagDocumentId,
+        source_uri: str,
+        title: str,
+        domain: str,
+        created_at: datetime,
+        chunks: list[RagChunk] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            source_uri=source_uri,
+            title=title,
+            domain=domain,
+            created_at=created_at,
+            chunks=chunks,
+        )
 
     @property
     def source_uri(self) -> str:

@@ -18,7 +18,7 @@ Lifecycle:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.graph_execution_state_output.events.graph_execution_state_output_changed_event import (
     GraphExecutionStateOutputChangedEvent,
@@ -65,6 +65,23 @@ class GraphExecutionStateOutput(AggregateRoot["GraphExecutionStateOutputId"]):
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
+
+    @classmethod
+    def restore(
+        cls,
+        id: GraphExecutionStateOutputId,
+        graph_execution_id: GraphExecutionId,
+        state_data: dict[str, object] | None = None,
+        is_current: bool = True,
+        created_at: datetime | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            graph_execution_id=graph_execution_id,
+            state_data=state_data,
+            is_current=is_current,
+            created_at=created_at,
+        )
 
     # ------------------------------------------------------------------ properties
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
@@ -85,6 +85,34 @@ class Session(AggregateRoot[SessionId]):
         self._skills = skills or []
         self._state_inputs = state_inputs or []
         self._state_outputs = state_outputs or []
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: SessionId,
+        user_id: UserId,
+        project_id: ProjectId,
+        environment: Environment,
+        status: SessionStatus,
+        opened_at: datetime,
+        closed_at: datetime | None = None,
+        skills: list[SessionSkill] | None = None,
+        state_inputs: list[SessionStateInput] | None = None,
+        state_outputs: list[SessionStateOutput] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            user_id=user_id,
+            project_id=project_id,
+            environment=environment,
+            status=status,
+            opened_at=opened_at,
+            closed_at=closed_at,
+            skills=skills,
+            state_inputs=state_inputs,
+            state_outputs=state_outputs,
+        )
 
     # --- V3 properties ---
 

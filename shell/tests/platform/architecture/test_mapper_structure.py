@@ -5,9 +5,7 @@ import ast
 from _arch_helpers import BASE, iter_py_files, parse_file
 
 
-_KNOWN_MAPPER_EXCEPTIONS: frozenset[str] = frozenset({
-    "infrastructure/definition/persistence/sql/mappers/graph_definition_mapper.py",
-})
+_KNOWN_MAPPER_EXCEPTIONS: frozenset[str] = frozenset({})
 
 
 def test_infra_mappers_have_both_directions() -> None:

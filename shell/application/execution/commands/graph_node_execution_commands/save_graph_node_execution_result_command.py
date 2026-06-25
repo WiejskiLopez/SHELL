@@ -11,3 +11,7 @@ class SaveGraphNodeExecutionResultCommand:
     stdout: str = ""
     stderr: str = ""
     artifact_uri: str = ""
+
+    @classmethod
+    def validate(cls) -> None:
+        pass

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
 from shell.domain.platform.base.aggregate_root import AggregateRoot
@@ -38,6 +38,19 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self._graph_node_execution_id = graph_node_execution_id
         self._config_snapshot = config_snapshot
         self._skills = []
+
+    @classmethod
+    def restore(
+        cls,
+        id_: AgentExecutionId,
+        graph_node_execution_id: GraphNodeExecutionId,
+        config_snapshot: Config,
+    ) -> Self:
+        return cls(
+            id_=id_,
+            graph_node_execution_id=graph_node_execution_id,
+            config_snapshot=config_snapshot,
+        )
 
     @classmethod
     def for_node(

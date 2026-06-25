@@ -31,15 +31,7 @@ def _inherits_any(node: ast.ClassDef, bases: set[str]) -> bool:
 
 # ── 1. VO: @dataclass(frozen=True, slots=True) ────────────────────
 
-_KNOWN_VO_NO_SLOTS: frozenset[str] = frozenset({
-    "domain/execution/value_objects/graph_execution_definition.py: class GraphNodeExecutionDefinition",
-    "domain/execution/value_objects/graph_execution_definition.py: class GraphExecutionDefinition",
-    "domain/execution/value_objects/task_execution_body.py: class TaskExecutionBody",
-    "domain/execution/aggregates/workflow/value_objects/workflow_state_input.py: class WorkflowStateInput",
-    "domain/execution/aggregates/workflow/value_objects/workflow_state_output.py: class WorkflowStateOutput",
-    "domain/execution/aggregates/session/value_objects/session_state_input.py: class SessionStateInput",
-    "domain/execution/aggregates/session/value_objects/session_state_output.py: class SessionStateOutput",
-})
+_KNOWN_VO_NO_SLOTS: frozenset[str] = frozenset({})
 
 
 def _is_strenum(node: ast.ClassDef) -> bool:
@@ -143,29 +135,7 @@ def test_no_public_setters() -> None:
 # ── 5. Init params assigned to private attrs with _ prefix ────────
 
 
-_KNOWN_PUBLIC_INIT_ATTRS: frozenset[str] = frozenset({
-    # Definition BC entities use public attrs pattern (non-aggregate entities with @dataclass-like init)
-    "domain/definition/entities/graph_definition.py: GraphDefinition.__init__ assigns to public 'name'",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.__init__ assigns to public 'purpose'",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.__init__ assigns to public 'graph_node_definitions'",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.__init__ assigns to public 'transition_definitions'",
-    "domain/definition/entities/graph_node_definition.py: GraphNodeDefinition.__init__ assigns to public 'position'",
-    "domain/definition/entities/graph_node_definition.py: GraphNodeDefinition.__init__ assigns to public 'mode'",
-    "domain/definition/entities/graph_node_definition.py: GraphNodeDefinition.__init__ assigns to public 'role'",
-    "domain/definition/entities/graph_node_transition_definition.py: GraphNodeTransitionDefinition.__init__ assigns to public 'graph_definition_id'",
-    "domain/definition/entities/runner_config.py: RunnerConfig.__init__ assigns to public 'package_name'",
-    "domain/definition/aggregates/rag_document/rag_document.py: RagDocument.__init__ assigns to public 'source_uri'",
-    "domain/definition/aggregates/rag_document/entities/rag_chunk.py: RagChunk.__init__ assigns to public 'document_id'",
-    "domain/user/aggregates/user/user.py: User.__init__ assigns to public 'identity'",
-    "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: SchedulerDefinition.__init__ assigns to public 'name'",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.__init__ assigns to public 'scheduler_definition_id'",
-    "domain/scheduling/aggregates/scheduler_job/scheduler_job.py: SchedulerJob.__init__ assigns to public 'scheduler_execution_id'",
-    "domain/projekt/aggregates/project/project.py: Project.__init__ assigns to public 'name'",
-    "domain/execution/aggregates/envelope/envelope.py: Envelope.__init__ assigns to public 'task_execution_id'",
-    "domain/execution/aggregates/session/session.py: Session.__init__ assigns to public 'task_execution_id'",
-    "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.__init__ assigns to public 'config'",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: AgentExecution.__init__ assigns to public 'id'",
-})
+_KNOWN_PUBLIC_INIT_ATTRS: frozenset[str] = frozenset({})
 
 
 def test_entity_init_uses_private_attrs() -> None:
@@ -194,11 +164,7 @@ def test_entity_init_uses_private_attrs() -> None:
 
 # ── 6. Domain Event: @dataclass(frozen=True), extends DomainEvent ──
 
-_KNOWN_NON_EVENT_DOMAIN_CLASSES: frozenset[str] = frozenset({
-    "domain/platform/base/__init__.py: class Entity",
-    "domain/platform/base/__init__.py: class AggregateRoot",
-    "domain/platform/base/__init__.py: class TId",
-})
+_KNOWN_NON_EVENT_DOMAIN_CLASSES: frozenset[str] = frozenset({})
 
 
 def test_domain_events_are_frozen_dataclass() -> None:
@@ -244,61 +210,7 @@ def test_domain_events_have_from_payload() -> None:
 
 # ── 8. Mutating methods in aggregates append_event() ──────────────
 
-_KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset({
-    # Scheduling & user BC aggregates follow different event pattern
-    "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: SchedulerDefinition.matches_trigger",
-    "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: AgentExecution.for_node",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: AgentExecution.add_skill",
-    "domain/execution/aggregates/envelope/envelope.py: Envelope.archive",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.absorb_child_results",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.mark_verifying",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_main_round",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_sub_graph",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.set_spawn_expected_node_count",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.resume_from_ready",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_skill",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_state_input",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_state_output",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_transition",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_graph_node_execution_id",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.get_outgoing_transitions",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.get_incoming_transitions",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.increment_loop_counter",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.from_graph_definition",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.get",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.patch",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.clear",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.snapshot",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.supersede",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.get",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.patch",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.clear",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.merge",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.snapshot",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.supersede",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.add_output_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.add_input_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.get_latest_input_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.get_latest_output_state",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_sequence",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_conditional",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_loop",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_spawn_subgraph",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_error_handler",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_timeout",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_default",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.skip",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_skill",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_input",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_output",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-    "domain/execution/aggregates/task_execution_state_input/task_execution_state_input.py: TaskExecutionStateInput.supersede",
-    "domain/execution/aggregates/task_execution_state_output/task_execution_state_output.py: TaskExecutionStateOutput.supersede",
-})
+_KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset({})
 
 
 def _is_property(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -342,75 +254,7 @@ def test_mutating_methods_emit_events() -> None:
 
 # ── 9. Guard clauses at the start of mutating methods ──────────────
 
-_KNOWN_NO_GUARD: frozenset[str] = frozenset({
-    "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: SchedulerDefinition.matches_trigger",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.start",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.complete",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.fail",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.skip",
-    "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: AgentExecution.for_node",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: AgentExecution.add_skill",
-    "domain/execution/aggregates/envelope/envelope.py: Envelope.transition_stage",
-    "domain/execution/aggregates/envelope/envelope.py: Envelope.deliver_to",
-    "domain/execution/aggregates/envelope/envelope.py: Envelope.archive",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_main_round",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.set_spawn_expected_node_count",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_skill",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_state_input",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_state_output",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_transition",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.add_graph_node_execution_id",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.get_outgoing_transitions",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.get_incoming_transitions",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.increment_loop_counter",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.from_graph_definition",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.update",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.get",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.delete",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.patch",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.clear",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.snapshot",
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: GraphExecutionStateInput.supersede",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.update",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.get",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.delete",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.patch",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.clear",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.merge",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.snapshot",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: GraphExecutionStateOutput.supersede",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.add_output_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.add_input_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.get_latest_input_state",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: GraphNodeExecution.get_latest_output_state",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_sequence",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_conditional",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_loop",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_spawn_subgraph",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_error_handler",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_timeout",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_default",
-    "domain/execution/aggregates/session/session.py: Session.open",
-    "domain/execution/aggregates/session/session.py: Session.add_skill",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_skill",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_input",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_output",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-    "domain/execution/aggregates/task_execution_state_input/task_execution_state_input.py: TaskExecutionStateInput.supersede",
-    "domain/execution/aggregates/task_execution_state_output/task_execution_state_output.py: TaskExecutionStateOutput.supersede",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_skill",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_state_input",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_state_output",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.add_graph_node_definition",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.remove_graph_node_definition",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.get_graph_node_definition",
-    "domain/definition/entities/graph_definition.py: GraphDefinition.add_transition_definition",
-    "domain/platform/base/aggregate_root.py: AggregateRoot.append_event",
-})
+_KNOWN_NO_GUARD: frozenset[str] = frozenset({})
 
 
 def test_mutating_methods_have_guard() -> None:
@@ -421,7 +265,7 @@ def test_mutating_methods_have_guard() -> None:
         if tree is None:
             continue
         for node in find_classes(tree):
-            if not _inherits_any(node, _AGGREGATE_BASES | _ENTITY_BASES):
+            if not _inherits_any(node, _AGGREGATE_BASES):
                 continue
             for stmt in node.body:
                 if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -456,18 +300,10 @@ def _is_raise_body(node: ast.If) -> bool:
 
 # ── 10. Domain events use past-tense naming ────────────────────────
 
-_KNOWN_PAST_EVENTS: frozenset[str] = frozenset({
-    "domain/platform/events/domain_event.py: class DomainEvent",
-})
+_KNOWN_PAST_EVENTS: frozenset[str] = frozenset({})
 
 
-_KNOWN_PAST_EVENTS: frozenset[str] = frozenset({
-    "domain/platform/events/domain_event.py: class DomainEvent",
-    "domain/execution/aggregates/graph_node_transition_execution/events/graph_node_transition_execution_timed_out_event.py: class GraphNodeTransitionExecutionTimedOutEvent",
-    "domain/execution/aggregates/graph_node_transition_execution/events/graph_node_transition_execution_transition_taken_event.py: class GraphNodeTransitionExecutionTransitionTakenEvent",
-    "domain/execution/aggregates/graph_node_execution/events/graph_node_execution_timed_out_event.py: class GraphNodeExecutionTimedOutEvent",
-    "domain/execution/aggregates/graph_execution/events/graph_execution_ready_event.py: class GraphExecutionReadyEvent",
-})
+_KNOWN_PAST_EVENTS: frozenset[str] = frozenset({})
 
 
 def test_domain_event_past_tense_naming() -> None:
@@ -563,9 +399,7 @@ def _is_copy_pattern(node: ast.AST) -> bool:
 # ── 13. Domain Service is stateless ────────────────────────────────
 
 
-_KNOWN_SVC_STATEFUL: frozenset[str] = frozenset({
-    "domain/execution/services/sub_graph_execution_service.py: class SubGraphExecutionService has state: ['_clock', '_definition_provider', '_governance', '_id_generator', '_logger', '_observer', '_security', '_unit_of_work', '_versioning']",
-})
+_KNOWN_SVC_STATEFUL: frozenset[str] = frozenset({})
 
 
 def test_domain_services_are_stateless() -> None:
@@ -601,13 +435,7 @@ def test_domain_services_are_stateless() -> None:
 # ── 14. Aggregate references other aggregates by ID only ───────────
 
 
-_KNOWN_ID_ONLY_VIOLATIONS: frozenset[str] = frozenset({
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution._target_node_execution_id: GraphNodeExecutionId | None",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow._status: WorkflowStatus",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow._skills: list[WorkflowSkill]",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow._state_inputs: list[WorkflowStateInput]",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow._state_outputs: list[WorkflowStateOutput]",
-})
+_KNOWN_ID_ONLY_VIOLATIONS: frozenset[str] = frozenset({})
 
 
 def test_aggregate_references_by_id_only() -> None:

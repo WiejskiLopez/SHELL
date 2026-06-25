@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
     AgentConfigExecutionId,
@@ -35,6 +35,23 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._config = config
         self._created_at = created_at
         self._updated_at = updated_at
+
+    @classmethod
+    def restore(
+        cls,
+        id: AgentConfigExecutionId,
+        session_id: SessionId,
+        config: Config,
+        created_at: datetime,
+        updated_at: datetime,
+    ) -> Self:
+        return cls(
+            id=id,
+            session_id=session_id,
+            config=config,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
 
     @classmethod
     def create(

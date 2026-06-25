@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
@@ -68,6 +68,29 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         self._max_iterations = max_iterations
         self._status = TransitionStatus.EVALUATED
         self._current_iteration = 0
+
+    @classmethod
+    def restore(
+        cls,
+        id_: GraphNodeTransitionExecutionId,
+        graph_execution_id: GraphExecutionId,
+        source_node_execution_id: GraphNodeExecutionId,
+        edge_type: EdgeType,
+        target_node_execution_id: GraphNodeExecutionId | None = None,
+        spawn_spec: SpawnSpec | None = None,
+        condition_expression: str | None = None,
+        max_iterations: int | None = None,
+    ) -> Self:
+        return cls(
+            id_=id_,
+            graph_execution_id=graph_execution_id,
+            source_node_execution_id=source_node_execution_id,
+            edge_type=edge_type,
+            target_node_execution_id=target_node_execution_id,
+            spawn_spec=spawn_spec,
+            condition_expression=condition_expression,
+            max_iterations=max_iterations,
+        )
 
     @classmethod
     def create_sequence(

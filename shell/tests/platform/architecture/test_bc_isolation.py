@@ -34,21 +34,7 @@ def _is_allowed_cross_bc(imp: str) -> bool:
 # ── 1. No direct cross-BC imports ────────────────────────────────
 
 
-_CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
-    # execution -> definition via ports (acceptable pattern - port in one BC, adapter in another)
-    "domain/execution/ports/runner_config_provider.py: imports 'shell.domain.definition.",
-    # execution -> definition via handlers and strategies
-    "application/execution/event_handlers/: imports 'shell.domain.definition.",
-    "application/execution/strategies/: imports 'shell.domain.definition.",
-    # execution -> definition via application mappers  
-    "application/platform/mappers/mappers.py: imports 'shell.domain.definition.",
-    # definition -> execution via entities
-    "domain/definition/entities/graph_node_transition_definition.py: imports 'shell.domain.execution.",
-    # platform -> execution/definition (acceptable - platform is shared)
-    "domain/platform/ports/identity.py: imports 'shell.domain.execution.",
-    "domain/platform/ports/identity.py: imports 'shell.domain.definition.",
-    "domain/platform/services/: imports 'shell.domain.execution.",
-]
+_CROSS_BC_KNOWN_VIOLATIONS: list[str] = []
 
 
 def test_no_direct_cross_bc_imports() -> None:

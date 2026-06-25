@@ -167,14 +167,7 @@ def test_commands_are_frozen_dataclass() -> None:
     )
 
 
-_KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({
-    "application/execution/queries/envelope_queries.py: class GetEnvelopesByWorkflowQuery",
-    "application/execution/queries/graph_node_execution_queries.py: class GetGraphNodeExecutionResultQuery",
-    "application/execution/queries/session_queries.py: class GetSessionHistoryQuery",
-    "application/execution/queries/workflow_queries.py: class GetWorkflowQuery",
-    "application/definition/queries/config_queries.py: class GetRunnerConfigQuery",
-    "application/definition/queries/rag_queries.py: class SearchSimilarQuery",
-})
+_KNOWN_QUERIES_NOT_FROZEN: frozenset[str] = frozenset({})
 
 
 def test_queries_are_frozen_dataclass() -> None:

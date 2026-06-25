@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
@@ -108,6 +108,61 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._timeout_seconds = timeout_seconds
         self._max_retries = max_retries
         self._retry_delay_seconds = retry_delay_seconds
+
+    @classmethod
+    def restore(
+        cls,
+        id: GraphNodeExecutionId,
+        graph_execution_id: GraphExecutionId | None = None,
+        role: NodeRole = NodeRole.PLANNER,
+        order: NodeOrder | None = None,
+        position: int = 0,
+        mode: Any = None,
+        node_type: str = "",
+        model: str = "",
+        command: str = "",
+        timeout: int | None = None,
+        _legacy_timeout: int = 0,
+        retries: int = 0,
+        log_level: str = "INFO",
+        max_step: int = 0,
+        no_ask_user: bool = False,
+        autopilot: bool = False,
+        task_execution_id: str = "",
+        source_dir: str = "",
+        status_initial: str = "",
+        timeout_seconds: int = 0,
+        max_retries: int = 0,
+        retry_delay_seconds: int = 0,
+        input_states: list[GraphNodeExecutionStateInput] | None = None,
+        output_states: list[GraphNodeExecutionStateOutput] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            graph_execution_id=graph_execution_id,
+            role=role,
+            order=order,
+            position=position,
+            mode=mode,
+            node_type=node_type,
+            model=model,
+            command=command,
+            timeout=timeout,
+            _legacy_timeout=_legacy_timeout,
+            retries=retries,
+            log_level=log_level,
+            max_step=max_step,
+            no_ask_user=no_ask_user,
+            autopilot=autopilot,
+            task_execution_id=task_execution_id,
+            source_dir=source_dir,
+            status_initial=status_initial,
+            timeout_seconds=timeout_seconds,
+            max_retries=max_retries,
+            retry_delay_seconds=retry_delay_seconds,
+            input_states=input_states,
+            output_states=output_states,
+        )
 
     # --- Factory ---
 

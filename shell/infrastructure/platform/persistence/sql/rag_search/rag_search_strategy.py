@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.rag_document import RagChunk
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ class PgVectorRagSearchStrategy:
         ]
 
 
-def create_rag_search_strategy(session_factory) -> RagSearchStrategy:
+def create_rag_search_strategy(session_factory: async_sessionmaker[AsyncSession]) -> RagSearchStrategy:
     engine = getattr(session_factory, "bind", None)
     dialect_name: str = engine.dialect.name if engine is not None else "unknown"
     if dialect_name == "postgresql":

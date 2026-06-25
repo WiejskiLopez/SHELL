@@ -105,9 +105,7 @@ def test_infrastructure_does_not_import_framework() -> None:
 
 # ── 4. Framework must not import bootstrap (except main) ──────────
 
-_FRAMEWORK_BOOTSTRAP_KNOWN: frozenset[str] = frozenset({
-    "framework/platform/cli/main.py",
-})
+_FRAMEWORK_BOOTSTRAP_KNOWN: frozenset[str] = frozenset({})
 
 
 def test_framework_does_not_import_bootstrap() -> None:

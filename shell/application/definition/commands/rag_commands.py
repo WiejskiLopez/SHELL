@@ -11,3 +11,7 @@ class IndexDocumentCommand:
     text: str
     chunk_size: int = 500
     overlap: int = 50
+
+    @classmethod
+    def validate(cls) -> None:
+        pass

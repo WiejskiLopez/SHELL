@@ -22,6 +22,7 @@ from ..models.task_execution import TaskExecutionModel
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -29,7 +30,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    def _base_query(self):
+    def _base_query(self) -> Select[tuple[GraphExecutionModel]]:
         return select(GraphExecutionModel).options(
             selectinload(GraphExecutionModel.graph_node_execution_models),
             selectinload(GraphExecutionModel.graph_node_transition_execution_models),

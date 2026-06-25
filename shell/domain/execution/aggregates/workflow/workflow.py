@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
@@ -82,6 +82,28 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._skills = skills or []
         self._state_inputs = state_inputs or []
         self._state_outputs = state_outputs or []
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: WorkflowId,
+        session_id: SessionId | None = None,
+        status: WorkflowStatus | None = None,
+        created_at: datetime | None = None,
+        skills: list[WorkflowSkill] | None = None,
+        state_inputs: list[WorkflowStateInput] | None = None,
+        state_outputs: list[WorkflowStateOutput] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            session_id=session_id,
+            status=status,
+            created_at=created_at,
+            skills=skills,
+            state_inputs=state_inputs,
+            state_outputs=state_outputs,
+        )
 
     # --- Properties ---
 

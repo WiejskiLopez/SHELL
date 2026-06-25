@@ -16,6 +16,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
+    from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -23,7 +24,7 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    def _base_query(self):
+    def _base_query(self) -> Select[tuple[GraphNodeExecutionModel]]:
         return select(GraphNodeExecutionModel).options(
             selectinload(GraphNodeExecutionModel.input_state_models),
             selectinload(GraphNodeExecutionModel.output_state_models),

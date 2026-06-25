@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Self
 
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.scheduling.value_objects.action_config import ActionConfig
@@ -44,6 +45,31 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         self._enabled = enabled
         self._created_at = created_at or datetime.now()
         self._updated_at = updated_at or datetime.now()
+
+    @classmethod
+    def restore(
+        cls,
+        id: SchedulerDefinitionId,
+        name: str,
+        description: str | None = None,
+        trigger_config: TriggerConfig | None = None,
+        action_config: ActionConfig | None = None,
+        execution_policy: ExecutionPolicy | None = None,
+        enabled: bool = True,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            name=name,
+            description=description,
+            trigger_config=trigger_config,
+            action_config=action_config,
+            execution_policy=execution_policy,
+            enabled=enabled,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
 
     @property
     def name(self) -> str:

@@ -15,6 +15,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
 if TYPE_CHECKING:
+    from sqlalchemy.engine import Connection
     from sqlalchemy.orm import Session
 
 _DEV_ID_PREFIX = "dev"
@@ -32,7 +33,7 @@ async def seed_dev_data(url: str) -> None:
     await engine.dispose()
 
 
-def _seed_dev_sync(sync_conn) -> None:
+def _seed_dev_sync(sync_conn: Connection) -> None:
     from sqlalchemy.orm import Session
 
     session = Session(sync_conn)

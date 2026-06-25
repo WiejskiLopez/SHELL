@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.projekt.aggregates.project.events.project_activated_event import (
@@ -64,6 +64,28 @@ class Project(AggregateRoot[ProjectId]):
         self._skills = list(skills) if skills else []
         self._state_inputs = list(state_inputs) if state_inputs else []
         self._state_outputs = list(state_outputs) if state_outputs else []
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: ProjectId,
+        name: ProjectName,
+        repo_url: RepoUrl,
+        status: ProjectStatus = ProjectStatus.ACTIVE,
+        skills: list[ProjectSkill] | None = None,
+        state_inputs: list[ProjectStateInput] | None = None,
+        state_outputs: list[ProjectStateOutput] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            name=name,
+            repo_url=repo_url,
+            status=status,
+            skills=skills,
+            state_inputs=state_inputs,
+            state_outputs=state_outputs,
+        )
 
     @property
     def name(self) -> ProjectName:

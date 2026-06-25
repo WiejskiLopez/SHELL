@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
@@ -54,6 +54,25 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._name = name if name is not None else TaskName("default")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at  # type: ignore[assignment]
+
+    @classmethod
+    def restore(
+        cls,
+        id: TaskExecutionId,
+        name: TaskName | None = None,
+        workflow_id: WorkflowId | None = None,
+        max_planning_cycles: MaxPlanningCycles | None = None,
+        work_dir: WorkDir | None = None,
+        created_at: Any = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            name=name,
+            workflow_id=workflow_id,
+            max_planning_cycles=max_planning_cycles,
+            work_dir=work_dir,
+            created_at=created_at,
+        )
 
     # --- V3 FSM ---
 

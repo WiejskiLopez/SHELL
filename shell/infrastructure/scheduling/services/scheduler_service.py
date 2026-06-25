@@ -9,7 +9,8 @@ them as APScheduler interval jobs.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Coroutine
+from typing import Any, TYPE_CHECKING
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore[import-untyped]
@@ -147,7 +148,7 @@ def _build_job_fn(
     inbox_processor: InboxProcessor,
     pending_graph_finder: PendingGraphFinder | None = None,
     graph_execution_repo: PendingGraphRepo | None = None,
-):
+) -> Callable[[], Coroutine[Any, Any, None]]:
     if job_type == "messaging":
 
         async def _run() -> None:

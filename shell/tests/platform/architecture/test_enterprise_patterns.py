@@ -76,15 +76,7 @@ def _to_snake_case(pascal: str) -> str:
 
 _PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
 _COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date"})
-_DATETIME_EXEMPT_DTOS: frozenset[str] = frozenset({
-    "application/execution/dto/graph_execution.py: class GraphExecutionDto",
-    "application/execution/dto/task_execution.py: class TaskExecutionDto",
-    "application/execution/dto/session.py: class SessionDto",
-    "application/execution/dto/workflow.py: class WorkflowDto",
-    "application/execution/dto/envelope.py: class EnvelopeDto",
-    "application/execution/dto/graph_node_execution_result.py: class GraphNodeExecutionResultDto",
-    "application/definition/dto/runner_config.py: class RunnerConfigDto",
-})
+_DATETIME_EXEMPT_DTOS: frozenset[str] = frozenset({})
 
 
 def _has_complex_type(node: ast.AST) -> bool:
@@ -106,11 +98,7 @@ def _has_complex_type(node: ast.AST) -> bool:
 # ── 1. No framework imports infrastructure ──────────────────────────
 
 
-_KNOWN_FRAMEWORK_INFRA_IMPORTS: frozenset[str] = frozenset({
-    # CLI entrypoint — bootstraps config from env, a legitimate wiring exception.
-    "framework/platform/cli/main.py",
-    "framework/execution/orchestration/sync_workflow_runner.py",
-})
+_KNOWN_FRAMEWORK_INFRA_IMPORTS: frozenset[str] = frozenset({})
 
 
 def test_framework_does_not_import_infrastructure() -> None:
@@ -131,27 +119,7 @@ def test_framework_does_not_import_infrastructure() -> None:
 # ── 2. All aggregates have restore() ────────────────────────────────
 
 # Known pre-existing violations that should be fixed over time.
-_KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({
-    "domain/execution/aggregates/graph_execution_state_input/graph_execution_state_input.py: class GraphExecutionStateInput",
-    "domain/execution/aggregates/graph_execution_state_output/graph_execution_state_output.py: class GraphExecutionStateOutput",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: class GraphNodeTransitionExecution",
-    "domain/execution/aggregates/task_execution_state_input/task_execution_state_input.py: class TaskExecutionStateInput",
-    "domain/execution/aggregates/task_execution_state_output/task_execution_state_output.py: class TaskExecutionStateOutput",
-    "domain/user/aggregates/user/user.py: class User",
-    "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: class SchedulerDefinition",
-    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: class SchedulerExecution",
-    "domain/scheduling/aggregates/scheduler_job/scheduler_job.py: class SchedulerJob",
-    "domain/projekt/aggregates/project/project.py: class Project",
-    "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: class AgentConfigExecution",
-    "domain/execution/aggregates/agent_execution/agent_execution.py: class AgentExecution",
-    "domain/execution/aggregates/envelope/envelope.py: class Envelope",
-    "domain/execution/aggregates/graph_execution/graph_execution.py: class GraphExecution",
-    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: class GraphNodeExecution",
-    "domain/execution/aggregates/session/session.py: class Session",
-    "domain/execution/aggregates/task_execution/task_execution.py: class TaskExecution",
-    "domain/execution/aggregates/workflow/workflow.py: class Workflow",
-    "domain/definition/aggregates/rag_document/rag_document.py: class RagDocument",
-})
+_KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({})
 
 
 def test_all_aggregates_have_restore() -> None:
@@ -271,23 +239,7 @@ def test_dto_fields_use_only_primitives() -> None:
 # ── 5. All commands have validate() ─────────────────────────────────
 
 
-_KNOWN_COMMANDS_NO_VALIDATE: frozenset[str] = frozenset({
-    "application/execution/commands/envelope_commands.py: ArchiveEnvelopeCommand",
-    "application/execution/commands/archive_envelope_command.py: ArchiveEnvelopeCommand",
-    "application/execution/commands/task_execution_commands.py: ImportTaskExecutionCommand",
-    "application/execution/commands/import_task_execution_command.py: ImportTaskExecutionCommand",
-    "application/execution/commands/graph_node_execution_commands/run_graph_node_execution_command.py: RunGraphNodeExecutionCommand",
-    "application/execution/commands/graph_node_execution_commands/save_graph_node_execution_result_command.py: SaveGraphNodeExecutionResultCommand",
-    "application/execution/commands/session_commands/close_session_command.py: CloseSessionCommand",
-    "application/execution/commands/session_commands/open_session_command.py: OpenSessionCommand",
-    "application/execution/commands/workflow_commands/route_envelopes_command.py: RouteEnvelopesCommand",
-    "application/execution/commands/workflow_commands/run_tasker_workflow_command.py: RunTaskerWorkflowCommand",
-    "application/execution/commands/workflow_commands/start_workflow_command.py: StartWorkflowCommand",
-    "application/definition/commands/config_commands.py: BootstrapRunnerConfigCommand",
-    "application/definition/commands/bootstrap_runner_config_command.py: BootstrapRunnerConfigCommand",
-    "application/definition/commands/rag_commands.py: IndexDocumentCommand",
-    "application/definition/commands/index_document_command.py: IndexDocumentCommand",
-})
+_KNOWN_COMMANDS_NO_VALIDATE: frozenset[str] = frozenset({})
 
 
 def test_all_commands_have_validate() -> None:
@@ -371,9 +323,7 @@ _SERVICE_LOCATOR_PATTERNS: frozenset[str] = frozenset({
     "dependency_injector.containers",
 })
 
-_KNOWN_SERVICE_LOCATOR: frozenset[str] = frozenset({
-    "bootstrap",
-})
+_KNOWN_SERVICE_LOCATOR: frozenset[str] = frozenset({})
 
 
 def test_no_service_locator_in_production() -> None:

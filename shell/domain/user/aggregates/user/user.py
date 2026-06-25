@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.user.aggregates.user.events.user_disabled_event import UserDisabledEvent
@@ -49,6 +49,26 @@ class User(AggregateRoot[UserId]):
         self._skills = list(skills) if skills else []
         self._state_inputs = list(state_inputs) if state_inputs else []
         self._state_outputs = list(state_outputs) if state_outputs else []
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: UserId,
+        identity: Identity,
+        status: UserStatus = UserStatus.ACTIVE,
+        skills: list[UserSkill] | None = None,
+        state_inputs: list[UserStateInput] | None = None,
+        state_outputs: list[UserStateOutput] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            identity=identity,
+            status=status,
+            skills=skills,
+            state_inputs=state_inputs,
+            state_outputs=state_outputs,
+        )
 
     @property
     def identity(self) -> Identity:

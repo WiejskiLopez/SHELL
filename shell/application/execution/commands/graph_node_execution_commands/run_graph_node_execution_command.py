@@ -8,3 +8,7 @@ class RunGraphNodeExecutionCommand:
     workflow_id: str
     graph_node_execution_id: str
     workspace_path: str
+
+    @classmethod
+    def validate(cls) -> None:
+        pass

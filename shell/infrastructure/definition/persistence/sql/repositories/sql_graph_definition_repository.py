@@ -19,6 +19,7 @@ from ..models import GraphDefinitionModel
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.graph_definition import GraphDefinition
+    from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -26,7 +27,7 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    def _base_query(self):
+    def _base_query(self) -> Select[tuple[GraphDefinitionModel]]:
         return select(GraphDefinitionModel).options(
             selectinload(GraphDefinitionModel.graph_node_execution_models),
             selectinload(GraphDefinitionModel.graph_node_transition_definition_models),

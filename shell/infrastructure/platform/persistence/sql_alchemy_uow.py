@@ -26,6 +26,15 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
+    from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
+        SqlGraphNodeExecutionRepository,
+    )
+    from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
+        SqlSchedulerDefinitionRepository,
+    )
+    from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
+        SqlSchedulerExecutionRepository,
+    )
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
@@ -98,7 +107,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlGraphDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_definition_repository(self):
+    def scheduler_definition_repository(self) -> SqlSchedulerDefinitionRepository:
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
             SqlSchedulerDefinitionRepository,
         )
@@ -106,7 +115,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_job_repository(self):
+    def scheduler_job_repository(self) -> SqlSchedulerExecutionRepository:
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
             SqlSchedulerExecutionRepository,
         )
@@ -114,7 +123,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerExecutionRepository(self._active_session)
 
     @property
-    def graph_node_execution_repository(self):
+    def graph_node_execution_repository(self) -> SqlGraphNodeExecutionRepository:
         from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
             SqlGraphNodeExecutionRepository,
         )

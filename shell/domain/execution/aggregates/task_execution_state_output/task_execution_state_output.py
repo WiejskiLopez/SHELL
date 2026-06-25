@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base import AggregateRoot
 
@@ -41,6 +41,23 @@ class TaskExecutionStateOutput(AggregateRoot["TaskExecutionStateOutputId"]):
         self._payload = payload
         self._is_current = is_current
         self._created_at = created_at
+
+    @classmethod
+    def restore(
+        cls,
+        id: TaskExecutionStateOutputId,
+        task_execution_id: TaskExecutionId,
+        payload: dict[str, Any],
+        is_current: bool,
+        created_at: datetime,
+    ) -> Self:
+        return cls(
+            id=id,
+            task_execution_id=task_execution_id,
+            payload=payload,
+            is_current=is_current,
+            created_at=created_at,
+        )
 
     @property
     def task_execution_id(self) -> TaskExecutionId:

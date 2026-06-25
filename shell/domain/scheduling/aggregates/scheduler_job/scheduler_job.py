@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.scheduling.value_objects.ids import (
@@ -48,6 +48,33 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         self._config = config or {}
         self._created_at = created_at or datetime.now()
         self._updated_at = updated_at or datetime.now()
+
+    @classmethod
+    def restore(
+        cls,
+        id: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        name: str = "",
+        job_type: str = "messaging",
+        interval_seconds: float = 1.0,
+        batch_size: int = 50,
+        enabled: bool = True,
+        config: dict[str, Any] | None = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            scheduler_definition_id=scheduler_definition_id,
+            name=name,
+            job_type=job_type,
+            interval_seconds=interval_seconds,
+            batch_size=batch_size,
+            enabled=enabled,
+            config=config,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
 
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:

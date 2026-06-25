@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.envelope.entities.envelope_event import EnvelopeEvent
 from shell.domain.execution.aggregates.envelope.events.envelope_deadlettered_event import (
@@ -102,6 +102,49 @@ class Envelope(AggregateRoot[EnvelopeId]):
         self._created_at = created_at
         self._updated_at = updated_at
         self._envelope_events = events or []
+
+    @classmethod
+    def restore(
+        cls,
+        id: EnvelopeId,
+        workflow_id: WorkflowId,
+        parent_id: EnvelopeId | None,
+        correlation_id: str,
+        sender_graph_node_execution_id: GraphNodeExecutionId,
+        receiver_graph_node_execution_id: GraphNodeExecutionId,
+        source_role: str,
+        target_role: str,
+        sequence_id: int,
+        step: int,
+        status: EnvelopeStatus,
+        stage: EnvelopeStage,
+        payload: dict[str, object],
+        artifact_uri: str,
+        archive_uri: str,
+        created_at: datetime,
+        updated_at: datetime,
+        events: list[EnvelopeEvent] | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            workflow_id=workflow_id,
+            parent_id=parent_id,
+            correlation_id=correlation_id,
+            sender_graph_node_execution_id=sender_graph_node_execution_id,
+            receiver_graph_node_execution_id=receiver_graph_node_execution_id,
+            source_role=source_role,
+            target_role=target_role,
+            sequence_id=sequence_id,
+            step=step,
+            status=status,
+            stage=stage,
+            payload=payload,
+            artifact_uri=artifact_uri,
+            archive_uri=archive_uri,
+            created_at=created_at,
+            updated_at=updated_at,
+            events=events,
+        )
 
     @property
     def workflow_id(self) -> WorkflowId:

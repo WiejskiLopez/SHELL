@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Self
 
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
@@ -67,6 +67,41 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._completed_at = completed_at
         self._created_at = created_at or datetime.now()
         self._updated_at = updated_at or datetime.now()
+
+    @classmethod
+    def restore(
+        cls,
+        id: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        status: ExecutionStatus | str = ExecutionStatus.PENDING,
+        trigger_event_id: str | None = None,
+        trigger_event_type: str | None = None,
+        action_ref: str | None = None,
+        action_ref_type: str | None = None,
+        input_state: dict[str, Any] | None = None,
+        output_state: dict[str, Any] | None = None,
+        error: str | None = None,
+        started_at: datetime | None = None,
+        completed_at: datetime | None = None,
+        created_at: datetime | None = None,
+        updated_at: datetime | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            scheduler_definition_id=scheduler_definition_id,
+            status=status,
+            trigger_event_id=trigger_event_id,
+            trigger_event_type=trigger_event_type,
+            action_ref=action_ref,
+            action_ref_type=action_ref_type,
+            input_state=input_state,
+            output_state=output_state,
+            error=error,
+            started_at=started_at,
+            completed_at=completed_at,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
 
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:
