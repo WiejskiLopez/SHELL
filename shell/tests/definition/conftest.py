@@ -309,7 +309,7 @@ def _build_graph_execution(
         name=TaskExecutionName(task_execution_name),
                 created_at=_NOW,
     )
-    unit_of_work.task_executions._store[task_execution.id.value] = task_execution
+    unit_of_work.task_execution_repository._store[task_execution.id.value] = task_execution
 
     graph_node_executions = [
         GraphNodeExecution(
@@ -329,8 +329,8 @@ def _build_graph_execution(
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.graph_node_executions._store[node.id.value] = node
-    unit_of_work.graph_executions._store[graph_execution.id.value] = graph_execution
+        unit_of_work.graph_node_execution_repository._store[node.id.value] = node
+    unit_of_work.graph_execution_repository._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 
@@ -338,12 +338,12 @@ async def _persist_running_workflow(
     unit_of_work: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-    for ge in list(unit_of_work.graph_executions._store.values()):
+    for ge in list(unit_of_work.graph_execution_repository._store.values()):
         if ge.task_execution_id == task_execution_id:
             object.__setattr__(ge, '_workflow_id', wf.id)
     wf.start_at(now=_NOW)
     async with unit_of_work:
-        await unit_of_work.workflows.save(wf)
+        await unit_of_work.workflow_repository.save(wf)
         await unit_of_work.commit()
     return wf
 
@@ -441,7 +441,7 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
         name=TaskExecutionName(task_execution_name),
                 created_at=now,
     )
-    unit_of_work.task_executions._store[task_execution.id.value] = task_execution
+    unit_of_work.task_execution_repository._store[task_execution.id.value] = task_execution
     graph_node_executions = [
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
@@ -460,8 +460,8 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.graph_node_executions._store[node.id.value] = node
-    unit_of_work.graph_executions._store[graph_execution.id.value] = graph_execution
+        unit_of_work.graph_node_execution_repository._store[node.id.value] = node
+    unit_of_work.graph_execution_repository._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 

@@ -33,7 +33,7 @@ if TYPE_CHECKING:
 
 class _InMemoryGraphDefinitionQueryService:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
-        self._repo = unit_of_work.graph_definitions
+        self._repo = unit_of_work.graph_definition_repository
 
     async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
 
@@ -133,7 +133,7 @@ async def _seed_graph_definition(
         ],
     )
     # Clear any existing graph_definition with the same name (constructor seeds one)
-    repo = unit_of_work.graph_definitions
+    repo = unit_of_work.graph_definition_repository
     keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
     for k in keys_to_remove:
         del repo._store[k]
@@ -169,7 +169,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await unit_of_work.graph_executions.get_by_task_execution_id(
+        graph_execution = await unit_of_work.graph_execution_repository.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert graph_execution is not None
@@ -212,7 +212,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await unit_of_work.graph_executions.get_by_task_execution_id(
+        first_graph = await unit_of_work.graph_execution_repository.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert first_graph is not None
@@ -222,7 +222,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await unit_of_work.graph_executions.get_by_task_execution_id(
+        second_graph = await unit_of_work.graph_execution_repository.get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert second_graph is not None
@@ -253,6 +253,6 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         assert fresh_unit_of_work.committed_events == []
         # Graph must not exist either.
         assert (
-            await fresh_unit_of_work.graph_executions.get_by_task_execution_id(TaskExecutionId("task-abc"))
+            await fresh_unit_of_work.graph_execution_repository.get_by_task_execution_id(TaskExecutionId("task-abc"))
             is None
         )

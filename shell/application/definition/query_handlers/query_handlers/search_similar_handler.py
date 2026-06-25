@@ -14,9 +14,9 @@ class SearchSimilarHandler:
         self._queries = queries
         self._embedder = embedder
 
-    async def handle(self, query: SearchSimilarQuery) -> list[RagChunkDto]:
+    async def handle(self, search_similar_query: SearchSimilarQuery) -> list[RagChunkDto]:
         import struct
 
-        vector = self._embedder.embed_text(query.query_text)
+        vector = self._embedder.embed_text(search_similar_query.query_text)
         vector_bytes = struct.pack(f"{len(vector)}f", *vector)
-        return await self._queries.search_similar(vector_bytes, query.top_k, query.domain)
+        return await self._queries.search_similar(vector_bytes, search_similar_query.top_k, search_similar_query.domain)

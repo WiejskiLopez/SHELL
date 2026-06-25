@@ -85,26 +85,26 @@ class GraphNodeExecutionCompletedHandler:
         )
         self._policy: GraphNodeExecutionPolicy = policy or FailFastGraphNodeExecutionPolicy()
 
-    async def handle(self, event: GraphNodeExecutionResultEvent) -> None:
+    async def handle(self, graph_node_execution_result_event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflows.get_by_id(event.workflow_id)
+            workflow = await unit_of_work.workflow_repository.get_by_id(graph_node_execution_result_event.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.workflow_not_found",
-                    workflow_id=event.workflow_id.value,
+                    workflow_id=graph_node_execution_result_event.workflow_id.value,
                 )
                 return
 
             if workflow.status != WorkflowStatus.ACTIVE:
                 logger.warning(
                     "graph_node_execution_completed_handler.skip_workflow_not_active",
-                    workflow_id=event.workflow_id.value,
+                    workflow_id=graph_node_execution_result_event.workflow_id.value,
                     status=workflow.status.value,
                 )
                 return
 
-            graph_executions = await unit_of_work.graph_executions.get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.graph_execution_repository.get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.no_graph",
@@ -115,11 +115,11 @@ class GraphNodeExecutionCompletedHandler:
 
             now = self._clock.now()
 
-            if isinstance(event, GraphNodeExecutionCompletedEvent):
+            if isinstance(graph_node_execution_result_event, GraphNodeExecutionCompletedEvent):
                 await self._handle_completed(
                     workflow=workflow,
                     graph_execution=graph_execution,
-                    graph_node_execution_id=event.graph_node_execution_id,
+                    graph_node_execution_id=graph_node_execution_result_event.graph_node_execution_id,
                     now=now,
                     unit_of_work=unit_of_work,
                 )
@@ -127,13 +127,13 @@ class GraphNodeExecutionCompletedHandler:
                 await self._handle_failure(
                     workflow=workflow,
                     graph_execution=graph_execution,
-                    graph_node_execution_id=event.graph_node_execution_id,
-                    reason=event.reason,
+                    graph_node_execution_id=graph_node_execution_result_event.graph_node_execution_id,
+                    reason=graph_node_execution_result_event.reason,
                     now=now,
                     unit_of_work=unit_of_work,
                 )
 
-            await unit_of_work.workflows.save(workflow)
+            await unit_of_work.workflow_repository.save(workflow)
             unit_of_work.stage_events(workflow.pull_events())
 
     # ── Private helpers ───────────────────────────────────────────────────
@@ -237,7 +237,7 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
         next_nodes = list(
             await self._navigator.next_after_async(
-                graph_execution, graph_node_execution_id, unit_of_work.graph_node_executions
+                graph_execution, graph_node_execution_id, unit_of_work.graph_node_execution_repository
             )
         )
         if not next_nodes:

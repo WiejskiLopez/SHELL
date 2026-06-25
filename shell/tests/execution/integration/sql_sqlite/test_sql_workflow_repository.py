@@ -52,7 +52,7 @@ class TestSqlWorkflowRepository:
         from shell.domain.platform.value_objects.mode import Mode
 
         async with sql_uow as u:
-            task_execution = await u.task_executions.get_current_by_name(
+            task_execution = await u.task_execution_repository.get_current_by_name(
                 TaskExecutionName("wf-task")
             )
             assert task_execution is not None
@@ -71,7 +71,7 @@ class TestSqlWorkflowRepository:
                     )
                 ],
             )
-            await u.graph_executions.save(graph_execution)
+            await u.graph_execution_repository.save(graph_execution)
             await u.commit()
 
         start = StartWorkflowHandler(sql_uow, clock, id_gen)

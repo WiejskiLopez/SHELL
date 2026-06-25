@@ -140,3 +140,11 @@ class WorkflowId(ValueObject):
 
 - VO to czysty kod domenowy.
 - Nie może importować niczego z `shell.infrastructure.*`, `shell.application.*` ani frameworków ORM.
+
+## Podsumowanie — Checklista
+
+Podczas dodawania nowego VO:
+- [ ] Jeśli uniwersalny → w `platform/value_objects/`, nie w domenie
+- [ ] Jeden VO = jeden plik
+- [ ] Importuje `ValueObject` z `shell.domain.platform.base.value_object` (nie przez re-eksport)
+- [ ] Brak zależności od ORM / infrastruktury

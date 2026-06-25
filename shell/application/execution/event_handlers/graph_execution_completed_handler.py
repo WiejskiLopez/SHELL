@@ -26,20 +26,20 @@ class GraphExecutionCompletedHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, event: GraphExecutionCompletedEvent) -> None:
+    async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_executions.get_by_id(event.graph_execution_id)
+            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_completed_event.graph_execution_id)
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_completed_handler.graph_not_found",
-                    graph_execution_id=event.graph_execution_id.value,
+                    graph_execution_id=graph_execution_completed_event.graph_execution_id.value,
                 )
                 return
 
             if graph_execution.parent_graph_execution_id is not None:
                 return
 
-            task_execution = await unit_of_work.task_executions.get_by_id(
+            task_execution = await unit_of_work.task_execution_repository.get_by_id(
                 graph_execution.task_execution_id,
             )
             if task_execution is None:
@@ -51,5 +51,5 @@ class GraphExecutionCompletedHandler:
 
             now = self._clock.now()
             task_execution.complete(now=now)
-            await unit_of_work.task_executions.save(task_execution)
+            await unit_of_work.task_execution_repository.save(task_execution)
             unit_of_work.stage_events(task_execution.pull_events())

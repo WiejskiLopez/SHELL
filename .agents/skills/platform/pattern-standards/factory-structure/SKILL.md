@@ -48,7 +48,7 @@ class WorkflowFactory:
 
 ```python
 @classmethod
-def restore(cls, workflow_id: WorkflowId, name: WorkflowName, status: WorkflowStatus, nodes: list[Node], version: int) -> Workflow:
+def restore(cls, workflow_id: WorkflowId, name: WorkflowName, status: WorkflowStatus, nodes: list[Node], version: Version) -> Workflow:
     workflow = cls.__new__(cls)
     super(Workflow, workflow).__init__(workflow_id)
     workflow._name = name

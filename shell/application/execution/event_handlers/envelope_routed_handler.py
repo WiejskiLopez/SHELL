@@ -14,16 +14,16 @@ class ArchiveOnDeliveredHandler:
         self._unit_of_work = unit_of_work
         self._clock = clock
 
-    async def handle(self, event: EnvelopeRoutedEvent) -> None:
+    async def handle(self, envelope_routed_event: EnvelopeRoutedEvent) -> None:
         from shell.domain.execution.value_objects.ids import EnvelopeId
         from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
 
         async with self._unit_of_work as unit_of_work:
-            envelope = await unit_of_work.envelopes.get_by_id(EnvelopeId(event.envelope_id.value))
+            envelope = await unit_of_work.envelope_repository.get_by_id(EnvelopeId(envelope_routed_event.envelope_id.value))
             if envelope is None:
                 return
             if envelope.status != EnvelopeStatus.DELIVERED:
                 return
             archive_uri = await unit_of_work.envelope_archive.archive(envelope)
             envelope.archive(archive_uri, self._clock.now())
-            await unit_of_work.envelopes.save(envelope)
+            await unit_of_work.envelope_repository.save(envelope)

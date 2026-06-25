@@ -53,6 +53,6 @@ class TestIndexDocumentHandler:
         )
         doc_id = await IndexDocumentHandler(unit_of_work, clock, id_generator, embedder).handle(command)
         assert doc_id is not None
-        doc = await unit_of_work.rag_documents.get_by_id(doc_id)
+        doc = await unit_of_work.rag_document_repository.get_by_id(doc_id)
         assert doc is not None
         assert list(doc.chunks) == []

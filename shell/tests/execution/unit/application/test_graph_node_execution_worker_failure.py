@@ -34,7 +34,7 @@ class TestGraphNodeExecutionWorkerFailure:
             )
         )
 
-        stored = await unit_of_work.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
 

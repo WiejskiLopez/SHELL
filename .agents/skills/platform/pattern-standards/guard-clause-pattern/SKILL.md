@@ -35,12 +35,12 @@ class WorkflowCanAssignUserRule:
         self._user_id = user_id
 
     def check(self) -> None:
-        if self._workflow._status is not WorkflowStatus.IDLE:
-            raise WorkflowAlreadyStarted(self._workflow._id)
-        if self._workflow._assigned_users.count >= self._workflow._max_users:
-            raise MaxUsersExceeded(self._workflow._id, self._workflow._max_users)
-        if self._workflow._assigned_users.contains(self._user_id):
-            raise UserAlreadyAssigned(self._workflow._id, self._user_id)
+        if self._workflow.status is not WorkflowStatus.IDLE:
+            raise WorkflowAlreadyStarted(self._workflow.id)
+        if len(self._workflow.assigned_users) >= self._workflow.max_users:
+            raise MaxUsersExceeded(self._workflow.id, self._workflow.max_users)
+        if self._user_id in self._workflow.assigned_users:
+            raise UserAlreadyAssigned(self._workflow.id, self._user_id)
 ```
 
 ## Miejsca stosowania

@@ -33,7 +33,7 @@ class TestSqlUnitOfWorkRollback:
                 from shell.domain.definition.value_objects.ids import RunnerConfigId
                 from shell.domain.platform.value_objects.hash import Hash
 
-                await u.runner_configs.save(
+                await u.runner_config_repository.save(
                     RunnerConfig.new(
                         id_=RunnerConfigId("rollback-runner-x"),
                         package_name="rollback-runner-x",

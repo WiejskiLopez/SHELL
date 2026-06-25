@@ -20,7 +20,7 @@ class TestPgUnitOfWorkRollback:
                 from shell.domain.definition.entities.runner_config import RunnerConfig
                 from shell.domain.platform.value_objects.hash import Hash
 
-                await u.runner_configs.save(
+                await u.runner_config_repository.save(
                     RunnerConfig.new(
                         id_=id_gen.new_runner_config_id(),
                         package_name="pg-rollback-runner-x",

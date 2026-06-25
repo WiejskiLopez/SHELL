@@ -27,8 +27,8 @@ if TYPE_CHECKING:
 - Zwraca DTO/read model — nigdy encji domenowych (to narusza warstwy).
 
 ```python
-async def handle(self, query: GetWorkflowQuery) -> WorkflowDto | None:
-    return await self._query_service.get_by_id(query.workflow_id)
+async def handle(self, get_workflow_query: GetWorkflowQuery) -> WorkflowDto | None:
+    return await self._query_service.get_by_id(get_workflow_query.workflow_id)
 ```
 
 ## Bez side effects

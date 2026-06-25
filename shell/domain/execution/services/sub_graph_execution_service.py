@@ -151,7 +151,7 @@ class SubGraphExecutionService:
                 max_retries=node_def.retries,
                 graph_execution_id=sub_graph_execution_id,
             )
-            await _unit_of_work.graph_node_executions.save(node)
+            await _unit_of_work.graph_node_execution_repository.save(node)
             node_ids.append(node_id)
 
         # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
@@ -169,7 +169,7 @@ class SubGraphExecutionService:
         )
 
         # ── Persist ───────────────────────────────────────────────────────
-        await _unit_of_work.graph_executions.save(sub_graph_execution)
+        await _unit_of_work.graph_execution_repository.save(sub_graph_execution)
 
         _unit_of_work.stage_events(list(sub_graph_execution.pull_events()))
 

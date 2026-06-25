@@ -27,7 +27,7 @@ class TestGraphNodeExecutionWorkerIdempotency:
 
         wf.finish(now=_NOW)
         async with unit_of_work:
-            await unit_of_work.workflows.save(wf)
+            await unit_of_work.workflow_repository.save(wf)
             await unit_of_work.commit()
 
         runner = FakeGraphNodeExecutionProcessRunner(returncode=0)

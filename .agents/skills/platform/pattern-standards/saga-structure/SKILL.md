@@ -16,13 +16,13 @@
 ```python
 # Workflow BC
 class WorkflowStartedHandler:
-    async def handle(self, event: WorkflowStartedEvent) -> None:
+    async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
         # reakcja: utwórz zasoby, emituj ResourceProvisionedEvent
         ...
 
 # Resource BC
 class ResourceProvisionedHandler:
-    async def handle(self, event: ResourceProvisionedEvent) -> None:
+    async def handle(self, resource_provisioned_event: ResourceProvisionedEvent) -> None:
         # reakcja: konfiguruj, emituj ResourceConfiguredEvent
         ...
 ```

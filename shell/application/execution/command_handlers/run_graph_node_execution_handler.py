@@ -45,24 +45,24 @@ class RunGraphNodeExecutionHandler:
         self._runner = runner
         self._strategy = strategy
 
-    async def handle(self, command: RunGraphNodeExecutionCommand) -> str:
+    async def handle(self, run_graph_node_execution_command: RunGraphNodeExecutionCommand) -> str:
         """Execute node and return NodeResult id."""
-        workflow_id = WorkflowId(command.workflow_id)
-        graph_node_execution_id = GraphNodeExecutionId(command.graph_node_execution_id)
+        workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
+        graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
+            workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(command.workflow_id)
+                raise WorkflowNotFound(run_graph_node_execution_command.workflow_id)
 
-            await unit_of_work.workflows.save(workflow)
+            await unit_of_work.workflow_repository.save(workflow)
 
         # Execute strategy (outside UoW — may take a long time)
         try:
             exec_result = await self._strategy.execute(
-                graph_node_execution_id=command.graph_node_execution_id,
-                workspace_path=command.workspace_path,
+                graph_node_execution_id=run_graph_node_execution_command.graph_node_execution_id,
+                workspace_path=run_graph_node_execution_command.workspace_path,
                 runner=self._runner,
             )
             stdout = exec_result.stdout
@@ -76,10 +76,10 @@ class RunGraphNodeExecutionHandler:
             failure_reason = str(exc)
 
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
+            workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(command.workflow_id)
-            await unit_of_work.workflows.save(workflow)
+                raise WorkflowNotFound(run_graph_node_execution_command.workflow_id)
+            await unit_of_work.workflow_repository.save(workflow)
             unit_of_work.stage_events(workflow.pull_events())
 
         return ""

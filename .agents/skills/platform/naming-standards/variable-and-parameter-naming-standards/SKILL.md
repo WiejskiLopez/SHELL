@@ -19,7 +19,10 @@ To nie są sugestie ani zalecenia — to **bezwzględnie egzekwowane reguły bez
 | Status | Przykład | Powód |
 |--------|----------|-------|
 | ❌ **ZABRONIONE** | `uow` | Musi być `unit_of_work` |
-| ❌ **ZABRONIONE** | `cmd` (parametr handlera) | Musi być `command` |
+| ❌ **ZABRONIONE** | `cmd` (parametr handlera) | Musi być nazwą konkretnego typu, np. `start_workflow_command` |
+| ❌ **ZABRONIONE** | `command` (parametr handlera) | Generyczna nazwa — musi być nazwą konkretnego typu, np. `start_workflow_command` |
+| ❌ **ZABRONIONE** | `event` (parametr handlera) | Generyczna nazwa — musi być nazwą konkretnego typu, np. `workflow_completed_event` |
+| ❌ **ZABRONIONE** | `query` (parametr handlera) | Generyczna nazwa — musi być nazwą konkretnego typu, np. `get_workflow_query` |
 | ❌ **ZABRONIONE** | `id_gen` | Musi być `id_generator` |
 | ❌ **ZABRONIONE** | `repo` | Musi być `repository` |
 | ❌ **ZABRONIONE** | `ctx` | Musi być `context` (lepiej konkretnie: `sub_graph_context`) |
@@ -43,7 +46,9 @@ To oznacza również, że **nie ma listy "dozwolonych skrótów"** — lista wyj
 | `nd` / `node_dto` | `graph_node_definition` — sufiks `dto` mylący gdy to nie DTO |
 | `dto` | Zawsze opisz co za DTO: `graph_definition_dto` |
 | `def_id` | `definition_id` lub `graph_definition_id` |
-| `cmd` | `command` (chyba że lista argumentów CLI) |
+| `cmd` / `command` | Konkretna nazwa typu, np. `start_workflow_command` |
+| `event` | Konkretna nazwa typu, np. `workflow_completed_event` |
+| `query` | Konkretna nazwa typu, np. `get_workflow_query` |
 | `ctx` | `context` — lepiej opisać: `sub_graph_context` |
 | `args` | `arguments` — lepiej opisać: `type_arguments` |
 | `wf` | `workflow` |
@@ -68,7 +73,7 @@ To oznacza również, że **nie ma listy "dozwolonych skrótów"** — lista wyj
 # ZAMIAST:
 wf_id = WorkflowId(cmd.workflow_id)
 # PISZ:
-workflow_id = WorkflowId(command.workflow_id)
+workflow_id = WorkflowId(start_workflow_command.workflow_id)
 
 # ZAMIAST:
 parent_id = graph_execution.parent_graph_execution_id
@@ -86,15 +91,27 @@ for node_dto in graph_definition.graph_node_execution_definitions:
 for graph_node_definition in graph_definition.graph_node_execution_definitions:
 ```
 
+## Parametry handlerów
+
+Parametr metody `handle` **musi** mieć nazwę dokładnie odpowiadającą typowi, który reprezentuje. Generyczne nazwy (`command`, `query`, `event`) są zabronione — zacierają intencję i utrudniają czytanie kodu.
+
+```python
+# POPRAWNIE
+async def handle(self, start_workflow_command: StartWorkflowCommand) -> None: ...
+
+# ŹLE — generyczna nazwa
+async def handle(self, command: StartWorkflowCommand) -> None: ...
+```
+
 ## Zmienne w handlerach
 
 Zmienne w handlerach zawsze opisują co zawierają, nigdy skrótem:
 
 ```python
 # POPRAWNIE
-task_execution = await unit_of_work.task_executions.get_by_id(task_execution_id)
-graph_execution = await unit_of_work.graph_executions.get_by_task_execution_id(task_execution.id)
-child_graph_executions = await unit_of_work.graph_executions.get_by_parent_id(parent_graph_execution_id)
+task_execution = await unit_of_work.task_execution_repository.get_by_id(task_execution_id)
+graph_execution = await unit_of_work.graph_execution_repository.get_by_task_execution_id(task_execution.id)
+child_graph_executions = await unit_of_work.graph_execution_repository.get_by_parent_id(parent_graph_execution_id)
 ```
 
 ## ID variables

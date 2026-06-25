@@ -26,17 +26,17 @@ class TaskExecutionCompletedPropagateOutputHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, event: TaskExecutionCompletedEvent) -> None:
+    async def handle(self, task_execution_completed_event: TaskExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.task_executions.get_by_id(event.task_execution_id)
+            task_execution = await unit_of_work.task_execution_repository.get_by_id(task_execution_completed_event.task_execution_id)
             if task_execution is None or task_execution.workflow_id is None:
                 self._logger.warning(
                     "task_execution_completed_propagate_output_handler.task_not_found",
-                    task_execution_id=event.task_execution_id.value,
+                    task_execution_id=task_execution_completed_event.task_execution_id.value,
                 )
                 return
 
-            workflow = await unit_of_work.workflows.get_by_id(task_execution.workflow_id)
+            workflow = await unit_of_work.workflow_repository.get_by_id(task_execution.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "task_execution_completed_propagate_output_handler.workflow_not_found",
@@ -46,10 +46,10 @@ class TaskExecutionCompletedPropagateOutputHandler:
 
             now = self._clock.now()
             output_payload: dict[str, Any] = {
-                "task_execution_id": event.task_execution_id.value,
-                "task_execution_name": event.task_execution_name.value,
-                "output": event.output,
+                "task_execution_id": task_execution_completed_event.task_execution_id.value,
+                "task_execution_name": task_execution_completed_event.task_execution_name.value,
+                "output": task_execution_completed_event.output,
             }
             workflow.add_state_input(output_payload, now)
-            await unit_of_work.workflows.save(workflow)
+            await unit_of_work.workflow_repository.save(workflow)
             unit_of_work.stage_events(workflow.pull_events())

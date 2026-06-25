@@ -48,7 +48,7 @@ class TestImportTaskExecutionHandler:
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await unit_of_work.task_execution_state_inputs.get_latest_by_task_id(
+        state_input = await unit_of_work.task_execution_state_input_repository.get_latest_by_task_id(
             TaskExecutionId(task_execution_id)
         )
         assert state_input is not None

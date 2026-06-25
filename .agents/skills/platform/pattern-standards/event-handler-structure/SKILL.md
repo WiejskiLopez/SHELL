@@ -33,18 +33,18 @@ if TYPE_CHECKING:
 - Inbox pattern: sprawdź czy `event_id` jest już w tabeli inbox. Jeśli tak → skip. Jeśli nie → przetwórz + oznacz jako przetworzone w tej samej transakcji.
 
 ```python
-async def handle(self, event: WorkflowStartedEvent) -> None:
+async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
-        if await unit_of_work.inbox.contains(event.event_id):
+        if await unit_of_work.inbox_repository.contains(workflow_started_event.event_id):
             return
-        workflow = await unit_of_work.workflows.get_by_id(event.workflow_id)
+        workflow = await unit_of_work.workflow_repository.get_by_id(workflow_started_event.workflow_id)
         if workflow is None:
-            self._logger.warning('Workflow %s not found', event.workflow_id)
+            self._logger.warning('Workflow %s not found', workflow_started_event.workflow_id)
             return
-        notification = Notification.from_event(event)
-        unit_of_work.notifications.save(notification)
+        notification = Notification.from_event(workflow_started_event)
+        unit_of_work.notification_repository.save(notification)
         unit_of_work.stage_events(notification.pull_events())
-        unit_of_work.inbox.add(event.event_id)
+        unit_of_work.inbox_repository.add(workflow_started_event.event_id)
 ```
 
 ## Logowanie

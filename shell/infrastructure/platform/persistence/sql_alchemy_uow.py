@@ -47,35 +47,35 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return self._session
 
     @property
-    def task_executions(self) -> SqlTaskExecutionRepository:
+    def task_execution_repository(self) -> SqlTaskExecutionRepository:
         return SqlTaskExecutionRepository(self._active_session)
 
     @property
-    def task_execution_state_inputs(self) -> SqlTaskExecutionStateInputRepository:
+    def task_execution_state_input_repository(self) -> SqlTaskExecutionStateInputRepository:
         return SqlTaskExecutionStateInputRepository(self._active_session)
 
     @property
-    def graph_executions(self) -> SqlGraphExecutionRepository:
+    def graph_execution_repository(self) -> SqlGraphExecutionRepository:
         return SqlGraphExecutionRepository(self._active_session)
 
     @property
-    def workflows(self) -> SqlWorkflowRepository:
+    def workflow_repository(self) -> SqlWorkflowRepository:
         return SqlWorkflowRepository(self._active_session)
 
     @property
-    def envelopes(self) -> SqlEnvelopeRepository:
+    def envelope_repository(self) -> SqlEnvelopeRepository:
         return SqlEnvelopeRepository(self._active_session)
 
     @property
-    def graph_execution_state_inputs(self) -> SqlGraphExecutionStateInputRepository:
+    def graph_execution_state_input_repository(self) -> SqlGraphExecutionStateInputRepository:
         return SqlGraphExecutionStateInputRepository(self._active_session)
 
     @property
-    def graph_execution_state_outputs(self) -> SqlGraphExecutionStateOutputRepository:
+    def graph_execution_state_output_repository(self) -> SqlGraphExecutionStateOutputRepository:
         return SqlGraphExecutionStateOutputRepository(self._active_session)
 
     @property
-    def runner_configs(self) -> SqlRunnerConfigRepository:
+    def runner_config_repository(self) -> SqlRunnerConfigRepository:
         return SqlRunnerConfigRepository(self._active_session)
 
     @property
@@ -83,22 +83,22 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlEnvelopeArchiveStub()
 
     @property
-    def rag_documents(self) -> SqlRagDocumentRepository:
+    def rag_document_repository(self) -> SqlRagDocumentRepository:
         return SqlRagDocumentRepository(
             self._active_session,
             search_strategy=self._rag_search_strategy,
         )
 
     @property
-    def sessions(self) -> SqlSessionRepository:
+    def session_repository(self) -> SqlSessionRepository:
         return SqlSessionRepository(self._active_session)
 
     @property
-    def graph_definitions(self) -> SqlGraphDefinitionRepository:
+    def graph_definition_repository(self) -> SqlGraphDefinitionRepository:
         return SqlGraphDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_definitions(self):
+    def scheduler_definition_repository(self):
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
             SqlSchedulerDefinitionRepository,
         )
@@ -106,7 +106,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerDefinitionRepository(self._active_session)
 
     @property
-    def scheduler_jobs(self):
+    def scheduler_job_repository(self):
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
             SqlSchedulerExecutionRepository,
         )
@@ -114,7 +114,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerExecutionRepository(self._active_session)
 
     @property
-    def graph_node_executions(self):
+    def graph_node_execution_repository(self):
         from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
             SqlGraphNodeExecutionRepository,
         )

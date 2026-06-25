@@ -27,7 +27,7 @@ class TestPgNodeResultRepository:
         session_factory,
     ) -> None:
         async with sql_uow as u:
-            await u.workflows.save(
+            await u.workflow_repository.save(
                 Workflow.new(id_=WorkflowId("pg-wf-nr-1"), now=clock.now())
             )
             node = GraphNodeExecution(
@@ -37,7 +37,7 @@ class TestPgNodeResultRepository:
                 role="worker",
                 node_type="worker",
             )
-            await u.graph_node_executions.save(node)
+            await u.graph_node_execution_repository.save(node)
 
         handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
 

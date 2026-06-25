@@ -21,15 +21,15 @@ class ArchiveEnvelopeHandler:
         self._unit_of_work = unit_of_work
         self._clock = clock
 
-    async def handle(self, command: ArchiveEnvelopeCommand) -> None:
-        envelope_id = EnvelopeId(command.envelope_id)
+    async def handle(self, archive_envelope_command: ArchiveEnvelopeCommand) -> None:
+        envelope_id = EnvelopeId(archive_envelope_command.envelope_id)
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
-            envelope = await unit_of_work.envelopes.get_by_id(envelope_id)
+            envelope = await unit_of_work.envelope_repository.get_by_id(envelope_id)
             if envelope is None:
-                raise EnvelopeNotFound(command.envelope_id)
+                raise EnvelopeNotFound(archive_envelope_command.envelope_id)
 
             archive_uri = await unit_of_work.envelope_archive.archive(envelope)
             envelope.archive(archive_uri, now)
-            await unit_of_work.envelopes.save(envelope)
+            await unit_of_work.envelope_repository.save(envelope)

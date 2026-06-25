@@ -46,7 +46,7 @@ class TestStartWorkflowHandler:
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
         from shell.domain.platform.value_objects.mode import Mode
 
-        task_execution = await unit_of_work.task_executions.get_current_by_name(
+        task_execution = await unit_of_work.task_execution_repository.get_current_by_name(
             TaskExecutionName(task_execution_name)
         )
         assert task_execution is not None
@@ -64,7 +64,7 @@ class TestStartWorkflowHandler:
                 )
             ],
         )
-        await unit_of_work.graph_executions.save(graph_execution)
+        await unit_of_work.graph_execution_repository.save(graph_execution)
 
     async def test_happy_path(
         self,

@@ -12,5 +12,5 @@ class GetEnvelopesByWorkflowHandler:
     def __init__(self, queries: EnvelopeQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetEnvelopesByWorkflowQuery) -> list[EnvelopeDto]:
-        return await self._queries.get_envelopes_by_workflow(query.workflow_id, query.pending_only)
+    async def handle(self, get_envelopes_by_workflow_query: GetEnvelopesByWorkflowQuery) -> list[EnvelopeDto]:
+        return await self._queries.get_envelopes_by_workflow(get_envelopes_by_workflow_query.workflow_id, get_envelopes_by_workflow_query.pending_only)

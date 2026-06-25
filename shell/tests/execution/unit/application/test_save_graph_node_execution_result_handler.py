@@ -27,7 +27,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         id_generator: FakeIdGenerator,
     ) -> None:
         wf = Workflow.new(id_=WorkflowId("wf-1"), now=clock.now())
-        await unit_of_work.workflows.save(wf)
+        await unit_of_work.workflow_repository.save(wf)
 
         node = GraphNodeExecution(
             id=GraphNodeExecutionId("node-1"),
@@ -36,7 +36,7 @@ class TestSaveGraphNodeExecutionResultHandler:
             role="worker",
             node_type="worker",
         )
-        await unit_of_work.graph_node_executions.save(node)
+        await unit_of_work.graph_node_execution_repository.save(node)
 
         handler = SaveGraphNodeExecutionResultHandler(unit_of_work, clock, id_generator)
         result_id = await handler.handle(
@@ -49,7 +49,7 @@ class TestSaveGraphNodeExecutionResultHandler:
         )
         assert result_id
 
-        stored = await unit_of_work.graph_node_executions.get_by_id(GraphNodeExecutionId("node-1"))
+        stored = await unit_of_work.graph_node_execution_repository.get_by_id(GraphNodeExecutionId("node-1"))
         assert stored is not None
         output = stored.get_latest_output_state()
         assert output is not None

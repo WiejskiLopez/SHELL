@@ -12,5 +12,5 @@ class GetWorkflowHandler:
     def __init__(self, queries: WorkflowQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetWorkflowQuery) -> WorkflowDto | None:
-        return await self._queries.get_workflow(query.workflow_id)
+    async def handle(self, get_workflow_query: GetWorkflowQuery) -> WorkflowDto | None:
+        return await self._queries.get_workflow(get_workflow_query.workflow_id)

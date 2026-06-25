@@ -60,10 +60,10 @@ class SqlUnitOfWork:
 ## Użycie w handlerze
 
 ```python
-async def handle(self, command: StartWorkflowCommand) -> None:
+async def handle(self, start_workflow_command: StartWorkflowCommand) -> None:
     async with self._unit_of_work as unit_of_work:
         workflow = Workflow.create(...)
-        unit_of_work.workflows.save(workflow)
+        unit_of_work.workflow_repository.save(workflow)
         unit_of_work.stage_events(workflow.pull_events())
 ```
 
@@ -74,16 +74,16 @@ async def handle(self, command: StartWorkflowCommand) -> None:
 - Phase 2: po długiej operacji, przeładuj agregat (wersja mogła się zmienić), zapisz wynik, commituj.
 
 ```python
-async def handle(self, command: ProcessWorkflowCommand) -> None:
+async def handle(self, process_workflow_command: ProcessWorkflowCommand) -> None:
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflows.get_by_id(command.workflow_id)
+        workflow = await unit_of_work.workflow_repository.get_by_id(process_workflow_command.workflow_id)
         workflow.mark_processing()
         unit_of_work.stage_events(workflow.pull_events())
 
     result = await self._external_service.run(workflow.id)
 
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflows.get_by_id(command.workflow_id)
+        workflow = await unit_of_work.workflow_repository.get_by_id(process_workflow_command.workflow_id)
         workflow.complete(result)
         unit_of_work.stage_events(workflow.pull_events())
 ```

@@ -13,8 +13,8 @@ class GetGraphNodeExecutionResultHandler:
         self._queries = queries
 
     async def handle(
-        self, query: GetGraphNodeExecutionResultQuery
+        self, get_graph_node_execution_result_query: GetGraphNodeExecutionResultQuery
     ) -> GraphNodeExecutionResultDto | None:
         return await self._queries.get_graph_node_execution_result(
-            query.graph_node_execution_id, query.workflow_id
+            get_graph_node_execution_result_query.graph_node_execution_id, get_graph_node_execution_result_query.workflow_id
         )

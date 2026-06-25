@@ -12,5 +12,5 @@ class GetRunnerConfigHandler:
     def __init__(self, queries: RunnerConfigQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetRunnerConfigQuery) -> RunnerConfigDto | None:
-        return await self._queries.get_runner_config(query.package_name)
+    async def handle(self, get_runner_config_query: GetRunnerConfigQuery) -> RunnerConfigDto | None:
+        return await self._queries.get_runner_config(get_runner_config_query.package_name)

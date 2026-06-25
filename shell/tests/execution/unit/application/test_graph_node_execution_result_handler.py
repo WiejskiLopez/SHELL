@@ -43,7 +43,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.running()
 
@@ -69,7 +69,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.done()
 
@@ -96,7 +96,7 @@ class TestGraphNodeExecutionResultHandlerFailure:
             )
         )
 
-        stored = await unit_of_work.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.failed()
 
@@ -116,7 +116,7 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
 
         wf.finish(now=_NOW)
         async with unit_of_work:
-            await unit_of_work.workflows.save(wf)
+            await unit_of_work.workflow_repository.save(wf)
             await unit_of_work.commit()
 
         handler = _make_result_handler(unit_of_work)
@@ -130,6 +130,6 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
             )
         )
 
-        stored = await unit_of_work.workflows.get_by_id(wf.id)
+        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
         assert stored is not None
         assert stored.status == Status.done()

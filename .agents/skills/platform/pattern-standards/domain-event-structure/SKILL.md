@@ -17,7 +17,7 @@
 class WorkflowStartedEvent(DomainEvent):
     workflow_id: WorkflowId
     started_by: UserId
-    started_at: datetime
+    started_at: Timestamp
 ```
 
 ## Metadane
@@ -27,7 +27,7 @@ class WorkflowStartedEvent(DomainEvent):
 ## Payload
 
 - Zawiera tylko fakty (co się stało), nigdy instrukcje (co ma się stać).
-- Typy: VO domenowe, typy proste. Nigdy referencje do agregatów.
+- Typy: wyłącznie VO domenowe. Nigdy referencje do agregatów, nigdy typy proste.
 
 ```python
 # Dobrze (fakt)
@@ -67,7 +67,7 @@ def from_payload(cls, payload: dict[str, Any]) -> WorkflowStartedEvent:
     return cls(
         workflow_id=WorkflowId.from_string(payload.get('workflow_id', '')),
         started_by=UserId.from_string(payload.get('started_by', '')),
-        started_at=parse_datetime(payload.get('started_at', '1970-01-01')),
+        started_at=Timestamp.from_string(payload.get('started_at', '1970-01-01')),
     )
 ```
 

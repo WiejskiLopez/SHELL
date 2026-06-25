@@ -24,8 +24,8 @@ class ActiveWorkflowSpecification(Specification[Workflow]):
 - Komponowalna przez `&`, `|`, `~` (AND, OR, NOT).
 
 ```python
-spec = ActiveWorkflowSpecification() & OwnerSpecification(owner_id)
-active_workflows = await repository.list_by(spec)
+specification = ActiveWorkflowSpecification() & OwnerSpecification(owner_id)
+active_workflows = await repository.list_by(specification)
 ```
 
 ## Parametry

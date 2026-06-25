@@ -43,19 +43,19 @@ if TYPE_CHECKING:
 
 class InMemoryUnitOfWork(UnitOfWork):
     def __init__(self) -> None:
-        self._task_executions = InMemoryTaskExecutionRepository()
-        self._task_execution_state_inputs = InMemoryTaskExecutionStateInputRepository()
-        self._graph_node_executions = InMemoryGraphNodeExecutionRepository()
-        self._graph_executions = InMemoryGraphExecutionRepository()
-        self._graph_executions.link_task_executions(self._task_executions)
-        self._graph_executions.link_graph_node_executions(self._graph_node_executions)
-        self._workflows = InMemoryWorkflowRepository()
-        self._runner_configs = InMemoryRunnerConfigRepository()
-        self._rag_documents = InMemoryRagDocumentRepository()
-        self._sessions = InMemorySessionRepository()
-        self._graph_definitions = InMemoryGraphDefinitionRepository()
-        self._graph_execution_state_inputs = InMemoryGraphExecutionStateInputRepository()
-        self._graph_execution_state_outputs = InMemoryGraphExecutionStateOutputRepository()
+        self._task_execution_repository = InMemoryTaskExecutionRepository()
+        self._task_execution_state_input_repository = InMemoryTaskExecutionStateInputRepository()
+        self._graph_node_execution_repository = InMemoryGraphNodeExecutionRepository()
+        self._graph_execution_repository = InMemoryGraphExecutionRepository()
+        self._graph_execution_repository.link_task_executions(self._task_execution_repository)
+        self._graph_execution_repository.link_graph_node_executions(self._graph_node_execution_repository)
+        self._workflow_repository = InMemoryWorkflowRepository()
+        self._runner_config_repository = InMemoryRunnerConfigRepository()
+        self._rag_document_repository = InMemoryRagDocumentRepository()
+        self._session_repository = InMemorySessionRepository()
+        self._graph_definition_repository = InMemoryGraphDefinitionRepository()
+        self._graph_execution_state_input_repository = InMemoryGraphExecutionStateInputRepository()
+        self._graph_execution_state_output_repository = InMemoryGraphExecutionStateOutputRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -70,7 +70,7 @@ class InMemoryUnitOfWork(UnitOfWork):
         )
         from shell.domain.platform.value_objects.mode import Mode
 
-        await self._graph_definitions.save(
+        await self._graph_definition_repository.save(
             GraphDefinition(
                 id=GraphDefinitionId("base-planner-id"),
                 name="base_planner",
@@ -88,50 +88,48 @@ class InMemoryUnitOfWork(UnitOfWork):
         )
 
     @property
-    def task_executions(self) -> InMemoryTaskExecutionRepository:
-        return self._task_executions
+    def task_execution_repository(self) -> InMemoryTaskExecutionRepository:
+        return self._task_execution_repository
 
     @property
-    def task_execution_state_inputs(self) -> InMemoryTaskExecutionStateInputRepository:
-        return self._task_execution_state_inputs
+    def task_execution_state_input_repository(self) -> InMemoryTaskExecutionStateInputRepository:
+        return self._task_execution_state_input_repository
 
     @property
-    def graph_executions(self) -> InMemoryGraphExecutionRepository:
-        return self._graph_executions
+    def graph_execution_repository(self) -> InMemoryGraphExecutionRepository:
+        return self._graph_execution_repository
 
     @property
-    def workflows(self) -> InMemoryWorkflowRepository:
-        return self._workflows
+    def workflow_repository(self) -> InMemoryWorkflowRepository:
+        return self._workflow_repository
 
     @property
-    @property
-    def runner_configs(self) -> InMemoryRunnerConfigRepository:
-        return self._runner_configs
+    def runner_config_repository(self) -> InMemoryRunnerConfigRepository:
+        return self._runner_config_repository
 
     @property
-    @property
-    def rag_documents(self) -> InMemoryRagDocumentRepository:
-        return self._rag_documents
+    def rag_document_repository(self) -> InMemoryRagDocumentRepository:
+        return self._rag_document_repository
 
     @property
-    def sessions(self) -> InMemorySessionRepository:
-        return self._sessions
+    def session_repository(self) -> InMemorySessionRepository:
+        return self._session_repository
 
     @property
-    def graph_definitions(self) -> InMemoryGraphDefinitionRepository:
-        return self._graph_definitions
+    def graph_definition_repository(self) -> InMemoryGraphDefinitionRepository:
+        return self._graph_definition_repository
 
     @property
-    def graph_execution_state_inputs(self) -> InMemoryGraphExecutionStateInputRepository:
-        return self._graph_execution_state_inputs
+    def graph_execution_state_input_repository(self) -> InMemoryGraphExecutionStateInputRepository:
+        return self._graph_execution_state_input_repository
 
     @property
-    def graph_execution_state_outputs(self) -> InMemoryGraphExecutionStateOutputRepository:
-        return self._graph_execution_state_outputs
+    def graph_execution_state_output_repository(self) -> InMemoryGraphExecutionStateOutputRepository:
+        return self._graph_execution_state_output_repository
 
     @property
-    def graph_node_executions(self) -> InMemoryGraphNodeExecutionRepository:
-        return self._graph_node_executions
+    def graph_node_execution_repository(self) -> InMemoryGraphNodeExecutionRepository:
+        return self._graph_node_execution_repository
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

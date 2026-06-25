@@ -38,6 +38,6 @@ class TestRunTaskerWorkflowPartialFailure:
         assert any(isinstance(e, WorkflowFailedEvent) for e in events)
         assert not any(isinstance(e, WorkflowCompletedEvent) for e in events)
 
-        workflows = list(unit_of_work.workflows._store.values())
+        workflows = list(unit_of_work.workflow_repository._store.values())
         assert len(workflows) == 1
         assert workflows[0].status.value == "failed"

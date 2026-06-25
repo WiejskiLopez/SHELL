@@ -17,7 +17,7 @@ class StartWorkflowHandler:
     def __init__(self, ...) -> None:
         ...
 
-    async def handle(self, command: StartWorkflowCommand) -> None:
+    async def handle(self, start_workflow_command: StartWorkflowCommand) -> None:
         ...
 ```
 

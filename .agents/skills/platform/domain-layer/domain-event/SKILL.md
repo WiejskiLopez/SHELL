@@ -1,0 +1,39 @@
+---
+name: domain-event
+description: Zasady projektowania zdarzeń domenowych (Domain Events) — struktura, emisja, wersjonowanie, backward compatibility.
+Używaj gdy dodajesz nowy event, poprawiasz istniejący, zmieniasz schemat eventu, albo review'ujesz poprawność emisji w agregacie.
+---
+
+# Domain Event — zdarzenia domenowe
+
+## Definicja
+
+Domain Event to niemutowalny fakt biznesowy, który wydarzył się w przeszłości. Jest emitowany przez Aggregate Root i konsumowany wewnątrz tego samego Bounded Context.
+
+- Event rozszerza `DomainEvent` (base class z metadanymi: `event_id`, `aggregate_id`, `aggregate_type`, `occurred_at`, `correlation_id`, `causation_id`, `schema_version`)
+- Payload zawiera tylko fakty (co się stało), nigdy instrukcje (co ma się stać)
+
+## Obowiązkowe metadane (z base class `DomainEvent`)
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| `event_id` | UUID / str | Unikalny identyfikator tego wystąpienia eventu |
+| `aggregate_id` | str | ID agregatu który wyemitował event |
+| `aggregate_type` | str | Typ agregatu (np. `"Workflow"`) |
+| `occurred_at` | datetime | Kiedy zdarzenie zaszło (czas domenowy) |
+| `correlation_id` | str \| None | ID procesu biznesowego (łączy eventy w jeden łańcuch) |
+| `causation_id` | str \| None | ID eventu który bezpośrednio to spowodował |
+| `schema_version` | int | Wersja schematu eventu (dla ewolucji) |
+
+## Emisja zdarzeń — bezwarunkowa dla przejść stanu
+
+Jeśli metoda domenowa realizuje przejście stanu agregatu (np. `idle → running`, `running → done`), **emituj event przejścia bezwarunkowo**. Nie uzależniaj emisji od obecności optionala w parametrach. Warunkowanie emisji eventu stanu od parametru powoduje, że sagi/event-handlery subskrybujące ten event nigdy nie zostaną obudzone — obserwowany deadlock całego potoku.
+
+## Event schema — backward compatibility
+
+`from_payload()` obsługuje brakujące pola przez `.get()` z domyślną wartością. Nigdy `payload["field"]` — zawsze `payload.get("field", default)`. Każda zmiana schematu = inkrementacja `schema_version` + obsługa starego formatu.
+
+## Powiązane skille
+
+- `.agents/skills/application-layer/domain-event-handler/SKILL.md` — obsługa eventów przez handlery aplikacyjne
+- `.agents/skills/platform/domain-layer/aggregate-design/SKILL.md` — emisja eventów z agregatu przez `append_event()`

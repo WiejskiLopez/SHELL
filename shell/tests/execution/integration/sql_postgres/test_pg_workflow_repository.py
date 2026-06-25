@@ -36,7 +36,7 @@ class TestPgWorkflowRepository:
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
         async with sql_uow as u:
-            task_execution = await u.task_executions.get_current_by_name(
+            task_execution = await u.task_execution_repository.get_current_by_name(
                 TaskExecutionName("pg-wf-task")
             )
             assert task_execution is not None

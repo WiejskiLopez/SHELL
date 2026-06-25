@@ -26,19 +26,19 @@ class GraphExecutionSubGraphSettledHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, event: GraphExecutionSubGraphSettledEvent) -> None:
+    async def handle(self, graph_execution_sub_graph_settled_event: GraphExecutionSubGraphSettledEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            parent_graph = await unit_of_work.graph_executions.get_by_id(
-                event.parent_graph_execution_id,
+            parent_graph = await unit_of_work.graph_execution_repository.get_by_id(
+                graph_execution_sub_graph_settled_event.parent_graph_execution_id,
             )
             if parent_graph is None:
                 self._logger.warning(
                     "graph_execution_sub_graph_settled_handler.parent_not_found",
-                    parent_graph_execution_id=event.parent_graph_execution_id.value,
+                    parent_graph_execution_id=graph_execution_sub_graph_settled_event.parent_graph_execution_id.value,
                 )
                 return
 
             now = self._clock.now()
-            parent_graph.absorb_child_results(event.child_results, now)
-            await unit_of_work.graph_executions.save(parent_graph)
+            parent_graph.absorb_child_results(graph_execution_sub_graph_settled_event.child_results, now)
+            await unit_of_work.graph_execution_repository.save(parent_graph)
             unit_of_work.stage_events(parent_graph.pull_events())

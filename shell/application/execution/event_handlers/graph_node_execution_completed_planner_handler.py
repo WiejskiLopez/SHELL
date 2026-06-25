@@ -36,20 +36,20 @@ class GraphNodeExecutionCompletedPlannerHandler:
         self._clock = clock
         self._logger = logger
 
-    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
-        if event.role != NodeRole.PLANNER:
+    async def handle(self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent) -> None:
+        if graph_node_execution_completed_event.role != NodeRole.PLANNER:
             return
 
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.graph_node_executions.get_by_id(event.node_id)
+            node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_completed_event.node_id)
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "graph_node_execution_completed_planner_handler.node_not_found",
-                    node_id=event.node_id.value,
+                    node_id=graph_node_execution_completed_event.node_id.value,
                 )
                 return
 
-            graph_execution = await unit_of_work.graph_executions.get_by_id(
+            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(
                 node.graph_execution_id
             )
             if graph_execution is None:
@@ -59,7 +59,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
                 )
                 return
 
-            result = event.result or {}
+            result = graph_node_execution_completed_event.result or {}
             stage = result.get("stage", "")
             spawns: list[dict[str, Any]] = result.get("spawns", [])
             plan = result.get("plan", {})
@@ -79,7 +79,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
                         parent_graph_execution_id=graph_execution.id,
                         child_graph_execution_id=child_id,
                         goal=goal,
-                        now=event.occurred_at,
+                        now=graph_node_execution_completed_event.occurred_at,
                     )
                 )
 
@@ -88,7 +88,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
                     GraphExecutionPlannedEvent.now(
                         graph_execution_id=graph_execution.id,
                         plan=plan,
-                        now=event.occurred_at,
+                        now=graph_node_execution_completed_event.occurred_at,
                     )
                 )
 
@@ -97,7 +97,7 @@ class GraphNodeExecutionCompletedPlannerHandler:
 
             self._logger.info(
                 "graph_node_execution_completed_planner_handler.processed",
-                planner_node_id=event.node_id.value,
+                planner_node_id=graph_node_execution_completed_event.node_id.value,
                 spawn_count=len(spawns),
                 stage=stage,
             )

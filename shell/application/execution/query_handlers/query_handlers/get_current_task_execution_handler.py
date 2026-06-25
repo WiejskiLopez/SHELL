@@ -12,5 +12,5 @@ class GetCurrentTaskExecutionHandler:
     def __init__(self, queries: TaskExecutionQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetCurrentTaskExecutionQuery) -> TaskExecutionDto | None:
-        return await self._queries.get_current_task(query.name)
+    async def handle(self, get_current_task_execution_query: GetCurrentTaskExecutionQuery) -> TaskExecutionDto | None:
+        return await self._queries.get_current_task(get_current_task_execution_query.name)

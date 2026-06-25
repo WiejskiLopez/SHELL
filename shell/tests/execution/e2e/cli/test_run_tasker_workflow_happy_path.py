@@ -37,7 +37,7 @@ class TestRunTaskerWorkflowHappyPath:
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
         assert not any(isinstance(e, WorkflowFailedEvent) for e in events)
 
-        workflows = list(unit_of_work.workflows._store.values())
+        workflows = list(unit_of_work.workflow_repository._store.values())
         assert len(workflows) == 1
 
         get_wf = GetWorkflowHandler(queries)
@@ -60,5 +60,5 @@ class TestRunTaskerWorkflowHappyPath:
         events = await _run_tasker_full(unit_of_work, clock, id_generator, command)
 
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
-        workflows = list(unit_of_work.workflows._store.values())
+        workflows = list(unit_of_work.workflow_repository._store.values())
         assert workflows[0].status.value == "completed"

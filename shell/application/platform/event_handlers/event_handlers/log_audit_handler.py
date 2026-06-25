@@ -13,9 +13,9 @@ class LogAuditHandler:
     def __init__(self, logger: Logger) -> None:
         self._logger = logger
 
-    async def handle(self, event: DomainEvent) -> None:
+    async def handle(self, domain_event: DomainEvent) -> None:
         self._logger.info(
             "domain_event",
-            event_type=type(event).__name__,
-            occurred_at=str(event.occurred_at),
+            event_type=type(domain_event).__name__,
+            occurred_at=str(domain_event.occurred_at),
         )

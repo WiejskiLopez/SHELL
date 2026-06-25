@@ -19,17 +19,17 @@ class BootstrapRunnerConfigHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, command: BootstrapRunnerConfigCommand) -> str:
-        serialized = json.dumps(command.body, sort_keys=True)
+    async def handle(self, bootstrap_runner_config_command: BootstrapRunnerConfigCommand) -> str:
+        serialized = json.dumps(bootstrap_runner_config_command.body, sort_keys=True)
         config_hash = Hash.of(serialized)
         async with self._unit_of_work as unit_of_work:
             config = RunnerConfig.new(
                 id_=self._id_generator.new_runner_config_id(),
-                package_name=command.package_name,
-                kind=command.kind,
-                body=command.body,
+                package_name=bootstrap_runner_config_command.package_name,
+                kind=bootstrap_runner_config_command.kind,
+                body=bootstrap_runner_config_command.body,
                 config_hash=config_hash,
                 now=self._clock.now(),
             )
-            await unit_of_work.runner_configs.save(config)
+            await unit_of_work.runner_config_repository.save(config)
         return config.id.value

@@ -27,18 +27,18 @@ class SaveGraphNodeExecutionResultHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, command: SaveGraphNodeExecutionResultCommand) -> str:
-        graph_node_execution_id = GraphNodeExecutionId(command.graph_node_execution_id)
-        workflow_id = WorkflowId(command.workflow_id)
-        status = Status(command.status)
+    async def handle(self, save_graph_node_execution_result_command: SaveGraphNodeExecutionResultCommand) -> str:
+        graph_node_execution_id = GraphNodeExecutionId(save_graph_node_execution_result_command.graph_node_execution_id)
+        workflow_id = WorkflowId(save_graph_node_execution_result_command.workflow_id)
+        status = Status(save_graph_node_execution_result_command.status)
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflows.get_by_id(workflow_id)
+            workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(command.workflow_id)
+                raise WorkflowNotFound(save_graph_node_execution_result_command.workflow_id)
 
-            node = await unit_of_work.graph_node_executions.get_by_id(graph_node_execution_id)
+            node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_id)
             if node is not None:
                 result_id = self._id_generator.new_graph_node_execution_result_id()
                 output = GraphNodeExecutionStateOutput.create(
@@ -46,16 +46,16 @@ class SaveGraphNodeExecutionResultHandler:
                     graph_node_execution_id=graph_node_execution_id,
                     payload={
                         "status": status.value,
-                        "stdout": command.stdout or "",
-                        "stderr": command.stderr or "",
-                        "artifact_uri": command.artifact_uri or "",
+                        "stdout": save_graph_node_execution_result_command.stdout or "",
+                        "stderr": save_graph_node_execution_result_command.stderr or "",
+                        "artifact_uri": save_graph_node_execution_result_command.artifact_uri or "",
                     },
                     now=now,
                 )
                 if hasattr(node, "output_states") and hasattr(node, "add_output_state"):
                     node.add_output_state(output)
-                await unit_of_work.graph_node_executions.save(node)
-                await unit_of_work.workflows.save(workflow)
+                await unit_of_work.graph_node_execution_repository.save(node)
+                await unit_of_work.workflow_repository.save(workflow)
                 unit_of_work.stage_events(workflow.pull_events())
 
                 return result_id.value

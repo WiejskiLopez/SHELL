@@ -30,14 +30,14 @@ if TYPE_CHECKING:
 ## Struktura metody
 
 ```python
-async def handle(self, command: StartWorkflowCommand) -> None:
+async def handle(self, start_workflow_command: StartWorkflowCommand) -> None:
     async with self._unit_of_work as unit_of_work:
         workflow = Workflow.create(
             workflow_id=WorkflowId.generate(),
-            name=WorkflowName(command.name),
-            owner_id=UserId(command.owner_id),
+            name=WorkflowName(start_workflow_command.name),
+            owner_id=UserId(start_workflow_command.owner_id),
         )
-        unit_of_work.workflows.save(workflow)
+        unit_of_work.workflow_repository.save(workflow)
         unit_of_work.stage_events(workflow.pull_events())
 ```
 

@@ -17,10 +17,10 @@ class CloseSessionHandler:
         self._unit_of_work = unit_of_work
         self._clock = clock
 
-    async def handle(self, command: CloseSessionCommand) -> None:
+    async def handle(self, close_session_command: CloseSessionCommand) -> None:
         async with self._unit_of_work as unit_of_work:
-            session = await unit_of_work.sessions.get_by_id(SessionId(command.session_id))
+            session = await unit_of_work.session_repository.get_by_id(SessionId(close_session_command.session_id))
             if session is None:
-                raise SessionNotFound(f"Session not found: {command.session_id}")
+                raise SessionNotFound(f"Session not found: {close_session_command.session_id}")
             session.close(self._clock.now())
-            await unit_of_work.sessions.save(session)
+            await unit_of_work.session_repository.save(session)

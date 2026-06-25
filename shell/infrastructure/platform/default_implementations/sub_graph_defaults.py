@@ -168,7 +168,7 @@ class LatestVersionStrategy(SubGraphVersioning):
         from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
         async with self._unit_of_work_factory() as unit_of_work:
-            definition = await unit_of_work.graph_definitions.get_by_id(GraphDefinitionId(definition_id))
+            definition = await unit_of_work.graph_definition_repository.get_by_id(GraphDefinitionId(definition_id))
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
             node_defs = [
@@ -217,7 +217,7 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
 
         async with self._unit_of_work_factory() as unit_of_work:
             # Try exact name match first
-            all_defs = await unit_of_work.graph_definitions.list_all()
+            all_defs = await unit_of_work.graph_definition_repository.list_all()
             if all_defs is None:
                 raise GraphDefinitionNotFound(query)
 
