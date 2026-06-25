@@ -1,3 +1,8 @@
+---
+name: mapper-structure
+description: Reguły struktury Mapper — symetryczność round-trip, mapowanie grafów obiektów, brak logiki biznesowej.
+---
+
 # Mapper Structure
 
 > Reguły struktury klasy Mapper we wszystkich bounded contextach.

@@ -1,3 +1,8 @@
+---
+name: variable-and-parameter-naming-standards
+description: Reguły nazewnictwa zmiennych i parametrów — zakaz skrótów, pełne nazwy biznesowe, lista dozwolonych wyjątków, konwencje dla handlerów i pętli.
+---
+
 # Variable and Parameter Naming Standards
 
 > Reguły nazewnictwa zmiennych i parametrów we wszystkich warstwach projektu.

@@ -1,3 +1,8 @@
+---
+name: idempotent-handler-pattern
+description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie stanu przed mutacją, deduplikacja eventów.
+---
+
 # Idempotent Handler Pattern
 
 > Reguły idempotentności handlerów eventów i komend we wszystkich bounded contextach.

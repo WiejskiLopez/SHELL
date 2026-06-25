@@ -1,3 +1,8 @@
+---
+name: middleware-structure
+description: Reguły struktury Middleware i Pipeline — kolejność middleware, pipeline dla command/query, gotowe middlewares.
+---
+
 # Middleware / Pipeline Structure
 
 > Reguły struktury klas Middleware i Pipeline we wszystkich bounded contextach.

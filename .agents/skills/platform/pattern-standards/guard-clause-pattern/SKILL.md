@@ -1,3 +1,8 @@
+---
+name: guard-clause-pattern
+description: Reguły wzorca Guard Clause — fail-fast, warunki wstępne w metodach domenowych, dedykowane wyjątki, Rule Objects.
+---
+
 # Guard Clause Pattern
 
 > Reguły wzorca Guard Clause we wszystkich warstwach domenowych.

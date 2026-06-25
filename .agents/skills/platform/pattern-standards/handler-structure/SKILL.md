@@ -1,3 +1,8 @@
+---
+name: handler-structure
+description: Reguły struktury handlerów — bezstanowość, UoW jako context manager, stage_events, zakaz logiki biznesowej.
+---
+
 # Handler Structure
 
 > Wspólne reguły struktury wszystkich handlerów (command, query, event) we wszystkich bounded contextach.

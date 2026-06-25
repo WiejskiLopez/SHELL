@@ -1,3 +1,8 @@
+---
+name: specification-structure
+description: Reguły struktury klasy Specification — dziedziczenie po Specification[T], is_satisfied_by, kompozycja AND/OR/NOT, filtrowanie w repozytoriach.
+---
+
 # Specification Structure
 
 > Reguły struktury klasy Specification we wszystkich bounded contextach.

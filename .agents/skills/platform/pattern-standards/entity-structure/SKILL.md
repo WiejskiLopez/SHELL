@@ -1,3 +1,8 @@
+---
+name: entity-structure
+description: Reguły struktury Entity — dziedziczenie po Entity[TId], __slots__, brak @dataclass, identity-based equality.
+---
+
 # Entity Structure
 
 > Reguły struktury klasy Entity we wszystkich bounded contextach.

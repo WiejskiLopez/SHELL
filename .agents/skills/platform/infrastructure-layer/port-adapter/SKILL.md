@@ -126,7 +126,7 @@ class TestCreateExecutionHandler:
         )
 ```
 
-## 8. Ewolucja Portu
+## 7. Ewolucja Portu
 
 Port ewoluuje — dodawanie nowych metod jest bezpieczne. Usuwanie/zmiana wymaga koordynacji.
 
@@ -143,7 +143,7 @@ class FileStorage(Protocol):
     async def delete(self, path: str) -> None: ...  # Nowa metoda
 ```
 
-## 9. Lokalizacja
+## 8. Lokalizacja
 
 ```
 # Porty
@@ -159,7 +159,7 @@ shell/infrastructure/<bc>/adapters/            # Adaptery serwisów
 shell/infrastructure/<bc>/acl/                 # Anti-Corruption Layer
 ```
 
-## 7. Podsumowanie — Checklista
+## 9. Podsumowanie — Checklista
 
 Projektując Port & Adapter:
 - [ ] Port w domenie (lub aplikacji) — należy do potrzebującego

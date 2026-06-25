@@ -52,11 +52,11 @@ class DeleteExecutionHandler:
             self._unit_of_work.stage_events(execution.pull_events())
 ```
 
-## 7. Application Service a Testy
+## 6. Application Service a Testy
 
 Testy Application Services używają InMemory implementacji — testują koordynację, nie logikę biznesową.
 
-## 8. Podsumowanie — Checklista
+## 7. Podsumowanie — Checklista
 
 Projektując Application Service (Handler):
 - [ ] Jeden Use Case = jeden handler

@@ -1,3 +1,8 @@
+---
+name: query-handler-structure
+description: Reguły struktury Query Handler — read-only, QueryService, zwraca DTO, zakaz modyfikacji stanu.
+---
+
 # Query Handler Structure
 
 > Reguły struktury Query Handler we wszystkich bounded contextach.

@@ -1,3 +1,8 @@
+---
+name: method-and-function-naming-standards
+description: Reguły nazewnictwa metod i funkcji — snake_case, intencja biznesowa, konwencje dla agregatów, repozytoriów, factory, handlerów.
+---
+
 # Method and Function Naming Standards
 
 > Reguły nazewnictwa metod i funkcji we wszystkich warstwach projektu.

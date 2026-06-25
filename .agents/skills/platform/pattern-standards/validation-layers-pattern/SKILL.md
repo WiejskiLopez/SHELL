@@ -1,3 +1,8 @@
+---
+name: validation-layers-pattern
+description: Reguły trójwarstwowej walidacji — API (Pydantic, strukturalna), Application (koordynacyjna, autoryzacja), Domain (biznesowa, invarianty).
+---
+
 # Validation Layers Pattern
 
 > Reguły trójwarstwowej walidacji we wszystkich bounded contextach.

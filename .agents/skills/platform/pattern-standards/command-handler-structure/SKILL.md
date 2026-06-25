@@ -1,3 +1,8 @@
+---
+name: command-handler-structure
+description: Reguły struktury Command Handler — koordynacja bez logiki biznesowej, UoW, stage_events, TYPE_CHECKING dla portów.
+---
+
 # Command Handler Structure
 
 > Reguły struktury Command Handler (Application Service) we wszystkich bounded contextach.

@@ -1,3 +1,8 @@
+---
+name: domain-service-structure
+description: Reguły struktury Domain Service — stateless, operacje wieloagregatowe, porty dla zależności zewnętrznych.
+---
+
 # Domain Service Structure
 
 > Reguły struktury klasy Domain Service we wszystkich bounded contextach.

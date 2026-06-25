@@ -1,3 +1,8 @@
+---
+name: class-member-ordering-standards
+description: Reguły porządkowania składowych klasy — najpierw publiczne potem prywatne, __slots__ na początku, zasady widoczności.
+---
+
 # Class Member Ordering Standards
 
 > Reguły porządkowania składowych w klasie — kolejność i widoczność.

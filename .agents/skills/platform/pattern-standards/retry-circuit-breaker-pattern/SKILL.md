@@ -1,3 +1,8 @@
+---
+name: retry-circuit-breaker-pattern
+description: Reguły wzorców Retry i Circuit Breaker — exponential backoff, transient faults, circuit states, monitoring.
+---
+
 # Retry / Circuit Breaker Pattern
 
 > Reguły retry i circuit breaker dla operacji na zewnętrznych zasobach.

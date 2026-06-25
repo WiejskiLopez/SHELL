@@ -1,3 +1,8 @@
+---
+name: directory-naming-standards
+description: Reguły nazewnictwa katalogów — snake_case, liczba mnoga, struktura katalogów dla wszystkich warstw.
+---
+
 # Directory Naming Standards
 
 > Reguły nazewnictwa katalogów we wszystkich warstwach projektu.

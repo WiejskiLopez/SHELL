@@ -10,7 +10,6 @@ description: Zasady projektowania repozytoriów w DDD — porty w domenie, imple
 ```
 shell/domain/<bc>/repositories/          # Porty (ABC/Protocol)
 ├── execution_repository.py              # Port
-├── in_memory_execution_repository.py    # Implementacja testowa
 └── graph_repository.py                  # Port
 ```
 
@@ -18,6 +17,12 @@ shell/domain/<bc>/repositories/          # Porty (ABC/Protocol)
 shell/infrastructure/<bc>/repositories/  # Adaptery (SQL)
 ├── sql_execution_repository.py
 └── sql_graph_repository.py
+```
+
+```
+shell/infrastructure/persistence/memory/ # InMemory (testy)
+├── in_memory_execution_repository.py
+└── in_memory_graph_repository.py
 ```
 
 ## 2. Podsumowanie — Checklista

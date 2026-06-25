@@ -1,3 +1,8 @@
+---
+name: file-naming-standards
+description: Reguły nazewnictwa plików — snake_case, konwersja PascalCase na snake_case, wzorce nazw według typu pliku, pliki testowe.
+---
+
 # File Naming Standards
 
 > Reguły nazewnictwa plików `.py` we wszystkich warstwach projektu.

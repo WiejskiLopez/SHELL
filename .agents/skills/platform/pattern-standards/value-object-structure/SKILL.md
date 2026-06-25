@@ -1,3 +1,8 @@
+---
+name: value-object-structure
+description: Reguły struktury Value Object — dziedziczenie po ValueObject, frozen dataclass, walidacja w __post_init__, zachowania biznesowe, factory methods, ID jako osobne VO.
+---
+
 # Value Object Structure
 
 > Reguły struktury klasy Value Object we wszystkich bounded contextach.

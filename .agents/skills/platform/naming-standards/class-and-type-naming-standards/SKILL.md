@@ -1,3 +1,8 @@
+---
+name: class-and-type-naming-standards
+description: Reguły nazewnictwa klas i typów — PascalCase, pełne nazwy biznesowe, wzorce nazw dla wszystkich warstw, reguły dla ID i dziedziczenia.
+---
+
 # Class and Type Naming Standards
 
 > Reguły nazewnictwa klas, typów i interfejsów we wszystkich warstwach projektu.

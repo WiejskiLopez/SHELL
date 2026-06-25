@@ -1,3 +1,8 @@
+---
+name: data-transfer-object-structure
+description: Reguły struktury DTO — frozen dataclass, typy proste, zero logiki biznesowej, własność źródłowego BC.
+---
+
 # DTO Structure
 
 > Reguły struktury klasy DTO (Data Transfer Object) we wszystkich bounded contextach i warstwach.

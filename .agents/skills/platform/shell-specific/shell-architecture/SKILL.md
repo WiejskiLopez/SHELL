@@ -56,6 +56,7 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Zaczynasz nową funkcjonalność i nie wiesz gdzie co trafia → `references/checklists.md` (sekcja "Dodawanie nowej funkcjonalności")
 - Piszesz nowy aggregate/entity/VO/event/domain service → `references/domain.md`
 - Piszesz handler, mapper, strategię, port aplikacyjny → `references/application.md`
+- Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")

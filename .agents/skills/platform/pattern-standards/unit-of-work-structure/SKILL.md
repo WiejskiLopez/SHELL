@@ -1,3 +1,8 @@
+---
+name: unit-of-work-structure
+description: Reguły struktury Unit of Work — async context manager, transakcje, outbox, two-phase UoW dla długotrwałych operacji.
+---
+
 # Unit of Work Structure
 
 > Reguły struktury Unit of Work we wszystkich bounded contextach.

@@ -1,3 +1,8 @@
+---
+name: saga-structure
+description: Reguły struktury Saga i Process Manager — choreografia vs orkiestracja, kompensacje, timeouty, trwałość.
+---
+
 # Saga / Process Manager Structure
 
 > Reguły struktury klas Saga i Process Manager we wszystkich bounded contextach.

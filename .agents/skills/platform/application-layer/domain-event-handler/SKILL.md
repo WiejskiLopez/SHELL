@@ -44,6 +44,6 @@ Handler aplikacyjny **nie może bezpośrednio wołać agregatów, serwisów dome
 
 ## Powiązane skille
 
-- `.agents/skills/domain-layer/domain-event/SKILL.md` — definiowanie eventów domenowych
-- `.agents/skills/platform/shell-specific/shell-architecture/references/application.md` — UoW, CQRS
-- `.agents/skills/platform/integration-patterns/event-driven-integration/SKILL.md` — idempotencja, inbox, outbox, DLQ
+- `platform/domain-layer/domain-event/SKILL.md` — definiowanie eventów domenowych
+- `platform/shell-specific/shell-architecture/references/application.md` — UoW, CQRS
+- `platform/integration-patterns/event-driven-integration/SKILL.md` — idempotencja, inbox, outbox, DLQ

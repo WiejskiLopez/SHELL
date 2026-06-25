@@ -1,3 +1,8 @@
+---
+name: aggregate-structure
+description: Reguły struktury Aggregate Root — dziedziczenie po AggregateRoot[TId], __slots__, metody domenowe z sekwencją guard-mutacja-event, brak publicznych setterów.
+---
+
 # Aggregate Structure
 
 > Reguły struktury klasy Aggregate Root we wszystkich bounded contextach.

@@ -1,3 +1,8 @@
+---
+name: port-adapter-structure
+description: Reguły struktury Port i Adapter — port w domenie należy do potrzebującego, adapter w infrastrukturze, ACL dla systemów legacy, mapowanie typów.
+---
+
 # Port & Adapter Structure
 
 > Reguły struktury Port i Adapter (Hexagonal Architecture) we wszystkich bounded contextach.

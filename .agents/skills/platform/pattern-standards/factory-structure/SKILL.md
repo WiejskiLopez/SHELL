@@ -1,3 +1,8 @@
+---
+name: factory-structure
+description: Reguły struktury klas Factory — factory method vs factory class, restore() dla rekonstrukcji z persistance, zależności.
+---
+
 # Factory Structure
 
 > Reguły struktury klas Factory (Factory Method i Factory Class) we wszystkich bounded contextach.

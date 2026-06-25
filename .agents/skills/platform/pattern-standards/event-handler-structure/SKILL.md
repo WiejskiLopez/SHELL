@@ -1,3 +1,8 @@
+---
+name: event-handler-structure
+description: Reguły struktury Event Handler — subskrypcja eventów, idempotencja przez inbox, rejestracja w EventBus.
+---
+
 # Domain Event Handler Structure
 
 > Reguły struktury Domain Event Handler we wszystkich bounded contextach.

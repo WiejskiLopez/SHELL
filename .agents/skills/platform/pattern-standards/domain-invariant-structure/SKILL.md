@@ -1,3 +1,8 @@
+---
+name: domain-invariant-structure
+description: Reguły struktury invariantów domenowych i Rule Object — guard clauses na początku metod, dedykowane wyjątki, _assert_invariants().
+---
+
 # Domain Invariant / Rule Object Structure
 
 > Reguły struktury dla invariantów domenowych i Rule Object we wszystkich bounded contextach.

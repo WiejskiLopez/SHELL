@@ -1,3 +1,8 @@
+---
+name: domain-event-structure
+description: Reguły struktury Domain Event — frozen dataclass, rozszerza DomainEvent, nazwa w czasie przeszłym, backward compatibility.
+---
+
 # Domain Event Structure
 
 > Reguły struktury klasy Domain Event we wszystkich bounded contextach.

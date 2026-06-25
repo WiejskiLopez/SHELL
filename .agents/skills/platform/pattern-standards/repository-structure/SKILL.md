@@ -1,3 +1,8 @@
+---
+name: repository-structure
+description: Reguły struktury Repository — port w domenie, adapter SQL/InMemory w infrastrukturze, metody save/get_by_id/list_by_*, dziedziczenie po porcie.
+---
+
 # Repository Structure
 
 > Reguły struktury klasy Repository we wszystkich bounded contextach.

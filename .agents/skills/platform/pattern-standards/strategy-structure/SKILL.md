@@ -1,3 +1,8 @@
+---
+name: strategy-structure
+description: Reguły struktury wzorca Strategy — Protocol z runtime_checkable, base strategy, concrete strategies, registry.
+---
+
 # Strategy Structure
 
 > Reguły struktury wzorca Strategy we wszystkich bounded contextach.

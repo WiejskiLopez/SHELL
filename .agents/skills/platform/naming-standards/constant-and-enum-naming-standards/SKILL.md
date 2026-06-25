@@ -1,3 +1,8 @@
+---
+name: constant-and-enum-naming-standards
+description: Reguły nazewnictwa stałych i enumów — UPPER_CASE dla stałych, StrEnum + ValueObject dla enumów stanów.
+---
+
 # Constant and Enum Naming Standards
 
 > Reguły nazewnictwa stałych i enumów we wszystkich warstwach projektu.

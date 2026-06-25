@@ -35,5 +35,5 @@ Jeśli metoda domenowa realizuje przejście stanu agregatu (np. `idle → runnin
 
 ## Powiązane skille
 
-- `.agents/skills/application-layer/domain-event-handler/SKILL.md` — obsługa eventów przez handlery aplikacyjne
-- `.agents/skills/platform/domain-layer/aggregate-design/SKILL.md` — emisja eventów z agregatu przez `append_event()`
+- `platform/application-layer/domain-event-handler/SKILL.md` — obsługa eventów przez handlery aplikacyjne
+- `platform/domain-layer/aggregate-design/SKILL.md` — emisja eventów z agregatu przez `append_event()`
