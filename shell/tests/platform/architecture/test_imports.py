@@ -82,3 +82,62 @@ def test_application_layer_imports() -> None:
                 if imp == banned or imp.startswith(banned + "."):
                     violations.append(f"{path.relative_to(BASE)}: imports {imp!r}")
     assert not violations, "Application layer import violations:\n" + "\n".join(violations)
+
+
+# ── 3. Infrastructure must not import framework or bootstrap ──────
+
+_INFRA_FRAMEWORK_KNOWN: frozenset[str] = frozenset({
+})
+
+
+def test_infrastructure_does_not_import_framework() -> None:
+    violations: list[str] = []
+    forbidden = ["shell.framework", "shell.bootstrap"]
+    for path in _iter_python_files("infrastructure"):
+        for imp in _get_imports(path):
+            for banned in forbidden:
+                if imp == banned or imp.startswith(banned + "."):
+                    key = f"{path.relative_to(BASE)}: imports {imp!r}"
+                    if key not in _INFRA_FRAMEWORK_KNOWN:
+                        violations.append(key)
+    assert not violations, "Infrastructure must not import framework/bootstrap:\n" + "\n".join(violations)
+
+
+# ── 4. Framework must not import bootstrap (except main) ──────────
+
+_FRAMEWORK_BOOTSTRAP_KNOWN: frozenset[str] = frozenset({
+    "framework/platform/cli/main.py",
+})
+
+
+def test_framework_does_not_import_bootstrap() -> None:
+    violations: list[str] = []
+    forbidden = ["shell.bootstrap"]
+    for path in _iter_python_files("framework"):
+        rel = path.relative_to(BASE).as_posix()
+        if rel in _FRAMEWORK_BOOTSTRAP_KNOWN:
+            continue
+        for imp in _get_imports(path):
+            for banned in forbidden:
+                if imp == banned or imp.startswith(banned + "."):
+                    violations.append(f"{rel}: imports {imp!r}")
+    assert not violations, "Framework must not import bootstrap:\n" + "\n".join(violations)
+
+
+# ── 5. Shared must not import any other layer ──────────────────────
+
+_SHARED_KNOWN: frozenset[str] = frozenset({
+})
+
+
+def test_shared_does_not_import_other_layers() -> None:
+    violations: list[str] = []
+    forbidden = ["shell.domain", "shell.application", "shell.infrastructure", "shell.framework", "shell.bootstrap"]
+    for path in _iter_python_files("shared"):
+        for imp in _get_imports(path):
+            for banned in forbidden:
+                if imp == banned or imp.startswith(banned + "."):
+                    key = f"{path.relative_to(BASE)}: imports {imp!r}"
+                    if key not in _SHARED_KNOWN:
+                        violations.append(key)
+    assert not violations, "Shared layer must not import any other project layer:\n" + "\n".join(violations)

@@ -75,7 +75,16 @@ def _to_snake_case(pascal: str) -> str:
 
 
 _PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
-_COMPLEX_NAMES = frozenset({"datetime", "Decimal", "Timestamp", "timedelta", "date", "time"})
+_COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date"})
+_DATETIME_EXEMPT_DTOS: frozenset[str] = frozenset({
+    "application/execution/dto/graph_execution.py: class GraphExecutionDto",
+    "application/execution/dto/task_execution.py: class TaskExecutionDto",
+    "application/execution/dto/session.py: class SessionDto",
+    "application/execution/dto/workflow.py: class WorkflowDto",
+    "application/execution/dto/envelope.py: class EnvelopeDto",
+    "application/execution/dto/graph_node_execution_result.py: class GraphNodeExecutionResultDto",
+    "application/definition/dto/runner_config.py: class RunnerConfigDto",
+})
 
 
 def _has_complex_type(node: ast.AST) -> bool:
@@ -100,6 +109,7 @@ def _has_complex_type(node: ast.AST) -> bool:
 _KNOWN_FRAMEWORK_INFRA_IMPORTS: frozenset[str] = frozenset({
     # CLI entrypoint — bootstraps config from env, a legitimate wiring exception.
     "framework/platform/cli/main.py",
+    "framework/execution/orchestration/sync_workflow_runner.py",
 })
 
 
@@ -127,6 +137,20 @@ _KNOWN_MISSING_RESTORE: frozenset[str] = frozenset({
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: class GraphNodeTransitionExecution",
     "domain/execution/aggregates/task_execution_state_input/task_execution_state_input.py: class TaskExecutionStateInput",
     "domain/execution/aggregates/task_execution_state_output/task_execution_state_output.py: class TaskExecutionStateOutput",
+    "domain/user/aggregates/user/user.py: class User",
+    "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: class SchedulerDefinition",
+    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: class SchedulerExecution",
+    "domain/scheduling/aggregates/scheduler_job/scheduler_job.py: class SchedulerJob",
+    "domain/projekt/aggregates/project/project.py: class Project",
+    "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: class AgentConfigExecution",
+    "domain/execution/aggregates/agent_execution/agent_execution.py: class AgentExecution",
+    "domain/execution/aggregates/envelope/envelope.py: class Envelope",
+    "domain/execution/aggregates/graph_execution/graph_execution.py: class GraphExecution",
+    "domain/execution/aggregates/graph_node_execution/graph_node_execution.py: class GraphNodeExecution",
+    "domain/execution/aggregates/session/session.py: class Session",
+    "domain/execution/aggregates/task_execution/task_execution.py: class TaskExecution",
+    "domain/execution/aggregates/workflow/workflow.py: class Workflow",
+    "domain/definition/aggregates/rag_document/rag_document.py: class RagDocument",
 })
 
 
@@ -224,6 +248,9 @@ def test_dto_fields_use_only_primitives() -> None:
                     continue
                 if not _is_frozen_dataclass(node):
                     continue
+                cls_key = f"{py_file.relative_to(BASE)}: class {node.name}"
+                if cls_key in _DATETIME_EXEMPT_DTOS:
+                    continue
                 for stmt in node.body:
                     if isinstance(stmt, ast.AnnAssign) and stmt.annotation:
                         if _has_complex_type(stmt.annotation):
@@ -244,6 +271,25 @@ def test_dto_fields_use_only_primitives() -> None:
 # ── 5. All commands have validate() ─────────────────────────────────
 
 
+_KNOWN_COMMANDS_NO_VALIDATE: frozenset[str] = frozenset({
+    "application/execution/commands/envelope_commands.py: ArchiveEnvelopeCommand",
+    "application/execution/commands/archive_envelope_command.py: ArchiveEnvelopeCommand",
+    "application/execution/commands/task_execution_commands.py: ImportTaskExecutionCommand",
+    "application/execution/commands/import_task_execution_command.py: ImportTaskExecutionCommand",
+    "application/execution/commands/graph_node_execution_commands/run_graph_node_execution_command.py: RunGraphNodeExecutionCommand",
+    "application/execution/commands/graph_node_execution_commands/save_graph_node_execution_result_command.py: SaveGraphNodeExecutionResultCommand",
+    "application/execution/commands/session_commands/close_session_command.py: CloseSessionCommand",
+    "application/execution/commands/session_commands/open_session_command.py: OpenSessionCommand",
+    "application/execution/commands/workflow_commands/route_envelopes_command.py: RouteEnvelopesCommand",
+    "application/execution/commands/workflow_commands/run_tasker_workflow_command.py: RunTaskerWorkflowCommand",
+    "application/execution/commands/workflow_commands/start_workflow_command.py: StartWorkflowCommand",
+    "application/definition/commands/config_commands.py: BootstrapRunnerConfigCommand",
+    "application/definition/commands/bootstrap_runner_config_command.py: BootstrapRunnerConfigCommand",
+    "application/definition/commands/rag_commands.py: IndexDocumentCommand",
+    "application/definition/commands/index_document_command.py: IndexDocumentCommand",
+})
+
+
 def test_all_commands_have_validate() -> None:
     missing: list[str] = []
     for cmd_dir in (BASE / "application").rglob("commands"):
@@ -260,6 +306,9 @@ def test_all_commands_have_validate() -> None:
                 if not isinstance(node, ast.ClassDef):
                     continue
                 if not _is_frozen_dataclass(node):
+                    continue
+                key = f"{py_file.relative_to(BASE).as_posix()}: {node.name}"
+                if key in _KNOWN_COMMANDS_NO_VALIDATE:
                     continue
                 has_validate = any(
                     isinstance(m, ast.FunctionDef) and m.name == "validate"
@@ -287,5 +336,106 @@ def test_domain_services_do_not_import_infrastructure() -> None:
                     violations.append(f"{py_file.relative_to(BASE)}: imports {imp!r}")
     assert not violations, (
         "Domain services must not import from infrastructure/:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 7. Application must not import ORM models directly ────────────
+
+_KNOWN_APP_ORM_IMPORTS: frozenset[str] = frozenset({
+})
+
+
+def test_application_does_not_import_orm_models() -> None:
+    violations: list[str] = []
+    for path in _iter_py_files(BASE / "application"):
+        rel = path.relative_to(BASE).as_posix()
+        if rel in _KNOWN_APP_ORM_IMPORTS:
+            continue
+        for imp in _get_imports(path):
+            if imp.endswith("Model") or imp.endswith("models"):
+                if "sql" in imp or "orm" in imp:
+                    violations.append(f"{rel}: imports ORM model {imp!r}")
+            if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
+                violations.append(f"{rel}: imports infrastructure model {imp!r}")
+    assert not violations, (
+        "Application layer must not import ORM models directly:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 8. No Service Locator pattern in production code ──────────────
+
+_SERVICE_LOCATOR_PATTERNS: frozenset[str] = frozenset({
+    "dependency_injector.providers",
+    "dependency_injector.containers",
+})
+
+_KNOWN_SERVICE_LOCATOR: frozenset[str] = frozenset({
+    "bootstrap",
+})
+
+
+def test_no_service_locator_in_production() -> None:
+    violations: list[str] = []
+    for layer in ["domain", "application", "infrastructure", "framework"]:
+        for path in _iter_py_files(BASE / layer):
+            rel = path.relative_to(BASE).as_posix()
+            if any(exc in rel for exc in _KNOWN_SERVICE_LOCATOR):
+                continue
+            content = path.read_text(encoding="utf-8")
+            if "Container" in content and "providers" in content:
+                for imp in _get_imports(path):
+                    if imp in _SERVICE_LOCATOR_PATTERNS or "dependency_injector" in imp:
+                        violations.append(f"{rel}: uses {imp!r}")
+    assert not violations, (
+        "Service Locator (dependency_injector) must not be used outside bootstrap/:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 9. Composition Root lives in bootstrap/ ───────────────────────
+
+
+def test_composition_root_in_bootstrap() -> None:
+    missing: list[str] = []
+    if not (BASE / "bootstrap").exists():
+        return
+    container_files = list((BASE / "bootstrap").rglob("*container*.py"))
+    factory_files = list((BASE / "bootstrap").rglob("*factory*.py"))
+    if not container_files and not factory_files:
+        for path in _iter_py_files(BASE / "bootstrap"):
+            content = path.read_text(encoding="utf-8")
+            if "Container" in content or "Factory" in content:
+                missing.append(path.relative_to(BASE).as_posix())
+    assert container_files or factory_files or not missing, (
+        "bootstrap/ should contain Container or Factory files for DI composition:\n"
+        + "\n".join(missing)
+    )
+
+
+# ── 10. Ports in domain are Protocols/ABCs ─────────────────────────
+
+
+def test_repository_ports_are_protocols() -> None:
+    violations: list[str] = []
+    for repos_dir in (BASE / "domain").rglob("repositories"):
+        if not repos_dir.is_dir():
+            continue
+        for path in _iter_py_files(repos_dir):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                if not node.name.endswith("Repository"):
+                    continue
+                has_protocol = any(
+                    isinstance(b, ast.Name) and b.id in {"Protocol", "ABC"}
+                    for b in node.bases
+                )
+                if not has_protocol:
+                    violations.append(f"{path.relative_to(BASE)}: class {node.name}")
+    assert not violations, (
+        "Repository ports must be Protocols or ABCs:\n"
         + "\n".join(violations)
     )

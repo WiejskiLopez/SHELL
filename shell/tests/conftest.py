@@ -339,9 +339,9 @@ async def _persist_running_workflow(
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     wf.start_at(now=_NOW, task_execution_id=task_execution_id)
-        for task_execution in list(unit_of_work.task_execution_repository._store.values()):
-            if task_execution.id == task_execution_id:
-                task_execution.execute_in_workflow(wf.id)
+    for task_execution in list(unit_of_work.task_execution_repository._store.values()):
+        if task_execution.id == task_execution_id:
+            task_execution.execute_in_workflow(wf.id)
     async with unit_of_work:
         await unit_of_work.workflow_repository.save(wf)
         await unit_of_work.commit()
