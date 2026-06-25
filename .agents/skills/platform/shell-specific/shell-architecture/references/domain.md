@@ -11,15 +11,18 @@ shell/domain/
 │   │   ├── <agregat>.py
 │   │   ├── entities/             # Child entities
 │   │   ├── events/               # Domain Events
+│   |   ├── repositories/         # Porty repozytoriów
+│   |   ├── ports/                # Porty serwisow innych aggregatow, a ich adaptery beda w infrastrukturze
+|   │   ├── services/             # Domain Services
+|   │   ├── specifications/       # Specification classes
+|   │   ├── exceptions/           # Domain Exceptions
+|   │   ├── rules/                # Rule Objects
+|   │   ├── politics/             # polityki agregatu
+│   │   ├── factories/                # Factory classes współdzielone miedzy <agregat>
 │   │   └── value_objects/        # Value Objects (w tym ID)
-│   ├── entities/                 # Encje współdzielone
-│   ├── value_objects/            # VO BC
-│   ├── repositories/             # Porty repozytoriów
-│   ├── services/                 # Domain Services
-│   ├── factories/                # Factory classes
-│   ├── specifications/           # Specification classes
-│   ├── rules/                    # Rule Objects
-│   └── exceptions.py             # Domain Exceptions
+│   ├── entities/                 # Encje współdzielone miedzy <agregat> tego <bc>
+│   ├── value_objects/            # VO BC współdzielone miedzy <agregat> tego <bc>
+│   └── services/                 # Domain Services współdzielone miedzy <agregat> tego <bc>
 ├── platform/                     # Uniwersalne elementy platformy
 │   ├── value_objects/            # VO uniwersalne (Version, Timestamp itp.)
 │   ├── entities/base/            # Entity, AggregateRoot base classes
@@ -27,7 +30,6 @@ shell/domain/
 │   ├── base/                     # ValueObject, Specification base
 │   ├── events/                   # DomainEvent base class
 │   └── exceptions.py             # DomainError base
-└── shared/                       # Współdzielone między BC (shared kernel)
 ```
 
 ## Kluczowe reguły
