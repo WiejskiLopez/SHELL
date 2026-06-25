@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
 
 
 class TokenBudget:
@@ -18,22 +23,22 @@ class SubGraphGovernance(Protocol):
 
     async def can_spawn(
         self,
-        parent_graph_execution_id: str,
+        parent_graph_execution_id: GraphExecutionId,
         definition_id: str,
         depth: int,
     ) -> bool: ...
 
     async def max_parallel_sub_graphs(
         self,
-        graph_execution_id: str,
+        graph_execution_id: GraphExecutionId,
     ) -> int: ...
 
     async def max_depth(
         self,
-        root_graph_execution_id: str,
+        root_graph_execution_id: GraphExecutionId,
     ) -> int: ...
 
     async def token_budget(
         self,
-        graph_execution_id: str,
+        graph_execution_id: GraphExecutionId,
     ) -> TokenBudget | None: ...

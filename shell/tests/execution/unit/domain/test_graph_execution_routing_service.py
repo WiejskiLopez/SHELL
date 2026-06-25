@@ -7,7 +7,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 )
 from shell.domain.execution.exceptions import RoleNotResolvable
 from shell.domain.execution.services.graph_execution_routing_service import (
-    GraphExcetutionRoutingService,
+    GraphExecutionRoutingService,
 )
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
@@ -43,7 +43,7 @@ class TestResolveTargetGraphNodeExecution:
             _make_node("b", 2, "tool", "calculator"),
             _make_node("c", 3, "router", "router"),
         )
-        result = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+        result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             ge, GraphNodeExecutionId("a"), "calculator"
         )
         assert result == GraphNodeExecutionId("b")
@@ -53,7 +53,7 @@ class TestResolveTargetGraphNodeExecution:
             _make_node("a", 1, "router", "router"),
             _make_node("b", 2, "agent", "worker"),
         )
-        result = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+        result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             ge, GraphNodeExecutionId("a"), None
         )
         assert result == GraphNodeExecutionId("b")
@@ -63,7 +63,7 @@ class TestResolveTargetGraphNodeExecution:
             _make_node("a", 1, "agent", "x"),
             _make_node("b", 2, "agent", "y"),
         )
-        result = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+        result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             ge, GraphNodeExecutionId("a"), None
         )
         assert result == GraphNodeExecutionId("b")
@@ -73,7 +73,7 @@ class TestResolveTargetGraphNodeExecution:
             _make_node("a", 1, "agent", "foo"),
         )
         with pytest.raises(RoleNotResolvable, match="role='bar'"):
-            GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+            GraphExecutionRoutingService.resolve_target_graph_node_execution(
                 ge, GraphNodeExecutionId("a"), "bar"
             )
 
@@ -83,7 +83,7 @@ class TestResolveTargetGraphNodeExecution:
             _make_node("b", 2, "router", "r2"),
         )
         with pytest.raises(RoleNotResolvable, match="no routable nodes"):
-            GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+            GraphExecutionRoutingService.resolve_target_graph_node_execution(
                 ge, GraphNodeExecutionId("a"), None
             )
 
@@ -91,7 +91,7 @@ class TestResolveTargetGraphNodeExecution:
         ge = _make_graph_execution(
             _make_node("a", 1, "agent", "x"),
         )
-        result = GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+        result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             ge, GraphNodeExecutionId("a"), None
         )
         assert result == GraphNodeExecutionId("a")

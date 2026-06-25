@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.platform.events import DomainEvent
 
 
@@ -16,7 +17,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphExecutionSpawnedEvent(DomainEvent):
     parent_graph_execution_id: GraphExecutionId
     child_graph_execution_id: GraphExecutionId
-    goal: str = ""
+    goal: Goal = Goal("")
 
     @classmethod
     def now(
@@ -24,7 +25,7 @@ class GraphExecutionSpawnedEvent(DomainEvent):
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
         now: datetime,
-        goal: str = "",
+        goal: Goal = Goal(""),
     ) -> GraphExecutionSpawnedEvent:
         return cls(
             occurred_at=now,
@@ -42,5 +43,5 @@ class GraphExecutionSpawnedEvent(DomainEvent):
             schema_version=schema_version,
             parent_graph_execution_id=GraphExecutionId(payload.get("parent_graph_execution_id")),
             child_graph_execution_id=GraphExecutionId(payload.get("child_graph_execution_id")),
-            goal=payload.get("goal", ""),
+            goal=Goal(payload.get("goal", "")),
         )

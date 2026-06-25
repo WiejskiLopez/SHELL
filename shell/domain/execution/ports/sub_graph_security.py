@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
 
 
 class Scope(StrEnum):
@@ -17,7 +22,7 @@ class SubGraphSecurity(Protocol):
 
     async def resolve_scope(
         self,
-        parent_graph_execution_id: str,
+        parent_graph_execution_id: GraphExecutionId,
         sub_graph_definition_id: str,
     ) -> Scope: ...
 

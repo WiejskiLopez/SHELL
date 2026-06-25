@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
 
@@ -41,7 +42,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     _graph_execution_id: GraphExecutionId
     _kind: StateKind
-    _state_data: dict[str, object]
+    _state_data: StateData
     _is_current: bool
     _created_at: datetime
 
@@ -50,14 +51,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         kind: StateKind = StateKind.INPUT,
-        state_data: dict[str, object] | None = None,
+        state_data: StateData | None = None,
         is_current: bool = True,
         created_at: datetime | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
         self._kind = kind
-        self._state_data = dict(state_data) if state_data else {}
+        self._state_data = state_data or StateData({})
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
@@ -68,7 +69,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         kind: StateKind = StateKind.INPUT,
-        state_data: dict[str, object] | None = None,
+        state_data: StateData | None = None,
         is_current: bool = True,
         created_at: datetime | None = None,
     ) -> Self:
@@ -92,7 +93,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._kind
 
     @property
-    def state_data(self) -> dict[str, object]:
+    def state_data(self) -> StateData:
         return self._state_data
 
     @property
@@ -118,7 +119,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             id=id_,
             graph_execution_id=graph_execution_id,
             kind=kind,
-            state_data={},
+            state_data=StateData({}),
             is_current=True,
             created_at=now,
         )
@@ -129,7 +130,9 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     def update(self, key: str, value: object) -> None:
         old_value = self._state_data.get(key)
-        self._state_data[key] = value
+        new_data = dict(self._state_data.to_dict())
+        new_data[key] = value
+        self._state_data = StateData(new_data)
         self.append_event(
             GraphExecutionStateChangedEvent.now(
                 graph_execution_id=self._graph_execution_id,
@@ -146,8 +149,11 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._state_data.get(key)
 
     def delete(self, key: str) -> None:
-        if key in self._state_data:
-            old_value = self._state_data.pop(key)
+        if self._state_data.get(key) is not None:
+            old_value = self._state_data.get(key)
+            new_data = dict(self._state_data.to_dict())
+            new_data.pop(key, None)
+            self._state_data = StateData(new_data)
             self.append_event(
                 GraphExecutionStateChangedEvent.now(
                     graph_execution_id=self._graph_execution_id,
@@ -165,8 +171,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             self.update(key, value)
 
     def clear(self) -> None:
-        keys = list(self._state_data.keys())
-        for key in keys:
+        current = self._state_data.to_dict()
+        for key in list(current.keys()):
             self.delete(key)
 
     def merge(self, other: GraphExecutionState) -> None:
@@ -175,12 +181,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         Keys present in *other* but absent in *self* are copied.
         Keys already present in *self* are left unchanged (parent wins).
         """
-        for key, value in other._state_data.items():
-            if key not in self._state_data:
+        other_data = other._state_data.to_dict()
+        current = self._state_data.to_dict()
+        for key, value in other_data.items():
+            if key not in current:
                 self.update(key, value)
 
-    def snapshot(self) -> dict[str, object]:
-        return dict(self._state_data)
+    def snapshot(self) -> StateData:
+        return self._state_data
 
     def supersede(self) -> None:
         self._is_current = False

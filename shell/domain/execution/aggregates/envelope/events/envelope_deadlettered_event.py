@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from shell.domain.execution.aggregates.envelope.value_objects.envelope_id import EnvelopeId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.events import DomainEvent
 
 
@@ -15,7 +16,7 @@ from shell.domain.platform.events import DomainEvent
 class EnvelopeDeadletteredEvent(DomainEvent):
     envelope_id: EnvelopeId
     workflow_id: WorkflowId
-    reason: str
+    reason: Reason
 
     @classmethod
     def from_payload(
@@ -26,12 +27,12 @@ class EnvelopeDeadletteredEvent(DomainEvent):
             schema_version=schema_version,
             envelope_id=EnvelopeId(payload.get("envelope_id")),
             workflow_id=WorkflowId(payload.get("workflow_id")),
-            reason=payload.get("reason"),
+            reason=Reason(payload.get("reason")),
         )
 
     @classmethod
     def now(
-        cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, reason: str, now: datetime
+        cls, envelope_id: EnvelopeId, workflow_id: WorkflowId, reason: Reason, now: datetime
     ) -> EnvelopeDeadletteredEvent:
         return cls(
             occurred_at=now,

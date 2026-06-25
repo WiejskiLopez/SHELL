@@ -15,7 +15,7 @@ from shell.domain.execution.events import (
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.services.graph_execution_routing_service import (
-    GraphExcetutionRoutingService,
+    GraphExecutionRoutingService,
 )
 from shell.domain.execution.value_objects.ids import WorkflowId
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
@@ -76,7 +76,7 @@ class RouteEnvelopesHandler:
                 if graph_execution is not None:
                     try:
                         target_graph_node_execution_id = (
-                            GraphExcetutionRoutingService.resolve_target_graph_node_execution(
+                            GraphExecutionRoutingService.resolve_target_graph_node_execution(
                                 graph_execution,
                                 envelope.sender_graph_node_execution_id,
                                 envelope.target_role or None,

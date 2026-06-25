@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import GraphExecutionId
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.platform.events import DomainEvent
 
 
@@ -16,7 +17,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
     parent_graph_execution_id: GraphExecutionId | None = None
-    goal: str = ""
+    goal: Goal = Goal("")
     depth: int = 0
 
     @classmethod
@@ -26,7 +27,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         now: datetime,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        goal: str = "",
+        goal: Goal = Goal(""),
         depth: int = 0,
     ) -> GraphExecutionCreatedEvent:
         return cls(
@@ -49,6 +50,6 @@ class GraphExecutionCreatedEvent(DomainEvent):
             graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
             task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
             parent_graph_execution_id=GraphExecutionId(parent_id) if parent_id else None,
-            goal=payload.get("goal", ""),
+            goal=Goal(payload.get("goal", "")),
             depth=payload.get("depth", 0),
         )

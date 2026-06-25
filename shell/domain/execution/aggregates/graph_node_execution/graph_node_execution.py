@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
         GraphNodeExecutionStateOutput,
     )
+    from shell.domain.execution.value_objects.state_data import StateData
 
 
 class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
@@ -170,7 +171,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             )
         )
 
-    def complete(self, result: dict[str, Any] | None, now: datetime) -> None:
+    def complete(self, result: dict[str, object] | None, now: datetime) -> None:
         if self._status != GraphNodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(
                 f"Cannot complete node in status {self._status}"
@@ -270,12 +271,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         state = GraphNodeExecutionStateInput(
             id=GraphNodeExecutionStateInputId.generate(),
             graph_node_execution_id=self._id,
-            payload=payload,
+            payload=StateData(payload),
             created_at=now,
         )
         self._state_inputs.append(state)
 
-    def _append_output(self, payload: dict[str, Any], now: datetime) -> None:
+    def _append_output(self, payload: dict[str, object] | None, now: datetime) -> None:
         from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
             GraphNodeExecutionStateOutput,
         )
@@ -286,7 +287,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         state = GraphNodeExecutionStateOutput(
             id=GraphNodeExecutionStateOutputId.generate(),
             graph_node_execution_id=self._id,
-            payload=payload,
+            payload=StateData(payload or {}),
             created_at=now,
         )
         self._state_outputs.append(state)

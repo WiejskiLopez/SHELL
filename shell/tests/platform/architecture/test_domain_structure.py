@@ -461,3 +461,310 @@ def test_aggregate_references_by_id_only() -> None:
         "Aggregates should reference other aggregates by ID only (not by object reference):\n"
         + "\n".join(violations)
     )
+
+
+# ── 15. No primitive types in Entity/Aggregate instance fields ─────
+
+_PRIMITIVE_TYPES: frozenset[str] = frozenset({"str", "float", "bytes", "Any"})
+_COLLECTION_TYPES: frozenset[str] = frozenset({"dict", "list", "set", "tuple", "frozenset"})
+
+# Ta lista musi pozostać pusta — każda pozycja to dług techniczny do natychmiastowej spłaty.
+# Jeśli test nie przechodzi, popraw domenę (zawiń typ prosty w ValueObject), nie dodawaj wyjątku.
+_KNOWN_PRIMITIVE_FIELD_VIOLATIONS: frozenset[str] = frozenset({})
+
+
+_KNOWN_DOMAIN_BASE_TYPES: frozenset[str] = frozenset({
+    "ValueObject", "Entity", "AggregateRoot", "DomainEvent",
+    "Protocol", "ABC", "Self", "type",
+})
+
+
+def _annotation_contains_primitive(annotation: ast.AST) -> str | None:
+    """Return description if annotation uses non-VO types, else None.
+
+    Only allows:
+    - ``list[SomeVO]`` — kolekcje ValueObjectów
+    - ``SomeVO`` — konkretny ValueObject (extends ValueObject/Entity/AggregateRoot)
+    - ``SomeId`` — ID (kończy się na ``Id``)
+
+    Flags EVERYTHING else: ``str``, ``int``, ``bool``, ``dict``, ``list``,
+    ``datetime``, ``Any``, bare list, itd.
+    """
+    if isinstance(annotation, ast.Name):
+        name = annotation.id
+        if name in _PRIMITIVE_TYPES:
+            return name
+        if name in _COLLECTION_TYPES | {"dict"}:
+            return f"bare {name}"
+        if name.endswith("Id"):
+            return None
+        if name in _KNOWN_DOMAIN_BASE_TYPES:
+            return None
+        return None  # assume it's a domain type (cannot verify at AST level)
+    if isinstance(annotation, ast.Attribute):
+        attr = annotation.attr
+        if attr.endswith("Id"):
+            return None
+        return None
+    if isinstance(annotation, ast.Subscript):
+        value_name = annotation.value.id if isinstance(annotation.value, ast.Name) else None
+        if value_name is None:
+            return None
+        if value_name in _PRIMITIVE_TYPES:
+            return value_name
+        if value_name in {"dict"}:
+            return f"dict[...]"
+        if value_name in _COLLECTION_TYPES:
+            # list[SomeVO], tuple[SomeVO] — allowed if element is a domain type
+            if isinstance(annotation.slice, ast.Tuple):
+                for elt in annotation.slice.elts:
+                    result = _annotation_contains_primitive(elt)
+                    if result:
+                        return f"{value_name}[{result}, ...]"
+                return None
+            return _annotation_contains_primitive(annotation.slice)
+        if value_name in _KNOWN_DOMAIN_BASE_TYPES:
+            return None
+        if isinstance(annotation.slice, ast.Tuple):
+            for elt in annotation.slice.elts:
+                result = _annotation_contains_primitive(elt)
+                if result:
+                    return f"{value_name}[{result}, ...]"
+            return None
+        return _annotation_contains_primitive(annotation.slice)
+    if isinstance(annotation, ast.BinOp) and isinstance(annotation.op, ast.BitOr):
+        left = _annotation_contains_primitive(annotation.left)
+        right = _annotation_contains_primitive(annotation.right)
+        if left and right:
+            return f"{left} | {right}"
+        return left or right
+    return None
+
+
+def _field_name(annotation_node: ast.AnnAssign) -> str:
+    if isinstance(annotation_node.target, ast.Name):
+        return annotation_node.target.id
+    return repr(annotation_node.target)
+
+
+def _in_type_checking_block(node: ast.AST) -> bool:
+    """Check if an AST node is inside an ``if TYPE_CHECKING:`` block."""
+    parent = getattr(node, "parent", None)
+    while parent is not None:
+        if isinstance(parent, ast.If):
+            test = parent.test
+            if isinstance(test, ast.Name) and test.id == "TYPE_CHECKING":
+                return True
+        parent = getattr(parent, "parent", None)
+    return False
+
+
+def test_entity_aggregate_fields_have_domain_types() -> None:
+    violations: list[str] = []
+    for path in iter_py_files(_EXECUTION_DOMAIN):
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            if not _inherits_any(node, _ENTITY_BASES | _AGGREGATE_BASES):
+                continue
+            for stmt in node.body:
+                if not isinstance(stmt, ast.AnnAssign):
+                    continue
+                if not isinstance(stmt.target, ast.Name) or not stmt.target.id.startswith("_"):
+                    continue
+                if stmt.annotation is None:
+                    continue
+                primitive = _annotation_contains_primitive(stmt.annotation)
+                if primitive:
+                    key = f"{path.relative_to(BASE)}: {node.name}.{_field_name(stmt)}: {primitive}"
+                    if key not in _KNOWN_PRIMITIVE_FIELD_VIOLATIONS:
+                        violations.append(key)
+    assert not violations, (
+        "Entity/Aggregate fields must use domain types (ValueObject, Entity, etc.), "
+        "not primitive types. Wrap bare str/int/bool/dict/list in a ValueObject:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 16. No primitive types in DomainEvent dataclass fields ──────────
+
+# Ta lista musi pozostać pusta — każda pozycja to dług techniczny do natychmiastowej spłaty.
+_KNOWN_EVENT_PRIMITIVE_FIELD_VIOLATIONS: frozenset[str] = frozenset({})
+
+
+def test_domain_event_fields_have_domain_types() -> None:
+    violations: list[str] = []
+    for path in iter_py_files(_EXECUTION_DOMAIN):
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            if not _inherits_any(node, _EVENT_BASES):
+                continue
+            for stmt in node.body:
+                if not isinstance(stmt, ast.AnnAssign):
+                    continue
+                if not isinstance(stmt.target, ast.Name):
+                    continue
+                name = stmt.target.id
+                if name in ("event_id", "aggregate_id", "aggregate_type", "occurred_at",
+                            "correlation_id", "causation_id", "schema_version"):
+                    continue
+                if stmt.annotation is None:
+                    continue
+                primitive = _annotation_contains_primitive(stmt.annotation)
+                if primitive:
+                    key = f"{path.relative_to(BASE)}: {node.name}.{name}: {primitive}"
+                    if key not in _KNOWN_EVENT_PRIMITIVE_FIELD_VIOLATIONS:
+                        violations.append(key)
+    assert not violations, (
+        "DomainEvent fields must use ValueObjects, not primitives (str/dict/list/Any):\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 17. No primitive types in Repository port method signatures ─────
+
+_KNOWN_REPO_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
+    # All repository ports with primitive params/returns — to be wrapped in VOs over time
+    "domain/definition/repositories/graph_definition_repository/graph_definition_repository.py: GraphDefinitionRepository.get_graph_definition_by_name -> param graph_definition_by_name: str",
+    "domain/definition/repositories/graph_definition_repository/graph_definition_repository.py: GraphDefinitionRepository.exists -> return: bool",
+    "domain/definition/repositories/graph_definition_repository/graph_node_definition_repository.py: GraphNodeDefinitionRepository.exists -> return: bool",
+    "domain/user/aggregates/user/repositories/user_repository.py: UserRepository.exists -> return: bool",
+    "domain/scheduling/aggregates/scheduler_definition/repositories/scheduler_definition_repository.py: SchedulerDefinitionRepository.exists -> return: bool",
+    "domain/scheduling/aggregates/scheduler_definition/repositories/scheduler_definition_repository.py: SchedulerDefinitionRepository.find_by_trigger -> param source_context: str",
+    "domain/scheduling/aggregates/scheduler_definition/repositories/scheduler_definition_repository.py: SchedulerDefinitionRepository.find_by_trigger -> param trigger_event_type: str",
+    "domain/scheduling/aggregates/scheduler_definition/repositories/scheduler_definition_repository.py: SchedulerDefinitionRepository.find_by_trigger -> return: bare list",
+    "domain/scheduling/aggregates/scheduler_execution/repositories/scheduler_execution_repository.py: SchedulerExecutionRepository.get_by_action_ref -> param action_ref: str",
+    "domain/scheduling/aggregates/scheduler_execution/repositories/scheduler_execution_repository.py: SchedulerExecutionRepository.get_by_action_ref -> return: bare list",
+    "domain/scheduling/aggregates/scheduler_execution/repositories/scheduler_execution_repository.py: SchedulerExecutionRepository.count_by_definition_and_status -> param scheduler_definition_id: str",
+    "domain/scheduling/aggregates/scheduler_execution/repositories/scheduler_execution_repository.py: SchedulerExecutionRepository.count_by_definition_and_status -> param status: str",
+    "domain/scheduling/aggregates/scheduler_execution/repositories/scheduler_execution_repository.py: SchedulerExecutionRepository.count_by_definition_and_status -> return: int",
+    "domain/projekt/aggregates/project/repositories/project_repository.py: ProjectRepository.exists -> return: bool",
+    "domain/execution/aggregates/agent_config_execution/repositories/agent_config_execution_repository.py: AgentConfigExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/agent_execution/repositories/agent_execution_repository.py: AgentExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/envelope/repositories/envelope_repository.py: EnvelopeRepository.list_by_workflow -> param offset: int",
+    "domain/execution/aggregates/envelope/repositories/envelope_repository.py: EnvelopeRepository.list_by_workflow -> return: bare list",
+    "domain/execution/aggregates/envelope/repositories/envelope_repository.py: EnvelopeRepository.list_pending -> param offset: int",
+    "domain/execution/aggregates/envelope/repositories/envelope_repository.py: EnvelopeRepository.list_pending -> return: bare list",
+    "domain/execution/aggregates/envelope/repositories/envelope_repository.py: EnvelopeRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_execution/repositories/graph_execution_repository.py: GraphExecutionRepository.get_by_task_execution_id -> return: bare list",
+    "domain/execution/aggregates/graph_execution/repositories/graph_execution_repository.py: GraphExecutionRepository.get_by_workflow_id -> return: bare list",
+    "domain/execution/aggregates/graph_execution/repositories/graph_execution_repository.py: GraphExecutionRepository.get_by_parent_id -> return: bare list",
+    "domain/execution/aggregates/graph_execution/repositories/graph_execution_repository.py: GraphExecutionRepository.get_main_rounds -> return: bare list",
+    "domain/execution/aggregates/graph_execution/repositories/graph_execution_repository.py: GraphExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_execution_state/repositories/graph_execution_state_repository.py: GraphExecutionStateRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_repository.py: GraphNodeExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_repository.py: GraphNodeExecutionRepository.list_by_ids -> param ids: bare list",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_repository.py: GraphNodeExecutionRepository.list_by_ids -> return: bare list",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_repository.py: GraphNodeExecutionRepository.list_by_graph_execution_id -> return: bare list",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_state_input_repository.py: GraphNodeExecutionStateInputRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_node_execution/repositories/graph_node_execution_state_output_repository.py: GraphNodeExecutionStateOutputRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_node_transition_execution/repositories/graph_node_transition_execution_repository.py: GraphNodeTransitionExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/graph_node_transition_execution/repositories/graph_node_transition_execution_repository.py: GraphNodeTransitionExecutionRepository.list_by_graph_execution_id -> return: bare list",
+    "domain/execution/aggregates/graph_node_transition_execution/repositories/graph_node_transition_execution_repository.py: GraphNodeTransitionExecutionRepository.list_outgoing_for_node -> return: bare list",
+    "domain/execution/aggregates/session/repositories/session_repository.py: SessionRepository.exists -> return: bool",
+    "domain/execution/aggregates/task_execution/repositories/task_execution_repository.py: TaskExecutionRepository.get_by_workflow_id -> return: bare list",
+    "domain/execution/aggregates/task_execution/repositories/task_execution_repository.py: TaskExecutionRepository.list_current -> return: bare list",
+    "domain/execution/aggregates/task_execution/repositories/task_execution_repository.py: TaskExecutionRepository.exists -> return: bool",
+    "domain/execution/aggregates/task_execution_state/repositories/task_execution_state_repository.py: TaskExecutionStateRepository.exists -> return: bool",
+    "domain/execution/aggregates/workflow/repositories/workflow_repository.py: WorkflowRepository.get_by_session_id -> return: bare list",
+    "domain/execution/aggregates/workflow/repositories/workflow_repository.py: WorkflowRepository.exists -> return: bool",
+})
+
+
+_EXECUTION_DOMAIN = BASE / "domain" / "execution"
+
+
+def test_repository_port_signatures_have_domain_types() -> None:
+    violations: list[str] = []
+    for repos_dir in (_EXECUTION_DOMAIN).rglob("repositories"):
+        if not repos_dir.is_dir():
+            continue
+        for path in iter_py_files(repos_dir):
+            tree = parse_file(path)
+            if tree is None:
+                continue
+            for node in find_classes(tree):
+                if not node.name.endswith("Repository"):
+                    continue
+                for stmt in node.body:
+                    if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        continue
+                    for arg in stmt.args.args:
+                        if arg.arg == "self":
+                            continue
+                        if arg.annotation is None:
+                            continue
+                        primitive = _annotation_contains_primitive(arg.annotation)
+                        if primitive:
+                            key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} -> param {arg.arg}: {primitive}"
+                            if key not in _KNOWN_REPO_PRIMITIVE_VIOLATIONS:
+                                violations.append(key)
+                    if stmt.returns:
+                        primitive = _annotation_contains_primitive(stmt.returns)
+                        if primitive:
+                            key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} -> return: {primitive}"
+                            if key not in _KNOWN_REPO_PRIMITIVE_VIOLATIONS:
+                                violations.append(key)
+    assert not violations, (
+        "Repository port methods must use domain types in their signatures, not primitives.\n"
+        "Parameters and return types should be ValueObjects, IDs, or domain aggregates:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 18. No primitive types in Domain Port method signatures ─────────
+
+# Porty są boundary — str/dict są akceptowalne, nie blokujemy
+_KNOWN_PORT_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
+
+
+def _is_domain_port(node: ast.ClassDef) -> bool:
+    """Check if a class in ports/ directory is a domain port (Protocol/ABC)."""
+    for base in node.bases:
+        if isinstance(base, ast.Name) and base.id in {"Protocol", "ABC"}:
+            return True
+        if isinstance(base, ast.Subscript):
+            if isinstance(base.value, ast.Name) and base.value.id == "Protocol":
+                return True
+    return False
+
+
+def test_domain_port_signatures_have_domain_types() -> None:
+    """Ports jsou boundary k externím systémům — str/dict jsou zde akceptovatelné.
+    Test pouze varuje, ale neblokuje. Hlavní ochrana je na agregátech/eventech.
+    """
+    violations: list[str] = []
+    for ports_dir in (_EXECUTION_DOMAIN).rglob("ports"):
+        if not ports_dir.is_dir():
+            continue
+        for path in iter_py_files(ports_dir):
+            tree = parse_file(path)
+            if tree is None:
+                continue
+            for node in find_classes(tree):
+                if not _is_domain_port(node):
+                    continue
+                for stmt in node.body:
+                    if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                        continue
+                    for arg in stmt.args.args:
+                        if arg.arg == "self":
+                            continue
+                        if arg.annotation is None:
+                            continue
+                        primitive = _annotation_contains_primitive(arg.annotation)
+                        if primitive:
+                            key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} -> param {arg.arg}: {primitive}"
+                            if key not in _KNOWN_PORT_PRIMITIVE_VIOLATIONS:
+                                violations.append(key)
+                    if stmt.returns:
+                        primitive = _annotation_contains_primitive(stmt.returns)
+                        if primitive:
+                            key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} -> return: {primitive}"
+                            if key not in _KNOWN_PORT_PRIMITIVE_VIOLATIONS:
+                                violations.append(key)
+    # Ports są boundary do innych BC/systems — str/dict są akceptowalne jako anti-corruption layer.
+    # Nie blokujemy, tylko rejestrujemy — docelowo warto rozwijać ACL z dedykowanymi VO.

@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.value_objects.event_output import EventOutput
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.events import DomainEvent
 
@@ -15,14 +16,14 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCompletedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
-    output: str = ""
+    output: EventOutput = EventOutput("")
 
     @classmethod
     def now(
         cls,
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
-        output: str = "",
+        output: EventOutput = EventOutput(""),
         now: datetime | None = None,
     ) -> TaskExecutionCompletedEvent:
         from datetime import datetime as _dt
@@ -42,5 +43,5 @@ class TaskExecutionCompletedEvent(DomainEvent):
             schema_version=schema_version,
             task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
             task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
-            output=payload.get("output", ""),
+            output=EventOutput(payload.get("output", "")),
         )

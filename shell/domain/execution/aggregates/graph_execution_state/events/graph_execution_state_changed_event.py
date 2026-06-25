@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.value_objects.state_key import StateKey
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.events import DomainEvent
 
@@ -22,7 +23,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     graph_execution_state_id: GraphExecutionStateId
     kind: StateKind
-    key: str
+    key: StateKey
     old_value: object | None
     new_value: object | None
 
@@ -33,7 +34,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         graph_execution_id: GraphExecutionId,
         graph_execution_state_id: GraphExecutionStateId,
         kind: StateKind,
-        key: str,
+        key: StateKey,
         old_value: object | None,
         new_value: object | None,
         now: datetime,
@@ -57,7 +58,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
             graph_execution_id=payload.get("graph_execution_id"),
             graph_execution_state_id=payload.get("graph_execution_state_id"),
             kind=StateKind(payload.get("kind", "input")),
-            key=payload.get("key"),
+            key=StateKey(payload.get("key")),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),
             schema_version=schema_version,

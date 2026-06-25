@@ -160,7 +160,20 @@ Eventy `GraphExecutionStateInputChangedEvent` i `GraphExecutionStateOutputChange
 
 Schemat bazy danych (tabele `graph_execution_state_input`, `graph_execution_state_output`, `task_execution_state_input`, `task_execution_state_output`) NIE został zmieniony — na razie istnieją 4 osobne tabele mapowane przez 2 agregaty. Docelowo można scalić w 2 tabele z kolumną `kind`.
 
-### 2. State I/O — agregaty niespójne (DO ZROBIENIA PÓŹNIEJ)
+### 2. Nowe testy architektoniczne — primitive obsession
+
+Dodano 4 testy do `shell/tests/platform/architecture/test_domain_structure.py`:
+
+| # | Test | Zakres | Co sprawdza |
+|---|------|--------|-------------|
+| 15 | `test_entity_aggregate_fields_have_domain_types` | `domain/execution/` | Entity/Aggregate nie używają `str`, `list`/`dict` bez type params, `dict[str, Any]` jako typów pól |
+| 16 | `test_domain_event_fields_have_domain_types` | `domain/execution/` | Eventy nie używają `dict[str, Any]` (zamień na `dict[str, object]`), `bare list`/`bare dict` |
+| 17 | `test_repository_port_signatures_have_domain_types` | `domain/execution/repositories/` | Metody repozytoriów używają VOs zamiast `str`/`int`/`bool` w sygnaturach |
+| 18 | `test_domain_port_signatures_have_domain_types` | `domain/execution/ports/` | Porty (Protocol) — tylko warning, nie assert (boundary do innych BC) |
+
+**Zasada**: `_KNOWN_*_VIOLATIONS` muszą pozostać puste. Jeśli test nie przechodzi, popraw domenę, nie dodawaj wyjątku.
+
+### 3. State I/O — agregaty niespójne (DO ZROBIENIA PÓŹNIEJ)
 
 Po konsolidacji GraphExecution i TaskExecution pozostały inne agregaty z własnymi state input/output, ale modelowane NIESPÓJNIE:
 

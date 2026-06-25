@@ -6,8 +6,9 @@ with a ``kind`` discriminator (StateKind.INPUT or StateKind.OUTPUT).
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
 
@@ -33,7 +34,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
 
     _task_execution_id: TaskExecutionId
     _kind: StateKind
-    _payload: dict[str, Any]
+    _payload: StateData
     _is_current: bool
     _created_at: datetime
 
@@ -42,14 +43,14 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         id: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
-        payload: dict[str, Any] | None = None,
+        payload: StateData | None = None,
         is_current: bool = True,
         created_at: datetime | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._kind = kind
-        self._payload = payload or {}
+        self._payload = payload or StateData({})
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
@@ -60,7 +61,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         id: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
-        payload: dict[str, Any] | None = None,
+        payload: StateData | None = None,
         is_current: bool = True,
         created_at: datetime | None = None,
     ) -> Self:
@@ -82,7 +83,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         return self._kind
 
     @property
-    def payload(self) -> dict[str, Any]:
+    def payload(self) -> StateData:
         return self._payload
 
     @property
@@ -100,14 +101,14 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         id_: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
-        payload: dict[str, Any] | None = None,
+        payload: StateData | None = None,
         now: datetime,
     ) -> TaskExecutionState:
         return cls(
             id=id_,
             task_execution_id=task_execution_id,
             kind=kind,
-            payload=payload or {},
+            payload=payload or StateData({}),
             is_current=True,
             created_at=now,
         )

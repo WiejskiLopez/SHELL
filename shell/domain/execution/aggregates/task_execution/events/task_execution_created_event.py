@@ -7,6 +7,8 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.value_objects.skill_payload import SkillPayload
+from shell.domain.execution.value_objects.task_description import TaskDescription
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.events import DomainEvent
 
@@ -15,8 +17,8 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
-    description: str = ""
-    skills: list[dict[str, Any]] | None = None
+    description: TaskDescription = TaskDescription("")
+    skills: list[SkillPayload] | None = None
 
     @classmethod
     def now(
@@ -24,8 +26,8 @@ class TaskExecutionCreatedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
         now: datetime,
-        description: str = "",
-        skills: list[dict[str, Any]] | None = None,
+        description: TaskDescription = TaskDescription(""),
+        skills: list[SkillPayload] | None = None,
     ) -> TaskExecutionCreatedEvent:
         return cls(
             occurred_at=now,
@@ -37,13 +39,18 @@ class TaskExecutionCreatedEvent(DomainEvent):
 
     @classmethod
     def from_payload(
-        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+        cls, occurred_at: datetime, payload: dict[str, object], schema_version: int = 1
     ) -> Self:
+        raw_skills = payload.get("skills")
+        parsed_skills = None
+        if raw_skills is not None:
+            from shell.domain.execution.value_objects.skill_payload import SkillPayload
+            parsed_skills = [SkillPayload(s) if isinstance(s, dict) else s for s in raw_skills]
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
             task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
             task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
-            description=payload.get("description", ""),
-            skills=payload.get("skills"),
+            description=TaskDescription(payload.get("description", "")),
+            skills=parsed_skills,
         )

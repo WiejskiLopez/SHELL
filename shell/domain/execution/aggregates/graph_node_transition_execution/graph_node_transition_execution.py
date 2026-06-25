@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.transition_status import TransitionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
@@ -42,7 +43,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
     _target_node_execution_id: GraphNodeExecutionId | None
     _spawn_spec: SpawnSpec | None
     _edge_type: EdgeType
-    _condition_expression: str | None
+    _condition_expression: ConditionExpression | None
     _max_iterations: int | None
     _status: TransitionStatus
     _current_iteration: int
@@ -55,7 +56,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         edge_type: EdgeType,
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
-        condition_expression: str | None = None,
+        condition_expression: ConditionExpression | None = None,
         max_iterations: int | None = None,
     ) -> None:
         super().__init__(id_)
@@ -78,7 +79,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         edge_type: EdgeType,
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
-        condition_expression: str | None = None,
+        condition_expression: ConditionExpression | None = None,
         max_iterations: int | None = None,
     ) -> Self:
         return cls(
@@ -115,7 +116,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         graph_execution_id: GraphExecutionId,
         source_node_execution_id: GraphNodeExecutionId,
         target_node_execution_id: GraphNodeExecutionId,
-        condition_expression: str,
+        condition_expression: ConditionExpression,
     ) -> GraphNodeTransitionExecution:
         return cls(
             id_=id_,
@@ -348,7 +349,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         return self._edge_type
 
     @property
-    def condition_expression(self) -> str | None:
+    def condition_expression(self) -> ConditionExpression | None:
         return self._condition_expression
 
     @property
