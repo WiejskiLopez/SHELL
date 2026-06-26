@@ -1,0 +1,7 @@
+from shell.infrastructure.session.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
+
+__all__ = [
+    "SessionQueryService",
+]
