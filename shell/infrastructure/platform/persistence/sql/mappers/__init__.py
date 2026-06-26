@@ -60,6 +60,7 @@ from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.infrastructure.definition.persistence.sql.models import (
@@ -396,7 +397,7 @@ def graph_execution_entity_to_model(
 def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     return Workflow(
         id=WorkflowId(workflow_model.id),
-        status=Status(workflow_model.status),
+        status=WorkflowStatus(workflow_model.status),
         session_id=SessionId(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=_ensure_utc(workflow_model.created_at),
     )
