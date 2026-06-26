@@ -31,7 +31,7 @@ from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_
 from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
     GraphNodeExecutionStateOutput,
 )
-from shell.domain.execution.aggregates.session import Session
+from shell.domain.session.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
@@ -86,8 +86,7 @@ from shell.infrastructure.execution.persistence.sql.models import (
     GraphNodeTransitionExecutionModel,
     SessionModel,
     TaskExecutionModel,
-    TaskExecutionStateInputModel,
-    TaskExecutionStateOutputModel,
+    TaskExecutionStateModel,
     WorkflowModel,
 )
 
@@ -136,59 +135,30 @@ def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution
 
 
 # ---------------------------------------------------------------------------
-# TaskExecution Input Payload
+# TaskExecution State
 # ---------------------------------------------------------------------------
 
 
-def task_execution_input_payload_model_to_entity(
-    model: TaskExecutionStateInputModel,
+def task_execution_state_model_to_entity(
+    model: TaskExecutionStateModel,
 ) -> TaskExecutionState:
     return TaskExecutionState(
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
-        kind=StateKind.INPUT,
+        kind=StateKind(model.kind),
         payload=StateData(dict(model.payload)),
         is_current=IsCurrent(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
-def task_execution_input_payload_entity_to_model(
+def task_execution_state_entity_to_model(
     entity: TaskExecutionState,
-) -> TaskExecutionStateInputModel:
-    return TaskExecutionStateInputModel(
+) -> TaskExecutionStateModel:
+    return TaskExecutionStateModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value if entity.created_at else None,
-    )
-
-
-# ---------------------------------------------------------------------------
-# TaskExecution Output Payload
-# ---------------------------------------------------------------------------
-
-
-def task_execution_output_payload_model_to_entity(
-    model: TaskExecutionStateOutputModel,
-) -> TaskExecutionState:
-    return TaskExecutionState(
-        id=TaskExecutionStateId(model.id),
-        task_execution_id=TaskExecutionId(model.task_execution_id),
-        kind=StateKind.OUTPUT,
-        payload=StateData(dict(model.payload)),
-        is_current=IsCurrent(model.is_current),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-    )
-
-
-def task_execution_output_payload_entity_to_model(
-    entity: TaskExecutionState,
-) -> TaskExecutionStateOutputModel:
-    return TaskExecutionStateOutputModel(
-        id=entity.id.value,
-        task_execution_id=entity.task_execution_id.value,
+        kind=entity.kind.value,
         payload=entity.payload.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
@@ -911,5 +881,36 @@ def graph_execution_state_output_entity_to_model(entity):
         graph_execution_id=entity.graph_execution_id.value,
         payload=entity.state_data.to_dict(),
         is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+# ── WorkflowState ──────────────────────────────────────────────────────────────
+
+
+def workflow_state_model_to_entity(model):
+    from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+        WorkflowStateId,
+    )
+    from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
+
+    return WorkflowState.restore(
+        id=WorkflowStateId(model.id),
+        workflow_id=WorkflowId(model.workflow_id),
+        kind=StateKind(model.kind),
+        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
+    )
+
+
+def workflow_state_entity_to_model(entity):
+    from shell.infrastructure.execution.persistence.sql.models.workflow_state import WorkflowStateModel
+
+    return WorkflowStateModel(
+        id=entity.id.value,
+        workflow_id=entity.workflow_id.value,
+        kind=entity.kind.value,
+        payload=entity.state_data.to_dict(),
+        is_current=True,
         created_at=entity.created_at.value if entity.created_at else None,
     )

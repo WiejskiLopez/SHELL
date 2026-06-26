@@ -24,13 +24,10 @@ from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_exec
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
     InMemoryGraphNodeTransitionExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import (
-    InMemorySessionRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_input_repository import (
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_repository import (
     InMemoryTaskExecutionStateRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
@@ -38,6 +35,12 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_reposi
 )
 from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
     InMemoryGraphExecutionStateRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_repository import (
+    InMemoryWorkflowStateRepository,
+)
+from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
+    InMemorySessionRepository,
 )
 
 if TYPE_CHECKING:
@@ -54,11 +57,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._workflow_repository = InMemoryWorkflowRepository()
         self._runner_config_repository = InMemoryRunnerConfigRepository()
         self._rag_document_repository = InMemoryRagDocumentRepository()
-        self._session_repository = InMemorySessionRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
         self._graph_node_transition_execution_repository = InMemoryGraphNodeTransitionExecutionRepository()
         self._graph_node_execution_state_repository = InMemoryGraphNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
+        self._workflow_state_repository = InMemoryWorkflowStateRepository()
+        self._session_repository = InMemorySessionRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -113,6 +117,10 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def rag_document_repository(self) -> InMemoryRagDocumentRepository:
         return self._rag_document_repository
+
+    @property
+    def workflow_state_repository(self) -> InMemoryWorkflowStateRepository:
+        return self._workflow_state_repository
 
     @property
     def session_repository(self) -> InMemorySessionRepository:

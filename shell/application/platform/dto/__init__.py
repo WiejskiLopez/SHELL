@@ -19,15 +19,11 @@ from shell.application.execution.dto.graph_node_execution_state_input import (
 from shell.application.execution.dto.graph_node_execution_state_output import (
     GraphNodeExecutionStateOutputDto,
 )
-from shell.application.execution.dto.session import SessionDto
+from shell.application.session.dto.session import SessionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
-from shell.application.execution.dto.task_execution_state_input import (
-    TaskExecutionStateInputDto,
-)
-from shell.application.execution.dto.task_execution_state_output import (
-    TaskExecutionStateOutputDto,
-)
+from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
 from shell.application.execution.dto.workflow import WorkflowDto
+from shell.application.execution.dto.workflow_state import WorkflowStateDto
 
 __all__ = [
     "EnvelopeDto",
@@ -43,7 +39,7 @@ __all__ = [
     "RunnerConfigDto",
     "SessionDto",
     "TaskExecutionDto",
-    "TaskExecutionStateInputDto",
-    "TaskExecutionStateOutputDto",
+    "TaskExecutionStateDto",
     "WorkflowDto",
+    "WorkflowStateDto",
 ]

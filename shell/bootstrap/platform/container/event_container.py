@@ -42,7 +42,7 @@ from shell.application.execution.event_handlers.propagate_task_output_to_workflo
 from shell.application.execution.event_handlers.propagate_workflow_output_to_task_input import (
     PropagateWorkflowOutputToTaskInput,
 )
-from shell.application.execution.event_handlers.propagate_session_output_to_workflow_input import (
+from shell.application.session.event_handlers.propagate_session_output_to_workflow_input import (
     PropagateSessionOutputToWorkflowInput,
 )
 from shell.application.execution.event_handlers.graph_execution_created_event_handler import (

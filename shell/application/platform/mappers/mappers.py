@@ -11,9 +11,9 @@ from shell.application.platform.dto import (
     GraphNodeExecutionStateOutputDto,
     RunnerConfigDto,
     TaskExecutionDto,
-    TaskExecutionStateInputDto,
-    TaskExecutionStateOutputDto,
+    TaskExecutionStateDto,
     WorkflowDto,
+    WorkflowStateDto,
 )
 
 if TYPE_CHECKING:
@@ -33,6 +33,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
         GraphNodeExecutionResult,
     )
+    from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 
 
 def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
@@ -94,24 +95,13 @@ def runner_config_to_dto(config: RunnerConfig) -> RunnerConfigDto:
     )
 
 
-def task_execution_input_payload_to_dto(
+def task_execution_state_to_dto(
     entity: TaskExecutionState,
-) -> TaskExecutionStateInputDto:
-    return TaskExecutionStateInputDto(
+) -> TaskExecutionStateDto:
+    return TaskExecutionStateDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value,
-    )
-
-
-def task_execution_output_payload_to_dto(
-    entity: TaskExecutionState,
-) -> TaskExecutionStateOutputDto:
-    return TaskExecutionStateOutputDto(
-        id=entity.id.value,
-        task_execution_id=entity.task_execution_id.value,
+        kind=entity.kind.value,
         payload=entity.payload.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value,
@@ -139,4 +129,17 @@ def graph_node_execution_state_output_to_dto(
         payload=entity.payload.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+def workflow_state_to_dto(
+    entity: WorkflowState,
+) -> WorkflowStateDto:
+    return WorkflowStateDto(
+        id=entity.id.value,
+        workflow_id=entity.workflow_id.value,
+        kind=entity.kind.value,
+        payload=entity.state_data.to_dict(),
+        is_current=True,
+        created_at=entity.created_at.value,
     )

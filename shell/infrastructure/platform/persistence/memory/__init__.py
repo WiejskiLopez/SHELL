@@ -19,9 +19,6 @@ from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import (
-    InMemorySessionRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
@@ -63,7 +60,6 @@ __all__ = [
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
     "InMemoryGraphExecutionRepository",
-    "InMemorySessionRepository",
     "InMemoryTaskExecutionRepository",
     "InMemoryWorkflowRepository",
 ]

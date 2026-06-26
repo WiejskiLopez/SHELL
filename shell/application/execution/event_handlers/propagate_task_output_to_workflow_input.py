@@ -5,6 +5,12 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
+from shell.domain.execution.aggregates.workflow_state.workflow_state import (
+    WorkflowState,
+)
+from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -50,6 +56,12 @@ class PropagateTaskOutputToWorkflowInput:
                 "task_execution_name": task_execution_completed_event.task_execution_name.value,
                 "output": task_execution_completed_event.output,
             }
-            workflow.add_state_input(output_payload, now)
-            await unit_of_work.workflow_repository.save(workflow)
-            unit_of_work.stage_events(workflow.pull_events())
+            state = WorkflowState.create(
+                id_=self._id_generator.new_workflow_state_id(),
+                workflow_id=workflow.id,
+                kind=StateKind.INPUT,
+                payload=output_payload,
+                now=now,
+            )
+            await unit_of_work.workflow_state_repository.save(state)
+            unit_of_work.stage_events(state.pull_events())

@@ -5,6 +5,12 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
     GraphExecutionCompletedEvent,
 )
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
+)
+from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -54,6 +60,12 @@ class PropagateGraphOutputToTaskInput:
                 "graph_execution_id": graph_execution_completed_event.graph_execution_id.value,
                 "verifier_result": graph_execution_completed_event.verifier_result,
             }
-            task_execution.add_state_input(output_payload, now)
-            await unit_of_work.task_execution_repository.save(task_execution)
-            unit_of_work.stage_events(task_execution.pull_events())
+            state = TaskExecutionState.create(
+                id_=self._id_generator.new_task_execution_state_id(),
+                task_execution_id=task_execution.id,
+                kind=StateKind.INPUT,
+                payload=StateData(output_payload),
+                now=CreatedAt.from_datetime(now),
+            )
+            await unit_of_work.task_execution_state_repository.save(state)
+            unit_of_work.stage_events(state.pull_events())

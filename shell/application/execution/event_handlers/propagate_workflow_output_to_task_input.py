@@ -2,9 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
+)
 from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
 )
+from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -45,10 +51,19 @@ class PropagateWorkflowOutputToTaskInput:
                 return
 
             now = self._clock.now()
+            workflow_states = await unit_of_work.workflow_state_repository.list_by_workflow_id_and_kind(
+                workflow.id, StateKind.OUTPUT
+            )
             output_payload: dict[str, Any] = {
                 "workflow_id": workflow_completed_event.workflow_id.value,
-                "state_outputs": [s.payload for s in workflow.state_outputs],
+                "state_outputs": [s.state_data.to_dict() for s in workflow_states],
             }
-            task_execution.add_state_input(output_payload, now)
-            await unit_of_work.task_execution_repository.save(task_execution)
-            unit_of_work.stage_events(task_execution.pull_events())
+            state = TaskExecutionState.create(
+                id_=self._id_generator.new_task_execution_state_id(),
+                task_execution_id=task_execution.id,
+                kind=StateKind.INPUT,
+                payload=StateData(output_payload),
+                now=CreatedAt.from_datetime(now),
+            )
+            await unit_of_work.task_execution_state_repository.save(state)
+            unit_of_work.stage_events(state.pull_events())

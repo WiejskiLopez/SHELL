@@ -6,10 +6,17 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
     GraphExecutionSubGraphSpawnRequestedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
+)
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
 from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -97,7 +104,16 @@ class SubGraphSpawnRequestedHandler:
                 parent_id=parent.id,
                 parent_depth=parent.depth.value,
             )
-            state_input and child.add_state_input(state_input, now)
+            if state_input:
+                state = GraphExecutionState.create(
+                    id_=GraphExecutionStateId.generate(),
+                    graph_execution_id=child.id,
+                    kind=StateKind.INPUT,
+                    now=now,
+                )
+                state.patch(state_input)
+                await unit_of_work.graph_execution_state_repository.save(state)
+                unit_of_work.stage_events(state.pull_events())
 
             node_defs = graph_definition.graph_node_execution_definitions
             for node_def in node_defs:

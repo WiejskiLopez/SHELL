@@ -19,17 +19,8 @@ from shell.domain.execution.aggregates.workflow.events.workflow_paused_event imp
 from shell.domain.execution.aggregates.workflow.events.workflow_resumed_event import (
     WorkflowResumedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_skill_added_event import (
-    WorkflowSkillAddedEvent,
-)
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_state_input_added_event import (
-    WorkflowStateInputAddedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_state_output_added_event import (
-    WorkflowStateOutputAddedEvent,
 )
 
 __all__ = [
@@ -40,8 +31,5 @@ __all__ = [
     "WorkflowFailedEvent",
     "WorkflowPausedEvent",
     "WorkflowResumedEvent",
-    "WorkflowSkillAddedEvent",
     "WorkflowStartedEvent",
-    "WorkflowStateInputAddedEvent",
-    "WorkflowStateOutputAddedEvent",
 ]

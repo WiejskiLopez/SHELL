@@ -7,6 +7,9 @@ from shell.domain.definition.value_objects.ids import (
     RagDocumentId,
     RunnerConfigId,
 )
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
@@ -14,7 +17,7 @@ from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionResultId,
     SessionId,
     TaskExecutionId,
-    TaskExecutionStateInputId,
+    TaskExecutionStateId,
     WorkflowId,
 )
 
@@ -63,5 +66,8 @@ class FakeIdGenerator:
     def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
         return GraphNodeExecutionId(self._next())
 
-    def new_task_execution_state_input_id(self) -> TaskExecutionStateInputId:
-        return TaskExecutionStateInputId(self._next())
+    def new_task_execution_state_id(self) -> TaskExecutionStateId:
+        return TaskExecutionStateId(self._next())
+
+    def new_workflow_state_id(self) -> WorkflowStateId:
+        return WorkflowStateId(self._next())

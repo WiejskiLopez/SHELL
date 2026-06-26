@@ -29,17 +29,14 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_output_repository import (
     SqlGraphNodeExecutionStateOutputRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
+from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_input_repository import (
-    SqlTaskExecutionStateInputRepository,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_output_repository import (
-    SqlTaskExecutionStateOutputRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_repository import (
+    SqlTaskExecutionStateRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,
@@ -56,8 +53,7 @@ __all__ = [
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "SqlSessionRepository",
-    "SqlTaskExecutionStateInputRepository",
-    "SqlTaskExecutionStateOutputRepository",
+    "SqlTaskExecutionStateRepository",
     "SqlTaskExecutionRepository",
     "SqlWorkflowRepository",
 ]

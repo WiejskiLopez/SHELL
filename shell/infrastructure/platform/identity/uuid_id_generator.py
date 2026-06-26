@@ -3,13 +3,16 @@ from __future__ import annotations
 import uuid
 
 from shell.domain.definition.value_objects.ids import RunnerConfigId
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
     TaskExecutionId,
-    TaskExecutionStateInputId,
+    TaskExecutionStateId,
     WorkflowId,
 )
 
@@ -36,5 +39,8 @@ class UuidIdGenerator:
     def new_graph_node_execution_id(self) -> GraphNodeExecutionId:
         return GraphNodeExecutionId(str(uuid.uuid4()))
 
-    def new_task_execution_state_input_id(self) -> TaskExecutionStateInputId:
-        return TaskExecutionStateInputId(str(uuid.uuid4()))
+    def new_task_execution_state_id(self) -> TaskExecutionStateId:
+        return TaskExecutionStateId(str(uuid.uuid4()))
+
+    def new_workflow_state_id(self) -> WorkflowStateId:
+        return WorkflowStateId(str(uuid.uuid4()))

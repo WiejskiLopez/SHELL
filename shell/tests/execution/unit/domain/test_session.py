@@ -5,11 +5,11 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-from shell.domain.execution.aggregates.session import Session
-from shell.domain.execution.aggregates.session.exceptions.invalid_session_transition import (
+from shell.domain.session.aggregates.session import Session
+from shell.domain.session.aggregates.session.exceptions.invalid_session_transition import (
     InvalidSessionTransition,
 )
-from shell.domain.execution.value_objects.ids import SessionId
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 _NOW = datetime(2025, 1, 1, tzinfo=UTC)
 _LATER = datetime(2025, 1, 2, tzinfo=UTC)

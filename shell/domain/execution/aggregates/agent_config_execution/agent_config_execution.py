@@ -11,7 +11,7 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):

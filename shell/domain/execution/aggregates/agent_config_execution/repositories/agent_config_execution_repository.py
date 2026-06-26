@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
         AgentConfigExecutionId,
     )
-    from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 

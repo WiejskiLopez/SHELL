@@ -236,18 +236,20 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset({
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_timeout",
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_default",
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.skip",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.get",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.patch",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.clear",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.snapshot",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_input",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_output",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
     "domain/execution/aggregates/task_execution_state/task_execution_state.py: TaskExecutionState.supersede",
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.skip",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.get",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.snapshot",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.get",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
 })
 
 
@@ -324,23 +326,24 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset({
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_error_handler",
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_timeout",
     "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.create_default",
-    "domain/execution/aggregates/session/session.py: Session.open",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.update",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.get",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.delete",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.patch",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.clear",
-    "domain/execution/aggregates/session_state/session_state.py: SessionState.snapshot",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_input",
-    "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.add_state_output",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
     "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
     "domain/execution/aggregates/task_execution_state/task_execution_state.py: TaskExecutionState.supersede",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_skill",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_state_input",
-    "domain/execution/aggregates/workflow/workflow.py: Workflow.add_state_output",
+    "domain/session/aggregates/session/session.py: Session.open",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.update",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.get",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.delete",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
+    "domain/session/aggregates/session_state/session_state.py: SessionState.snapshot",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.update",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.get",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.delete",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
+    "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
 })
 
 
@@ -551,8 +554,9 @@ def _extract_type_names(annotation: ast.AST) -> list[str]:
 def test_aggregate_references_by_id_only() -> None:
     violations: list[str] = []
     _AGGREGATE_CLASS_NAMES = frozenset({"Workflow", "TaskExecution",
-                                         "GraphExecution", "GraphNodeExecution"})
-    _KNOWN_INTERNAL_ENTITY_PREFIXES = frozenset({"WorkflowSkill", "WorkflowStateInput", "WorkflowStateOutput"})
+                                         "GraphExecution", "GraphNodeExecution",
+                                         "WorkflowState"})
+    _KNOWN_INTERNAL_ENTITY_PREFIXES = frozenset()
     for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
         if tree is None:

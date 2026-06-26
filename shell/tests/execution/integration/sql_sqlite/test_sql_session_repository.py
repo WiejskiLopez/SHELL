@@ -26,7 +26,7 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.execution.command_handlers.session_handlers import (
+        from shell.application.session.command_handlers.session_handlers import (
             CloseSessionHandler,
             OpenSessionHandler,
         )

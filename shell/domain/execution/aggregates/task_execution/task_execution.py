@@ -27,7 +27,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_name",
         "_work_dir",
         "_created_at",
-        "_state_data",
     )
 
     def __init__(
@@ -47,7 +46,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._name = name if name is not None else TaskName("default")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at
-        self._state_data: dict[str, object] = {}
 
     @classmethod
     def restore(
@@ -165,16 +163,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             return False
         self._current_cycle = PlanningCycle(self._current_cycle.value + 1)
         return True
-
-    # --- State I/O (delegacja do osobnych agregatów — docelowo) ---
-
-    def add_state_input(self, payload: dict, now: datetime) -> None:
-        if payload:
-            self._state_data.update({f"input_{k}": v for k, v in payload.items()})
-
-    def add_state_output(self, payload: dict, now: datetime) -> None:
-        if payload:
-            self._state_data.update({f"output_{k}": v for k, v in payload.items()})
 
     # --- Properties ---
 

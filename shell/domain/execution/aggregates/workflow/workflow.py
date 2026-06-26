@@ -20,17 +20,8 @@ from shell.domain.execution.aggregates.workflow.events.workflow_paused_event imp
 from shell.domain.execution.aggregates.workflow.events.workflow_resumed_event import (
     WorkflowResumedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_skill_added_event import (
-    WorkflowSkillAddedEvent,
-)
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_state_input_added_event import (
-    WorkflowStateInputAddedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_state_output_added_event import (
-    WorkflowStateOutputAddedEvent,
 )
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
@@ -40,27 +31,11 @@ from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
-        WorkflowSkill,
-    )
-    from shell.domain.execution.aggregates.workflow.entities.workflow_state_input import (
-        WorkflowStateInput,
-    )
-    from shell.domain.execution.aggregates.workflow.entities.workflow_state_output import (
-        WorkflowStateOutput,
-    )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_input_id import (
-        WorkflowStateInputId,
-    )
-    from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_output_id import (
-        WorkflowStateOutputId,
-    )
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
@@ -68,17 +43,11 @@ class Workflow(AggregateRoot["WorkflowId"]):
         "_session_id",
         "_status",
         "_created_at",
-        "_skills",
-        "_state_inputs",
-        "_state_outputs",
     )
 
     _session_id: SessionId
     _status: WorkflowStatus
     _created_at: CreatedAt
-    _skills: list[WorkflowSkill]
-    _state_inputs: list[WorkflowStateInput]
-    _state_outputs: list[WorkflowStateOutput]
 
     def __init__(
         self,
@@ -87,17 +56,11 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
         created_at: datetime | None = None,
-        skills: list[WorkflowSkill] | None = None,
-        state_inputs: list[WorkflowStateInput] | None = None,
-        state_outputs: list[WorkflowStateOutput] | None = None,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id or None  # type: ignore[assignment]
         self._status = status or WorkflowStatus.ACTIVE
         self._created_at = created_at or datetime.min
-        self._skills = skills or []
-        self._state_inputs = state_inputs or []
-        self._state_outputs = state_outputs or []
 
     @classmethod
     def restore(
@@ -107,18 +70,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
         created_at: datetime | None = None,
-        skills: list[WorkflowSkill] | None = None,
-        state_inputs: list[WorkflowStateInput] | None = None,
-        state_outputs: list[WorkflowStateOutput] | None = None,
     ) -> Self:
         return cls(
             id=id,
             session_id=session_id,
             status=status,
             created_at=created_at,
-            skills=skills,
-            state_inputs=state_inputs,
-            state_outputs=state_outputs,
         )
 
     # --- Properties ---
@@ -134,18 +91,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
-
-    @property
-    def skills(self) -> list:
-        return self._skills
-
-    @property
-    def state_inputs(self) -> list:
-        return self._state_inputs
-
-    @property
-    def state_outputs(self) -> list:
-        return self._state_outputs
 
     # --- Factory ---
 
@@ -241,53 +186,4 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._status = WorkflowStatus.ACTIVE
         self.append_event(WorkflowResumedEvent.now(self.id, now=now))
 
-    def add_skill(self, payload: SkillPayload, now: datetime) -> None:
-        from shell.domain.execution.aggregates.workflow.entities.workflow_skill import (
-            WorkflowSkill,
-        )
-        from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import (
-            WorkflowSkillId,
-        )
 
-        skill = WorkflowSkill(
-            id=WorkflowSkillId.generate(),
-            workflow_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._skills.append(skill)
-        self.append_event(WorkflowSkillAddedEvent.now(self._id, skill.id, now=now))
-
-    def add_state_input(self, payload: dict, now: datetime) -> None:
-        from shell.domain.execution.aggregates.workflow.entities.workflow_state_input import (
-            WorkflowStateInput,
-        )
-        from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_input_id import (
-            WorkflowStateInputId,
-        )
-
-        state = WorkflowStateInput(
-            id=WorkflowStateInputId.generate(),
-            workflow_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._state_inputs.append(state)
-        self.append_event(WorkflowStateInputAddedEvent.now(self.id, now=now))
-
-    def add_state_output(self, payload: dict, now: datetime) -> None:
-        from shell.domain.execution.aggregates.workflow.entities.workflow_state_output import (
-            WorkflowStateOutput,
-        )
-        from shell.domain.execution.aggregates.workflow.value_objects.workflow_state_output_id import (
-            WorkflowStateOutputId,
-        )
-
-        state = WorkflowStateOutput(
-            id=WorkflowStateOutputId.generate(),
-            workflow_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._state_outputs.append(state)
-        self.append_event(WorkflowStateOutputAddedEvent.now(self.id, now=now))

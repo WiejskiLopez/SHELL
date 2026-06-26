@@ -23,7 +23,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.transition_
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
-from shell.domain.execution.aggregates.session import Session
+from shell.domain.session.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.edge_type import EdgeType

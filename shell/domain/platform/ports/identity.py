@@ -10,6 +10,9 @@ if TYPE_CHECKING:
         RagDocumentId,
         RunnerConfigId,
     )
+    from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+        WorkflowStateId,
+    )
 from shell.domain.execution.value_objects.ids import (
     EnvelopeId,  # noqa: TC002 — EnvelopeId używany w sygnaturach metod IdGenerator
     GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w sygnaturach metod IdGenerator
@@ -17,7 +20,7 @@ from shell.domain.execution.value_objects.ids import (
     GraphNodeExecutionResultId,  # noqa: TC002 — GraphNodeExecutionResultId używany w sygnaturach metod IdGenerator
     SessionId,  # noqa: TC002 — SessionId używany w sygnaturach metod IdGenerator
     TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w sygnaturach metod IdGenerator
-    TaskExecutionStateInputId,  # noqa: TC002 — TaskExecutionStateInputId używany w sygnaturach metod IdGenerator
+    TaskExecutionStateId,  # noqa: TC002 — TaskExecutionStateId używany w sygnaturach metod IdGenerator
     WorkflowId,  # noqa: TC002 — WorkflowId używany w sygnaturach metod IdGenerator
 )
 
@@ -35,4 +38,5 @@ class IdGenerator(Protocol):
     def new_graph_node_definition_id(self) -> GraphNodeDefinitionId: ...
     def new_graph_execution_id(self) -> GraphExecutionId: ...
     def new_graph_node_execution_id(self) -> GraphNodeExecutionId: ...
-    def new_task_execution_state_input_id(self) -> TaskExecutionStateInputId: ...
+    def new_task_execution_state_id(self) -> TaskExecutionStateId: ...
+    def new_workflow_state_id(self) -> WorkflowStateId: ...

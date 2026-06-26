@@ -23,13 +23,15 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphNodeExecutionRepository,
     SqlGraphNodeExecutionStateRepository,
     SqlGraphNodeTransitionExecutionRepository,
-    SqlSessionRepository,
     SqlTaskExecutionRepository,
-    SqlTaskExecutionStateInputRepository,
-    SqlTaskExecutionStateOutputRepository,
+    SqlTaskExecutionStateRepository,
     SqlWorkflowRepository,
+    SqlWorkflowStateRepository,
 )
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
+from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
+    SqlSessionRepository,
+)
 from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
@@ -66,8 +68,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlTaskExecutionRepository(self._active_session)
 
     @property
-    def task_execution_state_repository(self) -> SqlTaskExecutionStateInputRepository:
-        return SqlTaskExecutionStateInputRepository(self._active_session)
+    def task_execution_state_repository(self) -> SqlTaskExecutionStateRepository:
+        return SqlTaskExecutionStateRepository(self._active_session)
 
     @property
     def graph_execution_repository(self) -> SqlGraphExecutionRepository:
@@ -125,12 +127,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlGraphExecutionStateOutputRepository(self._active_session)
 
     @property
-    def task_execution_state_input_repository(self) -> SqlTaskExecutionStateInputRepository:
-        return SqlTaskExecutionStateInputRepository(self._active_session)
-
-    @property
-    def task_execution_state_output_repository(self) -> SqlTaskExecutionStateOutputRepository:
-        return SqlTaskExecutionStateOutputRepository(self._active_session)
+    def workflow_state_repository(self) -> SqlWorkflowStateRepository:
+        return SqlWorkflowStateRepository(self._active_session)
 
     @property
     def session_repository(self) -> SqlSessionRepository:

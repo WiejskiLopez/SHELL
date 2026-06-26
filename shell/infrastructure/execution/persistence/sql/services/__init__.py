@@ -8,7 +8,7 @@ from shell.infrastructure.execution.persistence.sql.services.node_result_query_s
     NodeResultQueryService,
 )
 from sqlalchemy.orm import selectinload
-from shell.infrastructure.execution.persistence.sql.services.session_query_service import (
+from shell.infrastructure.session.persistence.sql.services.session_query_service import (
     SessionQueryService,
 )
 from shell.infrastructure.execution.persistence.sql.services.task_execution_query_service import (

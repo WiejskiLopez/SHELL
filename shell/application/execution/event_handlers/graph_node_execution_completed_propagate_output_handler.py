@@ -2,9 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
+)
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
+from shell.domain.execution.value_objects.state_kind import StateKind
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -50,6 +57,12 @@ class GraphNodeExecutionCompletedPropagateOutputHandler:
                 "role": graph_node_execution_completed_event.role.value,
                 "result": graph_node_execution_completed_event.result,
             }
-            graph_execution.add_state_input(output_payload, now)
-            await unit_of_work.graph_execution_repository.save(graph_execution)
-            unit_of_work.stage_events(graph_execution.pull_events())
+            state = GraphExecutionState.create(
+                id_=GraphExecutionStateId.generate(),
+                graph_execution_id=graph_execution.id,
+                kind=StateKind.INPUT,
+                now=now,
+            )
+            state.patch(output_payload)
+            await unit_of_work.graph_execution_state_repository.save(state)
+            unit_of_work.stage_events(state.pull_events())

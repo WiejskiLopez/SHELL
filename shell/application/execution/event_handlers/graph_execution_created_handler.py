@@ -5,6 +5,13 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
     GraphExecutionCreatedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
+)
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
+from shell.domain.execution.value_objects.state_kind import StateKind
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -57,7 +64,15 @@ class GraphExecutionCreatedHandler:
                     return
 
                 if graph_execution_created_event.goal:
-                    graph_execution.add_state_input({"goal": graph_execution_created_event.goal}, now)
+                    state = GraphExecutionState.create(
+                        id_=GraphExecutionStateId.generate(),
+                        graph_execution_id=graph_execution.id,
+                        kind=StateKind.INPUT,
+                        now=now,
+                    )
+                    state.patch({"goal": graph_execution_created_event.goal})
+                    await unit_of_work.graph_execution_state_repository.save(state)
+                    unit_of_work.stage_events(state.pull_events())
 
                 task_execution.start(now)
                 await unit_of_work.task_execution_repository.save(task_execution)

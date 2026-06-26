@@ -54,7 +54,7 @@ class ImportTaskExecutionHandler:
                 now=current_time,
             )
             state_input = TaskExecutionState.create(
-                id_=self._id_generator.new_task_execution_state_input_id(),
+                id_=self._id_generator.new_task_execution_state_id(),
                 task_execution_id=task_execution.id,
                 payload=StateData({"description": content}),
                 now=CreatedAt.from_datetime(current_time),

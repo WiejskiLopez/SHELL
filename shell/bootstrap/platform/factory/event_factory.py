@@ -28,7 +28,7 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
     GraphNodeExecutionStartedEvent,
 )
-from shell.domain.execution.aggregates.session.events.session_opened_event import (
+from shell.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
         GraphNodeTransitionExecutionRepository,
     )
-    from shell.domain.execution.aggregates.session.repositories.session_repository import SessionRepository
+    from shell.domain.session.aggregates.session.repositories.session_repository import SessionRepository
     from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
         TaskExecutionRepository,
     )
@@ -36,6 +36,9 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
         WorkflowRepository,
+    )
+    from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+        WorkflowStateRepository,
     )
     from shell.domain.platform.events import DomainEvent
 
@@ -82,6 +85,9 @@ class UnitOfWork(Protocol):
 
     @property
     def graph_node_transition_execution_repository(self) -> GraphNodeTransitionExecutionRepository: ...
+
+    @property
+    def workflow_state_repository(self) -> WorkflowStateRepository: ...
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
 

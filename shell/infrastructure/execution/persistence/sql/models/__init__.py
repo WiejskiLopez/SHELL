@@ -36,17 +36,15 @@ from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.session import (
+from shell.infrastructure.session.persistence.sql.models.session import (
     SessionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.task_execution import TaskExecutionModel
-from shell.infrastructure.execution.persistence.sql.models.task_execution_state_input import (
-    TaskExecutionStateInputModel,
-)
-from shell.infrastructure.execution.persistence.sql.models.task_execution_state_output import (
-    TaskExecutionStateOutputModel,
+from shell.infrastructure.execution.persistence.sql.models.task_execution_state import (
+    TaskExecutionStateModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
+from shell.infrastructure.execution.persistence.sql.models.workflow_state import WorkflowStateModel
 
 __all__ = [
     "Base",
@@ -67,10 +65,10 @@ __all__ = [
     "JSONB",
     "Mapped",
     "SessionModel",
-    "TaskExecutionStateInputModel",
     "TaskExecutionModel",
-    "TaskExecutionStateOutputModel",
+    "TaskExecutionStateModel",
     "WorkflowModel",
+    "WorkflowStateModel",
     "annotations",
     "datetime",
     "mapped_column",
