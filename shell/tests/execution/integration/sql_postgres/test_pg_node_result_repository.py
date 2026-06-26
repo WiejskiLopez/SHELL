@@ -13,6 +13,8 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 )
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 
@@ -32,10 +34,10 @@ class TestPgNodeResultRepository:
             )
             node = GraphNodeExecution(
                 id=GraphNodeExecutionId("pg-node-nr-1"),
-                position=0,
+                position=NodeOrder(0),
                 mode=Mode.WORKER,
                 role="worker",
-                node_type="worker",
+                node_type=NodeType("worker"),
             )
             await u.graph_node_execution_repository.save(node)
 

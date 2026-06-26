@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.envelope.value_objects.envelope_event_id import (
     EnvelopeEventId,
 )
+from shell.domain.execution.aggregates.envelope.value_objects.envelope_event_kind import (
+    EnvelopeEventKind,
+)
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.base.entity import Entity
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class EnvelopeEvent(Entity[EnvelopeEventId]):
@@ -17,9 +17,9 @@ class EnvelopeEvent(Entity[EnvelopeEventId]):
     def __init__(
         self,
         id: EnvelopeEventId,
-        kind: str,
-        payload: dict[str, object],
-        created_at: datetime,
+        kind: EnvelopeEventKind,
+        payload: StateData,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._kind = kind
@@ -27,13 +27,13 @@ class EnvelopeEvent(Entity[EnvelopeEventId]):
         self._created_at = created_at
 
     @property
-    def kind(self) -> str:
+    def kind(self) -> EnvelopeEventKind:
         return self._kind
 
     @property
-    def payload(self) -> dict[str, object]:
-        return dict(self._payload)
+    def payload(self) -> StateData:
+        return self._payload
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at

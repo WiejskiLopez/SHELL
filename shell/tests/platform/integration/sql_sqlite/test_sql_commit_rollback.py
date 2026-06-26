@@ -26,7 +26,7 @@ class TestSqlCommitRollback:
         self,
         session_factory: async_sessionmaker,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
     ) -> None:
         sql_uow = SqlAlchemyUnitOfWork(session_factory)
         try:
@@ -36,7 +36,7 @@ class TestSqlCommitRollback:
 
                 await u.runner_config_repository.save(
                     RunnerConfig.new(
-                        id_=id_gen.new_runner_config_id(),
+                        id_=id_generator.new_runner_config_id(),
                         package_name="rollback-runner",
                         kind="python",
                         body={"key": "value"},

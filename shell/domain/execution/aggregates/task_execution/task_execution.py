@@ -10,6 +10,7 @@ from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -36,7 +37,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
-        created_at: Any = None,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
@@ -45,7 +46,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._current_cycle = PlanningCycle(0)
         self._name = name if name is not None else TaskName("default")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
-        self._created_at = created_at  # type: ignore[assignment]
+        self._created_at = created_at
         self._state_data: dict[str, object] = {}
 
     @classmethod
@@ -56,7 +57,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
-        created_at: Any = None,
+        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -129,12 +130,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
                 f"Cannot timeout task in status {self._status}"
             )
         self._status = TaskExecutionStatus.TIMED_OUT
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_timed_out_event import (
-            TaskExecutionTimedOutEvent,
+        from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
+            TaskExecutionTimeoutExpiredEvent,
         )
 
         self.append_event(
-            TaskExecutionTimedOutEvent.now(
+            TaskExecutionTimeoutExpiredEvent.now(
                 task_execution_id=self._id,
                 now=now,
             )
@@ -201,12 +202,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     def workflow_id(self) -> WorkflowId | None:
         return self._workflow_id
 
-    # Legacy properties
     @property
-    def created_at(self) -> Any:
+    def created_at(self) -> CreatedAt | None:
         return self._created_at
 
-    # Legacy methods
     def rename(self, new_name: TaskName) -> None:
         self._name = new_name
 

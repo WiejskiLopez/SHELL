@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.framework.platform.cli.parser import build_parser
-from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+if TYPE_CHECKING:
+    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -27,6 +28,8 @@ _MODE_RUNNER_ROOTS: dict[str, str] = {
 
 
 def _get_config() -> ShellConfig:
+    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+
     config = ShellConfig.from_environment()
     config.max_step = _get_max_step()
     return config

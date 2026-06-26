@@ -24,5 +24,11 @@ class CreatedAt(ValueObject):
     def now(cls) -> CreatedAt:
         return cls(datetime.now(tz=UTC))
 
+    @classmethod
+    def from_datetime(cls, dt: datetime) -> CreatedAt:
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return cls(dt)
+
     def to_timestamp(self) -> Timestamp:
         return Timestamp(self.value)

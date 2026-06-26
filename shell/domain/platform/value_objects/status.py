@@ -23,7 +23,6 @@ class Status(ValueObject):
     def __str__(self) -> str:
         return self.value
 
-    # Common sentinel values
     @classmethod
     def idle(cls) -> Status:
         return cls("idle")

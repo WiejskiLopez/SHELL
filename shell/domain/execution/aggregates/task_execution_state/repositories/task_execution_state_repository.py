@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
     )
+    from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
 class TaskExecutionStateRepository(Protocol):
@@ -16,4 +17,4 @@ class TaskExecutionStateRepository(Protocol):
 
     async def save(self, payload: TaskExecutionState) -> None: ...
     async def delete(self, id: object) -> None: ...
-    async def exists(self, id: object) -> bool: ...
+    async def exists(self, id: object) -> ExistsResult: ...

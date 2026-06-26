@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_ready_event import (
-    GraphExecutionReadyEvent,
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_prepared_event import (
+    GraphExecutionPreparedEvent,
 )
 
 if TYPE_CHECKING:
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
-class GraphExecutionReadyHandler:
+class GraphExecutionPreparedHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,
@@ -23,7 +23,7 @@ class GraphExecutionReadyHandler:
         self._clock = clock
         self._logger = logger
 
-    async def handle(self, event: GraphExecutionReadyEvent) -> None:
+    async def handle(self, event: GraphExecutionPreparedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph = await unit_of_work.graph_execution_repository.get_by_id(event.graph_execution_id)
             if graph is None:

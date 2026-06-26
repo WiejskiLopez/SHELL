@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     )
 
 
-class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
+class InMemoryTaskExecutionStateInputRepository(TaskExecutionStateRepository):
     def __init__(self) -> None:
         self._store: dict[str, TaskExecutionState] = {}
 
@@ -23,7 +23,7 @@ class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
         self, task_execution_id: TaskExecutionId
     ) -> TaskExecutionState | None:
         for payload in self._store.values():
-            if payload.task_execution_id == task_execution_id and payload.is_current:
+            if payload.task_execution_id == task_execution_id and payload.is_current.value:
                 return payload
         return None
 
@@ -38,3 +38,6 @@ class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
 
     async def exists(self, id: object) -> bool:
         ...
+
+
+InMemoryTaskExecutionStateRepository = InMemoryTaskExecutionStateInputRepository  # alias dla wstecznej kompatybilności

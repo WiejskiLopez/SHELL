@@ -11,7 +11,7 @@ from shell.domain.execution.events import (
     EnvelopeDeadletteredEvent,
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
-    GraphNodeExecutionTimedOutEvent,
+    GraphNodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -33,7 +33,7 @@ class EventDeserializer:
             "WorkflowCompleted": WorkflowCompletedEvent,
             "WorkflowFailed": WorkflowFailedEvent,
 
-            "GraphNodeExecutionTimedOut": GraphNodeExecutionTimedOutEvent,
+            "GraphNodeExecutionTimedOut": GraphNodeExecutionTimeoutExpiredEvent,
         }
         self._serializer = DomainEventSerializer()
 

@@ -10,6 +10,10 @@ from shell.domain.execution.value_objects.graph_node_execution_status import (
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.mode import Mode
@@ -42,12 +46,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         graph_execution_id: GraphExecutionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
-        position: int = 0,
+        position: NodeOrder = NodeOrder(0),
         mode: Mode = Mode.WORKER,
-        node_type: str = "",
-        remaining_retries: int = 0,
-        retry_delay_seconds: int = 0,
-        timeout_seconds: int = 0,
+        node_type: NodeType = NodeType(""),
+        remaining_retries: RemainingRetries = RemainingRetries(0),
+        retry_delay_seconds: RetryDelaySeconds = RetryDelaySeconds(0),
+        timeout_seconds: TimeoutSeconds = TimeoutSeconds(0),
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -68,12 +72,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         graph_execution_id: GraphExecutionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
-        position: int = 0,
+        position: NodeOrder = NodeOrder(0),
         mode: Mode = Mode.WORKER,
-        node_type: str = "",
-        remaining_retries: int = 0,
-        retry_delay_seconds: int = 0,
-        timeout_seconds: int = 0,
+        node_type: NodeType = NodeType(""),
+        remaining_retries: RemainingRetries = RemainingRetries(0),
+        retry_delay_seconds: RetryDelaySeconds = RetryDelaySeconds(0),
+        timeout_seconds: TimeoutSeconds = TimeoutSeconds(0),
     ) -> Self:
         return cls(
             id=id,
@@ -99,12 +103,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         parent_graph_execution_id: GraphExecutionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
-        position: int = 0,
+        position: NodeOrder = NodeOrder(0),
         mode: Mode = Mode.WORKER,
-        node_type: str = "",
-        remaining_retries: int = 0,
-        retry_delay_seconds: int = 0,
-        timeout_seconds: int = 0,
+        node_type: NodeType = NodeType(""),
+        remaining_retries: RemainingRetries = RemainingRetries(0),
+        retry_delay_seconds: RetryDelaySeconds = RetryDelaySeconds(0),
+        timeout_seconds: TimeoutSeconds = TimeoutSeconds(0),
         now: datetime,
     ) -> GraphNodeExecution:
         instance = cls(
@@ -224,12 +228,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
                 f"Cannot timeout node in status {self._status}"
             )
         self._status = GraphNodeExecutionStatus.TIMED_OUT
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timed_out_event import (
-            GraphNodeExecutionTimedOutEvent,
+        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
+            GraphNodeExecutionTimeoutExpiredEvent,
         )
 
         self.append_event(
-            GraphNodeExecutionTimedOutEvent.now(
+            GraphNodeExecutionTimeoutExpiredEvent.now(
                 node_id=self._id,
                 role=self._role,
                 now=now,

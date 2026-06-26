@@ -1,3 +1,6 @@
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_constructed_event import (
+    GraphExecutionConstructedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
     GraphExecutionCompletedEvent,
 )
@@ -21,6 +24,7 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_su
 )
 
 __all__ = [
+    "GraphExecutionConstructedEvent",
     "GraphExecutionCreatedEvent",
     "GraphExecutionPlanningStartedEvent",
     "GraphExecutionSpawnedEvent",

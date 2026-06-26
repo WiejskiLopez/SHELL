@@ -7,10 +7,10 @@ from shell.domain.execution.aggregates.agent_config_execution.repositories.agent
     AgentConfigExecutionRepository,
 )
 from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
-    AgentConfigExecutionId,  # noqa: TC002
+    AgentConfigExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 from shell.domain.execution.aggregates.session.value_objects.session_id import (
-    SessionId,  # noqa: TC002
+    SessionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 
 if TYPE_CHECKING:

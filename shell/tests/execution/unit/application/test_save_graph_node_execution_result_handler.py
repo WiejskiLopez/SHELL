@@ -15,6 +15,8 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
     GraphNodeExecution,
 )
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.platform.value_objects.mode import Mode
@@ -32,10 +34,10 @@ class TestSaveGraphNodeExecutionResultHandler:
 
         node = GraphNodeExecution(
             id=GraphNodeExecutionId("node-1"),
-            position=0,
+            position=NodeOrder(0),
             mode=Mode.WORKER,
             role="worker",
-            node_type="worker",
+            node_type=NodeType("worker"),
         )
         await unit_of_work.graph_node_execution_repository.save(node)
 

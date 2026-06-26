@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.
     GraphNodeExecutionStateId,
 )
 from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
 class GraphNodeExecutionStateRepository(Protocol):
@@ -31,4 +32,4 @@ class GraphNodeExecutionStateRepository(Protocol):
 
     async def delete(self, id_: GraphNodeExecutionStateId) -> None: ...
 
-    async def exists(self, id_: GraphNodeExecutionStateId) -> bool: ...
+    async def exists(self, id_: GraphNodeExecutionStateId) -> ExistsResult: ...

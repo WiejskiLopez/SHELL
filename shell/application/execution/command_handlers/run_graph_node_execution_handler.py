@@ -58,7 +58,6 @@ class RunGraphNodeExecutionHandler:
 
             await unit_of_work.workflow_repository.save(workflow)
 
-        # Execute strategy (outside UoW — may take a long time)
         try:
             exec_result = await self._strategy.execute(
                 graph_node_execution_id=run_graph_node_execution_command.graph_node_execution_id,

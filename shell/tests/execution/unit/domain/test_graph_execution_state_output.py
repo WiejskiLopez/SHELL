@@ -14,7 +14,10 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.value_objects.is_current import IsCurrent
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")
@@ -33,7 +36,7 @@ class TestGraphExecutionStateOutputCreate:
     def test_create_has_empty_state(self) -> None:
         state = _make_state()
         assert state.state_data == {}
-        assert state.is_current is True
+        assert state.is_current == IsCurrent(True)
         assert state.graph_execution_id == _GE_ID
 
     def test_create_with_initial_data(self) -> None:
@@ -41,9 +44,9 @@ class TestGraphExecutionStateOutputCreate:
             id=GraphExecutionStateId.generate(),
             graph_execution_id=_GE_ID,
             kind=StateKind.OUTPUT,
-            state_data={"k": "v"},
-            is_current=True,
-            created_at=_NOW,
+            state_data=StateData({"k": "v"}),
+            is_current=IsCurrent(True),
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         assert state.get("k") == "v"
 
@@ -122,9 +125,9 @@ class TestGraphExecutionStateOutputMerge:
 class TestGraphExecutionStateOutputSupersede:
     def test_supersede_flags_not_current(self) -> None:
         state = _make_state()
-        assert state.is_current is True
+        assert state.is_current == IsCurrent(True)
         state.supersede()
-        assert state.is_current is False
+        assert state.is_current == IsCurrent(False)
 
 
 class TestGraphExecutionStateOutputSnapshot:

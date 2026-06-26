@@ -12,7 +12,7 @@ from shell.application.platform.exceptions import GraphDefinitionNotFoundExcepti
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
 from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
-from shell.domain.execution.events import GraphExecutionBuiltEvent, TaskExecutionCreatedEvent
+from shell.domain.execution.events import GraphExecutionConstructedEvent, TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     GraphNodeExecutionDefinition,
@@ -174,8 +174,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
-        assert len(graph_execution.graph_node_executions) == 2
-        assert any(isinstance(e, GraphExecutionBuiltEvent) for e in unit_of_work.committed_events)
+        nodes = await unit_of_work.graph_node_execution_repository.list_by_graph_execution_id(graph_execution.id)
+        assert len(nodes) == 2
+        assert any(isinstance(e, GraphExecutionConstructedEvent) for e in unit_of_work.committed_events)
 
     async def test_graph_definition_not_found_raises(
         self,
@@ -190,7 +191,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         )
 
         fresh_unit_of_work = InMemoryUnitOfWork()
-        fresh_unit_of_work._graph_definitions = InMemoryGraphDefinitionRepository()
+        fresh_unit_of_work._graph_definition_repository = InMemoryGraphDefinitionRepository()
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
             fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
         )
@@ -242,7 +243,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         )
 
         fresh_unit_of_work = InMemoryUnitOfWork()
-        fresh_unit_of_work._graph_definitions = InMemoryGraphDefinitionRepository()
+        fresh_unit_of_work._graph_definition_repository = InMemoryGraphDefinitionRepository()
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
             fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
         )

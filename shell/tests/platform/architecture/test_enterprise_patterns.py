@@ -38,12 +38,23 @@ def _get_imports(path: pathlib.Path) -> list[str]:
     except SyntaxError:
         return []
     imports: list[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom) and node.module:
-            imports.append(node.module)
+
+    def _collect_imports(body: list[ast.stmt]) -> None:
+        for node in body:
+            if isinstance(node, (ast.Import, ast.ImportFrom)):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        imports.append(alias.name)
+                elif isinstance(node, ast.ImportFrom) and node.module:
+                    imports.append(node.module)
+            elif isinstance(node, ast.If):
+                test_id = None
+                if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+                    continue
+                _collect_imports(node.body)
+                _collect_imports(node.orelse)
+
+    _collect_imports(tree.body)
     return imports
 
 

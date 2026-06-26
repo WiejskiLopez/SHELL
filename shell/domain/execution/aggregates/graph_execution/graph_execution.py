@@ -30,14 +30,14 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        depth: int = 0,
-        max_subgraph_depth: int = 5,
+        depth: GraphDepth = GraphDepth(0),
+        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._parent_graph_execution_id = parent_graph_execution_id
-        self._depth = GraphDepth(depth)
-        self._max_subgraph_depth = MaxSubgraphDepth(max_subgraph_depth)
+        self._depth = depth
+        self._max_subgraph_depth = max_subgraph_depth
         self._status = GraphExecutionStatus.PENDING
 
     @classmethod
@@ -46,8 +46,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        depth: int = 0,
-        max_subgraph_depth: int = 5,
+        depth: GraphDepth = GraphDepth(0),
+        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
     ) -> Self:
         return cls(
             id=id,
@@ -163,8 +163,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         cls,
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        depth: int = 0,
-        max_subgraph_depth: int = 5,
+        depth: GraphDepth = GraphDepth(0),
+        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
     ) -> GraphExecution:
         instance = cls(
             id=id_,
@@ -181,13 +181,13 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         parent_id: GraphExecutionId,
-        parent_depth: int,
-        max_subgraph_depth: int = 5,
+        parent_depth: GraphDepth,
+        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
     ) -> GraphExecution:
-        depth_val = parent_depth + 1
-        if depth_val > max_subgraph_depth:
+        depth_val = GraphDepth(parent_depth.value + 1)
+        if depth_val.value > max_subgraph_depth.value:
             raise ValueError(
-                f"Cannot create sub-graph at depth {depth_val}, max is {max_subgraph_depth}"
+                f"Cannot create sub-graph at depth {depth_val.value}, max is {max_subgraph_depth.value}"
             )
         instance = cls(
             id=id_,

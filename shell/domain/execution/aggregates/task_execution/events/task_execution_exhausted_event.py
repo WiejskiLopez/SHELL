@@ -7,21 +7,23 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
+from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
 from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)
 class TaskExecutionExhaustedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
-    current_cycle: int
-    max_planning_cycles: int
+    current_cycle: PlanningCycle
+    max_planning_cycles: MaxPlanningCycles
 
     @classmethod
     def now(
         cls,
         task_execution_id: TaskExecutionId,
-        current_cycle: int,
-        max_planning_cycles: int,
+        current_cycle: PlanningCycle,
+        max_planning_cycles: MaxPlanningCycles,
         now: datetime,
     ) -> TaskExecutionExhaustedEvent:
         return cls(
@@ -39,6 +41,6 @@ class TaskExecutionExhaustedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
-            current_cycle=payload.get("current_cycle"),
-            max_planning_cycles=payload.get("max_planning_cycles"),
+            current_cycle=PlanningCycle(payload.get("current_cycle")),
+            max_planning_cycles=MaxPlanningCycles(payload.get("max_planning_cycles")),
         )

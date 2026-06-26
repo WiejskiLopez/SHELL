@@ -10,7 +10,7 @@ from shell.application.execution.event_handlers.graph_node_execution_completed_h
     GraphNodeExecutionCompletedHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_timed_out_handler import (
-    GraphNodeExecutionTimedOutHandler,
+    GraphNodeExecutionTimeoutExpiredHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_worker import (
     GraphNodeExecutionWorker,
@@ -114,7 +114,7 @@ class EventContainer(containers.DeclarativeContainer):
         policy=domain.graph_node_execution_policy_factory,
     )
     graph_node_execution_timed_out_handler_factory = providers.Factory(
-        GraphNodeExecutionTimedOutHandler,
+        GraphNodeExecutionTimeoutExpiredHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,

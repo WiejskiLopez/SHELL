@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
@@ -10,7 +7,11 @@ from shell.domain.execution.aggregates.workflow.value_objects.graph_node_executi
     GraphNodeExecutionResultId,
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
 from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.status import Status
 
 
@@ -31,10 +32,10 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         graph_node_execution_id: GraphNodeExecutionId,
         workflow_id: WorkflowId,
         status: Status,
-        stdout: str,
-        stderr: str,
-        artifact_uri: str,
-        created_at: datetime,
+        stdout: ExecutionStdout,
+        stderr: ExecutionStderr,
+        artifact_uri: ArtifactUri,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._graph_node_execution_id = graph_node_execution_id
@@ -58,19 +59,19 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         return self._status
 
     @property
-    def stdout(self) -> str:
+    def stdout(self) -> ExecutionStdout:
         return self._stdout
 
     @property
-    def stderr(self) -> str:
+    def stderr(self) -> ExecutionStderr:
         return self._stderr
 
     @property
-    def artifact_uri(self) -> str:
+    def artifact_uri(self) -> ArtifactUri:
         return self._artifact_uri
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod
@@ -81,10 +82,10 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         graph_node_execution_id: GraphNodeExecutionId,
         workflow_id: WorkflowId,
         status: Status,
-        stdout: str = "",
-        stderr: str = "",
-        artifact_uri: str = "",
-        now: datetime,
+        stdout: ExecutionStdout = ExecutionStdout(""),
+        stderr: ExecutionStderr = ExecutionStderr(""),
+        artifact_uri: ArtifactUri = ArtifactUri(""),
+        now: CreatedAt,
     ) -> GraphNodeExecutionResult:
         return cls(
             id=id_,

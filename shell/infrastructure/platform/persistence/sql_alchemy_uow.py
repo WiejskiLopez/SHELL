@@ -155,10 +155,14 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     async def __aenter__(self) -> SqlAlchemyUnitOfWork:
         self._session = self._factory()
         await self._session.__aenter__()
+        self._committed = False
         return self
 
     async def __aexit__(self, *args: object) -> None:
         if self._session is not None:
+            exc_type = args[0] if args else None
+            if exc_type is None and not self._committed:
+                await self.commit()
             await self._session.__aexit__(*args)
             self._session = None
 
@@ -170,10 +174,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                 outbox = OutboxEventModel(
                     id=str(uuid.uuid4()),
                     event_type=type(event).__name__,
-                    aggregate_id=event.aggregate_id,
-                    aggregate_type=event.aggregate_type,
-                    data=DomainEventSerializer.serialize(event),
                     occurred_at=event.occurred_at,
+                    payload=DomainEventSerializer().to_payload(event),
                 )
                 self._session.add(outbox)
             await self._session.commit()

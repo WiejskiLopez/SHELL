@@ -9,11 +9,12 @@ OUTPUT state represents data produced by the graph's own nodes during execution.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
+from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
@@ -42,7 +43,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     _graph_execution_id: GraphExecutionId
     _kind: StateKind
     _state_data: StateData
-    _is_current: bool
+    _is_current: IsCurrent
     _created_at: CreatedAt
 
     def __init__(
@@ -50,14 +51,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         kind: StateKind = StateKind.INPUT,
-        state_data: StateData | None = None,
-        is_current: bool = True,
+        state_data: StateData = StateData({}),
+        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
         self._kind = kind
-        self._state_data = state_data or StateData({})
+        self._state_data = state_data
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
@@ -68,8 +69,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         kind: StateKind = StateKind.INPUT,
-        state_data: StateData | None = None,
-        is_current: bool = True,
+        state_data: StateData = StateData({}),
+        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
@@ -92,11 +93,11 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._kind
 
     @property
-    def state_data(self) -> StateData:
-        return self._state_data
+    def state_data(self) -> dict[str, Any]:
+        return self._state_data.to_dict().copy()
 
     @property
-    def is_current(self) -> bool:
+    def is_current(self) -> IsCurrent:
         return self._is_current
 
     @property
@@ -119,7 +120,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             graph_execution_id=graph_execution_id,
             kind=kind,
             state_data=StateData({}),
-            is_current=True,
+            is_current=IsCurrent(True),
             created_at=now,
         )
         instance._created_at = now
@@ -186,8 +187,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             if key not in current:
                 self.update(key, value)
 
-    def snapshot(self) -> StateData:
-        return self._state_data
+    def snapshot(self) -> dict[str, Any]:
+        return self._state_data.to_dict().copy()
 
     def supersede(self) -> None:
-        self._is_current = False
+        self._is_current = IsCurrent(False)

@@ -4,16 +4,16 @@ import copy
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,  # noqa: TC002
+    GraphExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,  # noqa: TC002
+    GraphNodeExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
     GraphNodeTransitionExecutionRepository,
 )
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
-    GraphNodeTransitionExecutionId,  # noqa: TC002
+    GraphNodeTransitionExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 
 if TYPE_CHECKING:

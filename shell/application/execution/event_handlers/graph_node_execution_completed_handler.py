@@ -202,7 +202,7 @@ class GraphNodeExecutionCompletedHandler:
                 loop_transition = t
                 break
 
-        if loop_transition is None or loop_transition.max_iterations is None or loop_transition.max_iterations <= 0:
+        if loop_transition is None or loop_transition.max_iterations.value is None or loop_transition.max_iterations.value <= 0:
             await self._advance_or_finish(
                 workflow=workflow,
                 graph_execution=graph_execution,

@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.condition_expression import ConditionExpression
+from shell.domain.execution.value_objects.current_iteration import CurrentIteration
+from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.max_iterations import MaxIterations
 from shell.domain.execution.value_objects.transition_status import TransitionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
@@ -44,9 +46,9 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
     _spawn_spec: SpawnSpec | None
     _edge_type: EdgeType
     _condition_expression: ConditionExpression | None
-    _max_iterations: int | None
+    _max_iterations: MaxIterations
     _status: TransitionStatus
-    _current_iteration: int
+    _current_iteration: CurrentIteration
 
     def __init__(
         self,
@@ -57,7 +59,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
-        max_iterations: int | None = None,
+        max_iterations: MaxIterations = MaxIterations(None),
     ) -> None:
         super().__init__(id_)
         self._graph_execution_id = graph_execution_id
@@ -68,7 +70,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         self._condition_expression = condition_expression
         self._max_iterations = max_iterations
         self._status = TransitionStatus.EVALUATED
-        self._current_iteration = 0
+        self._current_iteration = CurrentIteration(0)
 
     @classmethod
     def restore(
@@ -80,7 +82,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
-        max_iterations: int | None = None,
+        max_iterations: MaxIterations = MaxIterations(None),
     ) -> Self:
         return cls(
             id_=id_,
@@ -134,7 +136,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         graph_execution_id: GraphExecutionId,
         source_node_execution_id: GraphNodeExecutionId,
         target_node_execution_id: GraphNodeExecutionId,
-        max_iterations: int,
+        max_iterations: MaxIterations,
     ) -> GraphNodeTransitionExecution:
         return cls(
             id_=id_,
@@ -216,12 +218,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
                 f"Cannot take transition in status {self._status}"
             )
         self._status = TransitionStatus.TAKEN
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_transition_taken_event import (
-            GraphNodeTransitionExecutionTransitionTakenEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_transition_applied_event import (
+            GraphNodeTransitionExecutionTransitionAppliedEvent,
         )
 
         self.append_event(
-            GraphNodeTransitionExecutionTransitionTakenEvent.now(
+            GraphNodeTransitionExecutionTransitionAppliedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
                 target_node_id=self._target_node_execution_id,
@@ -245,7 +247,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             raise InvalidTransitionError(
                 f"Cannot loop non-LOOP transition (type={self._edge_type})"
             )
-        self._current_iteration += 1
+        self._current_iteration = CurrentIteration(self._current_iteration.value + 1)
         self._status = TransitionStatus.EVALUATED
         from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_looped_event import (
             GraphNodeTransitionExecutionLoopedEvent,
@@ -314,12 +316,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             raise InvalidTransitionError(
                 f"Cannot handle timeout for non-TIMEOUT transition (type={self._edge_type})"
             )
-        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_timed_out_event import (
-            GraphNodeTransitionExecutionTimedOutEvent,
+        from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_timeout_expired_event import (
+            GraphNodeTransitionExecutionTimeoutExpiredEvent,
         )
 
         self.append_event(
-            GraphNodeTransitionExecutionTimedOutEvent.now(
+            GraphNodeTransitionExecutionTimeoutExpiredEvent.now(
                 transition_id=self._id,
                 node_id=node_id,
                 handler_node_id=handler_node_id,
@@ -353,7 +355,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         return self._condition_expression
 
     @property
-    def max_iterations(self) -> int | None:
+    def max_iterations(self) -> MaxIterations:
         return self._max_iterations
 
     @property
@@ -361,7 +363,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         return self._status
 
     @property
-    def current_iteration(self) -> int:
+    def current_iteration(self) -> CurrentIteration:
         return self._current_iteration
 
 

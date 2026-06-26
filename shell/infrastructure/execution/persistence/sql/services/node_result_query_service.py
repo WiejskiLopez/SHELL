@@ -23,7 +23,7 @@ class NodeResultQueryService:
             stmt = (
                 select(GraphNodeExecutionStateOutputModel)
                 .where(GraphNodeExecutionStateOutputModel.graph_node_execution_id == graph_node_execution_id)
-                .where(GraphNodeExecutionStateOutputModel.is_current == True)  # noqa: E712
+                .where(GraphNodeExecutionStateOutputModel.is_current == True)  # noqa: E712 -- comparison to True is intentional
                 .limit(1)
             )
             res = await session.execute(stmt)

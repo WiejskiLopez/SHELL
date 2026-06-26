@@ -23,7 +23,7 @@ class InMemoryGraphNodeExecutionStateInputRepository(GraphNodeExecutionStateInpu
         self, graph_node_execution_id: GraphNodeExecutionId
     ) -> GraphNodeExecutionStateInput | None:
         for payload in self._store.values():
-            if payload.graph_node_execution_id == graph_node_execution_id and payload.is_current:
+            if payload.graph_node_execution_id == graph_node_execution_id and payload.is_current.value:
                 return payload
         return None
 

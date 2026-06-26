@@ -99,8 +99,8 @@ class SessionState(AggregateRoot[SessionStateId]):
         self._state_data = StateData(new_data)
         self.append_event(
             SessionStateChangedEvent.now(
-                session_id=self._session_id.value,
-                session_state_id=self.id.value,
+                session_id=self._session_id,
+                session_state_id=self.id,
                 kind=self._kind,
                 key=key,
                 old_value=old_value,
@@ -120,8 +120,8 @@ class SessionState(AggregateRoot[SessionStateId]):
             self._state_data = StateData(new_data)
             self.append_event(
                 SessionStateChangedEvent.now(
-                    session_id=self._session_id.value,
-                    session_state_id=self.id.value,
+                    session_id=self._session_id,
+                    session_state_id=self.id,
                     kind=self._kind,
                     key=key,
                     old_value=old_value,

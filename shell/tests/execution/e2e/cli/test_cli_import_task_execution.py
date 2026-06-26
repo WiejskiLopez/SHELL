@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from shell.tests.conftest import _db_url
+from shell.tests.conftest_helpers import _db_url
 
 
 class TestCliImportTaskExecution:

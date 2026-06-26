@@ -48,11 +48,11 @@ class TestImportTaskExecutionHandler:
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await unit_of_work.task_execution_state_input_repository.get_latest_by_task_id(
+        state_input = await unit_of_work.task_execution_state_repository.get_latest_by_task_id(
             TaskExecutionId(task_execution_id)
         )
         assert state_input is not None
-        assert state_input.payload == {"description": "# SQL Task"}
+        assert state_input.payload.to_dict() == {"description": "# SQL Task"}
 
     async def test_reimport_creates_new_state_input(
         self,

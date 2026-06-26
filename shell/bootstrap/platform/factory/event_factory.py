@@ -37,7 +37,7 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_comp
 from shell.domain.execution.events import (
     EnvelopeExpiredEvent,
     EnvelopeRoutedEvent,
-    GraphNodeExecutionTimedOutEvent,
+    GraphNodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -70,7 +70,7 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowCompletedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
-        GraphNodeExecutionTimedOutEvent,
+        GraphNodeExecutionTimeoutExpiredEvent,
         events.graph_node_execution_timed_out_handler_factory,
     )
     event_bus.subscribe(

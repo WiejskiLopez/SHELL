@@ -1,6 +1,7 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
+import pytest
 
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
@@ -30,13 +31,13 @@ class TestSqlTaskExecutionRepository:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         events: FakeEventPublisher,
         task_execution_loader: FakeTaskLoader,
         session_factory,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_generator, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "sql-task"))
 

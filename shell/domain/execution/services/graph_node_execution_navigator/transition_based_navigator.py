@@ -141,5 +141,5 @@ class TransitionBasedGraphNodeExecutionNavigator:
         nodes = await node_repo.list_by_graph_execution_id(graph_execution.id)
         if not nodes:
             return None
-        ordered = sorted(nodes, key=lambda n: n.position)
+        ordered = sorted(nodes, key=lambda n: n.position.value)
         return ordered[0] if ordered else None

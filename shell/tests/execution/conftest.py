@@ -224,12 +224,13 @@ def _graph_node_execution(
 
 
 def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecution:
-    return GraphExecution(
+    ge = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=TaskExecutionId.generate(),
-        graph_definition_id="tpl",
-        graph_node_execution_ids=[n.id for n in graph_node_executions],
     )
+    for node in graph_node_executions:
+        node._graph_execution_id = ge.id
+    return ge
 
 
 # ---------------------------------------------------------------------------
@@ -324,12 +325,11 @@ def _build_graph_execution(
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
-        graph_definition_id="tpl",
-        graph_node_execution_ids=[n.id for n in graph_node_executions],
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
         unit_of_work.graph_node_execution_repository._store[node.id.value] = node
+    object.__setattr__(graph_execution, '_cached_nodes', graph_node_executions)
     unit_of_work.graph_execution_repository._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
@@ -354,7 +354,7 @@ def _make_worker(
     runner: FakeGraphNodeExecutionProcessRunner,
 ) -> GraphNodeExecutionWorker:
     return GraphNodeExecutionWorker(
-        uow=unit_of_work,
+        unit_of_work=unit_of_work,
         clock=FakeClock(_NOW),
         id_generator=FakeIdGenerator(),
         runner=runner,
@@ -366,7 +366,7 @@ def _make_result_handler(
     unit_of_work: InMemoryUnitOfWork,
 ) -> GraphNodeExecutionCompletedHandler:
     return GraphNodeExecutionCompletedHandler(
-        uow=unit_of_work,
+        unit_of_work=unit_of_work,
         clock=FakeClock(_NOW),
         id_generator=FakeIdGenerator(),
         logger=FakeLogger(),
@@ -456,8 +456,6 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
-        graph_definition_id="tpl",
-        graph_node_execution_ids=[n.id for n in graph_node_executions],
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
@@ -471,12 +469,12 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
     if runner is None:
         runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
     worker = GraphNodeExecutionWorker(
-        uow=unit_of_work, clock=clock, id_generator=id_generator, logger=logger, runner=runner
+        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger, runner=runner
     )
     result_handler = GraphNodeExecutionCompletedHandler(
-        uow=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
+        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
-    bootstrap_handler = RunTaskerWorkflowHandler(uow=unit_of_work, clock=clock, id_generator=id_generator)
+    bootstrap_handler = RunTaskerWorkflowHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
     all_events = []
     await bootstrap_handler.handle(command)
     all_events.extend(unit_of_work.committed_events)
@@ -500,4 +498,7 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
         if not has_work:
             break
     return all_events
+
+
+
 

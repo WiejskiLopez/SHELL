@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import pytest
-from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
-    WorkflowFailedEvent,
+from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
+    WorkflowAbortedEvent,
 )
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-from shell.tests.conftest import _NOW, _new_workflow
+from shell.tests.conftest_helpers import _NOW, _new_workflow
 
 
 class TestAbort:
@@ -18,15 +18,17 @@ class TestAbort:
         wf.abort(reason="boom", now=_NOW, task_execution_id=TaskExecutionId("task-456"))
         assert wf.status == WorkflowStatus.ABORTED
         events = wf.pull_events()
-        assert any(isinstance(e, WorkflowFailedEvent) for e in events)
+        assert any(isinstance(e, WorkflowAbortedEvent) for e in events)
 
-    def test_abort_from_active_without_task_execution_id_emits_no_event(self) -> None:
+    def test_abort_from_active_without_task_execution_id_emits_event(self) -> None:
         wf = _new_workflow()
         wf.start_at(now=_NOW)
         wf.pull_events()
         wf.abort(reason="boom", now=_NOW)
         assert wf.status == WorkflowStatus.ABORTED
-        assert wf.pull_events() == []
+        events = wf.pull_events()
+        assert len(events) == 1
+        assert isinstance(events[0], WorkflowAbortedEvent)
 
     def test_abort_from_active_transitions_to_aborted_directly(self) -> None:
         wf = _new_workflow()

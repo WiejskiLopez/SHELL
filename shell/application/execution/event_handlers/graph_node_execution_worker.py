@@ -34,6 +34,7 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
     GraphNodeExecutionFailedEvent,
 )
+from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,  # noqa: TC002 — GraphNodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
 )
@@ -128,8 +129,6 @@ class GraphNodeExecutionWorker:
         )
 
         # ── 3. Reload + record result (transactional) ───────────────────
-        # NOTE: next-step decision (advance / finish / abort) is handled
-        # by GraphNodeExecutionResultHandler (Cycle B).
         try:
             await self._commit_step(
                 graph_node_execution_requested_event=graph_node_execution_requested_event,
@@ -224,7 +223,7 @@ class GraphNodeExecutionWorker:
             if success:
                 staged_events.append(
                     GraphNodeExecutionCompletedEvent.now(
-                        graph_node_execution_id=graph_node_execution_requested_event.graph_node_execution_id,
+                        node_id=graph_node_execution_requested_event.graph_node_execution_id,
                         workflow_id=workflow.id,
                         result_id=self._id_generator.new_graph_node_execution_result_id(),
                         now=now,
@@ -233,9 +232,9 @@ class GraphNodeExecutionWorker:
             else:
                 staged_events.append(
                     GraphNodeExecutionFailedEvent.now(
-                        graph_node_execution_id=graph_node_execution_requested_event.graph_node_execution_id,
+                        node_id=graph_node_execution_requested_event.graph_node_execution_id,
                         workflow_id=workflow.id,
-                        reason=stderr or "unknown error",
+                        error=ErrorDescription(stderr or "unknown error"),
                         now=now,
                     )
                 )

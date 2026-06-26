@@ -109,7 +109,7 @@ class WorkflowTransitionService:
         if loop_transition_execution is None:
             return AdvanceOrFinishSignal()
 
-        if loop_transition_execution.current_iteration >= loop_transition_execution.max_iterations:
+        if loop_transition_execution.current_iteration.value >= (loop_transition_execution.max_iterations.value or 0):
             return AdvanceOrFinishSignal()
 
         return LoopDecision(

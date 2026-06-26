@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
+from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.platform.events import DomainEvent
 
 
@@ -19,7 +20,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
     transition_id: GraphNodeTransitionExecutionId
     source_node_id: GraphNodeExecutionId
-    iteration: int = 0
+    iteration: CurrentIteration = CurrentIteration(0)
 
     @classmethod
     def now(
@@ -27,7 +28,7 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
         now: datetime,
-        iteration: int = 0,
+        iteration: CurrentIteration = CurrentIteration(0),
     ) -> GraphNodeTransitionExecutionLoopedEvent:
         return cls(
             occurred_at=now,
@@ -45,5 +46,5 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
             schema_version=schema_version,
             transition_id=GraphNodeTransitionExecutionId(payload.get("transition_id")),
             source_node_id=GraphNodeExecutionId(payload.get("source_node_id")),
-            iteration=payload.get("iteration", 0),
+            iteration=CurrentIteration(payload.get("iteration", 0)),
         )

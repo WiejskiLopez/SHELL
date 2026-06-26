@@ -32,7 +32,7 @@ class TestRagDocument:
         texts = ["chunk one", "chunk two", "chunk three"]
         embs = [b"\x00" * 4, b"\x00" * 4, b"\x00" * 4]
         doc = self._make_doc()
-        doc.add_chunks(ids, texts, embs, "hash-stub")
+        doc.add_chunks(ids, texts, embs, "hash-stub", now=_NOW)
         assert len(doc.chunks) == 3
         assert doc.chunks[0].chunk_index == 0
         assert doc.chunks[2].chunk_text == "chunk three"
@@ -40,7 +40,7 @@ class TestRagDocument:
     def test_add_chunks_mismatched_length_raises(self) -> None:
         doc = self._make_doc()
         with pytest.raises(ValueError, match="equal length"):
-            doc.add_chunks([RagChunkId.generate()], ["a", "b"], [b"\x00" * 4, b"\x00" * 4], "m")
+            doc.add_chunks([RagChunkId.generate()], ["a", "b"], [b"\x00" * 4, b"\x00" * 4], "m", now=_NOW)
 
     def test_empty_source_uri_raises(self) -> None:
         with pytest.raises(ValueError, match="source_uri"):

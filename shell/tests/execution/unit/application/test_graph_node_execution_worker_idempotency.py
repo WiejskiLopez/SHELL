@@ -9,7 +9,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
 )
-from shell.tests.conftest import (
+from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
     _make_worker,
@@ -20,9 +20,9 @@ from shell.tests.conftest import (
 class TestGraphNodeExecutionWorkerIdempotency:
     async def test_terminal_workflow_ignores_event(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution = _build_graph_execution(unit_of_work, "terminal", ["agent"])
+        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "terminal", ["agent"])
         wf = await _persist_running_workflow(
-            unit_of_work, task_execution.id, graph_execution.graph_node_executions[0].id
+            unit_of_work, task_execution.id, _nodes[0].id
         )
 
         wf.finish(now=_NOW)
@@ -35,9 +35,10 @@ class TestGraphNodeExecutionWorkerIdempotency:
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
-                wf.id, graph_execution.graph_node_executions[0].id, now=_NOW
+                wf.id, _nodes[0].id, now=_NOW
             )
         )
 
         assert runner.calls == []
         assert unit_of_work.committed_events == []
+

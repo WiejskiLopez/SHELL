@@ -1,19 +1,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+    GraphNodeExecutionStateId,
+)
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)
 class GraphNodeExecutionStateChangedEvent(DomainEvent):
-    graph_node_execution_id: str
-    graph_node_execution_state_id: str
+    graph_node_execution_id: GraphNodeExecutionId
+    graph_node_execution_state_id: GraphNodeExecutionStateId
     kind: str
     key: str
     old_value: object | None = None
@@ -22,8 +28,8 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
     @classmethod
     def now(
         cls,
-        graph_node_execution_id: str,
-        graph_node_execution_state_id: str,
+        graph_node_execution_id: GraphNodeExecutionId,
+        graph_node_execution_state_id: GraphNodeExecutionStateId,
         kind: StateKind,
         key: str,
         now: datetime,
@@ -38,4 +44,19 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
             key=key,
             old_value=old_value,
             new_value=new_value,
+        )
+
+    @classmethod
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
+        return cls(
+            occurred_at=occurred_at,
+            schema_version=schema_version,
+            graph_node_execution_id=GraphNodeExecutionId(payload.get("graph_node_execution_id")),
+            graph_node_execution_state_id=GraphNodeExecutionStateId(payload.get("graph_node_execution_state_id")),
+            kind=payload.get("kind"),
+            key=payload.get("key"),
+            old_value=payload.get("old_value"),
+            new_value=payload.get("new_value"),
         )

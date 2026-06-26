@@ -1,6 +1,7 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
+import pytest
 
 from typing import TYPE_CHECKING
 
@@ -22,7 +23,7 @@ class TestSqlSessionRepository:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.execution.command_handlers.session_handlers import (
@@ -38,7 +39,7 @@ class TestSqlSessionRepository:
             GetSessionHistoryHandler,
         )
 
-        session_id = await OpenSessionHandler(sql_uow, clock, id_gen).handle(
+        session_id = await OpenSessionHandler(sql_uow, clock, id_generator).handle(
             OpenSessionCommand(goal="integration test")
         )
         await CloseSessionHandler(sql_uow, clock).handle(

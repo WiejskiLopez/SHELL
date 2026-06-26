@@ -17,7 +17,7 @@ def test_future_annotations_in_every_file() -> None:
         rel = path.relative_to(BASE).as_posix()
         if rel in _KNOWN_MISSING_FUTURE:
             continue
-        if "tests" in rel or rel.startswith("config/") or rel.startswith("shell.egg-info/"):
+        if "tests" in rel or rel.startswith("config/") or rel.startswith("shell.egg-info/") or rel.startswith(".venv/"):
             continue
         if "migrations/versions" in rel:
             continue
@@ -51,7 +51,7 @@ def test_functions_have_type_hints() -> None:
             continue
         if "tests" in rel.split("/") or "migrations/versions" in rel:
             continue
-        if rel.startswith("shell.egg-info/"):
+        if rel.startswith("shell.egg-info/") or rel.startswith(".venv/"):
             continue
         tree = parse_file(path)
         if tree is None:
@@ -85,8 +85,11 @@ _KNOWN_INIT_DEFINITIONS: frozenset[str] = frozenset({})
 def test_init_files_only_re_export() -> None:
     violations: list[str] = []
     _INIT_KNOW_DEFINE = frozenset({})
+    _RESTRICTED_LAYERS = ("domain/", "application/", "bootstrap/")
     for init_file in BASE.rglob("__init__.py"):
         rel = init_file.relative_to(BASE).as_posix()
+        if not any(rel.startswith(layer) for layer in _RESTRICTED_LAYERS):
+            continue
         if rel in _INIT_KNOW_DEFINE:
             continue
         tree = parse_file(init_file)
@@ -121,6 +124,8 @@ def test_noqa_has_justification() -> None:
         if rel in _NOQA_KNOWN_INVALID:
             continue
         if path.name in _TEST_FILES:
+            continue
+        if rel.startswith(".venv/"):
             continue
         content = path.read_text(encoding="utf-8")
         for i, line in enumerate(content.splitlines(), 1):

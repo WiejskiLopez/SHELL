@@ -50,23 +50,23 @@ class TestShouldExpire:
         assert not EnvelopeLifecycleService.should_expire(e, 5)
 
 
-class TestAdvance:
-    def test_advance_dead_when_step_exceeds_max(self) -> None:
+class TestEvaluateStatus:
+    def test_evaluate_status_dead_when_step_exceeds_max(self) -> None:
         e = _make_envelope(step=5, status=EnvelopeStatus.ACTIVE)
-        result = EnvelopeLifecycleService.advance(e, 3)
+        result = EnvelopeLifecycleService.evaluate_status(e, 3)
         assert result == EnvelopeStatus.DEAD
 
-    def test_advance_keeps_status_when_below_max(self) -> None:
+    def test_evaluate_status_keeps_status_when_below_max(self) -> None:
         e = _make_envelope(step=2, status=EnvelopeStatus.ACTIVE)
-        result = EnvelopeLifecycleService.advance(e, 5)
+        result = EnvelopeLifecycleService.evaluate_status(e, 5)
         assert result == EnvelopeStatus.ACTIVE
 
-    def test_advance_max_step_zero_keeps_status(self) -> None:
+    def test_evaluate_status_max_step_zero_keeps_status(self) -> None:
         e = _make_envelope(step=99, status=EnvelopeStatus.ACTIVE)
-        result = EnvelopeLifecycleService.advance(e, 0)
+        result = EnvelopeLifecycleService.evaluate_status(e, 0)
         assert result == EnvelopeStatus.ACTIVE
 
-    def test_advance_pending_stays_pending_when_not_expired(self) -> None:
+    def test_evaluate_status_pending_stays_pending_when_not_expired(self) -> None:
         e = _make_envelope(step=0, status=EnvelopeStatus.PENDING)
-        result = EnvelopeLifecycleService.advance(e, 10)
+        result = EnvelopeLifecycleService.evaluate_status(e, 10)
         assert result == EnvelopeStatus.PENDING

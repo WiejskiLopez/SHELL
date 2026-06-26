@@ -43,7 +43,7 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
         return graph_execution_state_input_model_to_entity(row) if row else None
 
     async def save(self, state: GraphExecutionState) -> None:
-        if state.is_current:
+        if state.is_current.value:
             await self._session.execute(
                 update(GraphExecutionStateInputModel)
                 .where(

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.execution.value_objects.environment import Environment
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
@@ -63,6 +64,10 @@ from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.status import Status
 from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.is_current import IsCurrent
+from shell.domain.execution.value_objects.max_iterations import MaxIterations
+from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
@@ -81,6 +86,8 @@ from shell.infrastructure.execution.persistence.sql.models import (
     GraphNodeTransitionExecutionModel,
     SessionModel,
     TaskExecutionModel,
+    TaskExecutionStateInputModel,
+    TaskExecutionStateOutputModel,
     WorkflowModel,
 )
 
@@ -140,9 +147,9 @@ def task_execution_input_payload_model_to_entity(
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         kind=StateKind.INPUT,
-        payload=dict(model.payload),
-        is_current=model.is_current,
-        created_at=_ensure_utc(model.created_at),
+        payload=StateData(dict(model.payload)),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -152,9 +159,9 @@ def task_execution_input_payload_entity_to_model(
     return TaskExecutionStateInputModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -170,9 +177,9 @@ def task_execution_output_payload_model_to_entity(
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         kind=StateKind.OUTPUT,
-        payload=dict(model.payload),
-        is_current=model.is_current,
-        created_at=_ensure_utc(model.created_at),
+        payload=StateData(dict(model.payload)),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -182,9 +189,9 @@ def task_execution_output_payload_entity_to_model(
     return TaskExecutionStateOutputModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -199,9 +206,9 @@ def graph_node_execution_state_input_model_to_entity(
     return GraphNodeExecutionStateInput(
         id=GraphNodeExecutionStateInputId(model.id),
         graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
-        payload=dict(model.payload),
-        is_current=model.is_current,
-        created_at=_ensure_utc(model.created_at),
+        payload=StateData(dict(model.payload)),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -211,9 +218,9 @@ def graph_node_execution_state_input_entity_to_model(
     return GraphNodeExecutionStateInputModel(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -228,9 +235,9 @@ def graph_node_execution_state_output_model_to_entity(
     return GraphNodeExecutionStateOutput(
         id=GraphNodeExecutionStateOutputId(model.id),
         graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
-        payload=dict(model.payload),
-        is_current=model.is_current,
-        created_at=_ensure_utc(model.created_at),
+        payload=StateData(dict(model.payload)),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -240,9 +247,9 @@ def graph_node_execution_state_output_entity_to_model(
     return GraphNodeExecutionStateOutputModel(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -274,7 +281,7 @@ def transition_definition_model_to_entity(
         priority=model.priority,
         condition_expression=model.condition_expression,
         condition_language=model.condition_language,
-        max_iterations=model.max_loop_count,
+        max_iterations=MaxIterations(model.max_loop_count),
         timeout_seconds=model.timeout_seconds,
         retry_count=model.retry_count,
         retry_delay_seconds=model.retry_delay_seconds,
@@ -297,7 +304,7 @@ def transition_definition_entity_to_model(
         priority=transition.priority,
         condition_expression=transition.condition_expression,
         condition_language=transition.condition_language,
-        max_loop_count=transition.max_iterations,
+        max_loop_count=transition.max_iterations.value if transition.max_iterations else None,
         timeout_seconds=transition.timeout_seconds,
         retry_count=transition.retry_count,
         retry_delay_seconds=transition.retry_delay_seconds,
@@ -717,12 +724,23 @@ def graph_node_definition_update_model(model: GraphNodeDefinitionModel, entity: 
 
 
 def session_model_to_entity(session_model: SessionModel) -> Session:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
+    from shell.domain.projekt.value_objects.project_id import ProjectId
+    from shell.domain.user.value_objects.user_id import UserId
+
     return Session(
         id=SessionId(session_model.id),
-        goal=session_model.goal,
+        user_id=UserId(session_model.user_id),
+        project_id=ProjectId(session_model.project_id),
+        environment=Environment(
+            os=session_model.environment_os,
+            runtime=session_model.environment_runtime,
+            cwd=session_model.environment_cwd,
+        ),
         status=session_model.status,
-        opened_at=_ensure_utc(session_model.opened_at),
-        closed_at=_ensure_utc(session_model.closed_at) if session_model.closed_at else None,
+        opened_at=CreatedAt.from_datetime(session_model.opened_at),
+        closed_at=UpdatedAt.from_datetime(session_model.closed_at) if session_model.closed_at else None,
     )
 
 
@@ -731,16 +749,26 @@ def session_entity_to_model(session: Session) -> SessionModel:
         id=session.id.value,
         goal=session.goal,
         status=session.status,
-        opened_at=session.opened_at,
-        closed_at=session.closed_at,
+        user_id=session.user_id.value,
+        project_id=session.project_id.value,
+        environment_os=session.environment.os,
+        environment_runtime=session.environment.runtime,
+        environment_cwd=session.environment.cwd,
+        opened_at=session.opened_at.value,
+        closed_at=session.closed_at.value if session.closed_at is not None else None,
     )
 
 
 def session_update_model(model: SessionModel, entity: Session) -> None:
     model.goal = entity.goal
     model.status = entity.status
-    model.opened_at = entity.opened_at
-    model.closed_at = entity.closed_at
+    model.user_id = entity.user_id.value
+    model.project_id = entity.project_id.value
+    model.environment_os = entity.environment.os
+    model.environment_runtime = entity.environment.runtime
+    model.environment_cwd = entity.environment.cwd
+    model.opened_at = entity.opened_at.value
+    model.closed_at = entity.closed_at.value if entity.closed_at is not None else None
 
 
 # ---------------------------------------------------------------------------
@@ -828,9 +856,9 @@ def graph_execution_state_input_model_to_entity(model):
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         kind=StateKind.INPUT,
-        state_data=dict(model.payload) if model.payload else {},
-        is_current=model.is_current,
-        created_at=model.created_at,
+        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -842,9 +870,9 @@ def graph_execution_state_input_entity_to_model(entity):
     return GraphExecutionStateInputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
-        payload=entity.state_data,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.state_data.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -867,9 +895,9 @@ def graph_execution_state_output_model_to_entity(model):
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         kind=StateKind.OUTPUT,
-        state_data=dict(model.payload) if model.payload else {},
-        is_current=model.is_current,
-        created_at=model.created_at,
+        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
 
@@ -881,7 +909,7 @@ def graph_execution_state_output_entity_to_model(entity):
     return GraphExecutionStateOutputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
-        payload=entity.state_data,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.state_data.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )

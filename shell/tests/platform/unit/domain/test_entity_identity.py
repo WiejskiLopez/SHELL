@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.tests.conftest import _SampleEntity, _SampleId
+from shell.tests.conftest_helpers import _SampleEntity, _SampleId
 
 
 class TestEntityIdentity:

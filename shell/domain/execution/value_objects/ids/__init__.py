@@ -27,6 +27,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
     TaskExecutionStateId,
 )
+from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_input_id import (
+    TaskExecutionStateInputId,
+)
 from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
     GraphNodeExecutionResultId,
 )
@@ -45,5 +48,6 @@ __all__ = [
     "SessionId",
     "TaskExecutionId",
     "TaskExecutionStateId",
+    "TaskExecutionStateInputId",
     "WorkflowId",
 ]

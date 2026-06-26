@@ -10,6 +10,7 @@ if TYPE_CHECKING:
         GraphExecutionState,
     )
     from shell.domain.execution.value_objects.state_kind import StateKind
+    from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
 class GraphExecutionStateRepository(Protocol):
@@ -19,4 +20,4 @@ class GraphExecutionStateRepository(Protocol):
 
     async def save(self, state: GraphExecutionState) -> None: ...
     async def delete(self, id: object) -> None: ...
-    async def exists(self, id: object) -> bool: ...
+    async def exists(self, id: object) -> ExistsResult: ...

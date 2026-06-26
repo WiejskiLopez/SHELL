@@ -1,21 +1,16 @@
-"""BuildGraphExecutionOnTaskExecutionCreatedEventHandler — reacts to TaskExecutionCreatedEvent and builds a Graph.
-
-The Task aggregate is intentionally agnostic of which Graph realises it.
-This handler bridges that gap: when a Task is created, it materialises a
-Graph from a GraphDefinition (default name: ``base_planner``), persists it
-in its own transactional boundary, and forwards the resulting domain
-events (``GraphExecutionBuiltEvent``) downstream.
-"""
-
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.ports.graph_execution_definition_provider import (
-    GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze handlera
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_constructed_event import (
+    GraphExecutionConstructedEvent,
 )
+from shell.domain.execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,
+)
+from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -32,8 +27,6 @@ GRAPH_DEFINITION_NAME = "base_planner"
 
 
 class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
-    """Event handler — listens to ``TaskExecutionCreatedEvent`` and builds a Graph."""
-
     def __init__(
         self,
         unit_of_work: UnitOfWork,
@@ -62,7 +55,9 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
             )
 
         async with self._unit_of_work as unit_of_work:
-            existing = await unit_of_work.graph_execution_repository.get_by_task_execution_id(task_execution_created_event.task_execution_id)
+            existing = await unit_of_work.graph_execution_repository.get_by_task_execution_id(
+                task_execution_created_event.task_execution_id
+            )
             if existing is not None:
                 self._logger.info(
                     "Graph already exists for task — skipping build",
@@ -74,41 +69,36 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
                 GraphNodeExecution as GNE,
             )
 
-            node_ids: list[Any] = []
+            graph_execution_id = self._id_generator.new_graph_execution_id()
+            events: list[DomainEvent] = []
             for node_def in graph_definition.graph_node_execution_definitions:
                 node_id = self._id_generator.new_graph_node_execution_id()
                 node = GNE(
                     id=node_id,
+                    graph_execution_id=graph_execution_id,
                     position=node_def.position,
                     mode=Mode(node_def.mode),
                     role=node_def.role,
                     node_type=node_def.node_type,
-                    model=node_def.model,
-                    command=node_def.command,
-                    timeout=node_def.timeout,
-                    retries=node_def.retries,
-                    log_level=node_def.log_level,
-                    max_step=node_def.max_step or 0,
-                    no_ask_user=node_def.no_ask_user,
-                    autopilot=node_def.autopilot,
-                    status_initial=node_def.status_initial,
+                    remaining_retries=node_def.retries,
+                    retry_delay_seconds=0,
                     timeout_seconds=node_def.timeout,
-                    max_retries=node_def.retries,
                 )
                 await unit_of_work.graph_node_execution_repository.save(node)
-                node_ids.append(node_id)
 
-            graph_execution_id = self._id_generator.new_graph_execution_id()
-            graph_execution = GraphExecution.from_graph_definition(
-                id_=graph_execution_id,
+            graph_execution = GraphExecution(
+                id=graph_execution_id,
                 task_execution_id=task_execution_created_event.task_execution_id,
-                graph_definition=graph_definition,
-                node_ids=node_ids,
-                id_generator=self._id_generator,
-                now=now,
             )
             await unit_of_work.graph_execution_repository.save(graph_execution)
-            unit_of_work.stage_events(graph_execution.pull_events())
+            events.append(
+                GraphExecutionConstructedEvent.now(
+                    graph_execution_id=graph_execution.id,
+                    task_execution_id=task_execution_created_event.task_execution_id,
+                    now=now,
+                )
+            )
+            unit_of_work.stage_events(events)
 
         self._logger.info(
             "Graph built for task",

@@ -13,8 +13,8 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_fail
 from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
     TaskExecutionStartedEvent,
 )
-from shell.domain.execution.aggregates.task_execution.events.task_execution_timed_out_event import (
-    TaskExecutionTimedOutEvent,
+from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
+    TaskExecutionTimeoutExpiredEvent,
 )
 
 __all__ = [
@@ -22,6 +22,6 @@ __all__ = [
     "TaskExecutionCompletedEvent",
     "TaskExecutionStartedEvent",
     "TaskExecutionFailedEvent",
-    "TaskExecutionTimedOutEvent",
+    "TaskExecutionTimeoutExpiredEvent",
     "TaskExecutionExhaustedEvent",
 ]

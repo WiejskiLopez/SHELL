@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
@@ -35,7 +36,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
     _task_execution_id: TaskExecutionId
     _kind: StateKind
     _payload: StateData
-    _is_current: bool
+    _is_current: IsCurrent
     _created_at: CreatedAt
 
     def __init__(
@@ -44,7 +45,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
         payload: StateData | None = None,
-        is_current: bool = True,
+        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -62,7 +63,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
         payload: StateData | None = None,
-        is_current: bool = True,
+        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
@@ -87,7 +88,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         return self._payload
 
     @property
-    def is_current(self) -> bool:
+    def is_current(self) -> IsCurrent:
         return self._is_current
 
     @property
@@ -109,9 +110,9 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
             task_execution_id=task_execution_id,
             kind=kind,
             payload=payload or StateData({}),
-            is_current=True,
+            is_current=IsCurrent(True),
             created_at=now,
         )
 
     def supersede(self) -> None:
-        self._is_current = False
+        self._is_current = IsCurrent(False)

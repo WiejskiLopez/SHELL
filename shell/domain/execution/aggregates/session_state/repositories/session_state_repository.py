@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.session_state.value_objects.session_state
     SessionStateId,
 )
 from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
 class SessionStateRepository(Protocol):
@@ -23,4 +24,4 @@ class SessionStateRepository(Protocol):
 
     async def delete(self, id_: SessionStateId) -> None: ...
 
-    async def exists(self, id_: SessionStateId) -> bool: ...
+    async def exists(self, id_: SessionStateId) -> ExistsResult: ...

@@ -47,7 +47,7 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
             existing.supersede()
             old_model = await self._session.get(TaskExecutionStateInputModel, existing.id.value)
             if old_model is not None:
-                old_model.is_current = existing.is_current
+                old_model.is_current = existing.is_current.value
             else:
                 old_model = task_execution_input_payload_entity_to_model(existing)
                 self._session.add(old_model)

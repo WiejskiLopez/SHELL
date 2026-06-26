@@ -17,6 +17,7 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
 )
 from shell.domain.execution.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.max_iterations import MaxIterations
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,
 )
@@ -69,7 +70,7 @@ class SqlGraphNodeTransitionExecutionRepository:
             priority=0,
             condition_expression=transition.condition_expression.value if transition.condition_expression else None,
             condition_language=None,
-            max_loop_count=transition.max_iterations if transition.max_iterations else 0,
+            max_loop_count=transition.max_iterations.value if transition.max_iterations else 0,
             label="",
             created_at=_now,
             updated_at=_now,
@@ -96,5 +97,5 @@ class SqlGraphNodeTransitionExecutionRepository:
             edge_type=EdgeType(model.transition_type.upper()),
             target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id) if model.target_node_execution_id else None,
             condition_expression=ConditionExpression(model.condition_expression) if model.condition_expression else None,
-            max_iterations=model.max_loop_count,
+            max_iterations=MaxIterations(model.max_loop_count),
         )

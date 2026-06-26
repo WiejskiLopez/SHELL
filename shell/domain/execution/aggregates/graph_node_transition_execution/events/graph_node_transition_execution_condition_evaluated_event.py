@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
+from shell.domain.execution.value_objects.condition_result import ConditionResult
 from shell.domain.platform.events import DomainEvent
 
 
@@ -19,7 +20,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphNodeTransitionExecutionConditionEvaluatedEvent(DomainEvent):
     transition_id: GraphNodeTransitionExecutionId
     source_node_id: GraphNodeExecutionId
-    condition_result: bool = False
+    condition_result: ConditionResult = ConditionResult(False)
 
     @classmethod
     def now(
@@ -27,7 +28,7 @@ class GraphNodeTransitionExecutionConditionEvaluatedEvent(DomainEvent):
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
         now: datetime,
-        condition_result: bool = False,
+        condition_result: ConditionResult = ConditionResult(False),
     ) -> GraphNodeTransitionExecutionConditionEvaluatedEvent:
         return cls(
             occurred_at=now,
@@ -45,5 +46,5 @@ class GraphNodeTransitionExecutionConditionEvaluatedEvent(DomainEvent):
             schema_version=schema_version,
             transition_id=GraphNodeTransitionExecutionId(payload.get("transition_id")),
             source_node_id=GraphNodeExecutionId(payload.get("source_node_id")),
-            condition_result=payload.get("condition_result", False),
+            condition_result=ConditionResult(payload.get("condition_result", False)),
         )

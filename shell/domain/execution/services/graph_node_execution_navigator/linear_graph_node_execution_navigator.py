@@ -30,7 +30,7 @@ class LinearGraphNodeExecutionNavigator:
         nodes = await node_repo.list_by_graph_execution_id(graph_execution.id)
         if not nodes:
             return None
-        ordered = sorted(nodes, key=lambda n: n.position)
+        ordered = sorted(nodes, key=lambda n: n.position.value)
         return ordered[0] if ordered else None
 
     @staticmethod
@@ -43,7 +43,7 @@ class LinearGraphNodeExecutionNavigator:
         nodes = await node_repo.list_by_graph_execution_id(graph_execution.id)
         if not nodes:
             return []
-        ordered = sorted(nodes, key=lambda n: n.position)
+        ordered = sorted(nodes, key=lambda n: n.position.value)
         for idx, node in enumerate(ordered):
             if node.id == graph_node_execution_id:
                 return [ordered[idx + 1]] if idx + 1 < len(ordered) else []

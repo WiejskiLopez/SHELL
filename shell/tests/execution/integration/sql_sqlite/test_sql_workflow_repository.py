@@ -1,6 +1,7 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
+import pytest
 
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,13 @@ from shell.application.platform.commands.commands import (
     ImportTaskExecutionCommand,
     StartWorkflowCommand,
 )
+from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.mode import Mode
 from shell.application.platform.queries.queries import GetWorkflowQuery
 from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
@@ -35,21 +43,15 @@ class TestSqlWorkflowRepository:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         events: FakeEventPublisher,
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
         imp = ImportTaskExecutionHandler(
-            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_generator, task_execution_loader, FakeLogger()
         )
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
-
-        from shell.domain.execution.aggregates.graph_execution import GraphExecution
-        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-        from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
-        from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-        from shell.domain.platform.value_objects.mode import Mode
 
         async with sql_uow as u:
             task_execution = await u.task_execution_repository.get_current_by_name(
@@ -60,27 +62,26 @@ class TestSqlWorkflowRepository:
             graph_execution = GraphExecution(
                 id=GraphExecutionId.generate(),
                 task_execution_id=task_execution.id,
-                graph_definition_id="tpl",
-                graph_node_executions=[
-                    GraphNodeExecution(
-                        id=GraphNodeExecutionId("wf-task-node-0"),
-                        position=0,
-                        mode=Mode("agent"),
-                        role="agent",
-                        node_type="agent",
-                    )
-                ],
             )
+            node = GraphNodeExecution(
+                id=GraphNodeExecutionId("wf-task-node-0"),
+                position=NodeOrder(0),
+                mode=Mode("agent"),
+                role="agent",
+                node_type=NodeType("agent"),
+            )
+            node._graph_execution_id = graph_execution.id
             await u.graph_execution_repository.save(graph_execution)
+            await u.graph_node_execution_repository.save(node)
             await u.commit()
 
-        start = StartWorkflowHandler(sql_uow, clock, id_gen)
+        start = StartWorkflowHandler(sql_uow, clock, id_generator)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
         q = GetWorkflowHandler(WorkflowQueryService(session_factory))
         dto = await q.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
-        assert dto.status == "running"
+        assert dto.status == "active"
 
     async def test_workflow_not_found_returns_none(
         self,

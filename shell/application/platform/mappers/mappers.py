@@ -100,9 +100,9 @@ def task_execution_input_payload_to_dto(
     return TaskExecutionStateInputDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value,
     )
 
 
@@ -112,9 +112,9 @@ def task_execution_output_payload_to_dto(
     return TaskExecutionStateOutputDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value,
     )
 
 
@@ -124,9 +124,9 @@ def graph_node_execution_state_input_to_dto(
     return GraphNodeExecutionStateInputDto(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -136,7 +136,7 @@ def graph_node_execution_state_output_to_dto(
     return GraphNodeExecutionStateOutputDto(
         id=entity.id.value,
         graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload,
-        is_current=entity.is_current,
-        created_at=entity.created_at,
+        payload=entity.payload.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
     )

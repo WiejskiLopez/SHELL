@@ -102,6 +102,7 @@ class RagDocument(AggregateRoot[RagDocumentId]):
         texts: list[str],
         embeddings: list[bytes],
         model: str,
+        now: datetime | None = None,
     ) -> None:
         if not (len(chunk_ids) == len(texts) == len(embeddings)):
             raise ValueError("chunk_ids, texts and embeddings must have equal length")
@@ -117,5 +118,5 @@ class RagDocument(AggregateRoot[RagDocumentId]):
                 )
             )
         self.append_event(
-            RagDocumentChunksAddedEvent.now(self.id, chunk_count=len(chunk_ids), model=model)
+            RagDocumentChunksAddedEvent.now(self.id, chunk_count=len(chunk_ids), model=model, now=now or self._created_at)
         )

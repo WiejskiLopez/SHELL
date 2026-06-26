@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timed_out_event import (
-    GraphNodeExecutionTimedOutEvent,
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
+    GraphNodeExecutionTimeoutExpiredEvent,
 )
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
-class GraphNodeExecutionTimedOutHandler:
+class GraphNodeExecutionTimeoutExpiredHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,
@@ -28,13 +28,13 @@ class GraphNodeExecutionTimedOutHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_node_execution_timed_out_event: GraphNodeExecutionTimedOutEvent) -> None:
+    async def handle(self, event: GraphNodeExecutionTimeoutExpiredEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_timed_out_event.node_id)
+            node = await unit_of_work.graph_node_execution_repository.get_by_id(event.node_id)
             if node is None:
                 self._logger.warning(
                     "graph_node_timed_out.node_not_found",
-                    node_id=graph_node_execution_timed_out_event.node_id.value,
+                    node_id=event.node_id.value,
                 )
                 return
 

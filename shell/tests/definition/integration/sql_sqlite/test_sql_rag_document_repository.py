@@ -1,6 +1,7 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
+import pytest
 
 from typing import TYPE_CHECKING
 
@@ -22,7 +23,7 @@ class TestSqlRagDocumentRepository:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.definition.command_handlers.index_document_handler import (
@@ -38,7 +39,7 @@ class TestSqlRagDocumentRepository:
         cmd = IndexDocumentCommand(
             source_uri="file:///sql_rag.md", title="SQL RAG", domain="sql-test", text=text
         )
-        await IndexDocumentHandler(sql_uow, clock, id_gen, embedder).handle(cmd)
+        await IndexDocumentHandler(sql_uow, clock, id_generator, embedder).handle(cmd)
 
         results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
             SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
@@ -50,7 +51,7 @@ class TestSqlRagDocumentRepository:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
         from shell.application.definition.command_handlers.index_document_handler import (
@@ -62,7 +63,7 @@ class TestSqlRagDocumentRepository:
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
-        await IndexDocumentHandler(sql_uow, clock, id_gen, embedder).handle(
+        await IndexDocumentHandler(sql_uow, clock, id_generator, embedder).handle(
             IndexDocumentCommand(
                 source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
             )

@@ -48,5 +48,5 @@ class SqlGraphNodeExecutionStateInputRepository(GraphNodeExecutionStateInputRepo
             model = graph_node_execution_state_input_entity_to_model(payload)
             self._session.add(model)
         else:
-            model.payload = payload.payload
-            model.is_current = payload.is_current
+            model.payload = payload.payload.to_dict()
+            model.is_current = payload.is_current.value

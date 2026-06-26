@@ -14,7 +14,7 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
     InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
 )
-from shell.tests.conftest import _make_task_with_graph_execution, _run_tasker_full
+from shell.tests.conftest_helpers import _make_task_with_graph_execution, _run_tasker_full
 
 
 class TestRunTaskerWorkflowHappyPath:

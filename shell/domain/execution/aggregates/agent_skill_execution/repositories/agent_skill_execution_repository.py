@@ -9,6 +9,7 @@ from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_executi
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
+from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
 class AgentSkillExecutionRepository(Protocol):
@@ -22,4 +23,4 @@ class AgentSkillExecutionRepository(Protocol):
 
     async def delete(self, id_: AgentSkillExecutionId) -> None: ...
 
-    async def exists(self, id_: AgentSkillExecutionId) -> bool: ...
+    async def exists(self, id_: AgentSkillExecutionId) -> ExistsResult: ...

@@ -6,6 +6,9 @@ from datetime import UTC, datetime
 
 import pytest
 from shell.domain.execution.aggregates.session import Session
+from shell.domain.execution.aggregates.session.exceptions.invalid_session_transition import (
+    InvalidSessionTransition,
+)
 from shell.domain.execution.value_objects.ids import SessionId
 
 _NOW = datetime(2025, 1, 1, tzinfo=UTC)
@@ -30,5 +33,5 @@ class TestSession:
     def test_close_twice_raises(self) -> None:
         s = self._make_session()
         s.close(_LATER)
-        with pytest.raises(ValueError, match="already closed"):
+        with pytest.raises(InvalidSessionTransition, match="Cannot close session"):
             s.close(_LATER)

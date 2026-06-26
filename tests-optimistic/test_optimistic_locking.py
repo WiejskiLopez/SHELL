@@ -98,7 +98,6 @@ class TestGraphExecutionOptimisticLocking:
                 await ub.commit()
 
 
-@pytest.mark.skip(reason="wymaga FK do graph_execution — schema mismatch")
 class TestGraphNodeExecutionOptimisticLocking:
     async def test_concurrent_modification_raises_error(
         self, session_factory: async_sessionmaker,
@@ -132,14 +131,13 @@ class TestGraphNodeExecutionOptimisticLocking:
             ma = await ua._active_session.get(GraphNodeExecutionModel, uid)
             mb = await ub._active_session.get(GraphNodeExecutionModel, uid)
             assert ma is not None and mb is not None and ma.version == 1 and mb.version == 1
-            ma.status = "running"
+            ma.log_level = "DEBUG"
             await ua.commit()
-            mb.status = "failed"
+            mb.log_level = "ERROR"
             with pytest.raises(ConcurrentModificationError):
                 await ub.commit()
 
 
-@pytest.mark.skip(reason="wymaga FK — schema mismatch")
 class TestGraphNodeTransitionExecutionOptimisticLocking:
     async def test_concurrent_modification_raises_error(
         self, session_factory: async_sessionmaker,
@@ -183,22 +181,23 @@ class TestGraphNodeTransitionExecutionOptimisticLocking:
             ma = await ua._active_session.get(GraphNodeTransitionExecutionModel, uid)
             mb = await ub._active_session.get(GraphNodeTransitionExecutionModel, uid)
             assert ma is not None and mb is not None and ma.version == 1 and mb.version == 1
-            ma.status = "taken"
+            ma.priority = 1
             await ua.commit()
-            mb.status = "skipped"
+            mb.priority = 2
             with pytest.raises(ConcurrentModificationError):
                 await ub.commit()
 
 
-@pytest.mark.skip(reason="schemat tabeli session nie jest zsynchronizowany z migracjami")
 class TestSessionOptimisticLocking:
     async def test_concurrent_modification_raises_error(
         self, session_factory: async_sessionmaker,
     ) -> None:
         from shell.infrastructure.execution.persistence.sql.models import SessionModel
+        from datetime import timezone
         await _test_dual_commit(session_factory, SessionModel, "ol-s-1",
-                                "status", "closed", "open",
-                                goal="test", status="open", opened_at=_NOW)
+                                "status", "closed", "paused",
+                                goal="test", status="open",
+                                opened_at=_NOW.replace(tzinfo=timezone.utc))
 
 
 class TestEnvelopeOptimisticLocking:
@@ -284,7 +283,6 @@ class TestRagDocumentOptimisticLocking:
                                 domain="test", created_at=_NOW)
 
 
-@pytest.mark.skip(reason="schemat tabeli scheduler_definition nie jest zsynchronizowany z migracjami")
 class TestSchedulerDefinitionOptimisticLocking:
     async def test_concurrent_modification_raises_error(
         self, session_factory: async_sessionmaker,
@@ -294,10 +292,12 @@ class TestSchedulerDefinitionOptimisticLocking:
         )
         await _test_dual_commit(session_factory, SchedulerDefinitionModel, "ol-sd-1",
                                 "name", "v2", "v3",
-                                name="v1")
+                                name="v1", source_context="ctx", trigger_event_type="evt",
+                                trigger_filter=None, action_type="action", action_config={},
+                                execution_policy=None, enabled=True,
+                                created_at=_NOW, updated_at=_NOW)
 
 
-@pytest.mark.skip(reason="schemat tabeli scheduler_execution nie jest zsynchronizowany z migracjami")
 class TestSchedulerJobOptimisticLocking:
     async def test_concurrent_modification_raises_error(
         self, session_factory: async_sessionmaker,
@@ -307,4 +307,5 @@ class TestSchedulerJobOptimisticLocking:
         )
         await _test_dual_commit(session_factory, SchedulerExecutionModel, "ol-sj-1",
                                 "name", "v2", "v3",
-                                scheduler_definition_id="sd1", name="v1")
+                                scheduler_definition_id="sd1", name="v1",
+                                created_at=_NOW, updated_at=_NOW)

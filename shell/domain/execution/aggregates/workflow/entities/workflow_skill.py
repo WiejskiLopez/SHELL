@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_skill_id import WorkflowSkillId
 from shell.domain.execution.value_objects.skill_payload import SkillPayload
 from shell.domain.platform.base.entity import Entity
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class WorkflowSkill(Entity[WorkflowSkillId]):
@@ -19,7 +15,7 @@ class WorkflowSkill(Entity[WorkflowSkillId]):
         id: WorkflowSkillId,
         workflow_id: WorkflowId,
         payload: SkillPayload,
-        created_at: datetime,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
@@ -35,5 +31,5 @@ class WorkflowSkill(Entity[WorkflowSkillId]):
         return self._payload
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at

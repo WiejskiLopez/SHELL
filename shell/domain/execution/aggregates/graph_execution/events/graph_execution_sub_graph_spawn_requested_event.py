@@ -14,7 +14,7 @@ from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
     parent_graph_execution_id: GraphExecutionId
     child_graph_execution_id: GraphExecutionId

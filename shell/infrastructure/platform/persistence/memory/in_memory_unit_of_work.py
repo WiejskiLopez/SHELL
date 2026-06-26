@@ -155,6 +155,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events = []
         return self
 
+    async def __aexit__(self, *args: object) -> None:
+        if args[0] is None:
+            await self.commit()
+        else:
+            await self.rollback()
+
     async def commit(self) -> None:
         self._committed = True
         self._committed_events.extend(self._staged_events)

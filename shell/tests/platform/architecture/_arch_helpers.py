@@ -155,8 +155,8 @@ def has_complex_type(annotation: ast.AST) -> bool:
 
 
 _KNOWN_ABBREVIATIONS: frozenset[str] = frozenset({
-    "repo", "cmd", "dto", "uow", "ctx", "args", "wf_id", "env_id",
-    "config", "utils", "svc", "bc", "db", "http", "json", "yaml",
+    "repo", "cmd", "uow", "ctx", "wf_id", "env_id",
+    "utils", "svc", "bc", "db", "http", "json", "yaml",
 })
 
 

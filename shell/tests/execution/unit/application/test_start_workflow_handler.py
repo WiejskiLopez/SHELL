@@ -43,6 +43,8 @@ class TestStartWorkflowHandler:
         from shell.domain.execution.aggregates.graph_execution import GraphExecution
         from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
         from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+        from shell.domain.execution.value_objects.node_order import NodeOrder
+        from shell.domain.execution.value_objects.node_type import NodeType
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
         from shell.domain.platform.value_objects.mode import Mode
 
@@ -53,18 +55,17 @@ class TestStartWorkflowHandler:
         graph_execution = GraphExecution(
             id=GraphExecutionId.generate(),
             task_execution_id=task_execution.id,
-            graph_definition_id="tpl",
-            graph_node_executions=[
-                GraphNodeExecution(
-                    id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
-                    position=0,
-                    mode=Mode("agent"),
-                    role="agent",
-                    node_type="agent",
-                )
-            ],
         )
+        node = GraphNodeExecution(
+            id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
+            position=NodeOrder(0),
+            mode=Mode("agent"),
+            role="agent",
+            node_type=NodeType("agent"),
+        )
+        node._graph_execution_id = graph_execution.id
         await unit_of_work.graph_execution_repository.save(graph_execution)
+        await unit_of_work.graph_node_execution_repository.save(node)
 
     async def test_happy_path(
         self,
@@ -109,4 +110,4 @@ class TestStartWorkflowHandler:
         q_handler = GetWorkflowHandler(queries)
         dto = await q_handler.handle(GetWorkflowQuery(wf_id))
         assert dto is not None
-        assert dto.status == "running"
+        assert dto.status == "active"

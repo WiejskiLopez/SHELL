@@ -6,6 +6,7 @@ from shell.application.execution.command_handlers.session_handlers.session_not_f
     SessionNotFound,
 )
 from shell.domain.execution.value_objects.ids import SessionId
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.commands.commands import CloseSessionCommand
@@ -22,5 +23,5 @@ class CloseSessionHandler:
             session = await unit_of_work.session_repository.get_by_id(SessionId(close_session_command.session_id))
             if session is None:
                 raise SessionNotFound(f"Session not found: {close_session_command.session_id}")
-            session.close(self._clock.now())
+            session.close(UpdatedAt.from_datetime(self._clock.now()))
             await unit_of_work.session_repository.save(session)

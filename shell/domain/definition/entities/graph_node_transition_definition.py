@@ -7,7 +7,7 @@ from shell.domain.definition.value_objects.ids import (
     GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
 )
-from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.platform.value_objects.edge_type import EdgeType
 from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:

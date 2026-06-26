@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
-    description: TaskDescription = TaskDescription("")
+    description: TaskDescription = field(default_factory=lambda: TaskDescription("default"))
     skills: list[SkillPayload] | None = None
 
     @classmethod
@@ -26,14 +26,14 @@ class TaskExecutionCreatedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
         now: datetime,
-        description: TaskDescription = TaskDescription(""),
+        description: str = "default",
         skills: list[SkillPayload] | None = None,
     ) -> TaskExecutionCreatedEvent:
         return cls(
             occurred_at=now,
             task_execution_id=task_execution_id,
             task_execution_name=task_execution_name,
-            description=description,
+            description=TaskDescription(description),
             skills=skills,
         )
 

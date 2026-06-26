@@ -12,6 +12,10 @@ from shell.domain.execution.aggregates.graph_node_execution_state.repositories.g
     GraphNodeExecutionStateRepository,
 )
 from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+    GraphNodeExecutionStateOutputModel,
+)
+from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +39,21 @@ class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
         ...
 
     async def save(self, state: GraphNodeExecutionState) -> None:
-        ...
+        if state.kind == StateKind.OUTPUT:
+            model = await self._session.get(
+                GraphNodeExecutionStateOutputModel, state.id.value
+            )
+            if model is None:
+                model = GraphNodeExecutionStateOutputModel(
+                    id=state.id.value,
+                    graph_node_execution_id=state.graph_node_execution_id.value,
+                    payload=state.state_data.to_dict(),
+                    is_current=True,
+                    created_at=state.created_at.value,
+                )
+                self._session.add(model)
+            else:
+                model.payload = state.state_data.to_dict()
 
     async def delete(self, id_: object) -> None:
         ...

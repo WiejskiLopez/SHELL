@@ -33,13 +33,13 @@ class TestTransactionalOutbox:
         self,
         sql_uow: SqlAlchemyUnitOfWork,
         clock: FakeClock,
-        id_gen: FakeIdGenerator,
+        id_generator: FakeIdGenerator,
         events: FakeEventPublisher,
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
         handler = ImportTaskExecutionHandler(
-            sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
+            sql_uow, clock, id_generator, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "atomic-task"))
 

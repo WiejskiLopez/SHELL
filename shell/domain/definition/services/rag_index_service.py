@@ -84,6 +84,7 @@ def build_rag_document(
         texts=chunks,
         embeddings=blobs,
         model=embedder.model_name,
+        now=now,
     )
     return doc
 

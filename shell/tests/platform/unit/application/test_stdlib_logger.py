@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from shell.tests.conftest import _spy_logger
+from shell.tests.conftest_helpers import _spy_logger
 
 
 class TestStdlibLogger:

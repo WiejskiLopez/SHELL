@@ -91,7 +91,7 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
             graph_node_execution_id=graph_node_execution_id,
             kind=kind,
             state_data=StateData(payload or {}),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now),
         )
         return instance
 
@@ -102,8 +102,8 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         self._state_data = StateData(new_data)
         self.append_event(
             GraphNodeExecutionStateChangedEvent.now(
-                graph_node_execution_id=self._graph_node_execution_id.value,
-                graph_node_execution_state_id=self.id.value,
+                graph_node_execution_id=self._graph_node_execution_id,
+                graph_node_execution_state_id=self.id,
                 kind=self._kind,
                 key=key,
                 old_value=old_value,
@@ -123,8 +123,8 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
             self._state_data = StateData(new_data)
             self.append_event(
                 GraphNodeExecutionStateChangedEvent.now(
-                    graph_node_execution_id=self._graph_node_execution_id.value,
-                    graph_node_execution_state_id=self.id.value,
+                    graph_node_execution_id=self._graph_node_execution_id,
+                    graph_node_execution_state_id=self.id,
                     kind=self._kind,
                     key=key,
                     old_value=old_value,

@@ -4,7 +4,7 @@ The Task aggregate is intentionally agnostic of which Graph realises it.
 This handler bridges that gap: when a Task is created, it materialises a
 Graph from a GraphDefinition (default name: ``base_planner``), persists it
 in its own transactional boundary, and forwards the resulting domain
-events (``GraphExecutionBuiltEvent``) downstream.
+events (``GraphExecutionConstructedEvent``) downstream.
 """
 
 from __future__ import annotations

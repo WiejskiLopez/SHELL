@@ -21,7 +21,7 @@ class TestRunTaskerWorkflowEdgeCases:
         id_generator: FakeIdGenerator,
     ) -> None:
         command = RunTaskerWorkflowCommand(task_execution_id="ghost-task-id", work_dir="/fake/dir")
-        handler = RunTaskerWorkflowHandler(uow=unit_of_work, clock=clock, id_generator=id_generator)
+        handler = RunTaskerWorkflowHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
 
         with pytest.raises(TaskExecutionNotFound):
             await handler.handle(command)
