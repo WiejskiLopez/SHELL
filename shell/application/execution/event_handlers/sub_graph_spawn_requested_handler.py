@@ -124,10 +124,6 @@ class SubGraphSpawnRequestedHandler:
                 await unit_of_work.graph_node_execution_repository.save(node)
                 unit_of_work.stage_events(list(node.pull_events()))
 
-            parent.set_spawn_expected_node_count(child_id, len(node_defs), now)
-            await unit_of_work.graph_execution_repository.save(parent)
-            unit_of_work.stage_events(list(parent.pull_events()))
-
             await unit_of_work.graph_execution_repository.save(child)
             unit_of_work.stage_events(list(child.pull_events()))
 

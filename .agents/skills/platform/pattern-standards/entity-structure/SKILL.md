@@ -21,6 +21,7 @@ class Node(Entity[NodeId]):
 
 - **Nie używać `@dataclass`** dla encji — tożsamość to nie równość strukturalna.
 - Obowiązkowo `__slots__` ze wszystkimi polami. Nie powtarzać `_id` (dziedziczony z `Entity`).
+- **Primitive Obsession**: wszystkie pola encji muszą być ValueObject, Entity lub ID. `str`, `int`, `bool`, `dict`, `list` są ZABRONIONE — nawet `dict[str, object]`.
 
 ```python
 class Node(Entity[NodeId]):

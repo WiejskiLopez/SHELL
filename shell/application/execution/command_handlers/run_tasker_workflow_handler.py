@@ -67,12 +67,14 @@ class RunTaskerWorkflowHandler:
 
             graph_executions = await unit_of_work.graph_execution_repository.get_by_workflow_id(workflow.id)
             if graph_executions:
-                first_node_ids = graph_executions[0].graph_node_execution_ids
-                if first_node_ids:
+                nodes = await unit_of_work.graph_node_execution_repository.list_by_graph_execution_id(
+                    graph_executions[0].id
+                )
+                if nodes:
                     unit_of_work.stage_events([
                         GraphNodeExecutionRequestedEvent.now(
                             workflow_id=workflow.id,
-                            graph_node_execution_id=first_node_ids[0],
+                            graph_node_execution_id=nodes[0].id,
                             now=now,
                         ),
                     ])

@@ -22,6 +22,7 @@ class Workflow(AggregateRoot[WorkflowId]):
 - **Nie używać `@dataclass`** dla agregatu — tożsamość to nie równość strukturalna.
 - Obowiązkowo `__slots__` ze wszystkimi polami. Nie powtarzać `_id` (dziedziczony z `AggregateRoot`).
 - `__eq__` i `__hash__` bazują wyłącznie na ID — nigdy na stanie.
+- **Primitive Obsession**: wszystkie pola agregatu muszą być ValueObject, Entity lub ID. `str`, `int`, `bool`, `dict`, `list` są ZABRONIONE.
 
 ```python
 class Workflow(AggregateRoot[WorkflowId]):

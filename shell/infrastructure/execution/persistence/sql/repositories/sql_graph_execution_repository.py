@@ -15,7 +15,6 @@ from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_model_to_entity,
 )
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from ..models import GraphExecutionModel
 from ..models.task_execution import TaskExecutionModel
@@ -31,10 +30,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         self._session = session
 
     def _base_query(self) -> Select[tuple[GraphExecutionModel]]:
-        return select(GraphExecutionModel).options(
-            selectinload(GraphExecutionModel.graph_node_execution_models),
-            selectinload(GraphExecutionModel.graph_node_transition_execution_models),
-        )
+        return select(GraphExecutionModel)
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
         query = self._base_query().where(GraphExecutionModel.id == graph_execution_id.value)
@@ -72,19 +68,18 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         return [graph_execution_model_to_entity(row) for row in rows if row is not None]
 
     async def save(self, graph_execution: GraphExecution) -> None:
-        graph_execution_model = graph_execution_entity_to_model(graph_execution)
-        await self._session.merge(graph_execution_model)
-
-        for node in graph_execution.graph_node_executions:
-            if hasattr(node, "id") and hasattr(node, "mode") and node.mode is not None:
-                if node.graph_execution_id is None:
-                    node._graph_execution_id = graph_execution.id
-                from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-                    _graph_node_execution_entity_to_model,
-                )
-
-                node_model = _graph_node_execution_entity_to_model(node)
-                await self._session.merge(node_model)
+        graph_execution_model = await self._session.get(GraphExecutionModel, graph_execution.id.value)
+        if graph_execution_model is None:
+            graph_execution_model = graph_execution_entity_to_model(graph_execution)
+            self._session.add(graph_execution_model)
+        else:
+            graph_execution_model.task_execution_id = graph_execution.task_execution_id.value
+            graph_execution_model.parent_graph_execution_id = (
+                graph_execution.parent_graph_execution_id.value
+                if graph_execution.parent_graph_execution_id
+                else None
+            )
+            graph_execution_model.depth = graph_execution.depth.value if graph_execution.depth else 0
 
 
 __all__ = [

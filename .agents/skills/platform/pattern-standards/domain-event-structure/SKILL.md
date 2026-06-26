@@ -29,6 +29,29 @@ class WorkflowStartedEvent(DomainEvent):
 
 - Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_type`, `occurred_at`, `correlation_id`, `causation_id`, `schema_version`.
 
+## ⚠️ Primitive Obsession
+
+Wszystkie pola eventu (poza metadanymi z bazy) muszą być ValueObjectami.
+
+ZABRONIONE:
+```python
+@dataclass
+class TaskCreatedEvent(DomainEvent):
+    reason: str           # ZŁO: str zamiast Reason
+    details: dict         # ZŁO: dict zamiast StateData
+    goal: str             # ZŁO: str zamiast Goal
+    config: dict[str, object]  # ZŁO: dict zamiast StateData
+```
+
+DOZWOLONE:
+```python
+@dataclass
+class TaskCreatedEvent(DomainEvent):
+    reason: Reason              # VO
+    details: StateData          # VO
+    goal: Goal                  # VO
+```
+
 ## Payload
 
 - Zawiera tylko fakty (co się stało), nigdy instrukcje (co ma się stać).

@@ -3,10 +3,11 @@ from __future__ import annotations
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class RagDocumentModel(Base):
+class RagDocumentModel(Base, VersionedMixin):
     __tablename__ = "rag_document"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -14,6 +15,10 @@ class RagDocumentModel(Base):
     title: Mapped[str] = mapped_column(nullable=False)
     domain: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     chunks: Mapped[list[RagChunkModel]] = relationship(
         "RagChunkModel", back_populates="document", cascade="all, delete-orphan"

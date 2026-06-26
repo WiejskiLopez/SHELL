@@ -3,7 +3,12 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
+from sqlalchemy.orm.exc import StaleDataError
+
 from shell.application.platform.ports.unit_of_work import UnitOfWork
+from shell.domain.platform.exceptions.concurrent_modification_error import (
+    ConcurrentModificationError,
+)
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionRepository,
     SqlRagDocumentRepository,
@@ -16,6 +21,8 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphExecutionStateInputRepository,
     SqlGraphExecutionStateOutputRepository,
     SqlGraphNodeExecutionRepository,
+    SqlGraphNodeExecutionStateRepository,
+    SqlGraphNodeTransitionExecutionRepository,
     SqlSessionRepository,
     SqlTaskExecutionRepository,
     SqlTaskExecutionStateInputRepository,
@@ -102,6 +109,14 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlGraphNodeExecutionRepository(self._active_session)
 
     @property
+    def graph_node_execution_state_repository(self) -> SqlGraphNodeExecutionStateRepository:
+        return SqlGraphNodeExecutionStateRepository(self._active_session)
+
+    @property
+    def graph_node_transition_execution_repository(self) -> SqlGraphNodeTransitionExecutionRepository:
+        return SqlGraphNodeTransitionExecutionRepository(self._active_session)
+
+    @property
     def graph_execution_state_input_repository(self) -> SqlGraphExecutionStateInputRepository:
         return SqlGraphExecutionStateInputRepository(self._active_session)
 
@@ -138,7 +153,8 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlSchedulerExecutionRepository(self._active_session)
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWork:
-        self._session = await self._factory.__aenter__()
+        self._session = self._factory()
+        await self._session.__aenter__()
         return self
 
     async def __aexit__(self, *args: object) -> None:
@@ -149,19 +165,23 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     async def commit(self) -> None:
         if self._session is None:
             return
-        for event in self._staged_events:
-            outbox = OutboxEventModel(
-                id=str(uuid.uuid4()),
-                event_type=type(event).__name__,
-                aggregate_id=event.aggregate_id,
-                aggregate_type=event.aggregate_type,
-                data=DomainEventSerializer.serialize(event),
-                occurred_at=event.occurred_at,
-            )
-            self._session.add(outbox)
-        await self._session.commit()
-        self._staged_events.clear()
-        self._committed = True
+        try:
+            for event in self._staged_events:
+                outbox = OutboxEventModel(
+                    id=str(uuid.uuid4()),
+                    event_type=type(event).__name__,
+                    aggregate_id=event.aggregate_id,
+                    aggregate_type=event.aggregate_type,
+                    data=DomainEventSerializer.serialize(event),
+                    occurred_at=event.occurred_at,
+                )
+                self._session.add(outbox)
+            await self._session.commit()
+            self._staged_events.clear()
+            self._committed = True
+        except StaleDataError as exc:
+            await self._session.rollback()
+            raise ConcurrentModificationError("Aggregate", str(exc)) from exc
 
     async def rollback(self) -> None:
         if self._session is not None:

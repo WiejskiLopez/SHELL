@@ -33,13 +33,8 @@ class GraphExecutionReadyHandler:
                 )
                 return
 
-            now = self._clock.now()
-            graph.resume_from_ready(now)
-            await unit_of_work.graph_execution_repository.save(graph)
-            unit_of_work.stage_events(list(graph.pull_events()))
-
             self._logger.info(
-                "ready_handler.resumed",
+                "ready_handler.ready_received",
                 graph_id=event.graph_execution_id.value,
                 child_id=event.child_graph_execution_id.value,
             )

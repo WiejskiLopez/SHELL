@@ -6,87 +6,39 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
-    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_skill_execution_id import (
-        AgentSkillExecutionId,
-    )
-    from shell.domain.execution.aggregates.agent_execution.entities.agent_skill_execution import (
-        AgentSkillExecution,
-    )
     from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
         GraphNodeExecutionId,
     )
     from shell.domain.execution.value_objects.config import Config
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):
-    __slots__ = ("_graph_node_execution_id", "_config_snapshot", "_skills")
+    __slots__ = ("_graph_node_execution_id", "_config")
 
     _graph_node_execution_id: GraphNodeExecutionId
-    _config_snapshot: Config
-    _skills: list[AgentSkillExecution]
+    _config: Config
 
     def __init__(
         self,
         id_: AgentExecutionId,
         graph_node_execution_id: GraphNodeExecutionId,
-        config_snapshot: Config,
+        config: Config,
     ) -> None:
         super().__init__(id_)
         self._graph_node_execution_id = graph_node_execution_id
-        self._config_snapshot = config_snapshot
-        self._skills = []
+        self._config = config
 
     @classmethod
     def restore(
         cls,
         id_: AgentExecutionId,
         graph_node_execution_id: GraphNodeExecutionId,
-        config_snapshot: Config,
+        config: Config,
     ) -> Self:
         return cls(
             id_=id_,
             graph_node_execution_id=graph_node_execution_id,
-            config_snapshot=config_snapshot,
-        )
-
-    @classmethod
-    def for_node(
-        cls,
-        id_: AgentExecutionId,
-        node_id: GraphNodeExecutionId,
-        config_snapshot: Config,
-        skills: list[SkillPayload],
-        now: datetime,
-    ) -> AgentExecution:
-        instance = cls(id_, node_id, config_snapshot)
-        for payload in skills:
-            skill = instance._build_skill(payload, now)
-            instance._skills.append(skill)
-        return instance
-
-    def add_skill(self, payload: SkillPayload, now: datetime) -> None:
-        self._skills.append(self._build_skill(payload, now))
-
-    def _build_skill(
-        self,
-        payload: SkillPayload,
-        now: datetime,
-    ) -> AgentSkillExecution:
-        from shell.domain.execution.aggregates.agent_execution.value_objects.agent_skill_execution_id import (
-            AgentSkillExecutionId,
-        )
-        from shell.domain.execution.aggregates.agent_execution.entities.agent_skill_execution import (
-            AgentSkillExecution,
-        )
-
-        return AgentSkillExecution(
-            id=AgentSkillExecutionId.generate(),
-            agent_execution_id=self._id,
-            payload=payload,
-            created_at=now,
+            config=config,
         )
 
     @property
@@ -94,9 +46,5 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         return self._graph_node_execution_id
 
     @property
-    def config_snapshot(self) -> Config:
-        return self._config_snapshot
-
-    @property
-    def skills(self) -> tuple:
-        return tuple(self._skills)
+    def config(self) -> Config:
+        return self._config

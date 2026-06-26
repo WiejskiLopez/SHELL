@@ -34,6 +34,9 @@ class InMemoryQueryServices:
         if graph_execution is not None:
             from shell.application.platform.dto import GraphNodeExecutionDto
 
+            nodes = await self._unit_of_work.graph_node_execution_repository.list_by_graph_execution_id(
+                graph_execution.id
+            )
             graph_node_executions = [
                 GraphNodeExecutionDto(
                     id=graph_node_execution.id.value,
@@ -44,7 +47,7 @@ class InMemoryQueryServices:
                     model=graph_node_execution.model,
                     command=graph_node_execution.command,
                 )
-                for graph_node_execution in graph_execution.graph_node_executions
+                for graph_node_execution in nodes
             ]
         return TaskExecutionDto(
             id=task_execution.id.value,
@@ -79,14 +82,14 @@ class InMemoryQueryServices:
                 workflow_id=str(envelope.workflow_id),
                 sender_graph_node_execution_id=str(envelope.sender_graph_node_execution_id),
                 receiver_graph_node_execution_id=str(envelope.receiver_graph_node_execution_id),
-                source_role=envelope.source_role,
-                target_role=envelope.target_role,
+                source_role=envelope.source_role.value,
+                target_role=envelope.target_role.value,
                 status=envelope.status.value,
                 stage=envelope.stage.value,
-                step=envelope.step,
-                payload=envelope.payload,
-                created_at=envelope.created_at,
-                updated_at=envelope.updated_at,
+                step=envelope.step.value,
+                payload=envelope.payload.value,
+                created_at=envelope.created_at.value,
+                updated_at=envelope.updated_at.value,
             )
             for envelope in envelopes
         ]

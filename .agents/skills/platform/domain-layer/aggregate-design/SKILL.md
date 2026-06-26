@@ -29,6 +29,37 @@ Invariant to reguła biznesowa która MUSI być spełniona zawsze, bez żadnego 
 
 Agregat A nigdy nie trzyma referencji do obiektu agregatu B. Trzyma tylko `B_id`. Relacje między agregatami nawigujesz przez repository, nie przez object graph.
 
+### ⚠️ 5. Primitive Obsession — w agregacie tylko ValueObjecty
+
+Agregat NIGDY nie używa typów prostych jako typów swoich pól instancyjnych.
+
+ZABRONIONE:
+```python
+class GraphExecution(AggregateRoot[GraphExecutionId]):
+    _status: str                    # ZŁO
+    _state_input: dict              # ZŁO
+    _skills: list                   # ZŁO
+    _correlation_id: str            # ZŁO
+```
+
+DOZWOLONE:
+```python
+class GraphExecution(AggregateRoot[GraphExecutionId]):
+    _status: GraphExecutionStatus   # VO (enum)
+    _skills: list[GraphExecutionSkill]  # kolekcja encji
+    _graph_node_execution_ids: list[GraphNodeExecutionId]  # kolekcja ID
+    _transitions: list[TransitionDefinition]  # kolekcja VO
+```
+
+**Zasada**: każde pole agregatu ma typ, który jest albo:
+- ValueObject (klasa dziedzicząca po `ValueObject`)
+- Entity (klasa dziedzicząca po `Entity`)
+- ID (klasa kończąca się na `Id`)
+- Kolekcja powyższych (`list[SomeVO]`, `tuple[SomeId]`)
+- `datetime` (stdlib, dozwolony dla timestampów)
+
+Test sprawdza to automatycznie — `test_entity_aggregate_fields_have_domain_types`.
+
 ### 4. Czy rozmiar transakcji jest minimalny?
 
 Pojedyncza transakcja modyfikuje DOKŁADNIE JEDEN agregat. Jeśli musisz zapisać dwa agregaty w jednej operacji — użyj eventual consistency: pierwszy agregat zapisuje się i emituje event, drugi subskrybuje ten event i zapisuje się w osobnej transakcji.

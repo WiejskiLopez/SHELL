@@ -29,9 +29,9 @@ class FileSystemEnvelopeArchive:
             "workflow_id": envelope.workflow_id.value,
             "status": envelope.status.value,
             "stage": envelope.stage.value,
-            "payload": envelope.payload,
-            "created_at": envelope.created_at.isoformat(),
-            "updated_at": envelope.updated_at.isoformat(),
+            "payload": envelope.payload.value,
+            "created_at": envelope.created_at.value.isoformat(),
+            "updated_at": envelope.updated_at.value.isoformat(),
         }
         target.write_text(json.dumps(payload, indent=2), encoding="utf-8")
         return f"fs://archive/{envelope.workflow_id.value}/{envelope.id.value}.json"

@@ -224,12 +224,12 @@ class TestGraphExecutionMapper:
 
         assert restored.id.value == original.id.value
 
-    def test_model_to_entity_with_transitions(self) -> None:
+    def test_model_to_entity_with_graph_node_executions(self) -> None:
         from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
             GraphExecutionModel,
         )
-        from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
-            GraphNodeTransitionExecutionModel,
+        from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
+            GraphNodeExecutionModel,
         )
 
         model = GraphExecutionModel(
@@ -241,27 +241,21 @@ class TestGraphExecutionMapper:
             depth=0,
             tags={},
         )
-        model.graph_node_transition_execution_models = [
-            GraphNodeTransitionExecutionModel(
-                id="t1",
+        model.graph_node_execution_models = [
+            GraphNodeExecutionModel(
+                id="node-1",
                 graph_execution_id="ge-4",
-                source_node_execution_id="src-1",
-                target_node_execution_id="tgt-1",
-                transition_type="sequence",
-                priority=0,
-                label="default",
-                created_at=_NOW,
-                updated_at=_NOW,
-            )
+                position=0,
+                mode="worker",
+                role="default",
+                node_type="agent",
+            ),
         ]
 
         entity = graph_execution_model_to_entity(model)
 
-        assert len(entity.transitions) == 1
-        t = entity.transitions[0]
-        assert t.id.value == "t1"
-        assert t.source_node_execution_id.value == "src-1"
-        assert t.target_node_execution_id.value == "tgt-1"
+        assert len(entity.graph_node_execution_ids) == 1
+        assert entity.graph_node_execution_ids[0].value == "node-1"
 
 
 # ---------------------------------------------------------------------------

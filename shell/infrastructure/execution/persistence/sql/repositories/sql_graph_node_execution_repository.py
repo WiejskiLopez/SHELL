@@ -36,8 +36,46 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
         return _graph_node_execution_model_to_entity(row) if row else None
 
     async def save(self, node: GraphNodeExecution) -> None:
-        model = _graph_node_execution_entity_to_model(node)
-        await self._session.merge(model)
+        model = await self._session.get(GraphNodeExecutionModel, node.id.value)
+        if model is None:
+            model = _graph_node_execution_entity_to_model(node)
+            self._session.add(model)
+        else:
+            from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
+                GraphNodeExecutionStateInputModel,
+            )
+            from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
+                GraphNodeExecutionStateOutputModel,
+            )
+
+            model.graph_execution_id = node.graph_execution_id.value if node.graph_execution_id else ""
+            model.position = node.position
+            model.mode = node.mode.value
+            model.role = node.role
+            model.node_type = node.node_type
+            model.timeout_seconds = node.timeout_seconds
+            model.max_retries = node.remaining_retries
+            model.retry_delay_seconds = node.retry_delay_seconds
+            model.input_state_models = [
+                GraphNodeExecutionStateInputModel(
+                    id=p.id.value,
+                    graph_node_execution_id=p.graph_node_execution_id.value,
+                    payload=p.payload,
+                    is_current=p.is_current.value if p.is_current else True,
+                    created_at=p.created_at.value if p.created_at else None,
+                )
+                for p in node.input_states
+            ]
+            model.output_state_models = [
+                GraphNodeExecutionStateOutputModel(
+                    id=p.id.value,
+                    graph_node_execution_id=p.graph_node_execution_id.value,
+                    payload=p.payload,
+                    is_current=p.is_current.value if p.is_current else True,
+                    created_at=p.created_at.value if p.created_at else None,
+                )
+                for p in node.output_states
+            ]
 
     async def list_by_ids(self, ids: list[GraphNodeExecutionId]) -> list[GraphNodeExecution]:
         if not ids:

@@ -17,10 +17,9 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
@@ -44,7 +43,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     _kind: StateKind
     _state_data: StateData
     _is_current: bool
-    _created_at: datetime
+    _created_at: CreatedAt
 
     def __init__(
         self,
@@ -53,7 +52,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         kind: StateKind = StateKind.INPUT,
         state_data: StateData | None = None,
         is_current: bool = True,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -71,7 +70,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         kind: StateKind = StateKind.INPUT,
         state_data: StateData | None = None,
         is_current: bool = True,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -101,7 +100,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._is_current
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     # ------------------------------------------------------------------ factory

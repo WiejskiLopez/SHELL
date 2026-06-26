@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class GraphNodeDefinitionModel(Base):
+class GraphNodeDefinitionModel(Base, VersionedMixin):
     __tablename__ = "graph_node_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -28,6 +29,10 @@ class GraphNodeDefinitionModel(Base):
     status_initial: Mapped[str] = mapped_column(nullable=False)
     script: Mapped[str | None] = mapped_column(nullable=True)
     script_type: Mapped[str | None] = mapped_column(nullable=True)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     graph_definition_model: Mapped[GraphDefinitionModel] = relationship(
         "GraphDefinitionModel",

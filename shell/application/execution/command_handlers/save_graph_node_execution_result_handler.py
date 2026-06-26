@@ -1,14 +1,16 @@
-"""SaveGraphNodeExecutionResultHandler — appends a result state output to GraphNodeExecution."""
+"""SaveGraphNodeExecutionResultHandler — saves a result state output for GraphNodeExecution."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutput,
+from shell.domain.execution.aggregates.graph_node_execution_state import GraphNodeExecutionState
+from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+    GraphNodeExecutionStateId,
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
@@ -40,10 +42,11 @@ class SaveGraphNodeExecutionResultHandler:
 
             node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_id)
             if node is not None:
-                result_id = self._id_generator.new_graph_node_execution_result_id()
-                output = GraphNodeExecutionStateOutput.create(
+                result_id = GraphNodeExecutionStateId.generate()
+                state = GraphNodeExecutionState.create(
                     id_=result_id,
                     graph_node_execution_id=graph_node_execution_id,
+                    kind=StateKind.OUTPUT,
                     payload={
                         "status": status.value,
                         "stdout": save_graph_node_execution_result_command.stdout or "",
@@ -52,9 +55,7 @@ class SaveGraphNodeExecutionResultHandler:
                     },
                     now=now,
                 )
-                if hasattr(node, "output_states") and hasattr(node, "add_output_state"):
-                    node.add_output_state(output)
-                await unit_of_work.graph_node_execution_repository.save(node)
+                await unit_of_work.graph_node_execution_state_repository.save(state)
                 await unit_of_work.workflow_repository.save(workflow)
                 unit_of_work.stage_events(workflow.pull_events())
 

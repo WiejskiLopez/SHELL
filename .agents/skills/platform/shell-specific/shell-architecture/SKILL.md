@@ -27,6 +27,56 @@ Reguły importów i zakazy (`domain/` nigdy nie importuje `sqlalchemy`/`pydantic
 
 To reguły, których złamanie już wielokrotnie wyprodukowało błędy runtime i deadlocki w tym kodzie. Każda ma swój odpowiednik w `references/anti-patterns.md`.
 
+### ⚠️ 0. Primitive Obsession — zero typów prostych w domenie
+
+W warstwie `domain/` NIE WOLNO używać typów prostych (`str`, `int`, `float`, `bool`, `dict`, `list`, `set`, `Any`) jako typów pól w:
+
+- **Agregatach** — każde pole musi być ValueObject, Entity, ID (typ kończący się na `Id`) lub kolekcją VO (`list[SomeVO]`)
+- **Encjah** — jw.
+- **Eventach domenowych** — każde pole musi być ValueObject (`str`, `dict` są zabronione, nawet `dict[str, object]`)
+- **Repozytoriach (porty)** — parametry i zwracane typy muszą być ValueObject lub ID; `str`, `int`, `bool` są zabronione
+- **Portach domenowych (Protocol)** — jw.
+
+**Dozwolone wyjątki**: `datetime` (tylko jako znacznik czasu w encji/eventach), typy w `TYPE_CHECKING` blokach, parametry w `from_payload()` (deserializacja).
+
+**Test weryfikujący**: `shell/tests/platform/architecture/test_domain_structure.py`:
+- `test_entity_aggregate_fields_have_domain_types` — sprawdza entity/aggregate
+- `test_domain_event_fields_have_domain_types` — sprawdza eventy
+- `test_repository_port_signatures_have_domain_types` — sprawdza porty repozytoriów
+
+Przykład ZŁY:
+```python
+class Workflow(AggregateRoot[WorkflowId]):
+    _status: str           # ZŁO: str zamiast WorkflowStatus
+    _goal: str             # ZŁO: str zamiast Goal
+    _skills: list          # ZŁO: bare list bez typu
+```
+
+Przykład DOBRY:
+```python
+class Workflow(AggregateRoot[WorkflowId]):
+    _status: WorkflowStatus        # VO
+    _created_at: datetime          # stdlib — dozwolony
+    _skills: list[WorkflowSkill]   # kolekcja encji
+    _state_inputs: list[WorkflowStateInput]  # kolekcja encji
+```
+
+Przykład ZŁY w evencie:
+```python
+@dataclass
+class WorkflowFailedEvent(DomainEvent):
+    reason: str           # ZŁO: str zamiast Reason
+    details: dict         # ZŁO: dict zamiast StateData
+```
+
+Przykład DOBRY w evencie:
+```python
+@dataclass
+class WorkflowFailedEvent(DomainEvent):
+    reason: Reason              # VO
+    details: StateData          # VO
+```
+
 ### 1. Persistence round-trip — każde pole persystowane dotyka 6 miejsc
 
 Gdy dodajesz/usuwasz pole agregatu, które ma przetrwać restart procesu, dotknij w jednym PR: agregat domeny, SQL model, mapper w obu kierunkach, InMemory repo, mapper DTO, handlery produkcyjne. Pomięcie któregokolwiek = pole tracone przy reloadzie albo `AttributeError` w mapperze. Patrz antywzorzec #1.

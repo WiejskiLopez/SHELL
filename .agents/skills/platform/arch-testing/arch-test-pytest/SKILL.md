@@ -22,14 +22,26 @@ Te reguły testuje się przez **pytest + AST** (Abstract Syntax Tree) — czytam
 Każda klasa testowa w osobnym pliku, podzielona wg warstwy architektonicznej:
 
 ```
-tests/architecture/
-├── domain/
-│   ├── test_entities_are_dataclasses.py
-│   ├── test_domain_has_no_sqlalchemy.py
-│   ├── test_domain_has_no_pydantic.py
-│   ├── test_aggregate_has_factory.py
-│   ├── test_value_objects_are_frozen.py
-│   └── test_events_are_dataclasses.py
+tests/platform/architecture/
+├── test_domain_structure.py
+│   ├── test_value_objects_are_frozen_dataclass_with_slots
+│   ├── test_entities_are_not_dataclass
+│   ├── test_entities_have_slots
+│   ├── test_no_public_setters
+│   ├── test_entity_init_uses_private_attrs
+│   ├── test_domain_events_are_frozen_dataclass
+│   ├── test_domain_events_have_from_payload
+│   ├── test_mutating_methods_emit_events
+│   ├── test_mutating_methods_have_guard
+│   ├── test_domain_event_past_tense_naming
+│   ├── test_specifications_extend_specification
+│   ├── test_collections_returned_as_copies
+│   ├── test_domain_services_are_stateless
+│   ├── test_aggregate_references_by_id_only
+│   ├── test_entity_aggregate_fields_have_domain_types   ⚠️ nowy: primitive obsession
+│   ├── test_domain_event_fields_have_domain_types        ⚠️ nowy: primitive obsession
+│   ├── test_repository_port_signatures_have_domain_types ⚠️ nowy: primitive obsession
+│   └── test_domain_port_signatures_have_domain_types     ⚠️ nowy: porty (warning)
 ├── application/
 │   ├── test_handlers_return_dto.py
 │   ├── test_handlers_are_stateless.py

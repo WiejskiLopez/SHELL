@@ -39,6 +39,5 @@ class GraphExecutionSubGraphSettledEventHandler:
                 return
 
             now = self._clock.now()
-            parent_graph.absorb_child_results(graph_execution_sub_graph_settled_event.child_results, now)
             await unit_of_work.graph_execution_repository.save(parent_graph)
             unit_of_work.stage_events(parent_graph.pull_events())

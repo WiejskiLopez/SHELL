@@ -42,8 +42,13 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
         return task_execution_output_payload_model_to_entity(row) if row else None
 
     async def save(self, payload: TaskExecutionState) -> None:
-        model = task_execution_output_payload_entity_to_model(payload)
-        await self._session.merge(model)
+        model = await self._session.get(TaskExecutionStateOutputModel, payload.id.value)
+        if model is None:
+            model = task_execution_output_payload_entity_to_model(payload)
+            self._session.add(model)
+        else:
+            model.payload = payload.payload
+            model.is_current = payload.is_current
 
     async def delete(self, id: object) -> None:
         ...

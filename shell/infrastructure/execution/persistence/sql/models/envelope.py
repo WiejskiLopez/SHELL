@@ -4,10 +4,11 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class EnvelopeModel(Base):
+class EnvelopeModel(Base, VersionedMixin):
     __tablename__ = "envelope"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -27,6 +28,10 @@ class EnvelopeModel(Base):
     archive_uri: Mapped[str] = mapped_column(nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     events: Mapped[list[EnvelopeEventModel]] = relationship(
         "EnvelopeEventModel", back_populates="envelope", cascade="all, delete-orphan"

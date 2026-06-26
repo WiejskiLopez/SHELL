@@ -5,10 +5,11 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 from shell.infrastructure.scheduling.persistence.sql.models._compat import JSONB
 from shell.infrastructure.scheduling.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class SchedulerExecutionModel(Base):
+class SchedulerExecutionModel(Base, VersionedMixin):
     __tablename__ = "scheduler_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -24,3 +25,7 @@ class SchedulerExecutionModel(Base):
     config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}

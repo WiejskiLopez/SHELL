@@ -59,14 +59,14 @@ def envelope_to_dto(envelope: Envelope) -> EnvelopeDto:
         workflow_id=envelope.workflow_id.value,
         sender_graph_node_execution_id=envelope.sender_graph_node_execution_id.value,
         receiver_graph_node_execution_id=envelope.receiver_graph_node_execution_id.value,
-        source_role=envelope.source_role,
-        target_role=envelope.target_role,
+        source_role=envelope.source_role.value,
+        target_role=envelope.target_role.value,
         status=envelope.status.value,
         stage=envelope.stage.value,
-        step=envelope.step,
-        payload=envelope.payload,
-        created_at=envelope.created_at,
-        updated_at=envelope.updated_at,
+        step=envelope.step.value,
+        payload=envelope.payload.value,
+        created_at=envelope.created_at.value,
+        updated_at=envelope.updated_at.value,
     )
 
 

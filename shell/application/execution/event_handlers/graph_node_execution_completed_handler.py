@@ -18,7 +18,7 @@ Sub-graph spawning is now handled by PLANNER nodes via CrownScheduler.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
@@ -51,6 +51,12 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
+        GraphNodeTransitionExecution,
+    )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+        GraphNodeTransitionExecutionRepository,
+    )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 
@@ -147,7 +153,8 @@ class GraphNodeExecutionCompletedHandler:
         now: datetime,
         unit_of_work: UnitOfWork,
     ) -> None:
-        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+        transition_repo = unit_of_work.graph_node_transition_execution_repository
+        outgoing = await transition_repo.list_outgoing_for_node(graph_node_execution_id)
         if not outgoing:
             await self._advance_or_finish(
                 workflow=workflow,
@@ -186,20 +193,16 @@ class GraphNodeExecutionCompletedHandler:
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         now: datetime,
-        outgoing: list[Any],
+        outgoing: list[GraphNodeTransitionExecution],
         unit_of_work: UnitOfWork,
     ) -> None:
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-            GraphNodeExecutionId as GNEId,
-        )
-
         loop_transition = None
         for t in outgoing:
             if t.edge_type == EdgeType.LOOP:
                 loop_transition = t
                 break
 
-        if loop_transition is None or loop_transition.max_iterations <= 0:
+        if loop_transition is None or loop_transition.max_iterations is None or loop_transition.max_iterations <= 0:
             await self._advance_or_finish(
                 workflow=workflow,
                 graph_execution=graph_execution,
@@ -209,7 +212,7 @@ class GraphNodeExecutionCompletedHandler:
             )
             return
 
-        target_node_id = GNEId(loop_transition.target_node_execution_id)
+        target_node_id = loop_transition.target_node_execution_id
         unit_of_work.stage_events([
             GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, target_node_id, now),
             GraphNodeExecutionRequestedEvent.now(workflow.id, target_node_id, now),
@@ -226,7 +229,7 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
         next_nodes = list(
             await self._navigator.next_after_async(
-                graph_execution, graph_node_execution_id, unit_of_work.graph_node_execution_repository
+                graph_execution, graph_node_execution_id, unit_of_work.graph_node_execution_repository, unit_of_work.graph_node_transition_execution_repository
             )
         )
         if not next_nodes:
@@ -252,8 +255,8 @@ class GraphNodeExecutionCompletedHandler:
             GraphNodeExecutionId as GNEId,
         )
 
-        error_handler_node = self._find_error_handler_transition(
-            graph_execution, graph_node_execution_id
+        error_handler_node = await self._find_error_handler_transition(
+            graph_execution, graph_node_execution_id, unit_of_work.graph_node_transition_execution_repository
         )
 
         if error_handler_node is not None:
@@ -282,16 +285,13 @@ class GraphNodeExecutionCompletedHandler:
         )
 
     @staticmethod
-    def _find_error_handler_transition(
+    async def _find_error_handler_transition(
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
+        transition_repo: GraphNodeTransitionExecutionRepository,
     ) -> GraphNodeExecutionId | None:
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-            GraphNodeExecutionId as GNEId,
-        )
-
-        outgoing = graph_execution.get_outgoing_transitions(graph_node_execution_id)
+        outgoing = await transition_repo.list_outgoing_for_node(graph_node_execution_id)
         for t in outgoing:
             if t.edge_type == EdgeType.ERROR_HANDLER and t.target_node_execution_id is not None:
-                return GNEId(t.target_node_execution_id)
+                return t.target_node_execution_id
         return None

@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
@@ -24,7 +23,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_status",
         "_max_planning_cycles",
         "_current_cycle",
-        "_skills",
         "_name",
         "_work_dir",
         "_created_at",
@@ -45,7 +43,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._status = TaskExecutionStatus.CREATED
         self._max_planning_cycles = max_planning_cycles or MaxPlanningCycles(5)
         self._current_cycle = PlanningCycle(0)
-        self._skills = []
         self._name = name if name is not None else TaskName("default")
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at  # type: ignore[assignment]
@@ -178,24 +175,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if payload:
             self._state_data.update({f"output_{k}": v for k, v in payload.items()})
 
-    # --- Skill management ---
-
-    def add_skill(self, payload: SkillPayload, now: datetime) -> None:
-        from shell.domain.execution.aggregates.task_execution.entities.task_execution_skill import (
-            TaskExecutionSkill,
-        )
-        from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_skill_id import (
-            TaskExecutionSkillId,
-        )
-
-        skill = TaskExecutionSkill(
-            id=TaskExecutionSkillId.generate(),
-            task_execution_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._skills.append(skill)
-
     # --- Properties ---
 
     @property
@@ -221,10 +200,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     @property
     def workflow_id(self) -> WorkflowId | None:
         return self._workflow_id
-
-    @property
-    def skills(self) -> tuple:
-        return tuple(self._skills)
 
     # Legacy properties
     @property

@@ -15,21 +15,19 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+        GraphNodeTransitionExecutionRepository,
+    )
 
 
 class GraphNodeExecutionNavigator(Protocol):
     """Decides the next node(s) to execute in a Graph."""
 
-    def first(self, graph_execution: GraphExecution) -> GraphNodeExecution | None: ...
-
-    def next_after(
-        self, graph_execution: GraphExecution, graph_node_execution_id: GraphNodeExecutionId
-    ) -> Iterable[GraphNodeExecution]: ...
-
     async def first_async(
         self,
         graph_execution: GraphExecution,
         node_repo: GraphNodeExecutionRepository,
+        transition_repo: GraphNodeTransitionExecutionRepository,
     ) -> GraphNodeExecution | None: ...
 
     async def next_after_async(
@@ -37,4 +35,5 @@ class GraphNodeExecutionNavigator(Protocol):
         graph_execution: GraphExecution,
         graph_node_execution_id: GraphNodeExecutionId,
         node_repo: GraphNodeExecutionRepository,
+        transition_repo: GraphNodeTransitionExecutionRepository,
     ) -> Iterable[GraphNodeExecution]: ...

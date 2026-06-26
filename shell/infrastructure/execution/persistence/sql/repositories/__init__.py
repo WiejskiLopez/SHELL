@@ -16,6 +16,12 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execu
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
     SqlGraphNodeExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_repository import (
+    SqlGraphNodeExecutionStateRepository,
+)
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_transition_execution_repository import (
+    SqlGraphNodeTransitionExecutionRepository,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
@@ -39,6 +45,8 @@ __all__ = [
     "SqlGraphExecutionStateInputRepository",
     "SqlGraphExecutionStateOutputRepository",
     "SqlGraphNodeExecutionRepository",
+    "SqlGraphNodeExecutionStateRepository",
+    "SqlGraphNodeTransitionExecutionRepository",
     "SqlSessionRepository",
     "SqlTaskExecutionRepository",
     "SqlTaskExecutionStateInputRepository",

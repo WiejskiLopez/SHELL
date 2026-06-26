@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class GraphNodeExecutionModel(Base):
+class GraphNodeExecutionModel(Base, VersionedMixin):
     __tablename__ = "graph_node_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -29,6 +30,10 @@ class GraphNodeExecutionModel(Base):
     timeout_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
     max_retries: Mapped[int] = mapped_column(nullable=False, default=0)
     retry_delay_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     graph_execution_model: Mapped[GraphExecutionModel] = relationship(
         "GraphExecutionModel", back_populates="graph_node_execution_models"

@@ -89,13 +89,19 @@ class PlannerResultHandler:
                         "planner_result_handler.definition_resolve_failed",
                         goal=goal,
                     )
-                graph_execution.request_sub_graph_spawn(
-                    child_graph_execution_id=child_id,
-                    graph_definition_id=definition_id,
-                    state_input={},
-                    correlation_id="",
-                    expected_node_count=expected_count,
-                    now=now,
+                from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
+                    GraphExecutionSubGraphSpawnRequestedEvent,
+                )
+
+                graph_execution.append_event(
+                    GraphExecutionSubGraphSpawnRequestedEvent.now(
+                        parent_graph_execution_id=graph_execution.id,
+                        child_graph_execution_id=child_id,
+                        graph_definition_id=definition_id or "",
+                        now=now,
+                        state_input={},
+                        correlation_id="",
+                    )
                 )
 
             if stage == "direct" and plan:

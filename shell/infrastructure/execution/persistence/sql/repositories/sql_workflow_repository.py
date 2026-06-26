@@ -10,6 +10,7 @@ from shell.domain.execution.value_objects.ids import (
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
+    workflow_update_model,
 )
 from sqlalchemy import select
 
@@ -35,8 +36,12 @@ class SqlWorkflowRepository(WorkflowRepository):
         return [workflow_model_to_entity(row) for row in rows if row]
 
     async def save(self, workflow: Workflow) -> None:
-        model = workflow_entity_to_model(workflow)
-        await self._session.merge(model)
+        model = await self._session.get(WorkflowModel, workflow.id.value)
+        if model is None:
+            model = workflow_entity_to_model(workflow)
+            self._session.add(model)
+        else:
+            workflow_update_model(model, workflow)
 
 
 __all__ = [

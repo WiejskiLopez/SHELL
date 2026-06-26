@@ -10,9 +10,6 @@ from shell.domain.execution.aggregates.session.events.session_closed_event impor
 from shell.domain.execution.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
-from shell.domain.execution.aggregates.session.events.session_skill_added_event import (
-    SessionSkillAddedEvent,
-)
 from shell.domain.execution.aggregates.session.exceptions.invalid_session_transition import (
     InvalidSessionTransition,
 )
@@ -21,19 +18,12 @@ from shell.domain.execution.value_objects.environment import Environment
 from shell.domain.execution.value_objects.session_status import SessionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.projekt.value_objects.project_id import ProjectId
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.user.value_objects.user_id import UserId
 
 if TYPE_CHECKING:
     from datetime import datetime
-
-    from shell.domain.execution.aggregates.session.entities.session_skill import SessionSkill
-    from shell.domain.execution.aggregates.session.entities.session_state_input import (
-        SessionStateInput,
-    )
-    from shell.domain.execution.aggregates.session.entities.session_state_output import (
-        SessionStateOutput,
-    )
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
 
 
 class Session(AggregateRoot[SessionId]):
@@ -46,20 +36,14 @@ class Session(AggregateRoot[SessionId]):
         "_status",
         "_opened_at",
         "_closed_at",
-        "_skills",
-        "_state_inputs",
-        "_state_outputs",
     )
 
     _user_id: UserId
     _project_id: ProjectId
     _environment: Environment
     _status: SessionStatus
-    _opened_at: datetime
-    _closed_at: datetime | None
-    _skills: list[SessionSkill]
-    _state_inputs: list[SessionStateInput]
-    _state_outputs: list[SessionStateOutput]
+    _opened_at: CreatedAt
+    _closed_at: UpdatedAt | None
 
     def __init__(
         self,
@@ -69,11 +53,8 @@ class Session(AggregateRoot[SessionId]):
         project_id: ProjectId,
         environment: Environment,
         status: SessionStatus,
-        opened_at: datetime,
-        closed_at: datetime | None = None,
-        skills: list[SessionSkill] | None = None,
-        state_inputs: list[SessionStateInput] | None = None,
-        state_outputs: list[SessionStateOutput] | None = None,
+        opened_at: CreatedAt,
+        closed_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -82,9 +63,6 @@ class Session(AggregateRoot[SessionId]):
         self._status = status
         self._opened_at = opened_at
         self._closed_at = closed_at
-        self._skills = skills or []
-        self._state_inputs = state_inputs or []
-        self._state_outputs = state_outputs or []
 
     @classmethod
     def restore(
@@ -95,11 +73,8 @@ class Session(AggregateRoot[SessionId]):
         project_id: ProjectId,
         environment: Environment,
         status: SessionStatus,
-        opened_at: datetime,
-        closed_at: datetime | None = None,
-        skills: list[SessionSkill] | None = None,
-        state_inputs: list[SessionStateInput] | None = None,
-        state_outputs: list[SessionStateOutput] | None = None,
+        opened_at: CreatedAt,
+        closed_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -109,9 +84,6 @@ class Session(AggregateRoot[SessionId]):
             status=status,
             opened_at=opened_at,
             closed_at=closed_at,
-            skills=skills,
-            state_inputs=state_inputs,
-            state_outputs=state_outputs,
         )
 
     # --- V3 properties ---
@@ -133,24 +105,12 @@ class Session(AggregateRoot[SessionId]):
         return self._status
 
     @property
-    def opened_at(self) -> datetime:
+    def opened_at(self) -> CreatedAt:
         return self._opened_at
 
     @property
-    def closed_at(self) -> datetime | None:
+    def closed_at(self) -> UpdatedAt | None:
         return self._closed_at
-
-    @property
-    def skills(self) -> list[SessionSkill]:
-        return self._skills
-
-    @property
-    def state_inputs(self) -> list[SessionStateInput]:
-        return self._state_inputs
-
-    @property
-    def state_outputs(self) -> list[SessionStateOutput]:
-        return self._state_outputs
 
     # --- Legacy deprecated properties ---
 
@@ -177,7 +137,7 @@ class Session(AggregateRoot[SessionId]):
         user_id: UserId | None = None,
         project_id: ProjectId | None = None,
         environment: Environment | None = None,
-        now: datetime | None = None,
+        now: CreatedAt | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
@@ -187,8 +147,7 @@ class Session(AggregateRoot[SessionId]):
         if environment is None:
             environment = Environment(os="", runtime="", cwd="")
         if now is None:
-            from datetime import datetime as _dt
-            now = _dt.now()
+            now = CreatedAt.now()
         session = cls(
             id=id_,
             user_id=user_id,
@@ -202,24 +161,7 @@ class Session(AggregateRoot[SessionId]):
 
     # --- Methods ---
 
-    def add_skill(self, payload: SkillPayload, now: datetime) -> None:
-        from shell.domain.execution.aggregates.session.entities.session_skill import (
-            SessionSkill,
-        )
-        from shell.domain.execution.aggregates.session.value_objects.session_skill_id import (
-            SessionSkillId,
-        )
-
-        skill = SessionSkill(
-            id=SessionSkillId.generate(),
-            session_id=self._id,
-            payload=payload,
-            created_at=now,
-        )
-        self._skills.append(skill)
-        self.append_event(SessionSkillAddedEvent.now(self._id, skill.id, now=now))
-
-    def close(self, now: datetime) -> None:
+    def close(self, now: UpdatedAt) -> None:
         if self._status != SessionStatus.OPEN:
             raise InvalidSessionTransition(
                 f"Cannot close session in status {self._status!r}"

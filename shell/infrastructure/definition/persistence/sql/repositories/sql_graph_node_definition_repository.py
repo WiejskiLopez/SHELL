@@ -12,6 +12,7 @@ from shell.domain.definition.value_objects.ids import (  # noqa: TC002 — Graph
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_node_definition_entity_to_model,
     graph_node_definition_model_to_entity,
+    graph_node_definition_update_model,
 )
 from sqlalchemy import select
 
@@ -48,10 +49,14 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         if not graph_definition:
             raise ValueError(f"GraphDefinition {graph_definition_id.value} not found")
 
-        graph_node_definition_model = graph_node_definition_entity_to_model(
-            graph_node_definition, graph_definition_id.value
-        )
-        await self._session.merge(graph_node_definition_model)
+        model = await self._session.get(GraphNodeDefinitionModel, graph_node_definition.id.value)
+        if model is None:
+            model = graph_node_definition_entity_to_model(
+                graph_node_definition, graph_definition_id.value
+            )
+            self._session.add(model)
+        else:
+            graph_node_definition_update_model(model, graph_node_definition)
 
 
 __all__ = [

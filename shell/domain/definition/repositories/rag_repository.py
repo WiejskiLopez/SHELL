@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from shell.domain.definition.value_objects.ids import RagDocumentId
 
 
-# TODO: add delete()\n# TODO: add exists()\nclass RagDocumentRepository(Protocol):
+# TODO: add delete()
+# TODO: add exists()
+class RagDocumentRepository(Protocol):
     async def save(self, document: RagDocument) -> None: ...
     async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None: ...
     async def search_similar(

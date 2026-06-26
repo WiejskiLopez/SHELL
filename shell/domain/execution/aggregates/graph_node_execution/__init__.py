@@ -2,4 +2,6 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
     GraphNodeExecution,
 )
 
-__all__ = ["GraphNodeExecution"]
+__all__ = [
+    "GraphNodeExecution",
+]

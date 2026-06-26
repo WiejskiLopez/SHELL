@@ -12,9 +12,9 @@ from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.platform.base import AggregateRoot
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
+if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
     from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
         TaskExecutionStateId,
@@ -36,7 +36,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
     _kind: StateKind
     _payload: StateData
     _is_current: bool
-    _created_at: datetime
+    _created_at: CreatedAt
 
     def __init__(
         self,
@@ -45,7 +45,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         kind: StateKind = StateKind.INPUT,
         payload: StateData | None = None,
         is_current: bool = True,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -63,7 +63,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         kind: StateKind = StateKind.INPUT,
         payload: StateData | None = None,
         is_current: bool = True,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -91,7 +91,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         return self._is_current
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod
@@ -102,7 +102,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         task_execution_id: TaskExecutionId,
         kind: StateKind = StateKind.INPUT,
         payload: StateData | None = None,
-        now: datetime,
+        now: CreatedAt,
     ) -> TaskExecutionState:
         return cls(
             id=id_,

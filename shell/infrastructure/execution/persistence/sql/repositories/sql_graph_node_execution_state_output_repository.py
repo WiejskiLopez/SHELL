@@ -43,5 +43,10 @@ class SqlGraphNodeExecutionStateOutputRepository(GraphNodeExecutionStateOutputRe
         return graph_node_execution_state_output_model_to_entity(row) if row else None
 
     async def save(self, payload: GraphNodeExecutionStateOutput) -> None:
-        model = graph_node_execution_state_output_entity_to_model(payload)
-        await self._session.merge(model)
+        model = await self._session.get(GraphNodeExecutionStateOutputModel, payload.id.value)
+        if model is None:
+            model = graph_node_execution_state_output_entity_to_model(payload)
+            self._session.add(model)
+        else:
+            model.payload = payload.payload
+            model.is_current = payload.is_current

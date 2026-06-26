@@ -7,7 +7,7 @@ if all children are settled, then emits SubGraphSettledEvent.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
     GraphExecutionSubGraphSettledEvent,
@@ -60,21 +60,10 @@ class NotifyParentOnChildCompletionHandler:
             if not all_settled:
                 return
 
-            child_results: list[dict[str, Any]] = [
-                {
-                    "graph_execution_id": c.id.value,
-                    "status": c.status.value,
-                    "result": dict(c.state_output) if c.state_output else {},
-                }
-                for c in children
-            ]
-
-            parent_graph.absorb_child_results(child_results, workflow_completed_event.occurred_at)
             parent_graph.append_event(
                 GraphExecutionSubGraphSettledEvent.now(
                     parent_graph_execution_id=parent_id,
                     now=workflow_completed_event.occurred_at,
-                    child_results=child_results,
                 )
             )
 

@@ -19,9 +19,8 @@ Idempotency model (four-tier defence in depth)
 2. **Status guard** — only workflows in ``running`` are touched.
 3. **Node-state guard** — only nodes whose state is still ``running``
    (not already ``done`` / ``failed``) are executed.
-4. **CAS guard** — the SQL repository performs ``WHERE version = :v`` on
-   save. A concurrent modification raises
-   :class:`WorkflowConcurrentlyModified` which we log and swallow.
+4. **CAS guard** — ``version_id_col`` raises ``StaleDataError`` on version mismatch,
+   translated to :class:`ConcurrentModificationError` which we log and swallow.
 """
 
 from __future__ import annotations
@@ -38,7 +37,9 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,  # noqa: TC002 — GraphNodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
 )
-from shell.domain.execution.exceptions import WorkflowConcurrentlyModified
+from shell.domain.platform.exceptions.concurrent_modification_error import (
+    ConcurrentModificationError,
+)
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
@@ -138,7 +139,7 @@ class GraphNodeExecutionWorker:
                 graph_execution=graph_execution,
                 node_mode=node.mode.value if node else None,
             )
-        except WorkflowConcurrentlyModified as exc:
+        except ConcurrentModificationError as exc:
             self._logger.warning(
                 "graph_node_execution_worker.concurrent_modification",
                 workflow_id=graph_node_execution_requested_event.workflow_id.value,

@@ -465,7 +465,10 @@ def test_aggregate_references_by_id_only() -> None:
 
 # ── 15. No primitive types in Entity/Aggregate instance fields ─────
 
-_PRIMITIVE_TYPES: frozenset[str] = frozenset({"str", "float", "bytes", "Any"})
+_PRIMITIVE_TYPES: frozenset[str] = frozenset({
+    "str", "float", "bytes", "Any",
+    "datetime", "Decimal", "Path", "date", "time", "timedelta", "UUID",
+})
 _COLLECTION_TYPES: frozenset[str] = frozenset({"dict", "list", "set", "tuple", "frozenset"})
 
 # Ta lista musi pozostać pusta — każda pozycja to dług techniczny do natychmiastowej spłaty.

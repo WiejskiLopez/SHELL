@@ -15,6 +15,7 @@ from shell.domain.execution.value_objects.task_execution_name import (
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
+    task_execution_update_model,
 )
 from sqlalchemy import select
 
@@ -46,8 +47,12 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
         return await self.get_by_name(name)
 
     async def save(self, task_execution: TaskExecution) -> None:
-        model = task_execution_entity_to_model(task_execution)
-        await self._session.merge(model)
+        model = await self._session.get(TaskExecutionModel, task_execution.id.value)
+        if model is None:
+            model = task_execution_entity_to_model(task_execution)
+            self._session.add(model)
+        else:
+            task_execution_update_model(model, task_execution)
 
     async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[TaskExecution]:
         query = select(TaskExecutionModel).where(

@@ -15,6 +15,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
     GraphNodeExecution,
 )
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.platform.value_objects.mode import Mode
 
@@ -49,8 +50,8 @@ class TestSaveGraphNodeExecutionResultHandler:
         )
         assert result_id
 
-        stored = await unit_of_work.graph_node_execution_repository.get_by_id(GraphNodeExecutionId("node-1"))
-        assert stored is not None
-        output = stored.get_latest_output_state()
-        assert output is not None
-        assert output.payload.get("stdout") == "ok"
+        states = await unit_of_work.graph_node_execution_state_repository.list_by_graph_node_execution_and_kind(
+            GraphNodeExecutionId("node-1"), StateKind.OUTPUT
+        )
+        assert len(states) > 0
+        assert states[-1].state_data.get("stdout") == "ok"

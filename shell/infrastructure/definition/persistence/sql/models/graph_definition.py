@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class GraphDefinitionModel(Base):
+class GraphDefinitionModel(Base, VersionedMixin):
     __tablename__ = "graph_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(nullable=False)
     purpose: Mapped[str] = mapped_column(nullable=False)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     graph_node_execution_models: Mapped[list[GraphNodeDefinitionModel]] = relationship(
         "GraphNodeDefinitionModel",

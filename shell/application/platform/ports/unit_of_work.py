@@ -21,6 +21,12 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
         GraphNodeExecutionRepository,
     )
+    from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+        GraphNodeExecutionStateRepository,
+    )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+        GraphNodeTransitionExecutionRepository,
+    )
     from shell.domain.execution.aggregates.session.repositories.session_repository import SessionRepository
     from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
         TaskExecutionRepository,
@@ -70,6 +76,12 @@ class UnitOfWork(Protocol):
 
     @property
     def graph_node_execution_repository(self) -> GraphNodeExecutionRepository: ...
+
+    @property
+    def graph_node_execution_state_repository(self) -> GraphNodeExecutionStateRepository: ...
+
+    @property
+    def graph_node_transition_execution_repository(self) -> GraphNodeTransitionExecutionRepository: ...
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
 

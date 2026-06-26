@@ -7,16 +7,16 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 @dataclass(frozen=True, slots=True)
-class SessionSkillId(ValueObject):
+class SessionStateId(ValueObject):
     value: str
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("SessionSkillId cannot be empty")
+            raise ValueError("SessionStateId cannot be empty")
 
     def __str__(self) -> str:
         return self.value
 
     @classmethod
-    def generate(cls) -> SessionSkillId:
+    def generate(cls) -> SessionStateId:
         return cls(str(uuid.uuid4()))

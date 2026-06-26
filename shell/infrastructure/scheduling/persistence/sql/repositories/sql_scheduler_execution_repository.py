@@ -8,6 +8,7 @@ from shell.domain.scheduling.value_objects.ids import (
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_execution_entity_to_model,
     scheduler_execution_model_to_entity,
+    scheduler_execution_update_model,
 )
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
@@ -41,5 +42,9 @@ class SqlSchedulerExecutionRepository:
         return [scheduler_execution_model_to_entity(r) for r in rows if r is not None]
 
     async def save(self, execution: SchedulerJob) -> None:
-        model = scheduler_execution_entity_to_model(execution)
-        await self._session.merge(model)
+        model = await self._session.get(SchedulerExecutionModel, execution.id.value)
+        if model is None:
+            model = scheduler_execution_entity_to_model(execution)
+            self._session.add(model)
+        else:
+            scheduler_execution_update_model(model, execution)

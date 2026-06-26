@@ -18,6 +18,12 @@ from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_state_repository import (
+    InMemoryGraphNodeExecutionStateRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
+    InMemoryGraphNodeTransitionExecutionRepository,
+)
 from shell.infrastructure.execution.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
@@ -45,12 +51,13 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._graph_node_execution_repository = InMemoryGraphNodeExecutionRepository()
         self._graph_execution_repository = InMemoryGraphExecutionRepository()
         self._graph_execution_repository.link_task_executions(self._task_execution_repository)
-        self._graph_execution_repository.link_graph_node_executions(self._graph_node_execution_repository)
         self._workflow_repository = InMemoryWorkflowRepository()
         self._runner_config_repository = InMemoryRunnerConfigRepository()
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._session_repository = InMemorySessionRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
+        self._graph_node_transition_execution_repository = InMemoryGraphNodeTransitionExecutionRepository()
+        self._graph_node_execution_state_repository = InMemoryGraphNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
 
         self._committed = False
@@ -122,6 +129,14 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def graph_node_execution_repository(self) -> InMemoryGraphNodeExecutionRepository:
         return self._graph_node_execution_repository
+
+    @property
+    def graph_node_execution_state_repository(self) -> InMemoryGraphNodeExecutionStateRepository:
+        return self._graph_node_execution_state_repository
+
+    @property
+    def graph_node_transition_execution_repository(self) -> InMemoryGraphNodeTransitionExecutionRepository:
+        return self._graph_node_transition_execution_repository
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

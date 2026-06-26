@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
@@ -16,14 +16,14 @@ from shell.domain.platform.events import DomainEvent
 class TaskExecutionCompletedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
-    output: EventOutput = EventOutput("")
+    output: EventOutput = field(default_factory=lambda: EventOutput("default"))
 
     @classmethod
     def now(
         cls,
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
-        output: EventOutput = EventOutput(""),
+        output: str = "default",
         now: datetime | None = None,
     ) -> TaskExecutionCompletedEvent:
         from datetime import datetime as _dt
@@ -31,7 +31,7 @@ class TaskExecutionCompletedEvent(DomainEvent):
             occurred_at=now or _dt.now(),
             task_execution_id=task_execution_id,
             task_execution_name=task_execution_name,
-            output=output,
+            output=EventOutput(output),
         )
 
     @classmethod

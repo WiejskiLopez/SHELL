@@ -9,6 +9,7 @@ from shell.domain.execution.value_objects.ids import (
 from shell.infrastructure.platform.persistence.sql.mappers import (
     session_entity_to_model,
     session_model_to_entity,
+    session_update_model,
 )
 from sqlalchemy import select
 
@@ -24,8 +25,12 @@ class SqlSessionRepository(SessionRepository):
         self._session = session
 
     async def save(self, session: Session) -> None:
-        model = session_entity_to_model(session)
-        await self._session.merge(model)
+        model = await self._session.get(SessionModel, session.id.value)
+        if model is None:
+            model = session_entity_to_model(session)
+            self._session.add(model)
+        else:
+            session_update_model(model, session)
 
     async def get_by_id(self, session_id: SessionId) -> Session | None:
         query = select(SessionModel).where(SessionModel.id == session_id.value)

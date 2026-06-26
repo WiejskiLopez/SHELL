@@ -33,11 +33,6 @@ class GraphNodeExecutionInitializedHandler:
                 )
                 return
 
-            now = self._clock.now()
-            parent.confirm_node_initialized(event.graph_execution_id, now)
-            await unit_of_work.graph_execution_repository.save(parent)
-            unit_of_work.stage_events(list(parent.pull_events()))
-
             self._logger.info(
                 "node_initialized.confirmed",
                 node_id=event.node_id.value,

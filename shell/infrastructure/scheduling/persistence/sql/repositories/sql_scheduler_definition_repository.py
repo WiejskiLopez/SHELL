@@ -8,6 +8,7 @@ from shell.domain.scheduling.value_objects.ids import (
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_definition_entity_to_model,
     scheduler_definition_model_to_entity,
+    scheduler_definition_update_model,
 )
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
@@ -42,5 +43,9 @@ class SqlSchedulerDefinitionRepository:
         return [scheduler_definition_model_to_entity(r) for r in rows if r is not None]
 
     async def save(self, definition: SchedulerDefinition) -> None:
-        model = scheduler_definition_entity_to_model(definition)
-        await self._session.merge(model)
+        model = await self._session.get(SchedulerDefinitionModel, definition.id.value)
+        if model is None:
+            model = scheduler_definition_entity_to_model(definition)
+            self._session.add(model)
+        else:
+            scheduler_definition_update_model(model, definition)

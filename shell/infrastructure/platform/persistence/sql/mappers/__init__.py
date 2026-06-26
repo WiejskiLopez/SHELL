@@ -119,6 +119,14 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
     )
 
 
+def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution) -> None:
+    model.status = entity.status.value if hasattr(entity.status, 'value') else entity.status
+    model.name = entity.name.value if hasattr(entity.name, 'value') else entity.name
+    model.work_dir = entity.work_dir.value if hasattr(entity.work_dir, 'value') else (entity.work_dir or "")
+    model.workflow_id = entity.workflow_id.value if entity.workflow_id else None
+    model.created_at = entity.created_at
+
+
 # ---------------------------------------------------------------------------
 # TaskExecution Input Payload
 # ---------------------------------------------------------------------------
@@ -243,14 +251,6 @@ def graph_node_execution_state_output_entity_to_model(
 
 
 def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
-    graph_node_execution_ids = [
-        GraphNodeExecutionId(node_model.id)
-        for node_model in graph_execution_model.graph_node_execution_models
-    ]
-    transitions = [
-        transition_definition_model_to_entity(t)
-        for t in graph_execution_model.graph_node_transition_execution_models
-    ]
     return GraphExecution(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
@@ -260,8 +260,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             else None
         ),
         depth=graph_execution_model.depth,
-        graph_node_execution_ids=graph_node_execution_ids,
-        transitions=transitions,
     )
 
 
@@ -362,6 +360,12 @@ def graph_node_transition_definition_entity_to_model(
     )
 
 
+def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
+    model.status = entity.status.value if hasattr(entity.status, 'value') else str(entity.status)
+    model.parent_graph_execution_id = entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
+    model.depth = entity.depth.value if hasattr(entity.depth, 'value') else entity.depth
+
+
 def graph_execution_entity_to_model(
     graph_execution: GraphExecution,
 ) -> GraphExecutionModel:
@@ -381,11 +385,6 @@ def graph_execution_entity_to_model(
         correlation_id="",
         tags={},
     )
-    _now = datetime.now(UTC)
-    graph_execution_model.graph_node_transition_execution_models = [
-        transition_definition_entity_to_model(t, graph_execution.id.value, _now)
-        for t in graph_execution.transitions
-    ]
     return graph_execution_model
 
 
@@ -412,6 +411,12 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     )
 
 
+def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
+    model.status = entity.status.value if hasattr(entity.status, 'value') else entity.status
+    model.session_id = entity.session_id.value if entity.session_id else None
+    model.created_at = entity.created_at
+
+
 # ---------------------------------------------------------------------------
 # Envelope
 # ---------------------------------------------------------------------------
@@ -427,28 +432,39 @@ def envelope_model_to_entity(envelope_model: EnvelopeModel) -> Envelope:
         )
         for event_model in envelope_model.events
     ]
+    from shell.domain.execution.aggregates.envelope.value_objects.archive_uri import ArchiveUri
+    from shell.domain.execution.aggregates.envelope.value_objects.artifact_uri import ArtifactUri
+    from shell.domain.execution.aggregates.envelope.value_objects.correlation_id import CorrelationId
+    from shell.domain.execution.aggregates.envelope.value_objects.payload import Payload
+    from shell.domain.execution.aggregates.envelope.value_objects.sequence_id import SequenceId
+    from shell.domain.execution.aggregates.envelope.value_objects.source_role import SourceRole
+    from shell.domain.execution.aggregates.envelope.value_objects.step import Step
+    from shell.domain.execution.aggregates.envelope.value_objects.target_role import TargetRole
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
+
     return Envelope(
         id=EnvelopeId(envelope_model.id),
         workflow_id=WorkflowId(envelope_model.workflow_id),
         parent_id=EnvelopeId(envelope_model.parent_id) if envelope_model.parent_id else None,
-        correlation_id=envelope_model.correlation_id,
+        correlation_id=CorrelationId(envelope_model.correlation_id),
         sender_graph_node_execution_id=GraphNodeExecutionId(
             envelope_model.sender_graph_node_execution_id
         ),
         receiver_graph_node_execution_id=GraphNodeExecutionId(
             envelope_model.receiver_graph_node_execution_id
         ),
-        source_role=envelope_model.source_role,
-        target_role=envelope_model.target_role,
-        sequence_id=envelope_model.sequence_id,
-        step=envelope_model.step,
+        source_role=SourceRole(envelope_model.source_role),
+        target_role=TargetRole(envelope_model.target_role),
+        sequence_id=SequenceId(envelope_model.sequence_id),
+        step=Step(envelope_model.step),
         status=EnvelopeStatus(envelope_model.status),
         stage=EnvelopeStage(envelope_model.stage),
-        payload=dict(envelope_model.payload),
-        artifact_uri=envelope_model.artifact_uri,
-        archive_uri=envelope_model.archive_uri,
-        created_at=_ensure_utc(envelope_model.created_at),
-        updated_at=_ensure_utc(envelope_model.updated_at),
+        payload=Payload(dict(envelope_model.payload)),
+        artifact_uri=ArtifactUri(envelope_model.artifact_uri),
+        archive_uri=ArchiveUri(envelope_model.archive_uri),
+        created_at=CreatedAt.from_datetime(_ensure_utc(envelope_model.created_at)),
+        updated_at=UpdatedAt.from_datetime(_ensure_utc(envelope_model.updated_at)),
         events=events,
     )
 
@@ -458,20 +474,20 @@ def envelope_entity_to_model(envelope: Envelope) -> EnvelopeModel:
         id=envelope.id.value,
         workflow_id=envelope.workflow_id.value,
         parent_id=envelope.parent_id.value if envelope.parent_id else None,
-        correlation_id=envelope.correlation_id,
+        correlation_id=envelope.correlation_id.value,
         sender_graph_node_execution_id=envelope.sender_graph_node_execution_id.value,
         receiver_graph_node_execution_id=envelope.receiver_graph_node_execution_id.value,
-        source_role=envelope.source_role,
-        target_role=envelope.target_role,
-        sequence_id=envelope.sequence_id,
-        step=envelope.step,
+        source_role=envelope.source_role.value,
+        target_role=envelope.target_role.value,
+        sequence_id=envelope.sequence_id.value,
+        step=envelope.step.value,
         status=envelope.status.value,
         stage=envelope.stage.value,
-        payload=envelope.payload,
-        artifact_uri=envelope.artifact_uri,
-        archive_uri=envelope.archive_uri,
-        created_at=envelope.created_at,
-        updated_at=envelope.updated_at,
+        payload=envelope.payload.value,
+        artifact_uri=envelope.artifact_uri.value,
+        archive_uri=envelope.archive_uri.value,
+        created_at=envelope.created_at.value,
+        updated_at=envelope.updated_at.value,
     )
     envelope_model.events = [
         EnvelopeEventModel(
@@ -484,6 +500,26 @@ def envelope_entity_to_model(envelope: Envelope) -> EnvelopeModel:
         for envelope_event in envelope.events
     ]
     return envelope_model
+
+
+def envelope_update_model(model: EnvelopeModel, entity: Envelope) -> None:
+    model.workflow_id = entity.workflow_id.value
+    model.parent_id = entity.parent_id.value if entity.parent_id else None
+    model.correlation_id = entity.correlation_id.value
+    model.sender_graph_node_execution_id = entity.sender_graph_node_execution_id.value
+    model.receiver_graph_node_execution_id = entity.receiver_graph_node_execution_id.value
+    model.source_role = entity.source_role.value
+    model.target_role = entity.target_role.value
+    model.sequence_id = entity.sequence_id.value
+    model.step = entity.step.value
+    model.status = entity.status.value
+    model.stage = entity.stage.value
+    model.payload = entity.payload.value
+    model.artifact_uri = entity.artifact_uri.value
+    model.archive_uri = entity.archive_uri.value
+    model.created_at = entity.created_at.value
+    model.updated_at = entity.updated_at.value
+    # Events are managed separately via add/remove on the relationship
 
 
 # ---------------------------------------------------------------------------
@@ -548,6 +584,14 @@ def runner_config_entity_to_model(runner_config: RunnerConfig) -> RunnerConfigMo
     )
 
 
+def runner_config_update_model(model: RunnerConfigModel, entity: RunnerConfig) -> None:
+    model.package_name = entity.package_name
+    model.kind = entity.kind
+    model.hash = entity.hash.value if hasattr(entity.hash, 'value') else entity.hash
+    model.body = entity.body
+    model.created_at = entity.created_at
+
+
 # ---------------------------------------------------------------------------
 # GraphDefinition
 # ---------------------------------------------------------------------------
@@ -592,6 +636,12 @@ def graph_definition_entity_to_model(
         for t in graph_definition.transition_definitions
     ]
     return graph_definition_model
+
+
+def graph_definition_update_model(model: GraphDefinitionModel, entity: GraphDefinition) -> None:
+    model.name = entity.name
+    model.purpose = entity.purpose
+    # Node definitions and transition definitions are managed separately
 
 
 def graph_node_definition_model_to_entity(
@@ -642,6 +692,24 @@ def graph_node_definition_entity_to_model(
     )
 
 
+def graph_node_definition_update_model(model: GraphNodeDefinitionModel, entity: GraphNodeDefinition) -> None:
+    model.position = entity.position
+    model.mode = entity.mode.value if hasattr(entity.mode, 'value') else entity.mode
+    model.role = entity.role
+    model.node_type = entity.node_type
+    model.model = entity.model or ""
+    model.command = entity.command
+    model.timeout = entity.timeout
+    model.retries = entity.retries
+    model.log_level = entity.log_level
+    model.max_step = entity.max_step
+    model.no_ask_user = bool(entity.no_ask_user) if entity.no_ask_user is not None else False
+    model.autopilot = bool(entity.autopilot) if entity.autopilot is not None else False
+    model.status_initial = entity.status_initial
+    model.script = entity.script or ""
+    model.script_type = entity.script_type or ""
+
+
 # ---------------------------------------------------------------------------
 # Session
 # ---------------------------------------------------------------------------
@@ -665,6 +733,13 @@ def session_entity_to_model(session: Session) -> SessionModel:
         opened_at=session.opened_at,
         closed_at=session.closed_at,
     )
+
+
+def session_update_model(model: SessionModel, entity: Session) -> None:
+    model.goal = entity.goal
+    model.status = entity.status
+    model.opened_at = entity.opened_at
+    model.closed_at = entity.closed_at
 
 
 # ---------------------------------------------------------------------------
@@ -696,6 +771,14 @@ def rag_document_entity_to_model(rag_document: RagDocument) -> RagDocumentModel:
     )
     model.chunks = [rag_chunk_entity_to_model(c) for c in rag_document.chunks]
     return model
+
+
+def rag_document_update_model(model: RagDocumentModel, entity: RagDocument) -> None:
+    model.source_uri = entity.source_uri
+    model.title = entity.title
+    model.domain = entity.domain
+    model.created_at = entity.created_at
+    # Chunks are managed separately
 
 
 # ---------------------------------------------------------------------------

@@ -11,6 +11,7 @@ from shell.domain.definition.value_objects.ids import (
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_definition_entity_to_model,
     graph_definition_model_to_entity,
+    graph_definition_update_model,
 )
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -46,8 +47,12 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
         return graph_definition_model_to_entity(row) if row else None
 
     async def save(self, graph_definition: GraphDefinition) -> None:
-        graph_definition_model = graph_definition_entity_to_model(graph_definition)
-        await self._session.merge(graph_definition_model)
+        model = await self._session.get(GraphDefinitionModel, graph_definition.id.value)
+        if model is None:
+            model = graph_definition_entity_to_model(graph_definition)
+            self._session.add(model)
+        else:
+            graph_definition_update_model(model, graph_definition)
 
     async def list_all(self) -> list[GraphDefinition]:
         query = self._base_query()

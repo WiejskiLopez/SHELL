@@ -7,10 +7,10 @@ from shell.domain.execution.aggregates.agent_config_execution.value_objects.agen
 )
 from shell.domain.execution.value_objects.config import Config
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.session.value_objects.session_id import SessionId
 
 
@@ -19,16 +19,16 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
 
     _session_id: SessionId
     _config: Config
-    _created_at: datetime
-    _updated_at: datetime
+    _created_at: CreatedAt
+    _updated_at: UpdatedAt
 
     def __init__(
         self,
         id: AgentConfigExecutionId,
         session_id: SessionId,
         config: Config,
-        created_at: datetime,
-        updated_at: datetime,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
@@ -42,8 +42,8 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         id: AgentConfigExecutionId,
         session_id: SessionId,
         config: Config,
-        created_at: datetime,
-        updated_at: datetime,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -59,17 +59,17 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         id: AgentConfigExecutionId,
         session_id: SessionId,
         config: Config,
-        now: datetime,
+        now: CreatedAt,
     ) -> AgentConfigExecution:
         return cls(
             id=id,
             session_id=session_id,
             config=config,
             created_at=now,
-            updated_at=now,
+            updated_at=UpdatedAt(now.value),
         )
 
-    def update_config(self, config: Config, now: datetime) -> None:
+    def update_config(self, config: Config, now: UpdatedAt) -> None:
         self._config = config
         self._updated_at = now
 
@@ -82,9 +82,9 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         return self._config
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property
-    def updated_at(self) -> datetime:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at

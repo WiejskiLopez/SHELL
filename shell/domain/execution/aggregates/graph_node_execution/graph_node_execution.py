@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
@@ -20,13 +20,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
-        GraphNodeExecutionStateInput,
-    )
-    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-        GraphNodeExecutionStateOutput,
-    )
-    from shell.domain.execution.value_objects.state_data import StateData
 
 
 class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
@@ -41,8 +34,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "_remaining_retries",
         "_retry_delay_seconds",
         "_timeout_seconds",
-        "_state_inputs",
-        "_state_outputs",
     )
 
     def __init__(
@@ -57,8 +48,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         remaining_retries: int = 0,
         retry_delay_seconds: int = 0,
         timeout_seconds: int = 0,
-        input_states: list[GraphNodeExecutionStateInput] | None = None,
-        output_states: list[GraphNodeExecutionStateOutput] | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -71,8 +60,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._remaining_retries = remaining_retries
         self._retry_delay_seconds = retry_delay_seconds
         self._timeout_seconds = timeout_seconds
-        self._state_inputs = list(input_states) if input_states else []
-        self._state_outputs = list(output_states) if output_states else []
 
     @classmethod
     def restore(
@@ -87,8 +74,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         remaining_retries: int = 0,
         retry_delay_seconds: int = 0,
         timeout_seconds: int = 0,
-        input_states: list[GraphNodeExecutionStateInput] | None = None,
-        output_states: list[GraphNodeExecutionStateOutput] | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -101,8 +86,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             remaining_retries=remaining_retries,
             retry_delay_seconds=retry_delay_seconds,
             timeout_seconds=timeout_seconds,
-            input_states=input_states,
-            output_states=output_states,
         )
 
     # --- Factory ---
@@ -177,8 +160,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
                 f"Cannot complete node in status {self._status}"
             )
         self._status = GraphNodeExecutionStatus.COMPLETED
-        if result:
-            self._append_output(result, now)
         from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
             GraphNodeExecutionCompletedEvent,
         )
@@ -255,58 +236,11 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             )
         )
 
-    # --- State I/O ---
-
-    def add_output_state(self, state: GraphNodeExecutionStateOutput) -> None:
-        self._state_outputs.append(state)
-
-    def add_input_state(self, payload: dict[str, Any], now: datetime) -> None:
-        from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
-            GraphNodeExecutionStateInput,
-        )
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_state_input_id import (
-            GraphNodeExecutionStateInputId,
-        )
-
-        state = GraphNodeExecutionStateInput(
-            id=GraphNodeExecutionStateInputId.generate(),
-            graph_node_execution_id=self._id,
-            payload=StateData(payload),
-            created_at=now,
-        )
-        self._state_inputs.append(state)
-
-    def _append_output(self, payload: dict[str, object] | None, now: datetime) -> None:
-        from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-            GraphNodeExecutionStateOutput,
-        )
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_state_output_id import (
-            GraphNodeExecutionStateOutputId,
-        )
-
-        state = GraphNodeExecutionStateOutput(
-            id=GraphNodeExecutionStateOutputId.generate(),
-            graph_node_execution_id=self._id,
-            payload=StateData(payload or {}),
-            created_at=now,
-        )
-        self._state_outputs.append(state)
-
     # --- Properties ---
 
     @property
     def graph_execution_id(self) -> GraphExecutionId | None:
         return self._graph_execution_id
-
-    def get_latest_input_state(self) -> GraphNodeExecutionStateInput | None:
-        if not self._state_inputs:
-            return None
-        return self._state_inputs[-1]
-
-    def get_latest_output_state(self) -> GraphNodeExecutionStateOutput | None:
-        if not self._state_outputs:
-            return None
-        return self._state_outputs[-1]
 
     @property
     def role(self) -> NodeRole:
@@ -343,15 +277,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     @property
     def timeout_seconds(self) -> int:
         return self._timeout_seconds
-
-    @property
-    def state_inputs(self) -> tuple:
-        return tuple(self._state_inputs)
-
-    @property
-    def state_outputs(self) -> tuple:
-        return tuple(self._state_outputs)
-
 
 class InvalidNodeStateError(Exception):
     pass

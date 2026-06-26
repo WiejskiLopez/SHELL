@@ -13,6 +13,7 @@ from shell.domain.platform.value_objects.envelope_status import EnvelopeStatus
 from shell.infrastructure.platform.persistence.sql.mappers import (
     envelope_entity_to_model,
     envelope_model_to_entity,
+    envelope_update_model,
 )
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -38,8 +39,12 @@ class SqlEnvelopeRepository(EnvelopeRepository):
         return envelope_model_to_entity(row) if row else None
 
     async def save(self, envelope: Envelope) -> None:
-        model = envelope_entity_to_model(envelope)
-        await self._session.merge(model)
+        model = await self._session.get(EnvelopeModel, envelope.id.value)
+        if model is None:
+            model = envelope_entity_to_model(envelope)
+            self._session.add(model)
+        else:
+            envelope_update_model(model, envelope)
 
     async def list_by_workflow(
         self, workflow_id: WorkflowId, limit: int | None = None, offset: int = 0

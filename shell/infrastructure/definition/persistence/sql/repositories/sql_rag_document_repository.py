@@ -11,6 +11,7 @@ from shell.infrastructure.platform.persistence.sql.mappers import (
     rag_chunk_entity_to_model,
     rag_document_entity_to_model,
     rag_document_model_to_entity,
+    rag_document_update_model,
 )
 from sqlalchemy import delete as sa_delete
 from sqlalchemy.orm import selectinload
@@ -44,8 +45,12 @@ class SqlRagDocumentRepository(RagDocumentRepository):
         return self._search_strategy
 
     async def save(self, document: RagDocument) -> None:
-        doc_model = rag_document_entity_to_model(document)
-        await self._session.merge(doc_model)
+        doc_model = await self._session.get(RagDocumentModel, document.id.value)
+        if doc_model is None:
+            doc_model = rag_document_entity_to_model(document)
+            self._session.add(doc_model)
+        else:
+            rag_document_update_model(doc_model, document)
         await self._session.execute(
             sa_delete(RagChunkModel).where(RagChunkModel.document_id == document.id.value)
         )

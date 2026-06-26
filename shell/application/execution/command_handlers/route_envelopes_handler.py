@@ -79,7 +79,7 @@ class RouteEnvelopesHandler:
                             GraphExecutionRoutingService.resolve_target_graph_node_execution(
                                 graph_execution,
                                 envelope.sender_graph_node_execution_id,
-                                envelope.target_role or None,
+                                envelope.target_role.value or None,
                             )
                         )
                         envelope.deliver_to(target_graph_node_execution_id, now)

@@ -5,10 +5,11 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 
-class GraphExecutionModel(Base):
+class GraphExecutionModel(Base, VersionedMixin):
     __tablename__ = "graph_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
@@ -29,6 +30,10 @@ class GraphExecutionModel(Base):
     timeout_at: Mapped[datetime | None] = mapped_column(nullable=True)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+
+    @declared_attr
+    def __mapper_args__(cls) -> dict:
+        return {"version_id_col": cls.version}
 
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
         "GraphNodeExecutionModel",

@@ -29,6 +29,35 @@ Domain Event to niemutowalny fakt biznesowy, który wydarzył się w przeszłoś
 
 Jeśli metoda domenowa realizuje przejście stanu agregatu (np. `idle → running`, `running → done`), **emituj event przejścia bezwarunkowo**. Nie uzależniaj emisji od obecności optionala w parametrach. Warunkowanie emisji eventu stanu od parametru powoduje, że sagi/event-handlery subskrybujące ten event nigdy nie zostaną obudzone — obserwowany deadlock całego potoku.
 
+## ⚠️ Primitive Obsession — w evencie tylko ValueObjecty
+
+Wszystkie pola eventu domenowego (poza metadanymi z base class) muszą być ValueObjectami.
+
+ZABRONIONE:
+```python
+@dataclass
+class TaskExecutionCreatedEvent(DomainEvent):
+    description: str                # ZŁO: str zamiast TaskDescription
+    output: str                     # ZŁO: str zamiast EventOutput
+    goal: str                       # ZŁO: str zamiast Goal
+    verifier_result: dict           # ZŁO: dict zamiast StateData
+    plan: dict[str, object]         # ZŁO: dict zamiast StateData
+    skills: list[dict]              # ZŁO: list[dict] zamiast list[SkillPayload]
+```
+
+DOZWOLONE:
+```python
+@dataclass
+class TaskExecutionCreatedEvent(DomainEvent):
+    description: TaskDescription         # VO
+    output: EventOutput                  # VO
+    skills: list[SkillPayload] | None    # kolekcja VO
+```
+
+**Wyjątek**: pola metadane z base `DomainEvent` (`event_id: str`, `occurred_at: datetime`, `correlation_id: str`, `causation_id: str`, `schema_version: int`) są dozwolone — to infrastruktura event systemu.
+
+Test weryfikujący: `test_domain_event_fields_have_domain_types`.
+
 ## Event schema — backward compatibility
 
 `from_payload()` obsługuje brakujące pola przez `.get()` z domyślną wartością. Nigdy `payload["field"]` — zawsze `payload.get("field", default)`. Każda zmiana schematu = inkrementacja `schema_version` + obsługa starego formatu.

@@ -118,3 +118,42 @@ def scheduler_execution_entity_to_model(
         created_at=entity.created_at,
         updated_at=entity.updated_at,
     )
+
+
+# ---------------------------------------------------------------------------
+# Update (in-place) mappers for optimistic locking
+# ---------------------------------------------------------------------------
+
+
+def scheduler_definition_update_model(model: SchedulerDefinitionModel, entity: SchedulerDefinition) -> None:
+    model.name = entity.name
+    model.description = entity.description
+    model.source_context = entity.trigger_config.source_context
+    model.trigger_event_type = entity.trigger_config.trigger_event_type
+    model.trigger_filter = entity.trigger_config.trigger_filter
+    model.action_type = entity.action_config.action_type
+    model.action_config = {
+        "graph_definition_id": entity.action_config.graph_definition_id,
+        "input_mapping": entity.action_config.input_mapping,
+        "emit_event_type": entity.action_config.emit_event_type,
+        "emit_event_payload": entity.action_config.emit_event_payload,
+    }
+    model.execution_policy = {
+        "max_concurrent": entity.execution_policy.max_concurrent,
+        "timeout_seconds": entity.execution_policy.timeout_seconds,
+        "retry_count": entity.execution_policy.retry_count,
+        "retry_delay_seconds": entity.execution_policy.retry_delay_seconds,
+    }
+    model.enabled = entity.enabled
+    model.updated_at = entity.updated_at
+
+
+def scheduler_execution_update_model(model: SchedulerExecutionModel, entity: SchedulerJob) -> None:
+    model.scheduler_definition_id = entity.scheduler_definition_id.value
+    model.name = entity.name
+    model.job_type = entity.job_type
+    model.interval_seconds = entity.interval_seconds
+    model.batch_size = entity.batch_size
+    model.enabled = entity.enabled
+    model.config = entity.config
+    model.updated_at = entity.updated_at

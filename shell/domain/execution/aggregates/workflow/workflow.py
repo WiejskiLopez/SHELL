@@ -35,6 +35,7 @@ from shell.domain.execution.aggregates.workflow.events.workflow_state_output_add
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 
@@ -74,7 +75,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     _session_id: SessionId
     _status: WorkflowStatus
-    _created_at: datetime
+    _created_at: CreatedAt
     _skills: list[WorkflowSkill]
     _state_inputs: list[WorkflowStateInput]
     _state_outputs: list[WorkflowStateOutput]
@@ -131,7 +132,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         return self._status
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

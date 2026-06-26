@@ -26,9 +26,6 @@ from shell.domain.execution.aggregates.task_execution.exceptions.task_execution_
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
 )
-from shell.domain.execution.aggregates.workflow.exceptions.workflow_concurrently_modified import (
-    WorkflowConcurrentlyModified,
-)
 from shell.domain.execution.aggregates.workflow.exceptions.workflow_has_no_nodes import (
     WorkflowHasNoNodes,
 )
@@ -49,7 +46,6 @@ __all__ = [
     "NodeNotFound",
     "RoleNotResolvable",
     "TaskExecutionNotFound",
-    "WorkflowConcurrentlyModified",
     "WorkflowHasNoNodes",
     "WorkflowNotFound",
 ]

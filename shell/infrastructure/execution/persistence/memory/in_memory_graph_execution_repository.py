@@ -11,9 +11,6 @@ from shell.domain.execution.value_objects.ids import (
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-        GraphNodeExecutionRepository,
-    )
     from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
     from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
         InMemoryTaskExecutionRepository,
@@ -24,13 +21,9 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphExecution] = {}
         self._task_executions: InMemoryTaskExecutionRepository | None = None
-        self._graph_node_executions: GraphNodeExecutionRepository | None = None
 
     def link_task_executions(self, repo: InMemoryTaskExecutionRepository) -> None:
         self._task_executions = repo
-
-    def link_graph_node_executions(self, repo: GraphNodeExecutionRepository) -> None:
-        self._graph_node_executions = repo
 
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
         return self._store.get(graph_execution_id.value)
@@ -64,9 +57,3 @@ class InMemoryGraphExecutionRepository(GraphExecutionRepository):
 
     async def save(self, graph_execution: GraphExecution) -> None:
         self._store[graph_execution.id.value] = graph_execution
-        if self._graph_node_executions is not None:
-            for node in graph_execution.graph_node_executions:
-                if hasattr(node, "id") and hasattr(node, "mode") and node.mode is not None:
-                    if node.graph_execution_id is None:
-                        node._graph_execution_id = graph_execution.id
-                    await self._graph_node_executions.save(node)

@@ -9,8 +9,6 @@ class GraphExecutionStatus(ValueObject, StrEnum):
     PENDING = "pending"
     PLANNING = "planning"
     EXECUTING = "executing"
-    SPAWNING = "spawning"
-    READY = "ready"
     VERIFYING = "verifying"
     SUSPENDED = "suspended"
     COMPLETED = "completed"

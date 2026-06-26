@@ -7,7 +7,9 @@ if TYPE_CHECKING:
     from shell.domain.definition.value_objects.ids import RunnerConfigId
 
 
-# TODO: add delete()\n# TODO: add exists()\nclass RunnerConfigRepository(Protocol):
+# TODO: add delete()
+# TODO: add exists()
+class RunnerConfigRepository(Protocol):
     async def get_by_id(self, config_id: RunnerConfigId) -> RunnerConfig | None: ...
     async def get_by_package(self, package_name: str) -> RunnerConfig | None: ...
     async def save(self, config: RunnerConfig) -> None: ...
