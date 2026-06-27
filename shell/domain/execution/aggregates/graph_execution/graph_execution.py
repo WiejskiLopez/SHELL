@@ -2,12 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.graph_execution_initialization_status import (
+    GraphExecutionInitializationStatus,
+)
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
+from shell.domain.execution.value_objects.graph_node_definition_execution_slot import (
+    GraphNodeDefinitionExecutionSlot,
+)
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.base.aggregate_root import AggregateRoot
@@ -22,7 +33,10 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         "_parent_graph_execution_id",
         "_depth",
         "_max_subgraph_depth",
-        "_status",
+        "_execution_status",
+        "_graph_definition_id",
+        "_graph_node_definition_execution_slots",
+        "_initialization_status",
     )
 
     def __init__(
@@ -32,13 +46,17 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         parent_graph_execution_id: GraphExecutionId | None = None,
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
+        graph_definition_id: GraphDefinitionId | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
         self._parent_graph_execution_id = parent_graph_execution_id
         self._depth = depth
         self._max_subgraph_depth = max_subgraph_depth
-        self._status = GraphExecutionStatus.PENDING
+        self._execution_status = GraphExecutionStatus.PENDING
+        self._graph_definition_id = graph_definition_id if graph_definition_id is not None else GraphDefinitionId.generate()
+        self._graph_node_definition_execution_slots = []
+        self._initialization_status = GraphExecutionInitializationStatus.PENDING
 
     @classmethod
     def restore(
@@ -48,6 +66,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         parent_graph_execution_id: GraphExecutionId | None = None,
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
+        graph_definition_id: GraphDefinitionId | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -55,16 +74,125 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             parent_graph_execution_id=parent_graph_execution_id,
             depth=depth,
             max_subgraph_depth=max_subgraph_depth,
+            graph_definition_id=graph_definition_id,
         )
 
-    # --- V3 FSM ---
+    # --- Inicjalizacja ---
+
+    @classmethod
+    def initialize(
+        cls,
+        id_: GraphExecutionId,
+        task_execution_id: TaskExecutionId,
+        graph_definition_id: GraphDefinitionId,
+        graph_node_definition_ids: list[GraphNodeDefinitionId],
+        now: datetime,
+    ) -> GraphExecution:
+        instance = cls(id=id_, task_execution_id=task_execution_id)
+        instance._graph_definition_id = graph_definition_id
+        instance._graph_node_definition_execution_slots = [
+            GraphNodeDefinitionExecutionSlot(
+                graph_node_definition_id=node_def_id,
+            )
+            for node_def_id in graph_node_definition_ids
+        ]
+        instance._initialization_status = GraphExecutionInitializationStatus.INITIALIZING
+
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+            GraphExecutionInitializedEvent,
+        )
+
+        instance.append_event(
+            GraphExecutionInitializedEvent.now(
+                graph_execution_id=id_,
+                task_execution_id=task_execution_id,
+                graph_definition_id=graph_definition_id,
+                graph_node_definition_ids=graph_node_definition_ids,
+                now=now,
+            )
+        )
+        return instance
+
+    def attach_node_execution(
+        self,
+        node_definition_id: GraphNodeDefinitionId,
+        node_execution_id: GraphNodeExecutionId,
+        now: datetime,
+    ) -> None:
+        new_slots: list[GraphNodeDefinitionExecutionSlot] = []
+        found = False
+        for slot in self._graph_node_definition_execution_slots:
+            if slot.graph_node_definition_id == node_definition_id:
+                new_slots.append(slot.with_execution(node_execution_id))
+                found = True
+            else:
+                new_slots.append(slot)
+
+        if not found:
+            raise UnknownNodeDefinitionError(
+                f"Node definition {node_definition_id} not found"
+            )
+
+        self._graph_node_definition_execution_slots = new_slots
+
+        from shell.domain.execution.aggregates.graph_execution.events.graph_node_execution_attached_event import (
+            GraphNodeExecutionAttachedEvent,
+        )
+
+        self.append_event(
+            GraphNodeExecutionAttachedEvent.now(
+                graph_execution_id=self._id,
+                graph_node_definition_id=node_definition_id,
+                graph_node_execution_id=node_execution_id,
+                now=now,
+            )
+        )
+
+        if all(slot.is_filled for slot in self._graph_node_definition_execution_slots):
+            self._initialization_status = GraphExecutionInitializationStatus.COMPLETED
+
+            from shell.domain.execution.aggregates.graph_execution.events.graph_execution_ready_event import (
+                GraphExecutionReadyEvent,
+            )
+
+            self.append_event(
+                GraphExecutionReadyEvent.now(
+                    graph_execution_id=self._id,
+                    graph_node_definition_executions={
+                        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+                        for slot in self._graph_node_definition_execution_slots
+                        if slot.graph_node_execution_id is not None
+                    },
+                    now=now,
+                )
+            )
+
+    def hold_initialization(self, now: datetime) -> None:
+        if self._initialization_status != GraphExecutionInitializationStatus.INITIALIZING:
+            raise InvalidInitializationStateError(
+                f"Cannot hold in status {self._initialization_status}"
+            )
+        self._initialization_status = GraphExecutionInitializationStatus.HOLD
+
+    def fail_initialization(self, now: datetime) -> None:
+        if self._initialization_status not in (
+            GraphExecutionInitializationStatus.INITIALIZING,
+            GraphExecutionInitializationStatus.HOLD,
+        ):
+            raise InvalidInitializationStateError(
+                f"Cannot fail in status {self._initialization_status}"
+            )
+        self._initialization_status = GraphExecutionInitializationStatus.FAILED
+        self._execution_status = GraphExecutionStatus.FAILED
+
+    # --- V3 FSM (execution status) ---
 
     def start_planning(self, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.PENDING:
+        if self._execution_status != GraphExecutionStatus.PENDING:
             raise InvalidGraphStateError(
-                f"Cannot start planning in status {self._status}"
+                f"Cannot start planning in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.PLANNING
+        self._execution_status = GraphExecutionStatus.PLANNING
         from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
             GraphExecutionPlanningStartedEvent,
         )
@@ -77,11 +205,11 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def plan_complete(self, plan: dict[str, Any] | None, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.PLANNING:
+        if self._execution_status != GraphExecutionStatus.PLANNING:
             raise InvalidGraphStateError(
-                f"Cannot complete planning in status {self._status}"
+                f"Cannot complete planning in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.EXECUTING
+        self._execution_status = GraphExecutionStatus.EXECUTING
         from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planned_event import (
             GraphExecutionPlannedEvent,
         )
@@ -95,11 +223,11 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def complete(self, verifier_result: dict[str, Any] | None, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.VERIFYING:
+        if self._execution_status != GraphExecutionStatus.VERIFYING:
             raise InvalidGraphStateError(
-                f"Cannot complete graph in status {self._status}"
+                f"Cannot complete graph in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.COMPLETED
+        self._execution_status = GraphExecutionStatus.COMPLETED
         from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
             GraphExecutionCompletedEvent,
         )
@@ -113,16 +241,16 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def fail(self, reason: Reason, now: datetime) -> None:
-        if self.status not in (
+        if self.execution_status not in (
             GraphExecutionStatus.PLANNING,
             GraphExecutionStatus.EXECUTING,
             GraphExecutionStatus.VERIFYING,
             GraphExecutionStatus.SUSPENDED,
         ):
             raise InvalidGraphStateError(
-                f"Cannot fail graph in status {self._status}"
+                f"Cannot fail graph in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.FAILED
+        self._execution_status = GraphExecutionStatus.FAILED
         from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
             GraphExecutionFailedEvent,
         )
@@ -136,25 +264,25 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def mark_verifying(self, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.EXECUTING:
+        if self._execution_status != GraphExecutionStatus.EXECUTING:
             raise InvalidGraphStateError(
-                f"Cannot start verifying in status {self._status}"
+                f"Cannot start verifying in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.VERIFYING
+        self._execution_status = GraphExecutionStatus.VERIFYING
 
     def suspend(self, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.EXECUTING:
+        if self._execution_status != GraphExecutionStatus.EXECUTING:
             raise InvalidGraphStateError(
-                f"Cannot suspend graph in status {self._status}"
+                f"Cannot suspend graph in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.SUSPENDED
+        self._execution_status = GraphExecutionStatus.SUSPENDED
 
     def resume(self, now: datetime) -> None:
-        if self._status != GraphExecutionStatus.SUSPENDED:
+        if self._execution_status != GraphExecutionStatus.SUSPENDED:
             raise InvalidGraphStateError(
-                f"Cannot resume graph in status {self._status}"
+                f"Cannot resume graph in status {self._execution_status}"
             )
-        self._status = GraphExecutionStatus.EXECUTING
+        self._execution_status = GraphExecutionStatus.EXECUTING
 
     # --- Factory methods ---
 
@@ -217,8 +345,41 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._max_subgraph_depth
 
     @property
+    def execution_status(self) -> GraphExecutionStatus:
+        return self._execution_status
+
+    @property
     def status(self) -> GraphExecutionStatus:
-        return self._status
+        return self._execution_status
+
+    @property
+    def graph_definition_id(self) -> GraphDefinitionId:
+        return self._graph_definition_id
+
+    @property
+    def graph_node_definition_execution_slots(self) -> list[GraphNodeDefinitionExecutionSlot]:
+        return list(self._graph_node_definition_execution_slots)
+
+    @property
+    def graph_node_definition_executions(self) -> dict[str, str]:
+        return {
+            slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+            for slot in self._graph_node_definition_execution_slots
+            if slot.graph_node_execution_id is not None
+        }
+
+    @property
+    def initialization_status(self) -> GraphExecutionInitializationStatus:
+        return self._initialization_status
+
 
 class InvalidGraphStateError(Exception):
+    pass
+
+
+class UnknownNodeDefinitionError(Exception):
+    pass
+
+
+class InvalidInitializationStateError(Exception):
     pass

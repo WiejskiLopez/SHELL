@@ -10,7 +10,7 @@ from shell.bootstrap.platform.database_config.database_bootstrap import bootstra
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
+from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:

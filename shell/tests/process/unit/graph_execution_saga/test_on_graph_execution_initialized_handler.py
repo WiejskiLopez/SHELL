@@ -1,0 +1,120 @@
+"""Unit tests for OnGraphExecutionInitializedHandler."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+import pytest
+
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+    GraphExecutionInitializedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
+from shell.domain.execution.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.execution.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId,
+)
+from shell.process.execution.graph_execution_saga.handlers.on_graph_execution_initialized_handler import (
+    OnGraphExecutionInitializedHandler,
+)
+from shell.process.execution.graph_execution_saga.manager import (
+    GraphExecutionSagaManager,
+)
+from shell.tests.process.conftest import (
+    FakeCommandOutboxPublisher,
+    FakeLogger,
+    InMemoryGraphExecutionSagaRepository,
+)
+
+
+class TestOnGraphExecutionInitializedHandler:
+    NOW = datetime.now(tz=timezone.utc)
+
+    @pytest.fixture()
+    def saga_manager(
+        self, saga_repository: InMemoryGraphExecutionSagaRepository
+    ) -> GraphExecutionSagaManager:
+        return GraphExecutionSagaManager(repository=saga_repository)
+
+    @pytest.fixture()
+    def handler(
+        self,
+        saga_manager: GraphExecutionSagaManager,
+        command_publisher: FakeCommandOutboxPublisher,
+        logger: FakeLogger,
+    ) -> OnGraphExecutionInitializedHandler:
+        return OnGraphExecutionInitializedHandler(
+            saga_manager=saga_manager,
+            command_publisher=command_publisher,
+            logger=logger,
+        )
+
+    async def test_creates_saga_and_publishes_commands(
+        self,
+        handler: OnGraphExecutionInitializedHandler,
+        saga_manager: GraphExecutionSagaManager,
+        saga_repository: InMemoryGraphExecutionSagaRepository,
+        command_publisher: FakeCommandOutboxPublisher,
+    ) -> None:
+        graph_execution_id = GraphExecutionId("ge-1")
+        task_execution_id = TaskExecutionId("te-1")
+        graph_definition_id = GraphDefinitionId("gd-1")
+        node_def_ids = (
+            GraphNodeDefinitionId("ndef-1"),
+            GraphNodeDefinitionId("ndef-2"),
+            GraphNodeDefinitionId("ndef-3"),
+        )
+
+        event = GraphExecutionInitializedEvent(
+            graph_execution_id=graph_execution_id,
+            task_execution_id=task_execution_id,
+            graph_definition_id=graph_definition_id,
+            graph_node_definition_ids=node_def_ids,
+            occurred_at=self.NOW,
+        )
+
+        await handler.handle(event)
+
+        stored = await saga_repository.get_by_graph_execution_id("ge-1")
+        assert stored is not None
+        assert stored.expected_nodes_count == 3
+        assert stored.status.value == "PENDING"
+
+        assert len(command_publisher.published) == 3
+        for i, node_def_id in enumerate(node_def_ids):
+            cmd_type, payload = command_publisher.published[i]
+            assert cmd_type == "CreateGraphNodeExecutionCommand"
+            assert payload["graph_execution_id"] == "ge-1"
+            assert payload["graph_node_definition_id"] == node_def_id.value
+
+    async def test_creates_saga_with_zero_nodes(
+        self,
+        handler: OnGraphExecutionInitializedHandler,
+        saga_repository: InMemoryGraphExecutionSagaRepository,
+        command_publisher: FakeCommandOutboxPublisher,
+    ) -> None:
+        graph_execution_id = GraphExecutionId("ge-empty")
+        task_execution_id = TaskExecutionId("te-empty")
+        graph_definition_id = GraphDefinitionId("gd-empty")
+
+        event = GraphExecutionInitializedEvent(
+            graph_execution_id=graph_execution_id,
+            task_execution_id=task_execution_id,
+            graph_definition_id=graph_definition_id,
+            graph_node_definition_ids=(),
+            occurred_at=self.NOW,
+        )
+
+        await handler.handle(event)
+
+        stored = await saga_repository.get_by_graph_execution_id("ge-empty")
+        assert stored is not None
+        assert stored.expected_nodes_count == 0
+        assert len(command_publisher.published) == 0

@@ -12,6 +12,9 @@ from shell.infrastructure.execution.persistence.sql.models.envelope_event import
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
     GraphExecutionModel,
 )
+from shell.infrastructure.execution.persistence.sql.models.saga_state import (
+    GraphExecutionSagaStateModel,
+)
 from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
     GraphExecutionStateInputModel,
 )
@@ -53,6 +56,7 @@ __all__ = [
     "EnvelopeModel",
     "ForeignKey",
     "GraphExecutionModel",
+    "GraphExecutionSagaStateModel",
     "GraphExecutionStateInputModel",
     "GraphExecutionStateOutputModel",
     "GraphNodeExecutionStateInputModel",

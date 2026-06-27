@@ -1,6 +1,8 @@
 # Warstwa aplikacyjna
 
-`application/` orkiestruje przypadki użycia: pobiera agregaty z repozytoriów, wywołuje metody domenowe, persystuje wynik. Nie zawiera reguł biznesowych.
+`application/` zawiera atomowe operacje przypadków użycia: pobiera jeden agregat z repozytorium, wywołuje metody domenowe, persystuje wynik. Nie zawiera reguł biznesowych ani orkiestracji wieloagregatowej.
+
+**Orkiestracja** (koordynacja wielu agregatów, saga, process manager) należy do warstwy `process/`. Application wysyła komendy, process decyduje KIEDY i W JAKIEJ KOLEJNOŚCI.
 
 ## CQRS — Command / Query Separation
 
@@ -23,11 +25,11 @@
 
 ### Two-phase UoW — dla długotrwałych operacji
 
-Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `GraphNodeExecutionProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków:
+Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `GraphNodeExecutionProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków.
 
 ## Handler — bezstanowy
 
-Handler nigdy nie przechowuje mutowalnego stanu między wywołaniami `handle()`.
+Handler nigdy nie przechowuje mutowalnego stanu między wywołaniami `handle()`. W przypadku stateful orchestration (saga, process manager) — używaj warstwy `process/`.
 
 ## DTO (Data Transfer Object)
 

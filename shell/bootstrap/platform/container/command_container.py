@@ -25,6 +25,12 @@ from shell.application.execution.command_handlers.save_graph_node_execution_resu
     SaveGraphNodeExecutionResultHandler,
 )
 from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
+from shell.application.execution.command_handlers.create_graph_node_execution_handler import (
+    CreateGraphNodeExecutionCommandHandler,
+)
+from shell.application.execution.command_handlers.attach_graph_node_executions_handler import (
+    AttachGraphNodeExecutionsCommandHandler,
+)
 
 
 class CommandContainer(containers.DeclarativeContainer):
@@ -87,4 +93,15 @@ class CommandContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         navigator=domain.node_navigator_factory,
+    )
+    create_graph_node_execution_handler_factory = providers.Factory(
+        CreateGraphNodeExecutionCommandHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        identity=infra.id_generator_factory,
+        time=infra.clock_factory,
+    )
+    attach_graph_node_executions_handler_factory = providers.Factory(
+        AttachGraphNodeExecutionsCommandHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        time=infra.clock_factory,
     )

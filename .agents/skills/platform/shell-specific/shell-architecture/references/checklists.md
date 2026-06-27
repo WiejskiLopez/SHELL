@@ -12,30 +12,41 @@ Checklisty do przejścia przed wysłaniem zmian. Każda odpowiada konkretnej kla
    - Domain Service w `domain/services/`
    - Repository Port w `domain/repositories/`
 
-2. **Operacja aplikacyjna**:
+2. **Operacja aplikacyjna** (atomowa, 1 agregat):
    - Command lub Query w `application/commands/` lub `application/queries/`
    - Handler w `application/command_handlers/` lub `application/query_handlers/`
    - Event Handler w `application/event_handlers/`
    - DTO w `application/dto/`
    - Mapper w `application/mappers/`
 
-3. **Adapter infrastrukturalny**:
+3. **Orkiestracja/Process** (jeśli potrzeba koordynacji wielu agregatów):
+   - Saga/Process Manager w `process/<bc>/<nazwa_sagi>/manager.py`
+   - Saga State w `process/<bc>/<nazwa_sagi>/state.py`
+   - Event Handlery sagi w `process/<bc>/<nazwa_sagi>/handlers/`
+   - Saga-specific commands w `process/<bc>/<nazwa_sagi>/commands/`
+   - Saga ports (Protocol) w `process/<bc>/<nazwa_sagi>/ports/`
+
+4. **Adapter infrastrukturalny**:
    - ORM Model w `infrastructure/persistence/sql/models/`
    - Migracja Alembic w `infrastructure/persistence/migrations/sql/versions/`
    - Repository w `infrastructure/persistence/sql/repositories/`
    - InMemory Repository w `infrastructure/persistence/memory/`
 
-4. **Rejestracja w DI**:
-   - Container w `bootstrap/container/`
-   - Factory w `bootstrap/factory/`
+5. **Rejestracja w DI**:
+   - Application Container w `bootstrap/container/command_container.py`, `event_container.py`, `query_container.py`
+   - Process Container w `bootstrap/container/process_container.py`
+   - Factory w `bootstrap/factory/` (`command_factory.py`, `event_factory.py`)
+   - Core Container w `core_container.py` — dodaj `process: providers.Container[ProcessContainer]`
 
-5. **Endpoint frameworkowy**:
+6. **Endpoint frameworkowy**:
    - Router FastAPI w `framework/api/routers/`
    - Lub komenda CLI w `framework/cli/commands/`
 
-6. **Testy**:
+7. **Testy**:
    - Unit domain w `tests/unit/domain/`
    - Unit application w `tests/unit/application/`
+   - Unit process w `tests/process/unit/` (testy sagi/process managerów z InMemory adapterami)
+   - Integration process w `tests/process/integration/sql_sqlite/` (testy repozytoriów sagi z SQLite)
    - Integration w `tests/integration/sql_sqlite/`
    - E2E w `tests/e2e/api/` lub `tests/e2e/cli/`
 
@@ -129,7 +140,9 @@ Dla każdego agregatu persystowanego:
 | Kategoria | Lokalizacja | Co testuje | Adaptery |
 |-----------|-------------|------------|----------|
 | Unit (domain) | `tests/unit/domain/` | Entity, VO, Domain Service, state machine, events | Czyste obiekty domenowe |
-| Unit (application) | `tests/unit/application/` | Handlery, bus, strategie | `InMemory*` repositories, `Fake*` porty |
+| Unit (application) | `tests/unit/application/` | Atomowe handlery, bus, strategie | `InMemory*` repositories, `Fake*` porty |
+| Unit (process) | `tests/process/unit/` | Saga state machine, Process Manager handlery | `InMemory*` saga repo, `FakeCommandPublisher` |
+| Integration (process) | `tests/process/integration/sql_sqlite/` | Saga repository + manager na SQLite | SQLite |
 | Integration | `tests/integration/sql_sqlite/` | SQL Reposytoria, UoW, outbox | SQLite (prawdziwa baza) |
 | Integration | `tests/integration/sql_postgres/` | PostgreSQL-specific | PostgreSQL przez `PG_TEST_URL` |
 | E2E | `tests/e2e/api/` | FastAPI endpointy | httpx + prawdziwy DI container |

@@ -12,7 +12,7 @@ description: Testy architektury oparte na `import-linter` — automatyzują regu
 W projekcie DDD/Clean Architecture obowiązuje jeden kierunek zależności:
 
 ```
-domain/  ←  application/  ←  infrastructure/  ←  framework/
+domain/  ←  application/  ←  process/  ←  infrastructure/  ←  framework/
 ```
 
 `import-linter` zamienia to na **egzekwowalny kontrakt CI**.
@@ -46,11 +46,22 @@ source_modules = ["shell.domain"]
 name = "application_must_not_import_infrastructure"
 type = "forbidden_imports"
 forbidden_imports = [
+    "shell.process",
     "shell.infrastructure",
     "shell.framework",
     "shell.bootstrap",
 ]
 source_modules = ["shell.application"]
+
+[[tool.import-linter.contract_types]]
+name = "process_must_not_import_infrastructure"
+type = "forbidden_imports"
+forbidden_imports = [
+    "shell.infrastructure",
+    "shell.framework",
+    "shell.bootstrap",
+]
+source_modules = ["shell.process"]
 
 [[tool.import-linter.contract_types]]
 name = "infrastructure_must_not_import_framework"
@@ -85,6 +96,7 @@ type = "layers"
 layers = [
     "shell.domain",
     "shell.application",
+    "shell.process",
     "shell.infrastructure",
     "shell.framework",
     "shell.bootstrap",
@@ -183,8 +195,9 @@ class TestLayerImportRules:
     """Sprawdza czy żadna warstwa nie importuje wyższych warstw."""
 
     IMPORTS_MAP: dict[str, list[str]] = {
-        "domain": ["shell.infrastructure", "shell.framework", "shell.application"],
-        "application": ["shell.infrastructure", "shell.framework"],
+        "domain": ["shell.infrastructure", "shell.framework", "shell.application", "shell.process"],
+        "application": ["shell.process", "shell.infrastructure", "shell.framework"],
+        "process": ["shell.infrastructure", "shell.framework", "shell.bootstrap"],
         "infrastructure": ["shell.framework", "shell.bootstrap"],
     }
 

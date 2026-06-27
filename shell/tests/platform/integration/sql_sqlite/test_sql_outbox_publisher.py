@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.events import TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.infrastructure.platform.messaging.sql_outbox_publisher import SqlOutboxPublisher
+from shell.infrastructure.platform.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
 from sqlalchemy import select
 
@@ -40,9 +40,6 @@ class TestSqlOutboxPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.infrastructure.platform.messaging.sql_outbox_publisher import SqlOutboxPublisher
-        from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
-
         pub = SqlOutboxPublisher(session_factory)
         async with session_factory() as session:
             before = len((await session.execute(select(OutboxEventModel))).scalars().all())

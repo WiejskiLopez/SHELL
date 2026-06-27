@@ -85,7 +85,7 @@ _KNOWN_INIT_DEFINITIONS: frozenset[str] = frozenset({})
 def test_init_files_only_re_export() -> None:
     violations: list[str] = []
     _INIT_KNOW_DEFINE = frozenset({})
-    _RESTRICTED_LAYERS = ("domain/", "application/", "bootstrap/")
+    _RESTRICTED_LAYERS = ("domain/", "application/", "process/", "bootstrap/")
     for init_file in BASE.rglob("__init__.py"):
         rel = init_file.relative_to(BASE).as_posix()
         if not any(rel.startswith(layer) for layer in _RESTRICTED_LAYERS):

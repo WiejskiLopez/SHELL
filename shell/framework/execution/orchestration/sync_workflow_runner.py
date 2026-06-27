@@ -24,8 +24,8 @@ if TYPE_CHECKING:
         RunTaskerWorkflowHandler,
     )
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.infrastructure.platform.messaging.outbox_to_inbox_relay import OutboxToInboxRelay
-    from shell.infrastructure.platform.messaging.processor.inbox_processor import InboxProcessor
+    from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
+    from shell.infrastructure.platform.messaging.event.processor.inbox_processor import InboxProcessor
 
 logger = logging.getLogger(__name__)
 

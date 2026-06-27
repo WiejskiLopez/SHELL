@@ -57,11 +57,28 @@ class OrderSaga:
             ))
 ```
 
-## 4. Podsumowanie — Checklista
+## 4. Lokalizacja w architekturze
+
+Saga/Process Manager należy do warstwy **`process/`**, która leży między `application/` a `infrastructure/`:
+
+```
+domain/ ← application/ ← process/ ← infrastructure/ ← framework/
+```
+
+- `process/<bc>/<nazwa_sagi>/manager.py` — state machine
+- `process/<bc>/<nazwa_sagi>/state.py` — stan sagi (trwały, w bazie)
+- `process/<bc>/<nazwa_sagi>/handlers/` — event handlery delegujące do managera
+- `process/<bc>/<nazwa_sagi>/commands/` — komendy produkowane tylko przez tę sagę
+- `process/<bc>/<nazwa_sagi>/ports/` — porty (Protocol) dla repozytorium i command publishingu
+
+> **Zasada**: Application = atomowe handlery (1 event → 1 agregat). Process = orchestracja (wiele agregatów, stan, koordynacja).
+
+## 5. Podsumowanie — Checklista
 
 Projektując Sagę:
 - [ ] Choreografia dla prostych przypadków (2-3 uczestników)
 - [ ] Orkiestracja dla złożonych przypadków (3+ uczestników)
+- [ ] Saga w `process/`, nie w `application/`
 - [ ] Idempotentność — wielokrotne wykonanie tego samego eventu
-- [ ] Testy jednostkowe dla każdego przejścia stanu
-- [ ] Testy integracyjne dla pełnego flow
+- [ ] Testy jednostkowe dla każdego przejścia stanu (`tests/process/unit/`)
+- [ ] Testy integracyjne dla pełnego flow (`tests/process/integration/sql_sqlite/`)

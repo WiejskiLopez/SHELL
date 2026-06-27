@@ -7,6 +7,12 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
     GraphExecutionCompletedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+    GraphExecutionInitializedEvent,
+)
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+    GraphNodeExecutionInitializedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
     GraphExecutionCreatedEvent,
 )
@@ -132,4 +138,16 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(
         GraphNodeExecutionFailedEvent,
         events.handle_graph_node_execution_failed_factory,
+    )
+
+    # ── Saga inicjalizacji grafu (warstwa process) ──
+    process_ctx: Any = core_container.process
+
+    event_bus.subscribe(
+        GraphExecutionInitializedEvent,
+        process_ctx.on_graph_execution_initialized_handler_factory,
+    )
+    event_bus.subscribe(
+        GraphNodeExecutionInitializedEvent,
+        process_ctx.on_graph_node_execution_initialized_handler_factory,
     )

@@ -9,6 +9,7 @@ from .application_container import ApplicationContainer
 from .domain_container import DomainContainer
 from .events_container import EventsContainer
 from .infrastructure_container import InfrastructureContainer
+from .process_container import ProcessContainer
 
 
 class CoreContainer(containers.DeclarativeContainer):
@@ -40,6 +41,12 @@ class CoreContainer(containers.DeclarativeContainer):
     events = providers.Container(
         EventsContainer,
         config=config.events,
+        infra=infra,
+        buses=app.buses,
+    )
+
+    process: providers.Container[ProcessContainer] = providers.Container(
+        ProcessContainer,
         infra=infra,
         buses=app.buses,
     )

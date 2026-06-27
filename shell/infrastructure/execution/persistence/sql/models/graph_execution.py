@@ -18,6 +18,7 @@ class GraphExecutionModel(Base, VersionedMixin):
         nullable=False,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
+    graph_node_definition_executions: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     status: Mapped[str] = mapped_column(nullable=False, default="created")
 
     parent_graph_execution_id: Mapped[str | None] = mapped_column(

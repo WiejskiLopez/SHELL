@@ -31,6 +31,12 @@ from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGener
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
+    SqlGraphExecutionSagaRepository,
+)
+from shell.infrastructure.platform.messaging.command.sql_command_outbox_publisher import (
+    SqlCommandOutboxPublisher,
+)
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.platform.time.system_clock import SystemClock
@@ -85,6 +91,16 @@ class InfrastructureContainer(containers.DeclarativeContainer):
 
     # 4. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
 
+
+    # 5. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
+    graph_execution_saga_repository_factory = providers.Factory(
+        SqlGraphExecutionSagaRepository,
+        session=providers.Factory(lambda: session_factory()()),
+    )
+    sql_command_outbox_publisher_factory = providers.Singleton(
+        SqlCommandOutboxPublisher,
+        session_factory=session_factory,
+    )
 
     # 6. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)

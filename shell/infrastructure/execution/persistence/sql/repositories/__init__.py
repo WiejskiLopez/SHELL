@@ -7,6 +7,9 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_re
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
+    SqlGraphExecutionSagaRepository,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_input_repository import (
     SqlGraphExecutionStateRepository as SqlGraphExecutionStateInputRepository,
 )
@@ -42,6 +45,7 @@ __all__ = [
     "SqlEnvelopeArchiveStub",
     "SqlEnvelopeRepository",
     "SqlGraphExecutionRepository",
+    "SqlGraphExecutionSagaRepository",
     "SqlGraphExecutionStateInputRepository",
     "SqlGraphExecutionStateOutputRepository",
     "SqlGraphNodeExecutionRepository",

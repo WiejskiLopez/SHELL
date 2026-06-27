@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
+from shell.application.execution.commands.attach_graph_node_executions_command import (
+    AttachGraphNodeExecutionsCommand,
+)
+from shell.application.execution.commands.create_graph_node_execution_command import (
+    CreateGraphNodeExecutionCommand,
+)
 from shell.application.platform.commands.commands import (
     ArchiveEnvelopeCommand,
     BootstrapRunnerConfigCommand,
@@ -46,3 +52,11 @@ def register_commands(core_container: CoreContainer) -> None:
         commands.bootstrap_runner_config_handler_factory,
     )
     cmd_bus.register(RunTaskerWorkflowCommand, commands.run_tasker_workflow_handler_factory)
+    cmd_bus.register(
+        CreateGraphNodeExecutionCommand,
+        commands.create_graph_node_execution_handler_factory,
+    )
+    cmd_bus.register(
+        AttachGraphNodeExecutionsCommand,
+        commands.attach_graph_node_executions_handler_factory,
+    )

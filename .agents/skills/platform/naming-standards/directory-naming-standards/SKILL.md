@@ -55,11 +55,17 @@ repositories/
 | Infrastructure | `infrastructure/persistence/migrations/sql/versions/` | Migracje Alembic |
 | Framework | `framework/api/routers/` | Routery FastAPI |
 | Framework | `framework/cli/commands/` | Komendy CLI |
+| Process | `process/<bc>/<nazwa_sagi>/` | Saga state machine (manager.py, state.py) |
+| Process | `process/<bc>/<nazwa_sagi>/handlers/` | Event handlery delegujące do managera |
+| Process | `process/<bc>/<nazwa_sagi>/commands/` | Komendy produkowane tylko przez tę sagę |
+| Process | `process/<bc>/<nazwa_sagi>/ports/` | Porty (Protocol) dla repozytorium i command publishera |
 | Bootstrap | `bootstrap/<bc>/` | DI per BC |
 | Bootstrap | `bootstrap/container/` | Containery |
 | Bootstrap | `bootstrap/factory/` | Factory |
 | Test | `tests/unit/domain/` | Testy jednostkowe domeny |
 | Test | `tests/unit/application/` | Testy jednostkowe aplikacji |
+| Test | `tests/process/unit/` | Testy jednostkowe process (saga state machine, process manager handlery) |
+| Test | `tests/process/integration/sql_sqlite/` | Testy integracyjne process z SQLite |
 | Test | `tests/integration/sql_sqlite/` | Testy integracyjne SQLite |
 | Test | `tests/integration/sql_postgres/` | Testy integracyjne Postgres |
 | Test | `tests/e2e/api/` | Testy E2E API |

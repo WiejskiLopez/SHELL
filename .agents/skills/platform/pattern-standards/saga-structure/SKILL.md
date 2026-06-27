@@ -84,4 +84,9 @@ class WorkflowExecutionSaga:
 
 ## Lokalizacja
 
-- `shell/application/<bc>/sagas/`
+- `shell/process/<bc>/<nazwa_sagi>/` — saga state machine (manager.py, state.py)
+- `shell/process/<bc>/<nazwa_sagi>/handlers/` — event handlery delegujące do managera
+- `shell/process/<bc>/<nazwa_sagi>/commands/` — komendy produkowane tylko przez tę sagę
+- `shell/process/<bc>/<nazwa_sagi>/ports/` — porty (Protocol) dla repozytorium, command publishera
+
+Warstwa `process/` leży między `application/` a `infrastructure/`. Application zawiera atomowe handlery komend/eventów (1 agregat na transakcję). Process zawiera stateful orchestration (saga, process manager) koordynującą wiele agregatów poprzez wysyłanie komend do warstwy aplikacyjnej.

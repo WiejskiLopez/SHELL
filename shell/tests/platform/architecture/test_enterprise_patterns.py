@@ -309,9 +309,19 @@ _KNOWN_APP_ORM_IMPORTS: frozenset[str] = frozenset({
 })
 
 
-def test_application_does_not_import_orm_models() -> None:
+def test_application_and_process_do_not_import_orm_models() -> None:
     violations: list[str] = []
     for path in _iter_py_files(BASE / "application"):
+        rel = path.relative_to(BASE).as_posix()
+        if rel in _KNOWN_APP_ORM_IMPORTS:
+            continue
+        for imp in _get_imports(path):
+            if imp.endswith("Model") or imp.endswith("models"):
+                if "sql" in imp or "orm" in imp:
+                    violations.append(f"{rel}: imports ORM model {imp!r}")
+            if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
+                violations.append(f"{rel}: imports infrastructure model {imp!r}")
+    for path in _iter_py_files(BASE / "process"):
         rel = path.relative_to(BASE).as_posix()
         if rel in _KNOWN_APP_ORM_IMPORTS:
             continue
@@ -339,7 +349,7 @@ _KNOWN_SERVICE_LOCATOR: frozenset[str] = frozenset({})
 
 def test_no_service_locator_in_production() -> None:
     violations: list[str] = []
-    for layer in ["domain", "application", "infrastructure", "framework"]:
+    for layer in ["domain", "application", "process", "infrastructure", "framework"]:
         for path in _iter_py_files(BASE / layer):
             rel = path.relative_to(BASE).as_posix()
             if any(exc in rel for exc in _KNOWN_SERVICE_LOCATOR):

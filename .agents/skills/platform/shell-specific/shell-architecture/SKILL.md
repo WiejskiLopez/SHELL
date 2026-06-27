@@ -12,11 +12,12 @@ Projekt SHELL to system execution-orkiestracji oparty na **Clean Architecture + 
 Kierunek zależności jest jednokierunkowy:
 
 ```
-domain/ ← application/ ← infrastructure/ ← framework/ ← bootstrap/
+domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
 ```
 
 - `domain/` — czysty Python, reguły biznesowe (Entity, VO, Aggregate Root, Domain Events, Repository porty)
-- `application/` — orkiestracja przypadków użycia (Command/Query/Event Handlers, UoW, DTO, Mapper)
+- `application/` — atomowe handlery przypadków użycia (Command/Query/Event Handlers, Busy, UoW, DTO, Mapper). Jeden handler = jeden agregat = jedna transakcja. Żadnej orkiestracji wieloagregatowej.
+- `process/` — orkiestracja i sagas (stateful saga state machine, Process Manager event handlery, saga-specific commands i porty). Koordynuje wiele agregatów poprzez wysyłanie komend do warstwy aplikacyjnej.
 - `infrastructure/` — implementacje portów (SQLAlchemy, InMemory, outbox, migracje)
 - `framework/` — FastAPI, CLI, entrypointy
 - `bootstrap/` — Composition Root (DI Containery, Factory)
@@ -117,11 +118,12 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 ## Przepis: nowa funkcjonalność (wersja skrócona)
 
 1. **Domain**: VO / Entity / Aggregate Root / Event / Exception / Service / Repository Port w `domain/`
-2. **Application**: Command/Query + Handler + DTO + Mapper w `application/`
-3. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository w `infrastructure/`
-4. **DI**: Container + Factory w `bootstrap/`
-5. **Framework**: Router FastAPI albo komenda CLI w `framework/`
-6. **Testy**: unit (domain + application) + integration (SQLite) + E2E
+2. **Application**: Atomowy Command/Query + Handler + DTO + Mapper w `application/`
+3. **Process** (jeśli potrzeba orkiestracji): Saga/Process Manager + handlers + commands + ports w `process/`
+4. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository w `infrastructure/`
+5. **DI**: Container + Factory w `bootstrap/`
+6. **Framework**: Router FastAPI albo komenda CLI w `framework/`
+7. **Testy**: unit (domain + application + process) + integration (SQLite) + E2E
 
 Pełna checklist (z numeracją kroków i podkatalogami) w `references/checklists.md`.
 

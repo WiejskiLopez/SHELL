@@ -342,11 +342,8 @@ def _seed_task_executions(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.task_execution import (
         TaskExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.task_execution_state_input import (
-        TaskExecutionStateInputModel,
-    )
-    from shell.infrastructure.execution.persistence.sql.models.task_execution_state_output import (
-        TaskExecutionStateOutputModel,
+    from shell.infrastructure.execution.persistence.sql.models.task_execution_state import (
+        TaskExecutionStateModel,
     )
 
     tasks: list[dict[str, Any]] = [
@@ -408,9 +405,10 @@ def _seed_task_executions(session: Session) -> None:
             continue
         session.add(t["model"])
         session.add(
-            TaskExecutionStateInputModel(
+            TaskExecutionStateModel(
                 id=f"{t['model'].id}-input",
                 task_execution_id=t["model"].id,
+                kind="INPUT",
                 payload=t["input_payload"],
                 is_current=True,
                 created_at=_NOW,
@@ -418,9 +416,10 @@ def _seed_task_executions(session: Session) -> None:
         )
         if t["output_payload"]:
             session.add(
-                TaskExecutionStateOutputModel(
+                TaskExecutionStateModel(
                     id=f"{t['model'].id}-output",
                     task_execution_id=t["model"].id,
+                    kind="OUTPUT",
                     payload=t["output_payload"],
                     is_current=True,
                     created_at=_NOW,

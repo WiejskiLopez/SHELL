@@ -66,6 +66,7 @@ from shell.application.execution.event_handlers.graph_node_execution_started_eve
 from shell.application.execution.event_handlers.graph_node_execution_failed_event_handler import (
     GraphNodeExecutionFailedEventHandler,
 )
+
 from shell.application.platform.event_handlers.event_handlers import (
     ArchiveOnDeliveredHandler,
     LogAuditHandler,
@@ -241,3 +242,5 @@ class EventContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
+
+
