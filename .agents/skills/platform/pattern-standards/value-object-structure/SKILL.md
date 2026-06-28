@@ -132,22 +132,32 @@ class Money(ValueObject):
 
 ## ID
 
-- Każde ID w domenie to osobny Value Object z walidacją i `generate()`.
+- Każde ID w domenie dziedziczy po generycznej klasie `EntityId` (`shell/domain/platform/base/entity_id.py`).
+- `EntityId` dostarcza: `value: str`, `__post_init__` (niepuste), `__str__`, `generate()`.
+- Własny plik dla każdego ID → jedna linijka.
 
 ```python
-@dataclass(frozen=True, slots=True)
-class WorkflowId(ValueObject):
-    value: uuid.UUID
+from shell.domain.platform.base import EntityId
 
-    @classmethod
-    def generate(cls) -> WorkflowId:
-        return cls(uuid4())
+
+class WorkflowId(EntityId):
+    pass
+```
+
+Jeśli ID wymaga własnej walidacji (np. format), nadpisuje się `__post_init__`:
+```python
+class EmailId(EntityId):
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        if "@" not in self.value:
+            raise ValueError("EmailId must contain @")
 ```
 
 ## Lokalizacja
 
 - `shell/domain/<bc>/value_objects/`
 - Uniwersalne: `shell/domain/platform/value_objects/`
+- Baza `EntityId`: `shell/domain/platform/base/`
 
 ## Bezpieczeństwo
 
@@ -160,4 +170,5 @@ Podczas dodawania nowego VO:
 - [ ] Jeśli uniwersalny → w `platform/value_objects/`, nie w domenie
 - [ ] Jeden VO = jeden plik
 - [ ] Importuje `ValueObject` z `shell.domain.platform.base.value_object` (nie przez re-eksport)
+- [ ] Dla ID: `EntityId` z `shell.domain.platform.base` zamiast ręcznego `@dataclass(frozen=True, slots=True)`
 - [ ] Brak zależności od ORM / infrastruktury

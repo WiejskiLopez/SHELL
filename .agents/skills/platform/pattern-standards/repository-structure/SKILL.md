@@ -15,14 +15,25 @@ description: Reguły struktury Repository — port w domenie, adapter SQL/InMemo
 
 - Protocol/ABC w `shell/domain/<bc>/repositories/`.
 - Operacje na poziomie agregatu, nie encji dziecięcych.
-- Command side: tylko `get`, `save`, `delete`.
+- Command side: `get`, `save`, `delete`, `exists` są zdefiniowane w generycznym `RepositoryPort[TAggregate, TId_co]` (`shell/domain/platform/ports/repository_port.py`).
+- BC-specific port rozszerza `RepositoryPort` tylko o własne zapytania.
 
 ```python
-class WorkflowRepository(Protocol):
-    async def get_by_id(self, aggregate_id: WorkflowId) -> Workflow | None: ...
-    async def save(self, workflow: Workflow) -> None: ...
-    async def delete(self, aggregate_id: WorkflowId) -> None: ...
+from shell.domain.platform.ports import RepositoryPort
+
+
+class WorkflowRepository(RepositoryPort[Workflow, WorkflowId], Protocol):
+    async def get_by_session_id(self, session_id: SessionId) -> list[Workflow]: ...
+    async def get_by_session_execution_id(
+        self, session_execution_id: SessionExecutionId
+    ) -> list[Workflow]: ...
 ```
+
+Dziedziczone z `RepositoryPort`:
+- `get_by_id(id: TId_co) -> TAggregate | None`
+- `save(entity: TAggregate) -> None`
+- `delete(id: TId_co) -> None`
+- `exists(id: TId_co) -> ExistsResult`
 
 ## Adapter SQL (infrastruktura)
 
@@ -49,18 +60,20 @@ class SqlWorkflowRepository:
 ## InMemory (testy)
 
 - Każde repozytorium musi mieć implementację InMemory używaną w testach jednostkowych.
-- Może być w domenie lub infrastrukturze.
+- Wszystkie InMemory repozytoria dziedziczą po generycznej bazie `InMemoryRepository[TAggregate, TId]` (`shell/infrastructure/platform/persistence/in_memory_repository.py`).
+- Baza dostarcza: `__init__`, `get_by_id`, `save`, `delete`, `exists` — oparte o `dict[str, TAggregate]`.
+- Konkretna klasa dopisuje tylko metody z niestandardowymi zapytaniami.
 
 ```python
-class InMemoryWorkflowRepository:
-    def __init__(self) -> None:
-        self._storage: dict[WorkflowId, Workflow] = {}
+from shell.infrastructure.platform.persistence import InMemoryRepository
 
-    async def get_by_id(self, aggregate_id: WorkflowId) -> Workflow | None:
-        return self._storage.get(aggregate_id)
 
-    async def save(self, workflow: Workflow) -> None:
-        self._storage[workflow.id] = workflow
+class InMemoryWorkflowRepository(
+    InMemoryRepository[Workflow, WorkflowId],
+    WorkflowRepository,
+):
+    async def get_by_session_id(self, session_id: SessionId) -> list[Workflow]:
+        return [wf for wf in self._store.values() if wf.session_id == session_id]
 ```
 
 ## Transakcje

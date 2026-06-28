@@ -108,20 +108,21 @@ Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 
 ## Wzorce dla ID
 
-Każde ID w domenie to osobna klasa Value Object:
+Każde ID w domenie dziedziczy po `EntityId`:
 
 ```python
-class WorkflowId(ValueObject): ...
-class TaskExecutionId(ValueObject): ...
-class GraphDefinitionId(ValueObject): ...
+class WorkflowId(EntityId): ...
+class TaskExecutionId(EntityId): ...
+class GraphDefinitionId(EntityId): ...
 ```
 
 ## Dziedziczenie i base klasy
 
-- Entity: `Entity[TId]` z `domain/entities/base/entity.py`
-- Aggregate Root: `AggregateRoot[TId]` z `domain/entities/base/aggregate_root.py`
-- Value Object: `ValueObject` z `domain/platform/base/value_object.py`
-- Domain Event: `DomainEvent` z `domain/platform/events/domain_event.py`
+- Entity: `Entity[TId]` z `shell/domain/platform/base/entity.py`
+- Aggregate Root: `AggregateRoot[TId]` z `shell/domain/platform/base/aggregate_root.py`
+- Value Object: `ValueObject` z `shell/domain/platform/base/value_object.py`
+- Entity ID: `EntityId` z `shell/domain/platform/base/entity_id.py`
+- Domain Event: `DomainEvent` z `shell/domain/platform/events/domain_event.py`
 - Domain Exception: `DomainError` z `_base.py`
 
 ## Standard nazewnictwa
