@@ -4,14 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.dto import (
-    GraphNodeExecutionResultDto,
-    RunnerConfigDto,
-    TaskExecutionDto,
-    TaskExecutionStateDto,
-    WorkflowDto,
-    WorkflowStateDto,
-)
+from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
+from shell.application.definition.dto.runner_config import RunnerConfigDto
+from shell.application.execution.dto.task_execution import TaskExecutionDto
+from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
+from shell.application.execution.dto.workflow import WorkflowDto
+from shell.application.execution.dto.workflow_state import WorkflowStateDto
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.runner_config import RunnerConfig

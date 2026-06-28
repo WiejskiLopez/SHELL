@@ -6,7 +6,7 @@ import pytest
 from _arch_helpers import BASE
 
 
-@pytest.mark.skip(reason="import-linter requires all layers to be Python packages with __init__.py; framework/ layer needs this")
+@pytest.mark.skip(reason="import-linter requires all layers to be Python packages with __init__.py; shell/__init__.py is missing")
 def test_import_linter_contracts() -> None:
     project_root = BASE.parent
     import os

@@ -18,19 +18,20 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.value_objects.environment import Environment
+from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    SessionId,
+    SessionIdRef,
     TaskExecutionId,
     WorkflowId,
 )
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.session_status import SessionStatus
+from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -44,15 +45,17 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
     _graph_node_execution_entity_to_model,
     _graph_node_execution_model_to_entity,
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
-    session_entity_to_model,
-    session_model_to_entity,
     task_execution_entity_to_model,
     task_execution_model_to_entity,
     workflow_entity_to_model,
     workflow_model_to_entity,
+)
+from shell.infrastructure.session.persistence.sql.mappers import (
+    session_entity_to_model,
+    session_model_to_entity,
 )
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
@@ -72,7 +75,7 @@ def _raw(dt: datetime | Timestamp | None) -> datetime | None:
 
 class TestWorkflowMapper:
     def test_entity_to_model(self) -> None:
-        original = Workflow(id=WorkflowId("wf-1"), session_id=SessionId("sess-1"), created_at=_NOW)
+        original = Workflow(id=WorkflowId("wf-1"), session_id=SessionIdRef("sess-1"), created_at=_NOW)
         model = workflow_entity_to_model(original)
 
         assert model.id == "wf-1"

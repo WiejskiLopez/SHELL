@@ -19,6 +19,10 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+
 if TYPE_CHECKING:
     from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
         WorkflowRunTaskerHandler,
@@ -80,7 +84,7 @@ class SyncWorkflowRunner:
         task_execution_id: str,
         work_dir: str,
     ) -> SyncWorkflowResult:
-        from shell.application.platform.commands import RunTaskerWorkflowCommand
+        from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
         from shell.domain.execution.value_objects.ids import WorkflowId
         from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
@@ -129,7 +133,7 @@ class SyncWorkflowRunner:
                 metrics.idle_consecutive = 0
 
             async with self._unit_of_work as unit_of_work:
-                workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
+                workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
                 if workflow is None:
                     elapsed = time.monotonic() - start_time
                     return SyncWorkflowResult(
@@ -160,7 +164,7 @@ class SyncWorkflowRunner:
 
         elapsed = time.monotonic() - start_time
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
             status = workflow.status.value if workflow else "unknown"
 
         return SyncWorkflowResult(

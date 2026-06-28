@@ -6,8 +6,8 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.infrastructure.execution.persistence.sql.mappers import (
     workflow_state_entity_to_model,
     workflow_state_model_to_entity,
 )

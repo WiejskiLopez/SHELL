@@ -8,7 +8,7 @@ from shell.domain.definition.aggregates.rag_document.events.rag_document_chunks_
 )
 from shell.domain.definition.value_objects.chunk_index import ChunkIndex
 from shell.domain.definition.value_objects.chunk_text import ChunkText
-from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.domain_tag import DomainTag
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel

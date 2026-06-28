@@ -18,6 +18,9 @@ from shell.domain.execution.value_objects.graph_node_definition_id import GraphN
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -52,5 +55,5 @@ class GraphNodeExecutionCreateHandler:
             now=now,
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.graph_node_execution_repository.save(node_execution)
+            await unit_of_work.repository(GraphNodeExecutionRepository).save(node_execution)
             unit_of_work.stage_events(node_execution.pull_events())

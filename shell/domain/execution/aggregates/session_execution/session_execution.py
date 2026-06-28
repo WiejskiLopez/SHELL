@@ -14,7 +14,7 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 
 class SessionExecution(AggregateRoot[SessionExecutionId]):
@@ -25,7 +25,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
     )
 
     _user_execution_id: UserExecutionId | None
-    _session_id: SessionId | None
+    _session_id: SessionIdRef | None
     _created_at: CreatedAt | None
 
     def __init__(
@@ -33,7 +33,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         *,
         id: SessionExecutionId,
         user_execution_id: UserExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -48,7 +48,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         *,
         id: SessionExecutionId,
         user_execution_id: UserExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
@@ -63,7 +63,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         return self._user_execution_id
 
     @property
-    def session_id(self) -> SessionId | None:
+    def session_id(self) -> SessionIdRef | None:
         return self._session_id
 
     @property
@@ -76,7 +76,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         *,
         id_: SessionExecutionId,
         user_execution_id: UserExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
         now: datetime,
     ) -> SessionExecution:
         session_execution = cls(

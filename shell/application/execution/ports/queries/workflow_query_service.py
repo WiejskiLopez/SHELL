@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import (
-    WorkflowDto,  # noqa: TC002 — WorkflowDto używany jako typ zwracany w sygnaturze Protocol
-)
+from shell.application.execution.dto.workflow import WorkflowDto
 
 
 class WorkflowQueryService(Protocol):

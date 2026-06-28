@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.infrastructure.platform.persistence.in_memory_repository import (
     InMemoryRepository,
@@ -18,7 +18,7 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 
 class InMemoryWorkflowRepository(InMemoryRepository[Workflow, WorkflowId], WorkflowRepository):
 
-    async def get_by_session_id(self, session_id: SessionId) -> list[Workflow]:
+    async def get_by_session_id(self, session_id: SessionIdRef) -> list[Workflow]:
         return [
             wf for wf in self._store.values()
             if wf.session_id == session_id

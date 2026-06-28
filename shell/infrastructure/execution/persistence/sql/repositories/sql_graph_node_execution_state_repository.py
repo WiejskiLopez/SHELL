@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_exe
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
     GraphNodeExecutionStateModel,
 )

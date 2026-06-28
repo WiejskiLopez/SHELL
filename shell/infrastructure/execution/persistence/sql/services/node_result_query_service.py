@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.dto import GraphNodeExecutionResultDto
+from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
     GraphNodeExecutionStateModel,
 )

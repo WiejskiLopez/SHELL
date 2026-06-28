@@ -7,15 +7,9 @@ from typing import TYPE_CHECKING
 from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
     GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.platform.commands import (
-    SaveGraphNodeExecutionResultCommand,
-)
-from shell.application.platform.queries.queries import (
-    GraphNodeExecutionGetResultQuery,
-)
-from shell.application.platform.query_handlers import (
-    GraphNodeExecutionGetResultHandler,
-)
+from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
+from shell.application.execution.queries.graph_node_execution_get_result_query import GraphNodeExecutionGetResultQuery
+from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import GraphNodeExecutionGetResultHandler
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
@@ -25,6 +19,12 @@ from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
 )
@@ -48,7 +48,7 @@ class TestSqlNodeResultRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         async with sql_uow as u:
-            await u.workflow_repository.save(
+            await u.repository(WorkflowRepository).save(
                 Workflow.new(
                     id_=WorkflowId("wf-sql-nr-1"),
                     now=clock.now(),
@@ -61,7 +61,7 @@ class TestSqlNodeResultRepository:
                 role="worker",
                 node_type=NodeType("worker"),
             )
-            await u.graph_node_execution_repository.save(node)
+            await u.repository(GraphNodeExecutionRepository).save(node)
 
         handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_generator)
         await handler.handle(

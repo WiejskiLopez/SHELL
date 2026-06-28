@@ -11,7 +11,7 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.user.value_objects.user_id import UserId
+    from shell.domain.execution.value_objects.user_id_ref import UserIdRefRef
 
 
 class UserExecution(AggregateRoot[UserExecutionId]):
@@ -20,14 +20,14 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         "_created_at",
     )
 
-    _user_id: UserId | None
+    _user_id: UserIdRef | None
     _created_at: CreatedAt | None
 
     def __init__(
         self,
         *,
         id: UserExecutionId,
-        user_id: UserId | None = None,
+        user_id: UserIdRef | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -40,7 +40,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         cls,
         *,
         id: UserExecutionId,
-        user_id: UserId | None = None,
+        user_id: UserIdRef | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
@@ -50,7 +50,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         )
 
     @property
-    def user_id(self) -> UserId | None:
+    def user_id(self) -> UserIdRef | None:
         return self._user_id
 
     @property
@@ -62,7 +62,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         cls,
         *,
         id_: UserExecutionId,
-        user_id: UserId | None = None,
+        user_id: UserIdRef | None = None,
         now: datetime,
     ) -> UserExecution:
         user_execution = cls(

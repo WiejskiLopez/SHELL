@@ -5,13 +5,9 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
-from shell.application.platform.commands import ImportTaskExecutionCommand
-from shell.application.platform.queries.queries import (
-    TaskExecutionGetCurrentQuery,
-)
-from shell.application.platform.query_handlers import (
-    TaskExecutionGetCurrentHandler,
-)
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.queries.task_execution_queries import TaskExecutionGetCurrentQuery
+from shell.application.execution.query_handlers.task_execution_get_current_handler import TaskExecutionGetCurrentHandler
 from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,

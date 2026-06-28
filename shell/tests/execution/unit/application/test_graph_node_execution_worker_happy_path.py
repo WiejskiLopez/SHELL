@@ -9,6 +9,7 @@ from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
+    InMemoryWorkflowRepository,
 )
 from shell.tests.conftest_helpers import (
     _NOW,
@@ -35,7 +36,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.ACTIVE
 
@@ -59,7 +60,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.ACTIVE
 

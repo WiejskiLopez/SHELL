@@ -4,15 +4,12 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
     TaskExecutionImportHandler,
 )
 from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
-from shell.application.platform.commands import (
-    ImportTaskExecutionCommand,
-    StartWorkflowCommand,
-)
-from shell.application.platform.queries.queries import (
-    WorkflowGetByIdQuery,
-)
-from shell.application.platform.query_handlers import (
-    WorkflowGetByIdHandler,
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import FakeLogger
@@ -36,7 +33,7 @@ class TestPgWorkflowRepository:
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
         async with sql_uow as u:
-            task_execution = await u.task_execution_repository.get_current_by_name(
+            task_execution = await u.repository(TaskExecutionRepository).get_current_by_name(
                 TaskExecutionName("pg-wf-task")
             )
             assert task_execution is not None

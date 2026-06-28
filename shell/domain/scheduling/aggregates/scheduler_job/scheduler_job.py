@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Self
 
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.enabled import Enabled

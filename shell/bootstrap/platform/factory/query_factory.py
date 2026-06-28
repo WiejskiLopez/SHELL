@@ -4,15 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
-from shell.application.platform.queries.queries import (
-    GraphNodeExecutionGetResultQuery,
-    RunnerConfigGetQuery,
-    SearchSimilarQuery,
-    SessionGetHistoryQuery,
-    TaskExecutionGetByNameQuery,
-    TaskExecutionGetCurrentQuery,
-    WorkflowGetByIdQuery,
-)
+from shell.application.execution.queries.graph_node_execution_get_result_query import GraphNodeExecutionGetResultQuery
+from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery
+from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
+from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
+from shell.application.execution.queries.task_execution_queries import TaskExecutionGetByNameQuery
+from shell.application.execution.queries.task_execution_queries import TaskExecutionGetCurrentQuery
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
 
 if TYPE_CHECKING:
     from shell.bootstrap.platform.container.core_container import CoreContainer

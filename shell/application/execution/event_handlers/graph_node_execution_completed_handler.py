@@ -40,6 +40,18 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     FailFastGraphNodeExecutionPolicy,
     GraphNodeExecutionPolicy,
 )
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+    GraphNodeTransitionExecutionRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
@@ -94,7 +106,7 @@ class GraphNodeExecutionCompletedHandler:
     async def handle(self, graph_node_execution_result_event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflow_repository.get_by_id(graph_node_execution_result_event.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_result_event.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.workflow_not_found",
@@ -110,7 +122,7 @@ class GraphNodeExecutionCompletedHandler:
                 )
                 return
 
-            graph_executions = await unit_of_work.graph_execution_repository.get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.no_graph",
@@ -139,7 +151,7 @@ class GraphNodeExecutionCompletedHandler:
                     unit_of_work=unit_of_work,
                 )
 
-            await unit_of_work.workflow_repository.save(workflow)
+            await unit_of_work.repository(WorkflowRepository).save(workflow)
             unit_of_work.stage_events(workflow.pull_events())
 
     # ── Private helpers ───────────────────────────────────────────────────
@@ -153,7 +165,7 @@ class GraphNodeExecutionCompletedHandler:
         now: datetime,
         unit_of_work: UnitOfWork,
     ) -> None:
-        transition_repo = unit_of_work.graph_node_transition_execution_repository
+        transition_repo = unit_of_work.repository(GraphNodeTransitionExecutionRepository)
         outgoing = await transition_repo.list_outgoing_for_node(graph_node_execution_id)
         if not outgoing:
             await self._advance_or_finish(
@@ -229,7 +241,7 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
         next_nodes = list(
             await self._navigator.next_after_async(
-                graph_execution, graph_node_execution_id, unit_of_work.graph_node_execution_repository, unit_of_work.graph_node_transition_execution_repository
+                graph_execution, graph_node_execution_id, unit_of_work.repository(GraphNodeExecutionRepository), unit_of_work.repository(GraphNodeTransitionExecutionRepository)
             )
         )
         if not next_nodes:
@@ -253,7 +265,7 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
 
         error_handler_node = await self._find_error_handler_transition(
-            graph_execution, graph_node_execution_id, unit_of_work.graph_node_transition_execution_repository
+            graph_execution, graph_node_execution_id, unit_of_work.repository(GraphNodeTransitionExecutionRepository)
         )
 
         if error_handler_node is not None:

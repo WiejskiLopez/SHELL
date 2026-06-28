@@ -7,7 +7,7 @@ from shell.domain.definition.value_objects.chunk_index import ChunkIndex
 from shell.domain.definition.value_objects.chunk_text import ChunkText
 from shell.domain.definition.value_objects.command_text import CommandText
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
-from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.condition_language import ConditionLanguage
 from shell.domain.definition.value_objects.data_mapping import DataMapping
 from shell.domain.definition.value_objects.domain_tag import DomainTag

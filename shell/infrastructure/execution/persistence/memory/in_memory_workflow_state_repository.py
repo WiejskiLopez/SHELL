@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.platform.dto import WorkflowDto
+    from shell.application.execution.dto.workflow import WorkflowDto
     from shell.application.platform.ports.queries import WorkflowQueryService
-    from shell.application.platform.queries.queries import GetWorkflowQuery
+    from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
 
 
 class WorkflowGetByIdHandler:

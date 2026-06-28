@@ -10,7 +10,7 @@ from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphE
     TaskExecutionId,
     WorkflowId,
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
 )

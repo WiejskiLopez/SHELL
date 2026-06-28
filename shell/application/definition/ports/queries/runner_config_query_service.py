@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import (
-    RunnerConfigDto,  # noqa: TC002 — RunnerConfigDto używany jako typ zwracany w sygnaturze Protocol
-)
+from shell.application.definition.dto.runner_config import RunnerConfigDto
 
 
 class RunnerConfigQueryService(Protocol):

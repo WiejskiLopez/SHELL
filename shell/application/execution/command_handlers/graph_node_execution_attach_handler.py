@@ -11,6 +11,9 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 
 if TYPE_CHECKING:
@@ -34,7 +37,7 @@ class GraphNodeExecutionAttachHandler:
     async def handle(self, command: AttachGraphNodeExecutionsCommand) -> None:
         now = self._time.now()
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
                 GraphExecutionId(command.graph_execution_id)
             )
             if graph_execution is None:
@@ -49,5 +52,5 @@ class GraphNodeExecutionAttachHandler:
                     now=now,
                 )
 
-            await unit_of_work.graph_execution_repository.save(graph_execution)
+            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)
             unit_of_work.stage_events(graph_execution.pull_events())

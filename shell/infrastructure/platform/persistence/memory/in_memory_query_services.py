@@ -1,19 +1,38 @@
 from __future__ import annotations
 
-from shell.application.platform.dto import (
-    RagChunkDto,
-    RunnerConfigDto,
-    SessionDto,
-    TaskExecutionDto,
-    WorkflowDto,
-)
+from shell.application.definition.dto.rag_chunk import RagChunkDto
+from shell.application.definition.dto.runner_config import RunnerConfigDto
+from shell.application.session.dto.session import SessionDto
+from shell.application.execution.dto.task_execution import TaskExecutionDto
+from shell.application.execution.dto.workflow import WorkflowDto
 from shell.domain.execution.value_objects.ids import (
-    SessionId,
     WorkflowId,
 )
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
+    InMemoryRagDocumentRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
+    InMemoryRunnerConfigRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+    InMemoryGraphExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+    InMemoryTaskExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
+    InMemoryWorkflowRepository,
+)
 from shell.infrastructure.platform.persistence.memory.in_memory_unit_of_work import (
     InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w konstruktorze InMemoryQueryServices
+)
+from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
+    InMemorySessionRepository,
 )
 
 
@@ -23,17 +42,17 @@ class InMemoryQueryServices:
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
 
-        task_execution = await self._unit_of_work.task_execution_repository.get_by_name(TaskExecutionName(name))
+        task_execution = await self._unit_of_work.repository(InMemoryTaskExecutionRepository).get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
-        graph_execution = await self._unit_of_work.graph_execution_repository.get_by_task_execution_id(
+        graph_execution = await self._unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             task_execution.id
         )
         graph_node_executions = []
         if graph_execution is not None:
-            from shell.application.platform.dto import GraphNodeExecutionDto
+            from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
 
-            nodes = await self._unit_of_work.graph_node_execution_repository.list_by_graph_execution_id(
+            nodes = await self._unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(
                 graph_execution.id
             )
             graph_node_executions = [
@@ -59,7 +78,7 @@ class InMemoryQueryServices:
         return await self.get_task_execution_by_name(name)
 
     async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
-        workflow = await self._unit_of_work.workflow_repository.get_by_id(WorkflowId(workflow_id))
+        workflow = await self._unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(WorkflowId(workflow_id))
         if not workflow:
             return None
         return WorkflowDto(
@@ -69,7 +88,7 @@ class InMemoryQueryServices:
         )
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        runner_config = await self._unit_of_work.runner_config_repository.get_by_package(package_name)
+        runner_config = await self._unit_of_work.repository(InMemoryRunnerConfigRepository).get_by_package(package_name)
         if not runner_config:
             return None
         return RunnerConfigDto(
@@ -82,7 +101,7 @@ class InMemoryQueryServices:
         )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
-        session = await self._unit_of_work.session_repository.get_by_id(SessionId(session_id))
+        session = await self._unit_of_work.repository(InMemorySessionRepository).get_by_id(SessionId(session_id))
         if session is None:
             return None
 
@@ -97,7 +116,7 @@ class InMemoryQueryServices:
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
-        chunks = await self._unit_of_work.rag_document_repository.search_similar(query_embedding, top_k, domain)
+        chunks = await self._unit_of_work.repository(InMemoryRagDocumentRepository).search_similar(query_embedding, top_k, domain)
         return [
             RagChunkDto(
                 chunk_id=chunk.id.value,

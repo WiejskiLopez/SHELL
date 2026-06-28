@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
+from shell.domain.execution.value_objects.condition_language import ConditionLanguage
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
@@ -34,6 +35,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         "_spawn_spec",
         "_edge_type",
         "_condition_expression",
+        "_condition_language",
         "_max_iterations",
         "_status",
         "_current_iteration",
@@ -45,6 +47,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
     _spawn_spec: SpawnSpec | None
     _edge_type: EdgeType
     _condition_expression: ConditionExpression | None
+    _condition_language: ConditionLanguage | None
     _max_iterations: MaxIterations
     _status: TransitionStatus
     _current_iteration: CurrentIteration
@@ -58,6 +61,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
+        condition_language: ConditionLanguage | None = None,
         max_iterations: MaxIterations = MaxIterations(None),
         status: TransitionStatus | None = None,
         current_iteration: CurrentIteration | None = None,
@@ -69,6 +73,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         self._spawn_spec = spawn_spec
         self._edge_type = edge_type
         self._condition_expression = condition_expression
+        self._condition_language = condition_language
         self._max_iterations = max_iterations
         self._status = status if status is not None else TransitionStatus.EVALUATED
         self._current_iteration = current_iteration if current_iteration is not None else CurrentIteration(0)
@@ -83,6 +88,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         target_node_execution_id: GraphNodeExecutionId | None = None,
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
+        condition_language: ConditionLanguage | None = None,
         max_iterations: MaxIterations = MaxIterations(None),
         status: TransitionStatus | None = None,
         current_iteration: CurrentIteration | None = None,
@@ -95,6 +101,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             target_node_execution_id=target_node_execution_id,
             spawn_spec=spawn_spec,
             condition_expression=condition_expression,
+            condition_language=condition_language,
             max_iterations=max_iterations,
             status=status,
             current_iteration=current_iteration,
@@ -358,6 +365,10 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
     @property
     def condition_expression(self) -> ConditionExpression | None:
         return self._condition_expression
+
+    @property
+    def condition_language(self) -> ConditionLanguage | None:
+        return self._condition_language
 
     @property
     def max_iterations(self) -> MaxIterations:

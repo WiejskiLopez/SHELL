@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.platform.dto import SessionDto
+    from shell.application.session.dto.session import SessionDto
     from shell.application.platform.ports.queries import SessionQueryService
-    from shell.application.platform.queries.queries import GetSessionHistoryQuery
+    from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
 
 
 class SessionGetHistoryHandler:

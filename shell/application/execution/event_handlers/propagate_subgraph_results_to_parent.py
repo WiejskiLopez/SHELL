@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
     GraphExecutionSubGraphSettledEvent,
 )
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -28,7 +31,7 @@ class PropagateSubgraphResultsToParent:
 
     async def handle(self, graph_execution_sub_graph_settled_event: GraphExecutionSubGraphSettledEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            parent_graph = await unit_of_work.graph_execution_repository.get_by_id(
+            parent_graph = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
                 graph_execution_sub_graph_settled_event.parent_graph_execution_id
             )
             if parent_graph is None:
@@ -39,5 +42,5 @@ class PropagateSubgraphResultsToParent:
                 return
 
             now = self._clock.now()
-            await unit_of_work.graph_execution_repository.save(parent_graph)
+            await unit_of_work.repository(GraphExecutionRepository).save(parent_graph)
             unit_of_work.stage_events(parent_graph.pull_events())

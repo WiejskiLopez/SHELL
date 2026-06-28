@@ -10,7 +10,7 @@ from shell.domain.execution.value_objects.graph_node_definition_id import GraphN
 from shell.domain.execution.value_objects.graph_node_execution_status import (
     GraphNodeExecutionStatus,
 )
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType

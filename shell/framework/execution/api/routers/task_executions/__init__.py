@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from shell.application.platform.commands import ImportTaskExecutionCommand
-from shell.application.platform.queries.queries import TaskExecutionGetByNameQuery
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.queries.task_execution_queries import TaskExecutionGetByNameQuery
 from shell.framework.execution.api.routers.task_executions.import_task_request import (
     ImportTaskRequest,  # noqa: TC002 — ImportTaskRequest używany w parametrach endpointów FastAPI
 )

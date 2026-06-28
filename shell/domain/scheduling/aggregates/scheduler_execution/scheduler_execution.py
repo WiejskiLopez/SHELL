@@ -4,7 +4,7 @@ from typing import Any, Self
 
 from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.reason import Reason
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.timestamp import Timestamp

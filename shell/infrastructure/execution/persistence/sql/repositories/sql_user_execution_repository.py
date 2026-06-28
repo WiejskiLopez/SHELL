@@ -6,7 +6,7 @@ from shell.domain.execution.aggregates.user_execution.repositories.user_executio
     UserExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import UserExecutionId
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_entity_to_model,
     user_execution_model_to_entity,
     user_execution_update_model,

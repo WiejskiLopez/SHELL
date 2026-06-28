@@ -10,11 +10,20 @@ from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+    GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
+    from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
@@ -36,11 +45,11 @@ class GraphNodeExecutionSaveResultHandler:
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.workflow_repository.get_by_id(workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
             if workflow is None:
                 raise WorkflowNotFound(save_graph_node_execution_result_command.workflow_id)
 
-            node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_id)
             if node is not None:
                 result_id = GraphNodeExecutionStateId.generate()
                 state = GraphNodeExecutionState.create(
@@ -55,8 +64,8 @@ class GraphNodeExecutionSaveResultHandler:
                     },
                     now=now,
                 )
-                await unit_of_work.graph_node_execution_state_repository.save(state)
-                await unit_of_work.workflow_repository.save(workflow)
+                await unit_of_work.repository(GraphNodeExecutionStateRepository).save(state)
+                await unit_of_work.repository(WorkflowRepository).save(workflow)
                 unit_of_work.stage_events(workflow.pull_events())
 
                 return result_id.value

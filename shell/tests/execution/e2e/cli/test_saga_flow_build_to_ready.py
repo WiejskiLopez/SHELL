@@ -52,10 +52,16 @@ from shell.domain.execution.value_objects.graph_execution_initialization_status 
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
+    InMemoryGraphDefinitionRepository,
+    InMemoryGraphExecutionRepository,
+    InMemoryGraphNodeDefinitionRepository,
     InMemoryUnitOfWork,
 )
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
@@ -82,8 +88,8 @@ NOW = datetime.now(tz=UTC)
 
 class _InMemoryDefinitionProvider:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
-        self._repo = unit_of_work.graph_definition_repository
-        self._node_repo = unit_of_work.graph_node_definition_repository
+        self._repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)
+        self._node_repo = unit_of_work.repository(InMemoryGraphNodeDefinitionRepository)
 
     async def get_graph_definition_by_semantic_name(
         self, query: object,
@@ -176,10 +182,10 @@ async def _seed_graph_definition(
         node_type=NodeTypeName("agent"),
         now=now,
     )
-    await unit_of_work.graph_node_definition_repository.save(node1)
-    await unit_of_work.graph_node_definition_repository.save(node2)
+    await unit_of_work.repository(InMemoryGraphNodeDefinitionRepository).save(node1)
+    await unit_of_work.repository(InMemoryGraphNodeDefinitionRepository).save(node2)
 
-    repo = unit_of_work.graph_definition_repository
+    repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)
     keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
     for k in keys_to_remove:
         del repo._store[k]
@@ -225,7 +231,7 @@ class TestSagaFlowBuildToReady:
         async with unit_of_work:
             await build_handler.handle(task_event)
 
-        graph_execution = await unit_of_work.graph_execution_repository.get_by_task_execution_id(
+        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             TaskExecutionId("task-e2e")
         )
         assert graph_execution is not None
@@ -295,7 +301,7 @@ class TestSagaFlowBuildToReady:
                 ])
 
         # Verify nodes were created
-        all_nodes = list(unit_of_work.graph_node_execution_repository._store.values())
+        all_nodes = list(unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store.values())
         assert len(all_nodes) == 2
         assert len(node_initialized_events) == 2
 
@@ -336,7 +342,7 @@ class TestSagaFlowBuildToReady:
 
         # ── 7. Final assertions ──
         # Graph should be fully initialized
-        updated_graph = await unit_of_work.graph_execution_repository.get_by_id(
+        updated_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_id(
             GraphExecutionId(graph_execution_id_str)
         )
         assert updated_graph is not None

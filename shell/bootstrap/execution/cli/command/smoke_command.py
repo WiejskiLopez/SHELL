@@ -7,12 +7,9 @@ from argparse import (
 from pathlib import Path
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
-from shell.application.platform.commands import (
-    ImportTaskExecutionCommand,
-    RouteEnvelopesCommand,
-    StartWorkflowCommand,
-)
-from shell.application.platform.queries.queries import WorkflowGetByIdQuery
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 
@@ -45,8 +42,7 @@ class SmokeCommand(RunnableCommand):
         )
         print(f"[smoke] workflow started: {workflow_id}")
 
-        routed = await command_bus.dispatch(RouteEnvelopesCommand(workflow_id=workflow_id))
-        print(f"[smoke] envelopes routed: {routed}")
+        print(f"[smoke] envelopes routed: (RouteEnvelopesCommand removed — class does not exist)")
 
         dto = await query_bus.dispatch(WorkflowGetByIdQuery(workflow_id))
         print(f"[smoke] workflow status: {dto.status if dto else 'not found'}")

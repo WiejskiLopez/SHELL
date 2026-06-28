@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
@@ -27,16 +34,16 @@ class GraphExecutionCompletedHandler:
 
     async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_completed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_completed_event.graph_execution_id)
 
             if graph_execution.parent_graph_execution_id is not None:
                 return
 
-            task_execution = await unit_of_work.task_execution_repository.get_by_id(
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
                 graph_execution.task_execution_id,
             )
 
             now = self._clock.now()
             task_execution.complete(now=now)
-            await unit_of_work.task_execution_repository.save(task_execution)
+            await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
             unit_of_work.stage_events(task_execution.pull_events())

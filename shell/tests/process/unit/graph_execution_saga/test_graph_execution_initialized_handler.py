@@ -16,7 +16,7 @@ from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_def
     GraphExecutionDefinitionProvider,
 )
 from shell.domain.execution.value_objects.graph_definition_id import (
-    GraphDefinitionId,
+    GraphDefinitionIdRef,
 )
 from shell.domain.execution.value_objects.graph_node_definition_id import (
     GraphNodeDefinitionId,
@@ -81,7 +81,7 @@ class TestGraphExecutionInitializedHandler:
     ) -> None:
         graph_execution_id = GraphExecutionId("ge-1")
         task_execution_id = TaskExecutionId("te-1")
-        graph_definition_id = GraphDefinitionId("gd-1")
+        graph_definition_id = GraphDefinitionIdRef("gd-1")
         node_def_ids = (
             GraphNodeDefinitionId("ndef-1"),
             GraphNodeDefinitionId("ndef-2"),
@@ -118,7 +118,7 @@ class TestGraphExecutionInitializedHandler:
     ) -> None:
         graph_execution_id = GraphExecutionId("ge-empty")
         task_execution_id = TaskExecutionId("te-empty")
-        graph_definition_id = GraphDefinitionId("gd-empty")
+        graph_definition_id = GraphDefinitionIdRef("gd-empty")
 
         event = GraphExecutionInitializedEvent(
             graph_execution_id=graph_execution_id,

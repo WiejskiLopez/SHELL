@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.session_execution_state.repositories.sess
 from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
     SessionExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.session_execution_state import SessionExecutionState
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 

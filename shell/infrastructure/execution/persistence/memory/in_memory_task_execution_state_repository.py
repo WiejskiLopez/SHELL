@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.task_execution_state.repositories.task_ex
 from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
     TaskExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )

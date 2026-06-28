@@ -11,8 +11,8 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
+from shell.infrastructure.execution.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
     workflow_update_model,
@@ -35,7 +35,7 @@ class SqlWorkflowRepository(WorkflowRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return workflow_model_to_entity(row) if row else None
 
-    async def get_by_session_id(self, session_id: SessionId) -> list[Workflow]:
+    async def get_by_session_id(self, session_id: SessionIdRef) -> list[Workflow]:
         query = select(WorkflowModel).where(WorkflowModel.session_id == session_id.value)
         rows = (await self._session.execute(query)).scalars().all()
         return [workflow_model_to_entity(row) for row in rows if row]

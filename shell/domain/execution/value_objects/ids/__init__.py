@@ -36,7 +36,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.graph_node_executi
     GraphNodeExecutionResultId,
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 __all__ = [
     "GraphExecutionId",
@@ -46,7 +46,7 @@ __all__ = [
     "GraphNodeTransitionExecutionId",
     "SessionExecutionId",
     "SessionExecutionStateId",
-    "SessionId",
+    "SessionIdRef",
     "TaskExecutionId",
     "TaskExecutionStateId",
     "UserExecutionId",

@@ -44,7 +44,7 @@ def _get_max_step() -> int:
 
 
 async def _run_node(mode: str, argv: Sequence[str]) -> int:
-    from shell.application.platform.commands import RunGraphNodeExecutionCommand
+    from shell.application.execution.commands.graph_node_execution_commands import RunGraphNodeExecutionCommand
 
     parser = build_parser(prog=f"shell {mode}")
     ns = parser.parse_args(list(argv))
@@ -75,7 +75,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
 
 
 async def _import_task_execution(argv: Sequence[str]) -> int:
-    from shell.application.platform.commands import ImportTaskExecutionCommand
+    from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 
     parser = build_parser(prog="shell import-task")
     ns = parser.parse_args(list(argv))

@@ -5,7 +5,7 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
     GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
+from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
@@ -13,12 +13,19 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_state_repository import (
+    InMemoryGraphNodeExecutionStateRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
     InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
+    InMemoryWorkflowRepository,
 )
 
 
@@ -30,7 +37,7 @@ class TestGraphNodeExecutionSaveResultHandler:
         id_generator: FakeIdGenerator,
     ) -> None:
         wf = Workflow.new(id_=WorkflowId("wf-1"), now=clock.now())
-        await unit_of_work.workflow_repository.save(wf)
+        await unit_of_work.repository(InMemoryWorkflowRepository).save(wf)
 
         node = GraphNodeExecution(
             id=GraphNodeExecutionId("node-1"),
@@ -39,7 +46,7 @@ class TestGraphNodeExecutionSaveResultHandler:
             role="worker",
             node_type=NodeType("worker"),
         )
-        await unit_of_work.graph_node_execution_repository.save(node)
+        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
 
         handler = GraphNodeExecutionSaveResultHandler(unit_of_work, clock, id_generator)
         result_id = await handler.handle(
@@ -52,7 +59,7 @@ class TestGraphNodeExecutionSaveResultHandler:
         )
         assert result_id
 
-        states = await unit_of_work.graph_node_execution_state_repository.list_by_graph_node_execution_and_direction(
+        states = await unit_of_work.repository(InMemoryGraphNodeExecutionStateRepository).list_by_graph_node_execution_and_direction(
             GraphNodeExecutionId("node-1"), StateDirection.OUT
         )
         assert len(states) > 0

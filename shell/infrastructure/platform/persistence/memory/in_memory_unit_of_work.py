@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from typing import TypeVar
+
 from shell.application.platform.ports.unit_of_work import UnitOfWork
+
+TRepository = TypeVar("TRepository")
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
@@ -53,8 +57,55 @@ from shell.infrastructure.session.persistence.memory.in_memory_session_repositor
     InMemorySessionRepository,
 )
 
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
+    GraphNodeDefinitionRepository,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
+    GraphNodeTransitionDefinitionRepository,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+    GraphDefinitionEmbeddingRepository,
+)
+from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+    GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+    GraphNodeTransitionExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+    WorkflowStateRepository,
+)
 from shell.domain.platform.aggregates.message.message import Message
+from shell.domain.platform.aggregates.message.repositories.message_repository import (
+    MessageRepository,
+)
 from shell.domain.platform.events import DomainEvent
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
+)
 
 
 class InMemoryUnitOfWork(UnitOfWork):
@@ -118,7 +169,7 @@ class InMemoryUnitOfWork(UnitOfWork):
             node_type=NodeTypeName("agent"),
             now=now,
         )
-        await self._graph_node_definition_repository.save(node)
+        await self.repository(InMemoryGraphNodeDefinitionRepository).save(node)
 
         from shell.domain.definition.value_objects.system_role import SystemRole
 
@@ -130,83 +181,50 @@ class InMemoryUnitOfWork(UnitOfWork):
             graph_node_definition_ids=[node_id],
             now=now,
         )
-        await self._graph_definition_repository.save(graph)
+        await self.repository(InMemoryGraphDefinitionRepository).save(graph)
 
-    @property
-    def task_execution_repository(self) -> InMemoryTaskExecutionRepository:
-        return self._task_execution_repository
-
-    @property
-    def task_execution_state_repository(self) -> InMemoryTaskExecutionStateRepository:
-        return self._task_execution_state_repository
-
-    @property
-    def graph_execution_repository(self) -> InMemoryGraphExecutionRepository:
-        return self._graph_execution_repository
-
-    @property
-    def workflow_repository(self) -> InMemoryWorkflowRepository:
-        return self._workflow_repository
-
-    @property
-    def runner_config_repository(self) -> InMemoryRunnerConfigRepository:
-        return self._runner_config_repository
-
-    @property
-    def rag_document_repository(self) -> InMemoryRagDocumentRepository:
-        return self._rag_document_repository
-
-    @property
-    def workflow_state_repository(self) -> InMemoryWorkflowStateRepository:
-        return self._workflow_state_repository
-
-    @property
-    def session_repository(self) -> InMemorySessionRepository:
-        return self._session_repository
-
-    @property
-    def graph_definition_repository(self) -> InMemoryGraphDefinitionRepository:
-        return self._graph_definition_repository
-
-    @property
-    def graph_node_definition_repository(self) -> InMemoryGraphNodeDefinitionRepository:
-        return self._graph_node_definition_repository
-
-    @property
-    def graph_node_transition_definition_repository(self) -> InMemoryGraphNodeTransitionDefinitionRepository:
-        return self._graph_node_transition_definition_repository
-
-    @property
-    def graph_definition_embedding_repository(self) -> InMemoryGraphDefinitionEmbeddingRepository:
-        return self._graph_definition_embedding_repository
-
-    @property
-    def graph_execution_state_repository(self) -> InMemoryGraphExecutionStateRepository:
-        return self._graph_execution_state_repository
-
-    @property
-    def graph_node_execution_repository(self) -> InMemoryGraphNodeExecutionRepository:
-        return self._graph_node_execution_repository
-
-    @property
-    def graph_node_execution_state_repository(self) -> InMemoryGraphNodeExecutionStateRepository:
-        return self._graph_node_execution_state_repository
-
-    @property
-    def graph_node_transition_execution_repository(self) -> InMemoryGraphNodeTransitionExecutionRepository:
-        return self._graph_node_transition_execution_repository
-
-    @property
-    def workflow_state_repository(self) -> InMemoryWorkflowStateRepository:
-        return self._workflow_state_repository
-
-    @property
-    def message_repository(self) -> InMemoryMessageRepository:
-        return self._message_repository
-
-    @property
-    def session_repository(self) -> InMemorySessionRepository:
-        return self._session_repository
+    def repository(self, repo_type: type[TRepository]) -> TRepository:
+        repos: dict[type, object] = {
+            InMemoryTaskExecutionRepository: self._task_execution_repository,
+            TaskExecutionRepository: self._task_execution_repository,
+            InMemoryTaskExecutionStateRepository: self._task_execution_state_repository,
+            TaskExecutionStateRepository: self._task_execution_state_repository,
+            InMemoryGraphExecutionRepository: self._graph_execution_repository,
+            GraphExecutionRepository: self._graph_execution_repository,
+            InMemoryWorkflowRepository: self._workflow_repository,
+            WorkflowRepository: self._workflow_repository,
+            InMemoryRunnerConfigRepository: self._runner_config_repository,
+            RunnerConfigRepository: self._runner_config_repository,
+            InMemoryRagDocumentRepository: self._rag_document_repository,
+            RagDocumentRepository: self._rag_document_repository,
+            InMemoryGraphDefinitionRepository: self._graph_definition_repository,
+            GraphDefinitionRepository: self._graph_definition_repository,
+            InMemoryGraphNodeDefinitionRepository: self._graph_node_definition_repository,
+            GraphNodeDefinitionRepository: self._graph_node_definition_repository,
+            InMemoryGraphNodeTransitionDefinitionRepository: self._graph_node_transition_definition_repository,
+            GraphNodeTransitionDefinitionRepository: self._graph_node_transition_definition_repository,
+            InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
+            GraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
+            InMemoryGraphExecutionStateRepository: self._graph_execution_state_repository,
+            GraphExecutionStateRepository: self._graph_execution_state_repository,
+            InMemoryGraphNodeExecutionRepository: self._graph_node_execution_repository,
+            GraphNodeExecutionRepository: self._graph_node_execution_repository,
+            InMemoryGraphNodeExecutionStateRepository: self._graph_node_execution_state_repository,
+            GraphNodeExecutionStateRepository: self._graph_node_execution_state_repository,
+            InMemoryGraphNodeTransitionExecutionRepository: self._graph_node_transition_execution_repository,
+            GraphNodeTransitionExecutionRepository: self._graph_node_transition_execution_repository,
+            InMemoryWorkflowStateRepository: self._workflow_state_repository,
+            WorkflowStateRepository: self._workflow_state_repository,
+            InMemoryMessageRepository: self._message_repository,
+            MessageRepository: self._message_repository,
+            InMemorySessionRepository: self._session_repository,
+            SessionRepository: self._session_repository,
+        }
+        repo = repos.get(repo_type)
+        if repo is None:
+            msg = f"Unknown repository type: {repo_type}"
+            raise ValueError(msg)
+        return repo  # type: ignore[return-value]
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

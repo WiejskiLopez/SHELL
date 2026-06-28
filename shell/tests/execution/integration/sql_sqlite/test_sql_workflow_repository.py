@@ -8,12 +8,10 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
     TaskExecutionImportHandler,
 )
 from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
-from shell.application.platform.commands import (
-    ImportTaskExecutionCommand,
-    StartWorkflowCommand,
-)
-from shell.application.platform.queries.queries import WorkflowGetByIdQuery
-from shell.application.platform.query_handlers import WorkflowGetByIdHandler
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
@@ -22,6 +20,15 @@ from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
 )
@@ -53,7 +60,7 @@ class TestSqlWorkflowRepository:
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         async with sql_uow as u:
-            task_execution = await u.task_execution_repository.get_current_by_name(
+            task_execution = await u.repository(TaskExecutionRepository).get_current_by_name(
                 TaskExecutionName("wf-task")
             )
             assert task_execution is not None
@@ -70,8 +77,8 @@ class TestSqlWorkflowRepository:
                 node_type=NodeType("agent"),
             )
             node._graph_execution_id = graph_execution.id
-            await u.graph_execution_repository.save(graph_execution)
-            await u.graph_node_execution_repository.save(node)
+            await u.repository(GraphExecutionRepository).save(graph_execution)
+            await u.repository(GraphNodeExecutionRepository).save(node)
             await u.commit()
 
         start = WorkflowStartHandler(sql_uow, clock, id_generator)

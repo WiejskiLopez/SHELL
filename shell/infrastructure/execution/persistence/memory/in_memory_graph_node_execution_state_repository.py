@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.graph_node_execution_state.repositories.g
 from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
     GraphNodeExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
     GraphNodeExecutionState,
 )

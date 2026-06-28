@@ -45,12 +45,18 @@ from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeGraphNodeExecutionProcessRunner,
     FakeIdGenerator,
     FakeLogger,
+    InMemoryGraphExecutionRepository,
+    InMemoryTaskExecutionRepository,
     InMemoryUnitOfWork,
+    InMemoryWorkflowRepository,
 )
 
 # ---------------------------------------------------------------------------
@@ -191,7 +197,7 @@ def _build_graph_execution(
         name=TaskExecutionName(task_execution_name),
                 created_at=_NOW,
     )
-    unit_of_work.task_execution_repository._store[task_execution.id.value] = task_execution
+    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
 
     graph_node_executions = [
         GraphNodeExecution(
@@ -209,8 +215,8 @@ def _build_graph_execution(
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.graph_node_execution_repository._store[node.id.value] = node
-    unit_of_work.graph_execution_repository._store[graph_execution.id.value] = graph_execution
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution, graph_node_executions
 
 
@@ -219,13 +225,13 @@ async def _persist_running_workflow(
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     wf.start_at(now=_NOW)
-    task_execution = await unit_of_work.task_execution_repository.get_by_id(task_execution_id)
+    task_execution = await unit_of_work.repository(InMemoryTaskExecutionRepository).get_by_id(task_execution_id)
     if task_execution is not None:
         task_execution.execute_in_workflow(wf.id)
     async with unit_of_work:
-        await unit_of_work.workflow_repository.save(wf)
+        await unit_of_work.repository(InMemoryWorkflowRepository).save(wf)
         if task_execution is not None:
-            await unit_of_work.task_execution_repository.save(task_execution)
+            await unit_of_work.repository(InMemoryTaskExecutionRepository).save(task_execution)
         await unit_of_work.commit()
     return wf
 
@@ -284,7 +290,7 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
         name=TaskExecutionName(task_execution_name),
                 created_at=now,
     )
-    unit_of_work.task_execution_repository._store[task_execution.id.value] = task_execution
+    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
     graph_node_executions = [
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
@@ -301,8 +307,8 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.graph_node_execution_repository._store[node.id.value] = node
-    unit_of_work.graph_execution_repository._store[graph_execution.id.value] = graph_execution
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 
 

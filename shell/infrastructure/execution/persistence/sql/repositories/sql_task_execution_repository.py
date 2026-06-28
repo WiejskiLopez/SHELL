@@ -12,7 +12,7 @@ from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskEx
 from shell.domain.execution.value_objects.task_execution_name import (
     TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
     task_execution_update_model,

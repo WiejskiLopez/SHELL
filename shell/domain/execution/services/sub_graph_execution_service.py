@@ -17,6 +17,13 @@ from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_def
     GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
 )
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -123,14 +130,14 @@ class SubGraphExecutionService:
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphNodeExecutions first ──────────────────────────
-        sub_graph_execution_id = self._id_generator.new_graph_execution_id()
+        sub_graph_execution_id = self._id_generator.new_id(GraphExecutionId)
         from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
             GraphNodeExecution as GNE,
         )
 
         node_ids: list[Any] = []
         for node_def in graph_definition.graph_node_execution_definitions:
-            node_id = self._id_generator.new_graph_node_execution_id()
+            node_id = self._id_generator.new_id(GraphNodeExecutionId)
             node = GNE(
                 id=node_id,
                 position=node_def.position,
@@ -150,7 +157,7 @@ class SubGraphExecutionService:
                 max_retries=node_def.retries,
                 graph_execution_id=sub_graph_execution_id,
             )
-            await _unit_of_work.graph_node_execution_repository.save(node)
+            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)
             node_ids.append(node_id)
 
         # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
@@ -167,7 +174,7 @@ class SubGraphExecutionService:
         )
 
         # ── Persist ───────────────────────────────────────────────────────
-        await _unit_of_work.graph_execution_repository.save(sub_graph_execution)
+        await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)
 
         _unit_of_work.stage_events(list(sub_graph_execution.pull_events()))
 

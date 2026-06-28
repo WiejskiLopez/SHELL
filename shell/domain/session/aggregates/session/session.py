@@ -5,12 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.value_objects.environment import Environment
-from shell.domain.execution.value_objects.session_status import SessionStatus
+from shell.domain.platform.value_objects.environment import Environment
+from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
-from shell.domain.projekt.value_objects.project_id import ProjectId
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -21,7 +21,7 @@ from shell.domain.session.aggregates.session.exceptions.invalid_session_transiti
     InvalidSessionTransition,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.user.value_objects.user_id import UserId
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -39,8 +39,8 @@ class Session(AggregateRoot[SessionId]):
         "_closed_at",
     )
 
-    _user_id: UserId
-    _project_id: ProjectId
+    _user_id: UserIdRef
+    _project_id: ProjectIdRef
     _environment: Environment
     _status: SessionStatus
     _opened_at: CreatedAt
@@ -50,8 +50,8 @@ class Session(AggregateRoot[SessionId]):
         self,
         *,
         id: SessionId,
-        user_id: UserId,
-        project_id: ProjectId,
+        user_id: UserIdRef,
+        project_id: ProjectIdRef,
         environment: Environment,
         status: SessionStatus,
         opened_at: CreatedAt,
@@ -70,8 +70,8 @@ class Session(AggregateRoot[SessionId]):
         cls,
         *,
         id: SessionId,
-        user_id: UserId,
-        project_id: ProjectId,
+        user_id: UserIdRef,
+        project_id: ProjectIdRef,
         environment: Environment,
         status: SessionStatus,
         opened_at: CreatedAt,
@@ -90,11 +90,11 @@ class Session(AggregateRoot[SessionId]):
     # --- V3 properties ---
 
     @property
-    def user_id(self) -> UserId:
+    def user_id(self) -> UserIdRef:
         return self._user_id
 
     @property
-    def project_id(self) -> ProjectId:
+    def project_id(self) -> ProjectIdRef:
         return self._project_id
 
     @property
@@ -135,16 +135,16 @@ class Session(AggregateRoot[SessionId]):
     def open(
         cls,
         id_: SessionId,
-        user_id: UserId | None = None,
-        project_id: ProjectId | None = None,
+        user_id: UserIdRef | None = None,
+        project_id: ProjectIdRef | None = None,
         environment: Environment | None = None,
         now: CreatedAt | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
-            user_id = UserId.generate()
+            user_id = UserIdRef.generate()
         if project_id is None:
-            project_id = ProjectId.generate()
+            project_id = ProjectIdRef.generate()
         if environment is None:
             environment = Environment(os="unknown", runtime="unknown", cwd="/")
         if now is None:

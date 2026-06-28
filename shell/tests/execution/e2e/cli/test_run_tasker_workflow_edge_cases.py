@@ -4,7 +4,7 @@ import pytest
 from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
     WorkflowRunTaskerHandler,
 )
-from shell.application.platform.commands import RunTaskerWorkflowCommand
+from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest

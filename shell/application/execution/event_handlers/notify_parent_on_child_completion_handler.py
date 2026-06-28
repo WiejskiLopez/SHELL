@@ -32,8 +32,12 @@ class NotifyParentOnChildCompletionHandler:
         self._logger = logger
 
     async def handle(self, workflow_completed_event: WorkflowCompletedEvent) -> None:
+        from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+            GraphExecutionRepository,
+        )
+
         async with self._unit_of_work as unit_of_work:
-            graph_executions = await unit_of_work.graph_execution_repository.get_by_workflow_id(
+            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(
                 workflow_completed_event.workflow_id,
             )
             if not graph_executions:
@@ -44,7 +48,7 @@ class NotifyParentOnChildCompletionHandler:
                 return
 
             parent_id = graph_execution.parent_graph_execution_id
-            parent_graph = await unit_of_work.graph_execution_repository.get_by_id(parent_id)
+            parent_graph = await unit_of_work.repository(GraphExecutionRepository).get_by_id(parent_id)
             if parent_graph is None:
                 self._logger.warning(
                     "sub_graph.parent_graph_not_found",
@@ -52,7 +56,7 @@ class NotifyParentOnChildCompletionHandler:
                 )
                 return
 
-            children = await unit_of_work.graph_execution_repository.get_by_parent_id(parent_id)
+            children = await unit_of_work.repository(GraphExecutionRepository).get_by_parent_id(parent_id)
             all_settled = all(
                 c.status in (GraphExecutionStatus.COMPLETED, GraphExecutionStatus.FAILED)
                 for c in children
@@ -67,5 +71,5 @@ class NotifyParentOnChildCompletionHandler:
                 )
             )
 
-            await unit_of_work.graph_execution_repository.save(parent_graph)
+            await unit_of_work.repository(GraphExecutionRepository).save(parent_graph)
             unit_of_work.stage_events(parent_graph.pull_events())

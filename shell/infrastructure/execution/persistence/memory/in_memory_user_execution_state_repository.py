@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.user_execution_state.repositories.user_ex
 from shell.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
     UserExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 

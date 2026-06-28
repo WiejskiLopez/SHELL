@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from shell.domain.definition.aggregates.rag_document import RagDocument
 from shell.domain.definition.value_objects.chunk_text import ChunkText
-from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.domain_tag import DomainTag
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel

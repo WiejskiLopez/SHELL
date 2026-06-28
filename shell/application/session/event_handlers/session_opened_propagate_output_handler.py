@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
@@ -28,7 +31,7 @@ class SessionOpenedPropagateOutputHandler:
 
     async def handle(self, session_opened_event: SessionOpenedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            workflows = await unit_of_work.workflow_repository.get_by_session_id(session_opened_event.session_id)
+            workflows = await unit_of_work.repository(WorkflowRepository).get_by_session_id(session_opened_event.session_id)
             if not workflows:
                 self._logger.warning(
                     "session_opened_propagate_output_handler.no_workflows",
@@ -44,5 +47,5 @@ class SessionOpenedPropagateOutputHandler:
             }
             for workflow in workflows:
                 workflow.add_state_input(session_payload, now)
-                await unit_of_work.workflow_repository.save(workflow)
+                await unit_of_work.repository(WorkflowRepository).save(workflow)
                 unit_of_work.stage_events(workflow.pull_events())

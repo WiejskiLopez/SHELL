@@ -11,7 +11,16 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -35,7 +44,7 @@ class PropagateNodeOutputToGraphInput:
 
     async def handle(self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_completed_event.node_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "propagate_node_output_to_graph_input.node_not_found",
@@ -43,7 +52,7 @@ class PropagateNodeOutputToGraphInput:
                 )
                 return
 
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(node.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(node.graph_execution_id)
             if graph_execution is None:
                 self._logger.warning(
                     "propagate_node_output_to_graph_input.graph_not_found",
@@ -64,5 +73,5 @@ class PropagateNodeOutputToGraphInput:
                 now=now,
             )
             state.patch(output_payload)
-            await unit_of_work.graph_execution_state_repository.save(state)
+            await unit_of_work.repository(GraphExecutionStateRepository).save(state)
             unit_of_work.stage_events(state.pull_events())

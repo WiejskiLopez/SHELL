@@ -18,11 +18,20 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -61,7 +70,7 @@ class SubGraphSpawnRequestedHandler:
 
     async def handle(self, event: GraphExecutionSubGraphSpawnRequestedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            parent = await unit_of_work.graph_execution_repository.get_by_id(event.parent_graph_execution_id)
+            parent = await unit_of_work.repository(GraphExecutionRepository).get_by_id(event.parent_graph_execution_id)
             if parent is None:
                 self._logger.warning(
                     "sub_graph_spawn.parent_not_found",
@@ -114,7 +123,7 @@ class SubGraphSpawnRequestedHandler:
             node_defs = graph_definition.graph_node_execution_definitions
             node_definition_ids = [GraphNodeDefinitionId.generate() for _ in node_defs]
             child.prepare_node_definitions(
-                graph_definition_id=GraphDefinitionId(graph_definition.id),
+                graph_definition_id=GraphDefinitionIdRef(graph_definition.id),
                 graph_node_definition_ids=node_definition_ids,
             )
 
@@ -129,7 +138,7 @@ class SubGraphSpawnRequestedHandler:
                     mode=Mode(node_def.mode),
                     node_type=node_def.node_type,
                 )
-                await unit_of_work.graph_node_execution_repository.save(node)
+                await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
                 child.attach_node_execution(
                     node_definition_id=node_definition_ids[i],
                     node_execution_id=node_id,
@@ -144,10 +153,10 @@ class SubGraphSpawnRequestedHandler:
                     now=now,
                 )
                 state.patch(state_input)
-                await unit_of_work.graph_execution_state_repository.save(state)
+                await unit_of_work.repository(GraphExecutionStateRepository).save(state)
                 unit_of_work.stage_events(state.pull_events())
 
-            await unit_of_work.graph_execution_repository.save(child)
+            await unit_of_work.repository(GraphExecutionRepository).save(child)
             unit_of_work.stage_events(child.pull_events())
 
             self._logger.info(

@@ -9,6 +9,9 @@ from shell.domain.definition.aggregates.graph_definition.events.graph_definition
 from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
     GraphDefinitionEmbedding,
 )
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
+    GraphDefinitionEmbeddingId,
+)
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.embedding_text import EmbeddingText
@@ -34,14 +37,18 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
         self._embedder = embedder
 
     async def handle(self, event: GraphDefinitionCreatedEvent) -> None:
+        from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+            GraphDefinitionEmbeddingRepository,
+        )
+
         text = f"{event.name.value} {event.purpose.value}"
         vector = self._embedder.embed_text(text)
         vector_bytes = struct.pack(f"{len(vector)}f", *vector)
 
-        embedding_id = self._id_generator.new_graph_definition_embedding_id()
+        embedding_id = self._id_generator.new_id(GraphDefinitionEmbeddingId)
 
         async with self._unit_of_work as unit_of_work:
-            if await unit_of_work.graph_definition_embedding_repository.get_by_graph_definition_id(
+            if await unit_of_work.repository(GraphDefinitionEmbeddingRepository).get_by_graph_definition_id(
                 event.graph_definition_id,
             ) is not None:
                 return
@@ -54,5 +61,5 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
                 model=EmbeddingModel(self._embedder.model_name),
                 now=self._clock.now(),
             )
-            await unit_of_work.graph_definition_embedding_repository.save(embedding_aggregate)
+            await unit_of_work.repository(GraphDefinitionEmbeddingRepository).save(embedding_aggregate)
             unit_of_work.stage_events(embedding_aggregate.pull_events())

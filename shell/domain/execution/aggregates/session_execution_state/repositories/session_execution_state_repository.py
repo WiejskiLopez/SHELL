@@ -10,7 +10,7 @@ if TYPE_CHECKING:
         SessionExecutionState,
     )
     from shell.domain.platform.value_objects.exists_result import ExistsResult
-    from shell.domain.execution.value_objects.state_direction import StateDirection
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class SessionExecutionStateRepository(Protocol):

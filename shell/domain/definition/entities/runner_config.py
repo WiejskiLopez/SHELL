@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.domain.definition.value_objects.package_name import PackageName
 from shell.domain.definition.value_objects.runner_body import RunnerBody

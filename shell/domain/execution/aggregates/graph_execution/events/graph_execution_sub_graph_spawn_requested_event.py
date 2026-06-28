@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 
 
@@ -18,7 +18,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
     parent_graph_execution_id: GraphExecutionId
     child_graph_execution_id: GraphExecutionId
-    graph_definition_id: GraphDefinitionId
+    graph_definition_id: GraphDefinitionIdRef
     state_input: StateData | None = None
 
     @classmethod
@@ -26,7 +26,7 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
         cls,
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: GraphDefinitionIdRef,
         now: datetime,
         state_input: StateData | None = None,
     ) -> GraphExecutionSubGraphSpawnRequestedEvent:
@@ -47,6 +47,6 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
             schema_version=schema_version,
             parent_graph_execution_id=GraphExecutionId(payload.get("parent_graph_execution_id")),
             child_graph_execution_id=GraphExecutionId(payload.get("child_graph_execution_id")),
-            graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
+            graph_definition_id=GraphDefinitionIdRef(payload.get("graph_definition_id", "")),
             state_input=StateData(payload["state_input"]) if "state_input" in payload and payload["state_input"] is not None else None,
         )

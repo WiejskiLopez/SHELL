@@ -8,7 +8,7 @@ import pytest
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
-from shell.application.platform.commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import WorkflowStartedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.infrastructure.platform.persistence import (

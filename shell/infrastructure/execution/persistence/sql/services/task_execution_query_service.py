@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.dto import GraphNodeExecutionDto, TaskExecutionDto
+from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
+from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     TaskExecutionModel,

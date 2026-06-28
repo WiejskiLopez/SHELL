@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.platform.dto import RagChunkDto
+    from shell.application.definition.dto.rag_chunk import RagChunkDto
     from shell.application.platform.ports.queries import RagQueryService
-    from shell.application.platform.queries.queries import SearchSimilarQuery
+    from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
     from shell.domain.definition.services.rag_index_service import Embedder
 
 

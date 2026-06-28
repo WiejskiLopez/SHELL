@@ -10,7 +10,7 @@ from shell.domain.execution.services.graph_node_execution_navigator import (
 from shell.domain.execution.services.graph_node_execution_policy import (
     FailFastGraphNodeExecutionPolicy,
 )
-from shell.infrastructure.platform.default_implementations.sub_graph_defaults import (
+from shell.infrastructure.execution.default_implementations.sub_graph_defaults import (
     DefaultSubGraphDiscovery,
     DefaultSubGraphObserver,
     FullAccessSubGraphSecurity,

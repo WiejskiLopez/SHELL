@@ -3,9 +3,9 @@ from __future__ import annotations
 from _arch_helpers import BASE, get_imports, iter_py_files
 
 # Bounded contexts in the project
-# NOTE: Only execution and definition are actively enforced.
-# Other BCs (scheduling, projekt, user) are still evolving and have known cross-BC deps.
-_BCS = frozenset({"execution", "definition"})
+# Known violations are listed in _CROSS_BC_KNOWN_VIOLATIONS.
+# Fix them one by one — each should eventually be resolved via IdRef or platform VOs.
+_BCS = frozenset({"execution", "definition", "session", "user", "projekt", "scheduling"})
 
 # Allowed cross-BC import targets (ports, contracts, DTOs)
 _ALLOWED_CROSS_BC = frozenset({
@@ -34,7 +34,26 @@ def _is_allowed_cross_bc(imp: str) -> bool:
 # ── 1. No direct cross-BC imports ────────────────────────────────
 
 
-_CROSS_BC_KNOWN_VIOLATIONS: list[str] = []
+_CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
+    # Scheduling BC → Execution BC (TYPE_CHECKING, evolving BC)
+    "domain/scheduling/services/pending_graph_finder.py",
+    "domain/scheduling/services/scheduler_orchestrator.py",
+    "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py",
+    "domain/scheduling/aggregates/scheduler_execution/events/scheduler_execution_failed_event.py",
+    "domain/scheduling/aggregates/scheduler_execution/events/scheduler_execution_skipped_event.py",
+    # User BC → Execution BC (TYPE_CHECKING, Identity VO)
+    "domain/user/aggregates/user/user.py",
+    # Session BC → Execution BC (commands co-located in execution BC)
+    "application/session/event_handlers/propagate_session_output_to_workflow_input.py",
+    "application/session/event_handlers/session_opened_propagate_output_handler.py",
+    "application/session/command_handlers/session_handlers/session_close_handler.py",
+    "application/session/command_handlers/session_handlers/session_open_handler.py",
+    # Execution BC → Definition BC (exception reference)
+    "application/execution/event_handlers/build_graph_execution_on_task_execution_created_event_handler.py",
+    # Execution BC → Session BC (DTO reference for queries)
+    "application/execution/query_handlers/session_get_history_handler.py",
+    "application/execution/ports/queries/session_query_service.py",
+]
 
 
 def test_no_direct_cross_bc_imports() -> None:

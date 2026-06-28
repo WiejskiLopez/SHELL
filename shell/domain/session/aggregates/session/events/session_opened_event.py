@@ -7,23 +7,23 @@ if TYPE_CHECKING:
     from datetime import datetime
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.user.value_objects.user_id import UserId
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
 
 
 @dataclass(frozen=True, slots=True)
 class SessionOpenedEvent(DomainEvent):
     session_id: SessionId
-    user_id: UserId
-    project_id: ProjectId
+    user_id: UserIdRef
+    project_id: ProjectIdRef
 
     @classmethod
     def now(
         cls,
         session_id: SessionId,
-        user_id: UserId,
-        project_id: ProjectId,
+        user_id: UserIdRef,
+        project_id: ProjectIdRef,
         now: datetime,
     ) -> SessionOpenedEvent:
         return cls(
@@ -41,6 +41,6 @@ class SessionOpenedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             session_id=SessionId(payload.get("session_id")),
-            user_id=UserId(payload.get("user_id")),
-            project_id=ProjectId(payload.get("project_id")),
+            user_id=UserIdRef(payload.get("user_id")),
+            project_id=ProjectIdRef(payload.get("project_id")),
         )

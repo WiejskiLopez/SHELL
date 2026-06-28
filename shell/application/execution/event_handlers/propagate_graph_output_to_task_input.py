@@ -8,8 +8,18 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_co
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )
-from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.domain.execution.value_objects.ids import TaskExecutionStateId
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -34,7 +44,7 @@ class PropagateGraphOutputToTaskInput:
 
     async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_completed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_completed_event.graph_execution_id)
             if graph_execution is None:
                 self._logger.warning(
                     "propagate_graph_output_to_task_input.graph_not_found",
@@ -45,7 +55,7 @@ class PropagateGraphOutputToTaskInput:
             if graph_execution.parent_graph_execution_id is not None:
                 return
 
-            task_execution = await unit_of_work.task_execution_repository.get_by_id(
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
                 graph_execution.task_execution_id
             )
             if task_execution is None:
@@ -61,11 +71,11 @@ class PropagateGraphOutputToTaskInput:
                 "verifier_result": graph_execution_completed_event.verifier_result,
             }
             state = TaskExecutionState.create(
-                id_=self._id_generator.new_task_execution_state_id(),
+                id_=self._id_generator.new_id(TaskExecutionStateId),
                 task_execution_id=task_execution.id,
                 direction=StateDirection.IN,
                 state_data=StateData(output_payload),
                 now=CreatedAt.from_datetime(now),
             )
-            await unit_of_work.task_execution_state_repository.save(state)
+            await unit_of_work.repository(TaskExecutionStateRepository).save(state)
             unit_of_work.stage_events(state.pull_events())

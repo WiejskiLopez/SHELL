@@ -8,8 +8,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
     task_execution_state_model_to_entity,
 )

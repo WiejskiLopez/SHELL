@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.value_objects.ids import (
-    SessionId,  # noqa: TC002 — SessionId używany jako typ zwracany handle() i w konstruktorach
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
 )
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session import Session
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands import OpenSessionCommand
+    from shell.application.execution.commands.session_commands import OpenSessionCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
@@ -19,12 +20,12 @@ class SessionOpenHandler:
         self._id_generator = id_generator
 
     async def handle(self, open_session_command: OpenSessionCommand) -> SessionId:
-        session_id = self._id_generator.new_session_id()
+        session_id = self._id_generator.new_id(SessionId)
         session = Session.open(
             id_=session_id,
             goal=open_session_command.goal,
             now=self._clock.now(),
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.session_repository.save(session)
+            await unit_of_work.repository(SessionRepository).save(session)
         return session_id

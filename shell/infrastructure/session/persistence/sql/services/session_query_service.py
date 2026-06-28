@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.platform.dto import SessionDto
+from shell.application.session.dto.session import SessionDto
 from shell.infrastructure.session.persistence.sql.models.session import SessionModel
 from sqlalchemy import select
 

@@ -97,6 +97,7 @@ _KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset({
     "domain/execution/aggregates/graph_execution/ports/sub_graph_compensation.py: main class is CompensationDecision (expected compensation_decision.py)",
     "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
     "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
+    "domain/execution/value_objects/graph_definition_id.py: main class is GraphDefinitionIdRef (expected graph_definition_id_ref.py)",
 })
 
 _NAMING_CORE_LAYERS = frozenset({"domain/"})

@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_initialization_status import (
     GraphExecutionInitializationStatus,
@@ -23,7 +23,7 @@ from shell.domain.execution.value_objects.graph_node_definition_execution_slot i
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.reason import Reason
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         parent_graph_execution_id: GraphExecutionId | None = None,
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
-        graph_definition_id: GraphDefinitionId | None = None,
+        graph_definition_id: GraphDefinitionIdRef | None = None,
         initialization_status: GraphExecutionInitializationStatus | None = None,
         graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
     ) -> None:
@@ -59,7 +59,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._depth = depth
         self._max_subgraph_depth = max_subgraph_depth
         self._execution_status = GraphExecutionStatus.PENDING
-        self._graph_definition_id = graph_definition_id if graph_definition_id is not None else GraphDefinitionId.generate()
+        self._graph_definition_id = graph_definition_id if graph_definition_id is not None else GraphDefinitionIdRef.generate()
         self._graph_node_definition_execution_slots = graph_node_definition_execution_slots if graph_node_definition_execution_slots is not None else []
         self._initialization_status = initialization_status if initialization_status is not None else GraphExecutionInitializationStatus.PENDING
 
@@ -71,7 +71,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         parent_graph_execution_id: GraphExecutionId | None = None,
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
-        graph_definition_id: GraphDefinitionId | None = None,
+        graph_definition_id: GraphDefinitionIdRef | None = None,
         initialization_status: GraphExecutionInitializationStatus | None = None,
         graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
     ) -> Self:
@@ -93,7 +93,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         cls,
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: GraphDefinitionIdRef,
         graph_node_definition_ids: list[GraphNodeDefinitionId],
         now: datetime,
     ) -> GraphExecution:
@@ -124,7 +124,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     def prepare_node_definitions(
         self,
-        graph_definition_id: GraphDefinitionId,
+        graph_definition_id: GraphDefinitionIdRef,
         graph_node_definition_ids: list[GraphNodeDefinitionId],
     ) -> None:
         self._graph_definition_id = graph_definition_id
@@ -376,7 +376,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._execution_status
 
     @property
-    def graph_definition_id(self) -> GraphDefinitionId:
+    def graph_definition_id(self) -> GraphDefinitionIdRef:
         return self._graph_definition_id
 
     @property

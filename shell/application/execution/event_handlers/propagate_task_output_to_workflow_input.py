@@ -5,10 +5,20 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import WorkflowStateId
 from shell.domain.execution.aggregates.workflow_state.workflow_state import (
     WorkflowState,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+    WorkflowStateRepository,
+)
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -32,7 +42,7 @@ class PropagateTaskOutputToWorkflowInput:
 
     async def handle(self, task_execution_completed_event: TaskExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.task_execution_repository.get_by_id(task_execution_completed_event.task_execution_id)
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(task_execution_completed_event.task_execution_id)
             if task_execution is None or task_execution.workflow_id is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.task_not_found",
@@ -40,7 +50,7 @@ class PropagateTaskOutputToWorkflowInput:
                 )
                 return
 
-            workflow = await unit_of_work.workflow_repository.get_by_id(task_execution.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(task_execution.workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.workflow_not_found",
@@ -55,11 +65,11 @@ class PropagateTaskOutputToWorkflowInput:
                 "output": task_execution_completed_event.output,
             }
             state = WorkflowState.create(
-                id_=self._id_generator.new_workflow_state_id(),
+                id_=self._id_generator.new_id(WorkflowStateId),
                 workflow_id=workflow.id,
                 direction=StateDirection.IN,
                 payload=output_payload,
                 now=now,
             )
-            await unit_of_work.workflow_state_repository.save(state)
+            await unit_of_work.repository(WorkflowStateRepository).save(state)
             unit_of_work.stage_events(state.pull_events())

@@ -3,7 +3,9 @@ from __future__ import annotations
 from shell.application.definition.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler as GetRunnerConfigHandler,
 )
-from shell.application.platform.queries.queries import RunnerConfigGetQuery as GetRunnerConfigQuery
+from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery as GetRunnerConfigQuery
+from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )
@@ -22,9 +24,9 @@ class TestPgUnitOfWorkRollback:
                 from shell.domain.definition.entities.runner_config import RunnerConfig
                 from shell.domain.platform.value_objects.hash import Hash
 
-                await u.runner_config_repository.save(
+                await u.repository(RunnerConfigRepository).save(
                     RunnerConfig.new(
-                        id_=id_gen.new_runner_config_id(),
+                        id_=id_gen.new_id(RunnerConfigId),
                         package_name="pg-rollback-runner-x",
                         kind="python",
                         body={"key": "value"},

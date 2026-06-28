@@ -6,8 +6,11 @@ import pytest
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
-from shell.application.platform.commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import TaskExecutionCreatedEvent
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_repository import (
+    InMemoryTaskExecutionStateRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
@@ -48,7 +51,7 @@ class TestTaskExecutionImportHandler:
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await unit_of_work.task_execution_state_repository.get_latest_by_task_id(
+        state_input = await unit_of_work.repository(InMemoryTaskExecutionStateRepository).get_latest_by_task_id(
             TaskExecutionId(task_execution_id)
         )
         assert state_input is not None

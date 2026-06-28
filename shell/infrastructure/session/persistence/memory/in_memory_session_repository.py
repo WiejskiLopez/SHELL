@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.execution.value_objects.ids import (
-    SessionId,
-)
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )

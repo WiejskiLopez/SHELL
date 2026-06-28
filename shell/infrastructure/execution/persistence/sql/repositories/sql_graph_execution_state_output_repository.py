@@ -8,8 +8,8 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_state_output_entity_to_model,
     graph_execution_state_output_model_to_entity,
 )

@@ -13,14 +13,12 @@ from shell.application.execution.commands.attach_graph_node_executions_command i
 from shell.application.execution.commands.create_graph_node_execution_command import (
     CreateGraphNodeExecutionCommand,
 )
-from shell.application.platform.commands import (
-    BootstrapRunnerConfigCommand,
-    ImportTaskExecutionCommand,
-    RunGraphNodeExecutionCommand,
-    RunTaskerWorkflowCommand,
-    SaveGraphNodeExecutionResultCommand,
-    StartWorkflowCommand,
-)
+from shell.application.definition.commands.config_commands import BootstrapRunnerConfigCommand
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.graph_node_execution_commands import RunGraphNodeExecutionCommand
+from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
+from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
 
 if TYPE_CHECKING:
     from shell.bootstrap.platform.container.core_container import CoreContainer

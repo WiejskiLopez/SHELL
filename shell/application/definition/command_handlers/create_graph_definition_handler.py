@@ -9,6 +9,13 @@ from shell.domain.definition.aggregates.graph_definition.graph_definition import
 from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
     GraphNodeDefinition,
 )
+from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
+    GraphNodeDefinitionRepository,
+)
 from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
@@ -35,12 +42,12 @@ class CreateGraphDefinitionHandler:
     async def handle(self, command: CreateGraphDefinitionCommand) -> None:
         command.validate()
         now = self._clock.now()
-        graph_id = self._id_generator.new_graph_definition_id()
+        graph_id = self._id_generator.new_id(GraphDefinitionId)
         node_ids: list = []
         node_aggregates: list[GraphNodeDefinition] = []
 
         for node_dict in command.graph_node_definitions:
-            node_id = self._id_generator.new_graph_node_definition_id()
+            node_id = self._id_generator.new_id(GraphNodeDefinitionId)
             node_ids.append(node_id)
             from shell.domain.platform.value_objects.mode import Mode
 
@@ -57,7 +64,7 @@ class CreateGraphDefinitionHandler:
 
         async with self._unit_of_work as unit_of_work:
             for node in node_aggregates:
-                await unit_of_work.graph_node_definition_repository.save(node)
+                await unit_of_work.repository(GraphNodeDefinitionRepository).save(node)
                 unit_of_work.stage_events(node.pull_events())
 
             graph = GraphDefinition.create(
@@ -67,5 +74,5 @@ class CreateGraphDefinitionHandler:
                 graph_node_definition_ids=node_ids,
                 now=now,
             )
-            await unit_of_work.graph_definition_repository.save(graph)
+            await unit_of_work.repository(GraphDefinitionRepository).save(graph)
             unit_of_work.stage_events(graph.pull_events())

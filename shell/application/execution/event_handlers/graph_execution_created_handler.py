@@ -8,7 +8,16 @@ from shell.domain.execution.aggregates.graph_execution_state.graph_execution_sta
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -35,9 +44,9 @@ class GraphExecutionCreatedHandler:
 
     async def handle(self, graph_execution_created_event: GraphExecutionCreatedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_created_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_created_event.graph_execution_id)
 
-            task_execution = await unit_of_work.task_execution_repository.get_by_id(
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
                 graph_execution.task_execution_id,
             )
 
@@ -47,7 +56,7 @@ class GraphExecutionCreatedHandler:
                 can_continue = task_execution.increment_cycle()
                 if not can_continue:
                     task_execution.exhaust(now)
-                    await unit_of_work.task_execution_repository.save(task_execution)
+                    await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
                     unit_of_work.stage_events(task_execution.pull_events())
                     return
 
@@ -59,9 +68,9 @@ class GraphExecutionCreatedHandler:
                         now=now,
                     )
                     state.patch({"goal": graph_execution_created_event.goal})
-                    await unit_of_work.graph_execution_state_repository.save(state)
+                    await unit_of_work.repository(GraphExecutionStateRepository).save(state)
                     unit_of_work.stage_events(state.pull_events())
 
                 task_execution.start(now)
-                await unit_of_work.task_execution_repository.save(task_execution)
+                await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
                 unit_of_work.stage_events(task_execution.pull_events())

@@ -8,8 +8,8 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_state_entity_to_model,
     user_execution_state_model_to_entity,
 )

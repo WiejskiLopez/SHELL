@@ -40,7 +40,7 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 
 class Workflow(AggregateRoot["WorkflowId"]):
@@ -52,7 +52,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     )
 
     _session_execution_id: SessionExecutionId | None
-    _session_id: SessionId | None
+    _session_id: SessionIdRef | None
     _status: WorkflowStatus
     _created_at: CreatedAt
 
@@ -61,7 +61,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id: WorkflowId,
         session_execution_id: SessionExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
@@ -79,7 +79,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id: WorkflowId,
         session_execution_id: SessionExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
@@ -98,7 +98,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         return self._session_execution_id
 
     @property
-    def session_id(self) -> SessionId | None:
+    def session_id(self) -> SessionIdRef | None:
         return self._session_id
 
     @property
@@ -118,7 +118,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         id_: WorkflowId,
         now: datetime,
         session_execution_id: SessionExecutionId | None = None,
-        session_id: SessionId | None = None,
+        session_id: SessionIdRef | None = None,
     ) -> Workflow:
         return cls(
             id=id_,

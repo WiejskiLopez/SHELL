@@ -6,10 +6,12 @@ import json
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.entities.runner_config import RunnerConfig
+from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.domain.platform.value_objects.hash import Hash
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands import BootstrapRunnerConfigCommand
+    from shell.application.definition.commands.config_commands import BootstrapRunnerConfigCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
@@ -24,12 +26,12 @@ class RunnerConfigBootstrapHandler:
         config_hash = Hash.of(serialized)
         async with self._unit_of_work as unit_of_work:
             config = RunnerConfig.new(
-                id_=self._id_generator.new_runner_config_id(),
+                id_=self._id_generator.new_id(RunnerConfigId),
                 package_name=bootstrap_runner_config_command.package_name,
                 kind=bootstrap_runner_config_command.kind,
                 body=bootstrap_runner_config_command.body,
                 config_hash=config_hash,
                 now=self._clock.now(),
             )
-            await unit_of_work.runner_config_repository.save(config)
+            await unit_of_work.repository(RunnerConfigRepository).save(config)
         return config.id.value

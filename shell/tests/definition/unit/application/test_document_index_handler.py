@@ -5,10 +5,13 @@ from __future__ import annotations
 from shell.application.definition.command_handlers.document_index_handler import (
     DocumentIndexHandler,
 )
-from shell.application.platform.commands import IndexDocumentCommand
-from shell.application.platform.queries.queries import SearchSimilarQuery
-from shell.application.platform.query_handlers import SearchSimilarHandler
+from shell.application.definition.commands.rag_commands import IndexDocumentCommand
+from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
+from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
+from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
+    InMemoryRagDocumentRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
@@ -53,6 +56,6 @@ class TestDocumentIndexHandler:
         )
         doc_id = await DocumentIndexHandler(unit_of_work, clock, id_generator, embedder).handle(command)
         assert doc_id is not None
-        doc = await unit_of_work.rag_document_repository.get_by_id(doc_id)
+        doc = await unit_of_work.repository(InMemoryRagDocumentRepository).get_by_id(doc_id)
         assert doc is not None
         assert list(doc.chunks) == []

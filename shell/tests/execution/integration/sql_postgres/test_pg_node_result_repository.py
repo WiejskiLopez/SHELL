@@ -3,14 +3,18 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
     GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.platform.queries.queries import GraphNodeExecutionGetResultQuery
-from shell.application.platform.query_handlers import (
-    GraphNodeExecutionGetResultHandler,
-)
+from shell.application.execution.queries.graph_node_execution_get_result_query import GraphNodeExecutionGetResultQuery
+from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import GraphNodeExecutionGetResultHandler
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
 from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -28,7 +32,7 @@ class TestPgNodeResultRepository:
         session_factory,
     ) -> None:
         async with sql_uow as u:
-            await u.workflow_repository.save(
+            await u.repository(WorkflowRepository).save(
                 Workflow.new(id_=WorkflowId("pg-wf-nr-1"), now=clock.now())
             )
             node = GraphNodeExecution(
@@ -38,7 +42,7 @@ class TestPgNodeResultRepository:
                 role="worker",
                 node_type=NodeType("worker"),
             )
-            await u.graph_node_execution_repository.save(node)
+            await u.repository(GraphNodeExecutionRepository).save(node)
 
         handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_gen)
 

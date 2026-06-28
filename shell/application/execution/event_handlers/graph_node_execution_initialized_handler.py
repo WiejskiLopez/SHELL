@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
     GraphNodeExecutionInitializedEvent,
 )
@@ -25,7 +28,7 @@ class GraphNodeExecutionInitializedHandler:
 
     async def handle(self, event: GraphNodeExecutionInitializedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            parent = await unit_of_work.graph_execution_repository.get_by_id(event.parent_graph_execution_id)
+            parent = await unit_of_work.repository(GraphExecutionRepository).get_by_id(event.parent_graph_execution_id)
             if parent is None:
                 self._logger.warning(
                     "node_initialized.parent_not_found",

@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
@@ -27,9 +31,9 @@ class GraphExecutionPlanningStartedHandler:
 
     async def handle(self, graph_execution_planning_started_event: GraphExecutionPlanningStartedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_planning_started_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_planning_started_event.graph_execution_id)
 
             now = self._clock.now()
             graph_execution.start_planning(now)
-            await unit_of_work.graph_execution_repository.save(graph_execution)
+            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)
             unit_of_work.stage_events(graph_execution.pull_events())

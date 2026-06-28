@@ -7,7 +7,7 @@ from shell.domain.definition.repositories.rag_repository import RagDocumentRepos
 from shell.domain.definition.value_objects.ids import (
     RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.definition.persistence.sql.mappers import (
     rag_chunk_entity_to_model,
     rag_document_entity_to_model,
     rag_document_model_to_entity,

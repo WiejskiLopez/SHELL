@@ -25,14 +25,10 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.platform.commands import (
-            CloseSessionCommand,
-            OpenSessionCommand,
-        )
-        from shell.application.platform.queries.queries import SessionGetHistoryQuery
-        from shell.application.platform.query_handlers import (
-            SessionGetHistoryHandler,
-        )
+        from shell.application.execution.commands.session_commands import CloseSessionCommand
+        from shell.application.execution.commands.session_commands import OpenSessionCommand
+        from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
+        from shell.application.execution.query_handlers.session_get_history_handler import SessionGetHistoryHandler
         from shell.application.session.command_handlers.session_handlers import (
             SessionCloseHandler,
             SessionOpenHandler,

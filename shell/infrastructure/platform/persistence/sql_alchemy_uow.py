@@ -1,12 +1,59 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING
+from typing import TypeVar
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.platform.envelope import Envelope
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
+    GraphNodeDefinitionRepository,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
+    GraphNodeTransitionDefinitionRepository,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+    GraphDefinitionEmbeddingRepository,
+)
+from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+    GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+    GraphNodeTransitionExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+    WorkflowStateRepository,
+)
+from shell.domain.platform.aggregates.message.repositories.message_repository import (
+    MessageRepository,
+)
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
 )
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionEmbeddingRepository,
@@ -41,18 +88,12 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
+from shell.domain.platform.aggregates.message.message import Message
+from shell.domain.platform.events import DomainEvent
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm.exc import StaleDataError
 
-if TYPE_CHECKING:
-    from shell.domain.platform.aggregates.message.message import Message
-    from shell.domain.platform.events import DomainEvent
-    from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
-        SqlSchedulerDefinitionRepository,
-    )
-    from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
-        SqlSchedulerExecutionRepository,
-    )
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+TRepository = TypeVar("TRepository")
 
 
 class SqlAlchemyUnitOfWork(UnitOfWork):
@@ -73,100 +114,39 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             raise RuntimeError("UnitOfWork not entered; use 'async with'")
         return self._session
 
-    @property
-    def task_execution_repository(self) -> SqlTaskExecutionRepository:
-        return SqlTaskExecutionRepository(self._active_session)
-
-    @property
-    def task_execution_state_repository(self) -> SqlTaskExecutionStateRepository:
-        return SqlTaskExecutionStateRepository(self._active_session)
-
-    @property
-    def graph_execution_repository(self) -> SqlGraphExecutionRepository:
-        return SqlGraphExecutionRepository(self._active_session)
-
-    @property
-    def workflow_repository(self) -> SqlWorkflowRepository:
-        return SqlWorkflowRepository(self._active_session)
-
-    @property
-    def graph_execution_state_repository(self) -> SqlGraphExecutionStateInputRepository:
-        return SqlGraphExecutionStateInputRepository(self._active_session)
-
-    @property
-    def runner_config_repository(self) -> SqlRunnerConfigRepository:
-        return SqlRunnerConfigRepository(self._active_session)
-
-    @property
-    def rag_document_repository(self) -> SqlRagDocumentRepository:
-        return SqlRagDocumentRepository(
-            self._active_session,
-            search_strategy=self._rag_search_strategy,
-        )
-
-    @property
-    def graph_definition_repository(self) -> SqlGraphDefinitionRepository:
-        return SqlGraphDefinitionRepository(self._active_session)
-
-    @property
-    def graph_node_definition_repository(self) -> SqlGraphNodeDefinitionRepository:
-        return SqlGraphNodeDefinitionRepository(self._active_session)
-
-    @property
-    def graph_node_transition_definition_repository(self) -> SqlGraphNodeTransitionDefinitionRepository:
-        return SqlGraphNodeTransitionDefinitionRepository(self._active_session)
-
-    @property
-    def graph_definition_embedding_repository(self) -> SqlGraphDefinitionEmbeddingRepository:
-        return SqlGraphDefinitionEmbeddingRepository(self._active_session)
-
-    @property
-    def graph_node_execution_repository(self) -> SqlGraphNodeExecutionRepository:
-        return SqlGraphNodeExecutionRepository(self._active_session)
-
-    @property
-    def graph_node_execution_state_repository(self) -> SqlGraphNodeExecutionStateRepository:
-        return SqlGraphNodeExecutionStateRepository(self._active_session)
-
-    @property
-    def graph_node_transition_execution_repository(self) -> SqlGraphNodeTransitionExecutionRepository:
-        return SqlGraphNodeTransitionExecutionRepository(self._active_session)
-
-    @property
-    def graph_execution_state_input_repository(self) -> SqlGraphExecutionStateInputRepository:
-        return SqlGraphExecutionStateInputRepository(self._active_session)
-
-    @property
-    def graph_execution_state_output_repository(self) -> SqlGraphExecutionStateOutputRepository:
-        return SqlGraphExecutionStateOutputRepository(self._active_session)
-
-    @property
-    def workflow_state_repository(self) -> SqlWorkflowStateRepository:
-        return SqlWorkflowStateRepository(self._active_session)
-
-    @property
-    def message_repository(self) -> SqlMessageRepository:
-        return SqlMessageRepository(self._active_session)
-
-    @property
-    def session_repository(self) -> SqlSessionRepository:
-        return SqlSessionRepository(self._active_session)
-
-    @property
-    def scheduler_definition_repository(self) -> SqlSchedulerDefinitionRepository:
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
-            SqlSchedulerDefinitionRepository,
-        )
-
-        return SqlSchedulerDefinitionRepository(self._active_session)
-
-    @property
-    def scheduler_execution_repository(self) -> SqlSchedulerExecutionRepository:
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
-            SqlSchedulerExecutionRepository,
-        )
-
-        return SqlSchedulerExecutionRepository(self._active_session)
+    def repository(self, repo_type: type[TRepository]) -> TRepository:
+        domain_to_sql: dict[type, type] = {
+            TaskExecutionRepository: SqlTaskExecutionRepository,
+            TaskExecutionStateRepository: SqlTaskExecutionStateRepository,
+            GraphExecutionRepository: SqlGraphExecutionRepository,
+            GraphExecutionStateRepository: SqlGraphExecutionStateInputRepository,
+            WorkflowRepository: SqlWorkflowRepository,
+            WorkflowStateRepository: SqlWorkflowStateRepository,
+            RunnerConfigRepository: SqlRunnerConfigRepository,
+            RagDocumentRepository: SqlRagDocumentRepository,
+            GraphDefinitionRepository: SqlGraphDefinitionRepository,
+            GraphNodeDefinitionRepository: SqlGraphNodeDefinitionRepository,
+            GraphNodeTransitionDefinitionRepository: SqlGraphNodeTransitionDefinitionRepository,
+            GraphDefinitionEmbeddingRepository: SqlGraphDefinitionEmbeddingRepository,
+            GraphNodeExecutionRepository: SqlGraphNodeExecutionRepository,
+            GraphNodeExecutionStateRepository: SqlGraphNodeExecutionStateRepository,
+            GraphNodeTransitionExecutionRepository: SqlGraphNodeTransitionExecutionRepository,
+            MessageRepository: SqlMessageRepository,
+            SessionRepository: SqlSessionRepository,
+        }
+        sql_type = domain_to_sql.get(repo_type)
+        if sql_type is SqlRagDocumentRepository:
+            return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[return-value]
+        if sql_type is not None:
+            return sql_type(self._active_session)  # type: ignore[return-value]
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import SqlSchedulerDefinitionRepository
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import SqlSchedulerExecutionRepository
+        if repo_type is SqlSchedulerDefinitionRepository:
+            return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
+        if repo_type is SqlSchedulerExecutionRepository:
+            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[return-value]
+        msg = f"Unknown repository type: {repo_type}"
+        raise ValueError(msg)
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWork:
         self._session = self._factory()

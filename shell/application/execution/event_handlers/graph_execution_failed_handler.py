@@ -3,6 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -29,12 +36,12 @@ class GraphExecutionFailedHandler:
 
     async def handle(self, graph_execution_failed_event: GraphExecutionFailedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_failed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_failed_event.graph_execution_id)
 
             if graph_execution.parent_graph_execution_id is not None:
                 return
 
-            task_execution = await unit_of_work.task_execution_repository.get_by_id(
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
                 graph_execution.task_execution_id,
             )
 
@@ -42,13 +49,13 @@ class GraphExecutionFailedHandler:
             can_continue = task_execution.increment_cycle()
             if not can_continue:
                 task_execution.exhaust(now)
-                await unit_of_work.task_execution_repository.save(task_execution)
+                await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
                 unit_of_work.stage_events(task_execution.pull_events())
                 return
 
             replan_goal = f"replan: {graph_execution.task_execution_id.value} - {graph_execution_failed_event.reason}"
             new_graph = GraphExecution.create_main_round(
-                id_=self._id_generator.new_graph_execution_id(),
+                id_=self._id_generator.new_id(GraphExecutionId),
                 task_execution_id=graph_execution.task_execution_id,
             )
             from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
@@ -64,7 +71,7 @@ class GraphExecutionFailedHandler:
                     depth=0,
                 ),
             )
-            await unit_of_work.graph_execution_repository.save(new_graph)
-            await unit_of_work.task_execution_repository.save(task_execution)
+            await unit_of_work.repository(GraphExecutionRepository).save(new_graph)
+            await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
             unit_of_work.stage_events(new_graph.pull_events())
             unit_of_work.stage_events(task_execution.pull_events())

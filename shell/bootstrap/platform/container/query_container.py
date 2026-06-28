@@ -6,17 +6,16 @@ from typing import TYPE_CHECKING, Protocol
 
 from dependency_injector import containers, providers
 
+from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import GraphNodeExecutionGetResultHandler
+from shell.application.definition.query_handlers.runner_config_get_handler import RunnerConfigGetHandler
+from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
+from shell.application.execution.query_handlers.session_get_history_handler import SessionGetHistoryHandler
+from shell.application.execution.query_handlers.task_execution_get_by_name_handler import TaskExecutionGetByNameHandler
+from shell.application.execution.query_handlers.task_execution_get_current_handler import TaskExecutionGetCurrentHandler
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+
 if TYPE_CHECKING:
     from dependency_injector.providers import Factory
-    from shell.application.platform.query_handlers import (
-        GraphNodeExecutionGetResultHandler,
-        RunnerConfigGetHandler,
-        SearchSimilarHandler,
-        SessionGetHistoryHandler,
-        TaskExecutionGetByNameHandler,
-        TaskExecutionGetCurrentHandler,
-        WorkflowGetByIdHandler,
-    )
 
     class _QueryContainerProtocol(Protocol):
         get_task_execution_by_name_handler_factory: Factory[TaskExecutionGetByNameHandler]
@@ -26,17 +25,6 @@ if TYPE_CHECKING:
         get_runner_config_handler_factory: Factory[RunnerConfigGetHandler]
         get_session_history_handler_factory: Factory[SessionGetHistoryHandler]
         search_similar_handler_factory: Factory[SearchSimilarHandler]
-
-
-from shell.application.platform.query_handlers import (
-    GraphNodeExecutionGetResultHandler,
-    RunnerConfigGetHandler,
-    SearchSimilarHandler,
-    SessionGetHistoryHandler,
-    TaskExecutionGetByNameHandler,
-    TaskExecutionGetCurrentHandler,
-    WorkflowGetByIdHandler,
-)
 
 
 class QueryContainer(containers.DeclarativeContainer):

@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
-from shell.application.platform.commands import StartWorkflowCommand
-from shell.application.platform.queries.queries import WorkflowGetByIdQuery
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
 from shell.framework.execution.api.routers.workflows.start_workflow_request import (  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
     StartWorkflowRequest,  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
 )

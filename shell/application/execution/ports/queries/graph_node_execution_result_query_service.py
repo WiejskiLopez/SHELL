@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import (
-    GraphNodeExecutionResultDto,  # noqa: TC002 — GraphNodeExecutionResultDto używany jako typ zwracany w sygnaturze Protocol
-)
+from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 
 
 class GraphNodeExecutionResultQueryService(Protocol):

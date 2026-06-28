@@ -116,6 +116,25 @@ class TaskExecutionId(EntityId): ...
 class GraphDefinitionId(EntityId): ...
 ```
 
+### Cross-BC Reference IDs (IdRef pattern)
+
+Gdy agregat w BC A potrzebuje referencji do agregatu z BC B,
+używamy sufiksu `IdRef`:
+
+```python
+class GraphDefinitionIdRef(EntityId): ...   # execution BC → definition BC
+class UserIdRef(EntityId): ...              # session BC → user BC
+class ProjectIdRef(EntityId): ...           # session BC → projekt BC
+class SessionIdRef(EntityId): ...           # execution BC → session BC
+```
+
+Zasady:
+- **BC-właściciel**: `{AggregateName}Id` (np. `GraphDefinitionId`)
+- **BC-referencjonujący**: `{AggregateName}IdRef` (np. `GraphDefinitionIdRef`)
+- `IdRef` = Reference — oznacza że to identyfikator encji z innego BC
+- Każdy BC definiuje własne `IdRef` dla obcych agregatów — celowa duplikacja dla izolacji
+- Nigdy nie importuj `Id` z innego BC — zawsze używaj własnego `IdRef`
+
 ## Dziedziczenie i base klasy
 
 - Entity: `Entity[TId]` z `shell/domain/platform/base/entity.py`

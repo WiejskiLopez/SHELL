@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.value_objects.ids import (
-    SessionId,  # noqa: TC002 — SessionId używany w konstruktorach w repozytorium
-)
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.session.persistence.sql.mappers import (
     session_entity_to_model,
     session_model_to_entity,
     session_update_model,

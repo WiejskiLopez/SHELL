@@ -14,7 +14,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.graph_node_executi
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 
 

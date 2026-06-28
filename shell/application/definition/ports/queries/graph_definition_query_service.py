@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.application.platform.dto import (
-    GraphDefinitionDto,  # noqa: TC002 — GraphDefinitionDto używany jako typ zwracany w sygnaturach Protocol
-)
+from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 
 
 class GraphDefinitionQueryService(Protocol):

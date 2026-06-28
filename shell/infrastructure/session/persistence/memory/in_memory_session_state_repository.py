@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import copy
 
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.repositories.session_state_repository import (
     SessionStateRepository,

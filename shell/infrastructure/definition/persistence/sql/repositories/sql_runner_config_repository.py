@@ -6,7 +6,7 @@ from shell.domain.definition.repositories.runner_config_repository import Runner
 from shell.domain.definition.value_objects.ids import (
     RunnerConfigId,  # noqa: TC002 — RunnerConfigId używany w konstruktorach w repozytorium
 )
-from shell.infrastructure.platform.persistence.sql.mappers import (
+from shell.infrastructure.definition.persistence.sql.mappers import (
     runner_config_entity_to_model,
     runner_config_model_to_entity,
     runner_config_update_model,

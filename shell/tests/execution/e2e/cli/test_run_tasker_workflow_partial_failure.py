@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.application.platform.commands import RunTaskerWorkflowCommand
+from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.domain.execution.events import (
     GraphNodeExecutionFailedEvent,
     WorkflowAbortedEvent,
@@ -11,6 +11,7 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     FakeIdGenerator,
     InMemoryUnitOfWork,
+    InMemoryWorkflowRepository,
 )
 from shell.tests.conftest_helpers import _make_task_with_graph_execution, _run_tasker_full
 
@@ -38,6 +39,6 @@ class TestRunTaskerWorkflowPartialFailure:
         assert any(isinstance(e, WorkflowAbortedEvent) for e in events)
         assert not any(isinstance(e, WorkflowCompletedEvent) for e in events)
 
-        workflows = list(unit_of_work.workflow_repository._store.values())
+        workflows = list(unit_of_work.repository(InMemoryWorkflowRepository)._store.values())
         assert len(workflows) == 1
         assert workflows[0].status.value == "aborted"

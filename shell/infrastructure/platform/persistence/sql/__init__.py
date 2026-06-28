@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.definition.persistence.sql.models import GraphDefinitionModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -132,7 +131,10 @@ async def seed_base_data(url: str) -> None:
 
 
 def _seed_sync(sync_conn) -> None:
-    from shell.infrastructure.definition.persistence.sql.models import GraphNodeDefinitionModel
+    from shell.infrastructure.definition.persistence.sql.models import (
+        GraphDefinitionModel,
+        GraphNodeDefinitionModel,
+    )
     from sqlalchemy.orm import Session
 
     session = Session(sync_conn)

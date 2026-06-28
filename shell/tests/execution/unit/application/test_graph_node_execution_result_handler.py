@@ -9,7 +9,10 @@ from shell.domain.execution.events import (
     WorkflowCompletedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-from shell.infrastructure.platform.persistence.memory import InMemoryUnitOfWork
+from shell.infrastructure.platform.persistence.memory import (
+    InMemoryUnitOfWork,
+    InMemoryWorkflowRepository,
+)
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -34,7 +37,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.ACTIVE
 
@@ -57,7 +60,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.COMPLETED
 
@@ -82,7 +85,7 @@ class TestGraphNodeExecutionResultHandlerFailure:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.ABORTED
 
@@ -100,7 +103,7 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
 
         wf.finish(now=_NOW)
         async with unit_of_work:
-            await unit_of_work.workflow_repository.save(wf)
+            await unit_of_work.repository(InMemoryWorkflowRepository).save(wf)
             await unit_of_work.commit()
 
         handler = _make_result_handler(unit_of_work)
@@ -113,6 +116,6 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
             )
         )
 
-        stored = await unit_of_work.workflow_repository.get_by_id(wf.id)
+        stored = await unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(wf.id)
         assert stored is not None
         assert stored.status == WorkflowStatus.COMPLETED

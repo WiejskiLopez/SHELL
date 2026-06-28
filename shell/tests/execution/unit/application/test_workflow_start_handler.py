@@ -7,20 +7,23 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
     TaskExecutionImportHandler,
 )
 from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
-from shell.application.platform.commands import (
-    ImportTaskExecutionCommand,
-    StartWorkflowCommand,
-)
-from shell.application.platform.queries.queries import WorkflowGetByIdQuery
-from shell.application.platform.query_handlers import WorkflowGetByIdHandler
+from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
 from shell.domain.execution.events import WorkflowStartedEvent
 from shell.domain.execution.exceptions import TaskExecutionNotFound
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
     FakeTaskLoader,
+    InMemoryGraphExecutionRepository,
     InMemoryQueryServices,
+    InMemoryTaskExecutionRepository,
     InMemoryUnitOfWork,
 )
 
@@ -48,7 +51,7 @@ class TestWorkflowStartHandler:
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
         from shell.domain.platform.value_objects.mode import Mode
 
-        task_execution = await unit_of_work.task_execution_repository.get_current_by_name(
+        task_execution = await unit_of_work.repository(InMemoryTaskExecutionRepository).get_current_by_name(
             TaskExecutionName(task_execution_name)
         )
         assert task_execution is not None
@@ -64,8 +67,8 @@ class TestWorkflowStartHandler:
             node_type=NodeType("agent"),
         )
         node._graph_execution_id = graph_execution.id
-        await unit_of_work.graph_execution_repository.save(graph_execution)
-        await unit_of_work.graph_node_execution_repository.save(node)
+        await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)
+        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
 
     async def test_happy_path(
         self,

@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
 )
