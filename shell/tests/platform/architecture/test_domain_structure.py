@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import ast
-import pathlib
 
 from _arch_helpers import (
     BASE,
-    all_method_names,
     extends_any_base,
     find_classes,
     has_method,
@@ -14,7 +12,6 @@ from _arch_helpers import (
     is_frozen_dataclass,
     iter_py_files,
     parse_file,
-    public_method_names,
 )
 
 _VO_BASES = {"ValueObject"}
@@ -245,7 +242,6 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset({
     "domain/execution/aggregates/session_execution_state/session_execution_state.py: SessionExecutionState.supersede",
     "domain/execution/aggregates/task_execution_state/task_execution_state.py: TaskExecutionState.supersede",
     "domain/execution/aggregates/user_execution_state/user_execution_state.py: UserExecutionState.supersede",
-    "domain/execution/aggregates/graph_node_transition_execution/graph_node_transition_execution.py: GraphNodeTransitionExecution.skip",
     "domain/session/aggregates/session_state/session_state.py: SessionState.get",
     "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
     "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
@@ -642,7 +638,7 @@ def _annotation_contains_primitive(annotation: ast.AST) -> str | None:
         if value_name in _PRIMITIVE_TYPES:
             return value_name
         if value_name in {"dict"}:
-            return f"dict[...]"
+            return "dict[...]"
         if value_name in _COLLECTION_TYPES:
             # list[SomeVO], tuple[SomeVO] — allowed if element is a domain type
             if isinstance(annotation.slice, ast.Tuple):

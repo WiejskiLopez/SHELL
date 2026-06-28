@@ -6,19 +6,9 @@ from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.graph_definition.entities.graph_node_definition import (
-        GraphNodeDefinition,
-    )
     from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_node_definition_id import (
-        GraphNodeDefinitionId,
-    )
     from shell.infrastructure.definition.persistence.sql.models import (
         GraphDefinitionModel,
-        GraphNodeDefinitionModel,
     )
 
 

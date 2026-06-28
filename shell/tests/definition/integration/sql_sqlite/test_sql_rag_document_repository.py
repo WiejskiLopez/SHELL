@@ -1,7 +1,6 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
-import pytest
 
 from typing import TYPE_CHECKING
 
@@ -26,8 +25,8 @@ class TestSqlRagDocumentRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.definition.command_handlers.index_document_handler import (
-            IndexDocumentHandler,
+        from shell.application.definition.command_handlers.document_index_handler import (
+            DocumentIndexHandler as IndexDocumentHandler,
         )
         from shell.application.platform.commands import IndexDocumentCommand
         from shell.application.platform.queries.queries import SearchSimilarQuery
@@ -54,8 +53,8 @@ class TestSqlRagDocumentRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.definition.command_handlers.index_document_handler import (
-            IndexDocumentHandler,
+        from shell.application.definition.command_handlers.document_index_handler import (
+            DocumentIndexHandler as IndexDocumentHandler,
         )
         from shell.application.platform.commands import IndexDocumentCommand
         from shell.application.platform.queries.queries import SearchSimilarQuery

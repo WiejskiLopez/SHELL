@@ -18,7 +18,7 @@ description: Reguły struktury handlerów — bezstanowość, UoW jako context m
 - Event bus: 1:N (jeden event może mieć wielu subskrybentów), ale każdy subskrybent pozostaje 1:1 z typem eventu.
 
 ```python
-class StartWorkflowHandler:
+class WorkflowStartHandler:
     def __init__(self, ...) -> None:
         ...
 
@@ -54,6 +54,23 @@ from shell.domain.platform.base import UnitOfWork
 if TYPE_CHECKING:
     from shell.domain.workflow.repository import WorkflowRepository
 ```
+
+> **Reguły nazewnictwa handlerów → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md#handlers)**
+
+## Command i Event Handler — wspólne reguły
+
+Command Handlery i Event Handlery stosują analogiczne reguły struktury:
+
+| Zasada | Command Handler | Event Handler |
+|--------|:---:|:---:|
+| Modyfikuje max 1 agregat | ✅ | ✅ |
+| Zero decyzji biznesowych | ✅ | ✅ |
+| Porty serwisów w module agregatu | ✅ | ✅ |
+| save + stage_events | ✅ | ✅ |
+| Idempotentność (inbox) | ❌ | ✅ |
+| Tolerancja braku agregatu | ❌ (błąd) | ✅ (warning) |
+
+> Szczegółowe reguły: [command-handler-structure](../command-handler-structure/SKILL.md) · [event-handler-structure](../event-handler-structure/SKILL.md)
 
 ## Lokalizacja
 

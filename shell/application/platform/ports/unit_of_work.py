@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
         GraphNodeTransitionExecutionRepository,
     )
-    from shell.domain.session.aggregates.session.repositories.session_repository import SessionRepository
     from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
         TaskExecutionRepository,
     )
@@ -37,8 +36,13 @@ if TYPE_CHECKING:
         WorkflowStateRepository,
     )
     from shell.domain.platform.aggregates.message.message import Message
-    from shell.domain.platform.aggregates.message.repositories.message_repository import MessageRepository
+    from shell.domain.platform.aggregates.message.repositories.message_repository import (
+        MessageRepository,
+    )
     from shell.domain.platform.events import DomainEvent
+    from shell.domain.session.aggregates.session.repositories.session_repository import (
+        SessionRepository,
+    )
 
 
 class UnitOfWork(Protocol):

@@ -3,11 +3,13 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.aggregates.message.repositories.message_repository import MessageRepository
+from shell.domain.platform.aggregates.message.repositories.message_repository import (
+    MessageRepository,
+)
 
 if TYPE_CHECKING:
-    from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
     from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 
 
 class InMemoryMessageRepository(MessageRepository):

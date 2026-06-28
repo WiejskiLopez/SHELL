@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
-    from shell.domain.execution.value_objects.state_direction import StateDirection
     from shell.domain.execution.value_objects.exists_result import ExistsResult
+    from shell.domain.execution.value_objects.state_direction import StateDirection
 
 
 class GraphExecutionStateRepository(Protocol):

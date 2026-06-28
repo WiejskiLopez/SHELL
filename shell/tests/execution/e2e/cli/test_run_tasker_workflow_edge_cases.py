@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
-    RunTaskerWorkflowHandler,
+from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
+    WorkflowRunTaskerHandler,
 )
 from shell.application.platform.commands import RunTaskerWorkflowCommand
 from shell.domain.execution.exceptions import TaskExecutionNotFound
@@ -21,7 +21,7 @@ class TestRunTaskerWorkflowEdgeCases:
         id_generator: FakeIdGenerator,
     ) -> None:
         command = RunTaskerWorkflowCommand(task_execution_id="ghost-task-id", work_dir="/fake/dir")
-        handler = RunTaskerWorkflowHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
+        handler = WorkflowRunTaskerHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
 
         with pytest.raises(TaskExecutionNotFound):
             await handler.handle(command)

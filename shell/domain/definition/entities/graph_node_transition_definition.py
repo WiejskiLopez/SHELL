@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
 )
-from shell.domain.platform.value_objects.edge_type import EdgeType
 from shell.domain.platform.base.entity import Entity
-
-if TYPE_CHECKING:
-    pass
+from shell.domain.platform.value_objects.edge_type import EdgeType
 
 
 class GraphNodeTransitionDefinition(Entity[GraphNodeTransitionDefinitionId]):

@@ -10,8 +10,8 @@ from shell.domain.definition.value_objects.ids import (
     GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
 )
-from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.platform.value_objects.mode import Mode
 
 
 def _make_node(pos: int, mode: str) -> GraphNodeDefinition:

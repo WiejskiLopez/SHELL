@@ -34,16 +34,22 @@ repositories/
 | Domain | `domain/services/` | Domain Services |
 | Domain | `domain/exceptions/` | Domain Exceptions |
 | Domain | `domain/ports/` | Porty (tylko platform) |
-| Application | `application/<bc>/commands/` | Komendy |
-| Application | `application/<bc>/command_handlers/` | Handlery komend |
-| Application | `application/<bc>/queries/` | Query |
-| Application | `application/<bc>/query_handlers/` | Handlery query |
+| Application | `application/<bc>/commands/<aggregate>/` | Komendy per agregat |
+| Application | `application/<bc>/command_handlers/<aggregate>/` | Handlery komend per agregat |
+| Application | `application/<bc>/queries/<aggregate>/` | Query per agregat |
+| Application | `application/<bc>/query_handlers/<aggregate>/` | Handlery query per agregat |
 | Application | `application/<bc>/query_services/` | QueryServices |
-| Application | `application/<bc>/event_handlers/` | Handlery eventów |
-| Application | `application/<bc>/dto/` | DTO odpowiedzi |
-| Application | `application/<bc>/mappers/` | Mappery |
+| Application | `application/<bc>/events/<aggregate>/` | Eventy per agregat |
+| Application | `application/<bc>/event_handlers/<aggregate>/` | Handlery eventów per agregat |
+| Application | `application/<bc>/messages/<aggregate>/` | Message per agregat |
+| Application | `application/<bc>/message_handlers/<aggregate>/` | Handlery message per agregat |
+| Application | `application/<bc>/sagas/<aggregate>/` | Sagi per agregat |
+| Application | `application/<bc>/dto/<aggregate>/` | DTO odpowiedzi per agregat |
+| Application | `application/<bc>/mappers/<aggregate>/` | Mappery per agregat |
 | Application | `application/<bc>/ports/` | Porty aplikacyjne |
 | Application | `application/strategies/<nazwa>/` | Strategie |
+| Domain | `domain/<bc>/aggregates/<aggregate>/services/` | Domain Services per agregat |
+| Domain | `domain/<bc>/descriptors/` | SemanticDescriptory |
 | Infrastructure | `infrastructure/<bc>/repositories/` | SQL repozytoria |
 | Infrastructure | `infrastructure/<bc>/adapters/` | Adaptery serwisów |
 | Infrastructure | `infrastructure/<bc>/acl/` | Anti-Corruption Layer |
@@ -55,8 +61,8 @@ repositories/
 | Infrastructure | `infrastructure/persistence/migrations/sql/versions/` | Migracje Alembic |
 | Framework | `framework/api/routers/` | Routery FastAPI |
 | Framework | `framework/cli/commands/` | Komendy CLI |
-| Process | `process/<bc>/<nazwa_sagi>/` | Saga state machine (manager.py, state.py) |
-| Process | `process/<bc>/<nazwa_sagi>/handlers/` | Event handlery delegujące do managera |
+| Process | `process/<bc>/<nazwa_sagi>/` | Saga state machine (<nazwa>_saga.py, state.py) |
+| Process | `process/<bc>/<nazwa_sagi>/handlers/` | Event handlery delegujące do sagi |
 | Process | `process/<bc>/<nazwa_sagi>/commands/` | Komendy produkowane tylko przez tę sagę |
 | Process | `process/<bc>/<nazwa_sagi>/ports/` | Porty (Protocol) dla repozytorium i command publishera |
 | Bootstrap | `bootstrap/<bc>/` | DI per BC |
@@ -71,6 +77,8 @@ repositories/
 | Test | `tests/e2e/api/` | Testy E2E API |
 | Test | `tests/e2e/cli/` | Testy E2E CLI |
 | Test | `tests/architecture/` | Testy architektury |
+
+> **Szczegółowe reguły → [naming-convention-standard](../naming-convention-standard/SKILL.md)**
 
 ## Ograniczenia
 

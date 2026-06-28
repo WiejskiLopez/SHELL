@@ -1,7 +1,7 @@
-from shell.application.definition.queries.config_queries import GetRunnerConfigQuery
-from shell.application.definition.queries.rag_queries import SearchSimilarQuery
+from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery
+from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
 
 __all__ = [
-    "GetRunnerConfigQuery",
+    "RunnerConfigGetQuery",
     "SearchSimilarQuery",
 ]

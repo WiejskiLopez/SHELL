@@ -1,8 +1,8 @@
-from shell.domain.session.aggregates.session.events.session_opened_event import (
-    SessionOpenedEvent,
-)
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
+)
+from shell.domain.session.aggregates.session.events.session_opened_event import (
+    SessionOpenedEvent,
 )
 
 __all__ = [

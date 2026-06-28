@@ -408,8 +408,8 @@ def _seed_task_executions(session: Session) -> None:
             TaskExecutionStateModel(
                 id=f"{t['model'].id}-input",
                 task_execution_id=t["model"].id,
-                kind="INPUT",
-                payload=t["input_payload"],
+                direction="INPUT",
+                state_data=t["input_payload"],
                 is_current=True,
                 created_at=_NOW,
             )
@@ -419,8 +419,8 @@ def _seed_task_executions(session: Session) -> None:
                 TaskExecutionStateModel(
                     id=f"{t['model'].id}-output",
                     task_execution_id=t["model"].id,
-                    kind="OUTPUT",
-                    payload=t["output_payload"],
+                    direction="OUTPUT",
+                    state_data=t["output_payload"],
                     is_current=True,
                     created_at=_NOW,
                 )
@@ -448,7 +448,7 @@ def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_result import (
         GraphNodeExecutionResultModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state import (
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
         GraphNodeExecutionStateModel,
     )
     from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
@@ -496,7 +496,7 @@ def _seed_workflow_scenario(session: Session) -> None:
     ges_input = GraphExecutionStateInputModel(
         id=f"{ge_id}-state-input-1",
         graph_execution_id=ge_id,
-        payload={"context": "dev environment", "prompt": "Process sample scenario"},
+        state_data={"context": "dev environment", "prompt": "Process sample scenario"},
         is_current=True,
         created_at=_NOW,
     )
@@ -506,7 +506,7 @@ def _seed_workflow_scenario(session: Session) -> None:
     ges_output = GraphExecutionStateOutputModel(
         id=f"{ge_id}-state-output-1",
         graph_execution_id=ge_id,
-        payload={"status": "completed", "message": "Sample scenario completed"},
+        state_data={"status": "completed", "message": "Sample scenario completed"},
         is_current=True,
         created_at=_NOW,
     )
@@ -561,11 +561,11 @@ def _seed_workflow_scenario(session: Session) -> None:
     # -- NodeState --
     ns = GraphNodeExecutionStateModel(
         id=f"{gne_id}-state-1",
-        workflow_id=WF_ID,
         graph_node_execution_id=gne_id,
-        status="done",
-        step=1,
-        updated_at=_NOW,
+        direction="OUTPUT",
+        state_data={"status": "done", "step": 1},
+        is_current=True,
+        created_at=_NOW,
     )
     session.add(ns)
 

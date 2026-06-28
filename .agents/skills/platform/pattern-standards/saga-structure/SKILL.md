@@ -64,6 +64,21 @@ class WorkflowExecutionSaga:
         self._state = SagaState.COMPENSATED
 ```
 
+## Nazewnictwo
+
+Saga nazywa się od procesu biznesowego, który koordynuje:
+
+```
+<BusinessProcess>Saga
+```
+
+**Przykłady:**
+- `InvoiceApprovalSaga` — proces zatwierdzania faktury
+- `UserRegistrationSaga` — proces rejestracji użytkownika
+- `OrderFulfillmentSaga` — proces realizacji zamówienia
+
+> **Szczegółowe reguły → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md#sagas)**
+
 ## Kompensacje
 
 - Każdy krok sagi musi mieć akcję kompensującą — cofającą zmianę.

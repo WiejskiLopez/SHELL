@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import GraphExecutionId
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 

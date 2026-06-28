@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.platform.aggregates.message.value_objects.destination import Destination
 from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 from shell.domain.platform.aggregates.message.value_objects.message_type import MessageType
 from shell.domain.platform.aggregates.message.value_objects.source import Source
-from shell.domain.platform.aggregates.message.value_objects.destination import Destination
 from shell.domain.platform.events import DomainEvent
 
 if TYPE_CHECKING:

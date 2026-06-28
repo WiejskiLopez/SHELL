@@ -6,13 +6,9 @@ The current stub provides the structural skeleton.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from shell.infrastructure.platform.context.correlation_id import get_correlation_id
-
-if TYPE_CHECKING:
-    import grpc
-    from grpc.aio import ClientCallDetails, UnaryUnaryClientInterceptor
 
 
 class CorrelationIdInterceptor:

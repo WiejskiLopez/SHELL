@@ -1,18 +1,19 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
-import pytest
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.command_handlers.import_task_execution_handler import (
-    ImportTaskExecutionHandler,
+from shell.application.execution.command_handlers.task_execution_import_handler import (
+    TaskExecutionImportHandler,
 )
-from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
+from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
 from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
     StartWorkflowCommand,
 )
+from shell.application.platform.queries.queries import WorkflowGetByIdQuery
+from shell.application.platform.query_handlers import WorkflowGetByIdHandler
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
@@ -20,8 +21,6 @@ from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
-from shell.application.platform.queries.queries import GetWorkflowQuery
-from shell.application.platform.query_handlers import GetWorkflowHandler
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
@@ -48,7 +47,7 @@ class TestSqlWorkflowRepository:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        imp = ImportTaskExecutionHandler(
+        imp = TaskExecutionImportHandler(
             sql_uow, clock, id_generator, task_execution_loader, FakeLogger()
         )
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
@@ -75,11 +74,11 @@ class TestSqlWorkflowRepository:
             await u.graph_node_execution_repository.save(node)
             await u.commit()
 
-        start = StartWorkflowHandler(sql_uow, clock, id_generator)
+        start = WorkflowStartHandler(sql_uow, clock, id_generator)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
-        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
-        dto = await q.handle(GetWorkflowQuery(wf_id))
+        q = WorkflowGetByIdHandler(WorkflowQueryService(session_factory))
+        dto = await q.handle(WorkflowGetByIdQuery(wf_id))
         assert dto is not None
         assert dto.status == "active"
 
@@ -87,6 +86,6 @@ class TestSqlWorkflowRepository:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
-        dto = await q.handle(GetWorkflowQuery("no-such-wf"))
+        q = WorkflowGetByIdHandler(WorkflowQueryService(session_factory))
+        dto = await q.handle(WorkflowGetByIdQuery("no-such-wf"))
         assert dto is None

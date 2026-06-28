@@ -2,11 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.aggregates.message.events.message_created_event import MessageCreatedEvent
-from shell.domain.platform.aggregates.message.events.message_received_event import MessageReceivedEvent
+from shell.domain.platform.aggregates.message.events.message_created_event import (
+    MessageCreatedEvent,
+)
+from shell.domain.platform.aggregates.message.events.message_received_event import (
+    MessageReceivedEvent,
+)
 from shell.domain.platform.aggregates.message.value_objects.business_payload import BusinessPayload
 from shell.domain.platform.aggregates.message.value_objects.destination import Destination
-from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import MaterializedMetadata
+from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import (
+    MaterializedMetadata,
+)
 from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 from shell.domain.platform.aggregates.message.value_objects.message_metadata import MessageMetadata
 from shell.domain.platform.aggregates.message.value_objects.message_status import MessageStatus

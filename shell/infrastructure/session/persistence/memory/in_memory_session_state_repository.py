@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.repositories.session_state_repository import (
     SessionStateRepository,
@@ -10,7 +11,6 @@ from shell.domain.session.aggregates.session_state.repositories.session_state_re
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.session.aggregates.session_state.session_state import SessionState

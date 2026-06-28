@@ -10,9 +10,9 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
 class GraphNodeExecutionTimeoutExpiredHandler:

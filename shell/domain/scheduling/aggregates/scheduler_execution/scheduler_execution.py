@@ -10,7 +10,9 @@ from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionSkippedEvent,
     SchedulerExecutionStartedEvent,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import ExecutionStatus
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+    ExecutionStatus,
+)
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,
     SchedulerExecutionId,

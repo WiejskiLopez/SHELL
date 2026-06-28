@@ -28,7 +28,26 @@ shell/application/
 
 ## Query Service
 
-QueryService to warstwa odczytu (read side) — implementacja w `infrastructure/`, port w domenie. Handler używa QueryService, nigdy bezpośrednio repozytoriów agregatów.
+QueryService to warstwa odczytu (read side) — implementacja w `application/query_services/<nazwa_agregatu>/`. Handler używa QueryService, nigdy bezpośrednio repozytoriów agregatów.
+
+### Lokalizacja per agregat
+
+Query Services grupuje się per agregat, co ułatwia ekstrakcję do osobnego mikroserwisu:
+
+```
+shell/application/
+    execution/
+        query_services/
+            workflow/
+                workflow_list_service.py
+                workflow_detail_service.py
+            session/
+                session_history_service.py
+    definition/
+        query_services/
+            document/
+                document_search_service.py
+```
 
 ## Rejestracja
 

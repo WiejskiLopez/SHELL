@@ -12,6 +12,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
+from shell.infrastructure.platform.logging.stdlib_logger import correlation_id_var
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -21,7 +22,6 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
-from shell.infrastructure.platform.logging.stdlib_logger import correlation_id_var
 from shell.tests.conftest_helpers import *
 
 # ---------------------------------------------------------------------------
@@ -127,7 +127,6 @@ def fake_logger() -> FakeLogger:
 # SQLite integration fixtures
 # ---------------------------------------------------------------------------
 
-import pathlib
 from typing import TYPE_CHECKING
 
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database

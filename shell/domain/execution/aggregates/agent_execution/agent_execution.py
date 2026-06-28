@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+    AgentExecutionId,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:

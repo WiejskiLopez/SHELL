@@ -1,11 +1,11 @@
 from shell.application.session.command_handlers.session_handlers import (
-    CloseSessionHandler,
-    OpenSessionHandler,
+    SessionCloseHandler,
     SessionNotFound,
+    SessionOpenHandler,
 )
 
 __all__ = [
     "SessionNotFound",
-    "OpenSessionHandler",
-    "CloseSessionHandler",
+    "SessionOpenHandler",
+    "SessionCloseHandler",
 ]

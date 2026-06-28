@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import ast
 
-from _arch_helpers import BASE, iter_py_files, parse_file
-
+from _arch_helpers import BASE, parse_file
 
 _KNOWN_MAPPER_EXCEPTIONS: frozenset[str] = frozenset({})
 

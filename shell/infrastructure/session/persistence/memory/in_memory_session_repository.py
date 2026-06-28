@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.session.aggregates.session.repositories.session_repository import SessionRepository
 from shell.domain.execution.value_objects.ids import (
     SessionId,  # noqa: TC002 — SessionId używany w konstruktorach w repozytorium
+)
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
 )
 
 if TYPE_CHECKING:

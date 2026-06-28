@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
 from shell.application.platform.commands import StartWorkflowCommand
-from shell.application.platform.queries.queries import GetWorkflowQuery
+from shell.application.platform.queries.queries import WorkflowGetByIdQuery
 from shell.framework.execution.api.routers.workflows.start_workflow_request import (  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
     StartWorkflowRequest,  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
 )
@@ -50,7 +50,7 @@ async def get_workflow(
     workflow_id: str,
     query_bus: QueryBus = Depends(get_query_bus),
 ) -> dict:
-    result = await query_bus.dispatch(GetWorkflowQuery(workflow_id=workflow_id))
+    result = await query_bus.dispatch(WorkflowGetByIdQuery(workflow_id=workflow_id))
     if result is None:
         raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
     return {"workflow_id": workflow_id, "workflow": str(result)}

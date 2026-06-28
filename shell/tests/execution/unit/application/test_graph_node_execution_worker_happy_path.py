@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import pytest
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
-    GraphNodeExecutionRequestedEvent,
-)
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.infrastructure.platform.persistence.memory import (

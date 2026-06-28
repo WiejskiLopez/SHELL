@@ -9,33 +9,33 @@ from dependency_injector import containers, providers
 if TYPE_CHECKING:
     from dependency_injector.providers import Factory
     from shell.application.platform.query_handlers import (
-        GetCurrentTaskExecutionHandler,
-        GetGraphNodeExecutionResultHandler,
-        GetRunnerConfigHandler,
-        GetSessionHistoryHandler,
-        GetTaskExecutionByNameHandler,
-        GetWorkflowHandler,
+        GraphNodeExecutionGetResultHandler,
+        RunnerConfigGetHandler,
         SearchSimilarHandler,
+        SessionGetHistoryHandler,
+        TaskExecutionGetByNameHandler,
+        TaskExecutionGetCurrentHandler,
+        WorkflowGetByIdHandler,
     )
 
     class _QueryContainerProtocol(Protocol):
-        get_task_execution_by_name_handler_factory: Factory[GetTaskExecutionByNameHandler]
-        get_current_task_execution_handler_factory: Factory[GetCurrentTaskExecutionHandler]
-        get_workflow_handler_factory: Factory[GetWorkflowHandler]
-        get_graph_node_execution_result_handler_factory: Factory[GetGraphNodeExecutionResultHandler]
-        get_runner_config_handler_factory: Factory[GetRunnerConfigHandler]
-        get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
+        get_task_execution_by_name_handler_factory: Factory[TaskExecutionGetByNameHandler]
+        get_current_task_execution_handler_factory: Factory[TaskExecutionGetCurrentHandler]
+        get_workflow_handler_factory: Factory[WorkflowGetByIdHandler]
+        get_graph_node_execution_result_handler_factory: Factory[GraphNodeExecutionGetResultHandler]
+        get_runner_config_handler_factory: Factory[RunnerConfigGetHandler]
+        get_session_history_handler_factory: Factory[SessionGetHistoryHandler]
         search_similar_handler_factory: Factory[SearchSimilarHandler]
 
 
 from shell.application.platform.query_handlers import (
-    GetCurrentTaskExecutionHandler,
-    GetGraphNodeExecutionResultHandler,
-    GetRunnerConfigHandler,
-    GetSessionHistoryHandler,
-    GetTaskExecutionByNameHandler,
-    GetWorkflowHandler,
+    GraphNodeExecutionGetResultHandler,
+    RunnerConfigGetHandler,
     SearchSimilarHandler,
+    SessionGetHistoryHandler,
+    TaskExecutionGetByNameHandler,
+    TaskExecutionGetCurrentHandler,
+    WorkflowGetByIdHandler,
 )
 
 
@@ -45,22 +45,22 @@ class QueryContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
 
     get_task_execution_by_name_handler_factory = providers.Factory(
-        GetTaskExecutionByNameHandler, queries=infra.task_execution_query_service
+        TaskExecutionGetByNameHandler, queries=infra.task_execution_query_service
     )
     get_current_task_execution_handler_factory = providers.Factory(
-        GetCurrentTaskExecutionHandler, queries=infra.task_execution_query_service
+        TaskExecutionGetCurrentHandler, queries=infra.task_execution_query_service
     )
     get_workflow_handler_factory = providers.Factory(
-        GetWorkflowHandler, queries=infra.workflow_query_service
+        WorkflowGetByIdHandler, queries=infra.workflow_query_service
     )
     get_graph_node_execution_result_handler_factory = providers.Factory(
-        GetGraphNodeExecutionResultHandler, queries=infra.node_result_query_service
+        GraphNodeExecutionGetResultHandler, queries=infra.node_result_query_service
     )
     get_runner_config_handler_factory = providers.Factory(
-        GetRunnerConfigHandler, queries=infra.runner_config_query_service
+        RunnerConfigGetHandler, queries=infra.runner_config_query_service
     )
     get_session_history_handler_factory = providers.Factory(
-        GetSessionHistoryHandler, queries=infra.session_query_service
+        SessionGetHistoryHandler, queries=infra.session_query_service
     )
     search_similar_handler_factory = providers.Factory(
         SearchSimilarHandler, queries=infra.rag_query_service, embedder=infra.embedder

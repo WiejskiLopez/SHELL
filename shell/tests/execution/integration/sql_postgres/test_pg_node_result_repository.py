@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
-    SaveGraphNodeExecutionResultHandler,
+from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
+    GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
-from shell.application.platform.queries.queries import GetGraphNodeExecutionResultQuery
+from shell.application.platform.queries.queries import GraphNodeExecutionGetResultQuery
 from shell.application.platform.query_handlers import (
-    GetGraphNodeExecutionResultHandler,
+    GraphNodeExecutionGetResultHandler,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
@@ -41,10 +40,10 @@ class TestPgNodeResultRepository:
             )
             await u.graph_node_execution_repository.save(node)
 
-        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_gen)
+        handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_gen)
 
-        q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
-        dto = await q.handle(GetGraphNodeExecutionResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
+        q = GraphNodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
+        dto = await q.handle(GraphNodeExecutionGetResultQuery("pg-node-nr-1", "pg-wf-nr-1"))
         assert dto is not None
         assert dto.stdout == "pg success"
         assert dto.status == "done"

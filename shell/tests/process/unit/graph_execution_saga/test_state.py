@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaState,
     GraphExecutionSagaStatus,

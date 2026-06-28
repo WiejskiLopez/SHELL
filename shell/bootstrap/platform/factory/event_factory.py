@@ -7,17 +7,14 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
     GraphExecutionCompletedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
-    GraphExecutionInitializedEvent,
-)
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
-    GraphNodeExecutionInitializedEvent,
-)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
     GraphExecutionCreatedEvent,
 )
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
     GraphExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+    GraphExecutionInitializedEvent,
 )
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
     GraphExecutionPlanningStartedEvent,
@@ -31,11 +28,11 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
     GraphNodeExecutionFailedEvent,
 )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+    GraphNodeExecutionInitializedEvent,
+)
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
     GraphNodeExecutionStartedEvent,
-)
-from shell.domain.session.aggregates.session.events.session_opened_event import (
-    SessionOpenedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
@@ -46,6 +43,9 @@ from shell.domain.execution.events import (
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
     WorkflowStartedEvent,
+)
+from shell.domain.session.aggregates.session.events.session_opened_event import (
+    SessionOpenedEvent,
 )
 
 if TYPE_CHECKING:
@@ -120,10 +120,6 @@ def register_events(core_container: CoreContainer) -> None:
         events.handle_graph_execution_failed_factory,
     )
     event_bus.subscribe(
-        GraphExecutionSubGraphSettledEvent,
-        events.handle_sub_graph_settled_factory,
-    )
-    event_bus.subscribe(
         GraphNodeExecutionStartedEvent,
         events.handle_graph_node_execution_started_factory,
     )
@@ -137,9 +133,9 @@ def register_events(core_container: CoreContainer) -> None:
 
     event_bus.subscribe(
         GraphExecutionInitializedEvent,
-        process_ctx.on_graph_execution_initialized_handler_factory,
+        process_ctx.graph_execution_initialized_handler_factory,
     )
     event_bus.subscribe(
         GraphNodeExecutionInitializedEvent,
-        process_ctx.on_graph_node_execution_initialized_handler_factory,
+        process_ctx.graph_node_execution_initialized_handler_factory,
     )

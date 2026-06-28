@@ -34,22 +34,20 @@ from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_ex
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
     GraphNodeExecutionFailedEvent,
 )
-from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,  # noqa: TC002 — GraphNodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
 )
+from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.manifest import Manifest
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
-from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.execution import GraphNodeExecutionProcessRunner
     from shell.application.platform.ports.identity import IdGenerator
-    from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
@@ -57,6 +55,8 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
 
 
 class GraphNodeExecutionWorker:

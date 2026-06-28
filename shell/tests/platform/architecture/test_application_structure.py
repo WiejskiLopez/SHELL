@@ -4,16 +4,13 @@ import ast
 
 from _arch_helpers import (
     BASE,
-    extends_base,
     find_classes,
-    has_method,
     is_frozen_dataclass,
     is_magic,
     iter_py_files,
     parse_file,
     public_method_names,
 )
-
 
 # ── 1. Handler has exactly one public method `handle` ────────────
 

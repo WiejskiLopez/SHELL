@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.platform.persistence.sql.models.command import OutboxCommandModel
-from shell.infrastructure.platform.persistence.sql.models.command.inbox_command import InboxCommandModel
+from shell.infrastructure.platform.persistence.sql.models.command.inbox_command import (
+    InboxCommandModel,
+)
 from sqlalchemy import text
 
 if TYPE_CHECKING:
@@ -39,7 +40,7 @@ class CommandOutboxToInboxRelay:
             if not rows:
                 return 0
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             for row in rows:
                 inbox = InboxCommandModel(
                     id=str(uuid.uuid4()),

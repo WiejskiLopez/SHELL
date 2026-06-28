@@ -7,7 +7,6 @@ from _arch_helpers import (
     BASE,
     find_classes,
     has_abbreviation,
-    is_frozen_dataclass,
     is_magic,
     iter_py_files,
     parse_file,
@@ -98,7 +97,6 @@ _KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset({
     "domain/execution/aggregates/graph_execution/ports/sub_graph_compensation.py: main class is CompensationDecision (expected compensation_decision.py)",
     "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
     "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
-    "domain/execution/services/graph_node_execution_navigator/transition_based_navigator.py: main class is TransitionBasedGraphNodeExecutionNavigator (expected transition_based_graph_node_execution_navigator.py)",
 })
 
 _NAMING_CORE_LAYERS = frozenset({"domain/"})

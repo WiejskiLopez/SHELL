@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Any
 
 import pytest
-
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaState,
 )

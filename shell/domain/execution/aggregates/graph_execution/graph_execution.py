@@ -2,15 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_initialization_status import (
     GraphExecutionInitializationStatus,
@@ -19,6 +20,7 @@ from shell.domain.execution.value_objects.graph_execution_status import GraphExe
 from shell.domain.execution.value_objects.graph_node_definition_execution_slot import (
     GraphNodeDefinitionExecutionSlot,
 )
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.base.aggregate_root import AggregateRoot

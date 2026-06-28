@@ -3,28 +3,28 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-from shell.application.definition.command_handlers.bootstrap_runner_config_handler import (
-    BootstrapRunnerConfigHandler,
+from shell.application.definition.command_handlers.runner_config_bootstrap_handler import (
+    RunnerConfigBootstrapHandler,
 )
-from shell.application.execution.command_handlers.import_task_execution_handler import (
-    ImportTaskExecutionHandler,
+from shell.application.execution.command_handlers.graph_node_execution_attach_handler import (
+    GraphNodeExecutionAttachHandler,
 )
-from shell.application.execution.command_handlers.run_graph_node_execution_handler import (
-    RunGraphNodeExecutionHandler,
+from shell.application.execution.command_handlers.graph_node_execution_create_handler import (
+    GraphNodeExecutionCreateHandler,
 )
-from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
-    RunTaskerWorkflowHandler,
+from shell.application.execution.command_handlers.graph_node_execution_run_handler import (
+    GraphNodeExecutionRunHandler,
 )
-from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
-    SaveGraphNodeExecutionResultHandler,
+from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
+    GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
-from shell.application.execution.command_handlers.create_graph_node_execution_handler import (
-    CreateGraphNodeExecutionCommandHandler,
+from shell.application.execution.command_handlers.task_execution_import_handler import (
+    TaskExecutionImportHandler,
 )
-from shell.application.execution.command_handlers.attach_graph_node_executions_handler import (
-    AttachGraphNodeExecutionsCommandHandler,
+from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
+    WorkflowRunTaskerHandler,
 )
+from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
 
 
 class CommandContainer(containers.DeclarativeContainer):
@@ -36,7 +36,7 @@ class CommandContainer(containers.DeclarativeContainer):
     buses = providers.DependenciesContainer()
 
     import_task_execution_handler_factory = providers.Factory(
-        ImportTaskExecutionHandler,
+        TaskExecutionImportHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
@@ -44,13 +44,13 @@ class CommandContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
     )
     start_workflow_handler_factory = providers.Factory(
-        StartWorkflowHandler,
+        WorkflowStartHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
     )
     run_graph_node_execution_handler_factory = providers.Factory(
-        RunGraphNodeExecutionHandler,
+        GraphNodeExecutionRunHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
@@ -59,32 +59,32 @@ class CommandContainer(containers.DeclarativeContainer):
         strategy=domain.strategy,
     )
     save_graph_node_execution_result_handler_factory = providers.Factory(
-        SaveGraphNodeExecutionResultHandler,
+        GraphNodeExecutionSaveResultHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
     )
     bootstrap_runner_config_handler_factory = providers.Factory(
-        BootstrapRunnerConfigHandler,
+        RunnerConfigBootstrapHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
     )
     run_tasker_workflow_handler_factory = providers.Factory(
-        RunTaskerWorkflowHandler,
+        WorkflowRunTaskerHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         navigator=domain.node_navigator_factory,
     )
     create_graph_node_execution_handler_factory = providers.Factory(
-        CreateGraphNodeExecutionCommandHandler,
+        GraphNodeExecutionCreateHandler,
         unit_of_work=buses.unit_of_work_factory,
         identity=infra.id_generator_factory,
         time=infra.clock_factory,
     )
     attach_graph_node_executions_handler_factory = providers.Factory(
-        AttachGraphNodeExecutionsCommandHandler,
+        GraphNodeExecutionAttachHandler,
         unit_of_work=buses.unit_of_work_factory,
         time=infra.clock_factory,
     )

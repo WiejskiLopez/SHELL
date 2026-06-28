@@ -20,7 +20,6 @@ from _arch_helpers import (
     public_method_names,
 )
 
-
 # ── 1. Process handlers have exactly one public `handle` method ────
 
 _PROCESS_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})

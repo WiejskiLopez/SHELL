@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-from shell.process.execution.graph_execution_saga.manager import (
-    GraphExecutionSagaManager,
+from shell.process.execution.graph_execution_saga.graph_execution_saga import (
+    GraphExecutionSaga,
 )
-from shell.process.execution.graph_execution_saga.handlers.on_graph_execution_initialized_handler import (
-    OnGraphExecutionInitializedHandler,
+from shell.process.execution.graph_execution_saga.handlers.graph_execution_initialized_handler import (
+    GraphExecutionInitializedHandler,
 )
-from shell.process.execution.graph_execution_saga.handlers.on_graph_node_execution_initialized_handler import (
-    OnGraphNodeExecutionInitializedHandler,
+from shell.process.execution.graph_execution_saga.handlers.graph_node_execution_initialized_handler import (
+    GraphNodeExecutionInitializedHandler,
 )
 
 
@@ -20,21 +20,21 @@ class ProcessContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    graph_execution_saga_manager = providers.Singleton(
-        GraphExecutionSagaManager,
+    graph_execution_saga = providers.Singleton(
+        GraphExecutionSaga,
         repository=infra.graph_execution_saga_repository_factory,
     )
 
-    on_graph_execution_initialized_handler_factory = providers.Factory(
-        OnGraphExecutionInitializedHandler,
-        saga_manager=graph_execution_saga_manager,
+    graph_execution_initialized_handler_factory = providers.Factory(
+        GraphExecutionInitializedHandler,
+        saga_manager=graph_execution_saga,
         command_publisher=infra.sql_command_outbox_publisher_factory,
         logger=infra.stdlib_logger,
     )
 
-    on_graph_node_execution_initialized_handler_factory = providers.Factory(
-        OnGraphNodeExecutionInitializedHandler,
-        saga_manager=graph_execution_saga_manager,
+    graph_node_execution_initialized_handler_factory = providers.Factory(
+        GraphNodeExecutionInitializedHandler,
+        saga_manager=graph_execution_saga,
         command_publisher=infra.sql_command_outbox_publisher_factory,
         logger=infra.stdlib_logger,
     )

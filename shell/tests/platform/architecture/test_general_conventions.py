@@ -5,7 +5,6 @@ import re
 
 from _arch_helpers import BASE, iter_py_files, parse_file
 
-
 # ── 1. `from __future__ import annotations` in every file ──────────
 
 _KNOWN_MISSING_FUTURE: frozenset[str] = frozenset({})

@@ -8,10 +8,10 @@ from shell.application.platform.ports.execution import (
 )
 from shell.application.platform.ports.filesystem import TaskExecutionLoader
 from shell.application.platform.ports.identity import IdGenerator
-from shell.domain.platform.ports.log import Logger
 from shell.application.platform.ports.messaging import EventPublisher
-from shell.domain.platform.ports.time import Clock
 from shell.application.platform.ports.unit_of_work import UnitOfWork
+from shell.domain.platform.ports.log import Logger
+from shell.domain.platform.ports.time import Clock
 
 __all__ = [
     "Clock",

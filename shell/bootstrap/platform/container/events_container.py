@@ -5,17 +5,17 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 from shell.application.platform.bus.event_bus_publisher import EventBusPublisher
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
-from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-from shell.infrastructure.platform.messaging.event.processor.inbox_processor import InboxProcessor
-from shell.infrastructure.platform.messaging.command.processor.command_inbox_processor import (
-    CommandInboxProcessor,
-)
 from shell.infrastructure.platform.messaging.command.command_outbox_to_inbox_relay import (
     CommandOutboxToInboxRelay,
+)
+from shell.infrastructure.platform.messaging.command.processor.command_inbox_processor import (
+    CommandInboxProcessor,
 )
 from shell.infrastructure.platform.messaging.command.sql_command_outbox_publisher import (
     SqlCommandOutboxPublisher,
 )
+from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
+from shell.infrastructure.platform.messaging.event.processor.inbox_processor import InboxProcessor
 from shell.infrastructure.platform.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
 
 

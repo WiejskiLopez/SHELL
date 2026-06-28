@@ -16,9 +16,9 @@ domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← boo
 ```
 
 - `domain/` — czysty Python, reguły biznesowe (Entity, VO, Aggregate Root, Domain Events, Repository porty)
-- `application/` — atomowe handlery przypadków użycia (Command/Query/Event Handlers, Busy, UoW, DTO, Mapper). Jeden handler = jeden agregat = jedna transakcja. Żadnej orkiestracji wieloagregatowej.
+- `application/` — atomowe handlery przypadków użycia (Command/Query/Event Handlers, Busy, UoW, DTO, Mapper). Jeden handler = jeden agregat = jedna transakcja. Żadnej orkiestracji wieloagregatowej. Query Services grupuje się per agregat w `query_services/<nazwa_agregatu>/`.
 - `process/` — orkiestracja i sagas (stateful saga state machine, Process Manager event handlery, saga-specific commands i porty). Koordynuje wiele agregatów poprzez wysyłanie komend do warstwy aplikacyjnej.
-- `infrastructure/` — implementacje portów (SQLAlchemy, InMemory, outbox, migracje)
+- `infrastructure/` — implementacje portów (SQLAlchemy, InMemory, outbox, migracje) oraz adaptery cross-aggregate data retrieval w `services/<nazwa_agregatu>/`
 - `framework/` — FastAPI, CLI, entrypointy
 - `bootstrap/` — Composition Root (DI Containery, Factory)
 
@@ -107,8 +107,11 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Zaczynasz nową funkcjonalność i nie wiesz gdzie co trafia → `references/checklists.md` (sekcja "Dodawanie nowej funkcjonalności")
 - Piszesz nowy aggregate/entity/VO/event/domain service → `references/domain.md`
 - Piszesz handler, mapper, strategię, port aplikacyjny → `references/application.md`
+- Piszesz Query Service → `shell/application/<bc>/query_services/<nazwa_agregatu>/` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
 - Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
+- Implementujesz adapter danych międzyagregatowych → `shell/infrastructure/<bc>/services/<nazwa_agregatu>/` (patrz [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval))
+- Piszesz Event Handler → `shell/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")
 - Nie jesteś pewien struktury pliku → `references/checklists.md` (sekcja "Cross-cutting")
@@ -118,9 +121,9 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 ## Przepis: nowa funkcjonalność (wersja skrócona)
 
 1. **Domain**: VO / Entity / Aggregate Root / Event / Exception / Service / Repository Port w `domain/`
-2. **Application**: Atomowy Command/Query + Handler + DTO + Mapper w `application/`
+2. **Application**: Atomowy Command/Query + Handler + DTO + Mapper w `application/`; Query Services w `query_services/<nazwa_agregatu>/`
 3. **Process** (jeśli potrzeba orkiestracji): Saga/Process Manager + handlers + commands + ports w `process/`
-4. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository w `infrastructure/`
+4. **Infrastructure**: ORM Model + migracja Alembic + SQL Repository + InMemory Repository + adaptery serwisów międzyagregatowych w `infrastructure/<bc>/services/<nazwa_agregatu>/`
 5. **DI**: Container + Factory w `bootstrap/`
 6. **Framework**: Router FastAPI albo komenda CLI w `framework/`
 7. **Testy**: unit (domain + application + process) + integration (SQLite) + E2E

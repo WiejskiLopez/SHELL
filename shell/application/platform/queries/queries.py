@@ -1,25 +1,25 @@
-"""Application queries — re-exports from granular modules (backward compatibility)."""
+"""Application queries — re-exports from granular modules."""
 
 from __future__ import annotations
 
-from shell.application.definition.queries.config_queries import GetRunnerConfigQuery
-from shell.application.definition.queries.rag_queries import SearchSimilarQuery
-from shell.application.execution.queries.graph_node_execution_queries import (
-    GetGraphNodeExecutionResultQuery,
+from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery
+from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
+from shell.application.execution.queries.graph_node_execution_get_result_query import (
+    GraphNodeExecutionGetResultQuery,
 )
-from shell.application.execution.queries.session_queries import GetSessionHistoryQuery
+from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
 from shell.application.execution.queries.task_execution_queries import (
-    GetCurrentTaskExecutionQuery,
-    GetTaskExecutionByNameQuery,
+    TaskExecutionGetByNameQuery,
+    TaskExecutionGetCurrentQuery,
 )
-from shell.application.execution.queries.workflow_queries import GetWorkflowQuery
+from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
 
 __all__ = [
-    "GetCurrentTaskExecutionQuery",
-    "GetGraphNodeExecutionResultQuery",
-    "GetRunnerConfigQuery",
-    "GetSessionHistoryQuery",
-    "GetTaskExecutionByNameQuery",
-    "GetWorkflowQuery",
+    "TaskExecutionGetCurrentQuery",
+    "GraphNodeExecutionGetResultQuery",
+    "RunnerConfigGetQuery",
+    "SessionGetHistoryQuery",
+    "TaskExecutionGetByNameQuery",
+    "WorkflowGetByIdQuery",
     "SearchSimilarQuery",
 ]

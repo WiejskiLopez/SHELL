@@ -21,8 +21,6 @@ from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
-    from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
@@ -30,6 +28,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_security import SubGraphSecurity
     from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
 
 
 class SubGraphSpawnRequestedHandler:

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.execution.persistence.sql.models.saga_state import (
+    GraphExecutionSagaStateModel,
+)
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaState,
     GraphExecutionSagaStatus,
-)
-from shell.infrastructure.execution.persistence.sql.models.saga_state import (
-    GraphExecutionSagaStateModel,
 )
 from sqlalchemy import select
 

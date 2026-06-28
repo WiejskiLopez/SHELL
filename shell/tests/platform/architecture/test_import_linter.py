@@ -2,17 +2,15 @@ from __future__ import annotations
 
 import subprocess
 
-from _arch_helpers import BASE
-
-
 import pytest
+from _arch_helpers import BASE
 
 
 @pytest.mark.skip(reason="import-linter requires all layers to be Python packages with __init__.py; framework/ layer needs this")
 def test_import_linter_contracts() -> None:
     project_root = BASE.parent
-    import shutil
     import os
+    import shutil
     import_linter_path = shutil.which("import-linter")
     if import_linter_path is None:
         import_linter_path = str(BASE.parent / "venv" / "Scripts" / "import-linter.exe")

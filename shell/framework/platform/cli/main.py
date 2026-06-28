@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.framework.platform.cli.parser import build_parser
+
 if TYPE_CHECKING:
     from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 

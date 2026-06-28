@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import WorkflowRepository
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
 )
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,

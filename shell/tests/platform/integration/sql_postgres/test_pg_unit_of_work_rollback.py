@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from shell.application.platform.queries.queries import GetRunnerConfigQuery
-from shell.application.platform.query_handlers import GetRunnerConfigHandler
+from shell.application.definition.query_handlers.runner_config_get_handler import (
+    RunnerConfigGetHandler as GetRunnerConfigHandler,
+)
+from shell.application.platform.queries.queries import RunnerConfigGetQuery as GetRunnerConfigQuery
 from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )

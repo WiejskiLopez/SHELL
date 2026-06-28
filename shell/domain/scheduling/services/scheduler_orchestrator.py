@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import ExecutionStatus
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+    ExecutionStatus,
+)
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerExecutionId,
 )

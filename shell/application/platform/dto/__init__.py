@@ -10,13 +10,12 @@ from shell.application.execution.dto.graph_node_execution_result import (
 from shell.application.execution.dto.graph_node_execution_state import (
     GraphNodeExecutionStateDto,
 )
-
-from shell.application.platform.dto.message import MessageDto
-from shell.application.session.dto.session import SessionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
 from shell.application.execution.dto.workflow import WorkflowDto
 from shell.application.execution.dto.workflow_state import WorkflowStateDto
+from shell.application.platform.dto.message import MessageDto
+from shell.application.session.dto.session import SessionDto
 
 __all__ = [
     "GraphDefinitionDto",

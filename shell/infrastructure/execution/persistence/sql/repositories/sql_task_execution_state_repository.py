@@ -18,11 +18,11 @@ from sqlalchemy import select
 from ..models import TaskExecutionStateModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
-        TaskExecutionStateId,
-    )
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
+    )
+    from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
+        TaskExecutionStateId,
     )
     from sqlalchemy.ext.asyncio import AsyncSession
 

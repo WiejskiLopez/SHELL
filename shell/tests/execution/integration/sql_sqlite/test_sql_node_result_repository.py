@@ -1,21 +1,20 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
-import pytest
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
-    SaveGraphNodeExecutionResultHandler,
+from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
+    GraphNodeExecutionSaveResultHandler,
 )
 from shell.application.platform.commands import (
     SaveGraphNodeExecutionResultCommand,
 )
 from shell.application.platform.queries.queries import (
-    GetGraphNodeExecutionResultQuery,
+    GraphNodeExecutionGetResultQuery,
 )
 from shell.application.platform.query_handlers import (
-    GetGraphNodeExecutionResultHandler,
+    GraphNodeExecutionGetResultHandler,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
@@ -64,7 +63,7 @@ class TestSqlNodeResultRepository:
             )
             await u.graph_node_execution_repository.save(node)
 
-        handler = SaveGraphNodeExecutionResultHandler(sql_uow, clock, id_generator)
+        handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_generator)
         await handler.handle(
             SaveGraphNodeExecutionResultCommand(
                 workflow_id="wf-sql-nr-1",
@@ -74,8 +73,8 @@ class TestSqlNodeResultRepository:
             )
         )
 
-        q = GetGraphNodeExecutionResultHandler(NodeResultQueryService(session_factory))
-        dto = await q.handle(GetGraphNodeExecutionResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
+        q = GraphNodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
+        dto = await q.handle(GraphNodeExecutionGetResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
         assert dto is not None
         assert dto.stdout == "success"
         assert dto.status == "done"

@@ -157,5 +157,60 @@ Gdy mypy zgłasza błąd związany z importem:
    → Popraw ścieżkę importu, aby odpowiadała rzeczywistej lokalizacji w systemie plików (Zasada 3, 7).
 
 4. **"Missing type arguments for generic type"**
-   → Użyj `dict[str, Any]`, `list[Any]`, `tuple[Any, ...]` zamiast gołych `dict`, `list`, `tuple`.
-   → Upewnij się, że `Any` jest zaimportowane (Zasada 5).
+    → Użyj `dict[str, Any]`, `list[Any]`, `tuple[Any, ...]` zamiast gołych `dict`, `list`, `tuple`.
+    → Upewnij się, że `Any` jest zaimportowane (Zasada 5).
+
+## 10. Testowalność Importów — Każdy Import Musi Być Weryfikowalny
+
+Każda instrukcja `from X import Y` w kodzie produkcyjnym musi być testowalna komendą:
+
+```bash
+python -c "from X import Y"
+```
+
+Jeśli ta komenda failuje z `ModuleNotFoundError` — import wskazuje na nieistniejący moduł i jest **martwym kodem**.
+
+### Kiedy to się zdarza
+
+- Plik został przemianowany (np. `index_document_handler.py` → `document_index_handler.py`) ale importy nie zostały zaktualizowane
+- Moduł został usunięty ale referencje w innych plikach pozostały
+- Nazwa modułu w imporcie nie zgadza się z rzeczywistą nazwą pliku (np. import `bootstrap_runner_config_handler` ale plik `runner_config_bootstrap_handler.py`)
+
+### Jak weryfikować
+
+Przed commitem sprawdź wszystkie zmienione importy:
+
+```bash
+# Dla pliku X, znajdź wszystkie from ... import i przetestuj
+python -c "from shell.application.definition.command_handlers.bootstrap_runner_config_handler import RunnerConfigBootstrapHandler"
+# → ModuleNotFoundError: No module named '...bootstrap_runner_config_handler'
+# → BŁĄD: plik nie istnieje
+```
+
+### Automatyzacja
+
+Dodaj skrypt CI który dla każdego pliku `.py` z importami `from shell.` weryfikuje czy importowany moduł istnieje:
+
+```python
+# scripts/verify_imports.py
+import ast
+import sys
+from pathlib import Path
+
+def verify_imports(filepath: Path) -> list[str]:
+    errors = []
+    with open(filepath) as f:
+        tree = ast.parse(f.read())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module and node.module.startswith("shell."):
+            parts = node.module.split(".")
+            mod_path = Path(*parts)
+            if not mod_path.exists() and not (mod_path.with_suffix(".py")).exists():
+                errors.append(f"{filepath}: import {node.module} — module not found")
+    return errors
+```
+
+### Wyjątki
+
+- Importy w bloku `TYPE_CHECKING` dla typów które są używane tylko w adnotacjach — te są leniwie ewaluowane i błąd pojawi się tylko przy rzeczywistym użyciu typu.
+- Importy w testach które importują moduły tylko dla typów (nie dla runtime).

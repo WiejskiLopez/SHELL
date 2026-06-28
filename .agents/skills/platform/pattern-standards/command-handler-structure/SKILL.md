@@ -9,8 +9,18 @@ description: Reguły struktury Command Handler — koordynacja bez logiki biznes
 
 ## Definicja
 
-- Command Handler koordynuje wykonanie komendy — nie zawiera logiki biznesowej.
-- Odpowiada za: odebranie komendy, mapowanie na obiekty domenowe, autoryzację, walidację wejściową, koordynację domeny, zarządzanie transakcją (UoW), emitowanie eventów, mapowanie wyniku.
+- Command Handler koordynuje wykonanie komendy — **nie zawiera logiki biznesowej**.
+- Zadaniem handlera jest:
+  1. Zbudować agregat domenowy z repozytorium (lub utworzyć nowy przez factory).
+  2. Poprzez serwisy domenowe dostarczyć agregatowi kompletny dataset do podjęcia decyzji (porty serwisów zdefiniowane w module agregatu).
+  3. Wywołać odpowiednią metodę agregatu ze wszystkimi parametrami.
+  4. W tej samej transakcji zapisać zmieniony agregat do repozytorium oraz opublikować zdarzenia z tą zmianą związane (`stage_events`).
+
+## Jedna komenda = jeden agregat
+
+- Command Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej komendy.
+- Jeśli logika wymaga koordynacji wielu agregatów — należy użyć Process Managera (sagi), który wysyła osobne komendy do osobnych handlerów.
+- Handler ładuje **jeden** agregat z repozytorium, woła **jedną** metodę domenową, zapisuje **jeden** agregat.
 
 ## Klasa
 
@@ -32,33 +42,106 @@ if TYPE_CHECKING:
 - Pojedyncza `async handle(self, command: TCommand) -> None`.
 - Komenda zmienia stan, zwraca None (lub ID utworzonego obiektu).
 
-## Struktura metody
+## Struktura metody — wzorzec
 
 ```python
-async def handle(self, start_workflow_command: StartWorkflowCommand) -> None:
+async def handle(self, complete_order_command: CompleteOrderCommand) -> None:
     async with self._unit_of_work as unit_of_work:
-        workflow = Workflow.create(
-            workflow_id=WorkflowId.generate(),
-            name=WorkflowName(start_workflow_command.name),
-            owner_id=UserId(start_workflow_command.owner_id),
+        # 1. Budujemy agregat z repozytorium
+        order = await unit_of_work.order_repository.get_by_id(
+            OrderId(complete_order_command.order_id)
         )
-        unit_of_work.workflow_repository.save(workflow)
-        unit_of_work.stage_events(workflow.pull_events())
+
+        # 2. Przez serwisy domenowe (porty w module agregatu)
+        #    dostarczamy agregatowi kompletny dataset do decyzji
+        pricing = await self._pricing_service.calculate(order.items)
+        eligibility = await self._eligibility_service.check(order.customer_id)
+
+        # 3. Wołamy metodę agregatu z kompletem parametrów
+        order.complete(
+            pricing=pricing,
+            eligibility=eligibility,
+            now=self._clock.now(),
+        )
+
+        # 4. W tej samej transakcji: zapis + eventy
+        unit_of_work.order_repository.save(order)
+        unit_of_work.stage_events(order.pull_events())
 ```
+
+## Porty serwisów — definicja i implementacja
+
+- Wszystko czego agregat wymaga do podjęcia decyzji (kalkulacje, walidacje krzyżowe, dane z innych agregatów/subdomen/mikroserwisów) jest dostarczane przez **serwisy domenowe**.
+- Porty (Protocol) tych serwisów są definiowane w `shell/domain/<bc>/services/` — po stronie **konsumującego** agregatu.
+- Handler wstrzykuje implementacje tych portów, wywołuje je przed metodą agregatu i przekazuje wyniki (Value Objecty) jako parametry.
+- Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych** — dostaje wszystkie dane jako parametry wywołania.
+
+```python
+# Port zdefiniowany w domain/execution/services/workflow_data_port.py
+# (konsumujący definiuje kontrakt)
+class WorkflowDataPort(Protocol):
+    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary: ...
+
+class EligibilityPort(Protocol):
+    async def check(self, customer_id: CustomerId) -> Eligibility: ...
+```
+
+### Implementacja adaptera
+
+Adaptery implementujące te porty znajdują się w `shell/infrastructure/<bc>/services/<nazwa_agregatu>/` — jeden folder grupuje wszystkie adaptery dla danego agregatu.
+
+Jeśli agregat zostanie wydzielony do osobnego mikroserwisu, zmienia się **tylko** zawartość tego folderu (z lokalnego repozytorium na HTTP). Port w domenie i handler w aplikacji pozostają bez zmian.
+
+```python
+# shell/infrastructure/execution/services/workflow/
+class SqlWorkflowDataAdapter:
+    async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary:
+        model = await self._repo.get_by_id(workflow_id)
+        return self._mapper.to_summary(model)
+```
+
+> **Szczegóły definiowania portów → [domain-service-structure](../../pattern-standards/domain-service-structure/SKILL.md#porty-do-pobierania-danych-międzyagregatowych)**
+> **Szczegóły implementacji adapterów → [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval)**
+
+## Zero decyzji w handlerze
+
+- Handler **nie podejmuje żadnych decyzji biznesowych**:
+  - Nie sprawdza stanu agregatu przed wywołaniem metody (`if order.status == 'pending': ...`)
+  - Nie wybiera między metodami agregatu w zależności od parametrów
+  - Nie decyduje czy zapisać agregat czy nie
+- Handler jedyne co może zrobić to:
+  - **Błąd infrastrukturalny** — np. błąd bazy danych, timeout sieciowy (propagowany z repozytorium/serwisu)
+  - **Błąd domenowy** — rzucony przez agregat/serwis domenowy przy naruszeniu invariantu (np. `OrderAlreadyCompleted`, `WorkflowNotRunning`)
+- **Obsługa błędów**: handler nie łapie błędów domenowych — propaguje je wyżej (do warstwy framework/API).
 
 ## Koordynacja, nie logika
 
-- Handler koordynuje, nie zawiera logiki biznesowej.
-- Jeśli w handlerze pojawia się `if/else` z regułami biznesowymi → przenieś do Domain Service lub agregatu.
+```python
+# DOBRY — delegacja do agregatu
+order.complete(pricing=pricing, eligibility=eligibility, now=now)
+
+# ŹLE — logika biznesowa w handlerze
+if order.status == OrderStatus.PENDING:
+    order.status = OrderStatus.COMPLETED
+    ...
+```
+
+## Przykład ZŁY (zabroniony)
 
 ```python
-# Dobrze — delegacja do agregatu
-workflow.start()
+async def handle(self, command: SomeCommand) -> None:
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.order_repository.get_by_id(OrderId(command.order_id))
+        task = await unit_of_work.task_repository.get_by_id(TaskId(command.task_id))
 
-# Źle — logika biznesowa w handlerze
-if workflow.status == 'idle':
-    workflow.status = 'running'
-    ...
+        # Zapisuje 2 agregaty w jednym handlerze
+        order.complete(...)
+        task.start(...)
+
+        unit_of_work.order_repository.save(order)
+        unit_of_work.task_repository.save(task)
+        unit_of_work.stage_events(order.pull_events())
+        unit_of_work.stage_events(task.pull_events())
 ```
 
 ## UoW
@@ -70,12 +153,15 @@ if workflow.status == 'idle':
 
 ## Walidacja
 
-- Strukturalna walidacja (typy, formaty, zakresy) przed przekazaniem do domeny.
-- Biznesowa walidacja w domenie (VO, agregat).
+- **Strukturalna** (typy, formaty, zakresy) — na granicy API, przez Pydantic w warstwie framework.
+- **Biznesowa** — w domenie (Value Object w `__post_init__`, guard clauses w agregacie).
+- Handler nie waliduje — deleguje do domeny.
 
 ## Lokalizacja
 
 - `shell/application/<bc>/command_handlers/`
+
+> **Reguły nazewnictwa → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md)**
 
 ## Bezpieczeństwo
 

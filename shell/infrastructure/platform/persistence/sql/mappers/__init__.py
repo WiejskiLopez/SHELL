@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.value_objects.environment import Environment
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
@@ -24,8 +23,6 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
     TransitionDefinition,
 )
-
-from shell.domain.session.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
@@ -34,6 +31,8 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
     GraphNodeExecutionResult,
 )
+from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.environment import Environment
 from shell.domain.execution.value_objects.graph_execution_initialization_status import (
     GraphExecutionInitializationStatus,
 )
@@ -43,12 +42,10 @@ from shell.domain.execution.value_objects.graph_node_definition_execution_slot i
 from shell.domain.execution.value_objects.graph_node_definition_id import (
     GraphNodeDefinitionId as ExecutionGraphNodeDefinitionId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-
     SessionExecutionId,
     SessionExecutionStateId,
     SessionId,
@@ -58,17 +55,18 @@ from shell.domain.execution.value_objects.ids import (
     UserExecutionStateId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.work_dir import WorkDir
-from shell.domain.platform.value_objects.hash import Hash
-from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.value_objects.status import Status
-from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.max_iterations import MaxIterations
 from shell.domain.execution.value_objects.state_data import StateData
+from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.work_dir import WorkDir
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.hash import Hash
+from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.platform.value_objects.status import Status
+from shell.domain.session.aggregates.session import Session
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
@@ -80,7 +78,6 @@ from shell.infrastructure.definition.persistence.sql.models import (
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     GraphNodeExecutionResultModel,
-
     GraphNodeTransitionExecutionModel,
     SessionExecutionModel,
     SessionExecutionStateModel,
@@ -685,14 +682,14 @@ def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
 
 
 def graph_execution_state_input_model_to_entity(model):
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
-    )
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
     )
     from shell.domain.execution.value_objects.state_direction import StateDirection
 
@@ -724,14 +721,14 @@ def graph_execution_state_input_entity_to_model(entity):
 
 
 def graph_execution_state_output_model_to_entity(model):
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
-    )
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
     )
     from shell.domain.execution.value_objects.state_direction import StateDirection
 
@@ -778,7 +775,9 @@ def workflow_state_model_to_entity(model):
 
 
 def workflow_state_entity_to_model(entity):
-    from shell.infrastructure.execution.persistence.sql.models.workflow_state import WorkflowStateModel
+    from shell.infrastructure.execution.persistence.sql.models.workflow_state import (
+        WorkflowStateModel,
+    )
 
     return WorkflowStateModel(
         id=entity.id.value,

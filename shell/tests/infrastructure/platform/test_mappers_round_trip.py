@@ -12,42 +12,38 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
-
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
-    TransitionDefinition,
-)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
-from shell.domain.session.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.environment import Environment
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
-    GraphNodeTransitionExecutionId,
     SessionId,
     TaskExecutionId,
     WorkflowId,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.session_status import SessionStatus
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.timestamp import Timestamp
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.projekt.value_objects.project_id import ProjectId
+from shell.domain.session.aggregates.session import Session
 from shell.domain.user.value_objects.user_id import UserId
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
+    _graph_node_execution_entity_to_model,
+    _graph_node_execution_model_to_entity,
+)
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
@@ -57,10 +53,6 @@ from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_model_to_entity,
     workflow_entity_to_model,
     workflow_model_to_entity,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-    _graph_node_execution_entity_to_model,
-    _graph_node_execution_model_to_entity,
 )
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)

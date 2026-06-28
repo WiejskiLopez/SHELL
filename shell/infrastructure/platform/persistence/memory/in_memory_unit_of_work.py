@@ -33,11 +33,11 @@ from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
-    InMemoryGraphExecutionStateRepository,
-)
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
+)
+from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
+    InMemoryGraphExecutionStateRepository,
 )
 from shell.infrastructure.platform.persistence.memory.in_memory_message_repository import (
     InMemoryMessageRepository,

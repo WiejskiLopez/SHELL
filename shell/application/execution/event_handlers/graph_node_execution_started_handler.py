@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
-    GraphNodeExecutionStartedEvent,
-)
-
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
+        GraphNodeExecutionStartedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
 class GraphNodeExecutionStartedHandler:
@@ -29,12 +28,6 @@ class GraphNodeExecutionStartedHandler:
     async def handle(self, graph_node_execution_started_event: GraphNodeExecutionStartedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_started_event.node_id)
-            if node is None:
-                self._logger.warning(
-                    "graph_node_execution_started_handler.node_not_found",
-                    node_id=graph_node_execution_started_event.node_id.value,
-                )
-                return
 
             node.start()
             await unit_of_work.graph_node_execution_repository.save(node)

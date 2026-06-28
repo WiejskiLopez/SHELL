@@ -3,7 +3,9 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+    AgentExecutionId,
+)
 from shell.domain.execution.aggregates.agent_skill_execution.repositories.agent_skill_execution_repository import (
     AgentSkillExecutionRepository,
 )

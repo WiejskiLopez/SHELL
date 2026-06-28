@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.platform.context import (
@@ -10,13 +10,11 @@ from shell.infrastructure.platform.context import (
 from shell.infrastructure.platform.messaging.serialization.command_deserializer import (
     CommandDeserializer,
 )
-from shell.infrastructure.platform.persistence.sql.models.command.inbox_command import InboxCommandModel
 from sqlalchemy import text
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
-
     from shell.application.platform.bus.command_bus import CommandBus
+    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 class CommandInboxProcessor:
@@ -49,7 +47,7 @@ class CommandInboxProcessor:
             if not rows:
                 return 0
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             ids = []
             for row in rows:
                 command = self._deserializer.deserialize(

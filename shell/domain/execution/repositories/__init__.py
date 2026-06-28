@@ -29,7 +29,9 @@ from shell.domain.execution.aggregates.user_execution.repositories.user_executio
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import WorkflowRepository
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 
 __all__ = [
     "GraphExecutionRepository",

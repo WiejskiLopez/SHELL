@@ -12,7 +12,7 @@ from shell.application.platform.commands import (
     RouteEnvelopesCommand,
     StartWorkflowCommand,
 )
-from shell.application.platform.queries.queries import GetWorkflowQuery
+from shell.application.platform.queries.queries import WorkflowGetByIdQuery
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 
@@ -48,6 +48,6 @@ class SmokeCommand(RunnableCommand):
         routed = await command_bus.dispatch(RouteEnvelopesCommand(workflow_id=workflow_id))
         print(f"[smoke] envelopes routed: {routed}")
 
-        dto = await query_bus.dispatch(GetWorkflowQuery(workflow_id))
+        dto = await query_bus.dispatch(WorkflowGetByIdQuery(workflow_id))
         print(f"[smoke] workflow status: {dto.status if dto else 'not found'}")
         print("[smoke] OK")

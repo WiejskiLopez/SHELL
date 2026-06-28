@@ -25,9 +25,6 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_session_exe
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_execution_state_repository import (
     SqlSessionExecutionStateRepository,
 )
-from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
-    SqlSessionRepository,
-)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
 )
@@ -45,6 +42,9 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_re
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_state_repository import (
     SqlWorkflowStateRepository,
+)
+from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
+    SqlSessionRepository,
 )
 
 __all__ = [

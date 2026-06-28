@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.user.aggregates.user.events.user_disabled_event import UserDisabledEvent
 from shell.domain.user.aggregates.user.events.user_enabled_event import UserEnabledEvent
-from shell.domain.user.aggregates.user.exceptions.invalid_user_transition import InvalidUserTransition
+from shell.domain.user.aggregates.user.exceptions.invalid_user_transition import (
+    InvalidUserTransition,
+)
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
 

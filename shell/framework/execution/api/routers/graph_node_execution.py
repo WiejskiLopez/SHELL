@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
-from shell.application.platform.queries.queries import GetGraphNodeExecutionResultQuery
+from shell.application.platform.queries.queries import GraphNodeExecutionGetResultQuery
 
 if TYPE_CHECKING:
     from shell.application.platform.bus.query_bus import QueryBus
@@ -42,7 +42,7 @@ async def get_graph_node_execution_result(
     query_bus: QueryBus = Depends(get_query_bus),  # Wstrzyknięty czysty konkret
 ) -> dict:
     result = await query_bus.dispatch(
-        GetGraphNodeExecutionResultQuery(
+        GraphNodeExecutionGetResultQuery(
             graph_node_execution_id=graph_node_execution_id, workflow_id=workflow_id
         )
     )

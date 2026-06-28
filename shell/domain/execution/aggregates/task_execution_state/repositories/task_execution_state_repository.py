@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
     )

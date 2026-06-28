@@ -7,7 +7,6 @@ from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensat
 from shell.domain.execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,
 )
-from shell.domain.platform.ports.runner_config_provider import RunnerConfigProvider
 from shell.domain.execution.ports.sub_graph_discovery import (
     SubGraphDiscovery,
 )
@@ -30,6 +29,7 @@ from shell.domain.execution.ports.sub_graph_security import (
 from shell.domain.execution.ports.sub_graph_versioning import (
     SubGraphVersioning,
 )
+from shell.domain.platform.ports.runner_config_provider import RunnerConfigProvider
 
 __all__ = [
     "CompensationDecision",

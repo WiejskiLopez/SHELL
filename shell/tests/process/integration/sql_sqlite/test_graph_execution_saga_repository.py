@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
     SqlGraphExecutionSagaRepository,
 )

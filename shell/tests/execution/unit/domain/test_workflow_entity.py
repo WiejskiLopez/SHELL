@@ -6,7 +6,6 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
-
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 

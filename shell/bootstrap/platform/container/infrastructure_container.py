@@ -15,7 +15,9 @@ from shell.infrastructure.execution.filesystem.workspace import Workspace
 from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
     GraphExecutionDefinitionProviderAdapter,
 )
-
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
+    SqlGraphExecutionSagaRepository,
+)
 from shell.infrastructure.execution.persistence.sql.services import (
     NodeResultQueryService,
     SessionQueryService,
@@ -30,9 +32,6 @@ from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGener
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
-    SqlGraphExecutionSagaRepository,
-)
 from shell.infrastructure.platform.messaging.command.sql_command_outbox_publisher import (
     SqlCommandOutboxPublisher,
 )

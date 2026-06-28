@@ -5,16 +5,16 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
+from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.graph_node_execution_status import (
+    GraphNodeExecutionStatus,
+)
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
-from shell.domain.execution.value_objects.error_description import ErrorDescription
-from shell.domain.execution.value_objects.graph_node_execution_status import (
-    GraphNodeExecutionStatus,
-)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.mode import Mode
 

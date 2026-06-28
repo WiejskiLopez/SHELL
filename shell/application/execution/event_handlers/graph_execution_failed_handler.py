@@ -3,15 +3,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
-    GraphExecutionFailedEvent,
-)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
+        GraphExecutionFailedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
 
 
 class GraphExecutionFailedHandler:
@@ -30,12 +30,6 @@ class GraphExecutionFailedHandler:
     async def handle(self, graph_execution_failed_event: GraphExecutionFailedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph_execution = await unit_of_work.graph_execution_repository.get_by_id(graph_execution_failed_event.graph_execution_id)
-            if graph_execution is None:
-                self._logger.warning(
-                    "graph_execution_failed_handler.graph_not_found",
-                    graph_execution_id=graph_execution_failed_event.graph_execution_id.value,
-                )
-                return
 
             if graph_execution.parent_graph_execution_id is not None:
                 return
@@ -43,12 +37,6 @@ class GraphExecutionFailedHandler:
             task_execution = await unit_of_work.task_execution_repository.get_by_id(
                 graph_execution.task_execution_id,
             )
-            if task_execution is None:
-                self._logger.warning(
-                    "graph_execution_failed_handler.task_not_found",
-                    task_execution_id=graph_execution.task_execution_id.value,
-                )
-                return
 
             now = self._clock.now()
             can_continue = task_execution.increment_cycle()

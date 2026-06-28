@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from shell.application.platform.commands import RunTaskerWorkflowCommand
-from shell.application.platform.queries.queries import GetWorkflowQuery
-from shell.application.platform.query_handlers import GetWorkflowHandler
+from shell.application.platform.queries.queries import WorkflowGetByIdQuery
+from shell.application.platform.query_handlers import WorkflowGetByIdHandler
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     WorkflowCompletedEvent,
@@ -40,8 +40,8 @@ class TestRunTaskerWorkflowHappyPath:
         workflows = list(unit_of_work.workflow_repository._store.values())
         assert len(workflows) == 1
 
-        get_wf = GetWorkflowHandler(queries)
-        dto = await get_wf.handle(GetWorkflowQuery(workflows[0].id.value))
+        get_wf = WorkflowGetByIdHandler(queries)
+        dto = await get_wf.handle(WorkflowGetByIdQuery(workflows[0].id.value))
         assert dto is not None
         assert dto.status == "completed"
 

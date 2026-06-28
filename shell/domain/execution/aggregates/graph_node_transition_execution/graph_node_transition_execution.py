@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.spawn_spec import (
         SpawnSpec,
     )
-    from shell.domain.execution.value_objects.node_role import NodeRole
 
 
 class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]):

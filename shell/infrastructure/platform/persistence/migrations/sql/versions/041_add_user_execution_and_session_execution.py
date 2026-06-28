@@ -37,8 +37,8 @@ def upgrade() -> None:
         "user_execution_state",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("user_execution_id", sa.String(), nullable=False),
-        sa.Column("kind", sa.String(), nullable=False),
-        sa.Column("payload", sa.JSON(), nullable=False, server_default="{}"),
+        sa.Column("direction", sa.String(), nullable=False),
+        sa.Column("state_data", sa.JSON(), nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -64,8 +64,8 @@ def upgrade() -> None:
         "session_execution_state",
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("session_execution_id", sa.String(), nullable=False),
-        sa.Column("kind", sa.String(), nullable=False),
-        sa.Column("payload", sa.JSON(), nullable=False, server_default="{}"),
+        sa.Column("direction", sa.String(), nullable=False),
+        sa.Column("state_data", sa.JSON(), nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean(), nullable=False, server_default=sa.true()),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(

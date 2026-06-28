@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
+from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.platform.events import DomainEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.domain.execution.value_objects.state_direction import StateDirection
-from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)

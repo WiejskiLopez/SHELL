@@ -7,7 +7,9 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.envelope import Envelope
-from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import OutboxMessageModel
+from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import (
+    OutboxMessageModel,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

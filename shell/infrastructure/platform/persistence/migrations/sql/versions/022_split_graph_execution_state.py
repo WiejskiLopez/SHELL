@@ -31,7 +31,7 @@ def upgrade() -> None:
             sa.ForeignKey("graph_execution.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
+        sa.Column("state_data", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )
@@ -59,7 +59,7 @@ def upgrade() -> None:
             sa.ForeignKey("graph_execution.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
+        sa.Column("state_data", sa.JSON, nullable=False, server_default="{}"),
         sa.Column("is_current", sa.Boolean, nullable=False, server_default=sa.text("true")),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
     )

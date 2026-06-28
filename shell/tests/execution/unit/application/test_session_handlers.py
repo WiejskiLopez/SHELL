@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import pytest
-from shell.application.session.command_handlers.session_handlers import (
-    CloseSessionHandler,
-    OpenSessionHandler,
-    SessionNotFound,
-)
 from shell.application.platform.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.platform.queries.queries import GetSessionHistoryQuery
-from shell.application.platform.query_handlers import GetSessionHistoryHandler
+from shell.application.platform.queries.queries import SessionGetHistoryQuery
+from shell.application.platform.query_handlers import SessionGetHistoryHandler
+from shell.application.session.command_handlers.session_handlers import (
+    SessionCloseHandler,
+    SessionNotFound,
+    SessionOpenHandler,
+)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
@@ -30,11 +30,11 @@ class TestSessionHandlers:
         id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
+        session_id = await SessionOpenHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="do work")
         )
-        dto = await GetSessionHistoryHandler(queries).handle(
-            GetSessionHistoryQuery(session_id=session_id.value)
+        dto = await SessionGetHistoryHandler(queries).handle(
+            SessionGetHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "open"
@@ -46,14 +46,14 @@ class TestSessionHandlers:
         id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
+        session_id = await SessionOpenHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="close test")
         )
-        await CloseSessionHandler(unit_of_work, clock).handle(
+        await SessionCloseHandler(unit_of_work, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
-        dto = await GetSessionHistoryHandler(queries).handle(
-            GetSessionHistoryQuery(session_id=session_id.value)
+        dto = await SessionGetHistoryHandler(queries).handle(
+            SessionGetHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "closed"
@@ -64,12 +64,12 @@ class TestSessionHandlers:
         clock: FakeClock,
     ) -> None:
         with pytest.raises(SessionNotFound):
-            await CloseSessionHandler(unit_of_work, clock).handle(
+            await SessionCloseHandler(unit_of_work, clock).handle(
                 CloseSessionCommand(session_id="no-such-id")
             )
 
     async def test_get_history_not_found_returns_none(self, queries: InMemoryQueryServices) -> None:
-        dto = await GetSessionHistoryHandler(queries).handle(
-            GetSessionHistoryQuery(session_id="ghost")
+        dto = await SessionGetHistoryHandler(queries).handle(
+            SessionGetHistoryQuery(session_id="ghost")
         )
         assert dto is None

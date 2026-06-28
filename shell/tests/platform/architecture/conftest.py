@@ -1,5 +1,5 @@
-import sys
 import pathlib
+import sys
 
 THIS_DIR = pathlib.Path(__file__).resolve().parent
 SRC_DIR = THIS_DIR.parent.parent.parent  # shell/

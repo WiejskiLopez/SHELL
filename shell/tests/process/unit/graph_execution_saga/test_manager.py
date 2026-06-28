@@ -1,11 +1,10 @@
-"""Unit tests for GraphExecutionSagaManager — pure state machine."""
+"""Unit tests for GraphExecutionSaga — pure state machine."""
 
 from __future__ import annotations
 
 import pytest
-
-from shell.process.execution.graph_execution_saga.manager import (
-    GraphExecutionSagaManager,
+from shell.process.execution.graph_execution_saga.graph_execution_saga import (
+    GraphExecutionSaga,
 )
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaStatus,
@@ -15,18 +14,18 @@ from shell.tests.process.conftest import (
 )
 
 
-class TestGraphExecutionSagaManager:
+class TestGraphExecutionSaga:
     GRAPH_EXECUTION_ID = "ge-1"
 
     @pytest.fixture()
     def manager(
         self, saga_repository: InMemoryGraphExecutionSagaRepository
-    ) -> GraphExecutionSagaManager:
-        return GraphExecutionSagaManager(repository=saga_repository)
+    ) -> GraphExecutionSaga:
+        return GraphExecutionSaga(repository=saga_repository)
 
     async def test_create_saga(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
         saga = await manager.create_saga(
@@ -45,7 +44,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_create_saga_persists_correctly(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
         saga = await manager.create_saga(
@@ -59,7 +58,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_record_node_execution_while_pending(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
         await manager.create_saga(
@@ -78,7 +77,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_record_node_execution_completes_saga(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
         await manager.create_saga(
@@ -98,7 +97,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_record_node_execution_saga_not_found(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
     ) -> None:
         result = await manager.record_node_execution(
             graph_execution_id="nonexistent",
@@ -110,7 +109,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_record_node_execution_after_completion_returns_saga(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
         await manager.create_saga(
@@ -134,7 +133,7 @@ class TestGraphExecutionSagaManager:
 
     async def test_create_saga_unique_id_per_call(
         self,
-        manager: GraphExecutionSagaManager,
+        manager: GraphExecutionSaga,
     ) -> None:
         saga_1 = await manager.create_saga(
             graph_execution_id="ge-1",

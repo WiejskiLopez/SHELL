@@ -7,10 +7,6 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_constructed_event import (
     GraphExecutionConstructedEvent,
 )
-from shell.domain.execution.ports.graph_execution_definition_provider import (
-    GraphExecutionDefinitionProvider,
-)
-from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -21,6 +17,10 @@ if TYPE_CHECKING:
         UnitOfWork,
     )
     from shell.domain.execution.events import TaskExecutionCreatedEvent
+    from shell.domain.execution.ports.graph_execution_definition_provider import (
+        GraphExecutionDefinitionProvider,
+    )
+    from shell.domain.platform.events import DomainEvent
 
 
 GRAPH_DEFINITION_NAME = "base_planner"

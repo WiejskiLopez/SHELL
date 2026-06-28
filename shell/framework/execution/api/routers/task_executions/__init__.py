@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from shell.application.platform.commands import ImportTaskExecutionCommand
-from shell.application.platform.queries.queries import GetTaskExecutionByNameQuery
+from shell.application.platform.queries.queries import TaskExecutionGetByNameQuery
 from shell.framework.execution.api.routers.task_executions.import_task_request import (
     ImportTaskRequest,  # noqa: TC002 — ImportTaskRequest używany w parametrach endpointów FastAPI
 )
@@ -51,7 +51,7 @@ async def get_task(
     name: str,
     query_bus: QueryBus = Depends(get_query_bus),
 ) -> dict:
-    result = await query_bus.dispatch(GetTaskExecutionByNameQuery(name=name))
+    result = await query_bus.dispatch(TaskExecutionGetByNameQuery(name=name))
     if result is None:
         raise HTTPException(status_code=404, detail=f"Task '{name}' not found")
     return {"name": name, "task": str(result)}

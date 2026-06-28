@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
@@ -10,9 +9,7 @@ from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExecutionRoutingService,
 )
 from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
     GraphNodeExecutionId,
-    TaskExecutionId,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType

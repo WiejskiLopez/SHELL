@@ -20,12 +20,16 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
-        RunTaskerWorkflowHandler,
+    from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
+        WorkflowRunTaskerHandler,
     )
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-    from shell.infrastructure.platform.messaging.event.processor.inbox_processor import InboxProcessor
+    from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import (
+        OutboxToInboxRelay,
+    )
+    from shell.infrastructure.platform.messaging.event.processor.inbox_processor import (
+        InboxProcessor,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +59,7 @@ class SyncWorkflowRunner:
 
     def __init__(
         self,
-        handler: RunTaskerWorkflowHandler,
+        handler: WorkflowRunTaskerHandler,
         relay: OutboxToInboxRelay,
         processor: InboxProcessor,
         unit_of_work: UnitOfWork,

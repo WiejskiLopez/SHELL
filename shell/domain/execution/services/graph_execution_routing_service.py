@@ -56,7 +56,7 @@ class GraphExecutionRoutingService:
             candidates = non_router
         if not candidates:
             raise RoleNotResolvable(
-                f"Cannot resolve target: no routable nodes"
+                "Cannot resolve target: no routable nodes"
             )
         return candidates[0].id
 

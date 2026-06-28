@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
-    GraphNodeExecutionAdvancedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
-    GraphNodeExecutionRequestedEvent,
-)
 from shell.domain.execution.events import (
+    GraphNodeExecutionAdvancedEvent,
     GraphNodeExecutionCompletedEvent,
     GraphNodeExecutionFailedEvent,
+    GraphNodeExecutionRequestedEvent,
+    WorkflowAbortedEvent,
     WorkflowCompletedEvent,
-    WorkflowFailedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.infrastructure.platform.persistence.memory import InMemoryUnitOfWork
-from shell.tests.conftest_helpers import _NOW, _build_graph_execution, _make_result_handler, _persist_running_workflow
+from shell.tests.conftest_helpers import (
+    _NOW,
+    _build_graph_execution,
+    _make_result_handler,
+    _persist_running_workflow,
+)
 
 
 class TestGraphNodeExecutionResultHandlerHappyPath:
@@ -86,9 +87,6 @@ class TestGraphNodeExecutionResultHandlerFailure:
         assert stored.status == WorkflowStatus.ABORTED
 
         types = [type(e) for e in unit_of_work.committed_events]
-        from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
-            WorkflowAbortedEvent,
-        )
         assert WorkflowAbortedEvent in types
         assert GraphNodeExecutionAdvancedEvent not in types
         assert GraphNodeExecutionRequestedEvent not in types

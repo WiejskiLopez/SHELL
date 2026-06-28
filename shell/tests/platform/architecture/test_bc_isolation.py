@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from _arch_helpers import BASE, get_imports, iter_py_files, parse_file
+from _arch_helpers import BASE, get_imports, iter_py_files
 
 # Bounded contexts in the project
 # NOTE: Only execution and definition are actively enforced.

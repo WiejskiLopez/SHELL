@@ -56,6 +56,16 @@ class DeleteExecutionHandler:
 
 Testy Application Services używają InMemory implementacji — testują koordynację, nie logikę biznesową.
 
+## Dodatkowe reguły dla Command Handlerów
+
+W tym projekcie Command Handler (Application Service dla komend) podlega rygorystycznym regułom:
+- Modyfikuje **max jeden agregat** domenowy.
+- Ładuje agregat z repozytorium, dostarcza mu dane przez serwisy domenowe (porty w module agregatu), woła metodę agregatu z kompletem parametrów.
+- **Zero decyzji biznesowych** — brak `if/else`, brak wyboru między ścieżkami.
+- Zapis + eventy w tej samej transakcji.
+
+> Szczegółowe reguły struktury → [command-handler-structure](../../pattern-standards/command-handler-structure/SKILL.md)
+
 ## 7. Podsumowanie — Checklista
 
 Projektując Application Service (Handler):

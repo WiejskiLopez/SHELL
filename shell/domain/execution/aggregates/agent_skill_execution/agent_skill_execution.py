@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Self
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+    AgentExecutionId,
+)
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )

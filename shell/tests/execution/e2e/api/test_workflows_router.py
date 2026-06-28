@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig

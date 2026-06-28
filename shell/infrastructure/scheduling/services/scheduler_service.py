@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable, Coroutine
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore[import-untyped]
@@ -19,18 +19,14 @@ from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.graph_execution import (
-        GraphExecution,
-    )
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
     from shell.domain.scheduling.services.pending_graph_finder import (
         GraphExecutionRepository as PendingGraphRepo,
-        PendingGraphFinder,
     )
-    from shell.domain.execution.aggregates.graph_execution.graph_execution import (
-        GraphExecution,
+    from shell.domain.scheduling.services.pending_graph_finder import (
+        PendingGraphFinder,
     )
     from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
     from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import (

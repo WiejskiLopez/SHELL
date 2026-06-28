@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
 from shell.domain.execution.value_objects.skill_payload import SkillPayload
 from shell.domain.execution.value_objects.task_description import TaskDescription
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName

@@ -10,8 +10,8 @@ import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from shell.application.execution.command_handlers.run_tasker_workflow_handler import (
-    RunTaskerWorkflowHandler,
+from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
+    WorkflowRunTaskerHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
     GraphNodeExecutionCompletedHandler,
@@ -260,8 +260,8 @@ def _make_result_handler(
 
 
 async def _make_app(tmp_path):
-    from shell.framework.platform.api.app import create_app
     from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+    from shell.framework.platform.api.app import create_app
     from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
@@ -316,7 +316,7 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
     result_handler = GraphNodeExecutionCompletedHandler(
         unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
-    bootstrap_handler = RunTaskerWorkflowHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
+    bootstrap_handler = WorkflowRunTaskerHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
     all_events = []
     await bootstrap_handler.handle(command)
     all_events.extend(unit_of_work.committed_events)

@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-    GraphNodeExecutionCompletedEvent,
+from shell.domain.execution.events import (
+    GraphNodeExecutionRequestedEvent,
 )
-from shell.domain.execution.events import GraphNodeExecutionRequestedEvent
-from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,

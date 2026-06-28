@@ -18,7 +18,6 @@ from shell.infrastructure.execution.persistence.sql.models.graph_node_execution 
     GraphNodeExecutionModel,
 )
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
@@ -74,11 +73,10 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
 def _graph_node_execution_model_to_entity(
     model: GraphNodeExecutionModel,
 ) -> GraphNodeExecution:
-    from shell.domain.platform.value_objects.mode import Mode
-
     from shell.domain.execution.value_objects.graph_node_execution_status import (
         GraphNodeExecutionStatus,
     )
+    from shell.domain.platform.value_objects.mode import Mode
 
     return GraphNodeExecution(
         id=GraphNodeExecutionId(model.id),

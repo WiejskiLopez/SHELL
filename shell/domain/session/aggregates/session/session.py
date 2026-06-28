@@ -5,6 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.value_objects.environment import Environment
+from shell.domain.execution.value_objects.session_status import SessionStatus
+from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
+from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -15,12 +21,6 @@ from shell.domain.session.aggregates.session.exceptions.invalid_session_transiti
     InvalidSessionTransition,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.execution.value_objects.environment import Environment
-from shell.domain.execution.value_objects.session_status import SessionStatus
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.projekt.value_objects.project_id import ProjectId
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.user.value_objects.user_id import UserId
 
 if TYPE_CHECKING:

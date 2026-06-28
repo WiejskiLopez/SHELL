@@ -40,15 +40,13 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     FailFastGraphNodeExecutionPolicy,
     GraphNodeExecutionPolicy,
 )
-from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.execution.value_objects.edge_type import EdgeType
+from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.application.platform.ports.identity import IdGenerator
-    from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
@@ -59,6 +57,8 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
+    from shell.domain.platform.ports.log import Logger
+    from shell.domain.platform.ports.time import Clock
 
 GraphNodeExecutionResultEvent = GraphNodeExecutionCompletedEvent | GraphNodeExecutionFailedEvent
 
@@ -251,9 +251,6 @@ class GraphNodeExecutionCompletedHandler:
         now: datetime,
         unit_of_work: UnitOfWork,
     ) -> None:
-        from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-            GraphNodeExecutionId as GNEId,
-        )
 
         error_handler_node = await self._find_error_handler_transition(
             graph_execution, graph_node_execution_id, unit_of_work.graph_node_transition_execution_repository

@@ -3,10 +3,8 @@ from __future__ import annotations
 from shell.application.platform.commands import RunTaskerWorkflowCommand
 from shell.domain.execution.events import (
     GraphNodeExecutionFailedEvent,
-    WorkflowCompletedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
+    WorkflowCompletedEvent,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,

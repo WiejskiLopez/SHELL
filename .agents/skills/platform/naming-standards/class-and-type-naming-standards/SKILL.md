@@ -69,23 +69,9 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 | Factory method (rekonstrukcja) | `restore()` | `Execution.restore(id=..., status=...)` |
 | Factory method (proste) | `create()` | `Version.initial()`, `Timestamp.now()` |
 
-### Reguła korespondencji handler ↔ komenda/event
-
-Nazwa handlera **koresponduje** z nazwą komendy lub eventu:
-
-| Komenda/Event | Handler |
-|---------------|---------|
-| `StartWorkflowCommand` | `StartWorkflowHandler` |
-| `GraphNodeExecutionCompletedEvent` (główny) | `GraphNodeExecutionCompletedHandler` |
-| `GraphNodeExecutionCompletedEvent` (drugorzędny) | `GraphNodeExecutionCompletedPropagateOutputHandler` |
-
-Tylko **jeden** handler (główny) przyjmuje nazwę zgodną z eventem. Pozostałe (drugorzędne) otrzymują kwalifikator biznesowy.
-
-**Zakazany wzorzec:** handler NIGDY nie może mieć prefixu `Handle` — zawsze używa suffixu `Handler`.
-- ❌ `HandleGraphExecutionCompleted` — ZABRONIONE
-- ✅ `GraphExecutionCompletedEventHandler` — PRAWIDŁOWE
-- ❌ `BuildGraphExecutionOnTaskExecutionCreatedEvent` — ZABRONIONE (to handler, nie event)
-- ✅ `BuildGraphExecutionOnTaskExecutionCreatedEventHandler` — PRAWIDŁOWE
+> **Reguły nazewnictwa handlerów, komend, eventów, query, message → patrz [naming-convention-standard](../naming-convention-standard/SKILL.md#handlers)**
+>
+> Ten skill zawiera tylko ogólne reguły PascalCase i zakaz skrótów. Szczegółowe wzorce nazewnictwa wszystkich artefaktów są w dedykowanym standardzie.
 
 ### Nazwy eventów i komend — biznesowe, nie techniczne
 
@@ -98,17 +84,17 @@ Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 
 | Typ | Wzorzec | Przykład |
 |-----|---------|----------|
-| Command | `PascalCase + Command` | `StartWorkflowCommand`, `ImportTaskExecutionCommand` |
-| Query | `PascalCase + Query` | `GetWorkflowQuery`, `SearchSimilarQuery` |
-| Handler (command) | `<CommandName>Handler` | `StartWorkflowHandler` |
-| Handler (event, główny) | `<EventName>Handler` | `GraphNodeExecutionCompletedHandler` |
-| Handler (event, drugorzędny) | `<EventName><Qualifier>Handler` | `GraphNodeExecutionCompletedPropagateOutputHandler` |
-| Handler (query) | `<QueryName>Handler` | `GetWorkflowHandler` |
-| DTO | `PascalCase + Dto` | `GraphDefinitionDto`, `WorkflowDto` |
-| Mapper | `PascalCase + Mapper` | `GraphDefinitionMapper`, `PromptMapper` |
-| Port (Protocol) | `PascalCase` | `UnitOfWork`, `Clock`, `GraphExecutionDefinitionProvider` |
-| Query Service | `PascalCase + QueryService` | `WorkflowQueryService`, `GraphDefinitionQueryService` |
-| Strategy | `PascalCase + Strategy` | `AgentStrategy`, `RouterStrategy`, `TaskerStrategy` |
+| Command | `<Verb><Object>Command` | `ApproveInvoiceCommand`, `StartWorkflowCommand` |
+| Event | `<Aggregate><PastVerb>Event` | `InvoiceApprovedEvent`, `WorkflowStartedEvent` |
+| Query | `<Aggregate><ReadOp>[Projection]Query` | `InvoiceGetByIdQuery`, `WorkflowGetByIdQuery` |
+| Message | `<Aggregate><Description>Message` | `InvoiceSummaryMessage` |
+| DTO | `<Aggregate><Projection>Dto` | `InvoiceSummaryDto`, `WorkflowDto` |
+| Mapper | `<Aggregate>Mapper` | `InvoiceMapper`, `WorkflowMapper` |
+| Port (Protocol) | `PascalCase` | `UnitOfWork`, `Clock`, `InvoiceRepository` |
+| Query Service | `<Aggregate>QueryService` | `InvoiceQueryService` |
+| Strategy | `PascalCase + Strategy` | `AgentStrategy`, `RouterStrategy` |
+| Saga | `<BusinessProcess>Saga` | `InvoiceApprovalSaga` |
+| Agent | `<BusinessCapability>Agent` | `ApproveInvoiceAgent` |
 
 ### Klasy infrastrukturalne
 
@@ -137,6 +123,11 @@ class GraphDefinitionId(ValueObject): ...
 - Value Object: `ValueObject` z `domain/platform/base/value_object.py`
 - Domain Event: `DomainEvent` z `domain/platform/events/domain_event.py`
 - Domain Exception: `DomainError` z `_base.py`
+
+## Standard nazewnictwa
+
+Szczegółowe reguły nazewnictwa wszystkich artefaktów (handlery, komendy, eventy, query, message, sagi, agenci, deskryptory) znajdują się w osobnym standardzie:
+> **[naming-convention-standard](../naming-convention-standard/SKILL.md)**
 
 ## Ograniczenia
 

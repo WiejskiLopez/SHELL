@@ -4,9 +4,9 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 
 import sqlalchemy as sa
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship, declared_attr
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
 
 class GraphNodeTransitionExecutionModel(Base, VersionedMixin):

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-
 from shell.infrastructure.platform.context.correlation_id import get_correlation_id
 
 

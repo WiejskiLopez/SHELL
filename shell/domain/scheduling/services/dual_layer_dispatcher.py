@@ -5,11 +5,10 @@ from typing import TYPE_CHECKING, Any, Protocol
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from shell.domain.execution.aggregates.graph_execution.graph_execution import (
-        GraphExecution,
-    )
     from shell.domain.scheduling.services.pending_graph_finder import (
         GraphExecutionRepository as PendingGraphRepo,
+    )
+    from shell.domain.scheduling.services.pending_graph_finder import (
         PendingGraphFinder,
     )
 

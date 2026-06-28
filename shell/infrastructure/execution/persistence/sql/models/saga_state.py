@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column, declared_attr
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 
 class GraphExecutionSagaStateModel(Base, VersionedMixin):

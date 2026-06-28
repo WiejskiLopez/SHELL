@@ -1,7 +1,6 @@
 """SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
 
 from __future__ import annotations
-import pytest
 
 from typing import TYPE_CHECKING
 
@@ -26,28 +25,28 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.session.command_handlers.session_handlers import (
-            CloseSessionHandler,
-            OpenSessionHandler,
-        )
         from shell.application.platform.commands import (
             CloseSessionCommand,
             OpenSessionCommand,
         )
-        from shell.application.platform.queries.queries import GetSessionHistoryQuery
+        from shell.application.platform.queries.queries import SessionGetHistoryQuery
         from shell.application.platform.query_handlers import (
-            GetSessionHistoryHandler,
+            SessionGetHistoryHandler,
+        )
+        from shell.application.session.command_handlers.session_handlers import (
+            SessionCloseHandler,
+            SessionOpenHandler,
         )
 
-        session_id = await OpenSessionHandler(sql_uow, clock, id_generator).handle(
+        session_id = await SessionOpenHandler(sql_uow, clock, id_generator).handle(
             OpenSessionCommand(goal="integration test")
         )
-        await CloseSessionHandler(sql_uow, clock).handle(
+        await SessionCloseHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
 
-        dto = await GetSessionHistoryHandler(SessionQueryService(session_factory)).handle(
-            GetSessionHistoryQuery(session_id=session_id.value)
+        dto = await SessionGetHistoryHandler(SessionQueryService(session_factory)).handle(
+            SessionGetHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "closed"

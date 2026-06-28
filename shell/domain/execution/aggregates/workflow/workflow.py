@@ -26,19 +26,19 @@ from shell.domain.execution.aggregates.workflow.events.workflow_started_event im
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
     )
-    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
 class Workflow(AggregateRoot["WorkflowId"]):

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import AgentExecutionId
+from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+    AgentExecutionId,
+)
 from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
     AgentSkillExecution,
 )

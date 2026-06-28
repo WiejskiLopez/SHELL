@@ -7,7 +7,16 @@ description: Zasady budowy handlerów komend (Command Handlers) — struktura, l
 
 ## Definicja
 
-Command Handler to komponent warstwy aplikacyjnej, który przyjmuje komendę (Command), wykonuje operację biznesową na agregacie i zwraca wynik.
+Command Handler to komponent warstwy aplikacyjnej, który przyjmuje komendę (Command), wykonuje operację biznesową na **dokładnie jednym agregacie** i zwraca wynik.
+
+## Zasady
+
+1. **Jeden handler = jeden agregat** — handler może modyfikować maksymalnie jeden agregat domenowy.
+2. **Handler buduje agregat z repozytorium** — ładuje istniejący agregat lub tworzy nowy przez factory.
+3. **Serwisy domenowe przez porty w module agregatu** — wszystko czego agregat potrzebuje do decyzji jest dostarczane przez serwisy, których porty są zdefiniowane w module agregatu.
+4. **Wywołanie metody agregatu z kompletem parametrów** — handler woła metodę agregatu przekazując wszystkie dane (również te pobrane przez serwisy).
+5. **Zapis + eventy w tej samej transakcji** — po wywołaniu metody agregatu: `save` + `stage_events`.
+6. **Zero decyzji biznesowych** — handler nie zawiera `if/else` z logiką biznesową. Może rzucić jedynie błędem infrastrukturalnym lub domenowym.
 
 ## Lokalizacja
 
@@ -31,3 +40,5 @@ shell/application/
 ## Rejestracja
 
 Rejestracja odbywa się w kontenerze DI (dependency_injection) lub przez bezpośrednie wstrzyknięcie w warstwie framework/bootstrap.
+
+> Szczegółowe reguły struktury → [command-handler-structure](../../pattern-standards/command-handler-structure/SKILL.md)

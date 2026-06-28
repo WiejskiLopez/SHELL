@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.platform.events import DomainEvent
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
 @dataclass(frozen=True, slots=True)

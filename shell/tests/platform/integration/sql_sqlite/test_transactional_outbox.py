@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from shell.application.execution.command_handlers.import_task_execution_handler import (
-    ImportTaskExecutionHandler,
+from shell.application.execution.command_handlers.task_execution_import_handler import (
+    TaskExecutionImportHandler,
 )
 from shell.application.platform.commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import WorkflowStartedEvent
@@ -38,7 +38,7 @@ class TestTransactionalOutbox:
         task_execution_loader: FakeTaskLoader,
         session_factory: async_sessionmaker,
     ) -> None:
-        handler = ImportTaskExecutionHandler(
+        handler = TaskExecutionImportHandler(
             sql_uow, clock, id_generator, task_execution_loader, FakeLogger()
         )
         await handler.handle(ImportTaskExecutionCommand("t.md", "atomic-task"))

@@ -12,11 +12,12 @@ from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base import AggregateRoot
-
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import TaskExecutionId
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
     from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
         TaskExecutionStateId,
     )

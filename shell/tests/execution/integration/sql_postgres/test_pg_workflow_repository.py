@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from shell.application.execution.command_handlers.import_task_execution_handler import (
-    ImportTaskExecutionHandler,
+from shell.application.execution.command_handlers.task_execution_import_handler import (
+    TaskExecutionImportHandler,
 )
-from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
+from shell.application.execution.command_handlers.workflow_start_handler import WorkflowStartHandler
 from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
     StartWorkflowCommand,
 )
 from shell.application.platform.queries.queries import (
-    GetWorkflowQuery,
+    WorkflowGetByIdQuery,
 )
 from shell.application.platform.query_handlers import (
-    GetWorkflowHandler,
+    WorkflowGetByIdHandler,
 )
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import FakeLogger
@@ -28,7 +28,7 @@ class TestPgWorkflowRepository:
         task_execution_loader,
         session_factory,
     ) -> None:
-        imp = ImportTaskExecutionHandler(
+        imp = TaskExecutionImportHandler(
             sql_uow, clock, id_gen, task_execution_loader, FakeLogger()
         )
         await imp.handle(ImportTaskExecutionCommand("t.md", "pg-wf-task"))
@@ -42,11 +42,11 @@ class TestPgWorkflowRepository:
             assert task_execution is not None
             real_task_execution_id = task_execution.id.value
 
-        start = StartWorkflowHandler(sql_uow, clock, id_gen)
+        start = WorkflowStartHandler(sql_uow, clock, id_gen)
         wf_id = await start.handle(StartWorkflowCommand(real_task_execution_id))
 
-        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
-        dto = await q.handle(GetWorkflowQuery(wf_id))
+        q = WorkflowGetByIdHandler(WorkflowQueryService(session_factory))
+        dto = await q.handle(WorkflowGetByIdQuery(wf_id))
         assert dto is not None
         assert dto.status == "running"
 
@@ -55,6 +55,6 @@ class TestPgWorkflowRepository:
         sql_uow,
         session_factory,
     ) -> None:
-        q = GetWorkflowHandler(WorkflowQueryService(session_factory))
-        dto = await q.handle(GetWorkflowQuery("pg-no-such-wf"))
+        q = WorkflowGetByIdHandler(WorkflowQueryService(session_factory))
+        dto = await q.handle(WorkflowGetByIdQuery("pg-no-such-wf"))
         assert dto is None

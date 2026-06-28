@@ -17,12 +17,6 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_runner_con
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
-    SqlMessageRepository,
-)
-from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
-    SqlSessionRepository,
-)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
 )
@@ -31,6 +25,12 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execut
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,
+)
+from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
+    SqlMessageRepository,
+)
+from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
+    SqlSessionRepository,
 )
 
 __all__ = [

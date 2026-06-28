@@ -18,8 +18,8 @@ from shell.domain.execution.events import (
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
 
 if TYPE_CHECKING:
-    from shell.domain.platform.ports.log import Logger
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.platform.ports.log import Logger
 
 
 class NotifyParentOnChildCompletionHandler:

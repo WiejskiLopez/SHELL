@@ -3,13 +3,11 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy.orm.exc import StaleDataError
-
 from shell.application.platform.ports.unit_of_work import UnitOfWork
+from shell.domain.platform.envelope import Envelope
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
-from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionRepository,
     SqlRagDocumentRepository,
@@ -27,18 +25,20 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlWorkflowRepository,
     SqlWorkflowStateRepository,
 )
-from shell.domain.platform.envelope import Envelope
+from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
-from shell.infrastructure.platform.persistence.sql.models.message.message import MessageModel
-from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import OutboxMessageModel
-from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
-    SqlSessionRepository,
+from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import (
+    OutboxMessageModel,
 )
+from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
     SqlMessageRepository,
 )
-from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.serialization import DomainEventSerializer
+from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
+    SqlSessionRepository,
+)
+from sqlalchemy.orm.exc import StaleDataError
 
 if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message

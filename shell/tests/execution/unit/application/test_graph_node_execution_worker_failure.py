@@ -5,7 +5,6 @@ from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
