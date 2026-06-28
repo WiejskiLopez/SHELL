@@ -9,11 +9,16 @@ SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent
 BASE = SHELL_SRC
 
 
+_EXCLUDED_DIRS = frozenset({".venv", "venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".opencode"})
+
+
 def iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
     if not directory.exists():
         return
     for py_file in directory.rglob("*.py"):
         if py_file.name == "__init__.py":
+            continue
+        if any(part in _EXCLUDED_DIRS for part in py_file.parts):
             continue
         yield py_file
 

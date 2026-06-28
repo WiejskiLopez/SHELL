@@ -20,7 +20,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphNodeExecutionStateChangedEvent(DomainEvent):
     graph_node_execution_id: GraphNodeExecutionId
     graph_node_execution_state_id: GraphNodeExecutionStateId
-    direction: str
+    direction: StateDirection
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -40,7 +40,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
             occurred_at=now,
             graph_node_execution_id=graph_node_execution_id,
             graph_node_execution_state_id=graph_node_execution_state_id,
-            direction=direction.value,
+            direction=direction,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -55,7 +55,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             graph_node_execution_id=GraphNodeExecutionId(payload.get("graph_node_execution_id")),
             graph_node_execution_state_id=GraphNodeExecutionStateId(payload.get("graph_node_execution_state_id")),
-            direction=payload.get("direction"),
+            direction=StateDirection(payload.get("direction")),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

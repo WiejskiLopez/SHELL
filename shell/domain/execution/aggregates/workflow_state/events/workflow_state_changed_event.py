@@ -18,7 +18,7 @@ from shell.domain.platform.events import DomainEvent
 class WorkflowStateChangedEvent(DomainEvent):
     workflow_id: WorkflowId
     workflow_state_id: WorkflowStateId
-    direction: str
+    direction: StateDirection
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -38,7 +38,7 @@ class WorkflowStateChangedEvent(DomainEvent):
             occurred_at=now,
             workflow_id=workflow_id,
             workflow_state_id=workflow_state_id,
-            direction=direction.value,
+            direction=direction,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -53,7 +53,7 @@ class WorkflowStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             workflow_id=WorkflowId(payload.get("workflow_id")),
             workflow_state_id=WorkflowStateId(payload.get("workflow_state_id")),
-            direction=payload.get("direction"),
+            direction=StateDirection(payload.get("direction")),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),
