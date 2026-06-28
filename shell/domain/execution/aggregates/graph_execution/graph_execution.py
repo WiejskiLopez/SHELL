@@ -122,6 +122,18 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
         return instance
 
+    def prepare_node_definitions(
+        self,
+        graph_definition_id: GraphDefinitionId,
+        graph_node_definition_ids: list[GraphNodeDefinitionId],
+    ) -> None:
+        self._graph_definition_id = graph_definition_id
+        self._graph_node_definition_execution_slots = [
+            GraphNodeDefinitionExecutionSlot(graph_node_definition_id=node_def_id)
+            for node_def_id in graph_node_definition_ids
+        ]
+        self._initialization_status = GraphExecutionInitializationStatus.INITIALIZING
+
     def attach_node_execution(
         self,
         node_definition_id: GraphNodeDefinitionId,

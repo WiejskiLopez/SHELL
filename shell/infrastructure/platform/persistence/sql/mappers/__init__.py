@@ -5,16 +5,24 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
-from shell.domain.definition.entities.graph_definition import GraphDefinition
-from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-from shell.domain.definition.entities.graph_node_transition_definition import (
+from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+    GraphNodeDefinition,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.graph_node_transition_definition import (
     GraphNodeTransitionDefinition,
+)
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
+    GraphNodeTransitionDefinitionId,
 )
 from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId,
-    GraphNodeDefinitionId,
-    GraphNodeTransitionDefinitionId,
     RagChunkId,
     RagDocumentId,
     RunnerConfigId,
@@ -453,13 +461,14 @@ def graph_definition_model_to_entity(
         id=GraphDefinitionId(graph_definition_model.id),
         name=graph_definition_model.name,
         purpose=graph_definition_model.purpose,
-        graph_node_definitions=[
-            graph_node_definition_model_to_entity(node)
-            for node in graph_definition_model.graph_node_execution_models
+        system_role=graph_definition_model.system_role,
+        graph_node_definition_ids=[
+            GraphNodeDefinitionId(node.id)
+            for node in (graph_definition_model.graph_node_execution_models or [])
         ],
-        transition_definitions=[
-            graph_node_transition_definition_model_to_entity(t)
-            for t in graph_definition_model.graph_node_transition_definition_models
+        transition_definition_ids=[
+            GraphNodeTransitionDefinitionId(t.id)
+            for t in (graph_definition_model.graph_node_transition_definition_models or [])
         ],
     )
 
@@ -468,29 +477,18 @@ def graph_definition_entity_to_model(
     graph_definition: GraphDefinition,
 ) -> GraphDefinitionModel:
     graph_definition_model = GraphDefinitionModel(
-        id=graph_definition.id,
-        name=graph_definition.name,
-        purpose=graph_definition.purpose,
+        id=str(graph_definition.id.value),
+        name=str(graph_definition.name.value),
+        purpose=str(graph_definition.purpose.value),
+        system_role=str(graph_definition.system_role.value) if graph_definition.system_role is not None else None,
     )
-    graph_definition_model.graph_node_execution_models = [
-        graph_node_definition_entity_to_model(
-            node,
-            graph_definition.id.value,
-        )
-        for node in graph_definition.graph_node_definitions
-    ]
-    _now = datetime.now(UTC)
-    graph_definition_model.graph_node_transition_definition_models = [
-        graph_node_transition_definition_entity_to_model(t, _now)
-        for t in graph_definition.transition_definitions
-    ]
     return graph_definition_model
 
 
 def graph_definition_update_model(model: GraphDefinitionModel, entity: GraphDefinition) -> None:
-    model.name = entity.name
-    model.purpose = entity.purpose
-    # Node definitions and transition definitions are managed separately
+    model.name = str(entity.name.value)
+    model.purpose = str(entity.purpose.value)
+    model.system_role = str(entity.system_role.value) if entity.system_role is not None else None
 
 
 def graph_node_definition_model_to_entity(

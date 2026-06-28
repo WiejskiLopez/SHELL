@@ -20,7 +20,7 @@ from sqlalchemy.orm import selectinload
 from ..models import GraphDefinitionModel
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
+    from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
     from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+from shell.application.definition.command_handlers.create_graph_definition_handler import (
+    CreateGraphDefinitionHandler,
+)
 from shell.application.definition.command_handlers.runner_config_bootstrap_handler import (
     RunnerConfigBootstrapHandler,
 )
@@ -60,6 +63,12 @@ class CommandContainer(containers.DeclarativeContainer):
     )
     save_graph_node_execution_result_handler_factory = providers.Factory(
         GraphNodeExecutionSaveResultHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        clock=infra.clock_factory,
+        id_generator=infra.id_generator_factory,
+    )
+    create_graph_definition_handler_factory = providers.Factory(
+        CreateGraphDefinitionHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,

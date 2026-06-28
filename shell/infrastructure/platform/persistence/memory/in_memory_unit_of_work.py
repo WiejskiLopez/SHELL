@@ -4,6 +4,15 @@ from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_embedding_repository import (
+    InMemoryGraphDefinitionEmbeddingRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
+    InMemoryGraphNodeDefinitionRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_transition_definition_repository import (
+    InMemoryGraphNodeTransitionDefinitionRepository,
+)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
@@ -59,6 +68,9 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._runner_config_repository = InMemoryRunnerConfigRepository()
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
+        self._graph_node_definition_repository = InMemoryGraphNodeDefinitionRepository()
+        self._graph_node_transition_definition_repository = InMemoryGraphNodeTransitionDefinitionRepository()
+        self._graph_definition_embedding_repository = InMemoryGraphDefinitionEmbeddingRepository()
         self._graph_node_transition_execution_repository = InMemoryGraphNodeTransitionExecutionRepository()
         self._graph_node_execution_state_repository = InMemoryGraphNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
@@ -72,30 +84,53 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events: list[DomainEvent] = []
 
     async def seed_base_planner(self) -> None:
-        from shell.domain.definition.entities.graph_definition import GraphDefinition
-        from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
-        from shell.domain.definition.value_objects.ids import (
+        from datetime import UTC, datetime
+
+        from shell.domain.definition.aggregates.graph_definition.graph_definition import (
+            GraphDefinition,
+        )
+        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
             GraphDefinitionId,
+        )
+        from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+            GraphNodeDefinition,
+        )
+        from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
             GraphNodeDefinitionId,
         )
+        from shell.domain.definition.value_objects.graph_name import GraphName
+        from shell.domain.definition.value_objects.node_position import NodePosition
+        from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+        from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+        from shell.domain.definition.value_objects.purpose import Purpose
         from shell.domain.platform.value_objects.mode import Mode
 
-        await self._graph_definition_repository.save(
-            GraphDefinition(
-                id=GraphDefinitionId("base-planner-id"),
-                name="base_planner",
-                purpose="default_planning",
-                graph_node_definitions=[
-                    GraphNodeDefinition(
-                        id=GraphNodeDefinitionId("base-planner-node-1"),
-                        position=0,
-                        mode=Mode("agent"),
-                        role="agent",
-                        node_type="agent",
-                    ),
-                ],
-            )
+        now = datetime.now(UTC)
+        node_id = GraphNodeDefinitionId("base-planner-node-1")
+        graph_id = GraphDefinitionId("base-planner-id")
+
+        node = GraphNodeDefinition.create(
+            id=node_id,
+            graph_definition_id=graph_id,
+            position=NodePosition(0),
+            mode=Mode("agent"),
+            role=NodeRoleName("agent"),
+            node_type=NodeTypeName("agent"),
+            now=now,
         )
+        await self._graph_node_definition_repository.save(node)
+
+        from shell.domain.definition.value_objects.system_role import SystemRole
+
+        graph = GraphDefinition.create(
+            id=graph_id,
+            name=GraphName("base_planner"),
+            purpose=Purpose("default_planning"),
+            system_role=SystemRole.PLANNER,
+            graph_node_definition_ids=[node_id],
+            now=now,
+        )
+        await self._graph_definition_repository.save(graph)
 
     @property
     def task_execution_repository(self) -> InMemoryTaskExecutionRepository:
@@ -132,6 +167,18 @@ class InMemoryUnitOfWork(UnitOfWork):
     @property
     def graph_definition_repository(self) -> InMemoryGraphDefinitionRepository:
         return self._graph_definition_repository
+
+    @property
+    def graph_node_definition_repository(self) -> InMemoryGraphNodeDefinitionRepository:
+        return self._graph_node_definition_repository
+
+    @property
+    def graph_node_transition_definition_repository(self) -> InMemoryGraphNodeTransitionDefinitionRepository:
+        return self._graph_node_transition_definition_repository
+
+    @property
+    def graph_definition_embedding_repository(self) -> InMemoryGraphDefinitionEmbeddingRepository:
+        return self._graph_definition_embedding_repository
 
     @property
     def graph_execution_state_repository(self) -> InMemoryGraphExecutionStateRepository:

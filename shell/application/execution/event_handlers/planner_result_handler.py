@@ -16,7 +16,7 @@ from shell.domain.execution.value_objects.node_role import NodeRole
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.ports.graph_execution_definition_provider import (
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
     from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery

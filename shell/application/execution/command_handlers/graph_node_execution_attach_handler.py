@@ -18,6 +18,10 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Time
 
 
+class GraphExecutionNotFoundError(Exception):
+    pass
+
+
 class GraphNodeExecutionAttachHandler:
     def __init__(
         self,
@@ -29,18 +33,21 @@ class GraphNodeExecutionAttachHandler:
 
     async def handle(self, command: AttachGraphNodeExecutionsCommand) -> None:
         now = self._time.now()
-        repo = self._unit_of_work.graph_execution_repository
-        graph_execution = await repo.get_by_id(
-            GraphExecutionId(command.graph_execution_id)
-        )
-        if graph_execution is None:
-            return
-
-        for def_id, exec_id in command.graph_node_definition_executions.items():
-            graph_execution.attach_node_execution(
-                node_definition_id=GraphNodeDefinitionId(def_id),
-                node_execution_id=GraphNodeExecutionId(exec_id),
-                now=now,
+        async with self._unit_of_work as unit_of_work:
+            graph_execution = await unit_of_work.graph_execution_repository.get_by_id(
+                GraphExecutionId(command.graph_execution_id)
             )
+            if graph_execution is None:
+                raise GraphExecutionNotFoundError(
+                    f"GraphExecution {command.graph_execution_id} not found"
+                )
 
-        await repo.save(graph_execution)
+            for def_id, exec_id in command.graph_node_definition_executions.items():
+                graph_execution.attach_node_execution(
+                    node_definition_id=GraphNodeDefinitionId(def_id),
+                    node_execution_id=GraphNodeExecutionId(exec_id),
+                    now=now,
+                )
+
+            await unit_of_work.graph_execution_repository.save(graph_execution)
+            unit_of_work.stage_events(graph_execution.pull_events())

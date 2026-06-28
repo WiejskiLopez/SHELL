@@ -4,9 +4,15 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_defi
     select,
     selectinload,
 )
+from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_embedding_repository import (
+    SqlGraphDefinitionEmbeddingRepository,
+)
 from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_definition_repository import (
     GraphNodeDefinitionModel,
     SqlGraphNodeDefinitionRepository,
+)
+from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_transition_definition_repository import (
+    SqlGraphNodeTransitionDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_document_repository import (
     RagChunkModel,
@@ -26,8 +32,10 @@ __all__ = [
     "RagChunkModel",
     "RagDocumentModel",
     "RunnerConfigModel",
+    "SqlGraphDefinitionEmbeddingRepository",
     "SqlGraphDefinitionRepository",
     "SqlGraphNodeDefinitionRepository",
+    "SqlGraphNodeTransitionDefinitionRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "logger",

@@ -8,6 +8,10 @@ from shell.application.platform.dto import (
 
 
 class GraphDefinitionQueryService(Protocol):
-    async def get_graph_definition_by_name(self, name: str) -> GraphDefinitionDto | None: ...
-
     async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None: ...
+
+    async def get_graph_definition_by_semantic_name(
+        self, payload: dict[str, object],
+    ) -> GraphDefinitionDto | None: ...
+
+

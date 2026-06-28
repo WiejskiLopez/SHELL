@@ -9,14 +9,30 @@ from shell.application.execution.event_handlers.build_graph_execution_on_task_ex
     BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
 )
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
-from shell.domain.definition.entities.graph_definition import GraphDefinition
-from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
+from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+    GraphNodeDefinition,
+)
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId,
+)
 from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
-from shell.domain.execution.events import GraphExecutionConstructedEvent, TaskExecutionCreatedEvent
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+    GraphExecutionInitializedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+    GraphDefinitionSemanticQuery,
+)
+from shell.domain.execution.events import TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     GraphNodeExecutionDefinition,
+)
+from shell.domain.execution.value_objects.graph_execution_initialization_status import (
+    GraphExecutionInitializationStatus,
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
@@ -35,51 +51,59 @@ if TYPE_CHECKING:
 class _InMemoryGraphDefinitionQueryService:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
         self._repo = unit_of_work.graph_definition_repository
+        self._node_repo = unit_of_work.graph_node_definition_repository
 
-    async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
-
-        entity = await self._repo.get_graph_definition_by_name(GraphName(name))
+    async def get_graph_definition_by_semantic_name(
+        self, query: GraphDefinitionSemanticQuery,
+    ) -> GraphExecutionDefinition | None:
+        if query.default_graph_definition is not None:
+            for entity in (await self._repo.list_all()):
+                if entity.system_role is not None and entity.system_role.value == query.default_graph_definition:
+                    return await self._to_dto(entity)
+        entity = await self._repo.get_graph_definition_by_name(GraphName(query.text))
         if entity is None:
             return None
-        return self._to_dto(entity)
+        return await self._to_dto(entity)
 
     async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None:
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId
+        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+            GraphDefinitionId,
+        )
 
         entity = await self._repo.get_by_id(GraphDefinitionId(definition_id))
         if entity is None:
             return None
-        return self._to_dto(entity)
+        return await self._to_dto(entity)
 
-    def _to_dto(self, entity: object) -> GraphExecutionDefinition:
-
+    async def _to_dto(self, entity: object) -> GraphExecutionDefinition:
         graph_definition: GraphDefinition = entity  # type: ignore[assignment]
+        nodes: list[GraphNodeDefinition] = []
+        for node_id in graph_definition.graph_node_definition_ids:
+            node = await self._node_repo.get_by_id(node_id)
+            if node is not None:
+                nodes.append(node)
         return GraphExecutionDefinition(
-            id=graph_definition.id.value
-            if hasattr(graph_definition.id, "value")
-            else str(graph_definition.id),
+            id=graph_definition.id.value,
             name=graph_definition.name.value,
             graph_node_execution_definitions=[
                 GraphNodeExecutionDefinition(
-                    position=graph_node_definition.position.value,
-                    mode=graph_node_definition.mode.value
-                    if hasattr(graph_node_definition.mode, "value")
-                    else str(graph_node_definition.mode),
-                    role=graph_node_definition.role.value,
-                    node_type=graph_node_definition.node_type.value,
-                    model=graph_node_definition.model.value if graph_node_definition.model else "",
-                    command=graph_node_definition.command.value if graph_node_definition.command else "",
-                    timeout=graph_node_definition.timeout.value if graph_node_definition.timeout else 0,
-                    retries=graph_node_definition.retries.value if graph_node_definition.retries else 0,
-                    log_level=graph_node_definition.log_level.value if graph_node_definition.log_level else "INFO",
-                    max_step=graph_node_definition.max_step.value if graph_node_definition.max_step else None,
-                    no_ask_user=graph_node_definition.no_ask_user.value if graph_node_definition.no_ask_user else False,
-                    autopilot=graph_node_definition.autopilot.value if graph_node_definition.autopilot else False,
-                    status_initial=graph_node_definition.status_initial.value if graph_node_definition.status_initial else "",
-                    script=graph_node_definition.script.value if graph_node_definition.script else "",
-                    script_type=graph_node_definition.script_type.value if graph_node_definition.script_type else "",
+                    position=node.position.value,
+                    mode=node.mode.value,
+                    role=node.role.value,
+                    node_type=node.node_type.value,
+                    model=node.model.value if node.model else "",
+                    command=node.command.value if node.command else "",
+                    timeout=node.timeout.value if node.timeout else 0,
+                    retries=node.retries.value if node.retries else 0,
+                    log_level=node.log_level.value if node.log_level else "INFO",
+                    max_step=node.max_step.value if node.max_step else None,
+                    no_ask_user=node.no_ask_user.value if node.no_ask_user else False,
+                    autopilot=node.autopilot.value if node.autopilot else False,
+                    status_initial=node.status_initial.value if node.status_initial else "",
+                    script=node.script.value if node.script else "",
+                    script_type=node.script_type.value if node.script_type else "",
                 )
-                for graph_node_definition in graph_definition.graph_node_definitions
+                for node in nodes
             ],
         )
 
@@ -112,32 +136,52 @@ def logger() -> FakeLogger:
 async def _seed_graph_definition(
     unit_of_work: InMemoryUnitOfWork, name: str = "base_planner"
 ) -> GraphDefinition:
-    graph_definition = GraphDefinition(
-        id=GraphDefinitionId(f"{name}-id"),
-        name=name,
-        purpose="planning",
-        graph_node_definitions=[
-            GraphNodeDefinition(
-                id=GraphNodeDefinitionId("tn-1"),
-                position=0,
-                mode=Mode("agent"),
-                role="agent",
-                node_type="agent",
-            ),
-            GraphNodeDefinition(
-                id=GraphNodeDefinitionId("tn-2"),
-                position=1,
-                mode=Mode("worker"),
-                role="worker",
-                node_type="worker",
-            ),
-        ],
+    from datetime import UTC, datetime
+
+    from shell.domain.definition.value_objects.node_position import NodePosition
+    from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+    from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+    from shell.domain.definition.value_objects.purpose import Purpose
+    from shell.domain.definition.value_objects.system_role import SystemRole
+
+    now = datetime.now(UTC)
+    node1_id = GraphNodeDefinitionId("tn-1")
+    node2_id = GraphNodeDefinitionId("tn-2")
+
+    node1 = GraphNodeDefinition.create(
+        id=node1_id,
+        graph_definition_id=GraphDefinitionId(f"{name}-id"),
+        position=NodePosition(0),
+        mode=Mode("agent"),
+        role=NodeRoleName("agent"),
+        node_type=NodeTypeName("agent"),
+        now=now,
     )
-    # Clear any existing graph_definition with the same name (constructor seeds one)
+    node2 = GraphNodeDefinition.create(
+        id=node2_id,
+        graph_definition_id=GraphDefinitionId(f"{name}-id"),
+        position=NodePosition(1),
+        mode=Mode("worker"),
+        role=NodeRoleName("worker"),
+        node_type=NodeTypeName("worker"),
+        now=now,
+    )
+    await unit_of_work.graph_node_definition_repository.save(node1)
+    await unit_of_work.graph_node_definition_repository.save(node2)
+
     repo = unit_of_work.graph_definition_repository
     keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
     for k in keys_to_remove:
         del repo._store[k]
+
+    graph_definition = GraphDefinition.create(
+        id=GraphDefinitionId(f"{name}-id"),
+        name=GraphName(name),
+        purpose=Purpose("planning"),
+        system_role=SystemRole.PLANNER,
+        graph_node_definition_ids=[node1_id, node2_id],
+        now=now,
+    )
     await repo.save(graph_definition)
     return graph_definition
 
@@ -175,9 +219,11 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
+        assert graph_execution.initialization_status == GraphExecutionInitializationStatus.INITIALIZING
+        assert len(graph_execution.graph_node_definition_execution_slots) == 2
         nodes = await unit_of_work.graph_node_execution_repository.list_by_graph_execution_id(graph_execution.id)
-        assert len(nodes) == 2
-        assert any(isinstance(e, GraphExecutionConstructedEvent) for e in unit_of_work.committed_events)
+        assert len(nodes) == 0
+        assert any(isinstance(e, GraphExecutionInitializedEvent) for e in unit_of_work.committed_events)
 
     async def test_graph_definition_not_found_raises(
         self,

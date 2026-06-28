@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.domain.definition.repositories.graph_definition_repository import (
+from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
     GraphDefinitionRepository,
 )
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository

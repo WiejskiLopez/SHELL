@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+    GraphDefinitionCreatedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
     GraphExecutionCompletedEvent,
 )
@@ -60,6 +63,10 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus = app_ctx.buses.event_bus()
     events = app_ctx.events
 
+    event_bus.subscribe(
+        GraphDefinitionCreatedEvent,
+        events.generate_embedding_on_graph_definition_created_factory,
+    )
     event_bus.subscribe(TaskExecutionCreatedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
         TaskExecutionCreatedEvent, events.build_graph_execution_on_task_execution_created_factory

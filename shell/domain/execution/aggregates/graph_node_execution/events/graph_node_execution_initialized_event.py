@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.platform.events import DomainEvent
 
 
@@ -20,6 +21,7 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
     node_id: GraphNodeExecutionId
     graph_execution_id: GraphExecutionId
     parent_graph_execution_id: GraphExecutionId
+    node_definition_id: GraphNodeDefinitionId
 
     @classmethod
     def now(
@@ -27,6 +29,7 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
         node_id: GraphNodeExecutionId,
         graph_execution_id: GraphExecutionId,
         parent_graph_execution_id: GraphExecutionId,
+        node_definition_id: GraphNodeDefinitionId,
         now: datetime,
     ) -> GraphNodeExecutionInitializedEvent:
         return cls(
@@ -34,6 +37,7 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
             node_id=node_id,
             graph_execution_id=graph_execution_id,
             parent_graph_execution_id=parent_graph_execution_id,
+            node_definition_id=node_definition_id,
         )
 
     @classmethod
@@ -46,4 +50,5 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
             node_id=GraphNodeExecutionId(payload.get("node_id")),
             graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
             parent_graph_execution_id=GraphExecutionId(payload.get("parent_graph_execution_id")),
+            node_definition_id=GraphNodeDefinitionId(payload.get("node_definition_id")),
         )

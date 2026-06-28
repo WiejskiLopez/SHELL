@@ -78,6 +78,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     graph_definition_query_service_factory = providers.Factory(
         SqlGraphDefinitionQueryService,
         session_factory=session_factory,
+        embedder=embedder,
     )
     definition_provider_factory = providers.Factory(
         GraphExecutionDefinitionProviderAdapter,

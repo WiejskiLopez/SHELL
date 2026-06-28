@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.ports.graph_execution_definition_provider import (
+from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+    GraphDefinitionSemanticQuery,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,
 )
 from shell.domain.execution.value_objects.graph_execution_definition import (
@@ -27,11 +30,15 @@ class GraphExecutionDefinitionProviderAdapter(GraphExecutionDefinitionProvider):
             return None
         return self._map_to_execution(graph_definition_dto)
 
-    async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
-        graph_definition_dto = await self._query_service.get_graph_definition_by_name(name)
-        if graph_definition_dto is None:
+    async def get_graph_definition_by_semantic_name(
+        self, query: GraphDefinitionSemanticQuery,
+    ) -> GraphExecutionDefinition | None:
+        dto = await self._query_service.get_graph_definition_by_semantic_name(query.to_payload())
+        if dto is None:
             return None
-        return self._map_to_execution(graph_definition_dto)
+        return self._map_to_execution(dto)
+
+
 
     def _map_to_execution(
         self, graph_definition_dto: GraphDefinitionDto
@@ -39,6 +46,7 @@ class GraphExecutionDefinitionProviderAdapter(GraphExecutionDefinitionProvider):
         return GraphExecutionDefinition(
             id=graph_definition_dto.id,
             name=graph_definition_dto.name,
+            system_role=graph_definition_dto.system_role,
             graph_node_execution_definitions=[
                 GraphNodeExecutionDefinition(
                     position=graph_node_definition.position,

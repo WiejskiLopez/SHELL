@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId,
+)
 from shell.domain.definition.value_objects.autopilot import Autopilot
 from shell.domain.definition.value_objects.command_text import CommandText
-from shell.domain.definition.value_objects.ids import GraphNodeDefinitionId
 from shell.domain.definition.value_objects.initial_status import InitialStatus
 from shell.domain.definition.value_objects.log_level import LogLevel
 from shell.domain.definition.value_objects.max_step import MaxStep
@@ -17,14 +19,20 @@ from shell.domain.definition.value_objects.retry_count import RetryCount
 from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
 from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
-from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+        GraphDefinitionId,
+    )
     from shell.domain.platform.value_objects.mode import Mode
 
 
-class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
+class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     __slots__ = (
+        "_graph_definition_id",
         "_position",
         "_mode",
         "_role",
@@ -45,6 +53,7 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
     def __init__(
         self,
         id: GraphNodeDefinitionId,
+        graph_definition_id: GraphDefinitionId,
         position: NodePosition,
         mode: Mode,
         role: NodeRoleName,
@@ -62,6 +71,7 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
         script_type: ScriptTypeName | None = None,
     ) -> None:
         super().__init__(id)
+        self._graph_definition_id = graph_definition_id
         self._position = position if isinstance(position, NodePosition) else NodePosition(position)
         self._mode = mode
         self._role = role if isinstance(role, NodeRoleName) else NodeRoleName(role)
@@ -77,6 +87,111 @@ class GraphNodeDefinition(Entity[GraphNodeDefinitionId]):
         self._status_initial = status_initial if status_initial is None or isinstance(status_initial, InitialStatus) else InitialStatus(status_initial)
         self._script = script if script is None or isinstance(script, ScriptText) else ScriptText(script)
         self._script_type = script_type if script_type is None or isinstance(script_type, ScriptTypeName) else ScriptTypeName(script_type)
+
+    @classmethod
+    def restore(
+        cls,
+        id: GraphNodeDefinitionId,
+        graph_definition_id: GraphDefinitionId,
+        position: NodePosition,
+        mode: Mode,
+        role: NodeRoleName,
+        node_type: NodeTypeName,
+        model: ModelName | None = None,
+        command: CommandText | None = None,
+        timeout: TransitionTimeoutSeconds | None = None,
+        retries: RetryCount | None = None,
+        log_level: LogLevel | None = None,
+        max_step: MaxStep | None = None,
+        no_ask_user: NoAskUser | None = None,
+        autopilot: Autopilot | None = None,
+        status_initial: InitialStatus | None = None,
+        script: ScriptText | None = None,
+        script_type: ScriptTypeName | None = None,
+    ) -> GraphNodeDefinition:
+        return cls(
+            id=id,
+            graph_definition_id=graph_definition_id,
+            position=position,
+            mode=mode,
+            role=role,
+            node_type=node_type,
+            model=model,
+            command=command,
+            timeout=timeout,
+            retries=retries,
+            log_level=log_level,
+            max_step=max_step,
+            no_ask_user=no_ask_user,
+            autopilot=autopilot,
+            status_initial=status_initial,
+            script=script,
+            script_type=script_type,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        id: GraphNodeDefinitionId,
+        graph_definition_id: GraphDefinitionId,
+        position: NodePosition,
+        mode: Mode,
+        role: NodeRoleName,
+        node_type: NodeTypeName,
+        model: ModelName | None = None,
+        command: CommandText | None = None,
+        timeout: TransitionTimeoutSeconds | None = None,
+        retries: RetryCount | None = None,
+        log_level: LogLevel | None = None,
+        max_step: MaxStep | None = None,
+        no_ask_user: NoAskUser | None = None,
+        autopilot: Autopilot | None = None,
+        status_initial: InitialStatus | None = None,
+        script: ScriptText | None = None,
+        script_type: ScriptTypeName | None = None,
+        now: datetime | None = None,
+    ) -> GraphNodeDefinition:
+        instance = cls(
+            id=id,
+            graph_definition_id=graph_definition_id,
+            position=position,
+            mode=mode,
+            role=role,
+            node_type=node_type,
+            model=model,
+            command=command,
+            timeout=timeout,
+            retries=retries,
+            log_level=log_level,
+            max_step=max_step,
+            no_ask_user=no_ask_user,
+            autopilot=autopilot,
+            status_initial=status_initial,
+            script=script,
+            script_type=script_type,
+        )
+
+        from shell.domain.definition.aggregates.graph_node_definition.events.graph_node_definition_created_event import (
+            GraphNodeDefinitionCreatedEvent,
+        )
+
+        if now is not None:
+            instance.append_event(
+                GraphNodeDefinitionCreatedEvent.now(
+                    graph_node_definition_id=id,
+                    graph_definition_id=graph_definition_id,
+                    position=position,
+                    role=role,
+                    node_type=node_type,
+                    now=now,
+                )
+            )
+
+        return instance
+
+    @property
+    def graph_definition_id(self) -> GraphDefinitionId:
+        return self._graph_definition_id
 
     @property
     def position(self) -> NodePosition:

@@ -12,4 +12,5 @@ class GraphDefinitionDto:
     id: str
     name: str
     purpose: str
+    system_role: str | None = None
     graph_node_definitions: list[GraphNodeDefinitionDto] = field(default_factory=list)

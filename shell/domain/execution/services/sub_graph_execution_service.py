@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.ports.graph_execution_definition_provider import (
+from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
 )
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext

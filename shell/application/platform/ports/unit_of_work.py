@@ -3,8 +3,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.definition.repositories.graph_definition_repository import (
+    from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
         GraphDefinitionRepository,
+    )
+    from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+        GraphDefinitionEmbeddingRepository,
+    )
+    from shell.domain.definition.aggregates.graph_node_definition.repositories.graph_node_definition_repository import (
+        GraphNodeDefinitionRepository,
+    )
+    from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
+        GraphNodeTransitionDefinitionRepository,
     )
     from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
     from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
@@ -66,6 +75,15 @@ class UnitOfWork(Protocol):
 
     @property
     def graph_definition_repository(self) -> GraphDefinitionRepository: ...
+
+    @property
+    def graph_node_definition_repository(self) -> GraphNodeDefinitionRepository: ...
+
+    @property
+    def graph_node_transition_definition_repository(self) -> GraphNodeTransitionDefinitionRepository: ...
+
+    @property
+    def graph_definition_embedding_repository(self) -> GraphDefinitionEmbeddingRepository: ...
 
     @property
     def graph_execution_state_repository(self) -> GraphExecutionStateRepository: ...

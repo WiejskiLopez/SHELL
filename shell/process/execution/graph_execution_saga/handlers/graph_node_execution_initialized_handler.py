@@ -33,7 +33,7 @@ class GraphNodeExecutionInitializedHandler:
     async def handle(self, event: GraphNodeExecutionInitializedEvent) -> None:
         saga = await self._saga_manager.record_node_execution(
             graph_execution_id=event.graph_execution_id.value,
-            node_definition_id=event.node_id.value,
+            node_definition_id=event.node_definition_id.value,
             node_execution_id=event.node_id.value,
         )
 

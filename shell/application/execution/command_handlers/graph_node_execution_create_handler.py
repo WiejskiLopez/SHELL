@@ -14,6 +14,11 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
@@ -34,10 +39,18 @@ class GraphNodeExecutionCreateHandler:
 
     async def handle(self, command: CreateGraphNodeExecutionCommand) -> None:
         now = self._time.now()
+        graph_execution_id = GraphExecutionId(command.graph_execution_id)
         node_execution = GraphNodeExecution.new(
             id=GraphNodeExecutionId.generate(),
-            graph_execution_id=GraphExecutionId(command.graph_execution_id),
+            graph_execution_id=graph_execution_id,
+            parent_graph_execution_id=graph_execution_id,
+            node_definition_id=GraphNodeDefinitionId(command.graph_node_definition_id),
+            role=NodeRole(command.role) if command.role else NodeRole.PLANNER,
+            position=NodeOrder(command.position) if command.position is not None else NodeOrder(0),
+            mode=Mode(command.mode) if command.mode else Mode.WORKER,
+            node_type=NodeType(command.node_type) if command.node_type else NodeType(""),
             now=now,
         )
-        repo = self._unit_of_work.graph_node_execution_repository
-        await repo.save(node_execution)
+        async with self._unit_of_work as unit_of_work:
+            await unit_of_work.graph_node_execution_repository.save(node_execution)
+            unit_of_work.stage_events(node_execution.pull_events())

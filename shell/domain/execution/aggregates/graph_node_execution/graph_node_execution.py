@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
     GraphNodeExecutionId,
 )
 from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.graph_node_execution_status import (
     GraphNodeExecutionStatus,
 )
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     __slots__ = (
         "_graph_execution_id",
+        "_node_definition_id",
         "_order",
         "_position",
         "_mode",
@@ -45,6 +47,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self,
         id: GraphNodeExecutionId,
         graph_execution_id: GraphExecutionId | None = None,
+        node_definition_id: GraphNodeDefinitionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
         position: NodeOrder = NodeOrder(0),
@@ -57,6 +60,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
+        self._node_definition_id = node_definition_id
         self._order = order or NodeOrder(0)
         self._position = position
         self._mode = mode
@@ -72,6 +76,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         cls,
         id: GraphNodeExecutionId,
         graph_execution_id: GraphExecutionId | None = None,
+        node_definition_id: GraphNodeDefinitionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
         position: NodeOrder = NodeOrder(0),
@@ -85,6 +90,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         return cls(
             id=id,
             graph_execution_id=graph_execution_id,
+            node_definition_id=node_definition_id,
             role=role,
             order=order,
             position=position,
@@ -105,6 +111,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         id: GraphNodeExecutionId,
         graph_execution_id: GraphExecutionId | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
+        node_definition_id: GraphNodeDefinitionId | None = None,
         role: NodeRole = NodeRole.PLANNER,
         order: NodeOrder | None = None,
         position: NodeOrder = NodeOrder(0),
@@ -118,6 +125,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         instance = cls(
             id=id,
             graph_execution_id=graph_execution_id,
+            node_definition_id=node_definition_id,
             role=role,
             order=order,
             position=position,
@@ -137,6 +145,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
                     node_id=id,
                     graph_execution_id=graph_execution_id,
                     parent_graph_execution_id=parent_graph_execution_id,
+                    node_definition_id=node_definition_id or GraphNodeDefinitionId(""),
                     now=now,
                 )
             )
@@ -250,6 +259,10 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     @property
     def graph_execution_id(self) -> GraphExecutionId | None:
         return self._graph_execution_id
+
+    @property
+    def node_definition_id(self) -> GraphNodeDefinitionId | None:
+        return self._node_definition_id
 
     @property
     def role(self) -> NodeRole:

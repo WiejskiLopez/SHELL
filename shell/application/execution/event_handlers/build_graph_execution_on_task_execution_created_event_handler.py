@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING
 
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_constructed_event import (
-    GraphExecutionConstructedEvent,
+from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+    GraphDefinitionSemanticQuery,
 )
-from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import (
@@ -17,10 +18,9 @@ if TYPE_CHECKING:
         UnitOfWork,
     )
     from shell.domain.execution.events import TaskExecutionCreatedEvent
-    from shell.domain.execution.ports.graph_execution_definition_provider import (
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
-    from shell.domain.platform.events import DomainEvent
 
 
 GRAPH_DEFINITION_NAME = "base_planner"
@@ -46,8 +46,13 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
     async def handle(self, task_execution_created_event: TaskExecutionCreatedEvent) -> None:
         now = self._clock.now()
 
-        graph_definition = await self._definition_provider.get_graph_definition_by_name(
-            self._name,
+        query = GraphDefinitionSemanticQuery(
+            text=self._name,
+            purpose="planning",
+            default_graph_definition="PLANNER",
+        )
+        graph_definition = await self._definition_provider.get_graph_definition_by_semantic_name(
+            query,
         )
         if graph_definition is None:
             raise GraphDefinitionNotFoundException(
@@ -65,40 +70,21 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
                 )
                 return
 
-            from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-                GraphNodeExecution as GNE,
-            )
-
             graph_execution_id = self._id_generator.new_graph_execution_id()
-            events: list[DomainEvent] = []
-            for node_def in graph_definition.graph_node_execution_definitions:
-                node_id = self._id_generator.new_graph_node_execution_id()
-                node = GNE(
-                    id=node_id,
-                    graph_execution_id=graph_execution_id,
-                    position=node_def.position,
-                    mode=Mode(node_def.mode),
-                    role=node_def.role,
-                    node_type=node_def.node_type,
-                    remaining_retries=node_def.retries,
-                    retry_delay_seconds=0,
-                    timeout_seconds=node_def.timeout,
-                )
-                await unit_of_work.graph_node_execution_repository.save(node)
+            graph_node_definition_ids = [
+                GraphNodeDefinitionId.generate()
+                for _ in graph_definition.graph_node_execution_definitions
+            ]
 
-            graph_execution = GraphExecution(
-                id=graph_execution_id,
+            graph_execution = GraphExecution.initialize(
+                id_=graph_execution_id,
                 task_execution_id=task_execution_created_event.task_execution_id,
+                graph_definition_id=GraphDefinitionId(graph_definition.id),
+                graph_node_definition_ids=graph_node_definition_ids,
+                now=now,
             )
             await unit_of_work.graph_execution_repository.save(graph_execution)
-            events.append(
-                GraphExecutionConstructedEvent.now(
-                    graph_execution_id=graph_execution.id,
-                    task_execution_id=task_execution_created_event.task_execution_id,
-                    now=now,
-                )
-            )
-            unit_of_work.stage_events(events)
+            unit_of_work.stage_events(graph_execution.pull_events())
 
         self._logger.info(
             "Graph built for task",

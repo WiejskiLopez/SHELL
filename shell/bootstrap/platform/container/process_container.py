@@ -30,6 +30,7 @@ class ProcessContainer(containers.DeclarativeContainer):
         saga_manager=graph_execution_saga,
         command_publisher=infra.sql_command_outbox_publisher_factory,
         logger=infra.stdlib_logger,
+        definition_provider=infra.definition_provider_factory,
     )
 
     graph_node_execution_initialized_handler_factory = providers.Factory(

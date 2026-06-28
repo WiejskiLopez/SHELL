@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
+from shell.application.definition.commands.create_graph_definition_command import (
+    CreateGraphDefinitionCommand,
+)
 from shell.application.execution.commands.attach_graph_node_executions_command import (
     AttachGraphNodeExecutionsCommand,
 )
@@ -31,6 +34,9 @@ def register_commands(core_container: CoreContainer) -> None:
     cmd_bus = app_ctx.buses.command_bus()
     commands = app_ctx.commands
 
+    cmd_bus.register(
+        CreateGraphDefinitionCommand, commands.create_graph_definition_handler_factory,
+    )
     cmd_bus.register(ImportTaskExecutionCommand, commands.import_task_execution_handler_factory)
     cmd_bus.register(StartWorkflowCommand, commands.start_workflow_handler_factory)
     cmd_bus.register(

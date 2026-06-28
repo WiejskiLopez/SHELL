@@ -2,6 +2,15 @@ from __future__ import annotations
 
 import uuid
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
+    GraphDefinitionEmbeddingId,
+)
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId,
+)
 from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
@@ -41,6 +50,15 @@ class UuidIdGenerator:
 
     def new_task_execution_state_id(self) -> TaskExecutionStateId:
         return TaskExecutionStateId(str(uuid.uuid4()))
+
+    def new_graph_definition_id(self) -> GraphDefinitionId:
+        return GraphDefinitionId(str(uuid.uuid4()))
+
+    def new_graph_node_definition_id(self) -> GraphNodeDefinitionId:
+        return GraphNodeDefinitionId(str(uuid.uuid4()))
+
+    def new_graph_definition_embedding_id(self) -> GraphDefinitionEmbeddingId:
+        return GraphDefinitionEmbeddingId(str(uuid.uuid4()))
 
     def new_workflow_state_id(self) -> WorkflowStateId:
         return WorkflowStateId(str(uuid.uuid4()))

@@ -146,6 +146,7 @@ def _seed_sync(sync_conn) -> None:
             id="base-planner-id",
             name="base_planner",
             purpose="default_planning",
+            system_role="PLANNER",
         )
         session.add(graph_definition_model)
         session.flush()

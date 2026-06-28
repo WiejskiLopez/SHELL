@@ -9,7 +9,10 @@ from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.infrastructure.definition.persistence.sql.repositories import (
+    SqlGraphDefinitionEmbeddingRepository,
     SqlGraphDefinitionRepository,
+    SqlGraphNodeDefinitionRepository,
+    SqlGraphNodeTransitionDefinitionRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
 )
@@ -104,6 +107,18 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     @property
     def graph_definition_repository(self) -> SqlGraphDefinitionRepository:
         return SqlGraphDefinitionRepository(self._active_session)
+
+    @property
+    def graph_node_definition_repository(self) -> SqlGraphNodeDefinitionRepository:
+        return SqlGraphNodeDefinitionRepository(self._active_session)
+
+    @property
+    def graph_node_transition_definition_repository(self) -> SqlGraphNodeTransitionDefinitionRepository:
+        return SqlGraphNodeTransitionDefinitionRepository(self._active_session)
+
+    @property
+    def graph_definition_embedding_repository(self) -> SqlGraphDefinitionEmbeddingRepository:
+        return SqlGraphDefinitionEmbeddingRepository(self._active_session)
 
     @property
     def graph_node_execution_repository(self) -> SqlGraphNodeExecutionRepository:

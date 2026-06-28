@@ -12,6 +12,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.events import GraphExecutionInitializedEvent
+from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,
+)
 from shell.domain.execution.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
@@ -31,6 +34,16 @@ from shell.tests.process.conftest import (
 )
 
 
+class FakeDefinitionProvider:
+    async def get_graph_definition(self, definition_id: str) -> None:
+        return None
+
+    async def get_graph_definition_by_semantic_name(self, query: object) -> None:
+        return None
+
+
+
+
 class TestGraphExecutionInitializedHandler:
     NOW = datetime.now(tz=UTC)
 
@@ -41,16 +54,22 @@ class TestGraphExecutionInitializedHandler:
         return GraphExecutionSaga(repository=saga_repository)
 
     @pytest.fixture()
+    def definition_provider(self) -> FakeDefinitionProvider:
+        return FakeDefinitionProvider()
+
+    @pytest.fixture()
     def handler(
         self,
         saga_manager: GraphExecutionSaga,
         command_publisher: FakeCommandOutboxPublisher,
         logger: FakeLogger,
+        definition_provider: FakeDefinitionProvider,
     ) -> GraphExecutionInitializedHandler:
         return GraphExecutionInitializedHandler(
             saga_manager=saga_manager,
             command_publisher=command_publisher,
             logger=logger,
+            definition_provider=definition_provider,
         )
 
     async def test_creates_saga_and_publishes_commands(

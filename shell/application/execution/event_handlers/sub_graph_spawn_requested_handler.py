@@ -15,6 +15,12 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
+from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+    GraphNodeExecutionId,
+)
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionId
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.mode import Mode
@@ -22,7 +28,7 @@ from shell.domain.platform.value_objects.mode import Mode
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.ports.graph_execution_definition_provider import (
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
@@ -104,6 +110,32 @@ class SubGraphSpawnRequestedHandler:
                 parent_id=parent.id,
                 parent_depth=parent.depth.value,
             )
+
+            node_defs = graph_definition.graph_node_execution_definitions
+            node_definition_ids = [GraphNodeDefinitionId.generate() for _ in node_defs]
+            child.prepare_node_definitions(
+                graph_definition_id=GraphDefinitionId(graph_definition.id),
+                graph_node_definition_ids=node_definition_ids,
+            )
+
+            for i, node_def in enumerate(node_defs):
+                node_id = GraphNodeExecutionId.generate()
+                node = GraphNodeExecution(
+                    id=node_id,
+                    graph_execution_id=child_id,
+                    node_definition_id=node_definition_ids[i],
+                    role=NodeRole(node_def.role),
+                    position=NodeOrder(node_def.position),
+                    mode=Mode(node_def.mode),
+                    node_type=node_def.node_type,
+                )
+                await unit_of_work.graph_node_execution_repository.save(node)
+                child.attach_node_execution(
+                    node_definition_id=node_definition_ids[i],
+                    node_execution_id=node_id,
+                    now=now,
+                )
+
             if state_input:
                 state = GraphExecutionState.create(
                     id_=GraphExecutionStateId.generate(),
@@ -115,33 +147,8 @@ class SubGraphSpawnRequestedHandler:
                 await unit_of_work.graph_execution_state_repository.save(state)
                 unit_of_work.stage_events(state.pull_events())
 
-            node_defs = graph_definition.graph_node_execution_definitions
-            for node_def in node_defs:
-                node_id = self._id_generator.new_graph_node_execution_id()
-                node = GraphNodeExecution.new(
-                    id=node_id,
-                    graph_execution_id=child_id,
-                    parent_graph_execution_id=event.parent_graph_execution_id,
-                    role=NodeRole(node_def.role),
-                    position=getattr(node_def, 'position', 0),
-                    mode=Mode(getattr(node_def, 'mode', 'worker')),
-                    node_type=getattr(node_def, 'node_type', ''),
-                    model=getattr(node_def, 'model', ''),
-                    command=getattr(node_def, 'command', ''),
-                    timeout_seconds=getattr(node_def, 'timeout', 0),
-                    max_retries=getattr(node_def, 'retries', 0),
-                    log_level=getattr(node_def, 'log_level', 'INFO'),
-                    max_step=getattr(node_def, 'max_step', 0) or 0,
-                    no_ask_user=getattr(node_def, 'no_ask_user', False),
-                    autopilot=getattr(node_def, 'autopilot', False),
-                    status_initial=getattr(node_def, 'status_initial', ''),
-                    now=now,
-                )
-                await unit_of_work.graph_node_execution_repository.save(node)
-                unit_of_work.stage_events(list(node.pull_events()))
-
             await unit_of_work.graph_execution_repository.save(child)
-            unit_of_work.stage_events(list(child.pull_events()))
+            unit_of_work.stage_events(child.pull_events())
 
             self._logger.info(
                 "sub_graph_spawn.completed",

@@ -57,6 +57,9 @@ from shell.application.execution.event_handlers.propagate_task_output_to_workflo
 from shell.application.execution.event_handlers.propagate_workflow_output_to_task_input import (
     PropagateWorkflowOutputToTaskInput,
 )
+from shell.application.definition.event_handlers.generate_embedding_on_graph_definition_created_handler import (
+    GenerateEmbeddingOnGraphDefinitionCreatedHandler,
+)
 from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
     SubGraphSpawnRequestedHandler,
 )
@@ -173,6 +176,13 @@ class EventContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
+    )
+    generate_embedding_on_graph_definition_created_factory = providers.Factory(
+        GenerateEmbeddingOnGraphDefinitionCreatedHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        clock=infra.clock_factory,
+        id_generator=infra.id_generator_factory,
+        embedder=infra.embedder,
     )
     propagate_session_output_to_workflow_input_factory = providers.Factory(
         PropagateSessionOutputToWorkflowInput,

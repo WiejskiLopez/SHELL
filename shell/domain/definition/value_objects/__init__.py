@@ -31,6 +31,7 @@ from shell.domain.definition.value_objects.runner_kind import RunnerKind
 from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
 from shell.domain.definition.value_objects.source_uri import SourceUri
+from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.definition.value_objects.title import Title
 from shell.domain.definition.value_objects.transition_label import TransitionLabel
 from shell.domain.definition.value_objects.transition_priority import TransitionPriority
@@ -67,6 +68,7 @@ __all__ = [
     "ScriptText",
     "ScriptTypeName",
     "SourceUri",
+    "SystemRole",
     "Title",
     "TransitionLabel",
     "TransitionPriority",

@@ -28,6 +28,7 @@ class GraphNodeExecutionDefinition(ValueObject):
 class GraphExecutionDefinition(ValueObject):
     id: str
     name: str
+    system_role: str | None = None
     graph_node_execution_definitions: list[GraphNodeExecutionDefinition] = field(
         default_factory=list
     )

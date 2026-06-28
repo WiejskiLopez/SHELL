@@ -3,9 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.definition.entities.graph_definition import GraphDefinition
+    from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+        GraphDefinitionId,
+    )
     from shell.domain.definition.value_objects.graph_name import GraphName
-    from shell.domain.definition.value_objects.ids import GraphDefinitionId
     from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 

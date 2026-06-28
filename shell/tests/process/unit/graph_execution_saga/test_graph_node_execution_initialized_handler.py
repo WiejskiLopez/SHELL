@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
     GraphNodeExecutionId,
 )
 from shell.domain.execution.events import GraphNodeExecutionInitializedEvent
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
     GraphExecutionSaga,
 )
@@ -69,8 +70,9 @@ class TestGraphNodeExecutionInitializedHandler:
 
         event = GraphNodeExecutionInitializedEvent(
             graph_execution_id=GraphExecutionId("ge-1"),
-            node_id=GraphNodeExecutionId("ndef-1"),
+            node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-1"),
+            node_definition_id=GraphNodeDefinitionId("ndef-1"),
             occurred_at=self.NOW,
         )
 
@@ -84,7 +86,7 @@ class TestGraphNodeExecutionInitializedHandler:
         cmd_type, payload = command_publisher.published[0]
         assert cmd_type == "AttachGraphNodeExecutionsCommand"
         assert payload["graph_execution_id"] == "ge-1"
-        assert payload["graph_node_definition_executions"] == {"ndef-1": "ndef-1"}
+        assert payload["graph_node_definition_executions"] == {"ndef-1": "gne-1"}
 
     async def test_does_not_publish_when_not_complete(
         self,
@@ -96,8 +98,9 @@ class TestGraphNodeExecutionInitializedHandler:
 
         event = GraphNodeExecutionInitializedEvent(
             graph_execution_id=GraphExecutionId("ge-2"),
-            node_id=GraphNodeExecutionId("ndef-1"),
+            node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-2"),
+            node_definition_id=GraphNodeDefinitionId("ndef-1"),
             occurred_at=self.NOW,
         )
 
@@ -115,8 +118,9 @@ class TestGraphNodeExecutionInitializedHandler:
 
         event_1 = GraphNodeExecutionInitializedEvent(
             graph_execution_id=GraphExecutionId("ge-3"),
-            node_id=GraphNodeExecutionId("ndef-1"),
+            node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-3"),
+            node_definition_id=GraphNodeDefinitionId("ndef-1"),
             occurred_at=self.NOW,
         )
         await handler.handle(event_1)
@@ -124,8 +128,9 @@ class TestGraphNodeExecutionInitializedHandler:
 
         event_2 = GraphNodeExecutionInitializedEvent(
             graph_execution_id=GraphExecutionId("ge-3"),
-            node_id=GraphNodeExecutionId("ndef-2"),
+            node_id=GraphNodeExecutionId("gne-2"),
             parent_graph_execution_id=GraphExecutionId("ge-3"),
+            node_definition_id=GraphNodeDefinitionId("ndef-2"),
             occurred_at=self.NOW,
         )
         await handler.handle(event_2)
@@ -142,8 +147,9 @@ class TestGraphNodeExecutionInitializedHandler:
     ) -> None:
         event = GraphNodeExecutionInitializedEvent(
             graph_execution_id=GraphExecutionId("nonexistent"),
-            node_id=GraphNodeExecutionId("ndef-1"),
+            node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("nonexistent"),
+            node_definition_id=GraphNodeDefinitionId("ndef-1"),
             occurred_at=self.NOW,
         )
 

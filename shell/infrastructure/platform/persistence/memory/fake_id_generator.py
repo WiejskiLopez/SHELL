@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
+    GraphDefinitionEmbeddingId,
+)
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,
     GraphNodeDefinitionId,
@@ -59,6 +62,9 @@ class FakeIdGenerator:
 
     def new_graph_node_definition_id(self) -> GraphNodeDefinitionId:
         return GraphNodeDefinitionId(self._next())
+
+    def new_graph_definition_embedding_id(self) -> GraphDefinitionEmbeddingId:
+        return GraphDefinitionEmbeddingId(self._next())
 
     def new_graph_execution_id(self) -> GraphExecutionId:
         return GraphExecutionId(self._next())

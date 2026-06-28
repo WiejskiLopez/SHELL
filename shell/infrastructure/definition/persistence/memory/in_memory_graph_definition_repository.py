@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from shell.domain.definition.repositories.graph_definition_repository import (
+from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_definition.repositories import (
     GraphDefinitionRepository,
 )
-from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.ids import (
+from shell.domain.definition.aggregates.graph_definition.value_objects import (
     GraphDefinitionId,
 )
-from shell.domain.definition.entities.graph_definition import GraphDefinition
+from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
