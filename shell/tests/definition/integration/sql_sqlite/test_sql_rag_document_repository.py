@@ -29,9 +29,9 @@ class TestSqlRagDocumentRepository:
         from shell.application.definition.command_handlers.index_document_handler import (
             IndexDocumentHandler,
         )
-        from shell.application.platform.commands.commands import IndexDocumentCommand
+        from shell.application.platform.commands import IndexDocumentCommand
         from shell.application.platform.queries.queries import SearchSimilarQuery
-        from shell.application.platform.query_handlers.query_handlers import SearchSimilarHandler
+        from shell.application.platform.query_handlers import SearchSimilarHandler
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
@@ -57,9 +57,9 @@ class TestSqlRagDocumentRepository:
         from shell.application.definition.command_handlers.index_document_handler import (
             IndexDocumentHandler,
         )
-        from shell.application.platform.commands.commands import IndexDocumentCommand
+        from shell.application.platform.commands import IndexDocumentCommand
         from shell.application.platform.queries.queries import SearchSimilarQuery
-        from shell.application.platform.query_handlers.query_handlers import SearchSimilarHandler
+        from shell.application.platform.query_handlers import SearchSimilarHandler
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)

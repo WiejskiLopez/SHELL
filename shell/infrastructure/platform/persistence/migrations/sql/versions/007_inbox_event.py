@@ -23,6 +23,8 @@ def upgrade() -> None:
         sa.Column("event_type", sa.String(128), nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("payload", sa.JSON, nullable=False, server_default="{}"),
+        sa.Column("correlation_id", sa.String(255), nullable=False, server_default=""),
+        sa.Column("causation_id", sa.String(255), nullable=False, server_default=""),
         sa.Column("received_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
     )

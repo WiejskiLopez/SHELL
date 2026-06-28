@@ -76,7 +76,7 @@ class SyncWorkflowRunner:
         task_execution_id: str,
         work_dir: str,
     ) -> SyncWorkflowResult:
-        from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
+        from shell.application.platform.commands import RunTaskerWorkflowCommand
         from shell.domain.execution.value_objects.ids import WorkflowId
         from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 

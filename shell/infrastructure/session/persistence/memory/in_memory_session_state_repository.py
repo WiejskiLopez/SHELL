@@ -10,7 +10,7 @@ from shell.domain.session.aggregates.session_state.repositories.session_state_re
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.session.aggregates.session_state.session_state import SessionState
@@ -31,13 +31,13 @@ class InMemorySessionStateRepository(SessionStateRepository):
             if item.session_id == session_id
         ]
 
-    async def list_by_session_and_kind(
-        self, session_id: SessionId, kind: StateKind
+    async def list_by_session_and_direction(
+        self, session_id: SessionId, direction: StateDirection
     ) -> list[SessionState]:
         return [
             copy.deepcopy(item)
             for item in self._store.values()
-            if item.session_id == session_id and item.kind == kind
+            if item.session_id == session_id and item.direction == direction
         ]
 
     async def save(self, session_state: SessionState) -> None:

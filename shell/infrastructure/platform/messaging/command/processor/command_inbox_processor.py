@@ -3,6 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.context import (
+    causation_id_var,
+    correlation_id_var,
+)
 from shell.infrastructure.platform.messaging.serialization.command_deserializer import (
     CommandDeserializer,
 )
@@ -32,7 +36,7 @@ class CommandInboxProcessor:
             rows = (
                 await session.execute(
                     text("""
-                        SELECT id, command_type, occurred_at, payload
+                        SELECT id, command_type, occurred_at, payload, correlation_id, causation_id
                         FROM inbox_command
                         WHERE processed_at IS NULL
                         LIMIT :limit
@@ -53,7 +57,13 @@ class CommandInboxProcessor:
                     payload=row.payload,
                 )
                 if command is not None:
-                    await self._command_bus.dispatch(command)
+                    corr_token = correlation_id_var.set(row.correlation_id)
+                    caus_token = causation_id_var.set("")
+                    try:
+                        await self._command_bus.dispatch(command)
+                    finally:
+                        correlation_id_var.reset(corr_token)
+                        causation_id_var.reset(caus_token)
                 ids.append(row.id)
 
             await session.execute(

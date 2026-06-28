@@ -5,7 +5,7 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
     SaveGraphNodeExecutionResultHandler,
 )
-from shell.application.platform.commands.commands import SaveGraphNodeExecutionResultCommand
+from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
@@ -17,7 +17,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.platform.value_objects.mode import Mode
 
@@ -52,8 +52,8 @@ class TestSaveGraphNodeExecutionResultHandler:
         )
         assert result_id
 
-        states = await unit_of_work.graph_node_execution_state_repository.list_by_graph_node_execution_and_kind(
-            GraphNodeExecutionId("node-1"), StateKind.OUTPUT
+        states = await unit_of_work.graph_node_execution_state_repository.list_by_graph_node_execution_and_direction(
+            GraphNodeExecutionId("node-1"), StateDirection.OUT
         )
         assert len(states) > 0
         assert states[-1].state_data.get("stdout") == "ok"

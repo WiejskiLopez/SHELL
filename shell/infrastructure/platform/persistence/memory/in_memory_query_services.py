@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from shell.application.platform.dto import (
-    EnvelopeDto,
     RagChunkDto,
     RunnerConfigDto,
     SessionDto,
@@ -68,31 +67,6 @@ class InMemoryQueryServices:
             status=workflow.status.value,
             created_at=workflow.created_at,
         )
-
-    async def get_envelopes_by_workflow(
-        self, workflow_id: str, pending_only: bool = False
-    ) -> list[EnvelopeDto]:
-        envelopes = await self._unit_of_work.envelope_repository.list_by_workflow(WorkflowId(workflow_id))
-        if pending_only:
-            envelopes = [envelope for envelope in envelopes if envelope.status.value == "pending"]
-
-        return [
-            EnvelopeDto(
-                id=str(envelope.id),
-                workflow_id=str(envelope.workflow_id),
-                sender_graph_node_execution_id=str(envelope.sender_graph_node_execution_id),
-                receiver_graph_node_execution_id=str(envelope.receiver_graph_node_execution_id),
-                source_role=envelope.source_role.value,
-                target_role=envelope.target_role.value,
-                status=envelope.status.value,
-                stage=envelope.stage.value,
-                step=envelope.step.value,
-                payload=envelope.payload.value,
-                created_at=envelope.created_at.value,
-                updated_at=envelope.updated_at.value,
-            )
-            for envelope in envelopes
-        ]
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
         runner_config = await self._unit_of_work.runner_config_repository.get_by_package(package_name)

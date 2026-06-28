@@ -80,6 +80,11 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
                 else None
             )
             graph_execution_model.depth = graph_execution.depth.value if graph_execution.depth else 0
+            graph_execution_model.initialization_status = graph_execution.initialization_status.value
+            graph_execution_model.graph_node_definition_executions = {
+                slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+                for slot in graph_execution.graph_node_definition_execution_slots
+            }
 
 
 __all__ = [

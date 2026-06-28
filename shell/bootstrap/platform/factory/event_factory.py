@@ -41,8 +41,6 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_comp
     TaskExecutionCompletedEvent,
 )
 from shell.domain.execution.events import (
-    EnvelopeExpiredEvent,
-    EnvelopeRoutedEvent,
     GraphNodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
@@ -57,17 +55,11 @@ if TYPE_CHECKING:
 def register_events(core_container: CoreContainer) -> None:
     """Subskrybuje wszystkie Event Handlers na EventBus kontenera."""
 
-    # Wyciągamy podkontener do zmiennej typu Any.
-    # Uciszamy mypy tylko RAZ w tym miejscu.
     app_ctx: Any = core_container.app
 
     event_bus = app_ctx.buses.event_bus()
     events = app_ctx.events
 
-    # Dzięki sprowadzeniu do Any, dynamiczne fabryki przechodzą bez problemu:
-    event_bus.subscribe(EnvelopeRoutedEvent, events.archive_on_delivered_handler_factory)
-    event_bus.subscribe(EnvelopeRoutedEvent, events.log_audit_handler_factory)
-    event_bus.subscribe(EnvelopeExpiredEvent, events.log_audit_handler_factory)
     event_bus.subscribe(TaskExecutionCreatedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
         TaskExecutionCreatedEvent, events.build_graph_execution_on_task_execution_created_factory

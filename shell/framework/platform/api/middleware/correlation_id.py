@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from shell.application.platform.context import (
+    get_correlation_id,
+    reset_correlation_id,
+    set_correlation_id,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -13,19 +18,17 @@ if TYPE_CHECKING:
     from starlette.requests import Request
     from starlette.responses import Response
 
-correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default="")
-
 
 class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
         cid = request.headers.get("X-Correlation-ID") or ""
-        token = correlation_id_var.set(cid)
+        token = set_correlation_id(cid)
         try:
             response: Response = await call_next(request)
             if cid:
                 response.headers["X-Correlation-ID"] = cid
             return response
         finally:
-            correlation_id_var.reset(token)
+            reset_correlation_id(token)

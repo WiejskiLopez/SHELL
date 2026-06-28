@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_comp
 from shell.domain.execution.aggregates.workflow_state.workflow_state import (
     WorkflowState,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -58,7 +58,7 @@ class TaskExecutionCompletedPropagateOutputHandler:
             state = WorkflowState.create(
                 id_=self._id_generator.new_workflow_state_id(),
                 workflow_id=workflow.id,
-                kind=StateKind.INPUT,
+                direction=StateDirection.IN,
                 payload=output_payload,
                 now=now,
             )

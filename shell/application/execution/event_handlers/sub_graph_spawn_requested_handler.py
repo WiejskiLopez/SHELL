@@ -16,7 +16,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
     GraphNodeExecution,
 )
 from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -108,7 +108,7 @@ class SubGraphSpawnRequestedHandler:
                 state = GraphExecutionState.create(
                     id_=GraphExecutionStateId.generate(),
                     graph_execution_id=child.id,
-                    kind=StateKind.INPUT,
+                    direction=StateDirection.IN,
                     now=now,
                 )
                 state.patch(state_input)

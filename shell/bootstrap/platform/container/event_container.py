@@ -67,8 +67,7 @@ from shell.application.execution.event_handlers.graph_node_execution_failed_even
     GraphNodeExecutionFailedEventHandler,
 )
 
-from shell.application.platform.event_handlers.event_handlers import (
-    ArchiveOnDeliveredHandler,
+from shell.application.platform.event_handlers import (
     LogAuditHandler,
 )
 
@@ -80,11 +79,6 @@ class EventContainer(containers.DeclarativeContainer):
     domain = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    archive_on_delivered_handler_factory = providers.Factory(
-        ArchiveOnDeliveredHandler,
-        unit_of_work=buses.unit_of_work_factory,
-        clock=infra.clock_factory,
-    )
     log_audit_handler_factory = providers.Factory(
         LogAuditHandler,
         logger=infra.stdlib_logger,

@@ -9,7 +9,6 @@ from fastapi import FastAPI
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.domain.platform.exceptions import DomainError
 from shell.framework.execution.api.routers import (
-    envelopes,
     graph_node_execution,
     task_executions,
     workflows,
@@ -45,7 +44,6 @@ def create_app(core_container: CoreContainer) -> FastAPI:
     # Routers
     app.include_router(task_executions.router)
     app.include_router(workflows.router)
-    app.include_router(envelopes.router)
     app.include_router(graph_node_execution.router)
 
     @app.get("/health", tags=["health"])

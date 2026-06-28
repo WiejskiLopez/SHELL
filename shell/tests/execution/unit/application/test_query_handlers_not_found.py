@@ -6,7 +6,7 @@ from shell.application.platform.queries.queries import (
     GetCurrentTaskExecutionQuery,
     GetWorkflowQuery,
 )
-from shell.application.platform.query_handlers.query_handlers import (
+from shell.application.platform.query_handlers import (
     GetCurrentTaskExecutionHandler,
     GetWorkflowHandler,
 )

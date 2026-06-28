@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_exe
 from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
     GraphNodeExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
@@ -24,8 +24,8 @@ class GraphNodeExecutionStateRepository(Protocol):
         self, graph_node_execution_id: GraphNodeExecutionId
     ) -> list[GraphNodeExecutionState]: ...
 
-    async def list_by_graph_node_execution_and_kind(
-        self, graph_node_execution_id: GraphNodeExecutionId, kind: StateKind
+    async def list_by_graph_node_execution_and_direction(
+        self, graph_node_execution_id: GraphNodeExecutionId, direction: StateDirection
     ) -> list[GraphNodeExecutionState]: ...
 
     async def save(self, state: GraphNodeExecutionState) -> None: ...

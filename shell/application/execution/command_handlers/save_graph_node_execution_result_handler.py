@@ -10,11 +10,11 @@ from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.
 )
 from shell.domain.execution.exceptions import WorkflowNotFound
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import SaveGraphNodeExecutionResultCommand
+    from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
@@ -46,7 +46,7 @@ class SaveGraphNodeExecutionResultHandler:
                 state = GraphNodeExecutionState.create(
                     id_=result_id,
                     graph_node_execution_id=graph_node_execution_id,
-                    kind=StateKind.OUTPUT,
+                    direction=StateDirection.OUT,
                     payload={
                         "status": status.value,
                         "stdout": save_graph_node_execution_result_command.stdout or "",

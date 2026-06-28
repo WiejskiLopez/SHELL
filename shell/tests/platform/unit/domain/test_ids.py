@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import pytest
-from shell.domain.execution.value_objects.ids import EnvelopeId, TaskExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 
 
 class TestIds:
@@ -19,6 +20,6 @@ class TestIds:
         w = WorkflowId.generate()
         assert w.value
 
-    def test_envelope_id_generate(self) -> None:
-        e = EnvelopeId.generate()
-        assert e.value
+    def test_message_id_generate(self) -> None:
+        m = MessageId.generate()
+        assert m.value

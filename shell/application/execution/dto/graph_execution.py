@@ -17,5 +17,4 @@ class GraphExecutionDto:
     state_output: dict[str, Any] | None = None
     depth: int = 0
     timeout_at: datetime | None = None
-    correlation_id: str = ""
     tags: dict[str, Any] | None = None

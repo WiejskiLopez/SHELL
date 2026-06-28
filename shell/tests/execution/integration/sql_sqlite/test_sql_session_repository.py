@@ -30,12 +30,12 @@ class TestSqlSessionRepository:
             CloseSessionHandler,
             OpenSessionHandler,
         )
-        from shell.application.platform.commands.commands import (
+        from shell.application.platform.commands import (
             CloseSessionCommand,
             OpenSessionCommand,
         )
         from shell.application.platform.queries.queries import GetSessionHistoryQuery
-        from shell.application.platform.query_handlers.query_handlers import (
+        from shell.application.platform.query_handlers import (
             GetSessionHistoryHandler,
         )
 

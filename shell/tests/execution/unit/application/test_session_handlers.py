@@ -8,12 +8,12 @@ from shell.application.session.command_handlers.session_handlers import (
     OpenSessionHandler,
     SessionNotFound,
 )
-from shell.application.platform.commands.commands import (
+from shell.application.platform.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
 from shell.application.platform.queries.queries import GetSessionHistoryQuery
-from shell.application.platform.query_handlers.query_handlers import GetSessionHistoryHandler
+from shell.application.platform.query_handlers import GetSessionHistoryHandler
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
     FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest

@@ -10,7 +10,7 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
@@ -31,13 +31,13 @@ class InMemoryWorkflowStateRepository(WorkflowStateRepository):
             if item.workflow_id == workflow_id
         ]
 
-    async def list_by_workflow_id_and_kind(
-        self, workflow_id: WorkflowId, kind: StateKind
+    async def list_by_workflow_id_and_direction(
+        self, workflow_id: WorkflowId, direction: StateDirection
     ) -> list[WorkflowState]:
         return [
             copy.deepcopy(item)
             for item in self._store.values()
-            if item.workflow_id == workflow_id and item.kind == kind
+            if item.workflow_id == workflow_id and item.direction == direction
         ]
 
     async def save(self, workflow_state: WorkflowState) -> None:

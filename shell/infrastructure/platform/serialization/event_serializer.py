@@ -66,7 +66,6 @@ class DomainEventSerializer:
 
     def _deserialize_value(self, value: object, target_type: type) -> object:
         from shell.domain.execution.value_objects.ids import (
-            EnvelopeId,
             GraphNodeExecutionId,
             TaskExecutionId,
             WorkflowId,
@@ -98,7 +97,6 @@ class DomainEventSerializer:
                 return datetime.fromisoformat(value)
             return value
         value_obj_map: dict[type, type] = {
-            EnvelopeId: EnvelopeId,
             WorkflowId: WorkflowId,
             TaskExecutionId: TaskExecutionId,
             GraphNodeExecutionId: GraphNodeExecutionId,

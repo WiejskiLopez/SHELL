@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
-from shell.application.platform.commands.commands import RouteEnvelopesCommand, StartWorkflowCommand
+from shell.application.platform.commands import StartWorkflowCommand
 from shell.application.platform.queries.queries import GetWorkflowQuery
-from shell.framework.execution.api.routers.workflows.route_response import RouteResponse
 from shell.framework.execution.api.routers.workflows.start_workflow_request import (  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
     StartWorkflowRequest,  # noqa: TC002 — StartWorkflowRequest używany w parametrach endpointów FastAPI
 )
@@ -57,10 +56,4 @@ async def get_workflow(
     return {"workflow_id": workflow_id, "workflow": str(result)}
 
 
-@router.post("/{workflow_id}/route", response_model=RouteResponse)
-async def route_envelopes(
-    workflow_id: str, command_bus: CommandBus = Depends(get_command_bus)
-) -> RouteResponse:
-    command = RouteEnvelopesCommand(workflow_id=workflow_id)
-    count = await command_bus.dispatch(command)
-    return RouteResponse(routed=count or 0)
+

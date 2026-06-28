@@ -10,6 +10,8 @@ class OutboxRecord:
     event_type: str
     occurred_at: datetime
     payload: dict
+    correlation_id: str = ""
+    causation_id: str = ""
     published_at: datetime | None = None
 
     @property

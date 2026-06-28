@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.infrastructure.platform.persistence.sql.mappers import (
     graph_execution_state_input_entity_to_model,
     graph_execution_state_input_model_to_entity,
@@ -28,8 +28,8 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_current_by_graph_execution_id_and_kind(
-        self, graph_execution_id: GraphExecutionId, kind: StateKind
+    async def get_current_by_graph_execution_id_and_direction(
+        self, graph_execution_id: GraphExecutionId, direction: StateDirection
     ) -> GraphExecutionState | None:
         query = (
             select(GraphExecutionStateInputModel)

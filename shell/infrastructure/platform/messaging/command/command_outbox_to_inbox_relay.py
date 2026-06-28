@@ -26,7 +26,7 @@ class CommandOutboxToInboxRelay:
             rows = (
                 await session.execute(
                     text("""
-                        SELECT id, command_type, occurred_at, payload
+                        SELECT id, command_type, occurred_at, payload, correlation_id, causation_id
                         FROM outbox_command
                         WHERE published_at IS NULL
                         LIMIT :limit
@@ -46,6 +46,8 @@ class CommandOutboxToInboxRelay:
                     command_type=row.command_type,
                     occurred_at=row.occurred_at,
                     payload=row.payload,
+                    correlation_id=row.correlation_id,
+                    causation_id=row.causation_id,
                     received_at=now,
                 )
                 session.add(inbox)

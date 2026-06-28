@@ -4,14 +4,14 @@ from shell.application.execution.command_handlers.import_task_execution_handler 
     ImportTaskExecutionHandler,
 )
 from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
-from shell.application.platform.commands.commands import (
+from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
     StartWorkflowCommand,
 )
 from shell.application.platform.queries.queries import (
     GetWorkflowQuery,
 )
-from shell.application.platform.query_handlers.query_handlers import (
+from shell.application.platform.query_handlers import (
     GetWorkflowHandler,
 )
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService

@@ -20,7 +20,6 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
     child_graph_execution_id: GraphExecutionId
     graph_definition_id: GraphDefinitionId
     state_input: StateData | None = None
-    correlation_id: str = ""
 
     @classmethod
     def now(
@@ -30,7 +29,6 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
         graph_definition_id: GraphDefinitionId,
         now: datetime,
         state_input: StateData | None = None,
-        correlation_id: str = "",
     ) -> GraphExecutionSubGraphSpawnRequestedEvent:
         return cls(
             occurred_at=now,
@@ -38,7 +36,6 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
             child_graph_execution_id=child_graph_execution_id,
             graph_definition_id=graph_definition_id,
             state_input=state_input,
-            correlation_id=correlation_id,
         )
 
     @classmethod
@@ -52,5 +49,4 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
             child_graph_execution_id=GraphExecutionId(payload.get("child_graph_execution_id")),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             state_input=StateData(payload["state_input"]) if "state_input" in payload and payload["state_input"] is not None else None,
-            correlation_id=payload.get("correlation_id", ""),
         )

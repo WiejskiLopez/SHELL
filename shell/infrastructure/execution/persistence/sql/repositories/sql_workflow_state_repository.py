@@ -6,7 +6,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.infrastructure.platform.persistence.sql.mappers import (
     workflow_state_entity_to_model,
     workflow_state_model_to_entity,
@@ -37,14 +37,14 @@ class SqlWorkflowStateRepository(WorkflowStateRepository):
         rows = (await self._session.execute(query)).scalars().all()
         return [workflow_state_model_to_entity(row) for row in rows if row]
 
-    async def list_by_workflow_id_and_kind(
-        self, workflow_id: WorkflowId, kind: StateKind
+    async def list_by_workflow_id_and_direction(
+        self, workflow_id: WorkflowId, direction: StateDirection
     ) -> list[WorkflowState]:
         query = (
             select(WorkflowStateModel)
             .where(
                 WorkflowStateModel.workflow_id == workflow_id.value,
-                WorkflowStateModel.kind == kind.value,
+                WorkflowStateModel.direction == direction.value,
             )
         )
         rows = (await self._session.execute(query)).scalars().all()
@@ -56,8 +56,8 @@ class SqlWorkflowStateRepository(WorkflowStateRepository):
             model = workflow_state_entity_to_model(workflow_state)
             self._session.add(model)
         else:
-            model.kind = workflow_state.kind.value
-            model.payload = workflow_state.state_data.to_dict()
+            model.direction = workflow_state.direction.value
+            model.state_data = workflow_state.state_data.to_dict()
             model.is_current = True
             model.created_at = workflow_state.created_at.value
 

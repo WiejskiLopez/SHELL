@@ -1,9 +1,3 @@
-from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_archive_stub import (
-    SqlEnvelopeArchiveStub,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_repository import (
-    SqlEnvelopeRepository,
-)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
@@ -25,6 +19,12 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_transition_execution_repository import (
     SqlGraphNodeTransitionExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_session_execution_repository import (
+    SqlSessionExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.sql.repositories.sql_session_execution_state_repository import (
+    SqlSessionExecutionStateRepository,
+)
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
@@ -34,6 +34,12 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execut
 from shell.infrastructure.execution.persistence.sql.repositories.sql_task_execution_state_repository import (
     SqlTaskExecutionStateRepository,
 )
+from shell.infrastructure.execution.persistence.sql.repositories.sql_user_execution_repository import (
+    SqlUserExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.sql.repositories.sql_user_execution_state_repository import (
+    SqlUserExecutionStateRepository,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,
 )
@@ -42,8 +48,6 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_st
 )
 
 __all__ = [
-    "SqlEnvelopeArchiveStub",
-    "SqlEnvelopeRepository",
     "SqlGraphExecutionRepository",
     "SqlGraphExecutionSagaRepository",
     "SqlGraphExecutionStateInputRepository",
@@ -51,9 +55,13 @@ __all__ = [
     "SqlGraphNodeExecutionRepository",
     "SqlGraphNodeExecutionStateRepository",
     "SqlGraphNodeTransitionExecutionRepository",
+    "SqlSessionExecutionRepository",
+    "SqlSessionExecutionStateRepository",
     "SqlSessionRepository",
     "SqlTaskExecutionRepository",
     "SqlTaskExecutionStateRepository",
+    "SqlUserExecutionRepository",
+    "SqlUserExecutionStateRepository",
     "SqlWorkflowRepository",
     "SqlWorkflowStateRepository",
 ]

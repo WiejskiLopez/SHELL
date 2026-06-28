@@ -1,7 +1,7 @@
 """GraphExecutionState — external input/output state for a graph execution, a separate AggregateRoot.
 
 Consolidates GraphExecutionStateInput and GraphExecutionStateOutput into a single aggregate
-with a ``kind`` discriminator (StateKind.INPUT or StateKind.OUTPUT).
+with a ``direction`` discriminator (StateDirection.IN or StateDirection.OUT).
 
 INPUT state represents data fed into the graph from external sources.
 OUTPUT state represents data produced by the graph's own nodes during execution.
@@ -16,7 +16,7 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -34,14 +34,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     __slots__ = (
         "_graph_execution_id",
-        "_kind",
+        "_direction",
         "_state_data",
         "_is_current",
         "_created_at",
     )
 
     _graph_execution_id: GraphExecutionId
-    _kind: StateKind
+    _direction: StateDirection
     _state_data: StateData
     _is_current: IsCurrent
     _created_at: CreatedAt
@@ -50,14 +50,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self,
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData = StateData({}),
         is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
-        self._kind = kind
+        self._direction = direction
         self._state_data = state_data
         self._is_current = is_current
         if created_at is not None:
@@ -68,7 +68,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         cls,
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData = StateData({}),
         is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
@@ -76,7 +76,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return cls(
             id=id,
             graph_execution_id=graph_execution_id,
-            kind=kind,
+            direction=direction,
             state_data=state_data,
             is_current=is_current,
             created_at=created_at,
@@ -89,8 +89,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._graph_execution_id
 
     @property
-    def kind(self) -> StateKind:
-        return self._kind
+    def direction(self) -> StateDirection:
+        return self._direction
 
     @property
     def state_data(self) -> dict[str, Any]:
@@ -112,13 +112,13 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         *,
         id_: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         now: datetime,
     ) -> GraphExecutionState:
         instance = cls(
             id=id_,
             graph_execution_id=graph_execution_id,
-            kind=kind,
+            direction=direction,
             state_data=StateData({}),
             is_current=IsCurrent(True),
             created_at=now,
@@ -137,7 +137,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             GraphExecutionStateChangedEvent.now(
                 graph_execution_id=self._graph_execution_id,
                 graph_execution_state_id=self.id,
-                kind=self._kind,
+                direction=self._direction,
                 key=key,
                 old_value=old_value,
                 new_value=value,
@@ -158,7 +158,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
                 GraphExecutionStateChangedEvent.now(
                     graph_execution_id=self._graph_execution_id,
                     graph_execution_state_id=self.id,
-                    kind=self._kind,
+                    direction=self._direction,
                     key=key,
                     old_value=old_value,
                     new_value=None,

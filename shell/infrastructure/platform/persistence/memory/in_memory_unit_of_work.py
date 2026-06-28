@@ -39,11 +39,15 @@ from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_
 from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
 )
+from shell.infrastructure.platform.persistence.memory.in_memory_message_repository import (
+    InMemoryMessageRepository,
+)
 from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
 
 if TYPE_CHECKING:
+    from shell.domain.platform.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
 
 
@@ -62,10 +66,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._graph_node_execution_state_repository = InMemoryGraphNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
         self._workflow_state_repository = InMemoryWorkflowStateRepository()
+        self._message_repository = InMemoryMessageRepository()
         self._session_repository = InMemorySessionRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
+        self._staged_messages: list[Message] = []
         self._committed_events: list[DomainEvent] = []
 
     async def seed_base_planner(self) -> None:
@@ -146,8 +152,23 @@ class InMemoryUnitOfWork(UnitOfWork):
     def graph_node_transition_execution_repository(self) -> InMemoryGraphNodeTransitionExecutionRepository:
         return self._graph_node_transition_execution_repository
 
+    @property
+    def workflow_state_repository(self) -> InMemoryWorkflowStateRepository:
+        return self._workflow_state_repository
+
+    @property
+    def message_repository(self) -> InMemoryMessageRepository:
+        return self._message_repository
+
+    @property
+    def session_repository(self) -> InMemorySessionRepository:
+        return self._session_repository
+
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
+
+    def stage_messages(self, messages: list[Message]) -> None:
+        self._staged_messages.extend(messages)
 
     @property
     def events(self) -> list[DomainEvent]:
@@ -160,6 +181,7 @@ class InMemoryUnitOfWork(UnitOfWork):
     async def __aenter__(self) -> InMemoryUnitOfWork:
         self._committed = False
         self._staged_events = []
+        self._staged_messages = []
         self._committed_events = []
         return self
 
@@ -172,7 +194,14 @@ class InMemoryUnitOfWork(UnitOfWork):
     async def commit(self) -> None:
         self._committed = True
         self._committed_events.extend(self._staged_events)
+        for message in self._staged_messages:
+            await self._message_repository.save(message)
         self._staged_events.clear()
+        self._staged_messages.clear()
+
+    async def rollback(self) -> None:
+        self._staged_events.clear()
+        self._staged_messages.clear()
 
     async def rollback(self) -> None:
         self._staged_events.clear()

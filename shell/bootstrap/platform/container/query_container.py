@@ -8,9 +8,8 @@ from dependency_injector import containers, providers
 
 if TYPE_CHECKING:
     from dependency_injector.providers import Factory
-    from shell.application.platform.query_handlers.query_handlers import (
+    from shell.application.platform.query_handlers import (
         GetCurrentTaskExecutionHandler,
-        GetEnvelopesByWorkflowHandler,
         GetGraphNodeExecutionResultHandler,
         GetRunnerConfigHandler,
         GetSessionHistoryHandler,
@@ -23,16 +22,14 @@ if TYPE_CHECKING:
         get_task_execution_by_name_handler_factory: Factory[GetTaskExecutionByNameHandler]
         get_current_task_execution_handler_factory: Factory[GetCurrentTaskExecutionHandler]
         get_workflow_handler_factory: Factory[GetWorkflowHandler]
-        get_envelopes_by_workflow_handler_factory: Factory[GetEnvelopesByWorkflowHandler]
         get_graph_node_execution_result_handler_factory: Factory[GetGraphNodeExecutionResultHandler]
         get_runner_config_handler_factory: Factory[GetRunnerConfigHandler]
         get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
         search_similar_handler_factory: Factory[SearchSimilarHandler]
 
 
-from shell.application.platform.query_handlers.query_handlers import (
+from shell.application.platform.query_handlers import (
     GetCurrentTaskExecutionHandler,
-    GetEnvelopesByWorkflowHandler,
     GetGraphNodeExecutionResultHandler,
     GetRunnerConfigHandler,
     GetSessionHistoryHandler,
@@ -55,9 +52,6 @@ class QueryContainer(containers.DeclarativeContainer):
     )
     get_workflow_handler_factory = providers.Factory(
         GetWorkflowHandler, queries=infra.workflow_query_service
-    )
-    get_envelopes_by_workflow_handler_factory = providers.Factory(
-        GetEnvelopesByWorkflowHandler, queries=infra.envelope_query_service
     )
     get_graph_node_execution_result_handler_factory = providers.Factory(
         GetGraphNodeExecutionResultHandler, queries=infra.node_result_query_service

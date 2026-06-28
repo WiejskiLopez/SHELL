@@ -8,10 +8,6 @@ if TYPE_CHECKING:
     )
     from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
     from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-    from shell.domain.execution.aggregates.envelope.ports import (
-        EnvelopeArchive,
-        EnvelopeRepository,
-    )
     from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
         GraphExecutionRepository,
     )
@@ -40,6 +36,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
         WorkflowStateRepository,
     )
+    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.aggregates.message.repositories.message_repository import MessageRepository
     from shell.domain.platform.events import DomainEvent
 
 
@@ -54,13 +52,7 @@ class UnitOfWork(Protocol):
     def workflow_repository(self) -> WorkflowRepository: ...
 
     @property
-    def envelope_repository(self) -> EnvelopeRepository: ...
-
-    @property
     def runner_config_repository(self) -> RunnerConfigRepository: ...
-
-    @property
-    def envelope_archive(self) -> EnvelopeArchive: ...
 
     @property
     def rag_document_repository(self) -> RagDocumentRepository: ...
@@ -89,7 +81,12 @@ class UnitOfWork(Protocol):
     @property
     def workflow_state_repository(self) -> WorkflowStateRepository: ...
 
+    @property
+    def message_repository(self) -> MessageRepository: ...
+
     def stage_events(self, events: list[DomainEvent]) -> None: ...
+
+    def stage_messages(self, messages: list[Message]) -> None: ...
 
     @property
     def events(self) -> list[DomainEvent]: ...

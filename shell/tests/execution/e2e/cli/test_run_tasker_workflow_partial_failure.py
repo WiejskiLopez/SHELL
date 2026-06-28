@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
+from shell.application.platform.commands import RunTaskerWorkflowCommand
 from shell.domain.execution.events import (
     GraphNodeExecutionFailedEvent,
     WorkflowCompletedEvent,

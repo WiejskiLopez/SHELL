@@ -5,10 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.platform.dto import (
-    EnvelopeDto,
     GraphNodeExecutionResultDto,
-    GraphNodeExecutionStateInputDto,
-    GraphNodeExecutionStateOutputDto,
     RunnerConfigDto,
     TaskExecutionDto,
     TaskExecutionStateDto,
@@ -18,13 +15,6 @@ from shell.application.platform.dto import (
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.runner_config import RunnerConfig
-    from shell.domain.execution.aggregates.envelope import Envelope
-    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
-        GraphNodeExecutionStateInput,
-    )
-    from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-        GraphNodeExecutionStateOutput,
-    )
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
@@ -51,23 +41,6 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
         id=workflow.id.value,
         status=workflow.status.value,
         created_at=workflow.created_at,
-    )
-
-
-def envelope_to_dto(envelope: Envelope) -> EnvelopeDto:
-    return EnvelopeDto(
-        id=envelope.id.value,
-        workflow_id=envelope.workflow_id.value,
-        sender_graph_node_execution_id=envelope.sender_graph_node_execution_id.value,
-        receiver_graph_node_execution_id=envelope.receiver_graph_node_execution_id.value,
-        source_role=envelope.source_role.value,
-        target_role=envelope.target_role.value,
-        status=envelope.status.value,
-        stage=envelope.stage.value,
-        step=envelope.step.value,
-        payload=envelope.payload.value,
-        created_at=envelope.created_at.value,
-        updated_at=envelope.updated_at.value,
     )
 
 
@@ -101,34 +74,10 @@ def task_execution_state_to_dto(
     return TaskExecutionStateDto(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        kind=entity.kind.value,
-        payload=entity.payload.to_dict(),
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value,
-    )
-
-
-def graph_node_execution_state_input_to_dto(
-    entity: GraphNodeExecutionStateInput,
-) -> GraphNodeExecutionStateInputDto:
-    return GraphNodeExecutionStateInputDto(
-        id=entity.id.value,
-        graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value if entity.created_at else None,
-    )
-
-
-def graph_node_execution_state_output_to_dto(
-    entity: GraphNodeExecutionStateOutput,
-) -> GraphNodeExecutionStateOutputDto:
-    return GraphNodeExecutionStateOutputDto(
-        id=entity.id.value,
-        graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value if entity.created_at else None,
     )
 
 
@@ -138,8 +87,8 @@ def workflow_state_to_dto(
     return WorkflowStateDto(
         id=entity.id.value,
         workflow_id=entity.workflow_id.value,
-        kind=entity.kind.value,
-        payload=entity.state_data.to_dict(),
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
         is_current=True,
         created_at=entity.created_at.value,
     )

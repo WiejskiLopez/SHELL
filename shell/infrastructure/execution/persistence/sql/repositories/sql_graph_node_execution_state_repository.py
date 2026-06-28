@@ -11,9 +11,9 @@ from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_exe
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutputModel,
+from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
+    GraphNodeExecutionStateModel,
 )
 from sqlalchemy import select
 
@@ -33,27 +33,27 @@ class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
     ) -> list[GraphNodeExecutionState]:
         ...
 
-    async def list_by_graph_node_execution_and_kind(
-        self, graph_node_execution_id: GraphNodeExecutionId, kind: StateKind
+    async def list_by_graph_node_execution_and_direction(
+        self, graph_node_execution_id: GraphNodeExecutionId, direction: StateDirection
     ) -> list[GraphNodeExecutionState]:
         ...
 
     async def save(self, state: GraphNodeExecutionState) -> None:
-        if state.kind == StateKind.OUTPUT:
-            model = await self._session.get(
-                GraphNodeExecutionStateOutputModel, state.id.value
+        model = await self._session.get(
+            GraphNodeExecutionStateModel, state.id.value
+        )
+        if model is None:
+            model = GraphNodeExecutionStateModel(
+                id=state.id.value,
+                graph_node_execution_id=state.graph_node_execution_id.value,
+                direction=state.direction.value,
+                state_data=state.state_data.to_dict(),
+                is_current=True,
+                created_at=state.created_at.value,
             )
-            if model is None:
-                model = GraphNodeExecutionStateOutputModel(
-                    id=state.id.value,
-                    graph_node_execution_id=state.graph_node_execution_id.value,
-                    payload=state.state_data.to_dict(),
-                    is_current=True,
-                    created_at=state.created_at.value,
-                )
-                self._session.add(model)
-            else:
-                model.payload = state.state_data.to_dict()
+            self._session.add(model)
+        else:
+            model.state_data = state.state_data.to_dict()
 
     async def delete(self, id_: object) -> None:
         ...

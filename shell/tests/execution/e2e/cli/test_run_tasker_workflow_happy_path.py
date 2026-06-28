@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from shell.application.platform.commands.commands import RunTaskerWorkflowCommand
+from shell.application.platform.commands import RunTaskerWorkflowCommand
 from shell.application.platform.queries.queries import GetWorkflowQuery
-from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
+from shell.application.platform.query_handlers import GetWorkflowHandler
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     WorkflowCompletedEvent,

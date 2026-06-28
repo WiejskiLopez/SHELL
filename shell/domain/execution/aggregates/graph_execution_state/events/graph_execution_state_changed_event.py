@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.value_objects.state_key import StateKey
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
 
 if TYPE_CHECKING:
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 class GraphExecutionStateChangedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     graph_execution_state_id: GraphExecutionStateId
-    kind: StateKind
+    direction: StateDirection
     key: StateKey
     old_value: object | None
     new_value: object | None
@@ -33,7 +33,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         *,
         graph_execution_id: GraphExecutionId,
         graph_execution_state_id: GraphExecutionStateId,
-        kind: StateKind,
+        direction: StateDirection,
         key: StateKey,
         old_value: object | None,
         new_value: object | None,
@@ -43,7 +43,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
             occurred_at=now,
             graph_execution_id=graph_execution_id,
             graph_execution_state_id=graph_execution_state_id,
-            kind=kind,
+            direction=direction,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -57,7 +57,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
             occurred_at=occurred_at,
             graph_execution_id=payload.get("graph_execution_id"),
             graph_execution_state_id=payload.get("graph_execution_state_id"),
-            kind=StateKind(payload.get("kind", "input")),
+            direction=StateDirection(payload.get("direction", "IN")),
             key=StateKey(payload.get("key")),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

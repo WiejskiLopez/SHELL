@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.infrastructure.platform.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
     task_execution_state_model_to_entity,
@@ -34,20 +34,20 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
     async def get_latest_by_task_id(
         self,
         task_execution_id: TaskExecutionId,
-        kind: StateKind | None = None,
+        direction: StateDirection | None = None,
     ) -> TaskExecutionState | None:
         query = select(TaskExecutionStateModel).where(
             TaskExecutionStateModel.task_execution_id == task_execution_id.value,
             TaskExecutionStateModel.is_current.is_(True),
         )
-        if kind is not None:
-            query = query.where(TaskExecutionStateModel.kind == kind.value)
+        if direction is not None:
+            query = query.where(TaskExecutionStateModel.direction == direction.value)
         query = query.order_by(TaskExecutionStateModel.created_at.desc()).limit(1)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_state_model_to_entity(row) if row else None
 
     async def save(self, payload: TaskExecutionState) -> None:
-        existing = await self.get_latest_by_task_id(payload.task_execution_id, kind=payload.kind)
+        existing = await self.get_latest_by_task_id(payload.task_execution_id, direction=payload.direction)
         if existing is not None:
             existing.supersede()
             old_model = await self._session.get(TaskExecutionStateModel, existing.id.value)

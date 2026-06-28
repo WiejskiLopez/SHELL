@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class TaskExecutionStateDto:
     id: str
     task_execution_id: str
-    kind: str
-    payload: dict[str, Any]
+    direction: str
+    state_data: dict[str, Any]
     is_current: bool
     created_at: datetime

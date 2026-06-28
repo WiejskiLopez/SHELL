@@ -43,7 +43,7 @@ def _get_max_step() -> int:
 
 
 async def _run_node(mode: str, argv: Sequence[str]) -> int:
-    from shell.application.platform.commands.commands import RunGraphNodeExecutionCommand
+    from shell.application.platform.commands import RunGraphNodeExecutionCommand
 
     parser = build_parser(prog=f"shell {mode}")
     ns = parser.parse_args(list(argv))
@@ -74,7 +74,7 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
 
 
 async def _import_task_execution(argv: Sequence[str]) -> int:
-    from shell.application.platform.commands.commands import ImportTaskExecutionCommand
+    from shell.application.platform.commands import ImportTaskExecutionCommand
 
     parser = build_parser(prog="shell import-task")
     ns = parser.parse_args(list(argv))
@@ -102,30 +102,6 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
         print(f"Imported task '{task_execution_name}' with id={task_execution_id}")
         return 0
     except Exception as exception:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _import_task_execution
-        print(f"ERROR: {exception}", file=sys.stderr)
-        return 1
-
-
-async def _route(argv: Sequence[str]) -> int:
-    from shell.application.platform.commands.commands import RouteEnvelopesCommand
-
-    parser = build_parser(prog="shell route")
-    ns = parser.parse_args(list(argv))
-
-    config = _get_config()
-    max_step = ns.max_step if ns.max_step is not None else config.max_step
-    config.max_step = max_step
-    core_container = await ApplicationFactory(config).build()
-
-    workflow_id = ns.workflow_id or "default"
-    command = RouteEnvelopesCommand(workflow_id=workflow_id)
-
-    app_ctx: Any = core_container.app
-    try:
-        count = await app_ctx.buses.command_bus().dispatch(command)
-        print(f"Routed {count} envelopes.")
-        return 0
-    except Exception as exception:  # noqa: BLE001 — celowe łapanie Exception w głównej pętli CLI dla _route
         print(f"ERROR: {exception}", file=sys.stderr)
         return 1
 
@@ -176,7 +152,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not arguments:
         print("Usage: shell <mode> [options]", file=sys.stderr)
         print(
-            f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task', 'route'])}",
+            f"  modes: {', '.join(list(_MODE_RUNNER_ROOTS) + ['import-task'])}",
             file=sys.stderr,
         )
         return 1
@@ -188,8 +164,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return asyncio.run(_run_node(mode, rest))
     elif mode == "import-task":
         return asyncio.run(_import_task_execution(rest))
-    elif mode == "route":
-        return asyncio.run(_route(rest))
     elif mode == "run-tasker":
         return asyncio.run(_run_tasker(rest))
     else:

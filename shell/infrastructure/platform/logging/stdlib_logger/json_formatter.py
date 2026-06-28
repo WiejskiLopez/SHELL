@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import UTC, datetime
 
-from shell.infrastructure.platform.logging.stdlib_logger._context import get_correlation_id
+from shell.infrastructure.platform.context import get_correlation_id
 
 
 class JsonFormatter(logging.Formatter):

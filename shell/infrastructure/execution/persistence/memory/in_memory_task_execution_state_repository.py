@@ -12,7 +12,7 @@ from shell.domain.execution.aggregates.task_execution_state.repositories.task_ex
 from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
     TaskExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
@@ -27,19 +27,19 @@ class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
     async def get_latest_by_task_id(
         self,
         task_execution_id: TaskExecutionId,
-        kind: StateKind | None = None,
+        direction: StateDirection | None = None,
     ) -> TaskExecutionState | None:
         latest: TaskExecutionState | None = None
         for item in self._store.values():
             if item.task_execution_id == task_execution_id:
-                if kind is not None and item.kind != kind:
+                if direction is not None and item.direction != direction:
                     continue
                 if latest is None or item.created_at > latest.created_at:
                     latest = item
         return copy.deepcopy(latest) if latest is not None else None
 
     async def save(self, payload: TaskExecutionState) -> None:
-        existing = await self.get_latest_by_task_id(payload.task_execution_id, kind=payload.kind)
+        existing = await self.get_latest_by_task_id(payload.task_execution_id, direction=payload.direction)
         if existing is not None:
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)

@@ -5,9 +5,6 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.value_objects.graph_node_execution_status import (
-    GraphNodeExecutionStatus,
-)
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -15,6 +12,9 @@ from shell.domain.execution.value_objects.remaining_retries import RemainingRetr
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.graph_node_execution_status import (
+    GraphNodeExecutionStatus,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.mode import Mode
 
@@ -52,6 +52,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         remaining_retries: RemainingRetries = RemainingRetries(0),
         retry_delay_seconds: RetryDelaySeconds = RetryDelaySeconds(0),
         timeout_seconds: TimeoutSeconds = TimeoutSeconds(0),
+        status: GraphNodeExecutionStatus | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -60,7 +61,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._mode = mode
         self._node_type = node_type
         self._role = role
-        self._status = GraphNodeExecutionStatus.PENDING
+        self._status = status if status is not None else GraphNodeExecutionStatus.PENDING
         self._remaining_retries = remaining_retries
         self._retry_delay_seconds = retry_delay_seconds
         self._timeout_seconds = timeout_seconds
@@ -78,6 +79,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         remaining_retries: RemainingRetries = RemainingRetries(0),
         retry_delay_seconds: RetryDelaySeconds = RetryDelaySeconds(0),
         timeout_seconds: TimeoutSeconds = TimeoutSeconds(0),
+        status: GraphNodeExecutionStatus | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -90,6 +92,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             remaining_retries=remaining_retries,
             retry_delay_seconds=retry_delay_seconds,
             timeout_seconds=timeout_seconds,
+            status=status,
         )
 
     # --- Factory ---

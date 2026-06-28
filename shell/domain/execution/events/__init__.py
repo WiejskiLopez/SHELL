@@ -2,15 +2,6 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.envelope.events.envelope_deadlettered_event import (
-    EnvelopeDeadletteredEvent,
-)
-from shell.domain.execution.aggregates.envelope.events.envelope_expired_event import (
-    EnvelopeExpiredEvent,
-)
-from shell.domain.execution.aggregates.envelope.events.envelope_routed_event import (
-    EnvelopeRoutedEvent,
-)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_constructed_event import (
     GraphExecutionConstructedEvent,
 )
@@ -20,11 +11,17 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
     GraphNodeExecutionTimeoutExpiredEvent,
 )
+from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
+    SessionExecutionCreatedEvent,
+)
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
+    UserExecutionCreatedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
@@ -51,9 +48,6 @@ from shell.domain.platform.events import DomainEvent
 
 __all__ = [
     "DomainEvent",
-    "EnvelopeDeadletteredEvent",
-    "EnvelopeExpiredEvent",
-    "EnvelopeRoutedEvent",
     "GraphExecutionConstructedEvent",
     "GraphExecutionStateChangedEvent",
     "GraphNodeExecutionAdvancedEvent",
@@ -61,8 +55,10 @@ __all__ = [
     "GraphNodeExecutionFailedEvent",
     "GraphNodeExecutionRequestedEvent",
     "GraphNodeExecutionTimeoutExpiredEvent",
+    "SessionExecutionCreatedEvent",
     "TaskExecutionCompletedEvent",
     "TaskExecutionCreatedEvent",
+    "UserExecutionCreatedEvent",
     "WorkflowCompletedEvent",
     "WorkflowFailedEvent",
     "WorkflowStartedEvent",

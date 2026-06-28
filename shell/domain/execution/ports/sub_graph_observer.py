@@ -16,7 +16,6 @@ class SubGraphContext:
         "graph_execution_id",
         "parent_graph_execution_id",
         "depth",
-        "correlation_id",
         "tags",
         "started_at",
         "duration_ms",
@@ -27,7 +26,6 @@ class SubGraphContext:
         graph_execution_id: str,
         parent_graph_execution_id: str | None = None,
         depth: int = 0,
-        correlation_id: str = "",
         tags: dict[str, Any] | None = None,
         started_at: datetime | None = None,
         duration_ms: float | None = None,
@@ -35,7 +33,6 @@ class SubGraphContext:
         self.graph_execution_id = graph_execution_id
         self.parent_graph_execution_id = parent_graph_execution_id
         self.depth = depth
-        self.correlation_id = correlation_id
         self.tags = tags or {}
         self.started_at = started_at
         self.duration_ms = duration_ms

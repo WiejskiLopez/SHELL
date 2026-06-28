@@ -8,7 +8,7 @@ from shell.domain.execution.value_objects.ids import (
 )
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import OpenSessionCommand
+    from shell.application.platform.commands import OpenSessionCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 

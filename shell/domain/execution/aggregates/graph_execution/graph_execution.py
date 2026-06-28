@@ -47,6 +47,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
         graph_definition_id: GraphDefinitionId | None = None,
+        initialization_status: GraphExecutionInitializationStatus | None = None,
+        graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -55,8 +57,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._max_subgraph_depth = max_subgraph_depth
         self._execution_status = GraphExecutionStatus.PENDING
         self._graph_definition_id = graph_definition_id if graph_definition_id is not None else GraphDefinitionId.generate()
-        self._graph_node_definition_execution_slots = []
-        self._initialization_status = GraphExecutionInitializationStatus.PENDING
+        self._graph_node_definition_execution_slots = graph_node_definition_execution_slots if graph_node_definition_execution_slots is not None else []
+        self._initialization_status = initialization_status if initialization_status is not None else GraphExecutionInitializationStatus.PENDING
 
     @classmethod
     def restore(
@@ -67,6 +69,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         depth: GraphDepth = GraphDepth(0),
         max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
         graph_definition_id: GraphDefinitionId | None = None,
+        initialization_status: GraphExecutionInitializationStatus | None = None,
+        graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -75,6 +79,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             depth=depth,
             max_subgraph_depth=max_subgraph_depth,
             graph_definition_id=graph_definition_id,
+            initialization_status=initialization_status,
+            graph_node_definition_execution_slots=graph_node_definition_execution_slots,
         )
 
     # --- Inicjalizacja ---

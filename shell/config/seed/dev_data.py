@@ -433,7 +433,6 @@ def _seed_task_executions(session: Session) -> None:
 
 
 def _seed_workflow_scenario(session: Session) -> None:
-    from shell.infrastructure.execution.persistence.sql.models.envelope import EnvelopeModel
     from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
         GraphExecutionModel,
     )
@@ -569,28 +568,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         updated_at=_NOW,
     )
     session.add(ns)
-
-    # -- Envelope --
-    env = EnvelopeModel(
-        id=f"{_DEV_ID_PREFIX}-envelope-1",
-        workflow_id=WF_ID,
-        parent_id=None,
-        correlation_id="dev-correlation-1",
-        sender_graph_node_execution_id=gne_id,
-        receiver_graph_node_execution_id=gne_id,
-        source_role="agent",
-        target_role="agent",
-        sequence_id=1,
-        step=1,
-        status="delivered",
-        stage="done",
-        payload={"message": "Sample execution completed successfully"},
-        artifact_uri="",
-        archive_uri="",
-        created_at=_NOW,
-        updated_at=_NOW,
-    )
-    session.add(env)
 
     # -- NodeResult --
     result = GraphNodeExecutionResultModel(

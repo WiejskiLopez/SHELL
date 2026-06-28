@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from shell.infrastructure.platform.logging.stdlib_logger._context import (
+from shell.infrastructure.platform.context import (
     correlation_id_var,  # noqa: F401 — re-export dla konsumentów
     get_correlation_id,  # noqa: F401 — re-export dla konsumentów
     set_correlation_id,  # noqa: F401 — re-export dla konsumentów

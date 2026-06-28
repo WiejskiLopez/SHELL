@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.workflow.events.workflow_completed_event 
     WorkflowCompletedEvent,
 )
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -51,8 +51,8 @@ class WorkflowCompletedPropagateOutputHandler:
                 return
 
             now = self._clock.now()
-            workflow_states = await unit_of_work.workflow_state_repository.list_by_workflow_id_and_kind(
-                workflow.id, StateKind.OUTPUT
+            workflow_states = await unit_of_work.workflow_state_repository.list_by_workflow_id_and_direction(
+                workflow.id, StateDirection.OUT
             )
             output_payload: dict[str, Any] = {
                 "workflow_id": workflow_completed_event.workflow_id.value,
@@ -61,8 +61,8 @@ class WorkflowCompletedPropagateOutputHandler:
             state = TaskExecutionState.create(
                 id_=self._id_generator.new_task_execution_state_id(),
                 task_execution_id=task_execution.id,
-                kind=StateKind.INPUT,
-                payload=StateData(output_payload),
+                direction=StateDirection.IN,
+                state_data=StateData(output_payload),
                 now=CreatedAt.from_datetime(now),
             )
             await unit_of_work.task_execution_state_repository.save(state)

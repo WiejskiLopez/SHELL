@@ -33,6 +33,8 @@ class GraphNodeTransitionExecutionModel(Base, VersionedMixin):
     condition_language: Mapped[str | None] = mapped_column(nullable=True)
 
     join_wait_count: Mapped[int | None] = mapped_column(nullable=True)
+    current_iteration: Mapped[int] = mapped_column(nullable=False, default=0)
+    status: Mapped[str] = mapped_column(nullable=False, default="evaluated")
     max_loop_count: Mapped[int] = mapped_column(nullable=False, default=0)
     timeout_seconds: Mapped[int | None] = mapped_column(nullable=True)
     retry_count: Mapped[int] = mapped_column(nullable=False, default=0)

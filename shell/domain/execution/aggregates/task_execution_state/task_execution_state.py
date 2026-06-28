@@ -1,7 +1,7 @@
 """TaskExecutionState — input/output payload for a TaskExecution, a separate AggregateRoot.
 
 Consolidates TaskExecutionStateInput and TaskExecutionStateOutput into a single aggregate
-with a ``kind`` discriminator (StateKind.INPUT or StateKind.OUTPUT).
+with a ``direction`` discriminator (StateDirection.IN or StateDirection.OUT).
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base import AggregateRoot
 
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -27,15 +27,15 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
 
     __slots__ = (
         "_task_execution_id",
-        "_kind",
-        "_payload",
+        "_direction",
+        "_state_data",
         "_is_current",
         "_created_at",
     )
 
     _task_execution_id: TaskExecutionId
-    _kind: StateKind
-    _payload: StateData
+    _direction: StateDirection
+    _state_data: StateData
     _is_current: IsCurrent
     _created_at: CreatedAt
 
@@ -43,15 +43,15 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         self,
         id: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
-        kind: StateKind = StateKind.INPUT,
-        payload: StateData | None = None,
+        direction: StateDirection = StateDirection.IN,
+        state_data: StateData | None = None,
         is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
-        self._kind = kind
-        self._payload = payload or StateData({})
+        self._direction = direction
+        self._state_data = state_data or StateData({})
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
@@ -61,16 +61,16 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         cls,
         id: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
-        kind: StateKind = StateKind.INPUT,
-        payload: StateData | None = None,
+        direction: StateDirection = StateDirection.IN,
+        state_data: StateData | None = None,
         is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
             task_execution_id=task_execution_id,
-            kind=kind,
-            payload=payload,
+            direction=direction,
+            state_data=state_data,
             is_current=is_current,
             created_at=created_at,
         )
@@ -80,12 +80,12 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         return self._task_execution_id
 
     @property
-    def kind(self) -> StateKind:
-        return self._kind
+    def direction(self) -> StateDirection:
+        return self._direction
 
     @property
-    def payload(self) -> StateData:
-        return self._payload
+    def state_data(self) -> StateData:
+        return self._state_data
 
     @property
     def is_current(self) -> IsCurrent:
@@ -101,15 +101,15 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         *,
         id_: TaskExecutionStateId,
         task_execution_id: TaskExecutionId,
-        kind: StateKind = StateKind.INPUT,
-        payload: StateData | None = None,
+        direction: StateDirection = StateDirection.IN,
+        state_data: StateData | None = None,
         now: CreatedAt,
     ) -> TaskExecutionState:
         return cls(
             id=id_,
             task_execution_id=task_execution_id,
-            kind=kind,
-            payload=payload or StateData({}),
+            direction=direction,
+            state_data=state_data or StateData({}),
             is_current=IsCurrent(True),
             created_at=now,
         )

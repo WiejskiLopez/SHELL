@@ -2,12 +2,6 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.envelope.exceptions.envelope_not_found import (
-    EnvelopeNotFound,
-)
-from shell.domain.execution.aggregates.envelope.exceptions.invalid_envelope_transition import (
-    InvalidEnvelopeTransition,
-)
 from shell.domain.execution.aggregates.graph_node_execution.exceptions.invalid_node_mode import (
     InvalidNodeMode,
 )
@@ -36,9 +30,7 @@ from shell.domain.execution.exceptions.graph_definition_not_found import GraphDe
 from shell.domain.execution.exceptions.node_not_found import NodeNotFound
 
 __all__ = [
-    "EnvelopeNotFound",
     "GraphDefinitionNotFound",
-    "InvalidEnvelopeTransition",
     "InvalidNodeMode",
     "InvalidTaskDefinition",
     "InvalidWorkflowTransition",

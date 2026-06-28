@@ -9,7 +9,7 @@ from shell.application.execution.command_handlers.import_task_execution_handler 
     ImportTaskExecutionHandler,
 )
 from shell.application.execution.command_handlers.start_workflow_handler import StartWorkflowHandler
-from shell.application.platform.commands.commands import (
+from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
     StartWorkflowCommand,
 )
@@ -21,7 +21,7 @@ from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
 from shell.application.platform.queries.queries import GetWorkflowQuery
-from shell.application.platform.query_handlers.query_handlers import GetWorkflowHandler
+from shell.application.platform.query_handlers import GetWorkflowHandler
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
     from shell.domain.execution.value_objects.exists_result import ExistsResult
-    from shell.domain.execution.value_objects.state_kind import StateKind
+    from shell.domain.execution.value_objects.state_direction import StateDirection
 
 
 class WorkflowStateRepository(Protocol):
@@ -17,8 +17,8 @@ class WorkflowStateRepository(Protocol):
 
     async def list_by_workflow_id(self, workflow_id: WorkflowId) -> list[WorkflowState]: ...
 
-    async def list_by_workflow_id_and_kind(
-        self, workflow_id: WorkflowId, kind: StateKind
+    async def list_by_workflow_id_and_direction(
+        self, workflow_id: WorkflowId, direction: StateDirection
     ) -> list[WorkflowState]: ...
 
     async def save(self, workflow_state: WorkflowState) -> None: ...

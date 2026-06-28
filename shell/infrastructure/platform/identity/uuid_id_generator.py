@@ -7,7 +7,6 @@ from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_sta
     WorkflowStateId,
 )
 from shell.domain.execution.value_objects.ids import (
-    EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
@@ -15,6 +14,7 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionStateId,
     WorkflowId,
 )
+from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 
 
 class UuidIdGenerator:
@@ -24,8 +24,8 @@ class UuidIdGenerator:
     def new_workflow_id(self) -> WorkflowId:
         return WorkflowId(str(uuid.uuid4()))
 
-    def new_envelope_id(self) -> EnvelopeId:
-        return EnvelopeId(str(uuid.uuid4()))
+    def new_message_id(self) -> MessageId:
+        return MessageId(str(uuid.uuid4()))
 
     def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
         return GraphNodeExecutionResultId(str(uuid.uuid4()))

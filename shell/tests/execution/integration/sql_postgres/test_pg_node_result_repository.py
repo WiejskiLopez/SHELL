@@ -3,9 +3,9 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.save_graph_node_execution_result_handler import (
     SaveGraphNodeExecutionResultHandler,
 )
-from shell.application.platform.commands.commands import SaveGraphNodeExecutionResultCommand
+from shell.application.platform.commands import SaveGraphNodeExecutionResultCommand
 from shell.application.platform.queries.queries import GetGraphNodeExecutionResultQuery
-from shell.application.platform.query_handlers.query_handlers import (
+from shell.application.platform.query_handlers import (
     GetGraphNodeExecutionResultHandler,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (

@@ -8,9 +8,6 @@ if TYPE_CHECKING:
 
 from shell.domain.execution.events import (
     DomainEvent,
-    EnvelopeDeadletteredEvent,
-    EnvelopeExpiredEvent,
-    EnvelopeRoutedEvent,
     GraphNodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
@@ -25,14 +22,10 @@ logger = logging.getLogger(__name__)
 class EventDeserializer:
     def __init__(self) -> None:
         self._registry: dict[str, type[DomainEvent]] = {
-            "EnvelopeDeadlettered": EnvelopeDeadletteredEvent,
             "TaskExecutionCreated": TaskExecutionCreatedEvent,
             "WorkflowStarted": WorkflowStartedEvent,
-            "EnvelopeRouted": EnvelopeRoutedEvent,
-            "EnvelopeExpired": EnvelopeExpiredEvent,
             "WorkflowCompleted": WorkflowCompletedEvent,
             "WorkflowFailed": WorkflowFailedEvent,
-
             "GraphNodeExecutionTimedOut": GraphNodeExecutionTimeoutExpiredEvent,
         }
         self._serializer = DomainEventSerializer()

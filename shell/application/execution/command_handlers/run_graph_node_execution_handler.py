@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.application.execution.strategies.graph_node_execution_strategy import (
         GraphNodeExecutionStrategy,
     )
-    from shell.application.platform.commands.commands import RunGraphNodeExecutionCommand
+    from shell.application.platform.commands import RunGraphNodeExecutionCommand
     from shell.application.platform.ports.ports import (
         Clock,
         GraphNodeExecutionProcessRunner,

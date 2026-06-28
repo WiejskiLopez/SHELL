@@ -9,7 +9,7 @@ from shell.domain.execution.value_objects.ids import SessionId
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import CloseSessionCommand
+    from shell.application.platform.commands import CloseSessionCommand
     from shell.application.platform.ports.ports import Clock, UnitOfWork
 
 

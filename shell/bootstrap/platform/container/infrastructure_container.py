@@ -17,7 +17,6 @@ from shell.infrastructure.execution.graph_execution_definition_provider_adapter 
 )
 
 from shell.infrastructure.execution.persistence.sql.services import (
-    EnvelopeQueryService,
     NodeResultQueryService,
     SessionQueryService,
     TaskExecutionQueryService,
@@ -54,9 +53,6 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     )
     workflow_query_service = providers.Singleton(
         WorkflowQueryService, session_factory=session_factory
-    )
-    envelope_query_service = providers.Singleton(
-        EnvelopeQueryService, session_factory=session_factory
     )
     node_result_query_service = providers.Singleton(
         NodeResultQueryService, session_factory=session_factory

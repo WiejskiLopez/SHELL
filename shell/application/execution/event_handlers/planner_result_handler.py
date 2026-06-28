@@ -100,7 +100,6 @@ class PlannerResultHandler:
                         graph_definition_id=definition_id or "",
                         now=now,
                         state_input={},
-                        correlation_id="",
                     )
                 )
 

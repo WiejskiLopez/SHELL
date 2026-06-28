@@ -13,7 +13,7 @@ from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import StartWorkflowCommand
+    from shell.application.platform.commands import StartWorkflowCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 

@@ -12,7 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.
     GraphNodeExecutionStateId,
 )
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -21,10 +21,10 @@ if TYPE_CHECKING:
 
 
 class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
-    __slots__ = ("_graph_node_execution_id", "_kind", "_state_data", "_created_at")
+    __slots__ = ("_graph_node_execution_id", "_direction", "_state_data", "_created_at")
 
     _graph_node_execution_id: GraphNodeExecutionId
-    _kind: StateKind
+    _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
 
@@ -32,13 +32,13 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         self,
         id: GraphNodeExecutionStateId,
         graph_node_execution_id: GraphNodeExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_node_execution_id = graph_node_execution_id
-        self._kind = kind
+        self._direction = direction
         self._state_data = state_data or StateData({})
         if created_at is not None:
             self._created_at = created_at
@@ -48,14 +48,14 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         cls,
         id: GraphNodeExecutionStateId,
         graph_node_execution_id: GraphNodeExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
             graph_node_execution_id=graph_node_execution_id,
-            kind=kind,
+            direction=direction,
             state_data=state_data,
             created_at=created_at,
         )
@@ -65,8 +65,8 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         return self._graph_node_execution_id
 
     @property
-    def kind(self) -> StateKind:
-        return self._kind
+    def direction(self) -> StateDirection:
+        return self._direction
 
     @property
     def state_data(self) -> StateData:
@@ -82,14 +82,14 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         *,
         id_: GraphNodeExecutionStateId,
         graph_node_execution_id: GraphNodeExecutionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         payload: dict[str, object] | None = None,
         now: datetime,
     ) -> GraphNodeExecutionState:
         instance = cls(
             id=id_,
             graph_node_execution_id=graph_node_execution_id,
-            kind=kind,
+            direction=direction,
             state_data=StateData(payload or {}),
             created_at=CreatedAt.from_datetime(now),
         )
@@ -104,7 +104,7 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
             GraphNodeExecutionStateChangedEvent.now(
                 graph_node_execution_id=self._graph_node_execution_id,
                 graph_node_execution_state_id=self.id,
-                kind=self._kind,
+                direction=self._direction,
                 key=key,
                 old_value=old_value,
                 new_value=value,
@@ -124,12 +124,12 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
             self.append_event(
                 GraphNodeExecutionStateChangedEvent.now(
                     graph_node_execution_id=self._graph_node_execution_id,
-                    graph_node_execution_state_id=self.id,
-                    kind=self._kind,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
-                    now=self._created_at,
+                graph_node_execution_state_id=self.id,
+                direction=self._direction,
+                key=key,
+                old_value=old_value,
+                new_value=None,
+                now=self._created_at,
                 )
             )
 

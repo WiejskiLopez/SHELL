@@ -16,8 +16,10 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.execution.value_objects.condition_expression import ConditionExpression
+from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.max_iterations import MaxIterations
+from shell.domain.execution.value_objects.transition_status import TransitionStatus
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,
 )
@@ -57,10 +59,13 @@ class SqlGraphNodeTransitionExecutionRepository:
         return [self._model_to_entity(r) for r in rows]
 
     async def save(self, transition: GraphNodeTransitionExecution) -> None:
+        _now = datetime.now(tz=UTC)
         model = await self._session.get(GraphNodeTransitionExecutionModel, transition.id.value)
         if model is not None:
+            model.status = transition.status.value
+            model.current_iteration = transition.current_iteration.value
+            model.updated_at = _now
             return
-        _now = datetime.now(tz=UTC)
         model = GraphNodeTransitionExecutionModel(
             id=transition.id.value,
             graph_execution_id=transition.graph_execution_id.value,
@@ -71,6 +76,8 @@ class SqlGraphNodeTransitionExecutionRepository:
             condition_expression=transition.condition_expression.value if transition.condition_expression else None,
             condition_language=None,
             max_loop_count=transition.max_iterations.value if transition.max_iterations else 0,
+            status=transition.status.value,
+            current_iteration=transition.current_iteration.value,
             label="",
             created_at=_now,
             updated_at=_now,
@@ -98,4 +105,6 @@ class SqlGraphNodeTransitionExecutionRepository:
             target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id) if model.target_node_execution_id else None,
             condition_expression=ConditionExpression(model.condition_expression) if model.condition_expression else None,
             max_iterations=MaxIterations(model.max_loop_count),
+            status=TransitionStatus(model.status) if model.status else None,
+            current_iteration=CurrentIteration(model.current_iteration) if model.current_iteration else None,
         )

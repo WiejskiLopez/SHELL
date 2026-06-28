@@ -3,14 +3,14 @@ from __future__ import annotations
 import logging
 import sys
 
+from shell.infrastructure.platform.logging.stdlib_logger import JsonFormatter
+
 
 def setup_logging() -> None:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(JsonFormatter())
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler("app.log", encoding="utf-8"),
-        ],
+        handlers=[handler],
         force=True,
     )

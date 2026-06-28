@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+    SessionExecutionId,
+)
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import WorkflowRepository
 from shell.domain.execution.value_objects.ids import (
@@ -32,6 +35,15 @@ class SqlWorkflowRepository(WorkflowRepository):
 
     async def get_by_session_id(self, session_id: SessionId) -> list[Workflow]:
         query = select(WorkflowModel).where(WorkflowModel.session_id == session_id.value)
+        rows = (await self._session.execute(query)).scalars().all()
+        return [workflow_model_to_entity(row) for row in rows if row]
+
+    async def get_by_session_execution_id(
+        self, session_execution_id: SessionExecutionId
+    ) -> list[Workflow]:
+        query = select(WorkflowModel).where(
+            WorkflowModel.session_execution_id == session_execution_id.value
+        )
         rows = (await self._session.execute(query)).scalars().all()
         return [workflow_model_to_entity(row) for row in rows if row]
 

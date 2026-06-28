@@ -16,7 +16,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
@@ -27,7 +27,7 @@ def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionSt
     return GraphExecutionState.create(
         id_=GraphExecutionStateId.generate(),
         graph_execution_id=_GE_ID,
-        kind=StateKind.OUTPUT,
+        direction=StateDirection.OUT,
         now=_NOW,
     )
 
@@ -43,7 +43,7 @@ class TestGraphExecutionStateOutputCreate:
         state = GraphExecutionState(
             id=GraphExecutionStateId.generate(),
             graph_execution_id=_GE_ID,
-            kind=StateKind.OUTPUT,
+            direction=StateDirection.OUT,
             state_data=StateData({"k": "v"}),
             is_current=IsCurrent(True),
             created_at=CreatedAt.from_datetime(_NOW),
@@ -105,7 +105,7 @@ class TestGraphExecutionStateOutputMerge:
         child = GraphExecutionState.create(
             id_=GraphExecutionStateId.generate(),
             graph_execution_id=GraphExecutionId("child"),
-            kind=StateKind.OUTPUT,
+            direction=StateDirection.OUT,
             now=_NOW,
         )
         child.update("y", 2)

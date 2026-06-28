@@ -6,7 +6,7 @@ import pytest
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.platform.commands.commands import ImportTaskExecutionCommand
+from shell.application.platform.commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import TaskExecutionCreatedEvent
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -52,7 +52,7 @@ class TestImportTaskExecutionHandler:
             TaskExecutionId(task_execution_id)
         )
         assert state_input is not None
-        assert state_input.payload.to_dict() == {"description": "# SQL Task"}
+        assert state_input.state_data.to_dict() == {"description": "# SQL Task"}
 
     async def test_reimport_creates_new_state_input(
         self,

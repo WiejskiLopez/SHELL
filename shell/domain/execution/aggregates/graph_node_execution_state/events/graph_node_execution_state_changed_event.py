@@ -12,7 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
     GraphNodeExecutionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
 
 
@@ -20,7 +20,7 @@ from shell.domain.platform.events import DomainEvent
 class GraphNodeExecutionStateChangedEvent(DomainEvent):
     graph_node_execution_id: GraphNodeExecutionId
     graph_node_execution_state_id: GraphNodeExecutionStateId
-    kind: str
+    direction: str
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -30,7 +30,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
         cls,
         graph_node_execution_id: GraphNodeExecutionId,
         graph_node_execution_state_id: GraphNodeExecutionStateId,
-        kind: StateKind,
+        direction: StateDirection,
         key: str,
         now: datetime,
         old_value: object | None = None,
@@ -40,7 +40,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
             occurred_at=now,
             graph_node_execution_id=graph_node_execution_id,
             graph_node_execution_state_id=graph_node_execution_state_id,
-            kind=kind.value,
+            direction=direction.value,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -55,7 +55,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             graph_node_execution_id=GraphNodeExecutionId(payload.get("graph_node_execution_id")),
             graph_node_execution_state_id=GraphNodeExecutionStateId(payload.get("graph_node_execution_state_id")),
-            kind=payload.get("kind"),
+            direction=payload.get("direction"),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

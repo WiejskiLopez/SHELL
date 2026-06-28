@@ -10,7 +10,7 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
 
 
@@ -18,7 +18,7 @@ from shell.domain.platform.events import DomainEvent
 class SessionStateChangedEvent(DomainEvent):
     session_id: SessionId
     session_state_id: SessionStateId
-    kind: str
+    direction: str
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -28,7 +28,7 @@ class SessionStateChangedEvent(DomainEvent):
         cls,
         session_id: SessionId,
         session_state_id: SessionStateId,
-        kind: StateKind,
+        direction: StateDirection,
         key: str,
         now: datetime,
         old_value: object | None = None,
@@ -38,7 +38,7 @@ class SessionStateChangedEvent(DomainEvent):
             occurred_at=now,
             session_id=session_id,
             session_state_id=session_state_id,
-            kind=kind.value,
+            direction=direction.value,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -53,7 +53,7 @@ class SessionStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             session_id=SessionId(payload.get("session_id")),
             session_state_id=SessionStateId(payload.get("session_state_id")),
-            kind=payload.get("kind"),
+            direction=payload.get("direction"),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

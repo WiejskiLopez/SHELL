@@ -9,14 +9,13 @@ from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
+from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories import (
-    SqlEnvelopeArchiveStub,
-    SqlEnvelopeRepository,
     SqlGraphExecutionRepository,
     SqlGraphExecutionStateInputRepository,
     SqlGraphExecutionStateOutputRepository,
@@ -28,14 +27,21 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlWorkflowRepository,
     SqlWorkflowStateRepository,
 )
+from shell.domain.platform.envelope import Envelope
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
+from shell.infrastructure.platform.persistence.sql.models.message.message import MessageModel
+from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import OutboxMessageModel
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
+)
+from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
+    SqlMessageRepository,
 )
 from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
+    from shell.domain.platform.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
     from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
         SqlSchedulerDefinitionRepository,
@@ -53,6 +59,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     ) -> None:
         self._factory = session_factory
         self._staged_events: list[DomainEvent] = []
+        self._staged_messages: list[Message] = []
         self._committed = False
         self._session: AsyncSession | None = None
         self._rag_search_strategy = create_rag_search_strategy(session_factory)
@@ -80,20 +87,12 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return SqlWorkflowRepository(self._active_session)
 
     @property
-    def envelope_repository(self) -> SqlEnvelopeRepository:
-        return SqlEnvelopeRepository(self._active_session)
-
-    @property
     def graph_execution_state_repository(self) -> SqlGraphExecutionStateInputRepository:
         return SqlGraphExecutionStateInputRepository(self._active_session)
 
     @property
     def runner_config_repository(self) -> SqlRunnerConfigRepository:
         return SqlRunnerConfigRepository(self._active_session)
-
-    @property
-    def envelope_archive(self) -> SqlEnvelopeArchiveStub:
-        return SqlEnvelopeArchiveStub()
 
     @property
     def rag_document_repository(self) -> SqlRagDocumentRepository:
@@ -129,6 +128,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
     @property
     def workflow_state_repository(self) -> SqlWorkflowStateRepository:
         return SqlWorkflowStateRepository(self._active_session)
+
+    @property
+    def message_repository(self) -> SqlMessageRepository:
+        return SqlMessageRepository(self._active_session)
 
     @property
     def session_repository(self) -> SqlSessionRepository:
@@ -174,10 +177,37 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                     event_type=type(event).__name__,
                     occurred_at=event.occurred_at,
                     payload=DomainEventSerializer().to_payload(event),
+                    correlation_id=get_correlation_id(),
+                    causation_id=get_causation_id(),
                 )
                 self._session.add(outbox)
+
+            for message in self._staged_messages:
+                from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
+                    message_entity_to_model,
+                )
+
+                model = message_entity_to_model(message)
+                self._session.add(model)
+
+                envelope = Envelope.from_message(
+                    message=message,
+                    trace_id=message.id.value,
+                    sender_service="unknown",
+                    receiver_service=message.destination.value,
+                    correlation_id=get_correlation_id(),
+                )
+                outbox = OutboxMessageModel(
+                    id=str(uuid.uuid4()),
+                    envelope=envelope.to_dict(),
+                    created_at=message.created_at.value,
+                    published_at=None,
+                )
+                self._session.add(outbox)
+
             await self._session.commit()
             self._staged_events.clear()
+            self._staged_messages.clear()
             self._committed = True
         except StaleDataError as exc:
             await self._session.rollback()
@@ -187,6 +217,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         if self._session is not None:
             await self._session.rollback()
         self._staged_events.clear()
+        self._staged_messages.clear()
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
+
+    def stage_messages(self, messages: list[Message]) -> None:
+        self._staged_messages.extend(messages)

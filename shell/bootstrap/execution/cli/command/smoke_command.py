@@ -7,7 +7,7 @@ from argparse import (
 from pathlib import Path
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
-from shell.application.platform.commands.commands import (
+from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
     RouteEnvelopesCommand,
     StartWorkflowCommand,

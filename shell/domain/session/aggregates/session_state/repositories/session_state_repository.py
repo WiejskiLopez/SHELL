@@ -7,7 +7,7 @@ from shell.domain.session.aggregates.session_state.session_state import SessionS
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.execution.value_objects.exists_result import ExistsResult
 
 
@@ -16,8 +16,8 @@ class SessionStateRepository(Protocol):
 
     async def list_by_session_id(self, session_id: SessionId) -> list[SessionState]: ...
 
-    async def list_by_session_and_kind(
-        self, session_id: SessionId, kind: StateKind
+    async def list_by_session_and_direction(
+        self, session_id: SessionId, direction: StateDirection
     ) -> list[SessionState]: ...
 
     async def save(self, session_state: SessionState) -> None: ...

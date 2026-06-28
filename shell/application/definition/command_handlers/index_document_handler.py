@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.services.rag_index_service import Embedder, build_rag_document
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import IndexDocumentCommand
+    from shell.application.platform.commands import IndexDocumentCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
     from shell.domain.definition.value_objects.ids import RagDocumentId
 

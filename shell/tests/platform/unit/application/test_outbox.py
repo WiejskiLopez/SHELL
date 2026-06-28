@@ -62,3 +62,29 @@ class TestInMemoryOutboxStore:
         store = InMemoryOutboxStore()
         await store.publish([])
         assert store.records == []
+
+    async def test_records_have_correlation_id(self) -> None:
+        from shell.infrastructure.platform.context import set_correlation_id
+
+        token = set_correlation_id("test-corr-123")
+        try:
+            store = InMemoryOutboxStore()
+            await store.publish([_task_imported()])
+            assert store.records[0].correlation_id == "test-corr-123"
+        finally:
+            from shell.infrastructure.platform.context import reset_correlation_id
+
+            reset_correlation_id(token)
+
+    async def test_records_have_causation_id(self) -> None:
+        from shell.infrastructure.platform.context import set_causation_id
+
+        token = set_causation_id("test-caus-456")
+        try:
+            store = InMemoryOutboxStore()
+            await store.publish([_task_imported()])
+            assert store.records[0].causation_id == "test-caus-456"
+        finally:
+            from shell.infrastructure.platform.context import reset_causation_id
+
+            reset_causation_id(token)

@@ -80,6 +80,8 @@ class OutboxToInboxRelay:
                 "event_type": row.event_type,
                 "occurred_at": row.occurred_at,
                 "payload": row.payload,
+                "correlation_id": row.correlation_id,
+                "causation_id": row.causation_id,
                 "received_at": now,
                 "processed_at": None,
             }
@@ -106,6 +108,8 @@ class OutboxToInboxRelay:
                 "event_type": row.event_type,
                 "occurred_at": row.occurred_at,
                 "payload": row.payload,
+                "correlation_id": row.correlation_id,
+                "causation_id": row.causation_id,
                 "received_at": now,
                 "processed_at": None,
             }

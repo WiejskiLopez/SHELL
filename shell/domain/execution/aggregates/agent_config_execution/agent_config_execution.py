@@ -11,13 +11,30 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+        AgentExecutionId,
+    )
+    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+        SessionExecutionId,
+    )
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
-    __slots__ = ("_session_id", "_config", "_created_at", "_updated_at")
+    __slots__ = (
+        "_agent_execution_id",
+        "_session_execution_id",
+        "_user_execution_id",
+        "_config",
+        "_created_at",
+        "_updated_at",
+    )
 
-    _session_id: SessionId
+    _agent_execution_id: AgentExecutionId
+    _session_execution_id: SessionExecutionId
+    _user_execution_id: UserExecutionId
     _config: Config
     _created_at: CreatedAt
     _updated_at: UpdatedAt
@@ -25,13 +42,17 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def __init__(
         self,
         id: AgentConfigExecutionId,
-        session_id: SessionId,
+        agent_execution_id: AgentExecutionId,
+        session_execution_id: SessionExecutionId,
+        user_execution_id: UserExecutionId,
         config: Config,
         created_at: CreatedAt,
         updated_at: UpdatedAt,
     ) -> None:
         super().__init__(id)
-        self._session_id = session_id
+        self._agent_execution_id = agent_execution_id
+        self._session_execution_id = session_execution_id
+        self._user_execution_id = user_execution_id
         self._config = config
         self._created_at = created_at
         self._updated_at = updated_at
@@ -40,14 +61,18 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def restore(
         cls,
         id: AgentConfigExecutionId,
-        session_id: SessionId,
+        agent_execution_id: AgentExecutionId,
+        session_execution_id: SessionExecutionId,
+        user_execution_id: UserExecutionId,
         config: Config,
         created_at: CreatedAt,
         updated_at: UpdatedAt,
     ) -> Self:
         return cls(
             id=id,
-            session_id=session_id,
+            agent_execution_id=agent_execution_id,
+            session_execution_id=session_execution_id,
+            user_execution_id=user_execution_id,
             config=config,
             created_at=created_at,
             updated_at=updated_at,
@@ -57,13 +82,17 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def create(
         cls,
         id: AgentConfigExecutionId,
-        session_id: SessionId,
+        agent_execution_id: AgentExecutionId,
+        session_execution_id: SessionExecutionId,
+        user_execution_id: UserExecutionId,
         config: Config,
         now: CreatedAt,
     ) -> AgentConfigExecution:
         return cls(
             id=id,
-            session_id=session_id,
+            agent_execution_id=agent_execution_id,
+            session_execution_id=session_execution_id,
+            user_execution_id=user_execution_id,
             config=config,
             created_at=now,
             updated_at=UpdatedAt(now.value),
@@ -74,8 +103,16 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._updated_at = now
 
     @property
-    def session_id(self) -> SessionId:
-        return self._session_id
+    def agent_execution_id(self) -> AgentExecutionId:
+        return self._agent_execution_id
+
+    @property
+    def session_execution_id(self) -> SessionExecutionId:
+        return self._session_execution_id
+
+    @property
+    def user_execution_id(self) -> UserExecutionId:
+        return self._user_execution_id
 
     @property
     def config(self) -> Config:

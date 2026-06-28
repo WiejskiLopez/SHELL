@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.platform.persistence.sql.models.command import OutboxCommandModel
 
 if TYPE_CHECKING:
@@ -27,6 +28,8 @@ class SqlCommandOutboxPublisher:
                     command_type=command_type,
                     occurred_at=occurred_at,
                     payload=payload,
+                    correlation_id=get_correlation_id(),
+                    causation_id=get_causation_id(),
                 )
             )
             await session.commit()

@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -60,7 +60,7 @@ class GraphNodeExecutionCompletedPropagateOutputHandler:
             state = GraphExecutionState.create(
                 id_=GraphExecutionStateId.generate(),
                 graph_execution_id=graph_execution.id,
-                kind=StateKind.INPUT,
+                direction=StateDirection.IN,
                 now=now,
             )
             state.patch(output_payload)

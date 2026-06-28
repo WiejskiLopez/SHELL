@@ -14,21 +14,21 @@ if TYPE_CHECKING:
         WorkflowStateId,
     )
 from shell.domain.execution.value_objects.ids import (
-    EnvelopeId,  # noqa: TC002 — EnvelopeId używany w sygnaturach metod IdGenerator
-    GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w sygnaturach metod IdGenerator
-    GraphNodeExecutionId,  # noqa: TC002 — GraphNodeExecutionId używany w sygnaturach metod IdGenerator
-    GraphNodeExecutionResultId,  # noqa: TC002 — GraphNodeExecutionResultId używany w sygnaturach metod IdGenerator
-    SessionId,  # noqa: TC002 — SessionId używany w sygnaturach metod IdGenerator
-    TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w sygnaturach metod IdGenerator
-    TaskExecutionStateId,  # noqa: TC002 — TaskExecutionStateId używany w sygnaturach metod IdGenerator
-    WorkflowId,  # noqa: TC002 — WorkflowId używany w sygnaturach metod IdGenerator
+    GraphExecutionId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    GraphNodeExecutionId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    GraphNodeExecutionResultId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    SessionId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    TaskExecutionId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    TaskExecutionStateId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
+    WorkflowId,  # noqa: TC002 -- używane w sygnaturach metod IdGenerator
 )
+from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 
 
 class IdGenerator(Protocol):
     def new_task_execution_id(self) -> TaskExecutionId: ...
     def new_workflow_id(self) -> WorkflowId: ...
-    def new_envelope_id(self) -> EnvelopeId: ...
+    def new_message_id(self) -> MessageId: ...
     def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId: ...
     def new_runner_config_id(self) -> RunnerConfigId: ...
     def new_rag_document_id(self) -> RagDocumentId: ...

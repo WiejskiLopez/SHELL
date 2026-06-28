@@ -9,8 +9,8 @@ from shell.domain.execution.aggregates.agent_config_execution.repositories.agent
 from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
     AgentConfigExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import (
-    SessionId,  # noqa: TC002 -- TYPE_CHECKING import
+from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+    SessionExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
 
 if TYPE_CHECKING:
@@ -29,11 +29,11 @@ class InMemoryAgentConfigExecutionRepository(AgentConfigExecutionRepository):
         item = self._store.get(agent_config_execution_id.value)
         return copy.deepcopy(item) if item is not None else None
 
-    async def get_by_session_id(
-        self, session_id: SessionId
+    async def get_by_session_execution_id(
+        self, session_execution_id: SessionExecutionId
     ) -> AgentConfigExecution | None:
         for item in self._store.values():
-            if item.session_id == session_id:
+            if item.session_execution_id == session_execution_id:
                 return copy.deepcopy(item)
         return None
 

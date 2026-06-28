@@ -74,7 +74,6 @@ class SubGraphExecutionService:
         parent_tasker_node: GraphNodeExecution,
         graph_definition_id: str,
         state_input: dict[str, Any] | None = None,
-        correlation_id: str = "",
         unit_of_work: UnitOfWork | None = None,
     ) -> GraphExecution:
         """Create a child GraphExecution from a graph definition.
@@ -164,7 +163,6 @@ class SubGraphExecutionService:
             now=now,
             parent_graph_execution_id=parent_graph_execution.id,
             state_input=resolved_state,
-            correlation_id=correlation_id,
             depth=depth,
         )
 
@@ -179,7 +177,6 @@ class SubGraphExecutionService:
                 graph_execution_id=sub_graph_execution.id.value,
                 parent_graph_execution_id=parent_graph_execution_id_value,
                 depth=depth,
-                correlation_id=correlation_id,
                 started_at=now,
             )
             await self._observer.on_start(sub_graph_context)

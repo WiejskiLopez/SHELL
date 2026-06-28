@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.platform.messaging.memory_outbox_store.outbox_record import OutboxRecord
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
@@ -18,6 +19,8 @@ class InMemoryOutboxStore:
     async def publish(self, events: list[DomainEvent]) -> None:
         import uuid
 
+        correlation_id = get_correlation_id()
+        causation_id = get_causation_id()
         serializer = DomainEventSerializer()
         for event in events:
             try:
@@ -28,6 +31,8 @@ class InMemoryOutboxStore:
                         event_type=type(event).__name__,
                         occurred_at=event.occurred_at,
                         payload=payload,
+                        correlation_id=correlation_id,
+                        causation_id=causation_id,
                     )
                 )
             except Exception:

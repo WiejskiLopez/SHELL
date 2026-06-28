@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from shell.application.definition.queries.config_queries import GetRunnerConfigQuery
 from shell.application.definition.queries.rag_queries import SearchSimilarQuery
-from shell.application.execution.queries.envelope_queries import GetEnvelopesByWorkflowQuery
 from shell.application.execution.queries.graph_node_execution_queries import (
     GetGraphNodeExecutionResultQuery,
 )
@@ -17,7 +16,6 @@ from shell.application.execution.queries.workflow_queries import GetWorkflowQuer
 
 __all__ = [
     "GetCurrentTaskExecutionQuery",
-    "GetEnvelopesByWorkflowQuery",
     "GetGraphNodeExecutionResultQuery",
     "GetRunnerConfigQuery",
     "GetSessionHistoryQuery",

@@ -10,7 +10,7 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
     SessionStateId,
 )
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -19,10 +19,10 @@ if TYPE_CHECKING:
 
 
 class SessionState(AggregateRoot[SessionStateId]):
-    __slots__ = ("_session_id", "_kind", "_state_data", "_created_at")
+    __slots__ = ("_session_id", "_direction", "_state_data", "_created_at")
 
     _session_id: SessionId
-    _kind: StateKind
+    _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
 
@@ -30,13 +30,13 @@ class SessionState(AggregateRoot[SessionStateId]):
         self,
         id: SessionStateId,
         session_id: SessionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
-        self._kind = kind
+        self._direction = direction
         self._state_data = state_data or StateData({})
         if created_at is not None:
             self._created_at = created_at
@@ -46,14 +46,14 @@ class SessionState(AggregateRoot[SessionStateId]):
         cls,
         id: SessionStateId,
         session_id: SessionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
             session_id=session_id,
-            kind=kind,
+            direction=direction,
             state_data=state_data,
             created_at=created_at,
         )
@@ -63,8 +63,8 @@ class SessionState(AggregateRoot[SessionStateId]):
         return self._session_id
 
     @property
-    def kind(self) -> StateKind:
-        return self._kind
+    def direction(self) -> StateDirection:
+        return self._direction
 
     @property
     def state_data(self) -> StateData:
@@ -80,13 +80,13 @@ class SessionState(AggregateRoot[SessionStateId]):
         *,
         id_: SessionStateId,
         session_id: SessionId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         now: datetime,
     ) -> SessionState:
         instance = cls(
             id=id_,
             session_id=session_id,
-            kind=kind,
+            direction=direction,
             state_data=StateData({}),
             created_at=now,
         )
@@ -101,7 +101,7 @@ class SessionState(AggregateRoot[SessionStateId]):
             SessionStateChangedEvent.now(
                 session_id=self._session_id,
                 session_state_id=self.id,
-                kind=self._kind,
+                direction=self._direction,
                 key=key,
                 old_value=old_value,
                 new_value=value,
@@ -121,12 +121,12 @@ class SessionState(AggregateRoot[SessionStateId]):
             self.append_event(
                 SessionStateChangedEvent.now(
                     session_id=self._session_id,
-                    session_state_id=self.id,
-                    kind=self._kind,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
-                    now=self._created_at,
+                session_state_id=self.id,
+                direction=self._direction,
+                key=key,
+                old_value=old_value,
+                new_value=None,
+                now=self._created_at,
                 )
             )
 

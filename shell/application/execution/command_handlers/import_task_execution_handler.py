@@ -18,7 +18,7 @@ from shell.domain.execution.value_objects.task_execution_name import TaskExecuti
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import ImportTaskExecutionCommand
+    from shell.application.platform.commands import ImportTaskExecutionCommand
     from shell.application.platform.ports.ports import (
         Clock,
         IdGenerator,
@@ -56,7 +56,7 @@ class ImportTaskExecutionHandler:
             state_input = TaskExecutionState.create(
                 id_=self._id_generator.new_task_execution_state_id(),
                 task_execution_id=task_execution.id,
-                payload=StateData({"description": content}),
+                state_data=StateData({"description": content}),
                 now=CreatedAt.from_datetime(current_time),
             )
             await unit_of_work.task_execution_repository.save(task_execution)

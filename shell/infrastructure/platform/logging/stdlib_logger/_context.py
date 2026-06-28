@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from contextvars import ContextVar
+from shell.infrastructure.platform.context import (
+    correlation_id_var,
+    get_correlation_id,
+    reset_correlation_id,
+    set_correlation_id,
+)
 
-correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default="")
-
-
-def get_correlation_id() -> str:
-    return correlation_id_var.get()
-
-
-def set_correlation_id(value: str) -> None:
-    correlation_id_var.set(value)
+__all__ = [
+    "correlation_id_var",
+    "get_correlation_id",
+    "reset_correlation_id",
+    "set_correlation_id",
+]

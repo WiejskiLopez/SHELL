@@ -10,7 +10,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
 
 
@@ -18,7 +18,7 @@ from shell.domain.platform.events import DomainEvent
 class WorkflowStateChangedEvent(DomainEvent):
     workflow_id: WorkflowId
     workflow_state_id: WorkflowStateId
-    kind: str
+    direction: str
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -28,7 +28,7 @@ class WorkflowStateChangedEvent(DomainEvent):
         cls,
         workflow_id: WorkflowId,
         workflow_state_id: WorkflowStateId,
-        kind: StateKind,
+        direction: StateDirection,
         key: str,
         now: datetime,
         old_value: object | None = None,
@@ -38,7 +38,7 @@ class WorkflowStateChangedEvent(DomainEvent):
             occurred_at=now,
             workflow_id=workflow_id,
             workflow_state_id=workflow_state_id,
-            kind=kind.value,
+            direction=direction.value,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -53,7 +53,7 @@ class WorkflowStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             workflow_id=WorkflowId(payload.get("workflow_id")),
             workflow_state_id=WorkflowStateId(payload.get("workflow_state_id")),
-            kind=payload.get("kind"),
+            direction=payload.get("direction"),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

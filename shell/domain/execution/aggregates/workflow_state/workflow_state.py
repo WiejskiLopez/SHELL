@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -16,10 +16,10 @@ if TYPE_CHECKING:
 
 
 class WorkflowState(AggregateRoot["WorkflowStateId"]):
-    __slots__ = ("_workflow_id", "_kind", "_state_data", "_created_at")
+    __slots__ = ("_workflow_id", "_direction", "_state_data", "_created_at")
 
     _workflow_id: WorkflowId
-    _kind: StateKind
+    _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
 
@@ -28,13 +28,13 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id: WorkflowStateId,
         workflow_id: WorkflowId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
-        self._kind = kind
+        self._direction = direction
         self._state_data = state_data or StateData({})
         if created_at is not None:
             self._created_at = created_at
@@ -45,14 +45,14 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id: WorkflowStateId,
         workflow_id: WorkflowId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
             workflow_id=workflow_id,
-            kind=kind,
+            direction=direction,
             state_data=state_data,
             created_at=created_at,
         )
@@ -62,8 +62,8 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         return self._workflow_id
 
     @property
-    def kind(self) -> StateKind:
-        return self._kind
+    def direction(self) -> StateDirection:
+        return self._direction
 
     @property
     def state_data(self) -> StateData:
@@ -79,14 +79,14 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id_: WorkflowStateId,
         workflow_id: WorkflowId,
-        kind: StateKind = StateKind.INPUT,
+        direction: StateDirection = StateDirection.IN,
         payload: dict[str, object] | None = None,
         now: datetime,
     ) -> WorkflowState:
         instance = cls(
             id=id_,
             workflow_id=workflow_id,
-            kind=kind,
+            direction=direction,
             state_data=StateData(payload or {}),
             created_at=CreatedAt.from_datetime(now),
         )
@@ -104,7 +104,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
             WorkflowStateChangedEvent.now(
                 workflow_id=self._workflow_id,
                 workflow_state_id=self.id,
-                kind=self._kind,
+                direction=self._direction,
                 key=key,
                 old_value=old_value,
                 new_value=value,
@@ -128,7 +128,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
                 WorkflowStateChangedEvent.now(
                     workflow_id=self._workflow_id,
                     workflow_state_id=self.id,
-                    kind=self._kind,
+                    direction=self._direction,
                     key=key,
                     old_value=old_value,
                     new_value=None,

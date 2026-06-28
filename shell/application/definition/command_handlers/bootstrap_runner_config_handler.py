@@ -9,7 +9,7 @@ from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.platform.value_objects.hash import Hash
 
 if TYPE_CHECKING:
-    from shell.application.platform.commands.commands import BootstrapRunnerConfigCommand
+    from shell.application.platform.commands import BootstrapRunnerConfigCommand
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 

@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
@@ -25,10 +25,10 @@ class InMemoryGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepositor
     ) -> list[GraphNodeExecutionState]:
         return self._store.get(graph_node_execution_id.value, [])
 
-    async def list_by_graph_node_execution_and_kind(
-        self, graph_node_execution_id: GraphNodeExecutionId, kind: StateKind
+    async def list_by_graph_node_execution_and_direction(
+        self, graph_node_execution_id: GraphNodeExecutionId, direction: StateDirection
     ) -> list[GraphNodeExecutionState]:
-        return [s for s in self._store.get(graph_node_execution_id.value, []) if s.kind == kind]
+        return [s for s in self._store.get(graph_node_execution_id.value, []) if s.direction == direction]
 
     async def save(self, state: GraphNodeExecutionState) -> None:
         key = state.graph_node_execution_id.value

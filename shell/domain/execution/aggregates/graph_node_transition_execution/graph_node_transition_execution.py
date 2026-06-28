@@ -60,6 +60,8 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
         max_iterations: MaxIterations = MaxIterations(None),
+        status: TransitionStatus | None = None,
+        current_iteration: CurrentIteration | None = None,
     ) -> None:
         super().__init__(id_)
         self._graph_execution_id = graph_execution_id
@@ -69,8 +71,8 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         self._edge_type = edge_type
         self._condition_expression = condition_expression
         self._max_iterations = max_iterations
-        self._status = TransitionStatus.EVALUATED
-        self._current_iteration = CurrentIteration(0)
+        self._status = status if status is not None else TransitionStatus.EVALUATED
+        self._current_iteration = current_iteration if current_iteration is not None else CurrentIteration(0)
 
     @classmethod
     def restore(
@@ -83,6 +85,8 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
         max_iterations: MaxIterations = MaxIterations(None),
+        status: TransitionStatus | None = None,
+        current_iteration: CurrentIteration | None = None,
     ) -> Self:
         return cls(
             id_=id_,
@@ -93,6 +97,8 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             spawn_spec=spawn_spec,
             condition_expression=condition_expression,
             max_iterations=max_iterations,
+            status=status,
+            current_iteration=current_iteration,
         )
 
     @classmethod

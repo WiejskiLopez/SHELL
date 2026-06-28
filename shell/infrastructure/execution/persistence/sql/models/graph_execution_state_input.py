@@ -16,6 +16,6 @@ class GraphExecutionStateInputModel(Base):
         ForeignKey("graph_execution.id", ondelete="CASCADE"),
         nullable=False,
     )
-    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    state_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)

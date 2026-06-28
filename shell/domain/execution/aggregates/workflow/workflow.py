@@ -31,6 +31,9 @@ from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+        SessionExecutionId,
+    )
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
@@ -40,12 +43,14 @@ if TYPE_CHECKING:
 
 class Workflow(AggregateRoot["WorkflowId"]):
     __slots__ = (
+        "_session_execution_id",
         "_session_id",
         "_status",
         "_created_at",
     )
 
-    _session_id: SessionId
+    _session_execution_id: SessionExecutionId | None
+    _session_id: SessionId | None
     _status: WorkflowStatus
     _created_at: CreatedAt
 
@@ -53,11 +58,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self,
         *,
         id: WorkflowId,
+        session_execution_id: SessionExecutionId | None = None,
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
         created_at: datetime | None = None,
     ) -> None:
         super().__init__(id)
+        self._session_execution_id = session_execution_id
         self._session_id = session_id or None  # type: ignore[assignment]
         self._status = status or WorkflowStatus.ACTIVE
         self._created_at = created_at or datetime.min
@@ -67,18 +74,24 @@ class Workflow(AggregateRoot["WorkflowId"]):
         cls,
         *,
         id: WorkflowId,
+        session_execution_id: SessionExecutionId | None = None,
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
         created_at: datetime | None = None,
     ) -> Self:
         return cls(
             id=id,
+            session_execution_id=session_execution_id,
             session_id=session_id,
             status=status,
             created_at=created_at,
         )
 
     # --- Properties ---
+
+    @property
+    def session_execution_id(self) -> SessionExecutionId | None:
+        return self._session_execution_id
 
     @property
     def session_id(self) -> SessionId | None:
@@ -100,10 +113,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id_: WorkflowId,
         now: datetime,
+        session_execution_id: SessionExecutionId | None = None,
         session_id: SessionId | None = None,
     ) -> Workflow:
         return cls(
             id=id_,
+            session_execution_id=session_execution_id,
             session_id=session_id,
             status=WorkflowStatus.ACTIVE,
             created_at=now,

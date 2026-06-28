@@ -13,8 +13,6 @@ class DomainEvent:
     aggregate_id: str = ""
     aggregate_type: str = ""
     occurred_at: datetime
-    correlation_id: str = ""
-    causation_id: str = ""
     schema_version: int = 1
 
     def __post_init__(self) -> None:

@@ -9,6 +9,5 @@ class GraphExecutionLauncher(Protocol):
         *,
         graph_definition_id: str,
         input_state: dict[str, Any],
-        correlation_id: str,
     ) -> str:  # returns graph_execution_id
         ...

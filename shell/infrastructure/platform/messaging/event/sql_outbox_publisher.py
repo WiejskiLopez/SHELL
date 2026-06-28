@@ -10,6 +10,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
@@ -29,6 +30,8 @@ class SqlOutboxPublisher:
     async def publish(self, events: Sequence[DomainEvent]) -> None:
         if not events:
             return
+        correlation_id = get_correlation_id()
+        causation_id = get_causation_id()
         serializer = DomainEventSerializer()
         async with self._session_factory() as session:
             for event in events:
@@ -40,6 +43,8 @@ class SqlOutboxPublisher:
                             event_type=type(event).__name__,
                             occurred_at=event.occurred_at,
                             payload=payload,
+                            correlation_id=correlation_id,
+                            causation_id=causation_id,
                             published_at=None,
                         )
                     )

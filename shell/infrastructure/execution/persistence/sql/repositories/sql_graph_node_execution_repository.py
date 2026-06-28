@@ -30,10 +30,7 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
         self._session = session
 
     def _base_query(self) -> Select[tuple[GraphNodeExecutionModel]]:
-        return select(GraphNodeExecutionModel).options(
-            selectinload(GraphNodeExecutionModel.input_state_models),
-            selectinload(GraphNodeExecutionModel.output_state_models),
-        )
+        return select(GraphNodeExecutionModel)
 
     async def get_by_id(self, node_id: GraphNodeExecutionId) -> GraphNodeExecution | None:
         query = self._base_query().where(GraphNodeExecutionModel.id == node_id.value)
@@ -46,41 +43,15 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
             model = _graph_node_execution_entity_to_model(node)
             self._session.add(model)
         else:
-            from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (
-                GraphNodeExecutionStateInputModel,
-            )
-            from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (
-                GraphNodeExecutionStateOutputModel,
-            )
-
             model.graph_execution_id = node.graph_execution_id.value if node.graph_execution_id else ""
             model.position = node.position
             model.mode = node.mode.value
             model.role = node.role
             model.node_type = node.node_type
+            model.status = node.status.value
             model.timeout_seconds = node.timeout_seconds
             model.max_retries = node.remaining_retries
             model.retry_delay_seconds = node.retry_delay_seconds
-            model.input_state_models = [
-                GraphNodeExecutionStateInputModel(
-                    id=p.id.value,
-                    graph_node_execution_id=p.graph_node_execution_id.value,
-                    payload=p.payload.to_dict(),
-                    is_current=p.is_current.value,
-                    created_at=p.created_at.value if p.created_at else None,
-                )
-                for p in node.input_states
-            ]
-            model.output_state_models = [
-                GraphNodeExecutionStateOutputModel(
-                    id=p.id.value,
-                    graph_node_execution_id=p.graph_node_execution_id.value,
-                    payload=p.payload.to_dict(),
-                    is_current=p.is_current.value,
-                    created_at=p.created_at.value if p.created_at else None,
-                )
-                for p in node.output_states
-            ]
 
     async def list_by_ids(self, ids: list[GraphNodeExecutionId]) -> list[GraphNodeExecution]:
         if not ids:
@@ -105,6 +76,10 @@ def _graph_node_execution_model_to_entity(
 ) -> GraphNodeExecution:
     from shell.domain.platform.value_objects.mode import Mode
 
+    from shell.domain.execution.value_objects.graph_node_execution_status import (
+        GraphNodeExecutionStatus,
+    )
+
     return GraphNodeExecution(
         id=GraphNodeExecutionId(model.id),
         graph_execution_id=(
@@ -117,6 +92,7 @@ def _graph_node_execution_model_to_entity(
         remaining_retries=RemainingRetries(model.max_retries or 0),
         retry_delay_seconds=RetryDelaySeconds(model.retry_delay_seconds or 0),
         timeout_seconds=TimeoutSeconds(model.timeout_seconds or 0),
+        status=GraphNodeExecutionStatus(model.status) if model.status else None,
     )
 
 
@@ -137,6 +113,7 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         autopilot=False,
         task_execution_id="",
         source_dir="",
+        status=node.status.value,
         status_initial="",
         timeout_seconds=node.timeout_seconds.value,
         max_retries=node.remaining_retries.value,

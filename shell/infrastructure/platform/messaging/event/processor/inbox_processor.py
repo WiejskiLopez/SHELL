@@ -5,6 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.context import (
+    causation_id_var,
+    correlation_id_var,
+)
 from shell.infrastructure.platform.persistence.sql.models import InboxEventModel
 from shell.infrastructure.platform.serialization.event_deserializer import EventDeserializer
 from sqlalchemy import select
@@ -64,6 +68,14 @@ class InboxProcessor:
             # before any handler runs.  If a handler throws, the event won't
             # be lost — the commit already durable-marked it.
             if events_to_publish:
-                await self._event_bus.publish(events_to_publish)
+                # Restore tracing context from inbox metadata before dispatching
+                for domain_event, row in zip(events_to_publish, rows, strict=False):
+                    corr_token = correlation_id_var.set(row.correlation_id)
+                    caus_token = causation_id_var.set(domain_event.event_id)
+                    try:
+                        await self._event_bus.publish([domain_event])
+                    finally:
+                        correlation_id_var.reset(corr_token)
+                        causation_id_var.reset(caus_token)
 
             return len(rows)

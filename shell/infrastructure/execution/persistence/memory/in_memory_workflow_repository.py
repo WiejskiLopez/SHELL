@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+    SessionExecutionId,
+)
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import WorkflowRepository
 from shell.domain.execution.value_objects.ids import (
@@ -23,6 +26,14 @@ class InMemoryWorkflowRepository(WorkflowRepository):
         return [
             wf for wf in self._store.values()
             if wf.session_id == session_id
+        ]
+
+    async def get_by_session_execution_id(
+        self, session_execution_id: SessionExecutionId
+    ) -> list[Workflow]:
+        return [
+            wf for wf in self._store.values()
+            if wf.session_execution_id == session_execution_id
         ]
 
     async def save(self, workflow: Workflow) -> None:

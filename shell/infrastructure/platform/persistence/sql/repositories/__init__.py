@@ -14,20 +14,11 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_docume
 from shell.infrastructure.definition.persistence.sql.repositories.sql_runner_config_repository import (
     SqlRunnerConfigRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_archive_stub import (
-    SqlEnvelopeArchiveStub,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_envelope_repository import (
-    SqlEnvelopeRepository,
-)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_input_repository import (
-    SqlGraphNodeExecutionStateInputRepository,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_output_repository import (
-    SqlGraphNodeExecutionStateOutputRepository,
+from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
+    SqlMessageRepository,
 )
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
@@ -43,13 +34,11 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_workflow_re
 )
 
 __all__ = [
-    "SqlEnvelopeArchiveStub",
-    "SqlEnvelopeRepository",
     "SqlGraphDefinitionRepository",
     "SqlGraphExecutionRepository",
     "SqlGraphNodeDefinitionRepository",
-    "SqlGraphNodeExecutionStateInputRepository",
-    "SqlGraphNodeExecutionStateOutputRepository",
+
+    "SqlMessageRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "SqlSessionRepository",

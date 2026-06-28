@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
+from shell.domain.execution.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
@@ -21,11 +21,11 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
     def __init__(self) -> None:
         self._store: dict[str, GraphExecutionState] = {}
 
-    async def get_current_by_graph_execution_id_and_kind(
-        self, graph_execution_id: GraphExecutionId, kind: StateKind
+    async def get_current_by_graph_execution_id_and_direction(
+        self, graph_execution_id: GraphExecutionId, direction: StateDirection
     ) -> GraphExecutionState | None:
         for item in self._store.values():
-            if item.graph_execution_id == graph_execution_id and item.kind == kind:
+            if item.graph_execution_id == graph_execution_id and item.direction == direction:
                 return copy.deepcopy(item)
         return None
 

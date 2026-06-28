@@ -11,7 +11,6 @@ from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_sta
     WorkflowStateId,
 )
 from shell.domain.execution.value_objects.ids import (
-    EnvelopeId,
     GraphExecutionId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
@@ -20,6 +19,7 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionStateId,
     WorkflowId,
 )
+from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 
 
 class FakeIdGenerator:
@@ -36,8 +36,8 @@ class FakeIdGenerator:
     def new_workflow_id(self) -> WorkflowId:
         return WorkflowId(self._next())
 
-    def new_envelope_id(self) -> EnvelopeId:
-        return EnvelopeId(self._next())
+    def new_message_id(self) -> MessageId:
+        return MessageId(self._next())
 
     def new_graph_node_execution_result_id(self) -> GraphNodeExecutionResultId:
         return GraphNodeExecutionResultId(self._next())

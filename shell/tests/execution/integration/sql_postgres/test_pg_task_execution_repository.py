@@ -3,13 +3,13 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.import_task_execution_handler import (
     ImportTaskExecutionHandler,
 )
-from shell.application.platform.commands.commands import (
+from shell.application.platform.commands import (
     ImportTaskExecutionCommand,
 )
 from shell.application.platform.queries.queries import (
     GetCurrentTaskExecutionQuery,
 )
-from shell.application.platform.query_handlers.query_handlers import (
+from shell.application.platform.query_handlers import (
     GetCurrentTaskExecutionHandler,
 )
 from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService

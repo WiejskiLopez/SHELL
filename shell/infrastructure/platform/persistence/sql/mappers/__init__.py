@@ -20,45 +20,46 @@ from shell.domain.definition.value_objects.ids import (
     RagDocumentId,
     RunnerConfigId,
 )
-from shell.domain.execution.aggregates.envelope import Envelope, EnvelopeEvent
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
     TransitionDefinition,
 )
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_input import (
-    GraphNodeExecutionStateInput,
-)
-from shell.domain.execution.aggregates.graph_node_execution.entities.graph_node_execution_state_output import (
-    GraphNodeExecutionStateOutput,
-)
+
 from shell.domain.session.aggregates.session import Session
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )
-from shell.domain.execution.value_objects.state_kind import StateKind
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
     GraphNodeExecutionResult,
 )
+from shell.domain.execution.value_objects.graph_execution_initialization_status import (
+    GraphExecutionInitializationStatus,
+)
+from shell.domain.execution.value_objects.graph_node_definition_execution_slot import (
+    GraphNodeDefinitionExecutionSlot,
+)
+from shell.domain.execution.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId as ExecutionGraphNodeDefinitionId,
+)
+from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.execution.value_objects.ids import (
-    EnvelopeEventId,
-    EnvelopeId,
     GraphExecutionId,
-    GraphExecutionStateId,
     GraphNodeExecutionId,
     GraphNodeExecutionResultId,
-    GraphNodeExecutionStateInputId,
-    GraphNodeExecutionStateOutputId,
-    GraphNodeTransitionExecutionId,
+
+    SessionExecutionId,
+    SessionExecutionStateId,
     SessionId,
     TaskExecutionId,
     TaskExecutionStateId,
+    UserExecutionId,
+    UserExecutionStateId,
     WorkflowId,
 )
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.work_dir import WorkDir
-from shell.domain.platform.value_objects.envelope_status import EnvelopeStage, EnvelopeStatus
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
@@ -77,16 +78,17 @@ from shell.infrastructure.definition.persistence.sql.models import (
     RunnerConfigModel,
 )
 from shell.infrastructure.execution.persistence.sql.models import (
-    EnvelopeEventModel,
-    EnvelopeModel,
     GraphExecutionModel,
     GraphNodeExecutionResultModel,
-    GraphNodeExecutionStateInputModel,
-    GraphNodeExecutionStateOutputModel,
+
     GraphNodeTransitionExecutionModel,
+    SessionExecutionModel,
+    SessionExecutionStateModel,
     SessionModel,
     TaskExecutionModel,
     TaskExecutionStateModel,
+    UserExecutionModel,
+    UserExecutionStateModel,
     WorkflowModel,
 )
 
@@ -145,8 +147,8 @@ def task_execution_state_model_to_entity(
     return TaskExecutionState(
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
-        kind=StateKind(model.kind),
-        payload=StateData(dict(model.payload)),
+        direction=StateDirection(model.direction),
+        state_data=StateData(dict(model.state_data)),
         is_current=IsCurrent(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
@@ -158,66 +160,8 @@ def task_execution_state_entity_to_model(
     return TaskExecutionStateModel(
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
-        kind=entity.kind.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value if entity.created_at else None,
-    )
-
-
-# ---------------------------------------------------------------------------
-# GraphNodeExecution State Input
-# ---------------------------------------------------------------------------
-
-
-def graph_node_execution_state_input_model_to_entity(
-    model: GraphNodeExecutionStateInputModel,
-) -> GraphNodeExecutionStateInput:
-    return GraphNodeExecutionStateInput(
-        id=GraphNodeExecutionStateInputId(model.id),
-        graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
-        payload=StateData(dict(model.payload)),
-        is_current=IsCurrent(model.is_current),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-    )
-
-
-def graph_node_execution_state_input_entity_to_model(
-    entity: GraphNodeExecutionStateInput,
-) -> GraphNodeExecutionStateInputModel:
-    return GraphNodeExecutionStateInputModel(
-        id=entity.id.value,
-        graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload.to_dict(),
-        is_current=entity.is_current.value,
-        created_at=entity.created_at.value if entity.created_at else None,
-    )
-
-
-# ---------------------------------------------------------------------------
-# GraphNodeExecution State Output
-# ---------------------------------------------------------------------------
-
-
-def graph_node_execution_state_output_model_to_entity(
-    model: GraphNodeExecutionStateOutputModel,
-) -> GraphNodeExecutionStateOutput:
-    return GraphNodeExecutionStateOutput(
-        id=GraphNodeExecutionStateOutputId(model.id),
-        graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
-        payload=StateData(dict(model.payload)),
-        is_current=IsCurrent(model.is_current),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-    )
-
-
-def graph_node_execution_state_output_entity_to_model(
-    entity: GraphNodeExecutionStateOutput,
-) -> GraphNodeExecutionStateOutputModel:
-    return GraphNodeExecutionStateOutputModel(
-        id=entity.id.value,
-        graph_node_execution_id=entity.graph_node_execution_id.value,
-        payload=entity.payload.to_dict(),
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
     )
@@ -229,6 +173,14 @@ def graph_node_execution_state_output_entity_to_model(
 
 
 def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
+    slots_raw = graph_execution_model.graph_node_definition_executions or {}
+    slots = [
+        GraphNodeDefinitionExecutionSlot(
+            graph_node_definition_id=ExecutionGraphNodeDefinitionId(def_id),
+            graph_node_execution_id=GraphNodeExecutionId(exec_id) if exec_id else None,
+        )
+        for def_id, exec_id in slots_raw.items()
+    ]
     return GraphExecution(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
@@ -238,6 +190,8 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             else None
         ),
         depth=graph_execution_model.depth,
+        initialization_status=GraphExecutionInitializationStatus(graph_execution_model.initialization_status) if graph_execution_model.initialization_status else None,
+        graph_node_definition_execution_slots=slots,
     )
 
 
@@ -340,13 +294,20 @@ def graph_node_transition_definition_entity_to_model(
 
 def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
     model.status = entity.status.value if hasattr(entity.status, 'value') else str(entity.status)
+    model.initialization_status = entity.initialization_status.value if hasattr(entity.initialization_status, 'value') else str(entity.initialization_status)
     model.parent_graph_execution_id = entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
     model.depth = entity.depth.value if hasattr(entity.depth, 'value') else entity.depth
+    model.graph_node_definition_executions = {
+        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+        for slot in entity.graph_node_definition_execution_slots
+    }
 
 
 def graph_execution_entity_to_model(
     graph_execution: GraphExecution,
 ) -> GraphExecutionModel:
+    from shell.infrastructure.platform.context import get_correlation_id
+
     graph_execution_model = GraphExecutionModel(
         id=graph_execution.id.value,
         task_execution_id=graph_execution.task_execution_id.value,
@@ -356,11 +317,16 @@ def graph_execution_entity_to_model(
             if graph_execution.parent_graph_execution_id
             else None
         ),
+        initialization_status=graph_execution.initialization_status.value,
+        graph_node_definition_executions={
+            slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+            for slot in graph_execution.graph_node_definition_execution_slots
+        },
         state_input={},
         state_output={},
         depth=graph_execution.depth.value if graph_execution.depth else 0,
         timeout_at=None,
-        correlation_id="",
+        correlation_id=get_correlation_id(),
         tags={},
     )
     return graph_execution_model
@@ -375,6 +341,11 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     return Workflow(
         id=WorkflowId(workflow_model.id),
         status=WorkflowStatus(workflow_model.status),
+        session_execution_id=(
+            SessionExecutionId(workflow_model.session_execution_id)
+            if workflow_model.session_execution_id
+            else None
+        ),
         session_id=SessionId(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=_ensure_utc(workflow_model.created_at),
     )
@@ -384,6 +355,11 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     return WorkflowModel(
         id=work_flow.id.value,
         status=work_flow.status.value,
+        session_execution_id=(
+            work_flow.session_execution_id.value
+            if work_flow.session_execution_id
+            else None
+        ),
         session_id=work_flow.session_id.value if work_flow.session_id else None,
         created_at=work_flow.created_at,
     )
@@ -391,113 +367,11 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
 
 def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
     model.status = entity.status.value if hasattr(entity.status, 'value') else entity.status
+    model.session_execution_id = (
+        entity.session_execution_id.value if entity.session_execution_id else None
+    )
     model.session_id = entity.session_id.value if entity.session_id else None
     model.created_at = entity.created_at
-
-
-# ---------------------------------------------------------------------------
-# Envelope
-# ---------------------------------------------------------------------------
-
-
-def envelope_model_to_entity(envelope_model: EnvelopeModel) -> Envelope:
-    events = [
-        EnvelopeEvent(
-            id=EnvelopeEventId(event_model.id),
-            kind=event_model.kind,
-            payload=dict(event_model.payload),
-            created_at=_ensure_utc(event_model.created_at),
-        )
-        for event_model in envelope_model.events
-    ]
-    from shell.domain.execution.aggregates.envelope.value_objects.archive_uri import ArchiveUri
-    from shell.domain.execution.aggregates.envelope.value_objects.artifact_uri import ArtifactUri
-    from shell.domain.execution.aggregates.envelope.value_objects.correlation_id import CorrelationId
-    from shell.domain.execution.aggregates.envelope.value_objects.payload import Payload
-    from shell.domain.execution.aggregates.envelope.value_objects.sequence_id import SequenceId
-    from shell.domain.execution.aggregates.envelope.value_objects.source_role import SourceRole
-    from shell.domain.execution.aggregates.envelope.value_objects.step import Step
-    from shell.domain.execution.aggregates.envelope.value_objects.target_role import TargetRole
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.updated_at import UpdatedAt
-
-    return Envelope(
-        id=EnvelopeId(envelope_model.id),
-        workflow_id=WorkflowId(envelope_model.workflow_id),
-        parent_id=EnvelopeId(envelope_model.parent_id) if envelope_model.parent_id else None,
-        correlation_id=CorrelationId(envelope_model.correlation_id),
-        sender_graph_node_execution_id=GraphNodeExecutionId(
-            envelope_model.sender_graph_node_execution_id
-        ),
-        receiver_graph_node_execution_id=GraphNodeExecutionId(
-            envelope_model.receiver_graph_node_execution_id
-        ),
-        source_role=SourceRole(envelope_model.source_role),
-        target_role=TargetRole(envelope_model.target_role),
-        sequence_id=SequenceId(envelope_model.sequence_id),
-        step=Step(envelope_model.step),
-        status=EnvelopeStatus(envelope_model.status),
-        stage=EnvelopeStage(envelope_model.stage),
-        payload=Payload(dict(envelope_model.payload)),
-        artifact_uri=ArtifactUri(envelope_model.artifact_uri),
-        archive_uri=ArchiveUri(envelope_model.archive_uri),
-        created_at=CreatedAt.from_datetime(_ensure_utc(envelope_model.created_at)),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(envelope_model.updated_at)),
-        events=events,
-    )
-
-
-def envelope_entity_to_model(envelope: Envelope) -> EnvelopeModel:
-    envelope_model = EnvelopeModel(
-        id=envelope.id.value,
-        workflow_id=envelope.workflow_id.value,
-        parent_id=envelope.parent_id.value if envelope.parent_id else None,
-        correlation_id=envelope.correlation_id.value,
-        sender_graph_node_execution_id=envelope.sender_graph_node_execution_id.value,
-        receiver_graph_node_execution_id=envelope.receiver_graph_node_execution_id.value,
-        source_role=envelope.source_role.value,
-        target_role=envelope.target_role.value,
-        sequence_id=envelope.sequence_id.value,
-        step=envelope.step.value,
-        status=envelope.status.value,
-        stage=envelope.stage.value,
-        payload=envelope.payload.value,
-        artifact_uri=envelope.artifact_uri.value,
-        archive_uri=envelope.archive_uri.value,
-        created_at=envelope.created_at.value,
-        updated_at=envelope.updated_at.value,
-    )
-    envelope_model.events = [
-        EnvelopeEventModel(
-            id=envelope_event.id.value,
-            envelope_id=envelope.id.value,
-            kind=envelope_event.kind,
-            payload=envelope_event.payload,
-            created_at=envelope_event.created_at,
-        )
-        for envelope_event in envelope.events
-    ]
-    return envelope_model
-
-
-def envelope_update_model(model: EnvelopeModel, entity: Envelope) -> None:
-    model.workflow_id = entity.workflow_id.value
-    model.parent_id = entity.parent_id.value if entity.parent_id else None
-    model.correlation_id = entity.correlation_id.value
-    model.sender_graph_node_execution_id = entity.sender_graph_node_execution_id.value
-    model.receiver_graph_node_execution_id = entity.receiver_graph_node_execution_id.value
-    model.source_role = entity.source_role.value
-    model.target_role = entity.target_role.value
-    model.sequence_id = entity.sequence_id.value
-    model.step = entity.step.value
-    model.status = entity.status.value
-    model.stage = entity.stage.value
-    model.payload = entity.payload.value
-    model.artifact_uri = entity.artifact_uri.value
-    model.archive_uri = entity.archive_uri.value
-    model.created_at = entity.created_at.value
-    model.updated_at = entity.updated_at.value
-    # Events are managed separately via add/remove on the relationship
 
 
 # ---------------------------------------------------------------------------
@@ -820,13 +694,13 @@ def graph_execution_state_input_model_to_entity(model):
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.value_objects.state_kind import StateKind
+    from shell.domain.execution.value_objects.state_direction import StateDirection
 
     return GraphExecutionState(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
-        kind=StateKind.INPUT,
-        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        direction=StateDirection.IN,
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
         is_current=IsCurrent(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
@@ -840,7 +714,7 @@ def graph_execution_state_input_entity_to_model(entity):
     return GraphExecutionStateInputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
-        payload=entity.state_data.to_dict(),
+        state_data=entity.state_data.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
     )
@@ -859,13 +733,13 @@ def graph_execution_state_output_model_to_entity(model):
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.value_objects.state_kind import StateKind
+    from shell.domain.execution.value_objects.state_direction import StateDirection
 
     return GraphExecutionState(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
-        kind=StateKind.OUTPUT,
-        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        direction=StateDirection.OUT,
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
         is_current=IsCurrent(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
@@ -879,7 +753,7 @@ def graph_execution_state_output_entity_to_model(entity):
     return GraphExecutionStateOutputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
-        payload=entity.state_data.to_dict(),
+        state_data=entity.state_data.to_dict(),
         is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
     )
@@ -897,8 +771,8 @@ def workflow_state_model_to_entity(model):
     return WorkflowState.restore(
         id=WorkflowStateId(model.id),
         workflow_id=WorkflowId(model.workflow_id),
-        kind=StateKind(model.kind),
-        state_data=StateData(dict(model.payload)) if model.payload else StateData({}),
+        direction=StateDirection(model.direction),
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -909,8 +783,127 @@ def workflow_state_entity_to_model(entity):
     return WorkflowStateModel(
         id=entity.id.value,
         workflow_id=entity.workflow_id.value,
-        kind=entity.kind.value,
-        payload=entity.state_data.to_dict(),
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
         is_current=True,
+        created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+# ── UserExecution ─────────────────────────────────────────────────────────────
+
+
+def user_execution_model_to_entity(model: UserExecutionModel):
+    from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
+    from shell.domain.user.value_objects.user_id import UserId
+
+    return UserExecution.restore(
+        id=UserExecutionId(model.id),
+        user_id=UserId(model.user_id) if model.user_id else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
+    )
+
+
+def user_execution_entity_to_model(entity):
+    return UserExecutionModel(
+        id=entity.id.value,
+        user_id=entity.user_id.value if entity.user_id else None,
+        created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+def user_execution_update_model(model: UserExecutionModel, entity) -> None:
+    model.user_id = entity.user_id.value if entity.user_id else None
+    model.created_at = entity.created_at.value if entity.created_at else None
+
+
+# ── UserExecution State ────────────────────────────────────────────────────────
+
+
+def user_execution_state_model_to_entity(model: UserExecutionStateModel):
+    from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
+        UserExecutionState,
+    )
+
+    return UserExecutionState.restore(
+        id=UserExecutionStateId(model.id),
+        user_execution_id=UserExecutionId(model.user_execution_id),
+        direction=StateDirection(model.direction),
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
+    )
+
+
+def user_execution_state_entity_to_model(entity):
+    return UserExecutionStateModel(
+        id=entity.id.value,
+        user_execution_id=entity.user_execution_id.value,
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
+        is_current=entity.is_current.value,
+        created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+# ── SessionExecution ───────────────────────────────────────────────────────────
+
+
+def session_execution_model_to_entity(model: SessionExecutionModel):
+    from shell.domain.execution.aggregates.session_execution.session_execution import (
+        SessionExecution,
+    )
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+
+    return SessionExecution.restore(
+        id=SessionExecutionId(model.id),
+        user_execution_id=(
+            UserExecutionId(model.user_execution_id) if model.user_execution_id else None
+        ),
+        session_id=SessionId(model.session_id) if model.session_id else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
+    )
+
+
+def session_execution_entity_to_model(entity):
+    return SessionExecutionModel(
+        id=entity.id.value,
+        user_execution_id=entity.user_execution_id.value if entity.user_execution_id else None,
+        session_id=entity.session_id.value if entity.session_id else None,
+        created_at=entity.created_at.value if entity.created_at else None,
+    )
+
+
+def session_execution_update_model(model: SessionExecutionModel, entity) -> None:
+    model.user_execution_id = entity.user_execution_id.value if entity.user_execution_id else None
+    model.session_id = entity.session_id.value if entity.session_id else None
+    model.created_at = entity.created_at.value if entity.created_at else None
+
+
+# ── SessionExecution State ─────────────────────────────────────────────────────
+
+
+def session_execution_state_model_to_entity(model: SessionExecutionStateModel):
+    from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
+        SessionExecutionState,
+    )
+
+    return SessionExecutionState.restore(
+        id=SessionExecutionStateId(model.id),
+        session_execution_id=SessionExecutionId(model.session_execution_id),
+        direction=StateDirection(model.direction),
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
+        is_current=IsCurrent(model.is_current),
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
+    )
+
+
+def session_execution_state_entity_to_model(entity):
+    return SessionExecutionStateModel(
+        id=entity.id.value,
+        session_execution_id=entity.session_execution_id.value,
+        direction=entity.direction.value,
+        state_data=entity.state_data.to_dict(),
+        is_current=entity.is_current.value,
         created_at=entity.created_at.value if entity.created_at else None,
     )

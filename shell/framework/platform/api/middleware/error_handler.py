@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from fastapi.responses import JSONResponse
 from shell.domain.definition.exceptions import RunnerConfigNotFound
 from shell.domain.execution.exceptions import (
-    EnvelopeNotFound,
     NodeNotFound,
     TaskExecutionNotFound,
     WorkflowNotFound,
@@ -25,7 +24,6 @@ if TYPE_CHECKING:
 _NOT_FOUND = {
     TaskExecutionNotFound,
     WorkflowNotFound,
-    EnvelopeNotFound,
     NodeNotFound,
     RunnerConfigNotFound,
 }

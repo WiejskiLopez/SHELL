@@ -26,6 +26,7 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
     autopilot: Mapped[bool] = mapped_column(nullable=False, default=False)
     task_execution_id: Mapped[str] = mapped_column(nullable=False, default="")
     source_dir: Mapped[str] = mapped_column(nullable=False, default="")
+    status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
     timeout_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
     max_retries: Mapped[int] = mapped_column(nullable=False, default=0)
@@ -39,25 +40,7 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
         "GraphExecutionModel", back_populates="graph_node_execution_models"
     )
 
-    input_state_models: Mapped[list[GraphNodeExecutionStateInputModel]] = relationship(
-        "GraphNodeExecutionStateInputModel",
-        back_populates="graph_node_execution_model",
-        cascade="all, delete-orphan",
-    )
-
-    output_state_models: Mapped[list[GraphNodeExecutionStateOutputModel]] = relationship(
-        "GraphNodeExecutionStateOutputModel",
-        back_populates="graph_node_execution_model",
-        cascade="all, delete-orphan",
-    )
-
 
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphExecutionModel
     GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_input import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphNodeExecutionStateInputModel
-    GraphNodeExecutionStateInputModel,  # noqa: TC002 — GraphNodeExecutionStateInputModel używany w Mapped[list[...]] w relacji SQLAlchemy
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_output import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphNodeExecutionStateOutputModel
-    GraphNodeExecutionStateOutputModel,  # noqa: TC002 — GraphNodeExecutionStateOutputModel używany w Mapped[list[...]] w relacji SQLAlchemy
 )
