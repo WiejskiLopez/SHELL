@@ -5,14 +5,16 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.exceptions.invalid_session_transition import (
     InvalidSessionTransition,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
-_NOW = datetime(2025, 1, 1, tzinfo=UTC)
-_LATER = datetime(2025, 1, 2, tzinfo=UTC)
+_NOW = CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
+_LATER = UpdatedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))
 
 
 class TestSession:

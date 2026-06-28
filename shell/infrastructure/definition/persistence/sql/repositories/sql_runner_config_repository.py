@@ -17,6 +17,7 @@ from ..models import RunnerConfigModel
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.runner_config import RunnerConfig
+    from shell.domain.definition.value_objects.package_name import PackageName
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -29,8 +30,8 @@ class SqlRunnerConfigRepository(RunnerConfigRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 
-    async def get_by_package(self, package_name: str) -> RunnerConfig | None:
-        query = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name)
+    async def get_by_package(self, package_name: PackageName) -> RunnerConfig | None:
+        query = select(RunnerConfigModel).where(RunnerConfigModel.package_name == package_name.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 

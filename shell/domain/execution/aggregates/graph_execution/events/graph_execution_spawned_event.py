@@ -41,7 +41,7 @@ class GraphExecutionSpawnedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            parent_graph_execution_id=GraphExecutionId(payload.get("parent_graph_execution_id")),
-            child_graph_execution_id=GraphExecutionId(payload.get("child_graph_execution_id")),
+            parent_graph_execution_id=GraphExecutionId(payload["parent_graph_execution_id"]),
+            child_graph_execution_id=GraphExecutionId(payload["child_graph_execution_id"]),
             goal=Goal(payload.get("goal", "")),
         )

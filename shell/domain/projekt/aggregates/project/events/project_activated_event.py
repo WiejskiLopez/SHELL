@@ -20,4 +20,4 @@ class ProjectActivatedEvent(DomainEvent):
 
     @classmethod
     def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
-        return cls(occurred_at=occurred_at, schema_version=schema_version, project_id=ProjectId(payload.get("project_id")))
+        return cls(occurred_at=occurred_at, schema_version=schema_version, project_id=ProjectId(payload["project_id"]))

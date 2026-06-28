@@ -21,7 +21,7 @@ class WorkflowPausedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            workflow_id=WorkflowId(payload.get("workflow_id")),
+            workflow_id=WorkflowId(payload["workflow_id"]),
         )
 
     @classmethod

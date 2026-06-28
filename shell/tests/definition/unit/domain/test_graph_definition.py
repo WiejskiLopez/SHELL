@@ -3,6 +3,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+    GraphDefinitionCreatedEvent,
+)
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
@@ -34,6 +37,7 @@ class TestGraphDefinition:
         events = graph_definition.pull_events()
         assert len(events) == 1
         event = events[0]
+        assert isinstance(event, GraphDefinitionCreatedEvent)
         assert event.graph_definition_id == GraphDefinitionId("g1")
         assert event.name == GraphName("test")
         assert event.purpose == Purpose("for testing")

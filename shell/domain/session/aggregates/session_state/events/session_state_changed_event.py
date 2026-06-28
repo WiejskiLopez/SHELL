@@ -51,10 +51,10 @@ class SessionStateChangedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            session_id=SessionId(payload.get("session_id")),
-            session_state_id=SessionStateId(payload.get("session_state_id")),
-            direction=StateDirection(payload.get("direction")),
-            key=payload.get("key"),
-            old_value=payload.get("old_value"),
-            new_value=payload.get("new_value"),
+            session_id=SessionId(payload["session_id"]),
+            session_state_id=SessionStateId(payload["session_state_id"]),
+            direction=StateDirection(payload["direction"]),
+            key=payload["key"],
+            old_value=payload["old_value"],
+            new_value=payload["new_value"],
         )

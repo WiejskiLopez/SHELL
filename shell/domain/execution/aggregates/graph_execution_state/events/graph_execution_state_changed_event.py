@@ -55,11 +55,11 @@ class GraphExecutionStateChangedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            graph_execution_id=payload.get("graph_execution_id"),
-            graph_execution_state_id=payload.get("graph_execution_state_id"),
+            graph_execution_id=payload["graph_execution_id"],
+            graph_execution_state_id=payload["graph_execution_state_id"],
             direction=StateDirection(payload.get("direction", "IN")),
-            key=StateKey(payload.get("key")),
-            old_value=payload.get("old_value"),
-            new_value=payload.get("new_value"),
+            key=StateKey(payload["key"]),
+            old_value=payload["old_value"],
+            new_value=payload["new_value"],
             schema_version=schema_version,
         )

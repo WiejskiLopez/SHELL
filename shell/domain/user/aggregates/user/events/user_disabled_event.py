@@ -20,4 +20,4 @@ class UserDisabledEvent(DomainEvent):
 
     @classmethod
     def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
-        return cls(occurred_at=occurred_at, schema_version=schema_version, user_id=UserId(payload.get("user_id")))
+        return cls(occurred_at=occurred_at, schema_version=schema_version, user_id=UserId(payload["user_id"]))

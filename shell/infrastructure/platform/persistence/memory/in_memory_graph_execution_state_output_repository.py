@@ -37,5 +37,7 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
     async def delete(self, id: object) -> None:
         pass
 
-    async def exists(self, id: object) -> bool:
-        pass
+    async def exists(self, id: object) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(False)

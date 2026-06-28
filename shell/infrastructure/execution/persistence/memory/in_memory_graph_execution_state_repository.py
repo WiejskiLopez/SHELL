@@ -31,5 +31,7 @@ class InMemoryGraphExecutionStateRepository(InMemoryRepository[GraphExecutionSta
     async def save(self, state: GraphExecutionState) -> None:
         self._store[state.id.value] = copy.deepcopy(state)
 
-    async def exists(self, id: object) -> bool:
-        return str(id) in self._store
+    async def exists(self, id: object) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(str(id) in self._store)

@@ -56,7 +56,7 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            node_id=GraphNodeExecutionId(payload.get("node_id")),
-            role=NodeRole(payload.get("role")),
-            error=ErrorDescription(payload.get("error", "")) if payload.get("error") else None,
+            node_id=GraphNodeExecutionId(payload["node_id"]),
+            role=NodeRole(payload["role"]),
+            error=ErrorDescription(payload.get("error", "")) if payload["error"] else None,
         )

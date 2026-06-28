@@ -43,7 +43,7 @@ class TaskExecutionCompletedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
             output=EventOutput(payload.get("output", "")),
         )

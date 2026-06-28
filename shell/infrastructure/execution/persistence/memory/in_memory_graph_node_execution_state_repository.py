@@ -34,5 +34,7 @@ class InMemoryGraphNodeExecutionStateRepository(InMemoryRepository[GraphNodeExec
             self._store[key] = []
         self._store[key].append(state)
 
-    async def exists(self, id_: object) -> bool:
-        return False
+    async def exists(self, id_: object) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(False)

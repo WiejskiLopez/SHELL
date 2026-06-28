@@ -8,9 +8,6 @@ from shell.infrastructure.definition.persistence.sql.services.rag_query_service 
 from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService,
 )
-from shell.infrastructure.execution.persistence.sql.services.envelope_query_service import (
-    EnvelopeQueryService,
-)
 from shell.infrastructure.execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
@@ -25,7 +22,6 @@ from shell.infrastructure.session.persistence.sql.services.session_query_service
 )
 
 __all__ = [
-    "EnvelopeQueryService",
     "NodeResultQueryService",
     "RagQueryService",
     "RunnerConfigQueryService",

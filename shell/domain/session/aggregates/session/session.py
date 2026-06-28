@@ -23,9 +23,6 @@ from shell.domain.session.aggregates.session.exceptions.invalid_session_transiti
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 
-if TYPE_CHECKING:
-    from datetime import datetime
-
 
 class Session(AggregateRoot[SessionId]):
     """Session aggregate root — V3 with FSM (OPEN -> CLOSED)."""
@@ -124,10 +121,6 @@ class Session(AggregateRoot[SessionId]):
     def status(self) -> str:
         """Returns lowercase status string for backward compat."""
         return self._status.value.lower()
-
-    @property
-    def session_status(self) -> SessionStatus:
-        return self._status
 
     # --- Factory ---
 

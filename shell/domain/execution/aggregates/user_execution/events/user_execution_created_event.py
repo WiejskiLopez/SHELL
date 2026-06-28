@@ -34,5 +34,5 @@ class UserExecutionCreatedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            user_execution_id=UserExecutionId(payload.get("user_execution_id")),
+            user_execution_id=UserExecutionId(payload["user_execution_id"]),
         )

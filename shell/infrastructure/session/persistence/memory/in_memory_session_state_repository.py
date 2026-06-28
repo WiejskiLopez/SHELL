@@ -32,5 +32,7 @@ class InMemorySessionStateRepository(InMemoryRepository[SessionState, SessionSta
             if item.session_id == session_id and item.direction == direction
         ]
 
-    async def exists(self, id_: SessionStateId) -> bool:
-        return id_.value in self._store
+    async def exists(self, id_: SessionStateId) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(id_.value in self._store)

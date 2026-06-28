@@ -23,7 +23,7 @@ class SchedulerExecutionSkippedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            execution_id=payload.get("execution_id"),
-            reason=Reason(payload.get("reason")),
+            execution_id=payload["execution_id"],
+            reason=Reason(payload["reason"]),
             schema_version=schema_version,
         )

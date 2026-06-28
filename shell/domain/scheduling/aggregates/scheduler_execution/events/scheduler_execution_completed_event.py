@@ -23,7 +23,7 @@ class SchedulerExecutionCompletedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            execution_id=payload.get("execution_id"),
-            output_state=StateData(payload["output_state"]) if payload.get("output_state") else None,
+            execution_id=payload["execution_id"],
+            output_state=StateData(payload["output_state"]) if payload["output_state"] else None,
             schema_version=schema_version,
         )

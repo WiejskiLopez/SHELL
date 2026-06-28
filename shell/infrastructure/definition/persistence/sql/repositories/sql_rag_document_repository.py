@@ -20,6 +20,9 @@ from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+    from shell.domain.definition.value_objects.domain_tag import DomainTag
+    from shell.domain.definition.value_objects.embedding import Embedding
     from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,16 +75,16 @@ class SqlRagDocumentRepository(RagDocumentRepository):
 
     async def search_similar(
         self,
-        query_embedding: bytes,
-        top_k: int = 5,
-        domain: str | None = None,
+        query_embedding: Embedding,
+        top_k: ChunkIndex = ChunkIndex(5),
+        domain: DomainTag | None = None,
     ) -> list[RagChunk]:
         strategy = self._get_strategy()
         return await strategy.search_similar(
             session=self._session,
-            query_embedding=query_embedding,
-            top_k=top_k,
-            domain=domain,
+            query_embedding=query_embedding.value,
+            top_k=top_k.value,
+            domain=str(domain) if domain else None,
         )
 
 

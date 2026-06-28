@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.mode import Mode
@@ -43,7 +44,7 @@ class TestGraphNodeExecutionSaveResultHandler:
             id=GraphNodeExecutionId("node-1"),
             position=NodeOrder(0),
             mode=Mode.WORKER,
-            role="worker",
+            role=NodeRole("worker"),
             node_type=NodeType("worker"),
         )
         await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)

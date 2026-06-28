@@ -32,5 +32,5 @@ class SessionClosedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            session_id=SessionId(payload.get("session_id")),
+            session_id=SessionId(payload["session_id"]),
         )

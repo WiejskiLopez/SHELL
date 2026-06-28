@@ -48,7 +48,7 @@ class QueryContainer(containers.DeclarativeContainer):
         RunnerConfigGetHandler, queries=infra.runner_config_query_service
     )
     get_session_history_handler_factory = providers.Factory(
-        SessionGetHistoryHandler, queries=infra.session_query_service
+        SessionGetHistoryHandler, queries=infra.session_query_http_service
     )
     search_similar_handler_factory = providers.Factory(
         SearchSimilarHandler, queries=infra.rag_query_service, embedder=infra.embedder

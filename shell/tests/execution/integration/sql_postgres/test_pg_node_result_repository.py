@@ -17,6 +17,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 )
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
@@ -39,7 +40,7 @@ class TestPgNodeResultRepository:
                 id=GraphNodeExecutionId("pg-node-nr-1"),
                 position=NodeOrder(0),
                 mode=Mode.WORKER,
-                role="worker",
+                role=NodeRole("worker"),
                 node_type=NodeType("worker"),
             )
             await u.repository(GraphNodeExecutionRepository).save(node)

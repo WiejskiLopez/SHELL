@@ -28,5 +28,7 @@ class InMemoryAgentSkillExecutionRepository(InMemoryRepository[AgentSkillExecuti
             if item.agent_execution_id == agent_execution_id
         ]
 
-    async def exists(self, id_: AgentSkillExecutionId) -> bool:
-        return id_.value in self._store
+    async def exists(self, id_: AgentSkillExecutionId) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(id_.value in self._store)

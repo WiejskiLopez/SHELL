@@ -61,7 +61,7 @@ class GraphNodeTransitionDefinitionCreatedEvent(DomainEvent):
             GraphNodeTransitionDefinitionId,
         )
 
-        source_id = payload.get("source_node_definition_id")
+        source_id = payload["source_node_definition_id"]
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,

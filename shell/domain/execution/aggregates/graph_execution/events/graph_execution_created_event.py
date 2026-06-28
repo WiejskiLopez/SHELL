@@ -48,12 +48,12 @@ class GraphExecutionCreatedEvent(DomainEvent):
     def from_payload(
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
-        parent_id = payload.get("parent_graph_execution_id")
+        parent_id = payload["parent_graph_execution_id"]
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
-            task_execution_id=TaskExecutionId(payload.get("task_execution_id")),
+            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
+            task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             parent_graph_execution_id=GraphExecutionId(parent_id) if parent_id else None,
             goal=Goal(payload.get("goal", "")),
             depth=GraphDepth(payload.get("depth", 0)),

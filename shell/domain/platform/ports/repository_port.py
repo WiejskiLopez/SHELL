@@ -8,10 +8,10 @@ if TYPE_CHECKING:
     from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 TAggregate = TypeVar("TAggregate")
-TId_co = TypeVar("TId_co", covariant=True)
+TId = TypeVar("TId")
 
 
-class RepositoryPort(Protocol[TAggregate, TId_co]):
+class RepositoryPort(Protocol[TAggregate, TId]):
     """Minimal generic repository protocol.
 
     Every aggregate repository should extend this protocol so that
@@ -19,10 +19,10 @@ class RepositoryPort(Protocol[TAggregate, TId_co]):
     are guaranteed to exist.
     """
 
-    async def get_by_id(self, id: TId_co) -> TAggregate | None: ...
+    async def get_by_id(self, id: TId) -> TAggregate | None: ...
 
     async def save(self, entity: TAggregate) -> None: ...
 
-    async def delete(self, id: TId_co) -> None: ...
+    async def delete(self, id: TId) -> None: ...
 
-    async def exists(self, id: TId_co) -> ExistsResult: ...
+    async def exists(self, id: TId) -> ExistsResult: ...

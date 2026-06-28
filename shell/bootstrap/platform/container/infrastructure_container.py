@@ -12,9 +12,13 @@ from shell.infrastructure.definition.persistence.sql.services.graph_definition_q
 )
 from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
 from shell.infrastructure.execution.filesystem.workspace import Workspace
-from shell.infrastructure.execution.graph_execution_definition_provider_adapter import (
-    GraphExecutionDefinitionProviderAdapter,
+from shell.infrastructure.execution.http.graph_execution_definition_provider_http_adapter import (
+    GraphExecutionDefinitionProviderHttpAdapter,
 )
+from shell.infrastructure.execution.http.session_query_service_http_adapter import (
+    SessionQueryServiceHttpAdapter,
+)
+from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
     SqlGraphExecutionSagaRepository,
 )
@@ -74,21 +78,45 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     workspace_factory = providers.Factory(Workspace)
     runner_factory = providers.Factory(SubprocessGraphNodeExecutionProcessRunner)
 
-    # 3. Adaptery definicji (bridge execution → definition)
+    # 3. SQL query services (internal use by each BC's own REST API / handlers)
     graph_definition_query_service_factory = providers.Factory(
         SqlGraphDefinitionQueryService,
         session_factory=session_factory,
         embedder=embedder,
     )
-    definition_provider_factory = providers.Factory(
-        GraphExecutionDefinitionProviderAdapter,
-        query_service=graph_definition_query_service_factory,
+
+    # 4. HTTP clients for cross-BC communication
+    definition_http_client = providers.Singleton(
+        CorrelationIdAsyncClient,
+        base_url=config.definition_api_url,
+    )
+    session_http_client = providers.Singleton(
+        CorrelationIdAsyncClient,
+        base_url=config.session_api_url,
+    )
+    user_http_client = providers.Singleton(
+        CorrelationIdAsyncClient,
+        base_url=config.user_api_url,
+    )
+    projekt_http_client = providers.Singleton(
+        CorrelationIdAsyncClient,
+        base_url=config.projekt_api_url,
     )
 
-    # 4. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
+    # 5. Cross-BC HTTP adapters (bridge execution → other BCs via REST API)
+    definition_provider_factory = providers.Factory(
+        GraphExecutionDefinitionProviderHttpAdapter,
+        client=definition_http_client,
+    )
+    session_query_http_service = providers.Factory(
+        SessionQueryServiceHttpAdapter,
+        client=session_http_client,
+    )
+
+    # 6. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
 
 
-    # 5. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
+    # 7. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
     graph_execution_saga_repository_factory = providers.Factory(
         SqlGraphExecutionSagaRepository,
         session=providers.Factory(lambda: session_factory()()),
@@ -98,6 +126,6 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
 
-    # 6. Publikatory zdarzeń (warstwa IO)
+    # 8. Publikatory zdarzeń (warstwa IO)
     logging_publisher = providers.Singleton(LoggingEventPublisher, logger=stdlib_logger)
     sql_audit_publisher = providers.Singleton(SqlAuditPublisher, session_factory=session_factory)

@@ -13,6 +13,7 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
@@ -31,13 +32,13 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         )
         nodes = [
             GraphNodeExecution(
-                id=GraphNodeExecutionId("b"), position=NodeOrder(1), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("b"), position=NodeOrder(1), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("a"), position=NodeOrder(0), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("a"), position=NodeOrder(0), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("c"), position=NodeOrder(2), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("c"), position=NodeOrder(2), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
         ]
         for n in nodes:
@@ -70,13 +71,13 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         )
         nodes = [
             GraphNodeExecution(
-                id=GraphNodeExecutionId("z"), position=NodeOrder(5), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("z"), position=NodeOrder(5), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("y"), position=NodeOrder(3), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("y"), position=NodeOrder(3), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("x"), position=NodeOrder(1), mode=Mode("agent"), role="agent", node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("x"), position=NodeOrder(1), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
             ),
         ]
         for n in nodes:

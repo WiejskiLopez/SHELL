@@ -68,9 +68,11 @@ class SqlGraphNodeTransitionDefinitionRepository(GraphNodeTransitionDefinitionRe
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id: GraphNodeTransitionDefinitionId) -> bool:
+    async def exists(self, id: GraphNodeTransitionDefinitionId) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
         model = await self._session.get(GraphNodeTransitionDefinitionModel, id.value)
-        return model is not None
+        return ExistsResult(model is not None)
 
     def _model_to_entity(
         self, model: GraphNodeTransitionDefinitionModel,

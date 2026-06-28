@@ -4,9 +4,6 @@ from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensat
     CompensationDecision,
     SubGraphCompensation,
 )
-from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
-    GraphDefinitionSemanticQuery,
-)
 from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,
 )

@@ -12,9 +12,6 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.events import GraphExecutionInitializedEvent
-from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
-    GraphExecutionDefinitionProvider,
-)
 from shell.domain.execution.value_objects.graph_definition_id import (
     GraphDefinitionIdRef,
 )

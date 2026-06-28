@@ -29,7 +29,6 @@ from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
     GraphNodeDefinitionModel,
-    GraphNodeTransitionDefinitionModel,
     RagChunkModel,
     RagDocumentModel,
     RunnerConfigModel,
@@ -50,8 +49,8 @@ def _ensure_utc(dt: datetime) -> datetime:
 def runner_config_model_to_entity(runner_config_model: RunnerConfigModel) -> RunnerConfig:
     return RunnerConfig(
         id=RunnerConfigId(runner_config_model.id),
-        package_name=runner_config_model.package_name,
-        kind=runner_config_model.kind,
+        package_name=str(runner_config_model.package_name),
+        kind=str(runner_config_model.kind),
         hash=Hash(runner_config_model.hash),
         body=dict(runner_config_model.body),
         created_at=_ensure_utc(runner_config_model.created_at),
@@ -61,20 +60,20 @@ def runner_config_model_to_entity(runner_config_model: RunnerConfigModel) -> Run
 def runner_config_entity_to_model(runner_config: RunnerConfig) -> RunnerConfigModel:
     return RunnerConfigModel(
         id=runner_config.id.value,
-        package_name=runner_config.package_name,
-        kind=runner_config.kind,
+        package_name=str(runner_config.package_name),
+        kind=str(runner_config.kind),
         hash=runner_config.hash.value,
-        body=runner_config.body,
-        created_at=runner_config.created_at,
+        body=runner_config.body.value,
+        created_at=runner_config.created_at.value,
     )
 
 
 def runner_config_update_model(model: RunnerConfigModel, entity: RunnerConfig) -> None:
-    model.package_name = entity.package_name
-    model.kind = entity.kind
+    model.package_name = str(entity.package_name)
+    model.kind = str(entity.kind)
     model.hash = entity.hash.value if hasattr(entity.hash, 'value') else entity.hash
-    model.body = entity.body
-    model.created_at = entity.created_at
+    model.body = entity.body.value if hasattr(entity.body, 'value') else entity.body
+    model.created_at = entity.created_at.value if hasattr(entity.created_at, 'value') else entity.created_at
 
 
 # ---------------------------------------------------------------------------
@@ -87,8 +86,8 @@ def graph_definition_model_to_entity(
 ) -> GraphDefinition:
     return GraphDefinition(
         id=GraphDefinitionId(graph_definition_model.id),
-        name=graph_definition_model.name,
-        purpose=graph_definition_model.purpose,
+        name=str(graph_definition_model.name),
+        purpose=str(graph_definition_model.purpose),
         system_role=graph_definition_model.system_role,
         graph_node_definition_ids=[
             GraphNodeDefinitionId(node.id)
@@ -124,16 +123,16 @@ def graph_node_definition_model_to_entity(
 ) -> GraphNodeDefinition:
     return GraphNodeDefinition(
         id=GraphNodeDefinitionId(graph_node_definition_model.id),
-        position=graph_node_definition_model.position,
-        mode=Mode(graph_node_definition_model.mode),
-        role=graph_node_definition_model.role,
-        node_type=graph_node_definition_model.node_type,
-        model=graph_node_definition_model.model or "",
-        command=graph_node_definition_model.command,
-        timeout=graph_node_definition_model.timeout,
-        retries=graph_node_definition_model.retries,
-        log_level=graph_node_definition_model.log_level,
-        max_step=graph_node_definition_model.max_step,
+        position=int(graph_node_definition_model.position),
+        mode=Mode(str(graph_node_definition_model.mode)),
+        role=str(graph_node_definition_model.role),
+        node_type=str(graph_node_definition_model.node_type),
+        model=str(graph_node_definition_model.model or ""),
+        command=str(graph_node_definition_model.command),
+        timeout=int(graph_node_definition_model.timeout),
+        retries=int(graph_node_definition_model.retries),
+        log_level=str(graph_node_definition_model.log_level),
+        max_step=int(graph_node_definition_model.max_step) if graph_node_definition_model.max_step is not None else None,
         no_ask_user=bool(graph_node_definition_model.no_ask_user),
         autopilot=bool(graph_node_definition_model.autopilot),
         status_initial=graph_node_definition_model.status_initial,
@@ -193,9 +192,9 @@ def graph_node_definition_update_model(model: GraphNodeDefinitionModel, entity: 
 def rag_document_model_to_entity(rag_document_model: RagDocumentModel) -> RagDocument:
     return RagDocument(
         id=RagDocumentId(rag_document_model.id),
-        source_uri=rag_document_model.source_uri,
-        title=rag_document_model.title,
-        domain=rag_document_model.domain,
+        source_uri=str(rag_document_model.source_uri),
+        title=str(rag_document_model.title),
+        domain=str(rag_document_model.domain),
         created_at=_ensure_utc(rag_document_model.created_at),
         chunks=[
             rag_chunk_model_to_entity(c)
@@ -207,9 +206,9 @@ def rag_document_model_to_entity(rag_document_model: RagDocumentModel) -> RagDoc
 def rag_document_entity_to_model(rag_document: RagDocument) -> RagDocumentModel:
     model = RagDocumentModel(
         id=rag_document.id.value,
-        source_uri=rag_document.source_uri.value if hasattr(rag_document.source_uri, 'value') else rag_document.source_uri,
-        title=rag_document.title.value if hasattr(rag_document.title, 'value') else rag_document.title,
-        domain=rag_document.domain.value if hasattr(rag_document.domain, 'value') else rag_document.domain,
+        source_uri=str(rag_document.source_uri),
+        title=str(rag_document.title),
+        domain=str(rag_document.domain),
         created_at=rag_document.created_at.value if hasattr(rag_document.created_at, 'value') else rag_document.created_at,
     )
     model.chunks = [rag_chunk_entity_to_model(c) for c in rag_document.chunks]
@@ -217,9 +216,9 @@ def rag_document_entity_to_model(rag_document: RagDocument) -> RagDocumentModel:
 
 
 def rag_document_update_model(model: RagDocumentModel, entity: RagDocument) -> None:
-    model.source_uri = entity.source_uri.value if hasattr(entity.source_uri, 'value') else entity.source_uri
-    model.title = entity.title.value if hasattr(entity.title, 'value') else entity.title
-    model.domain = entity.domain.value if hasattr(entity.domain, 'value') else entity.domain
+    model.source_uri = str(entity.source_uri)
+    model.title = str(entity.title)
+    model.domain = str(entity.domain)
     model.created_at = entity.created_at.value if hasattr(entity.created_at, 'value') else entity.created_at
     # Chunks are managed separately
 

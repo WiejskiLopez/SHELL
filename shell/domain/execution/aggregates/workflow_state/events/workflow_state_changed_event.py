@@ -51,10 +51,10 @@ class WorkflowStateChangedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            workflow_id=WorkflowId(payload.get("workflow_id")),
-            workflow_state_id=WorkflowStateId(payload.get("workflow_state_id")),
-            direction=StateDirection(payload.get("direction")),
-            key=payload.get("key"),
-            old_value=payload.get("old_value"),
-            new_value=payload.get("new_value"),
+            workflow_id=WorkflowId(payload["workflow_id"]),
+            workflow_state_id=WorkflowStateId(payload["workflow_state_id"]),
+            direction=StateDirection(payload["direction"]),
+            key=payload["key"],
+            old_value=payload["old_value"],
+            new_value=payload["new_value"],
         )

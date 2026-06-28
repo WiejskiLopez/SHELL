@@ -55,6 +55,10 @@ class ShellConfig:
     log_level: str = "INFO"
     seed_dev_data: bool = False
     reset_db: bool = False
+    definition_api_url: str = "http://localhost:8000/api/v1"
+    session_api_url: str = "http://localhost:8000/api/v1"
+    user_api_url: str = "http://localhost:8000/api/v1"
+    projekt_api_url: str = "http://localhost:8000/api/v1"
     events: EventsConfig = field(default_factory=EventsConfig)
 
     @classmethod
@@ -107,6 +111,20 @@ class ShellConfig:
         if env_log_level:
             merged["log_level"] = env_log_level
 
+        # Environment variable overrides for cross-BC API URLs
+        env_definition_api_url = os.environ.get("SHELL_DEFINITION_API_URL")
+        if env_definition_api_url:
+            merged["definition_api_url"] = env_definition_api_url
+        env_session_api_url = os.environ.get("SHELL_SESSION_API_URL")
+        if env_session_api_url:
+            merged["session_api_url"] = env_session_api_url
+        env_user_api_url = os.environ.get("SHELL_USER_API_URL")
+        if env_user_api_url:
+            merged["user_api_url"] = env_user_api_url
+        env_projekt_api_url = os.environ.get("SHELL_PROJEKT_API_URL")
+        if env_projekt_api_url:
+            merged["projekt_api_url"] = env_projekt_api_url
+
         # Build config object
         return cls(
             profile=merged.get("profile", "prod"),
@@ -116,6 +134,10 @@ class ShellConfig:
             log_level=merged.get("log_level", "INFO"),
             seed_dev_data=bool(merged.get("seed_dev_data", False)),
             reset_db=reset_db,
+            definition_api_url=merged.get("definition_api_url", "http://localhost:8000/api/v1"),
+            session_api_url=merged.get("session_api_url", "http://localhost:8000/api/v1"),
+            user_api_url=merged.get("user_api_url", "http://localhost:8000/api/v1"),
+            projekt_api_url=merged.get("projekt_api_url", "http://localhost:8000/api/v1"),
             events=EventsConfig(
                 outbox_batch_size=int(merged.get("events", {}).get("outbox_batch_size", 100)),
                 inbox_batch_size=int(merged.get("events", {}).get("inbox_batch_size", 50)),

@@ -38,6 +38,6 @@ class GraphExecutionCompletedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
+            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
             verifier_result=StateData(payload["verifier_result"]) if "verifier_result" in payload and payload["verifier_result"] is not None else None,
         )

@@ -25,8 +25,8 @@ class SchedulerExecutionStartedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            execution_id=payload.get("execution_id"),
-            action_ref=ActionRef(payload.get("action_ref")),
-            action_ref_type=ActionRefType(payload.get("action_ref_type")),
+            execution_id=payload["execution_id"],
+            action_ref=ActionRef(payload["action_ref"]),
+            action_ref_type=ActionRefType(payload["action_ref_type"]),
             schema_version=schema_version,
         )

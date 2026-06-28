@@ -11,7 +11,7 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.value_objects.user_id_ref import UserIdRefRef
+    from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 
 
 class UserExecution(AggregateRoot[UserExecutionId]):

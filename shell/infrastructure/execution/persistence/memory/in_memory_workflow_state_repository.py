@@ -32,5 +32,7 @@ class InMemoryWorkflowStateRepository(InMemoryRepository[WorkflowState, Workflow
             if item.workflow_id == workflow_id and item.direction == direction
         ]
 
-    async def exists(self, id_: WorkflowStateId) -> bool:
-        return id_.value in self._store
+    async def exists(self, id_: WorkflowStateId) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(id_.value in self._store)

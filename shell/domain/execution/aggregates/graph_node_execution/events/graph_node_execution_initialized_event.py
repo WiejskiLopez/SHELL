@@ -47,8 +47,8 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            node_id=GraphNodeExecutionId(payload.get("node_id")),
-            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id")),
-            parent_graph_execution_id=GraphExecutionId(payload.get("parent_graph_execution_id")),
-            node_definition_id=GraphNodeDefinitionId(payload.get("node_definition_id")),
+            node_id=GraphNodeExecutionId(payload["node_id"]),
+            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
+            parent_graph_execution_id=GraphExecutionId(payload["parent_graph_execution_id"]),
+            node_definition_id=GraphNodeDefinitionId(payload["node_definition_id"]),
         )

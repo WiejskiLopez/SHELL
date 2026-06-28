@@ -28,7 +28,7 @@ class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState
             if item.user_execution_id == user_execution_id:
                 if direction is not None and item.direction != direction:
                     continue
-                if latest is None or item.created_at > latest.created_at:
+                if latest is None or item.created_at.value > latest.created_at.value:
                     latest = item
         return copy.deepcopy(latest) if latest is not None else None
 
@@ -40,5 +40,7 @@ class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)
 
-    async def exists(self, id_: object) -> bool:
-        return id_.value in self._store
+    async def exists(self, id_: object) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
+        return ExistsResult(id_.value in self._store)

@@ -97,3 +97,34 @@ def test_cross_bc_imports_only_in_infrastructure() -> None:
         "Cross-BC imports should live in infrastructure adapters, not in domain/application:\n"
         + "\n".join(violations)
     )
+
+
+# ── 3. Cross-BC infrastructure adapters must use HTTP (not SQL/repos) ─
+
+
+def test_cross_bc_http_adapters_use_httpx_not_sql() -> None:
+    """All cross-BC HTTP adapter files must import httpx and must NOT
+    import persistence.sql or domain repositories from other BCs."""
+    http_adapter_dirs = [
+        BASE / "infrastructure" / "execution" / "http",
+        BASE / "infrastructure" / "user" / "http",
+        BASE / "infrastructure" / "projekt" / "http",
+    ]
+    violations: list[str] = []
+    for adapter_dir in http_adapter_dirs:
+        if not adapter_dir.exists():
+            continue
+        for path in iter_py_files(adapter_dir):
+            rel = path.relative_to(BASE).as_posix()
+            imports = get_imports(path)
+            if not any("httpx" in imp for imp in imports):
+                violations.append(f"{rel}: missing httpx import")
+            for imp in imports:
+                if "persistence.sql" in imp:
+                    violations.append(f"{rel}: imports SQL persistence {imp!r}")
+                if ".repositories." in imp:
+                    violations.append(f"{rel}: imports repositories {imp!r}")
+    assert not violations, (
+        "Cross-BC HTTP adapters must use httpx, not SQL/repositories:\n"
+        + "\n".join(violations)
+    )

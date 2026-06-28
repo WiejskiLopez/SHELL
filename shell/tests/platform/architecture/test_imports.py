@@ -55,6 +55,10 @@ _KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset({
     "framework/execution/api/routers/graph_node_execution.py",
     "framework/execution/api/routers/task_executions/__init__.py",
     "framework/execution/api/routers/workflows/__init__.py",
+    "framework/definition/api/routers/definitions/__init__.py",
+    "framework/session/api/routers/sessions/__init__.py",
+    "framework/user/api/routers/users/__init__.py",
+    "framework/projekt/api/routers/projects/__init__.py",
 })
 
 _FORBIDDEN: dict[str, list[str]] = {

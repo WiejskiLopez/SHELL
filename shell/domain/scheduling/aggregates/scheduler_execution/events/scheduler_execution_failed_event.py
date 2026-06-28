@@ -23,7 +23,7 @@ class SchedulerExecutionFailedEvent(DomainEvent):
     ) -> Self:
         return cls(
             occurred_at=occurred_at,
-            execution_id=payload.get("execution_id"),
-            error=ErrorDescription(payload.get("error")),
+            execution_id=payload["execution_id"],
+            error=ErrorDescription(payload["error"]),
             schema_version=schema_version,
         )

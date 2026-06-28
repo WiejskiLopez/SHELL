@@ -47,6 +47,7 @@ class TestWorkflowStartHandler:
         from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
         from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
         from shell.domain.execution.value_objects.node_order import NodeOrder
+        from shell.domain.execution.value_objects.node_role import NodeRole
         from shell.domain.execution.value_objects.node_type import NodeType
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
         from shell.domain.platform.value_objects.mode import Mode
@@ -63,7 +64,7 @@ class TestWorkflowStartHandler:
             id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
             position=NodeOrder(0),
             mode=Mode("agent"),
-            role="agent",
+            role=NodeRole.AGENT,
             node_type=NodeType("agent"),
         )
         node._graph_execution_id = graph_execution.id

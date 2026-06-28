@@ -68,9 +68,11 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id: GraphNodeDefinitionId) -> bool:
+    async def exists(self, id: GraphNodeDefinitionId) -> ExistsResult:
+        from shell.domain.platform.value_objects.exists_result import ExistsResult
+
         model = await self._session.get(GraphNodeDefinitionModel, id.value)
-        return model is not None
+        return ExistsResult(model is not None)
 
     def _model_to_entity(
         self, model: GraphNodeDefinitionModel,

@@ -34,5 +34,5 @@ class SessionExecutionCreatedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            session_execution_id=SessionExecutionId(payload.get("session_execution_id")),
+            session_execution_id=SessionExecutionId(payload["session_execution_id"]),
         )

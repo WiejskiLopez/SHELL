@@ -44,7 +44,7 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            transition_id=GraphNodeTransitionExecutionId(payload.get("transition_id")),
-            source_node_id=GraphNodeExecutionId(payload.get("source_node_id")),
+            transition_id=GraphNodeTransitionExecutionId(payload["transition_id"]),
+            source_node_id=GraphNodeExecutionId(payload["source_node_id"]),
             iteration=CurrentIteration(payload.get("iteration", 0)),
         )

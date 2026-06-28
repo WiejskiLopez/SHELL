@@ -27,7 +27,7 @@ class RagDocumentChunksAddedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            document_id=RagDocumentId(payload.get("document_id")),
+            document_id=RagDocumentId(payload["document_id"]),
             chunk_count=ChunkIndex(payload.get("chunk_count", 0)),
             model=EmbeddingModel(payload.get("model", "")),
         )

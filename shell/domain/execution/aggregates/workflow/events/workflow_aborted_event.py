@@ -24,12 +24,12 @@ class WorkflowAbortedEvent(DomainEvent):
     def from_payload(
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
-        task_id = payload.get("task_execution_id")
+        task_id = payload["task_execution_id"]
         return cls(
             occurred_at=occurred_at,
             schema_version=schema_version,
-            workflow_id=WorkflowId(payload.get("workflow_id")),
-            reason=Reason(payload["reason"]) if payload.get("reason") else None,
+            workflow_id=WorkflowId(payload["workflow_id"]),
+            reason=Reason(payload["reason"]) if payload["reason"] else None,
             task_execution_id=TaskExecutionId(task_id) if task_id else None,
         )
 

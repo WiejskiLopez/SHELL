@@ -5,24 +5,25 @@ from __future__ import annotations
 from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
-from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.user.value_objects.user_id import UserId
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.infrastructure.session.persistence.sql.models import SessionModel
 
 
 def session_model_to_entity(session_model: SessionModel) -> Session:
     return Session(
         id=SessionId(session_model.id),
-        user_id=UserId(session_model.user_id),
-        project_id=ProjectId(session_model.project_id),
+        user_id=UserIdRef(session_model.user_id),
+        project_id=ProjectIdRef(session_model.project_id),
         environment=Environment(
             os=session_model.environment_os,
             runtime=session_model.environment_runtime,
             cwd=session_model.environment_cwd,
         ),
-        status=session_model.status,
+        status=SessionStatus(session_model.status),
         opened_at=CreatedAt.from_datetime(session_model.opened_at),
         closed_at=UpdatedAt.from_datetime(session_model.closed_at) if session_model.closed_at else None,
     )
