@@ -15,7 +15,7 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.graph_nod
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.value_objects.condition_expression import ConditionExpression
+from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.max_iterations import MaxIterations

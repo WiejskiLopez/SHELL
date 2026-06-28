@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -10,10 +8,9 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 )
 from shell.domain.execution.value_objects.state_direction import StateDirection
 
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-        GraphExecutionState,
-    )
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
+)
 
 
 class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
@@ -38,7 +35,7 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
         self._store[state.graph_execution_id.value].append(state)
 
     async def delete(self, id: object) -> None:
-        ...
+        pass
 
     async def exists(self, id: object) -> bool:
-        ...
+        pass

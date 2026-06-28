@@ -6,12 +6,18 @@ from shell.domain.definition.aggregates.rag_document.entities.rag_chunk import R
 from shell.domain.definition.aggregates.rag_document.events.rag_document_chunks_added_event import (
     RagDocumentChunksAddedEvent,
 )
+from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+from shell.domain.definition.value_objects.chunk_text import ChunkText
+from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.definition.value_objects.domain_tag import DomainTag
+from shell.domain.definition.value_objects.embedding import Embedding
+from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.ids import RagDocumentId
+from shell.domain.definition.value_objects.source_uri import SourceUri
+from shell.domain.definition.value_objects.title import Title
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.definition.value_objects.ids import RagChunkId
 
 
@@ -21,33 +27,27 @@ class RagDocument(AggregateRoot[RagDocumentId]):
     def __init__(
         self,
         id: RagDocumentId,
-        source_uri: str,
-        title: str,
-        domain: str,
-        created_at: datetime,
+        source_uri: SourceUri,
+        title: Title,
+        domain: DomainTag,
+        created_at: CreatedAt,
         chunks: list[RagChunk] | None = None,
     ) -> None:
-        if not source_uri:
-            raise ValueError("source_uri cannot be empty")
-        if not title:
-            raise ValueError("title cannot be empty")
-        if not domain:
-            raise ValueError("domain cannot be empty")
         super().__init__(id)
-        self._source_uri = source_uri
-        self._title = title
-        self._domain = domain
-        self._created_at = created_at
+        self._source_uri = source_uri if isinstance(source_uri, SourceUri) else SourceUri(source_uri)
+        self._title = title if isinstance(title, Title) else Title(title)
+        self._domain = domain if isinstance(domain, DomainTag) else DomainTag(domain)
+        self._created_at = created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         self._chunks = list(chunks) if chunks is not None else []
 
     @classmethod
     def restore(
         cls,
         id: RagDocumentId,
-        source_uri: str,
-        title: str,
-        domain: str,
-        created_at: datetime,
+        source_uri: SourceUri,
+        title: Title,
+        domain: DomainTag,
+        created_at: CreatedAt,
         chunks: list[RagChunk] | None = None,
     ) -> Self:
         return cls(
@@ -60,19 +60,19 @@ class RagDocument(AggregateRoot[RagDocumentId]):
         )
 
     @property
-    def source_uri(self) -> str:
+    def source_uri(self) -> SourceUri:
         return self._source_uri
 
     @property
-    def title(self) -> str:
+    def title(self) -> Title:
         return self._title
 
     @property
-    def domain(self) -> str:
+    def domain(self) -> DomainTag:
         return self._domain
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property
@@ -83,10 +83,10 @@ class RagDocument(AggregateRoot[RagDocumentId]):
     def new(
         cls,
         id_: RagDocumentId,
-        source_uri: str,
-        title: str,
-        domain: str,
-        now: datetime,
+        source_uri: SourceUri,
+        title: Title,
+        domain: DomainTag,
+        now: CreatedAt,
     ) -> RagDocument:
         return cls(
             id=id_,
@@ -99,10 +99,10 @@ class RagDocument(AggregateRoot[RagDocumentId]):
     def add_chunks(
         self,
         chunk_ids: list[RagChunkId],
-        texts: list[str],
-        embeddings: list[bytes],
-        model: str,
-        now: datetime | None = None,
+        texts: list[ChunkText],
+        embeddings: list[Embedding],
+        model: EmbeddingModel,
+        now: CreatedAt | None = None,
     ) -> None:
         if not (len(chunk_ids) == len(texts) == len(embeddings)):
             raise ValueError("chunk_ids, texts and embeddings must have equal length")
@@ -111,12 +111,12 @@ class RagDocument(AggregateRoot[RagDocumentId]):
                 RagChunk(
                     id=cid,
                     document_id=self.id,
-                    chunk_index=i,
+                    chunk_index=ChunkIndex(i),
                     chunk_text=text,
                     embedding=emb,
                     embedding_model=model,
                 )
             )
         self.append_event(
-            RagDocumentChunksAddedEvent.now(self.id, chunk_count=len(chunk_ids), model=model, now=now or self._created_at)
+            RagDocumentChunksAddedEvent.now(self.id, chunk_count=ChunkIndex(len(chunk_ids)), model=model, now=now or self._created_at)
         )

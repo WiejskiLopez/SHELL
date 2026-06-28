@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_executi
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
-from shell.domain.execution.value_objects.exists_result import ExistsResult
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class AgentSkillExecutionRepository(Protocol):

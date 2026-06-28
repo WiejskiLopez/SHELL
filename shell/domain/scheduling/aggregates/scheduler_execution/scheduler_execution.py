@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any, Self
 
+from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.reason import Reason
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.base import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
     SchedulerExecutionFailedEvent,
@@ -13,10 +17,14 @@ from shell.domain.scheduling.aggregates.scheduler_execution.events import (
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
     ExecutionStatus,
 )
+from shell.domain.scheduling.value_objects.action_ref import ActionRef
+from shell.domain.scheduling.value_objects.action_ref_type import ActionRefType
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,
     SchedulerExecutionId,
 )
+from shell.domain.scheduling.value_objects.trigger_event_id import TriggerEventId
+from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
 
 
 class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
@@ -42,51 +50,57 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self,
         id: SchedulerExecutionId,
         scheduler_definition_id: SchedulerDefinitionId,
-        status: ExecutionStatus | str = ExecutionStatus.PENDING,
-        trigger_event_id: str | None = None,
-        trigger_event_type: str | None = None,
-        action_ref: str | None = None,
-        action_ref_type: str | None = None,
-        input_state: dict[str, Any] | None = None,
-        output_state: dict[str, Any] | None = None,
-        error: str | None = None,
-        started_at: datetime | None = None,
-        completed_at: datetime | None = None,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
+        status: ExecutionStatus = ExecutionStatus.PENDING,
+        trigger_event_id: TriggerEventId | None = None,
+        trigger_event_type: TriggerEventType | None = None,
+        action_ref: ActionRef | None = None,
+        action_ref_type: ActionRefType | None = None,
+        input_state: StateData | None = None,
+        output_state: StateData | None = None,
+        error: ErrorDescription | None = None,
+        started_at: Timestamp | None = None,
+        completed_at: Timestamp | None = None,
+        created_at: CreatedAt | None = None,
+        updated_at: Timestamp | None = None,
     ) -> None:
         super().__init__(id)
         self._scheduler_definition_id = scheduler_definition_id
         self._status = ExecutionStatus(status) if isinstance(status, str) else status
-        self._trigger_event_id = trigger_event_id
-        self._trigger_event_type = trigger_event_type
-        self._action_ref = action_ref
-        self._action_ref_type = action_ref_type
+        self._trigger_event_id = (
+            TriggerEventId(trigger_event_id) if isinstance(trigger_event_id, str) else trigger_event_id
+        )
+        self._trigger_event_type = (
+            TriggerEventType(trigger_event_type) if isinstance(trigger_event_type, str) else trigger_event_type
+        )
+        self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
+        self._action_ref_type = (
+            ActionRefType(action_ref_type) if isinstance(action_ref_type, str) else action_ref_type
+        )
         self._input_state = input_state
         self._output_state = output_state
         self._error = error
         self._started_at = started_at
         self._completed_at = completed_at
-        self._created_at = created_at or datetime.now()
-        self._updated_at = updated_at or datetime.now()
+        self._created_at = created_at or CreatedAt.now()
+        self._updated_at = updated_at or Timestamp.now()
 
     @classmethod
     def restore(
         cls,
         id: SchedulerExecutionId,
         scheduler_definition_id: SchedulerDefinitionId,
-        status: ExecutionStatus | str = ExecutionStatus.PENDING,
-        trigger_event_id: str | None = None,
-        trigger_event_type: str | None = None,
-        action_ref: str | None = None,
-        action_ref_type: str | None = None,
-        input_state: dict[str, Any] | None = None,
-        output_state: dict[str, Any] | None = None,
-        error: str | None = None,
-        started_at: datetime | None = None,
-        completed_at: datetime | None = None,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
+        status: ExecutionStatus = ExecutionStatus.PENDING,
+        trigger_event_id: TriggerEventId | None = None,
+        trigger_event_type: TriggerEventType | None = None,
+        action_ref: ActionRef | None = None,
+        action_ref_type: ActionRefType | None = None,
+        input_state: StateData | None = None,
+        output_state: StateData | None = None,
+        error: ErrorDescription | None = None,
+        started_at: Timestamp | None = None,
+        completed_at: Timestamp | None = None,
+        created_at: CreatedAt | None = None,
+        updated_at: Timestamp | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -114,106 +128,108 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         return self._status
 
     @property
-    def trigger_event_id(self) -> str | None:
+    def trigger_event_id(self) -> TriggerEventId | None:
         return self._trigger_event_id
 
     @property
-    def trigger_event_type(self) -> str | None:
+    def trigger_event_type(self) -> TriggerEventType | None:
         return self._trigger_event_type
 
     @property
-    def action_ref(self) -> str | None:
+    def action_ref(self) -> ActionRef | None:
         return self._action_ref
 
     @property
-    def action_ref_type(self) -> str | None:
+    def action_ref_type(self) -> ActionRefType | None:
         return self._action_ref_type
 
     @property
-    def input_state(self) -> dict[str, Any] | None:
+    def input_state(self) -> StateData | None:
         return self._input_state
 
     @property
-    def output_state(self) -> dict[str, Any] | None:
+    def output_state(self) -> StateData | None:
         return self._output_state
 
     @property
-    def error(self) -> str | None:
+    def error(self) -> ErrorDescription | None:
         return self._error
 
     @property
-    def started_at(self) -> datetime | None:
+    def started_at(self) -> Timestamp | None:
         return self._started_at
 
     @property
-    def completed_at(self) -> datetime | None:
+    def completed_at(self) -> Timestamp | None:
         return self._completed_at
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property
-    def updated_at(self) -> datetime:
+    def updated_at(self) -> Timestamp:
         return self._updated_at
 
-    def start(self, action_ref: str, action_ref_type: str, now: datetime) -> None:
+    def start(self, action_ref: ActionRef | str, action_ref_type: ActionRefType | str, now: Timestamp) -> None:
         self._status = ExecutionStatus.EXECUTING
-        self._action_ref = action_ref
-        self._action_ref_type = action_ref_type
+        self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
+        self._action_ref_type = ActionRefType(action_ref_type) if isinstance(action_ref_type, str) else action_ref_type
         self._started_at = now
         self._updated_at = now
         self.append_event(
             SchedulerExecutionStartedEvent(
-                occurred_at=now,
+                occurred_at=now.value,
                 execution_id=self.id,
-                action_ref=action_ref,
-                action_ref_type=action_ref_type,
+                action_ref=self._action_ref,
+                action_ref_type=self._action_ref_type,
             )
         )
 
     def complete(
-        self, output_state: dict[str, Any] | None = None, now: datetime | None = None
+        self, output_state: StateData | dict[str, Any] | None = None, now: Timestamp | None = None
     ) -> None:
         if now is None:
-            now = datetime.now()
+            now = Timestamp.now()
         self._status = ExecutionStatus.COMPLETED
-        self._output_state = dict(output_state) if output_state else {}
+        actual_state = StateData(output_state) if isinstance(output_state, dict) else output_state
+        self._output_state = actual_state or StateData({})
         self._completed_at = now
         self._updated_at = now
         self.append_event(
             SchedulerExecutionCompletedEvent(
-                occurred_at=now,
+                occurred_at=now.value,
                 execution_id=self.id,
-                output_state=dict(output_state) if output_state else {},
+                output_state=self._output_state,
             )
         )
 
-    def fail(self, error: str, now: datetime | None = None) -> None:
+    def fail(self, error: ErrorDescription | str | None = None, now: Timestamp | None = None) -> None:
         if now is None:
-            now = datetime.now()
+            now = Timestamp.now()
         self._status = ExecutionStatus.FAILED
-        self._error = error
+        self._error = ErrorDescription(error) if isinstance(error, str) else error
         self._completed_at = now
         self._updated_at = now
         self.append_event(
             SchedulerExecutionFailedEvent(
-                occurred_at=now,
+                occurred_at=now.value,
                 execution_id=self.id,
-                error=error,
+                error=self._error,
             )
         )
 
-    def skip(self, reason: str, now: datetime | None = None) -> None:
+    def skip(self, reason: Reason | str, now: Timestamp | None = None) -> None:
         if now is None:
-            now = datetime.now()
+            now = Timestamp.now()
         self._status = ExecutionStatus.SKIPPED
         self._completed_at = now
         self._updated_at = now
+        actual_reason = Reason(reason) if isinstance(reason, str) else reason
         self.append_event(
             SchedulerExecutionSkippedEvent(
-                occurred_at=now,
+                occurred_at=now.value,
                 execution_id=self.id,
-                reason=reason,
+                reason=actual_reason,
             )
         )

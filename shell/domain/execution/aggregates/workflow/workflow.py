@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
@@ -26,11 +25,14 @@ from shell.domain.execution.aggregates.workflow.events.workflow_started_event im
 from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
     InvalidWorkflowTransition,
 )
+from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
     )
@@ -61,13 +63,15 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_execution_id: SessionExecutionId | None = None,
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._session_execution_id = session_execution_id
         self._session_id = session_id or None  # type: ignore[assignment]
         self._status = status or WorkflowStatus.ACTIVE
-        self._created_at = created_at or datetime.min
+        self._created_at = (
+            created_at if isinstance(created_at, CreatedAt) else CreatedAt.from_datetime(created_at)
+        ) if created_at is not None else CreatedAt.now()
 
     @classmethod
     def restore(
@@ -77,7 +81,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_execution_id: SessionExecutionId | None = None,
         session_id: SessionId | None = None,
         status: WorkflowStatus | None = None,
-        created_at: datetime | None = None,
+        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -121,7 +125,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             session_execution_id=session_execution_id,
             session_id=session_id,
             status=WorkflowStatus.ACTIVE,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now),
         )
 
     # --- Methods ---
@@ -172,7 +176,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     def abort(
         self,
         *,
-        reason: str | None = None,
+        reason: str | Reason | None = None,
         now: datetime,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
@@ -181,8 +185,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
                 f"abort requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.ABORTED
+        actual_reason = Reason(reason) if isinstance(reason, str) else reason
         self.append_event(
-            WorkflowAbortedEvent.now(self.id, now=now, task_execution_id=task_execution_id)
+            WorkflowAbortedEvent.now(self.id, now=now, reason=actual_reason, task_execution_id=task_execution_id)
         )
 
     def pause(self, *, now: datetime) -> None:

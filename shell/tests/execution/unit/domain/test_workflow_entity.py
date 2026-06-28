@@ -5,8 +5,10 @@ from datetime import UTC, datetime
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+_NOW_CREATED_AT = CreatedAt.from_datetime(_NOW)
 
 
 class TestWorkflow:
@@ -19,7 +21,7 @@ class TestWorkflow:
         wf.start_at(now=_NOW, task_execution_id=TaskExecutionId("t1"))
 
         assert wf.status == WorkflowStatus.ACTIVE
-        assert wf.created_at == _NOW
+        assert wf.created_at == _NOW_CREATED_AT
 
     def test_finish_sets_completed(self) -> None:
         wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)

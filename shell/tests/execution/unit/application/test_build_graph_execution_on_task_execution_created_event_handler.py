@@ -11,6 +11,7 @@ from shell.application.execution.event_handlers.build_graph_execution_on_task_ex
 from shell.application.platform.exceptions import GraphDefinitionNotFoundException
 from shell.domain.definition.entities.graph_definition import GraphDefinition
 from shell.domain.definition.entities.graph_node_definition import GraphNodeDefinition
+from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 from shell.domain.execution.events import GraphExecutionConstructedEvent, TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.graph_execution_definition import (
@@ -37,7 +38,7 @@ class _InMemoryGraphDefinitionQueryService:
 
     async def get_graph_definition_by_name(self, name: str) -> GraphExecutionDefinition | None:
 
-        entity = await self._repo.get_graph_definition_by_name(name)
+        entity = await self._repo.get_graph_definition_by_name(GraphName(name))
         if entity is None:
             return None
         return self._to_dto(entity)
@@ -57,26 +58,26 @@ class _InMemoryGraphDefinitionQueryService:
             id=graph_definition.id.value
             if hasattr(graph_definition.id, "value")
             else str(graph_definition.id),
-            name=graph_definition.name,
+            name=graph_definition.name.value,
             graph_node_execution_definitions=[
                 GraphNodeExecutionDefinition(
-                    position=graph_node_definition.position,
+                    position=graph_node_definition.position.value,
                     mode=graph_node_definition.mode.value
                     if hasattr(graph_node_definition.mode, "value")
                     else str(graph_node_definition.mode),
-                    role=graph_node_definition.role,
-                    node_type=graph_node_definition.node_type,
-                    model=graph_node_definition.model,
-                    command=graph_node_definition.command,
-                    timeout=graph_node_definition.timeout,
-                    retries=graph_node_definition.retries,
-                    log_level=graph_node_definition.log_level,
-                    max_step=graph_node_definition.max_step,
-                    no_ask_user=graph_node_definition.no_ask_user,
-                    autopilot=graph_node_definition.autopilot,
-                    status_initial=graph_node_definition.status_initial,
-                    script=getattr(graph_node_definition, "script", ""),
-                    script_type=getattr(graph_node_definition, "script_type", ""),
+                    role=graph_node_definition.role.value,
+                    node_type=graph_node_definition.node_type.value,
+                    model=graph_node_definition.model.value if graph_node_definition.model else "",
+                    command=graph_node_definition.command.value if graph_node_definition.command else "",
+                    timeout=graph_node_definition.timeout.value if graph_node_definition.timeout else 0,
+                    retries=graph_node_definition.retries.value if graph_node_definition.retries else 0,
+                    log_level=graph_node_definition.log_level.value if graph_node_definition.log_level else "INFO",
+                    max_step=graph_node_definition.max_step.value if graph_node_definition.max_step else None,
+                    no_ask_user=graph_node_definition.no_ask_user.value if graph_node_definition.no_ask_user else False,
+                    autopilot=graph_node_definition.autopilot.value if graph_node_definition.autopilot else False,
+                    status_initial=graph_node_definition.status_initial.value if graph_node_definition.status_initial else "",
+                    script=graph_node_definition.script.value if graph_node_definition.script else "",
+                    script_type=graph_node_definition.script_type.value if graph_node_definition.script_type else "",
                 )
                 for graph_node_definition in graph_definition.graph_node_definitions
             ],

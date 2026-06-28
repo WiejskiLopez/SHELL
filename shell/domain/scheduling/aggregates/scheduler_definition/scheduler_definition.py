@@ -1,12 +1,18 @@
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Self
 
 from shell.domain.platform.base import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.enabled import Enabled
+from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.value_objects.action_config import ActionConfig
 from shell.domain.scheduling.value_objects.execution_policy import ExecutionPolicy
 from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+from shell.domain.scheduling.value_objects.scheduler_description import (
+    SchedulerDescription,
+)
+from shell.domain.scheduling.value_objects.scheduler_name import SchedulerName
 from shell.domain.scheduling.value_objects.trigger_config import TriggerConfig
 
 
@@ -25,39 +31,41 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
     def __init__(
         self,
         id: SchedulerDefinitionId,
-        name: str,
-        description: str | None = None,
+        name: SchedulerName,
+        description: SchedulerDescription | None = None,
         trigger_config: TriggerConfig | None = None,
         action_config: ActionConfig | None = None,
         execution_policy: ExecutionPolicy | None = None,
-        enabled: bool = True,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
+        enabled: Enabled = Enabled.yes(),
+        created_at: CreatedAt | None = None,
+        updated_at: Timestamp | None = None,
     ) -> None:
         super().__init__(id)
-        self._name = name
-        self._description = description
+        self._name = SchedulerName(name) if isinstance(name, str) else name
+        self._description = (
+            SchedulerDescription(description) if isinstance(description, str) else description
+        )
         self._trigger_config = trigger_config or TriggerConfig(
             source_context="", trigger_event_type=""
         )
         self._action_config = action_config or ActionConfig(action_type="")
         self._execution_policy = execution_policy or ExecutionPolicy()
-        self._enabled = enabled
-        self._created_at = created_at or datetime.now()
-        self._updated_at = updated_at or datetime.now()
+        self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
+        self._created_at = created_at or CreatedAt.now()
+        self._updated_at = updated_at or Timestamp.now()
 
     @classmethod
     def restore(
         cls,
         id: SchedulerDefinitionId,
-        name: str,
-        description: str | None = None,
+        name: SchedulerName,
+        description: SchedulerDescription | None = None,
         trigger_config: TriggerConfig | None = None,
         action_config: ActionConfig | None = None,
         execution_policy: ExecutionPolicy | None = None,
-        enabled: bool = True,
-        created_at: datetime | None = None,
-        updated_at: datetime | None = None,
+        enabled: Enabled = Enabled.yes(),
+        created_at: CreatedAt | None = None,
+        updated_at: Timestamp | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -72,11 +80,11 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         )
 
     @property
-    def name(self) -> str:
+    def name(self) -> SchedulerName:
         return self._name
 
     @property
-    def description(self) -> str | None:
+    def description(self) -> SchedulerDescription | None:
         return self._description
 
     @property
@@ -92,20 +100,20 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         return self._execution_policy
 
     @property
-    def enabled(self) -> bool:
+    def enabled(self) -> Enabled:
         return self._enabled
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property
-    def updated_at(self) -> datetime:
+    def updated_at(self) -> Timestamp:
         return self._updated_at
 
     def matches_trigger(self, source_context: str, trigger_event_type: str) -> bool:
         return (
-            self._enabled
+            self._enabled.value
             and self._trigger_config.source_context == source_context
             and self._trigger_config.trigger_event_type == trigger_event_type
         )

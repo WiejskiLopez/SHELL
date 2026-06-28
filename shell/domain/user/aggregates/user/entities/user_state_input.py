@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.user.value_objects.skill_payload import SkillPayload
 from shell.domain.user.value_objects.user_id import UserId
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 @dataclass(frozen=True, slots=True)
 class UserStateInput:
     user_id: UserId
-    payload: dict[str, Any]
-    created_at: datetime
+    payload: SkillPayload
+    created_at: CreatedAt

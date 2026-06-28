@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
@@ -13,16 +12,13 @@ from shell.domain.execution.aggregates.task_execution_state.value_objects.task_e
     TaskExecutionStateId,
 )
 from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
+)
+from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-        TaskExecutionState,
-    )
 
-
-class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
-    def __init__(self) -> None:
-        self._store: dict[str, TaskExecutionState] = {}
+class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState, TaskExecutionStateId], TaskExecutionStateRepository):
 
     async def get_latest_by_task_id(
         self,
@@ -43,9 +39,6 @@ class InMemoryTaskExecutionStateRepository(TaskExecutionStateRepository):
         if existing is not None:
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)
-
-    async def delete(self, id_: TaskExecutionStateId) -> None:
-        self._store.pop(id_.value, None)
 
     async def exists(self, id_: TaskExecutionStateId) -> bool:
         return id_.value in self._store

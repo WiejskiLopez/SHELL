@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
     UserExecutionId,
@@ -9,15 +8,15 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
+from shell.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
+    UserExecutionStateId,
+)
 from shell.domain.execution.value_objects.state_direction import StateDirection
+from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
+from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
 
-
-class InMemoryUserExecutionStateRepository(UserExecutionStateRepository):
-    def __init__(self) -> None:
-        self._store: dict[str, UserExecutionState] = {}
+class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState, UserExecutionStateId], UserExecutionStateRepository):
 
     async def get_latest_by_user_execution_id(
         self,
@@ -40,9 +39,6 @@ class InMemoryUserExecutionStateRepository(UserExecutionStateRepository):
         if existing is not None:
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)
-
-    async def delete(self, id_: object) -> None:
-        self._store.pop(id_.value, None)
 
     async def exists(self, id_: object) -> bool:
         return id_.value in self._store

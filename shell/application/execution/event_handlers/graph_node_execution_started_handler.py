@@ -29,6 +29,7 @@ class GraphNodeExecutionStartedHandler:
         async with self._unit_of_work as unit_of_work:
             node = await unit_of_work.graph_node_execution_repository.get_by_id(graph_node_execution_started_event.node_id)
 
-            node.start()
+            now = self._clock.now()
+            node.start(now)
             await unit_of_work.graph_node_execution_repository.save(node)
             unit_of_work.stage_events(node.pull_events())

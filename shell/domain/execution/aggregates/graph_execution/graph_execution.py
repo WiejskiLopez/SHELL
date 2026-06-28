@@ -23,6 +23,7 @@ from shell.domain.execution.value_objects.graph_node_definition_execution_slot i
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.reason import Reason
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
@@ -166,11 +167,11 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             self.append_event(
                 GraphExecutionReadyEvent.now(
                     graph_execution_id=self._id,
-                    graph_node_definition_executions={
-                        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+                    graph_node_definition_executions=[
+                        slot
                         for slot in self._graph_node_definition_execution_slots
                         if slot.graph_node_execution_id is not None
-                    },
+                    ],
                     now=now,
                 )
             )
@@ -212,7 +213,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             )
         )
 
-    def plan_complete(self, plan: dict[str, Any] | None, now: datetime) -> None:
+    def plan_complete(self, plan: StateData | dict[str, Any] | None, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.PLANNING:
             raise InvalidGraphStateError(
                 f"Cannot complete planning in status {self._execution_status}"
@@ -222,15 +223,16 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             GraphExecutionPlannedEvent,
         )
 
+        actual_plan = StateData(plan) if isinstance(plan, dict) else plan
         self.append_event(
             GraphExecutionPlannedEvent.now(
                 graph_execution_id=self._id,
                 now=now,
-                plan=plan,
+                plan=actual_plan,
             )
         )
 
-    def complete(self, verifier_result: dict[str, Any] | None, now: datetime) -> None:
+    def complete(self, verifier_result: StateData | dict[str, Any] | None, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.VERIFYING:
             raise InvalidGraphStateError(
                 f"Cannot complete graph in status {self._execution_status}"
@@ -240,11 +242,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             GraphExecutionCompletedEvent,
         )
 
+        actual_result = StateData(verifier_result) if isinstance(verifier_result, dict) else verifier_result
         self.append_event(
             GraphExecutionCompletedEvent.now(
                 graph_execution_id=self._id,
                 now=now,
-                verifier_result=verifier_result,
+                verifier_result=actual_result,
             )
         )
 

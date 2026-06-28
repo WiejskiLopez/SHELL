@@ -8,7 +8,7 @@ if TYPE_CHECKING:
         WorkflowStateId,
     )
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-    from shell.domain.execution.value_objects.exists_result import ExistsResult
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.execution.value_objects.state_direction import StateDirection
 
 

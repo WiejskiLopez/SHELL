@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
@@ -46,9 +44,8 @@ from shell.infrastructure.session.persistence.memory.in_memory_session_repositor
     InMemorySessionRepository,
 )
 
-if TYPE_CHECKING:
-    from shell.domain.platform.aggregates.message.message import Message
-    from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.aggregates.message.message import Message
+from shell.domain.platform.events import DomainEvent
 
 
 class InMemoryUnitOfWork(UnitOfWork):
@@ -202,6 +199,3 @@ class InMemoryUnitOfWork(UnitOfWork):
     async def rollback(self) -> None:
         self._staged_events.clear()
         self._staged_messages.clear()
-
-    async def rollback(self) -> None:
-        self._staged_events.clear()

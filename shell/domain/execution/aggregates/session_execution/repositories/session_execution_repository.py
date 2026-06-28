@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
     )
-    from shell.domain.execution.value_objects.exists_result import ExistsResult
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class SessionExecutionRepository(Protocol):

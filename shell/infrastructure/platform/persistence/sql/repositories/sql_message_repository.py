@@ -15,7 +15,9 @@ from ..models.message.message import MessageModel
 
 if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.aggregates.message.value_objects.destination import Destination
     from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
+    from shell.domain.platform.aggregates.message.value_objects.source import Source
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -55,12 +57,12 @@ class SqlMessageRepository(MessageRepository):
         rows = (await self._session.execute(query)).scalars().all()
         return [message_model_to_entity(row) for row in rows if row]
 
-    async def list_by_source(self, source: str) -> list[Message]:
-        query = select(MessageModel).where(MessageModel.source == source)
+    async def list_by_source(self, source: Source) -> list[Message]:
+        query = select(MessageModel).where(MessageModel.source == source.value)
         rows = (await self._session.execute(query)).scalars().all()
         return [message_model_to_entity(row) for row in rows if row]
 
-    async def list_by_destination(self, destination: str) -> list[Message]:
-        query = select(MessageModel).where(MessageModel.destination == destination)
+    async def list_by_destination(self, destination: Destination) -> list[Message]:
+        query = select(MessageModel).where(MessageModel.destination == destination.value)
         rows = (await self._session.execute(query)).scalars().all()
         return [message_model_to_entity(row) for row in rows if row]

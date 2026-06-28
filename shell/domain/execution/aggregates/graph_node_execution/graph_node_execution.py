@@ -9,6 +9,7 @@ from shell.domain.execution.value_objects.error_description import ErrorDescript
 from shell.domain.execution.value_objects.graph_node_execution_status import (
     GraphNodeExecutionStatus,
 )
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -161,7 +162,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             )
         )
 
-    def complete(self, result: dict[str, object] | None, now: datetime) -> None:
+    def complete(self, result: StateData | dict[str, object] | None, now: datetime) -> None:
         if self._status != GraphNodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(
                 f"Cannot complete node in status {self._status}"
@@ -171,12 +172,13 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionCompletedEvent,
         )
 
+        actual_result = StateData(result) if isinstance(result, dict) else result
         self.append_event(
             GraphNodeExecutionCompletedEvent.now(
                 node_id=self._id,
                 role=self._role,
                 now=now,
-                result=result,
+                result=actual_result,
             )
         )
 

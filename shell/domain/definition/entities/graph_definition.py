@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+from shell.domain.definition.value_objects.purpose import Purpose
 from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:
@@ -18,25 +20,25 @@ class GraphDefinition(Entity[GraphDefinitionId]):
     def __init__(
         self,
         id: GraphDefinitionId,
-        name: str,
-        purpose: str,
+        name: GraphName,
+        purpose: Purpose,
         graph_node_definitions: list[GraphNodeDefinition] | None = None,
         transition_definitions: list[GraphNodeTransitionDefinition] | None = None,
     ) -> None:
         super().__init__(id)
-        self._name = name
-        self._purpose = purpose
+        self._name = name if isinstance(name, GraphName) else GraphName(name)
+        self._purpose = purpose if isinstance(purpose, Purpose) else Purpose(purpose)
         self._graph_node_definitions = list(graph_node_definitions) if graph_node_definitions else []
         self._transition_definitions = (
             list(transition_definitions) if transition_definitions else []
         )
 
     @property
-    def name(self) -> str:
+    def name(self) -> GraphName:
         return self._name
 
     @property
-    def purpose(self) -> str:
+    def purpose(self) -> Purpose:
         return self._purpose
 
     @property
@@ -49,7 +51,7 @@ class GraphDefinition(Entity[GraphDefinitionId]):
 
     def add_graph_node_definition(self, node: GraphNodeDefinition) -> None:
         self._graph_node_definitions.append(node)
-        self._graph_node_definitions.sort(key=lambda n: n.position)
+        self._graph_node_definitions.sort(key=lambda n: n.position.value)
 
     def remove_graph_node_definition(
         self,
@@ -69,7 +71,7 @@ class GraphDefinition(Entity[GraphDefinitionId]):
             (
                 graph_node_definition
                 for graph_node_definition in self._graph_node_definitions
-                if graph_node_definition.position == position
+                if graph_node_definition.position.value == position
             ),
             None,
         )

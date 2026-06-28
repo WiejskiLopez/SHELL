@@ -1,22 +1,25 @@
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.user.value_objects.skill_id import SkillId
+from shell.domain.user.value_objects.skill_payload import SkillPayload
 from shell.domain.user.value_objects.user_id import UserId
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 @dataclass(frozen=True, slots=True)
 class UserSkill:
-    id: str
+    id: SkillId
     user_id: UserId
-    payload: dict[str, Any]
-    created_at: datetime
+    payload: SkillPayload
+    created_at: CreatedAt
 
     @classmethod
-    def new(cls, user_id: UserId, payload: dict[str, Any], now: datetime) -> UserSkill:
-        return cls(id=str(uuid.uuid4()), user_id=user_id, payload=payload, created_at=now)
+    def new(cls, user_id: UserId, payload: dict, now: CreatedAt | None = None) -> UserSkill:
+        return cls(
+            id=SkillId.generate(),
+            user_id=user_id,
+            payload=SkillPayload(payload),
+            created_at=now or CreatedAt.now(),
+        )

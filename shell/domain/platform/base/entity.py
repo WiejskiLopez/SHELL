@@ -4,6 +4,7 @@ from abc import ABC
 from typing import Generic, TypeVar
 
 TId = TypeVar("TId")
+"""Type variable bound to entity/aggregate identifiers."""
 
 
 class Entity(ABC, Generic[TId]):

@@ -7,6 +7,13 @@ import struct
 from typing import TYPE_CHECKING, Protocol
 
 from shell.domain.definition.aggregates.rag_document import RagDocument
+from shell.domain.definition.value_objects.chunk_text import ChunkText
+from shell.domain.definition.value_objects.created_at import CreatedAt
+from shell.domain.definition.value_objects.domain_tag import DomainTag
+from shell.domain.definition.value_objects.embedding import Embedding
+from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
+from shell.domain.definition.value_objects.source_uri import SourceUri
+from shell.domain.definition.value_objects.title import Title
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -67,10 +74,10 @@ def build_rag_document(
     """Chunk *text*, embed each chunk, return a fully-built RagDocument aggregate."""
     doc = RagDocument.new(
         id_=doc_id,
-        source_uri=source_uri,
-        title=title,
-        domain=domain,
-        now=now,
+        source_uri=SourceUri(source_uri),
+        title=Title(title),
+        domain=DomainTag(domain),
+        now=CreatedAt(now) if not isinstance(now, CreatedAt) else now,
     )
     chunks = chunk_text(text, chunk_size, overlap)
     if not chunks:
@@ -81,10 +88,10 @@ def build_rag_document(
     blobs = [_encode_vector(vector) for vector in vectors]
     doc.add_chunks(
         chunk_ids=chunk_ids[: len(chunks)],
-        texts=chunks,
-        embeddings=blobs,
-        model=embedder.model_name,
-        now=now,
+        texts=[ChunkText(t) for t in chunks],
+        embeddings=[Embedding(b) for b in blobs],
+        model=EmbeddingModel(embedder.model_name),
+        now=CreatedAt(now) if not isinstance(now, CreatedAt) else now,
     )
     return doc
 

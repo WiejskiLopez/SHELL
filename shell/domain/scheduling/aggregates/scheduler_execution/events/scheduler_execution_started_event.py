@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.events import DomainEvent
+from shell.domain.scheduling.value_objects.action_ref import ActionRef
+from shell.domain.scheduling.value_objects.action_ref_type import ActionRefType
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -14,8 +16,8 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SchedulerExecutionStartedEvent(DomainEvent):
     execution_id: SchedulerExecutionId
-    action_ref: str
-    action_ref_type: str
+    action_ref: ActionRef
+    action_ref_type: ActionRefType
 
     @classmethod
     def from_payload(
@@ -24,7 +26,7 @@ class SchedulerExecutionStartedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             execution_id=payload.get("execution_id"),
-            action_ref=payload.get("action_ref"),
-            action_ref_type=payload.get("action_ref_type"),
+            action_ref=ActionRef(payload.get("action_ref")),
+            action_ref_type=ActionRefType(payload.get("action_ref_type")),
             schema_version=schema_version,
         )

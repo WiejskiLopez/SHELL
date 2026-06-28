@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.platform.events import DomainEvent
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SchedulerExecutionFailedEvent(DomainEvent):
     execution_id: SchedulerExecutionId
-    error: str
+    error: ErrorDescription
 
     @classmethod
     def from_payload(
@@ -23,6 +24,6 @@ class SchedulerExecutionFailedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             execution_id=payload.get("execution_id"),
-            error=payload.get("error"),
+            error=ErrorDescription(payload.get("error")),
             schema_version=schema_version,
         )

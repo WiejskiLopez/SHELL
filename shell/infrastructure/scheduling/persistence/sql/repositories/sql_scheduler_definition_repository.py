@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.scheduling.value_objects.ids import (
     SchedulerDefinitionId,  # noqa: TC002 — SchedulerDefinitionId używany w konstruktorach w repozytorium
 )
+from shell.domain.scheduling.value_objects.source_context import SourceContext
+from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_definition_entity_to_model,
     scheduler_definition_model_to_entity,
@@ -31,12 +34,17 @@ class SqlSchedulerDefinitionRepository:
         row = (await self._session.execute(query)).scalar_one_or_none()
         return scheduler_definition_model_to_entity(row) if row else None
 
+    async def exists(self, id: SchedulerDefinitionId) -> ExistsResult:
+        query = select(SchedulerDefinitionModel).where(SchedulerDefinitionModel.id == id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return ExistsResult(row is not None)
+
     async def find_by_trigger(
-        self, source_context: str, trigger_event_type: str
+        self, source_context: SourceContext, trigger_event_type: TriggerEventType
     ) -> list[SchedulerDefinition]:
         query = select(SchedulerDefinitionModel).where(
-            SchedulerDefinitionModel.source_context == source_context,
-            SchedulerDefinitionModel.trigger_event_type == trigger_event_type,
+            SchedulerDefinitionModel.source_context == source_context.value,
+            SchedulerDefinitionModel.trigger_event_type == trigger_event_type.value,
             SchedulerDefinitionModel.enabled,
         )
         rows = (await self._session.execute(query)).scalars().all()

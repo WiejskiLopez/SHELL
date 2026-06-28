@@ -1,25 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.definition.value_objects.ids import (
-    RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
+    RagDocumentId,
 )
+from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
-if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 
-
-class InMemoryRagDocumentRepository(RagDocumentRepository):
-    def __init__(self) -> None:
-        self._store: dict[str, RagDocument] = {}
-
-    async def save(self, document: RagDocument) -> None:
-        self._store[document.id.value] = document
-
-    async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None:
-        return self._store.get(doc_id.value)
+class InMemoryRagDocumentRepository(InMemoryRepository[RagDocument, RagDocumentId], RagDocumentRepository):
 
     async def search_similar(
         self,
@@ -35,10 +24,10 @@ class InMemoryRagDocumentRepository(RagDocumentRepository):
         query_vec = list(struct.unpack(f"{dim}f", query_embedding))
         scored: list[tuple[float, RagChunk]] = []
         for doc in self._store.values():
-            if domain and doc.domain != domain:
+            if domain and doc.domain.value != domain:
                 continue
             for chunk in doc.chunks:
-                chunk_vec = list(struct.unpack(f"{len(chunk.embedding) // 4}f", chunk.embedding))
+                chunk_vec = list(struct.unpack(f"{len(chunk.embedding.value) // 4}f", chunk.embedding.value))
                 score = cosine_similarity(query_vec, chunk_vec)
                 scored.append((score, chunk))
         scored.sort(key=lambda tuple_item: tuple_item[0], reverse=True)

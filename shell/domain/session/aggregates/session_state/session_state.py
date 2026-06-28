@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.execution.value_objects.state_direction import StateDirection
@@ -13,9 +13,6 @@ from shell.domain.session.aggregates.session_state.events.session_state_changed_
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class SessionState(AggregateRoot[SessionStateId]):
@@ -38,8 +35,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         self._session_id = session_id
         self._direction = direction
         self._state_data = state_data or StateData({})
-        if created_at is not None:
-            self._created_at = created_at
+        self._created_at = created_at or CreatedAt.now()
 
     @classmethod
     def restore(
@@ -81,7 +77,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         id_: SessionStateId,
         session_id: SessionId,
         direction: StateDirection = StateDirection.IN,
-        now: datetime,
+        now: CreatedAt | None = None,
     ) -> SessionState:
         instance = cls(
             id=id_,

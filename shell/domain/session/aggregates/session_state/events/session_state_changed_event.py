@@ -18,7 +18,7 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
 class SessionStateChangedEvent(DomainEvent):
     session_id: SessionId
     session_state_id: SessionStateId
-    direction: str
+    direction: StateDirection
     key: str
     old_value: object | None = None
     new_value: object | None = None
@@ -38,7 +38,7 @@ class SessionStateChangedEvent(DomainEvent):
             occurred_at=now,
             session_id=session_id,
             session_state_id=session_state_id,
-            direction=direction.value,
+            direction=direction,
             key=key,
             old_value=old_value,
             new_value=new_value,
@@ -53,7 +53,7 @@ class SessionStateChangedEvent(DomainEvent):
             schema_version=schema_version,
             session_id=SessionId(payload.get("session_id")),
             session_state_id=SessionStateId(payload.get("session_state_id")),
-            direction=payload.get("direction"),
+            direction=StateDirection(payload.get("direction")),
             key=payload.get("key"),
             old_value=payload.get("old_value"),
             new_value=payload.get("new_value"),

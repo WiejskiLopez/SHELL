@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
-from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.base.entity import Entity, TId
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
-
-TId = TypeVar("TId")
 
 
 class AggregateRoot(Entity[TId]):

@@ -102,8 +102,8 @@ class InMemoryQueryServices:
             RagChunkDto(
                 chunk_id=chunk.id.value,
                 document_id=chunk.document_id.value,
-                chunk_index=chunk.chunk_index,
-                chunk_text=chunk.chunk_text,
+                chunk_index=chunk.chunk_index.value,
+                chunk_text=chunk.chunk_text.value,
                 source_uri="",
                 title="",
                 domain=domain or "",

@@ -100,7 +100,7 @@ class SchedulerService:
             )
 
     def _add_job(self, job: SchedulerJob) -> None:
-        if not job.enabled:
+        if not job.enabled.value:
             return
 
         job_id = _JOB_ID_PREFIX + job.id.value
@@ -108,12 +108,12 @@ class SchedulerService:
         if self._scheduler.get_job(job_id):
             self._scheduler.reschedule_job(
                 job_id,
-                trigger=IntervalTrigger(seconds=int(job.interval_seconds)),
+                trigger=IntervalTrigger(seconds=int(job.interval_seconds.value)),
             )
             return
 
         job_fn = _build_job_fn(
-            job_type=job.job_type,
+            job_type=job.job_type.value,
             outbox_relay=self._outbox_to_inbox_relay,
             inbox_processor=self._inbox_processor,
             pending_graph_finder=self._pending_graph_finder,
@@ -122,17 +122,17 @@ class SchedulerService:
 
         self._scheduler.add_job(
             job_fn,
-            trigger=IntervalTrigger(seconds=int(job.interval_seconds)),
+            trigger=IntervalTrigger(seconds=int(job.interval_seconds.value)),
             id=job_id,
-            name=job.name or job.id.value,
+            name=job.name.value or job.id.value,
             replace_existing=True,
         )
         logger.info(
             "scheduler_service.job_added",
             extra={
                 "job_id": job.id.value,
-                "job_type": job.job_type,
-                "interval": job.interval_seconds,
+                "job_type": job.job_type.value,
+                "interval": job.interval_seconds.value,
             },
         )
 

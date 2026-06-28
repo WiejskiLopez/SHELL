@@ -344,7 +344,7 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
             else None
         ),
         session_id=SessionId(workflow_model.session_id) if workflow_model.session_id else None,
-        created_at=_ensure_utc(workflow_model.created_at),
+        created_at=CreatedAt.from_datetime(workflow_model.created_at),
     )
 
 
@@ -358,7 +358,7 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
             else None
         ),
         session_id=work_flow.session_id.value if work_flow.session_id else None,
-        created_at=work_flow.created_at,
+        created_at=work_flow.created_at.value,
     )
 
 
@@ -368,7 +368,7 @@ def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
         entity.session_execution_id.value if entity.session_execution_id else None
     )
     model.session_id = entity.session_id.value if entity.session_id else None
-    model.created_at = entity.created_at
+    model.created_at = entity.created_at.value
 
 
 # ---------------------------------------------------------------------------
@@ -634,20 +634,20 @@ def rag_document_model_to_entity(rag_document_model: RagDocumentModel) -> RagDoc
 def rag_document_entity_to_model(rag_document: RagDocument) -> RagDocumentModel:
     model = RagDocumentModel(
         id=rag_document.id.value,
-        source_uri=rag_document.source_uri,
-        title=rag_document.title,
-        domain=rag_document.domain,
-        created_at=rag_document.created_at,
+        source_uri=rag_document.source_uri.value if hasattr(rag_document.source_uri, 'value') else rag_document.source_uri,
+        title=rag_document.title.value if hasattr(rag_document.title, 'value') else rag_document.title,
+        domain=rag_document.domain.value if hasattr(rag_document.domain, 'value') else rag_document.domain,
+        created_at=rag_document.created_at.value if hasattr(rag_document.created_at, 'value') else rag_document.created_at,
     )
     model.chunks = [rag_chunk_entity_to_model(c) for c in rag_document.chunks]
     return model
 
 
 def rag_document_update_model(model: RagDocumentModel, entity: RagDocument) -> None:
-    model.source_uri = entity.source_uri
-    model.title = entity.title
-    model.domain = entity.domain
-    model.created_at = entity.created_at
+    model.source_uri = entity.source_uri.value if hasattr(entity.source_uri, 'value') else entity.source_uri
+    model.title = entity.title.value if hasattr(entity.title, 'value') else entity.title
+    model.domain = entity.domain.value if hasattr(entity.domain, 'value') else entity.domain
+    model.created_at = entity.created_at.value if hasattr(entity.created_at, 'value') else entity.created_at
     # Chunks are managed separately
 
 
@@ -657,13 +657,18 @@ def rag_document_update_model(model: RagDocumentModel, entity: RagDocument) -> N
 
 
 def rag_chunk_model_to_entity(rag_chunk_model: RagChunkModel) -> RagChunk:
+    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+    from shell.domain.definition.value_objects.chunk_text import ChunkText
+    from shell.domain.definition.value_objects.embedding import Embedding
+    from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
+
     return RagChunk(
         id=RagChunkId(rag_chunk_model.id),
         document_id=RagDocumentId(rag_chunk_model.document_id),
-        chunk_index=rag_chunk_model.chunk_index,
-        chunk_text=rag_chunk_model.chunk_text,
-        embedding=rag_chunk_model.embedding,
-        embedding_model=rag_chunk_model.embedding_model,
+        chunk_index=ChunkIndex(rag_chunk_model.chunk_index),
+        chunk_text=ChunkText(rag_chunk_model.chunk_text),
+        embedding=Embedding(rag_chunk_model.embedding),
+        embedding_model=EmbeddingModel(rag_chunk_model.embedding_model),
     )
 
 
@@ -671,10 +676,10 @@ def rag_chunk_entity_to_model(rag_chunk: RagChunk) -> RagChunkModel:
     return RagChunkModel(
         id=rag_chunk.id.value,
         document_id=rag_chunk.document_id.value,
-        chunk_index=rag_chunk.chunk_index,
-        chunk_text=rag_chunk.chunk_text,
-        embedding=rag_chunk.embedding,
-        embedding_model=rag_chunk.embedding_model,
+        chunk_index=rag_chunk.chunk_index.value,
+        chunk_text=rag_chunk.chunk_text.value,
+        embedding=rag_chunk.embedding.value,
+        embedding_model=rag_chunk.embedding_model.value,
     )
 
 

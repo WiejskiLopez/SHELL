@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.ids import RunnerConfigId
+from shell.domain.definition.value_objects.package_name import PackageName
+from shell.domain.definition.value_objects.runner_body import RunnerBody
+from shell.domain.definition.value_objects.runner_kind import RunnerKind
 from shell.domain.platform.base.entity import Entity
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.platform.value_objects.hash import Hash
 
 
@@ -19,25 +21,25 @@ class RunnerConfig(Entity[RunnerConfigId]):
     def __init__(
         self,
         id: RunnerConfigId,
-        package_name: str,
-        kind: str,
+        package_name: PackageName,
+        kind: RunnerKind,
         hash: Hash,
-        body: dict[str, object],
-        created_at: datetime,
+        body: RunnerBody,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
-        self._package_name = package_name
-        self._kind = kind
+        self._package_name = package_name if isinstance(package_name, PackageName) else PackageName(package_name)
+        self._kind = kind if isinstance(kind, RunnerKind) else RunnerKind(kind)
         self._hash = hash
-        self._body = body
-        self._created_at = created_at
+        self._body = body if isinstance(body, RunnerBody) else RunnerBody(body)
+        self._created_at = created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
 
     @property
-    def package_name(self) -> str:
+    def package_name(self) -> PackageName:
         return self._package_name
 
     @property
-    def kind(self) -> str:
+    def kind(self) -> RunnerKind:
         return self._kind
 
     @property
@@ -45,11 +47,11 @@ class RunnerConfig(Entity[RunnerConfigId]):
         return self._hash
 
     @property
-    def body(self) -> dict[str, object]:
+    def body(self) -> RunnerBody:
         return self._body
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod
@@ -57,11 +59,11 @@ class RunnerConfig(Entity[RunnerConfigId]):
         cls,
         *,
         id_: RunnerConfigId,
-        package_name: str,
-        kind: str,
-        body: dict[str, object],
+        package_name: PackageName,
+        kind: RunnerKind,
+        body: RunnerBody,
         config_hash: Hash,
-        now: datetime,
+        now: CreatedAt,
     ) -> RunnerConfig:
         return cls(
             id=id_,

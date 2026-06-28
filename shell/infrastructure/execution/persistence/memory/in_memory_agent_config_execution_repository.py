@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import copy
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.agent_config_execution.repositories.agent_config_execution_repository import (
     AgentConfigExecutionRepository,
 )
@@ -12,30 +9,20 @@ from shell.domain.execution.aggregates.agent_config_execution.value_objects.agen
 from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
 )
+from shell.domain.execution.aggregates.agent_config_execution import (
+    AgentConfigExecution,
+)
+from shell.infrastructure.platform.persistence.in_memory_repository import (
+    InMemoryRepository,
+)
 
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.agent_config_execution import (
-        AgentConfigExecution,
-    )
 
-
-class InMemoryAgentConfigExecutionRepository(AgentConfigExecutionRepository):
-    def __init__(self) -> None:
-        self._store: dict[str, AgentConfigExecution] = {}
-
-    async def get_by_id(
-        self, agent_config_execution_id: AgentConfigExecutionId
-    ) -> AgentConfigExecution | None:
-        item = self._store.get(agent_config_execution_id.value)
-        return copy.deepcopy(item) if item is not None else None
+class InMemoryAgentConfigExecutionRepository(InMemoryRepository[AgentConfigExecution, AgentConfigExecutionId], AgentConfigExecutionRepository):
 
     async def get_by_session_execution_id(
         self, session_execution_id: SessionExecutionId
     ) -> AgentConfigExecution | None:
         for item in self._store.values():
             if item.session_execution_id == session_execution_id:
-                return copy.deepcopy(item)
+                return item
         return None
-
-    async def save(self, agent_config_execution: AgentConfigExecution) -> None:
-        self._store[agent_config_execution.id.value] = copy.deepcopy(agent_config_execution)

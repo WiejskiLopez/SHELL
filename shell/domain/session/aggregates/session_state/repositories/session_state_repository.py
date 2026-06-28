@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from shell.domain.execution.value_objects.exists_result import ExistsResult
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.execution.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.session_state import SessionState

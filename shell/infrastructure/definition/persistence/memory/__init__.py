@@ -1,7 +1,5 @@
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
-    TYPE_CHECKING,
     InMemoryGraphDefinitionRepository,
-    annotations,
 )
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
     InMemoryGraphNodeDefinitionRepository,
@@ -18,6 +16,4 @@ __all__ = [
     "InMemoryGraphNodeDefinitionRepository",
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
-    "TYPE_CHECKING",
-    "annotations",
 ]

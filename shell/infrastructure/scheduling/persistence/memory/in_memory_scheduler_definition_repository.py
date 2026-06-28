@@ -1,27 +1,21 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from shell.domain.scheduling.value_objects.source_context import SourceContext
+from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
+    SchedulerDefinition,
+)
+from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
-if TYPE_CHECKING:
-    from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
-        SchedulerDefinition,
-    )
-    from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
 
-
-class InMemorySchedulerDefinitionRepository:
-    def __init__(self) -> None:
-        self._store: dict[str, SchedulerDefinition] = {}
-
-    async def get_by_id(self, id: SchedulerDefinitionId) -> SchedulerDefinition | None:
-        return self._store.get(id.value)
+class InMemorySchedulerDefinitionRepository(InMemoryRepository[SchedulerDefinition, SchedulerDefinitionId]):
 
     async def find_by_trigger(
-        self, source_context: str, trigger_event_type: str
+        self, source_context: SourceContext, trigger_event_type: TriggerEventType
     ) -> list[SchedulerDefinition]:
         return [
-            d for d in self._store.values() if d.matches_trigger(source_context, trigger_event_type)
+            d
+            for d in self._store.values()
+            if d.matches_trigger(source_context.value, trigger_event_type.value)
         ]
-
-    async def save(self, definition: SchedulerDefinition) -> None:
-        self._store[definition.id.value] = definition

@@ -20,6 +20,7 @@ from shell.domain.platform.aggregates.message.value_objects.message_type import 
 from shell.domain.platform.aggregates.message.value_objects.source import Source
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -46,7 +47,7 @@ class Message(AggregateRoot[MessageId]):
     _status: MessageStatus
     _materialized_metadata: MaterializedMetadata
     _created_at: CreatedAt
-    _received_at: CreatedAt | None
+    _received_at: Timestamp | None
 
     def __init__(
         self,
@@ -60,7 +61,7 @@ class Message(AggregateRoot[MessageId]):
         status: MessageStatus,
         materialized_metadata: MaterializedMetadata | None = None,
         created_at: CreatedAt | None = None,
-        received_at: CreatedAt | None = None,
+        received_at: Timestamp | None = None,
     ) -> None:
         super().__init__(id)
         self._message_type = message_type
@@ -86,7 +87,7 @@ class Message(AggregateRoot[MessageId]):
         status: MessageStatus,
         materialized_metadata: MaterializedMetadata | None = None,
         created_at: CreatedAt | None = None,
-        received_at: CreatedAt | None = None,
+        received_at: Timestamp | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -134,7 +135,7 @@ class Message(AggregateRoot[MessageId]):
         return self._created_at
 
     @property
-    def received_at(self) -> CreatedAt | None:
+    def received_at(self) -> Timestamp | None:
         return self._received_at
 
     @classmethod
@@ -180,7 +181,7 @@ class Message(AggregateRoot[MessageId]):
             )
         previous_status = self._status
         self._status = MessageStatus.RECEIVED
-        self._received_at = CreatedAt.from_datetime(now)
+        self._received_at = Timestamp.from_datetime(now)
         self.append_event(
             MessageReceivedEvent.now(
                 message_id=self.id,

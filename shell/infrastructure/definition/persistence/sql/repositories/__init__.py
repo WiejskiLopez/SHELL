@@ -1,8 +1,6 @@
 from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_repository import (
-    TYPE_CHECKING,
     GraphDefinitionModel,
     SqlGraphDefinitionRepository,
-    annotations,
     select,
     selectinload,
 )
@@ -32,8 +30,6 @@ __all__ = [
     "SqlGraphNodeDefinitionRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
-    "TYPE_CHECKING",
-    "annotations",
     "logger",
     "sa_delete",
     "select",

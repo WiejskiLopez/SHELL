@@ -1,42 +1,48 @@
 from __future__ import annotations
 
-import uuid
-from typing import TYPE_CHECKING, Any
-
 from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.projekt.value_objects.project_id import ProjectId
+from shell.domain.projekt.value_objects.project_skill_id import ProjectSkillId
+from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
 
-if TYPE_CHECKING:
-    from datetime import datetime
 
-
-class ProjectSkill(Entity[str]):
+class ProjectSkill(Entity[ProjectSkillId]):
     __slots__ = ("_project_id", "_payload", "_created_at")
+
+    _project_id: ProjectId
+    _payload: ProjectSkillPayload
+    _created_at: CreatedAt
 
     def __init__(
         self,
-        id: str,
+        id: ProjectSkillId,
         project_id: ProjectId,
-        payload: dict[str, Any],
-        created_at: datetime,
+        payload: ProjectSkillPayload,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._project_id = project_id
         self._payload = payload
-        self._created_at = created_at
+        self._created_at = created_at or CreatedAt.now()
 
     @property
     def project_id(self) -> ProjectId:
         return self._project_id
 
     @property
-    def payload(self) -> dict[str, Any]:
+    def payload(self) -> ProjectSkillPayload:
         return self._payload
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod
-    def new(cls, project_id: ProjectId, payload: dict[str, Any], now: datetime) -> ProjectSkill:
-        return cls(id=str(uuid.uuid4()), project_id=project_id, payload=payload, created_at=now)
+    def new(cls, project_id: ProjectId, payload: dict, now: CreatedAt | None = None) -> ProjectSkill:
+        return cls(
+            id=ProjectSkillId.generate(),
+            project_id=project_id,
+            payload=ProjectSkillPayload(payload),
+            created_at=now,
+        )

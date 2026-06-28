@@ -686,7 +686,7 @@ def _in_type_checking_block(node: ast.AST) -> bool:
 
 def test_entity_aggregate_fields_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(_EXECUTION_DOMAIN):
+    for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
         if tree is None:
             continue
@@ -716,7 +716,7 @@ def test_entity_aggregate_fields_have_domain_types() -> None:
 
 def test_entity_aggregate_init_params_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(_EXECUTION_DOMAIN):
+    for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
         if tree is None:
             continue
@@ -748,14 +748,12 @@ def test_entity_aggregate_init_params_have_domain_types() -> None:
 
 # ── 17. No primitive types in DomainEvent dataclass fields ──────────
 
-_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
-    "domain\\execution\\aggregates\\graph_execution\\events\\graph_execution_ready_event.py: GraphExecutionReadyEvent.graph_node_definition_executions: dict[...]",
-})
+_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
 
 
 def test_domain_event_fields_have_domain_types() -> None:
     violations: list[str] = []
-    for path in iter_py_files(_EXECUTION_DOMAIN):
+    for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
         if tree is None:
             continue
@@ -789,13 +787,9 @@ def test_domain_event_fields_have_domain_types() -> None:
 
 
 
-
-_EXECUTION_DOMAIN = BASE / "domain" / "execution"
-
-
 def test_repository_port_signatures_have_domain_types() -> None:
     violations: list[str] = []
-    for repos_dir in (_EXECUTION_DOMAIN).rglob("repositories"):
+    for repos_dir in (BASE / "domain").rglob("repositories"):
         if not repos_dir.is_dir():
             continue
         for path in iter_py_files(repos_dir):
@@ -851,7 +845,7 @@ def test_domain_port_signatures_have_domain_types() -> None:
     Test pouze varuje, ale neblokuje. Hlavní ochrana je na agregátech/eventech.
     """
     violations: list[str] = []
-    for ports_dir in (_EXECUTION_DOMAIN).rglob("ports"):
+    for ports_dir in (BASE / "domain").rglob("ports"):
         if not ports_dir.is_dir():
             continue
         for path in iter_py_files(ports_dir):

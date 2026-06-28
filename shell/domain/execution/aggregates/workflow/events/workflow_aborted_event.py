@@ -10,12 +10,14 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)
 class WorkflowAbortedEvent(DomainEvent):
     workflow_id: WorkflowId
+    reason: Reason | None = None
     task_execution_id: TaskExecutionId | None = None
 
     @classmethod
@@ -27,15 +29,17 @@ class WorkflowAbortedEvent(DomainEvent):
             occurred_at=occurred_at,
             schema_version=schema_version,
             workflow_id=WorkflowId(payload.get("workflow_id")),
+            reason=Reason(payload["reason"]) if payload.get("reason") else None,
             task_execution_id=TaskExecutionId(task_id) if task_id else None,
         )
 
     @classmethod
     def now(
-        cls, workflow_id: WorkflowId, now: datetime, task_execution_id: TaskExecutionId | None = None
+        cls, workflow_id: WorkflowId, now: datetime, reason: Reason | None = None, task_execution_id: TaskExecutionId | None = None
     ) -> WorkflowAbortedEvent:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
+            reason=reason,
             task_execution_id=task_execution_id,
         )

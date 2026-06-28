@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
+from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import (
     GraphDefinitionId,  # noqa: TC002 — GraphDefinitionId używany w konstruktorach w repozytorium
 )
@@ -40,9 +41,9 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
         return graph_definition_model_to_entity(row) if row else None
 
     async def get_graph_definition_by_name(
-        self, graph_definition_by_name: str
+        self, graph_definition_by_name: GraphName
     ) -> GraphDefinition | None:
-        query = self._base_query().where(GraphDefinitionModel.name == graph_definition_by_name)
+        query = self._base_query().where(GraphDefinitionModel.name == graph_definition_by_name.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None
 

@@ -38,6 +38,7 @@ class GraphNodeExecutionTimeoutExpiredHandler:
                 )
                 return
 
-            node.timeout()
+            now = self._clock.now()
+            node.timeout(now)
             await unit_of_work.graph_node_execution_repository.save(node)
             unit_of_work.stage_events(node.pull_events())

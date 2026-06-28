@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SchedulerExecutionCompletedEvent(DomainEvent):
     execution_id: SchedulerExecutionId
-    output_state: dict[str, Any] | None = None
+    output_state: StateData | None = None
 
     @classmethod
     def from_payload(
@@ -23,6 +24,6 @@ class SchedulerExecutionCompletedEvent(DomainEvent):
         return cls(
             occurred_at=occurred_at,
             execution_id=payload.get("execution_id"),
-            output_state=payload.get("output_state"),
+            output_state=StateData(payload["output_state"]) if payload.get("output_state") else None,
             schema_version=schema_version,
         )
