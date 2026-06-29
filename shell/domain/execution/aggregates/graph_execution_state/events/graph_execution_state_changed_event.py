@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any, Self
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.value_objects.state_key import StateKey
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -37,7 +39,7 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         key: StateKey,
         old_value: object | None,
         new_value: object | None,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphExecutionStateChangedEvent:
         return cls(
             occurred_at=now,
@@ -54,12 +56,12 @@ class GraphExecutionStateChangedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
             graph_execution_id=payload["graph_execution_id"],
             graph_execution_state_id=payload["graph_execution_state_id"],
             direction=StateDirection(payload.get("direction", "IN")),
             key=StateKey(payload["key"]),
             old_value=payload["old_value"],
             new_value=payload["new_value"],
-            schema_version=schema_version,
+            schema_version=SchemaVersion(schema_version),
         )

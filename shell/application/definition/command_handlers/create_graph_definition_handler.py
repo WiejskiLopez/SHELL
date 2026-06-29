@@ -43,7 +43,7 @@ class CreateGraphDefinitionHandler:
         command.validate()
         now = self._clock.now()
         graph_id = self._id_generator.new_id(GraphDefinitionId)
-        node_ids: list = []
+        node_ids: list[GraphNodeDefinitionId] = []
         node_aggregates: list[GraphNodeDefinition] = []
 
         for node_dict in command.graph_node_definitions:

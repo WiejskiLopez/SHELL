@@ -8,6 +8,9 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +28,7 @@ class DomainEventSerializer:
         return {
             "id": None,
             "event_type": type(event).__name__,
-            "occurred_at": event.occurred_at,
+            "occurred_at": event.occurred_at.value,
             "payload": self.to_payload(event),
         }
 
@@ -36,7 +39,10 @@ class DomainEventSerializer:
         payload: dict[str, Any],
         schema_version: int = 1,
     ) -> DomainEvent:
-        kwargs: dict[str, Any] = {"occurred_at": occurred_at, "schema_version": schema_version}
+        kwargs: dict[str, Any] = {
+            "occurred_at": CreatedAt.from_datetime(occurred_at),
+            "schema_version": SchemaVersion(schema_version),
+        }
         for f in dataclasses.fields(event_cls):
             if f.name in ("occurred_at", "schema_version"):
                 continue
@@ -51,6 +57,8 @@ class DomainEventSerializer:
             return value
         if isinstance(value, datetime):
             return value.isoformat()
+        if isinstance(value, CreatedAt):
+            return value.value.isoformat()
         if isinstance(value, (list, tuple)):
             return [self._serialize_value(item) for item in value]
         if isinstance(value, dict):
@@ -96,6 +104,16 @@ class DomainEventSerializer:
             if isinstance(value, str):
                 return datetime.fromisoformat(value)
             return value
+        if target_type is CreatedAt:
+            if isinstance(value, str):
+                return CreatedAt.from_datetime(datetime.fromisoformat(value))
+            if isinstance(value, datetime):
+                return CreatedAt.from_datetime(value)
+            return value
+        if isinstance(value, (str, int, float, bool)) and dataclasses.is_dataclass(target_type):
+            _fields = dataclasses.fields(target_type)
+            if len(_fields) == 1 and not hasattr(target_type, "__dataclass_params__") or not target_type.__dataclass_params__.kw_only:
+                return target_type(value)
         value_obj_map: dict[type, type] = {
             WorkflowId: WorkflowId,
             TaskExecutionId: TaskExecutionId,

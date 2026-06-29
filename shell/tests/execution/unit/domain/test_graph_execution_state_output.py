@@ -26,7 +26,7 @@ def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionSt
         id_=GraphExecutionStateId.generate(),
         graph_execution_id=_GE_ID,
         direction=StateDirection.OUT,
-        now=_NOW,
+        now=CreatedAt.from_datetime(_NOW),
     )
 
 
@@ -68,7 +68,7 @@ class TestGraphExecutionStateOutputUpdate:
         assert len(events) == 1
         event = events[0]
         assert isinstance(event, GraphExecutionStateChangedEvent)
-        assert event.key == "k"
+        assert event.key.value == "k"
         assert event.old_value is None
         assert event.new_value == "v"
 
@@ -104,7 +104,7 @@ class TestGraphExecutionStateOutputMerge:
             id_=GraphExecutionStateId.generate(),
             graph_execution_id=GraphExecutionId("child"),
             direction=StateDirection.OUT,
-            now=_NOW,
+        now=CreatedAt.from_datetime(_NOW),
         )
         child.update("y", 2)
         child.update("x", 999)

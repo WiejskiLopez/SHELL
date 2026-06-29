@@ -35,6 +35,12 @@ class GraphExecutionCompletedHandler:
     async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_completed_event.graph_execution_id)
+            if graph_execution is None:
+                self._logger.warning(
+                    "graph_execution_completed_handler.graph_execution_not_found",
+                    graph_execution_id=graph_execution_completed_event.graph_execution_id.value,
+                )
+                return
 
             if graph_execution.parent_graph_execution_id is not None:
                 return
@@ -42,6 +48,12 @@ class GraphExecutionCompletedHandler:
             task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
                 graph_execution.task_execution_id,
             )
+            if task_execution is None:
+                self._logger.warning(
+                    "graph_execution_completed_handler.task_execution_not_found",
+                    task_execution_id=graph_execution.task_execution_id.value,
+                )
+                return
 
             now = self._clock.now()
             task_execution.complete(now=now)

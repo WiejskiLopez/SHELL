@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,11 +35,11 @@ class GraphNodeExecutionCompletedEvent(DomainEvent):
     def now(
         cls,
         node_id: GraphNodeExecutionId,
-        now: datetime,
+        now: CreatedAt,
         role: NodeRole | None = None,
         result: StateData | None = None,
         workflow_id: WorkflowId | None = None,
-        result_id: str | None = None,
+        result_id: GraphNodeExecutionResultId | None = None,
     ) -> GraphNodeExecutionCompletedEvent:
         return cls(
             occurred_at=now,
@@ -47,16 +48,4 @@ class GraphNodeExecutionCompletedEvent(DomainEvent):
             result=result,
             workflow_id=workflow_id,
             result_id=result_id,
-        )
-
-    @classmethod
-    def from_payload(
-        cls, occurred_at: datetime, payload: dict[str, object], schema_version: int = 1
-    ) -> Self:
-        return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
-            node_id=GraphNodeExecutionId(payload["node_id"]),
-            role=NodeRole(payload["role"]),
-            result=StateData(payload["result"]) if "result" in payload and payload["result"] is not None else None,
         )

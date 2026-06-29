@@ -10,6 +10,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +22,7 @@ class TaskExecutionTimeoutExpiredEvent(DomainEvent):
     def now(
         cls,
         task_execution_id: TaskExecutionId,
-        now: datetime,
+        now: CreatedAt,
     ) -> TaskExecutionTimeoutExpiredEvent:
         return cls(
             occurred_at=now,
@@ -32,7 +34,7 @@ class TaskExecutionTimeoutExpiredEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
         )

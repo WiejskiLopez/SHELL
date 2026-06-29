@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.edge_type import EdgeType
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -36,7 +38,7 @@ class GraphNodeTransitionDefinitionCreatedEvent(DomainEvent):
         source_node_definition_id: GraphNodeDefinitionId | None,
         target_node_definition_id: GraphNodeDefinitionId,
         transition_type: EdgeType,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphNodeTransitionDefinitionCreatedEvent:
         return cls(
             occurred_at=now,
@@ -63,8 +65,8 @@ class GraphNodeTransitionDefinitionCreatedEvent(DomainEvent):
 
         source_id = payload["source_node_definition_id"]
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             graph_node_transition_definition_id=GraphNodeTransitionDefinitionId(payload.get("graph_node_transition_definition_id", "")),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             source_node_definition_id=GraphNodeDefinitionId(source_id) if source_id else None,

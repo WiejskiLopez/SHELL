@@ -50,7 +50,7 @@ class PlannerResultHandler:
             return
 
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)  # type: ignore[type-abstract]
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "planner_result_handler.node_not_found",
@@ -58,7 +58,7 @@ class PlannerResultHandler:
                 )
                 return
 
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(  # type: ignore[type-abstract]
                 node.graph_execution_id
             )
             if graph_execution is None:
@@ -68,7 +68,7 @@ class PlannerResultHandler:
                 )
                 return
 
-            result = graph_node_execution_completed_event.result or {}
+            result: dict[str, Any] = graph_node_execution_completed_event.result.to_dict() if graph_node_execution_completed_event.result else {}
             stage = result.get("stage", "")
             spawns: list[dict[str, Any]] = result.get("spawns", [])
             plan = result.get("plan", {})
@@ -98,21 +98,24 @@ class PlannerResultHandler:
                 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
                     GraphExecutionSubGraphSpawnRequestedEvent,
                 )
+                from shell.domain.execution.value_objects.graph_definition_id import (
+                    GraphDefinitionIdRef,
+                )
 
                 graph_execution.append_event(
                     GraphExecutionSubGraphSpawnRequestedEvent.now(
                         parent_graph_execution_id=graph_execution.id,
                         child_graph_execution_id=child_id,
-                        graph_definition_id=definition_id or "",
+                        graph_definition_id=GraphDefinitionIdRef(definition_id or ""),
                         now=now,
-                        state_input={},
+                        state_input=None,
                     )
                 )
 
             if stage == "direct" and plan:
                 graph_execution.plan_complete(plan=plan, now=now)
 
-            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)
+            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
             unit_of_work.stage_events(list(graph_execution.pull_events()))
 
             self._logger.info(

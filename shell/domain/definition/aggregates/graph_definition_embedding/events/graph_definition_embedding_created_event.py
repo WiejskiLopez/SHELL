@@ -10,6 +10,8 @@ from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.embedding_text import EmbeddingText
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -35,7 +37,7 @@ class GraphDefinitionEmbeddingCreatedEvent(DomainEvent):
         text: EmbeddingText,
         embedding: Embedding,
         embedding_model: EmbeddingModel,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphDefinitionEmbeddingCreatedEvent:
         return cls(
             occurred_at=now,
@@ -55,8 +57,8 @@ class GraphDefinitionEmbeddingCreatedEvent(DomainEvent):
         )
 
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             graph_definition_embedding_id=GraphDefinitionEmbeddingId(payload.get("graph_definition_embedding_id", "")),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             text=EmbeddingText(payload.get("text", "")),

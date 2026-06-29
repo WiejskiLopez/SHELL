@@ -5,6 +5,7 @@ from shell.application.definition.dto.runner_config import RunnerConfigDto
 from shell.application.session.dto.session import SessionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.workflow import WorkflowDto
+from shell.domain.definition.value_objects.package_name import PackageName
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
@@ -45,32 +46,30 @@ class InMemoryQueryServices:
         task_execution = await self._unit_of_work.repository(InMemoryTaskExecutionRepository).get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
-        graph_execution = await self._unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
+        graph_execution = await self._unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
             task_execution.id
         )
         graph_node_executions = []
         if graph_execution is not None:
             from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
 
-            nodes = await self._unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(
+            nodes = await self._unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(  # type: ignore[type-abstract]
                 graph_execution.id
             )
             graph_node_executions = [
                 GraphNodeExecutionDto(
                     id=graph_node_execution.id.value,
-                    position=graph_node_execution.position,
+                    position=graph_node_execution.position.value,
                     mode=graph_node_execution.mode.value,
                     role=graph_node_execution.role,
-                    node_type=graph_node_execution.node_type,
-                    model=graph_node_execution.model,
-                    command=graph_node_execution.command,
+                    node_type=graph_node_execution.node_type.value,
                 )
                 for graph_node_execution in nodes
             ]
         return TaskExecutionDto(
             id=task_execution.id.value,
             name=task_execution.name.value,
-            created_at=task_execution.created_at,
+            created_at=task_execution.created_at.value if task_execution.created_at else None,
             graph_node_executions=tuple(graph_node_executions),
         )
 
@@ -84,20 +83,20 @@ class InMemoryQueryServices:
         return WorkflowDto(
             id=str(workflow.id),
             status=workflow.status.value,
-            created_at=workflow.created_at,
+            created_at=workflow.created_at.value,
         )
 
     async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        runner_config = await self._unit_of_work.repository(InMemoryRunnerConfigRepository).get_by_package(package_name)
+        runner_config = await self._unit_of_work.repository(InMemoryRunnerConfigRepository).get_by_package(PackageName(package_name))
         if not runner_config:
             return None
         return RunnerConfigDto(
             id=str(runner_config.id),
-            package_name=runner_config.package_name,
-            kind=runner_config.kind,
+            package_name=runner_config.package_name.value,
+            kind=runner_config.kind.value,
             hash=str(runner_config.hash),
-            body=runner_config.body,
-            created_at=runner_config.created_at,
+            body=dict(runner_config.body.value),
+            created_at=runner_config.created_at.value,
         )
 
     async def get_session_history(self, session_id: str) -> SessionDto | None:
@@ -109,8 +108,8 @@ class InMemoryQueryServices:
             id=session.id.value,
             goal=session.goal,
             status=session.status,
-            opened_at=session.opened_at,
-            closed_at=session.closed_at,
+            opened_at=session.opened_at.value,
+            closed_at=session.closed_at.value if session.closed_at else None,
         )
 
     async def search_similar(

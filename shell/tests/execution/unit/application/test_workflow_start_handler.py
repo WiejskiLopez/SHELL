@@ -68,8 +68,8 @@ class TestWorkflowStartHandler:
             node_type=NodeType("agent"),
         )
         node._graph_execution_id = graph_execution.id
-        await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)
-        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
+        await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
+        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
 
     async def test_happy_path(
         self,

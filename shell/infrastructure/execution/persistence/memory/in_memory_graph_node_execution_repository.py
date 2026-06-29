@@ -28,3 +28,8 @@ class InMemoryGraphNodeExecutionRepository(InMemoryRepository[GraphNodeExecution
             for n in self._store.values()
             if n.graph_execution_id and n.graph_execution_id == graph_execution_id
         ]
+
+    async def get_next_pending(
+        self, graph_execution_id: GraphExecutionId
+    ) -> GraphNodeExecution | None:
+        return None

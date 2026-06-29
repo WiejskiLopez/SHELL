@@ -44,7 +44,7 @@ class PendingGraphFinder:
         if graphs:
             return graphs[0]
 
-        graphs = await repo.find_pending(
+        graphs = await repository.find_pending(
             graph_status=GraphExecutionStatus.PENDING,
             parent_is_null=True,
             task_status=TaskExecutionStatus.IN_PROGRESS,

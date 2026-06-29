@@ -43,7 +43,7 @@ class TestLinearGraphNodeExecutionNavigatorNextAfter:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
@@ -68,7 +68,7 @@ class TestLinearGraphNodeExecutionNavigatorNextAfter:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
@@ -88,7 +88,7 @@ class TestLinearGraphNodeExecutionNavigatorNextAfter:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
@@ -114,7 +114,7 @@ class TestLinearGraphNodeExecutionNavigatorNextAfter:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()

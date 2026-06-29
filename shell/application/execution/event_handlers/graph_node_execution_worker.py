@@ -101,7 +101,7 @@ class GraphNodeExecutionWorker:
 
         # ── 1. Load aggregate + graph_execution + node ──────────────────────────────
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_requested_event.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_requested_event.workflow_id)  # type: ignore[type-abstract]
             if workflow is None:
                 self._logger.warning(
                     "graph_node_execution_worker.workflow_not_found",
@@ -109,7 +109,7 @@ class GraphNodeExecutionWorker:
                 )
                 return
 
-            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)  # type: ignore[type-abstract]
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_worker.no_graph_execution",
@@ -117,12 +117,12 @@ class GraphNodeExecutionWorker:
                 )
                 return
             graph_execution = graph_executions[0]
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_current_by_id(
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_current_by_id(  # type: ignore[type-abstract]
                 graph_execution.task_execution_id
             )
             work_dir = task_execution.work_dir if task_execution else ""
 
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_requested_event.graph_node_execution_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_requested_event.graph_node_execution_id)  # type: ignore[type-abstract]
 
         if not await self._is_event_relevant(workflow, graph_node_execution_requested_event):
             return
@@ -138,7 +138,7 @@ class GraphNodeExecutionWorker:
         # ── 2. Execute subprocess outside the UoW ────────────────────────
         task_execution_id = graph_execution.task_execution_id.value
         success, stdout, stderr = await self._run_node(
-            workflow, node, graph_node_execution_requested_event, work_dir, task_execution_id
+            workflow, node, graph_node_execution_requested_event, str(work_dir), task_execution_id
         )
 
         # ── 3. Reload + record result (transactional) ───────────────────
@@ -221,11 +221,11 @@ class GraphNodeExecutionWorker:
         ``GraphNodeExecutionCompletedEvent`` from the node itself.
         """
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_requested_event.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_requested_event.workflow_id)  # type: ignore[type-abstract]
             if workflow is None:
                 return
 
-            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)  # type: ignore[type-abstract]
             current_graph_execution = graph_executions[0] if graph_executions else None
 
             if not await self._is_event_relevant(workflow, graph_node_execution_requested_event):
@@ -238,7 +238,7 @@ class GraphNodeExecutionWorker:
                     GraphNodeExecutionCompletedEvent.now(
                         node_id=graph_node_execution_requested_event.graph_node_execution_id,
                         workflow_id=workflow.id,
-                        result_id=self._id_generator.new_id(GraphNodeExecutionResultId),
+                        result_id=self._id_generator.new_id(GraphNodeExecutionResultId).value,
                         now=now,
                     )
                 )
@@ -254,7 +254,7 @@ class GraphNodeExecutionWorker:
 
             # ── Complete PLANNER node (emits GraphNodeExecutionCompletedEvent with role=PLANNER) ──
             if success and node_mode == "planner" and stdout:
-                planner_node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
+                planner_node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(  # type: ignore[type-abstract]
                     graph_node_execution_requested_event.graph_node_execution_id,
                 )
                 if planner_node is not None:
@@ -263,10 +263,10 @@ class GraphNodeExecutionWorker:
                     except (json.JSONDecodeError, ValueError):
                         result = {"raw": stdout}
                     planner_node.complete(result, now)
-                    await unit_of_work.repository(GraphNodeExecutionRepository).save(planner_node)
+                    await unit_of_work.repository(GraphNodeExecutionRepository).save(planner_node)  # type: ignore[type-abstract]
                     staged_events.extend(planner_node.pull_events())
 
-            await unit_of_work.repository(WorkflowRepository).save(workflow)
+            await unit_of_work.repository(WorkflowRepository).save(workflow)  # type: ignore[type-abstract]
             unit_of_work.stage_events(staged_events)
 
     @staticmethod
@@ -279,8 +279,8 @@ class GraphNodeExecutionWorker:
         return Manifest(
             name=graph_node_execution.id.value,
             mode=mode,
-            role=graph_node_execution.role or mode.value,
-            node_type=graph_node_execution.node_type or mode.value,
+            role=graph_node_execution.role.value or mode.value,
+            node_type=graph_node_execution.node_type.value or mode.value,
             version="1",
         )
 

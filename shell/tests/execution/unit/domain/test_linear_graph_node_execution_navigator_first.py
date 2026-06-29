@@ -43,7 +43,7 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
@@ -58,7 +58,7 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
             id=GraphExecutionId.generate(),
             task_execution_id=TaskExecutionId.generate(),
         )
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
 
         nav = LinearGraphNodeExecutionNavigator()
@@ -82,7 +82,7 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         ]
         for n in nodes:
             n._graph_execution_id = ge.id
-        node_repo = InMemoryGraphNodeExecutionRepository()
+        node_repo = InMemoryGraphNodeExecutionRepository()  # type: ignore[abstract]
         for n in nodes:
             await node_repo.save(n)
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()

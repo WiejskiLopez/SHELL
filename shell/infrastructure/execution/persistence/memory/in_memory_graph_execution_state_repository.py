@@ -15,6 +15,7 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
@@ -32,6 +33,4 @@ class InMemoryGraphExecutionStateRepository(InMemoryRepository[GraphExecutionSta
         self._store[state.id.value] = copy.deepcopy(state)
 
     async def exists(self, id: object) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         return ExistsResult(str(id) in self._store)

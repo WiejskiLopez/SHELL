@@ -136,15 +136,15 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         }
         sql_type = domain_to_sql.get(repo_type)
         if sql_type is SqlRagDocumentRepository:
-            return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[abstract, no-any-return]
+            return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[abstract, return-value]
         if sql_type is not None:
-            return sql_type(self._active_session)  # type: ignore[no-any-return]
+            return sql_type(self._active_session)
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import SqlSchedulerDefinitionRepository
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import SqlSchedulerExecutionRepository
         if repo_type is SqlSchedulerDefinitionRepository:
-            return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[call-arg, no-any-return]
+            return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
         if repo_type is SqlSchedulerExecutionRepository:
-            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[call-arg, no-any-return]
+            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[return-value]
         msg = f"Unknown repository type: {repo_type}"
         raise ValueError(msg)
 
@@ -170,7 +170,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                 outbox = OutboxEventModel(
                     id=str(uuid.uuid4()),
                     event_type=type(event).__name__,
-                    occurred_at=event.occurred_at,
+                    occurred_at=event.occurred_at.value,
                     payload=DomainEventSerializer().to_payload(event),
                     correlation_id=get_correlation_id(),
                     causation_id=get_causation_id(),

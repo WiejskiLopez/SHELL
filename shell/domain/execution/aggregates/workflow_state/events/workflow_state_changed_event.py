@@ -12,6 +12,8 @@ from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_sta
 )
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +32,7 @@ class WorkflowStateChangedEvent(DomainEvent):
         workflow_state_id: WorkflowStateId,
         direction: StateDirection,
         key: str,
-        now: datetime,
+        now: CreatedAt,
         old_value: object | None = None,
         new_value: object | None = None,
     ) -> WorkflowStateChangedEvent:
@@ -49,8 +51,8 @@ class WorkflowStateChangedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             workflow_id=WorkflowId(payload["workflow_id"]),
             workflow_state_id=WorkflowStateId(payload["workflow_state_id"]),
             direction=StateDirection(payload["direction"]),

@@ -10,6 +10,8 @@ from shell.domain.platform.events import DomainEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,7 +26,7 @@ class SessionOpenedEvent(DomainEvent):
         session_id: SessionId,
         user_id: UserIdRef,
         project_id: ProjectIdRef,
-        now: datetime,
+        now: CreatedAt,
     ) -> SessionOpenedEvent:
         return cls(
             occurred_at=now,
@@ -38,8 +40,8 @@ class SessionOpenedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             session_id=SessionId(payload["session_id"]),
             user_id=UserIdRef(payload["user_id"]),
             project_id=ProjectIdRef(payload["project_id"]),

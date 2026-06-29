@@ -11,6 +11,7 @@ from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_sta
 )
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
@@ -33,6 +34,4 @@ class InMemoryWorkflowStateRepository(InMemoryRepository[WorkflowState, Workflow
         ]
 
     async def exists(self, id_: WorkflowStateId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         return ExistsResult(id_.value in self._store)

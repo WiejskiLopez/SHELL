@@ -12,6 +12,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,8 +28,8 @@ class WorkflowAbortedEvent(DomainEvent):
     ) -> Self:
         task_id = payload["task_execution_id"]
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             workflow_id=WorkflowId(payload["workflow_id"]),
             reason=Reason(payload["reason"]) if payload["reason"] else None,
             task_execution_id=TaskExecutionId(task_id) if task_id else None,
@@ -35,7 +37,7 @@ class WorkflowAbortedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, workflow_id: WorkflowId, now: datetime, reason: Reason | None = None, task_execution_id: TaskExecutionId | None = None
+        cls, workflow_id: WorkflowId, now: CreatedAt, reason: Reason | None = None, task_execution_id: TaskExecutionId | None = None
     ) -> WorkflowAbortedEvent:
         return cls(
             occurred_at=now,

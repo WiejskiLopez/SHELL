@@ -28,8 +28,8 @@ def task_execution_to_dto(task_execution: TaskExecution) -> TaskExecutionDto:
     return TaskExecutionDto(
         id=task_execution.id.value,
         name=task_execution.name.value,
-        created_at=task_execution.created_at,
-        work_dir=task_execution.work_dir,
+        created_at=task_execution.created_at.value if task_execution.created_at else None,
+        work_dir=task_execution.work_dir.value,
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
     )
 
@@ -38,7 +38,7 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
     return WorkflowDto(
         id=workflow.id.value,
         status=workflow.status.value,
-        created_at=workflow.created_at,
+        created_at=workflow.created_at.value,
     )
 
 
@@ -48,21 +48,21 @@ def node_result_to_dto(result: GraphNodeExecutionResult) -> GraphNodeExecutionRe
         graph_node_execution_id=result.graph_node_execution_id.value,
         workflow_id=result.workflow_id.value,
         status=result.status.value,
-        stdout=result.stdout,
-        stderr=result.stderr,
-        artifact_uri=result.artifact_uri,
-        created_at=result.created_at,
+        stdout=result.stdout.value,
+        stderr=result.stderr.value,
+        artifact_uri=result.artifact_uri.value,
+        created_at=result.created_at.value,
     )
 
 
 def runner_config_to_dto(config: RunnerConfig) -> RunnerConfigDto:
     return RunnerConfigDto(
         id=config.id.value,
-        package_name=config.package_name,
-        kind=config.kind,
+        package_name=config.package_name.value,
+        kind=config.kind.value,
         hash=config.hash.value,
-        body=config.body,
-        created_at=config.created_at,
+        body=config.body.value.copy(),
+        created_at=config.created_at.value,
     )
 
 

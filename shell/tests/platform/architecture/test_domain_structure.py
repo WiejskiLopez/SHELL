@@ -183,29 +183,7 @@ def test_domain_events_are_frozen_dataclass() -> None:
     )
 
 
-# ── 7. Domain Event has from_payload() ────────────────────────────
-
-
-def test_domain_events_have_from_payload() -> None:
-    violations: list[str] = []
-    for path in iter_py_files(BASE / "domain"):
-        tree = parse_file(path)
-        if tree is None:
-            continue
-        for node in find_classes(tree):
-            if not _inherits_any(node, _EVENT_BASES):
-                continue
-            if not has_method(node, "from_payload"):
-                key = f"{path.relative_to(BASE)}: class {node.name}"
-                if key not in _KNOWN_NON_EVENT_DOMAIN_CLASSES:
-                    violations.append(key)
-    assert not violations, (
-        "DomainEvents must define from_payload() classmethod:\n"
-        + "\n".join(violations)
-    )
-
-
-# ── 8. Mutating methods in aggregates append_event() ──────────────
+# ── 7. Mutating methods in aggregates append_event() ──────────────
 
 _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset({
     "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",

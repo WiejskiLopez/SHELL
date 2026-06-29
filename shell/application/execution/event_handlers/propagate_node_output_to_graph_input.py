@@ -8,6 +8,8 @@ from shell.domain.execution.aggregates.graph_execution_state.graph_execution_sta
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
+
 from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
     GraphNodeExecutionCompletedEvent,
 )
@@ -70,7 +72,7 @@ class PropagateNodeOutputToGraphInput:
                 id_=GraphExecutionStateId.generate(),
                 graph_execution_id=graph_execution.id,
                 direction=StateDirection.IN,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
             state.patch(output_payload)
             await unit_of_work.repository(GraphExecutionStateRepository).save(state)

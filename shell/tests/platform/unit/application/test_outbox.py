@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
@@ -18,7 +19,7 @@ def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         task_execution_name=TaskExecutionName("task-name-t1"),
-        now=datetime(2026, 1, 1, tzinfo=UTC),
+        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
 
@@ -26,7 +27,7 @@ def _workflow_started() -> WorkflowStartedEvent:
     return WorkflowStartedEvent.now(
         workflow_id=WorkflowId.generate(),
         task_execution_id=TaskExecutionId("task-id-t1"),
-        now=datetime(2026, 1, 1, tzinfo=UTC),
+        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
 

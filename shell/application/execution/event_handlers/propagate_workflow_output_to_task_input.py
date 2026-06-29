@@ -47,11 +47,18 @@ class PropagateWorkflowOutputToTaskInput:
 
     async def handle(self, workflow_completed_event: WorkflowCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(workflow_completed_event.task_execution_id)
+            task_execution_id = workflow_completed_event.task_execution_id
+            if task_execution_id is None:
+                self._logger.warning(
+                    "propagate_workflow_output_to_task_input.task_execution_id_missing",
+                )
+                return
+
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(task_execution_id)
             if task_execution is None:
                 self._logger.warning(
                     "propagate_workflow_output_to_task_input.task_not_found",
-                    task_execution_id=workflow_completed_event.task_execution_id.value,
+                    task_execution_id=task_execution_id.value,
                 )
                 return
 

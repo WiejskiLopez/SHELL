@@ -14,6 +14,8 @@ from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.
 )
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -32,7 +34,7 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
         graph_node_execution_state_id: GraphNodeExecutionStateId,
         direction: StateDirection,
         key: str,
-        now: datetime,
+        now: CreatedAt,
         old_value: object | None = None,
         new_value: object | None = None,
     ) -> GraphNodeExecutionStateChangedEvent:
@@ -51,8 +53,8 @@ class GraphNodeExecutionStateChangedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             graph_node_execution_id=GraphNodeExecutionId(payload["graph_node_execution_id"]),
             graph_node_execution_state_id=GraphNodeExecutionStateId(payload["graph_node_execution_state_id"]),
             direction=StateDirection(payload["direction"]),

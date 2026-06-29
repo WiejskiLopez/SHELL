@@ -25,6 +25,7 @@ from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphD
 from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -117,7 +118,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                 task_execution_id=task_execution_id,
                 graph_definition_id=graph_definition_id,
                 graph_node_definition_ids=graph_node_definition_ids,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         return instance
@@ -165,7 +166,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                 graph_execution_id=self._id,
                 graph_node_definition_id=node_definition_id,
                 graph_node_execution_id=node_execution_id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -184,7 +185,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                         for slot in self._graph_node_definition_execution_slots
                         if slot.graph_node_execution_id is not None
                     ],
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
             )
 
@@ -221,7 +222,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionPlanningStartedEvent.now(
                 graph_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -239,7 +240,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionPlannedEvent.now(
                 graph_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 plan=actual_plan,
             )
         )
@@ -258,7 +259,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionCompletedEvent.now(
                 graph_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 verifier_result=actual_result,
             )
         )
@@ -281,7 +282,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionFailedEvent.now(
                 graph_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 reason=reason,
             )
         )

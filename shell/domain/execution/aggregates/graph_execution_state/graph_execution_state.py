@@ -15,6 +15,7 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
     GraphExecutionStateChangedEvent,
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
+from shell.domain.execution.value_objects.state_key import StateKey
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.base import AggregateRoot
@@ -113,9 +114,9 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id_: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection = StateDirection.IN,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphExecutionState:
-        instance = cls(
+        return cls(
             id=id_,
             graph_execution_id=graph_execution_id,
             direction=direction,
@@ -123,8 +124,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             is_current=IsCurrent(True),
             created_at=now,
         )
-        instance._created_at = now
-        return instance
 
     # ------------------------------------------------------------------ mutations
 
@@ -138,7 +137,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
                 graph_execution_id=self._graph_execution_id,
                 graph_execution_state_id=self.id,
                 direction=self._direction,
-                key=key,
+                key=StateKey(key),
                 old_value=old_value,
                 new_value=value,
                 now=self._created_at,
@@ -159,7 +158,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
                     graph_execution_id=self._graph_execution_id,
                     graph_execution_state_id=self.id,
                     direction=self._direction,
-                    key=key,
+                    key=StateKey(key),
                     old_value=old_value,
                     new_value=None,
                     now=self._created_at,

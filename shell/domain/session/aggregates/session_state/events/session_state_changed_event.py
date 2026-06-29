@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
@@ -30,7 +32,7 @@ class SessionStateChangedEvent(DomainEvent):
         session_state_id: SessionStateId,
         direction: StateDirection,
         key: str,
-        now: datetime,
+        now: CreatedAt,
         old_value: object | None = None,
         new_value: object | None = None,
     ) -> SessionStateChangedEvent:
@@ -49,8 +51,8 @@ class SessionStateChangedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             session_id=SessionId(payload["session_id"]),
             session_state_id=SessionStateId(payload["session_state_id"]),
             direction=StateDirection(payload["direction"]),

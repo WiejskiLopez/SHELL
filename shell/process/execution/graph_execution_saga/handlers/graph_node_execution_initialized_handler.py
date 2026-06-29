@@ -46,7 +46,7 @@ class GraphNodeExecutionInitializedHandler:
                 "graph_execution_id": saga.graph_execution_id,
                 "graph_node_definition_executions": saga.graph_node_definition_executions,
             },
-            occurred_at=event.occurred_at,
+            occurred_at=event.occurred_at.value,
         )
 
         self._logger.info(

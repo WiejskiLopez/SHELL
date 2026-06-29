@@ -14,6 +14,8 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
 )
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +29,7 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
         cls,
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
-        now: datetime,
+        now: CreatedAt,
         iteration: CurrentIteration = CurrentIteration(0),
     ) -> GraphNodeTransitionExecutionLoopedEvent:
         return cls(
@@ -42,8 +44,8 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             transition_id=GraphNodeTransitionExecutionId(payload["transition_id"]),
             source_node_id=GraphNodeExecutionId(payload["source_node_id"]),
             iteration=CurrentIteration(payload.get("iteration", 0)),

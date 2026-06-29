@@ -101,7 +101,7 @@ class SessionState(AggregateRoot[SessionStateId]):
                 key=key,
                 old_value=old_value,
                 new_value=value,
-                now=self._created_at.value,
+                now=self._created_at,
             )
         )
 
@@ -122,7 +122,7 @@ class SessionState(AggregateRoot[SessionStateId]):
                 key=key,
                 old_value=old_value,
                 new_value=None,
-                now=self._created_at.value,
+                    now=self._created_at,
                 )
             )
 

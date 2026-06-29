@@ -16,8 +16,19 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
 )
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -28,9 +39,6 @@ from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-        GraphNodeExecution,
-    )
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
         SubGraphObserver,
@@ -93,13 +101,12 @@ class SubGraphExecutionService:
         """
         _unit_of_work = unit_of_work or self._unit_of_work
         now = self._clock.now()
-        depth = parent_graph_execution.depth + 1
-        parent_graph_execution_id_value = parent_graph_execution.id.value
+        depth = GraphDepth(parent_graph_execution.depth.value + 1)
 
         # ── Governance check ──────────────────────────────────────────────
         if self._governance is not None:
             allowed = await self._governance.can_spawn(
-                parent_graph_execution_id_value, graph_definition_id, depth
+                parent_graph_execution.id, graph_definition_id, depth.value
             )
             if not allowed:
                 raise PermissionError(
@@ -113,7 +120,7 @@ class SubGraphExecutionService:
             graph_definition = await self._versioning.resolve_definition(
                 definition_id=graph_definition_id,
                 version=version,
-                parent_graph_execution_id=parent_graph_execution_id_value,
+                parent_graph_execution_id=parent_graph_execution.id,
             )
         else:
             gd = await self._definition_provider.get_graph_definition(graph_definition_id)
@@ -125,56 +132,56 @@ class SubGraphExecutionService:
         resolved_state: dict[str, Any] = dict(state_input) if state_input else {}
         if self._security is not None:
             scope = await self._security.resolve_scope(
-                parent_graph_execution_id_value, graph_definition_id
+                parent_graph_execution.id, graph_definition_id
             )
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
         # ── Build child GraphNodeExecutions first ──────────────────────────
         sub_graph_execution_id = self._id_generator.new_id(GraphExecutionId)
-        from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-            GraphNodeExecution as GNE,
-        )
 
-        node_ids: list[Any] = []
+        node_def_ids: list[GraphNodeDefinitionId] = []
+        node_execution_ids: list[GraphNodeExecutionId] = []
         for node_def in graph_definition.graph_node_execution_definitions:
             node_id = self._id_generator.new_id(GraphNodeExecutionId)
-            node = GNE(
+            node_def_id = GraphNodeDefinitionId.generate()
+            node = GraphNodeExecution.new(
                 id=node_id,
-                position=node_def.position,
-                mode=Mode(node_def.mode),
-                role=node_def.role,
-                node_type=node_def.node_type,
-                model=node_def.model,
-                command=node_def.command,
-                timeout=node_def.timeout,
-                retries=node_def.retries,
-                log_level=node_def.log_level,
-                max_step=node_def.max_step or 0,
-                no_ask_user=node_def.no_ask_user,
-                autopilot=node_def.autopilot,
-                status_initial=node_def.status_initial,
-                timeout_seconds=node_def.timeout,
-                max_retries=node_def.retries,
                 graph_execution_id=sub_graph_execution_id,
+                node_definition_id=node_def_id,
+                position=NodeOrder(node_def.position),
+                mode=Mode(node_def.mode),
+                role=NodeRole(node_def.role),
+                node_type=NodeType(node_def.node_type),
+                remaining_retries=RemainingRetries(node_def.retries),
+                timeout_seconds=TimeoutSeconds(node_def.timeout),
+                now=now,
             )
-            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)
-            node_ids.append(node_id)
+            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+            node_def_ids.append(node_def_id)
+            node_execution_ids.append(node_id)
 
         # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
-        sub_graph_execution = GraphExecution.from_graph_definition(
+        sub_graph_execution = GraphExecution.create_sub_graph(
             id_=sub_graph_execution_id,
             task_execution_id=parent_graph_execution.task_execution_id,
-            graph_definition=graph_definition,
-            node_ids=node_ids,
-            id_generator=self._id_generator,
-            now=now,
-            parent_graph_execution_id=parent_graph_execution.id,
-            state_input=resolved_state,
-            depth=depth,
+            parent_id=parent_graph_execution.id,
+            parent_depth=parent_graph_execution.depth,
         )
 
+        sub_graph_execution.prepare_node_definitions(
+            graph_definition_id=GraphDefinitionIdRef(graph_definition_id),
+            graph_node_definition_ids=node_def_ids,
+        )
+
+        for node_def_id, node_exec_id in zip(node_def_ids, node_execution_ids):
+            sub_graph_execution.attach_node_execution(
+                node_definition_id=node_def_id,
+                node_execution_id=node_exec_id,
+                now=now,
+            )
+
         # ── Persist ───────────────────────────────────────────────────────
-        await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)
+        await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)  # type: ignore[type-abstract]
 
         _unit_of_work.stage_events(list(sub_graph_execution.pull_events()))
 
@@ -182,8 +189,8 @@ class SubGraphExecutionService:
         if self._observer is not None:
             sub_graph_context = SubGraphContext(
                 graph_execution_id=sub_graph_execution.id.value,
-                parent_graph_execution_id=parent_graph_execution_id_value,
-                depth=depth,
+                parent_graph_execution_id=parent_graph_execution.id.value,
+                depth=depth.value,
                 started_at=now,
             )
             await self._observer.on_start(sub_graph_context)
@@ -191,10 +198,10 @@ class SubGraphExecutionService:
         self._logger.info(
             "sub_graph_execution.spawned",
             sub_graph_id=sub_graph_execution.id.value,
-            parent_graph_id=parent_graph_execution_id_value,
+            parent_graph_id=parent_graph_execution.id.value,
             tasker_node_id=parent_tasker_node.id.value,
             definition_id=graph_definition_id,
-            depth=depth,
+            depth=depth.value,
         )
 
         return sub_graph_execution

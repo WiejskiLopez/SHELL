@@ -15,6 +15,7 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
@@ -41,6 +42,4 @@ class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState
         self._store[payload.id.value] = copy.deepcopy(payload)
 
     async def exists(self, id_: TaskExecutionStateId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         return ExistsResult(id_.value in self._store)

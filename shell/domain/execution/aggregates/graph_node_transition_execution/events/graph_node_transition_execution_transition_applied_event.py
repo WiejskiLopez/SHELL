@@ -13,6 +13,8 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +29,7 @@ class GraphNodeTransitionExecutionTransitionAppliedEvent(DomainEvent):
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
         target_node_id: GraphNodeExecutionId,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphNodeTransitionExecutionTransitionAppliedEvent:
         return cls(
             occurred_at=now,
@@ -41,8 +43,8 @@ class GraphNodeTransitionExecutionTransitionAppliedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             transition_id=GraphNodeTransitionExecutionId(payload["transition_id"]),
             source_node_id=GraphNodeExecutionId(payload["source_node_id"]),
             target_node_id=GraphNodeExecutionId(payload["target_node_id"]),

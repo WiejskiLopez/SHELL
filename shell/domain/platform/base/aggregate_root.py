@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.platform.base.entity import Entity, TId
+from shell.domain.platform.value_objects.aggregate_id import AggregateId
+from shell.domain.platform.value_objects.aggregate_type import AggregateType
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
@@ -25,8 +27,8 @@ class AggregateRoot(Entity[TId]):
         self._events = []
 
     def append_event(self, event: DomainEvent) -> None:
-        object.__setattr__(event, "aggregate_id", self.id.value if hasattr(self.id, "value") else str(self.id))
-        object.__setattr__(event, "aggregate_type", type(self).__name__)
+        object.__setattr__(event, "aggregate_id", AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id)))
+        object.__setattr__(event, "aggregate_type", AggregateType(type(self).__name__))
         self._events.append(event)
 
     def pull_events(self) -> list[DomainEvent]:

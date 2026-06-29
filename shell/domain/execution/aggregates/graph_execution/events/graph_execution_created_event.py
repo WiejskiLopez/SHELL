@@ -15,6 +15,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +32,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
         cls,
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        now: datetime,
+        now: CreatedAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
         goal: Goal = Goal(""),
         depth: GraphDepth = GraphDepth(0),
@@ -50,8 +52,8 @@ class GraphExecutionCreatedEvent(DomainEvent):
     ) -> Self:
         parent_id = payload["parent_graph_execution_id"]
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             parent_graph_execution_id=GraphExecutionId(parent_id) if parent_id else None,

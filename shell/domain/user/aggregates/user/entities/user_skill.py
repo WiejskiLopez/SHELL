@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.user.value_objects.skill_id import SkillId
@@ -16,7 +17,7 @@ class UserSkill:
     created_at: CreatedAt
 
     @classmethod
-    def new(cls, user_id: UserId, payload: dict, now: CreatedAt | None = None) -> UserSkill:
+    def new(cls, user_id: UserId, payload: dict[str, Any], now: CreatedAt | None = None) -> UserSkill:
         return cls(
             id=SkillId.generate(),
             user_id=user_id,

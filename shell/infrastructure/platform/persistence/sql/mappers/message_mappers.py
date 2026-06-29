@@ -57,7 +57,8 @@ def message_model_to_entity(model: MessageModel) -> Message:
             return None
         return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
 
-    received = Timestamp.from_datetime(_utc(model.received_at)) if model.received_at else None
+    received_at_dt = model.received_at
+    received = Timestamp.from_datetime(received_at_dt.replace(tzinfo=UTC) if received_at_dt and received_at_dt.tzinfo is None else received_at_dt) if model.received_at else None  # type: ignore[arg-type]
 
     return Message.restore(
         id=MessageId(model.id),
@@ -76,6 +77,6 @@ def message_model_to_entity(model: MessageModel) -> Message:
             source_role=model.source_role or "",
             target_role=model.target_role or "",
         ),
-        created_at=CreatedAt.from_datetime(_utc(model.created_at)),
+        created_at=CreatedAt.from_datetime(_utc(model.created_at)),  # type: ignore[arg-type]
         received_at=received,
     )

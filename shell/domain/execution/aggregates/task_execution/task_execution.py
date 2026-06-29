@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
 from shell.domain.execution.value_objects.reason import Reason
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.work_dir import WorkDir
@@ -83,7 +84,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionStartedEvent.now(
                 task_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -100,9 +101,9 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionCompletedEvent.now(
                 task_execution_id=self._id,
-                task_execution_name=self._name,
+                task_execution_name=TaskExecutionName(self._name.value),
                 output=output,
-                now=now,
+                now=CreatedAt.from_datetime(now) if now is not None else None,
             )
         )
 
@@ -120,7 +121,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             TaskExecutionFailedEvent.now(
                 task_execution_id=self._id,
                 reason=reason,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -137,7 +138,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionTimeoutExpiredEvent.now(
                 task_execution_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -154,9 +155,9 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionExhaustedEvent.now(
                 task_execution_id=self._id,
-                current_cycle=self._current_cycle.value,
-                max_planning_cycles=self._max_planning_cycles.value,
-                now=now,
+                current_cycle=self._current_cycle,
+                max_planning_cycles=self._max_planning_cycles,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -222,7 +223,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             id=id_,
             name=task_name,
             workflow_id=workflow_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now),
         )
         from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
             TaskExecutionCreatedEvent,
@@ -231,8 +232,8 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         task_execution.append_event(
             TaskExecutionCreatedEvent.now(
                 task_execution_id=id_,
-                task_execution_name=task_name,
-                now=now,
+                task_execution_name=TaskExecutionName(task_name.value),
+                now=CreatedAt.from_datetime(now),
             )
         )
         return task_execution

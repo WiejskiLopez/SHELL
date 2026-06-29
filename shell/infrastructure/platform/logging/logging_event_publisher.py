@@ -20,5 +20,5 @@ class LoggingEventPublisher:
             self._logger.info(
                 "domain_event",
                 event_type=type(event).__name__,
-                occurred_at=event.occurred_at.isoformat(),
+                occurred_at=event.occurred_at.value.isoformat(),
             )

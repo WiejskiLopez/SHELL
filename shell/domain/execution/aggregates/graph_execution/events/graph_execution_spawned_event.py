@@ -11,6 +11,8 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 )
 from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,7 +26,7 @@ class GraphExecutionSpawnedEvent(DomainEvent):
         cls,
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
-        now: datetime,
+        now: CreatedAt,
         goal: Goal = Goal(""),
     ) -> GraphExecutionSpawnedEvent:
         return cls(
@@ -39,8 +41,8 @@ class GraphExecutionSpawnedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             parent_graph_execution_id=GraphExecutionId(payload["parent_graph_execution_id"]),
             child_graph_execution_id=GraphExecutionId(payload["child_graph_execution_id"]),
             goal=Goal(payload.get("goal", "")),

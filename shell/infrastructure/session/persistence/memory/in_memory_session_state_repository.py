@@ -11,6 +11,7 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
     SessionStateId,
 )
 from shell.domain.session.aggregates.session_state.session_state import SessionState
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
@@ -33,6 +34,4 @@ class InMemorySessionStateRepository(InMemoryRepository[SessionState, SessionSta
         ]
 
     async def exists(self, id_: SessionStateId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         return ExistsResult(id_.value in self._store)

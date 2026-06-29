@@ -12,6 +12,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +28,7 @@ class TaskExecutionExhaustedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         current_cycle: PlanningCycle,
         max_planning_cycles: MaxPlanningCycles,
-        now: datetime,
+        now: CreatedAt,
     ) -> TaskExecutionExhaustedEvent:
         return cls(
             occurred_at=now,
@@ -40,8 +42,8 @@ class TaskExecutionExhaustedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             current_cycle=PlanningCycle(payload["current_cycle"]),
             max_planning_cycles=MaxPlanningCycles(payload["max_planning_cycles"]),

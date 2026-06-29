@@ -71,7 +71,7 @@ class InboxProcessor:
                 # Restore tracing context from inbox metadata before dispatching
                 for domain_event, row in zip(events_to_publish, rows, strict=False):
                     corr_token = correlation_id_var.set(row.correlation_id)
-                    caus_token = causation_id_var.set(domain_event.event_id)
+                    caus_token = causation_id_var.set(domain_event.event_id.value)
                     try:
                         await self._event_bus.publish([domain_event])
                     finally:

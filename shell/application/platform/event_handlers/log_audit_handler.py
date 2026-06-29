@@ -17,5 +17,5 @@ class LogAuditHandler:
         self._logger.info(
             "domain_event",
             event_type=type(domain_event).__name__,
-            occurred_at=str(domain_event.occurred_at),
+            occurred_at=domain_event.occurred_at.value.isoformat(),
         )

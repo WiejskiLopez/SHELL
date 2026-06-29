@@ -103,18 +103,25 @@ class GraphNodeExecutionCompletedHandler:
     async def handle(self, graph_node_execution_result_event: GraphNodeExecutionResultEvent) -> None:
         """Handle exactly one node execution result."""
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(graph_node_execution_result_event.workflow_id)
+            workflow_id = graph_node_execution_result_event.workflow_id
+            if workflow_id is None:
+                self._logger.warning(
+                    "graph_node_execution_completed_handler.workflow_id_missing",
+                )
+                return
+
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
             if workflow is None:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.workflow_not_found",
-                    workflow_id=graph_node_execution_result_event.workflow_id.value,
+                    workflow_id=workflow_id.value,
                 )
                 return
 
             if workflow.status != WorkflowStatus.ACTIVE:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.skip_workflow_not_active",
-                    workflow_id=graph_node_execution_result_event.workflow_id.value,
+                    workflow_id=workflow_id.value,
                     status=workflow.status.value,
                 )
                 return

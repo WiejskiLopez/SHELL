@@ -164,4 +164,4 @@ class Session(AggregateRoot[SessionId]):
             )
         self._status = SessionStatus.CLOSED
         self._closed_at = now
-        self.append_event(SessionClosedEvent.now(self._id, now=now.value if isinstance(now, UpdatedAt) else now))
+        self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))

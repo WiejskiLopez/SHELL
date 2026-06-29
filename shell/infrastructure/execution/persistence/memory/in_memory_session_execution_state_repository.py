@@ -13,10 +13,11 @@ from shell.domain.execution.aggregates.session_execution_state.value_objects.ses
 )
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.session_execution_state import SessionExecutionState
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemorySessionExecutionStateRepository(InMemoryRepository[SessionExecutionState, SessionExecutionStateId], SessionExecutionStateRepository):
+class InMemorySessionExecutionStateRepository(InMemoryRepository[SessionExecutionState, SessionExecutionStateId], SessionExecutionStateRepository):  # type: ignore[misc]
 
     async def get_latest_by_session_execution_id(
         self,
@@ -41,6 +42,5 @@ class InMemorySessionExecutionStateRepository(InMemoryRepository[SessionExecutio
         self._store[payload.id.value] = copy.deepcopy(payload)
 
     async def exists(self, id_: object) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
-        return ExistsResult(id_.value in self._store)
+        key = id_.value if hasattr(id_, "value") else str(id_)
+        return ExistsResult(key in self._store)

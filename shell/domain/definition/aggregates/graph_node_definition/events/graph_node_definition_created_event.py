@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -35,7 +37,7 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
         position: NodePosition,
         role: NodeRoleName,
         node_type: NodeTypeName,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphNodeDefinitionCreatedEvent:
         return cls(
             occurred_at=now,
@@ -61,8 +63,8 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
         from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             graph_node_definition_id=GraphNodeDefinitionId(payload.get("graph_node_definition_id", "")),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             position=NodePosition(payload.get("position", 0)),

@@ -22,7 +22,9 @@ from shell.domain.execution.value_objects.graph_definition_id import GraphDefini
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -82,8 +84,8 @@ class SubGraphSpawnRequestedHandler:
 
             if self._governance is not None:
                 allowed = await self._governance.can_spawn(
-                    parent.id.value,
-                    event.graph_definition_id,
+                    parent.id,
+                    event.graph_definition_id.value,
                     parent.depth.value + 1,
                 )
                 if not allowed:
@@ -96,10 +98,16 @@ class SubGraphSpawnRequestedHandler:
 
             if self._versioning is not None:
                 graph_definition = await self._versioning.resolve_definition(
-                    event.graph_definition_id, None, parent.id.value
+                    event.graph_definition_id.value, None, parent.id
                 )
+                if graph_definition is None:
+                    self._logger.warning(
+                        "sub_graph_spawn.definition_not_found",
+                        definition_id=event.graph_definition_id,
+                    )
+                    return
             else:
-                graph_definition = await self._definition_provider.get_graph_definition(event.graph_definition_id)
+                graph_definition = await self._definition_provider.get_graph_definition(event.graph_definition_id.value)
                 if graph_definition is None:
                     self._logger.warning(
                         "sub_graph_spawn.definition_not_found",
@@ -107,9 +115,9 @@ class SubGraphSpawnRequestedHandler:
                     )
                     return
 
-            state_input: dict[str, Any] = dict(event.state_input) if event.state_input else {}
+            state_input: dict[str, Any] = event.state_input.to_dict() if event.state_input else {}
             if self._security is not None:
-                scope = await self._security.resolve_scope(parent.id.value, event.graph_definition_id)
+                scope = await self._security.resolve_scope(parent.id, event.graph_definition_id.value)
                 state_input = await self._security.filter_state(state_input, scope)
 
             child_id = event.child_graph_execution_id
@@ -117,7 +125,7 @@ class SubGraphSpawnRequestedHandler:
                 id_=child_id,
                 task_execution_id=parent.task_execution_id,
                 parent_id=parent.id,
-                parent_depth=parent.depth.value,
+                parent_depth=parent.depth,
             )
 
             node_defs = graph_definition.graph_node_execution_definitions
@@ -136,7 +144,7 @@ class SubGraphSpawnRequestedHandler:
                     role=NodeRole(node_def.role),
                     position=NodeOrder(node_def.position),
                     mode=Mode(node_def.mode),
-                    node_type=node_def.node_type,
+                    node_type=NodeType(node_def.node_type),
                 )
                 await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
                 child.attach_node_execution(
@@ -150,7 +158,7 @@ class SubGraphSpawnRequestedHandler:
                     id_=GraphExecutionStateId.generate(),
                     graph_execution_id=child.id,
                     direction=StateDirection.IN,
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
                 state.patch(state_input)
                 await unit_of_work.repository(GraphExecutionStateRepository).save(state)

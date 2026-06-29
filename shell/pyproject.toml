@@ -73,6 +73,7 @@ python_version = "3.11"
 strict = true
 explicit_package_bases = true
 exclude = []
+mypy_path = ["shell/tests/platform/architecture"]
 
 # Strict mode applies only to domain + application (Clean Architecture core).
 # Outer layers (infrastructure, framework, bootstrap, tests) use standard mypy
@@ -102,3 +103,13 @@ module = [
     "alembic.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "shell.application.*",
+    "shell.process.*",
+]
+# UnitOfWork.repository(type[TRepository]) where TRepository is a Protocol
+# triggers type-abstract. This is a known mypy limitation — the method only
+# uses the argument as a dict key, never instantiates it.
+disable_error_code = ["type-abstract"]

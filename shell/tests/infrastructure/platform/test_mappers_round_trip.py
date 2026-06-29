@@ -343,7 +343,7 @@ class TestGraphNodeExecutionMapper:
         entity = _graph_node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"
-        assert entity.position.value == 0  # type: ignore[attr-defined]
+        assert entity.position.value == 0
         assert entity.mode == Mode.WORKER
         assert entity.pull_events() == []
 
@@ -383,11 +383,11 @@ class TestGraphNodeExecutionMapper:
         assert restored.id.value == "gne-4"
         assert restored.graph_execution_id is not None
         assert restored.graph_execution_id.value == "ge-1"
-        assert restored.position.value == 3  # type: ignore[attr-defined]
+        assert restored.position.value == 3
         assert restored.mode == Mode.PLANNER
         assert restored.role == "PLANNER"
-        assert restored.node_type.value == "llm"  # type: ignore[attr-defined]
-        assert restored.remaining_retries.value == 3  # type: ignore[attr-defined]
-        assert restored.retry_delay_seconds.value == 5  # type: ignore[attr-defined]
-        assert restored.timeout_seconds.value == 120  # type: ignore[attr-defined]
+        assert restored.node_type.value == "llm"
+        assert restored.remaining_retries.value == 3
+        assert restored.retry_delay_seconds.value == 5
+        assert restored.timeout_seconds.value == 120
         assert restored.pull_events() == []

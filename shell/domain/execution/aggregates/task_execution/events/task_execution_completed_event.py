@@ -12,6 +12,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.value_objects.event_output import EventOutput
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,11 +28,10 @@ class TaskExecutionCompletedEvent(DomainEvent):
         task_execution_id: TaskExecutionId,
         task_execution_name: TaskExecutionName,
         output: str = "default",
-        now: datetime | None = None,
+        now: CreatedAt | None = None,
     ) -> TaskExecutionCompletedEvent:
-        from datetime import datetime as _dt
         return cls(
-            occurred_at=now or _dt.now(),
+            occurred_at=now or CreatedAt.now(),
             task_execution_id=task_execution_id,
             task_execution_name=task_execution_name,
             output=EventOutput(output),
@@ -41,8 +42,8 @@ class TaskExecutionCompletedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             task_execution_name=TaskExecutionName(payload.get("task_execution_name", "")),
             output=EventOutput(payload.get("output", "")),

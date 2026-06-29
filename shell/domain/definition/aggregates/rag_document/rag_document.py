@@ -118,5 +118,5 @@ class RagDocument(AggregateRoot[RagDocumentId]):
                 )
             )
         self.append_event(
-            RagDocumentChunksAddedEvent.now(self.id, chunk_count=ChunkIndex(len(chunk_ids)), model=model, now=now or self._created_at)
+            RagDocumentChunksAddedEvent.now(self.id, chunk_count=ChunkIndex(len(chunk_ids)), model=model, now=(now or self._created_at))
         )

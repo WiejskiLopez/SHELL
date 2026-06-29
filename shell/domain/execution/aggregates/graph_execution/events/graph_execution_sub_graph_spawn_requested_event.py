@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -27,7 +28,7 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
         graph_definition_id: GraphDefinitionIdRef,
-        now: datetime,
+        now: CreatedAt,
         state_input: StateData | None = None,
     ) -> GraphExecutionSubGraphSpawnRequestedEvent:
         return cls(
@@ -36,17 +37,4 @@ class GraphExecutionSubGraphSpawnRequestedEvent(DomainEvent):
             child_graph_execution_id=child_graph_execution_id,
             graph_definition_id=graph_definition_id,
             state_input=state_input,
-        )
-
-    @classmethod
-    def from_payload(
-        cls, occurred_at: datetime, payload: dict[str, object], schema_version: int = 1
-    ) -> Self:
-        return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
-            parent_graph_execution_id=GraphExecutionId(payload["parent_graph_execution_id"]),
-            child_graph_execution_id=GraphExecutionId(payload["child_graph_execution_id"]),
-            graph_definition_id=GraphDefinitionIdRef(payload.get("graph_definition_id", "")),
-            state_input=StateData(payload["state_input"]) if "state_input" in payload and payload["state_input"] is not None else None,
         )

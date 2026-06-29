@@ -6,12 +6,14 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.execution.value_objects.condition_language import ConditionLanguage
+from shell.domain.execution.value_objects.condition_result import ConditionResult
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.max_iterations import MaxIterations
 from shell.domain.execution.value_objects.transition_status import TransitionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -234,12 +236,14 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             GraphNodeTransitionExecutionTransitionAppliedEvent,
         )
 
+        if self._target_node_execution_id is None:
+            raise InvalidTransitionError("Cannot take transition without target node")
         self.append_event(
             GraphNodeTransitionExecutionTransitionAppliedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
                 target_node_id=self._target_node_execution_id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -269,7 +273,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             GraphNodeTransitionExecutionLoopedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 iteration=self._current_iteration,
             )
         )
@@ -291,8 +295,8 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             GraphNodeTransitionExecutionConditionEvaluatedEvent.now(
                 transition_id=self._id,
                 source_node_id=self._source_node_execution_id,
-                now=now,
-                condition_result=condition_result,
+                now=CreatedAt.from_datetime(now),
+                condition_result=ConditionResult(condition_result),
             )
         )
         if condition_result and self._target_node_execution_id is not None:
@@ -316,7 +320,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
                 transition_id=self._id,
                 failed_node_id=failed_node_id,
                 handler_node_id=handler_node_id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         self._status = TransitionStatus.TAKEN
@@ -337,7 +341,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
                 transition_id=self._id,
                 node_id=node_id,
                 handler_node_id=handler_node_id,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         self._status = TransitionStatus.TAKEN

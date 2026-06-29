@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 from shell.domain.platform.events import DomainEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,7 +20,7 @@ class SessionClosedEvent(DomainEvent):
     def now(
         cls,
         session_id: SessionId,
-        now: datetime,
+        now: CreatedAt,
     ) -> SessionClosedEvent:
         return cls(
             occurred_at=now,
@@ -30,7 +32,7 @@ class SessionClosedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             session_id=SessionId(payload["session_id"]),
         )

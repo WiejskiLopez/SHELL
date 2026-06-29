@@ -469,8 +469,8 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node  # type: ignore[type-abstract]
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution  # type: ignore[type-abstract]
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 

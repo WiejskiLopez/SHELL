@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 from shell.domain.platform.events import DomainEvent
 from shell.domain.user.value_objects.user_id import UserId
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,9 +17,9 @@ class UserDisabledEvent(DomainEvent):
     user_id: UserId
 
     @classmethod
-    def now(cls, user_id: UserId, now: datetime) -> UserDisabledEvent:
+    def now(cls, user_id: UserId, now: CreatedAt) -> UserDisabledEvent:
         return cls(occurred_at=now, user_id=user_id)
 
     @classmethod
     def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
-        return cls(occurred_at=occurred_at, schema_version=schema_version, user_id=UserId(payload["user_id"]))
+        return cls(occurred_at=CreatedAt.from_datetime(occurred_at), schema_version=SchemaVersion(schema_version), user_id=UserId(payload["user_id"]))

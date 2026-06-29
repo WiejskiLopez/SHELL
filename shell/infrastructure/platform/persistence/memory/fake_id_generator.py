@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TypeVar
 
-TId = TypeVar("TId")
+from shell.domain.platform.base.entity_id import EntityId
+
+TId = TypeVar("TId", bound=EntityId)
 
 
 class FakeIdGenerator:

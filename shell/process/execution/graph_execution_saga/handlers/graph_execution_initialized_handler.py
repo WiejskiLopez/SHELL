@@ -46,23 +46,24 @@ class GraphExecutionInitializedHandler:
         )
 
         for i, node_def_id in enumerate(event.graph_node_definition_ids):
-            node_props: dict[str, str | int] = {}
+            position: int | None = None
+            role: str | None = None
+            mode: str | None = None
+            node_type: str | None = None
             if definition and i < len(definition.graph_node_execution_definitions):
                 ndef = definition.graph_node_execution_definitions[i]
-                node_props = {
-                    "position": ndef.position,
-                    "role": ndef.role,
-                    "mode": ndef.mode,
-                    "node_type": ndef.node_type,
-                }
+                position = ndef.position
+                role = ndef.role
+                mode = ndef.mode
+                node_type = ndef.node_type
 
             command = CreateGraphNodeExecutionCommand(
                 graph_execution_id=event.graph_execution_id.value,
                 graph_node_definition_id=node_def_id.value,
-                position=node_props.get("position"),
-                role=node_props.get("role"),
-                mode=node_props.get("mode"),
-                node_type=node_props.get("node_type"),
+                position=position,
+                role=role,
+                mode=mode,
+                node_type=node_type,
             )
             await self._command_publisher.publish(
                 command_type="CreateGraphNodeExecutionCommand",
@@ -74,7 +75,7 @@ class GraphExecutionInitializedHandler:
                     "mode": command.mode,
                     "node_type": command.node_type,
                 },
-                occurred_at=event.occurred_at,
+                occurred_at=event.occurred_at.value,
             )
 
         self._logger.info(

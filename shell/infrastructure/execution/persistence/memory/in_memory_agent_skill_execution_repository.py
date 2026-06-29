@@ -14,6 +14,7 @@ from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent
 from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
     AgentSkillExecution,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
@@ -29,6 +30,4 @@ class InMemoryAgentSkillExecutionRepository(InMemoryRepository[AgentSkillExecuti
         ]
 
     async def exists(self, id_: AgentSkillExecutionId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         return ExistsResult(id_.value in self._store)

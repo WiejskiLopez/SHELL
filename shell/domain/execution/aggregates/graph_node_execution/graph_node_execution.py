@@ -18,6 +18,7 @@ from shell.domain.execution.value_objects.remaining_retries import RemainingRetr
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -146,7 +147,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
                     graph_execution_id=graph_execution_id,
                     parent_graph_execution_id=parent_graph_execution_id,
                     node_definition_id=node_definition_id or GraphNodeDefinitionId(""),
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
             )
         return instance
@@ -167,7 +168,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionStartedEvent.now(
                 node_id=self._id,
                 role=self._role,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -186,7 +187,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionCompletedEvent.now(
                 node_id=self._id,
                 role=self._role,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 result=actual_result,
             )
         )
@@ -208,7 +209,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionFailedEvent.now(
                 node_id=self._id,
                 role=self._role,
-                now=now,
+                now=CreatedAt.from_datetime(now),
                 error=error,
             )
         )
@@ -218,9 +219,9 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             raise InvalidNodeStateError(
                 f"Cannot retry node in status {self._status}"
             )
-        if self._remaining_retries <= 0:
+        if self._remaining_retries.value <= 0:
             raise InvalidNodeStateError("No remaining retries available")
-        self._remaining_retries -= 1
+        self._remaining_retries = RemainingRetries(self._remaining_retries.value - 1)
         self._status = GraphNodeExecutionStatus.PENDING
         from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_retried_event import (
             GraphNodeExecutionRetriedEvent,
@@ -232,7 +233,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
                 role=self._role,
                 remaining_retries=self._remaining_retries,
                 retry_delay_seconds=self._retry_delay_seconds,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 
@@ -250,7 +251,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionTimeoutExpiredEvent.now(
                 node_id=self._id,
                 role=self._role,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
 

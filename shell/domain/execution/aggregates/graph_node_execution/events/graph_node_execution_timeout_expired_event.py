@@ -11,6 +11,8 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
 )
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +25,7 @@ class GraphNodeExecutionTimeoutExpiredEvent(DomainEvent):
         cls,
         node_id: GraphNodeExecutionId,
         role: NodeRole,
-        now: datetime,
+        now: CreatedAt,
     ) -> GraphNodeExecutionTimeoutExpiredEvent:
         return cls(
             occurred_at=now,
@@ -36,8 +38,8 @@ class GraphNodeExecutionTimeoutExpiredEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             node_id=GraphNodeExecutionId(payload["node_id"]),
             role=NodeRole(payload["role"]),
         )

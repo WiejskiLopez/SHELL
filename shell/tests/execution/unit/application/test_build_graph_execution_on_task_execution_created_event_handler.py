@@ -65,9 +65,9 @@ class _InMemoryGraphDefinitionQueryService:
         self, query: GraphDefinitionSemanticQuery,
     ) -> GraphExecutionDefinition | None:
         if query.default_graph_definition is not None:
-            for entity in (await self._repo.list_all()):
-                if entity.system_role is not None and entity.system_role.value == query.default_graph_definition:
-                    return await self._to_dto(entity)
+            for def_entity in (await self._repo.list_all()):
+                if def_entity.system_role is not None and def_entity.system_role.value == query.default_graph_definition:
+                    return await self._to_dto(def_entity)
         entity = await self._repo.get_graph_definition_by_name(GraphName(query.text))
         if entity is None:
             return None
@@ -101,7 +101,7 @@ class _InMemoryGraphDefinitionQueryService:
                     node_type=node.node_type.value,
                     model=node.model.value if node.model else "",
                     command=node.command.value if node.command else "",
-                    timeout=node.timeout.value if node.timeout else 0,
+                    timeout=node.timeout.value if node.timeout else 0,  # type: ignore[arg-type]
                     retries=node.retries.value if node.retries else 0,
                     log_level=node.log_level.value if node.log_level else "INFO",
                     max_step=node.max_step.value if node.max_step else None,
@@ -222,14 +222,14 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
+        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
             TaskExecutionId("task-abc")
         )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         assert graph_execution.initialization_status == GraphExecutionInitializationStatus.INITIALIZING
         assert len(graph_execution.graph_node_definition_execution_slots) == 2
-        nodes = await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(graph_execution.id)
+        nodes = await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(graph_execution.id)  # type: ignore[type-abstract]
         assert len(nodes) == 0
         assert any(isinstance(e, GraphExecutionInitializedEvent) for e in unit_of_work.committed_events)
 
@@ -268,7 +268,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
+        first_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
             TaskExecutionId("task-abc")
         )
         assert first_graph is not None
@@ -278,7 +278,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
+        second_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
             TaskExecutionId("task-abc")
         )
         assert second_graph is not None
@@ -309,6 +309,6 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         assert fresh_unit_of_work.committed_events == []
         # Graph must not exist either.
         assert (
-            await fresh_unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(TaskExecutionId("task-abc"))
+            await fresh_unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(TaskExecutionId("task-abc"))  # type: ignore[type-abstract]
             is None
         )

@@ -31,7 +31,7 @@ class SqlAuditPublisher:
                         AuditEventModel(
                             id=str(uuid.uuid4()),
                             event_type=type(event).__name__,
-                            occurred_at=event.occurred_at,
+                            occurred_at=event.occurred_at.value,
                             payload=payload,
                         )
                     )

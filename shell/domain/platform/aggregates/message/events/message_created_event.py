@@ -8,6 +8,8 @@ from shell.domain.platform.aggregates.message.value_objects.message_id import Me
 from shell.domain.platform.aggregates.message.value_objects.message_type import MessageType
 from shell.domain.platform.aggregates.message.value_objects.source import Source
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -27,7 +29,7 @@ class MessageCreatedEvent(DomainEvent):
         message_type: MessageType,
         source: Source,
         destination: Destination,
-        now: datetime,
+        now: CreatedAt,
     ) -> MessageCreatedEvent:
         return cls(
             occurred_at=now,
@@ -42,8 +44,8 @@ class MessageCreatedEvent(DomainEvent):
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
         return cls(
-            occurred_at=occurred_at,
-            schema_version=schema_version,
+            occurred_at=CreatedAt.from_datetime(occurred_at),
+            schema_version=SchemaVersion(schema_version),
             message_id=MessageId(payload.get("message_id", "")),
             message_type=MessageType(payload.get("message_type", "")),
             source=Source(payload.get("source", "")),

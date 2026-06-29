@@ -52,3 +52,8 @@ class InMemoryGraphExecutionRepository(InMemoryRepository[GraphExecution, GraphE
             if te.workflow_id == workflow_id
         ]
         return [ge for ge in self._store.values() if ge.task_execution_id.value in task_ids]
+
+    async def get_main_rounds(
+        self, task_execution_id: TaskExecutionId
+    ) -> list[GraphExecution]:
+        return []

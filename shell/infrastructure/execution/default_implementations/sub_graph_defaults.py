@@ -28,6 +28,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
         GraphNodeExecution,
     )
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 
 
@@ -87,19 +90,19 @@ class PermissiveSubGraphGovernance(SubGraphGovernance):
 
     async def can_spawn(
         self,
-        parent_graph_execution_id: str,
+        parent_graph_execution_id: GraphExecutionId,
         definition_id: str,
         depth: int,
     ) -> bool:
         return True
 
-    async def max_parallel_sub_graphs(self, graph_execution_id: str) -> int:
+    async def max_parallel_sub_graphs(self, graph_execution_id: GraphExecutionId) -> int:
         return 100
 
-    async def max_depth(self, root_graph_execution_id: str) -> int:
+    async def max_depth(self, root_graph_execution_id: GraphExecutionId) -> int:
         return 10
 
-    async def token_budget(self, graph_execution_id: str) -> TokenBudget | None:
+    async def token_budget(self, graph_execution_id: GraphExecutionId) -> TokenBudget | None:
         return None
 
 
@@ -133,7 +136,7 @@ class FullAccessSubGraphSecurity(SubGraphSecurity):
 
     async def resolve_scope(
         self,
-        parent_graph_execution_id: str,
+        parent_graph_execution_id: GraphExecutionId,
         sub_graph_definition_id: str,
     ) -> Scope:
         return Scope.FULL
@@ -163,7 +166,7 @@ class LatestVersionStrategy(SubGraphVersioning):
         self,
         definition_id: str,
         version: int | None,
-        parent_graph_execution_id: str,
+        parent_graph_execution_id: GraphExecutionId,
     ) -> GraphExecutionDefinition:
         from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
             GraphDefinitionRepository,

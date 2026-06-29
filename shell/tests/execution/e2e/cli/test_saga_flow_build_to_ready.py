@@ -96,9 +96,9 @@ class _InMemoryDefinitionProvider:
     ) -> GraphExecutionDefinition | None:
         role = getattr(query, "default_graph_definition", None)
         if role is not None:
-            for entity in (await self._repo.list_all()):
-                if entity.system_role is not None and entity.system_role.value == role:
-                    return await self._to_dto(entity)
+            for def_entity in (await self._repo.list_all()):
+                if def_entity.system_role is not None and def_entity.system_role.value == role:
+                    return await self._to_dto(def_entity)
         entity = await self._repo.get_graph_definition_by_name(
             GraphName(getattr(query, "text", str(query))),
         )
@@ -134,7 +134,7 @@ class _InMemoryDefinitionProvider:
                     node_type=node.node_type.value,
                     model=node.model.value if node.model else "",
                     command=node.command.value if node.command else "",
-                    timeout=node.timeout.value if node.timeout else 0,
+                    timeout=node.timeout.value if node.timeout else 0,  # type: ignore[arg-type]
                     retries=node.retries.value if node.retries else 0,
                     log_level=node.log_level.value if node.log_level else "INFO",
                     max_step=node.max_step.value if node.max_step else None,
@@ -231,7 +231,7 @@ class TestSagaFlowBuildToReady:
         async with unit_of_work:
             await build_handler.handle(task_event)
 
-        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
+        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
             TaskExecutionId("task-e2e")
         )
         assert graph_execution is not None
@@ -301,7 +301,7 @@ class TestSagaFlowBuildToReady:
                 ])
 
         # Verify nodes were created
-        all_nodes = list(unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store.values())
+        all_nodes = list(unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store.values())  # type: ignore[type-abstract]
         assert len(all_nodes) == 2
         assert len(node_initialized_events) == 2
 
@@ -342,7 +342,7 @@ class TestSagaFlowBuildToReady:
 
         # ── 7. Final assertions ──
         # Graph should be fully initialized
-        updated_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_id(
+        updated_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_id(  # type: ignore[type-abstract]
             GraphExecutionId(graph_execution_id_str)
         )
         assert updated_graph is not None

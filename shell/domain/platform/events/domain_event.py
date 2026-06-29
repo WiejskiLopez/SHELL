@@ -1,27 +1,18 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Self
+from dataclasses import dataclass, field
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.domain.platform.value_objects.aggregate_id import AggregateId
+from shell.domain.platform.value_objects.aggregate_type import AggregateType
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.event_id import EventId
+from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DomainEvent:
-    event_id: str = ""
-    aggregate_id: str = ""
-    aggregate_type: str = ""
-    occurred_at: datetime
-    schema_version: int = 1
-
-    def __post_init__(self) -> None:
-        if not self.event_id:
-            import uuid
-            object.__setattr__(self, "event_id", str(uuid.uuid4()))
-
-    @classmethod
-    def from_payload(
-        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
-    ) -> Self:
-        raise NotImplementedError
+    event_id: EventId = field(default_factory=EventId.generate)
+    aggregate_id: AggregateId = field(default_factory=lambda: AggregateId(""))
+    aggregate_type: AggregateType = field(default_factory=lambda: AggregateType(""))
+    occurred_at: CreatedAt
+    schema_version: SchemaVersion = field(default_factory=lambda: SchemaVersion(1))
