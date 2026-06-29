@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
 
+from shell.domain.projekt.value_objects.project_id import ProjectId
+
 if TYPE_CHECKING:
     from shell.bootstrap.platform.container.core_container import CoreContainer
     from shell.domain.projekt.ports.project_acl import ProjectACL
@@ -21,10 +23,10 @@ async def get_project(
     project_id: str,
     container: CoreContainer = Depends(get_core_container),
 ) -> dict:
-    _project_acl: ProjectACL | None = getattr(container.infra, "project_acl_factory", None)  # type: ignore[attr-defined]
+    _project_acl: ProjectACL | None = getattr(container.infra, "project_acl_factory", None)
     if _project_acl is None:
         raise HTTPException(status_code=501, detail="Project ACL not implemented")
-    result = await _project_acl.get_project(project_id)
+    result = await _project_acl.get_project(ProjectId(project_id))
     if result is None:
         raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found")
     return {"id": project_id, "project": str(result)}

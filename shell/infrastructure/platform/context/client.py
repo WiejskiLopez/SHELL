@@ -10,7 +10,7 @@ class CorrelationIdAsyncClient(httpx.AsyncClient):
     """Async HTTP client that automatically injects the X-Correlation-ID header
     from the current execution context into every outgoing request."""
 
-    async def request(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+    async def request(self, method: str, url: httpx.URL | str, **kwargs: Any) -> httpx.Response:
         corr_id = get_correlation_id()
         if corr_id:
             headers = kwargs.get("headers", {})

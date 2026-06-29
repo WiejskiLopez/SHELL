@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_state_output_entity_to_model,
@@ -57,10 +58,14 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
         self._session.add(model)
 
     async def delete(self, id: object) -> None:
-        ...
+        model = await self._session.get(GraphExecutionStateOutputModel, getattr(id, 'value', id))
+        if model is not None:
+            await self._session.delete(model)
 
-    async def exists(self, id: object) -> bool:
-        ...
+    async def exists(self, id: object) -> ExistsResult:
+        query = select(GraphExecutionStateOutputModel).where(GraphExecutionStateOutputModel.id == getattr(id, 'value', id))
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return ExistsResult(row is not None)
 
 
 __all__ = [

@@ -50,13 +50,14 @@ def message_model_to_entity(model: MessageModel) -> Message:
     from shell.domain.platform.aggregates.message.value_objects.message_type import MessageType
     from shell.domain.platform.aggregates.message.value_objects.source import Source
     from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.timestamp import Timestamp
 
     def _utc(dt: datetime | None) -> datetime | None:
         if dt is None:
             return None
         return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
 
-    received = CreatedAt.from_datetime(_utc(model.received_at)) if model.received_at else None  # type: ignore[arg-type]
+    received = Timestamp.from_datetime(_utc(model.received_at)) if model.received_at else None
 
     return Message.restore(
         id=MessageId(model.id),
@@ -75,6 +76,6 @@ def message_model_to_entity(model: MessageModel) -> Message:
             source_role=model.source_role or "",
             target_role=model.target_role or "",
         ),
-        created_at=CreatedAt.from_datetime(_utc(model.created_at)),  # type: ignore[arg-type]
+        created_at=CreatedAt.from_datetime(_utc(model.created_at)),
         received_at=received,
     )

@@ -43,4 +43,4 @@ def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
 ) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory)
+    return SqlAlchemyUnitOfWork(session_factory)  # type: ignore[abstract]

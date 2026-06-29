@@ -133,7 +133,7 @@ class SyncWorkflowRunner:
                 metrics.idle_consecutive = 0
 
             async with self._unit_of_work as unit_of_work:
-                workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
+                workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)  # type: ignore[type-abstract]
                 if workflow is None:
                     elapsed = time.monotonic() - start_time
                     return SyncWorkflowResult(
@@ -164,7 +164,7 @@ class SyncWorkflowRunner:
 
         elapsed = time.monotonic() - start_time
         async with self._unit_of_work as unit_of_work:
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)  # type: ignore[type-abstract]
             status = workflow.status.value if workflow else "unknown"
 
         return SyncWorkflowResult(

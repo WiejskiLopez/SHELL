@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
         GraphNodeTransitionDefinitionId,
     )
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -140,6 +141,6 @@ class SqlGraphNodeTransitionDefinitionRepository(GraphNodeTransitionDefinitionRe
             timeout_seconds=entity.timeout_seconds.value if entity.timeout_seconds is not None else None,
             retry_count=entity.retry_count.value if entity.retry_count is not None else None,
             retry_delay_seconds=entity.retry_delay_seconds.value if entity.retry_delay_seconds is not None else None,
-            data_mapping=entity.data_mapping.to_dict() if entity.data_mapping else None,
+            data_mapping=entity.data_mapping.value if entity.data_mapping else None,
             label=entity.label.value if entity.label else None,
         )

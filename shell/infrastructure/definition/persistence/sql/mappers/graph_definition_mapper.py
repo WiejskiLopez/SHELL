@@ -7,10 +7,8 @@ from shell.application.definition.dto.graph_node_definition import GraphNodeDefi
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
-    from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    from shell.domain.definition.value_objects.ids import (
         GraphNodeDefinitionId,
-    )
-    from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
         GraphNodeTransitionDefinitionId,
     )
     from shell.infrastructure.definition.persistence.sql.models import (
@@ -49,6 +47,8 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
+    from shell.domain.definition.value_objects.graph_name import GraphName
+    from shell.domain.definition.value_objects.purpose import Purpose
     from shell.domain.definition.value_objects.system_role import SystemRole
     from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
@@ -66,8 +66,8 @@ def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefini
     system_role = SystemRole(model.system_role) if model.system_role is not None else None
     return GraphDefinition(
         id=GraphDefinitionId(model.id),
-        name=model.name,
-        purpose=model.purpose,
+        name=GraphName(model.name),
+        purpose=Purpose(model.purpose),
         system_role=system_role,
         graph_node_definition_ids=node_ids,
         transition_definition_ids=transition_ids,

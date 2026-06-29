@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.enabled import Enabled
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
@@ -108,7 +109,7 @@ def scheduler_execution_model_to_entity(
         interval_seconds=IntervalSeconds(model.interval_seconds),
         batch_size=BatchSize(model.batch_size),
         enabled=Enabled(model.enabled),
-        config=dict(model.config) if model.config else {},
+        config=StateData(dict(model.config)) if model.config else None,
         created_at=CreatedAt.from_datetime(model.created_at),
         updated_at=Timestamp.from_datetime(model.updated_at),
     )

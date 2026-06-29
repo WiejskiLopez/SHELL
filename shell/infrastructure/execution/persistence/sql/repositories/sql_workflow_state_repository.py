@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     workflow_state_entity_to_model,
@@ -66,7 +67,7 @@ class SqlWorkflowStateRepository(WorkflowStateRepository):
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id_: WorkflowStateId) -> bool:
+    async def exists(self, id_: WorkflowStateId) -> ExistsResult:
         query = select(WorkflowStateModel).where(WorkflowStateModel.id == id_.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
-        return row is not None
+        return ExistsResult(row is not None)

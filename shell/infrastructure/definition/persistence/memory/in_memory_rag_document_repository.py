@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.value_objects.chunk_index import ChunkIndex
 from shell.domain.definition.value_objects.ids import (
     RagDocumentId,
 )
-from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
-    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
     from shell.domain.definition.value_objects.domain_tag import DomainTag
     from shell.domain.definition.value_objects.embedding import Embedding
 

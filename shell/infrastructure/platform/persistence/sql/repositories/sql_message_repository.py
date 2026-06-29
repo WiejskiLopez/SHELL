@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.platform.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
+from shell.domain.platform.value_objects.workflow_reference import WorkflowReference
 from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
     message_entity_to_model,
     message_model_to_entity,
@@ -52,8 +53,8 @@ class SqlMessageRepository(MessageRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return message_model_to_entity(row) if row else None
 
-    async def list_by_workflow_id(self, workflow_id: str) -> list[Message]:
-        query = select(MessageModel).where(MessageModel.workflow_id == workflow_id)
+    async def list_by_workflow_id(self, workflow_id: WorkflowReference) -> list[Message]:
+        query = select(MessageModel).where(MessageModel.workflow_id == workflow_id.value)
         rows = (await self._session.execute(query)).scalars().all()
         return [message_model_to_entity(row) for row in rows if row]
 

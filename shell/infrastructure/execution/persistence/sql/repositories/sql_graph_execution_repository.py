@@ -39,12 +39,12 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
 
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
-    ) -> GraphExecution | None:
+    ) -> list[GraphExecution]:
         query = self._base_query().where(
             GraphExecutionModel.task_execution_id == task_execution_id.value
         )
-        row = (await self._session.execute(query)).scalar_one_or_none()
-        return graph_execution_model_to_entity(row) if row else None
+        rows = (await self._session.execute(query)).scalars().all()
+        return [graph_execution_model_to_entity(row) for row in rows if row is not None]
 
     async def get_by_parent_id(
         self, parent_graph_execution_id: GraphExecutionId

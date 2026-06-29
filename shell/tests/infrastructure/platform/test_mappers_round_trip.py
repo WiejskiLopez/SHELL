@@ -33,6 +33,11 @@ from shell.domain.execution.value_objects.remaining_retries import RemainingRetr
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
@@ -75,7 +80,7 @@ def _raw(dt: datetime | Timestamp | None) -> datetime | None:
 
 class TestWorkflowMapper:
     def test_entity_to_model(self) -> None:
-        original = Workflow(id=WorkflowId("wf-1"), session_id=SessionIdRef("sess-1"), created_at=_NOW)
+        original = Workflow(id=WorkflowId("wf-1"), session_id=SessionIdRef("sess-1"), created_at=CreatedAt.from_datetime(_NOW))
         model = workflow_entity_to_model(original)
 
         assert model.id == "wf-1"
@@ -94,9 +99,9 @@ class TestWorkflowMapper:
         assert entity.session_id.value == "sess-2"
 
     def test_round_trip(self) -> None:
-        original = Workflow(id=WorkflowId("wf-3"), created_at=_NOW)
+        original = Workflow(id=WorkflowId("wf-3"), created_at=CreatedAt.from_datetime(_NOW))
         model = workflow_entity_to_model(original)
-        model.created_at = _raw(model.created_at)
+        model.created_at = _raw(model.created_at)  # type: ignore[assignment]
 
         restored = workflow_model_to_entity(model)
 
@@ -115,8 +120,8 @@ class TestTaskExecutionMapper:
     def test_entity_to_model(self) -> None:
         original = TaskExecution(
             id=TaskExecutionId("te-1"),
-            name=TaskExecutionName("test-task"),
-            created_at=_NOW,
+            name=TaskName("test-task"),
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
 
@@ -127,9 +132,9 @@ class TestTaskExecutionMapper:
     def test_entity_to_model_with_workflow(self) -> None:
         original = TaskExecution(
             id=TaskExecutionId("te-2"),
-            name=TaskExecutionName("nested"),
+            name=TaskName("nested"),
             workflow_id=WorkflowId("wf-1"),
-            created_at=_NOW,
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
 
@@ -139,11 +144,11 @@ class TestTaskExecutionMapper:
     def test_round_trip(self) -> None:
         original = TaskExecution(
             id=TaskExecutionId("te-3"),
-            name=TaskExecutionName("test"),
-            created_at=_NOW,
+            name=TaskName("test"),
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
-        model.created_at = _raw(model.created_at)
+        model.created_at = _raw(model.created_at)  # type: ignore[assignment]
 
         restored = task_execution_model_to_entity(model)
 
@@ -262,8 +267,8 @@ class TestSessionMapper:
     def test_entity_to_model(self) -> None:
         original = Session(
             id=SessionId("sess-1"),
-            user_id=UserId("user-1"),
-            project_id=ProjectId("proj-1"),
+            user_id=UserIdRef("user-1"),
+            project_id=ProjectIdRef("proj-1"),
             environment=Environment(os="linux", runtime="3.12", cwd="/home"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
@@ -276,8 +281,8 @@ class TestSessionMapper:
     def test_entity_to_model_closed(self) -> None:
         original = Session(
             id=SessionId("sess-2"),
-            user_id=UserId("user-2"),
-            project_id=ProjectId("proj-2"),
+            user_id=UserIdRef("user-2"),
+            project_id=ProjectIdRef("proj-2"),
             environment=Environment(os="mac", runtime="3.13", cwd="/Users"),
             status=SessionStatus.CLOSED,
             opened_at=CreatedAt.from_datetime(_NOW),
@@ -291,14 +296,14 @@ class TestSessionMapper:
     def test_round_trip(self) -> None:
         original = Session(
             id=SessionId("sess-3"),
-            user_id=UserId("user-3"),
-            project_id=ProjectId("proj-3"),
+            user_id=UserIdRef("user-3"),
+            project_id=ProjectIdRef("proj-3"),
             environment=Environment(os="linux", runtime="3.12", cwd="/"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
         )
         model = session_entity_to_model(original)
-        model.opened_at = _raw(model.opened_at)
+        model.opened_at = _raw(model.opened_at)  # type: ignore[assignment]
 
         restored = session_model_to_entity(model)
 
@@ -317,7 +322,7 @@ class TestGraphNodeExecutionMapper:
             id=GraphNodeExecutionId("gne-1"),
             position=NodeOrder(0),
             mode=Mode.WORKER,
-            role="worker",
+            role=NodeRole.AGENT,
             node_type=NodeType("worker"),
         )
         model = _graph_node_execution_entity_to_model(original)
@@ -325,7 +330,7 @@ class TestGraphNodeExecutionMapper:
         assert model.id == "gne-1"
         assert model.position == 0
         assert model.mode == "worker"
-        assert model.role == "worker"
+        assert model.role == "AGENT"
         assert model.node_type == "worker"
         assert model.graph_execution_id == ""
 
@@ -338,7 +343,7 @@ class TestGraphNodeExecutionMapper:
         entity = _graph_node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"
-        assert entity.position.value == 0
+        assert entity.position.value == 0  # type: ignore[attr-defined]
         assert entity.mode == Mode.WORKER
         assert entity.pull_events() == []
 
@@ -347,7 +352,7 @@ class TestGraphNodeExecutionMapper:
             id=GraphNodeExecutionId("gne-3"),
             position=NodeOrder(1),
             mode=Mode.AGENT,
-            role="agent",
+            role=NodeRole.AGENT,
             node_type=NodeType("llm"),
         )
         model = _graph_node_execution_entity_to_model(original)
@@ -366,7 +371,7 @@ class TestGraphNodeExecutionMapper:
             graph_execution_id=GraphExecutionId("ge-1"),
             position=NodeOrder(3),
             mode=Mode.PLANNER,
-            role="planner",
+            role=NodeRole.PLANNER,
             node_type=NodeType("llm"),
             remaining_retries=RemainingRetries(3),
             retry_delay_seconds=RetryDelaySeconds(5),
@@ -378,11 +383,11 @@ class TestGraphNodeExecutionMapper:
         assert restored.id.value == "gne-4"
         assert restored.graph_execution_id is not None
         assert restored.graph_execution_id.value == "ge-1"
-        assert restored.position.value == 3
+        assert restored.position.value == 3  # type: ignore[attr-defined]
         assert restored.mode == Mode.PLANNER
-        assert restored.role == "planner"
-        assert restored.node_type.value == "llm"
-        assert restored.remaining_retries.value == 3
-        assert restored.retry_delay_seconds.value == 5
-        assert restored.timeout_seconds.value == 120
+        assert restored.role == "PLANNER"
+        assert restored.node_type.value == "llm"  # type: ignore[attr-defined]
+        assert restored.remaining_retries.value == 3  # type: ignore[attr-defined]
+        assert restored.retry_delay_seconds.value == 5  # type: ignore[attr-defined]
+        assert restored.timeout_seconds.value == 120  # type: ignore[attr-defined]
         assert restored.pull_events() == []

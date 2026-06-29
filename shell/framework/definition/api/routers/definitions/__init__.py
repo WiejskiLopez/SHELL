@@ -22,7 +22,7 @@ def get_core_container(request: _Request) -> CoreContainer:
 def get_graph_definition_query_service(
     container: CoreContainer = Depends(get_core_container),
 ) -> GraphDefinitionQueryService:
-    return container.infra.graph_definition_query_service_factory()  # type: ignore[attr-defined]
+    return container.infra.graph_definition_query_service_factory()
 
 
 @router.get("/{definition_id}", response_model=GraphDefinitionDto)

@@ -17,12 +17,12 @@ from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 
 
-def _make_node(node_id: str, position: int, mode: str, role: NodeRole = NodeRole.PLANNER) -> GraphNodeExecution:
+def _make_node(node_id: str, position: int, mode: str, role: str | None = None) -> GraphNodeExecution:
     return GraphNodeExecution(
         id=GraphNodeExecutionId(node_id),
         position=NodeOrder(position),
         mode=Mode(mode),
-        role=role,
+        role=NodeRole(role.upper()) if role else NodeRole.PLANNER,
         node_type=NodeType(mode),
     )
 
@@ -34,19 +34,19 @@ def _make_nodes(*nodes: GraphNodeExecution) -> tuple[GraphNodeExecution, ...]:
 class TestResolveTargetGraphNodeExecution:
     def test_resolve_by_role_returns_matching_node(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "agent", NodeRole("worker")),
-            _make_node("b", 2, "tool", NodeRole("calculator")),
-            _make_node("c", 3, "router", NodeRole("router")),
+            _make_node("a", 1, "agent", "agent"),
+            _make_node("b", 2, "tool", "tool"),
+            _make_node("c", 3, "router", "verifier"),
         )
         result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
-            nodes, GraphNodeExecutionId("a"), "calculator"
+            nodes, GraphNodeExecutionId("a"), "TOOL"
         )
         assert result == GraphNodeExecutionId("b")
 
     def test_resolve_skips_router_nodes(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "router", NodeRole("router")),
-            _make_node("b", 2, "agent", NodeRole("worker")),
+            _make_node("a", 1, "router", "verifier"),
+            _make_node("b", 2, "agent", "agent"),
         )
         result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             nodes, GraphNodeExecutionId("a"), None
@@ -55,8 +55,8 @@ class TestResolveTargetGraphNodeExecution:
 
     def test_resolve_without_role_picks_first_other_non_router(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "agent", NodeRole("x")),
-            _make_node("b", 2, "agent", NodeRole("y")),
+            _make_node("a", 1, "agent"),
+            _make_node("b", 2, "agent"),
         )
         result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             nodes, GraphNodeExecutionId("a"), None
@@ -65,17 +65,17 @@ class TestResolveTargetGraphNodeExecution:
 
     def test_role_not_found_raises(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "agent", NodeRole("foo")),
+            _make_node("a", 1, "agent", "agent"),
         )
-        with pytest.raises(RoleNotResolvable, match="role='bar'"):
+        with pytest.raises(RoleNotResolvable, match="role='VERIFIER'"):
             GraphExecutionRoutingService.resolve_target_graph_node_execution(
-                nodes, GraphNodeExecutionId("a"), "bar"
+                nodes, GraphNodeExecutionId("a"), "VERIFIER"
             )
 
     def test_all_router_nodes_raises(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "router", NodeRole("r1")),
-            _make_node("b", 2, "router", NodeRole("r2")),
+            _make_node("a", 1, "router"),
+            _make_node("b", 2, "router"),
         )
         with pytest.raises(RoleNotResolvable, match="no routable nodes"):
             GraphExecutionRoutingService.resolve_target_graph_node_execution(
@@ -84,7 +84,7 @@ class TestResolveTargetGraphNodeExecution:
 
     def test_single_non_router_node_falls_back_to_itself(self) -> None:
         nodes = _make_nodes(
-            _make_node("a", 1, "agent", NodeRole("x")),
+            _make_node("a", 1, "agent"),
         )
         result = GraphExecutionRoutingService.resolve_target_graph_node_execution(
             nodes, GraphNodeExecutionId("a"), None

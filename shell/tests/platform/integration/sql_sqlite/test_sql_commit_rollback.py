@@ -32,7 +32,7 @@ class TestSqlCommitRollback:
         clock: FakeClock,
         id_generator: FakeIdGenerator,
     ) -> None:
-        sql_uow = SqlAlchemyUnitOfWork(session_factory)
+        sql_uow = SqlAlchemyUnitOfWork(session_factory)  # type: ignore[abstract]
         try:
             async with sql_uow as u:
                 from shell.domain.definition.entities.runner_config import RunnerConfig
@@ -42,7 +42,7 @@ class TestSqlCommitRollback:
                 from shell.domain.platform.value_objects.created_at import CreatedAt
                 from shell.domain.platform.value_objects.hash import Hash
 
-                await u.repository(RunnerConfigRepository).save(
+                await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]
                     RunnerConfig.new(
                         id_=id_generator.new_id(RunnerConfigId),
                         package_name=PackageName("rollback-runner"),

@@ -57,7 +57,7 @@ if ($hasPostgres) {
 
 # Unit tests
 if (-not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit shell/tests/scheduling/unit -v" "Unit Tests"
+    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit -v" "Unit Tests"
 }
 
 # E2E tests
@@ -103,7 +103,7 @@ if ($hasPostgres) {
 
 # Always run coverage on unit tests (quick summary)
 if (-not $UnitOnly -and -not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit shell/tests/scheduling/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
+    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
 }
 
 

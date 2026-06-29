@@ -3,7 +3,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+from shell.domain.definition.value_objects.domain_tag import DomainTag
+from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.ids import (
     RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
 )
@@ -19,10 +23,6 @@ from sqlalchemy.orm import selectinload
 from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
-    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-    from shell.domain.definition.value_objects.domain_tag import DomainTag
-    from shell.domain.definition.value_objects.embedding import Embedding
     from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
     from sqlalchemy.ext.asyncio import AsyncSession
 

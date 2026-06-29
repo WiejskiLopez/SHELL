@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+from shell.domain.user.value_objects.user_id import UserId
 from shell.infrastructure.user.http.user_acl_http_adapter import UserAclHttpAdapter
 
 if TYPE_CHECKING:
@@ -26,7 +27,7 @@ class TestUserAclHttpAdapter:
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=501))
         with pytest.raises(NotImplementedError, match="User BC REST API not fully implemented yet"):
-            await adapter.get_user("user-1")
+            await adapter.get_user(UserId("user-1"))
 
     async def test_get_user_calls_correct_endpoint(
         self,
@@ -35,5 +36,5 @@ class TestUserAclHttpAdapter:
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value={"id": "user-1"})))
         with pytest.raises(NotImplementedError, match="User deserialization from JSON not implemented yet"):
-            await adapter.get_user("user-1")
+            await adapter.get_user(UserId("user-1"))
         mock_client.get.assert_awaited_once_with("/api/v1/users/user-1")

@@ -119,7 +119,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     # 7. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
     graph_execution_saga_repository_factory = providers.Factory(
         SqlGraphExecutionSagaRepository,
-        session=providers.Factory(lambda: session_factory()()),
+        session=providers.Factory(lambda: session_factory()()),  # type: ignore[name-defined]
     )
     sql_command_outbox_publisher_factory = providers.Singleton(
         SqlCommandOutboxPublisher,

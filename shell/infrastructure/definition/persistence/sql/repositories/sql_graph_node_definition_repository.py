@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.aggregates.graph_node_definition.repositories import (
     GraphNodeDefinitionRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphNodeDefinitionModel,
 )
@@ -69,8 +70,6 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
             await self._session.delete(model)
 
     async def exists(self, id: GraphNodeDefinitionId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         model = await self._session.get(GraphNodeDefinitionModel, id.value)
         return ExistsResult(model is not None)
 
@@ -151,13 +150,19 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         model.role = entity.role.value
         model.node_type = entity.node_type.value
         model.model = entity.model.value if entity.model else None
-        model.command = entity.command.value if entity.command else None
-        model.timeout = entity.timeout.value if entity.timeout is not None else None
-        model.retries = entity.retries.value if entity.retries is not None else None
-        model.log_level = entity.log_level.value if entity.log_level else None
-        model.max_step = entity.max_step.value if entity.max_step is not None else None
-        model.no_ask_user = entity.no_ask_user.value if entity.no_ask_user is not None else None
-        model.autopilot = entity.autopilot.value if entity.autopilot is not None else None
-        model.status_initial = entity.status_initial.value if entity.status_initial else None
-        model.script = entity.script.value if entity.script else None
-        model.script_type = entity.script_type.value if entity.script_type else None
+        model.command = entity.command.value if entity.command else ""
+        model.timeout = entity.timeout.value if entity.timeout is not None else 0
+        model.retries = entity.retries.value if entity.retries is not None else 0
+        model.log_level = entity.log_level.value if entity.log_level else "INFO"
+        model.max_step = entity.max_step.value if entity.max_step is not None else 0
+        model.no_ask_user = entity.no_ask_user.value if entity.no_ask_user is not None else False
+        model.autopilot = entity.autopilot.value if entity.autopilot is not None else False
+        model.status_initial = entity.status_initial.value if entity.status_initial else ""
+        model.script = entity.script.value if entity.script else ""
+        model.script_type = entity.script_type.value if entity.script_type else ""
+
+
+__all__ = [
+    "GraphNodeDefinitionModel",
+    "SqlGraphNodeDefinitionRepository",
+]

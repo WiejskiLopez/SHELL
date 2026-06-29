@@ -273,7 +273,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         return self._order
 
     @property
-    def position(self) -> int:
+    def position(self) -> NodeOrder:
         return self._position
 
     @property
@@ -281,7 +281,7 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         return self._mode
 
     @property
-    def node_type(self) -> str:
+    def node_type(self) -> NodeType:
         return self._node_type
 
     @property
@@ -289,15 +289,15 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         return self._status
 
     @property
-    def remaining_retries(self) -> int:
+    def remaining_retries(self) -> RemainingRetries:
         return self._remaining_retries
 
     @property
-    def retry_delay_seconds(self) -> int:
+    def retry_delay_seconds(self) -> RetryDelaySeconds:
         return self._retry_delay_seconds
 
     @property
-    def timeout_seconds(self) -> int:
+    def timeout_seconds(self) -> TimeoutSeconds:
         return self._timeout_seconds
 
 class InvalidNodeStateError(Exception):

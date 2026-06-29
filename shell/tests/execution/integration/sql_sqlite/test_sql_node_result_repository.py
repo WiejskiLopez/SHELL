@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
@@ -48,7 +49,7 @@ class TestSqlNodeResultRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         async with sql_uow as u:
-            await u.repository(WorkflowRepository).save(
+            await u.repository(WorkflowRepository).save(  # type: ignore[type-abstract]
                 Workflow.new(
                     id_=WorkflowId("wf-sql-nr-1"),
                     now=clock.now(),
@@ -58,10 +59,10 @@ class TestSqlNodeResultRepository:
                 id=GraphNodeExecutionId("node-sql-nr-1"),
                 position=NodeOrder(0),
                 mode=Mode.WORKER,
-                role="worker",
+                role=NodeRole.AGENT,
                 node_type=NodeType("worker"),
             )
-            await u.repository(GraphNodeExecutionRepository).save(node)
+            await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
 
         handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_generator)
         await handler.handle(

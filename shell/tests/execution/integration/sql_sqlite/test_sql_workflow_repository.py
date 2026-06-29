@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
@@ -60,7 +61,7 @@ class TestSqlWorkflowRepository:
         await imp.handle(ImportTaskExecutionCommand("t.md", "wf-task"))
 
         async with sql_uow as u:
-            task_execution = await u.repository(TaskExecutionRepository).get_current_by_name(
+            task_execution = await u.repository(TaskExecutionRepository).get_current_by_name(  # type: ignore[type-abstract]
                 TaskExecutionName("wf-task")
             )
             assert task_execution is not None
@@ -73,12 +74,12 @@ class TestSqlWorkflowRepository:
                 id=GraphNodeExecutionId("wf-task-node-0"),
                 position=NodeOrder(0),
                 mode=Mode("agent"),
-                role="agent",
+                role=NodeRole.AGENT,
                 node_type=NodeType("agent"),
             )
             node._graph_execution_id = graph_execution.id
-            await u.repository(GraphExecutionRepository).save(graph_execution)
-            await u.repository(GraphNodeExecutionRepository).save(node)
+            await u.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
+            await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
             await u.commit()
 
         start = WorkflowStartHandler(sql_uow, clock, id_generator)

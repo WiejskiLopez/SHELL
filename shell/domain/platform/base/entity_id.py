@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from typing import Self
 
 from shell.domain.platform.base.value_object import ValueObject
 
@@ -20,5 +21,5 @@ class EntityId(ValueObject):
         return self.value
 
     @classmethod
-    def generate(cls) -> EntityId:
+    def generate(cls) -> Self:
         return cls(str(uuid.uuid4()))

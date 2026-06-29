@@ -8,5 +8,5 @@ from shell.domain.platform.base.value_object import ValueObject
 class NodeRole(ValueObject, StrEnum):
     PLANNER = "PLANNER"
     AGENT = "AGENT"
-    TOOLS = "TOOLS"
+    TOOL = "TOOL"
     VERIFIER = "VERIFIER"

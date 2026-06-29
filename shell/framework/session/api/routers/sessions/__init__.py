@@ -22,7 +22,7 @@ def get_core_container(request: _Request) -> CoreContainer:
 def get_session_query_service(
     container: CoreContainer = Depends(get_core_container),
 ) -> SessionQueryService:
-    return container.infra.session_query_service()  # type: ignore[attr-defined]
+    return container.infra.session_query_service()
 
 
 @router.get("/{session_id}/history", response_model=SessionDto)

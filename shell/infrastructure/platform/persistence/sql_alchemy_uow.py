@@ -136,15 +136,15 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         }
         sql_type = domain_to_sql.get(repo_type)
         if sql_type is SqlRagDocumentRepository:
-            return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[return-value]
+            return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[abstract, no-any-return]
         if sql_type is not None:
-            return sql_type(self._active_session)  # type: ignore[return-value]
+            return sql_type(self._active_session)  # type: ignore[no-any-return]
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import SqlSchedulerDefinitionRepository
         from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import SqlSchedulerExecutionRepository
         if repo_type is SqlSchedulerDefinitionRepository:
-            return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
+            return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[call-arg, no-any-return]
         if repo_type is SqlSchedulerExecutionRepository:
-            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[return-value]
+            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[call-arg, no-any-return]
         msg = f"Unknown repository type: {repo_type}"
         raise ValueError(msg)
 
@@ -192,7 +192,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                     receiver_service=message.destination.value,
                     correlation_id=get_correlation_id(),
                 )
-                outbox = OutboxMessageModel(
+                message_outbox = OutboxMessageModel(
                     id=str(uuid.uuid4()),
                     envelope=envelope.to_dict(),
                     created_at=message.created_at.value,

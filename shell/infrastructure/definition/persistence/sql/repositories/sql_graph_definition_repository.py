@@ -6,9 +6,6 @@ from shell.domain.definition.repositories.graph_definition_repository.graph_defi
     GraphDefinitionRepository,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.ids import (
-    GraphDefinitionId,  # noqa: TC002 — GraphDefinitionId używany w konstruktorach w repozytorium
-)
 from shell.infrastructure.definition.persistence.sql.mappers import (
     graph_definition_entity_to_model,
     graph_definition_model_to_entity,
@@ -21,6 +18,9 @@ from ..models import GraphDefinitionModel
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+        GraphDefinitionId,
+    )
     from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -62,10 +62,6 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
 
 
 __all__ = [
-    "TYPE_CHECKING",
     "GraphDefinitionModel",
     "SqlGraphDefinitionRepository",
-    "annotations",
-    "select",
-    "selectinload",
 ]

@@ -44,7 +44,7 @@ class TestGraphNodeExecutionSaveResultHandler:
             id=GraphNodeExecutionId("node-1"),
             position=NodeOrder(0),
             mode=Mode.WORKER,
-            role=NodeRole("worker"),
+            role=NodeRole.AGENT,
             node_type=NodeType("worker"),
         )
         await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)

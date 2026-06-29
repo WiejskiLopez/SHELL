@@ -39,8 +39,11 @@ from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.mode import Mode
@@ -128,9 +131,9 @@ def _graph_node_execution(
 ) -> GraphNodeExecution:
     return GraphNodeExecution(
         id=GraphNodeExecutionId(graph_node_execution_id),
-        position=NodeOrder(position),
+        position=position,
         mode=Mode(mode),
-        role=mode,
+        role=NodeRole(mode.upper()),
         node_type=NodeType(mode),
     )
 
@@ -194,8 +197,8 @@ def _build_graph_execution(
 ) -> tuple[TaskExecution, GraphExecution, list[GraphNodeExecution]]:
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
-        name=TaskExecutionName(task_execution_name),
-                created_at=_NOW,
+        name=TaskName(task_execution_name),
+                created_at=CreatedAt.from_datetime(_NOW),
     )
     unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
 
@@ -204,7 +207,7 @@ def _build_graph_execution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=NodeOrder(i),
             mode=Mode(m),
-            role=m,
+            role=NodeRole(m.upper()),
             node_type=NodeType(m),
         )
         for i, m in enumerate(modes)
@@ -215,8 +218,8 @@ def _build_graph_execution(
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node  # type: ignore[type-abstract]
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution  # type: ignore[type-abstract]
     return task_execution, graph_execution, graph_node_executions
 
 
@@ -287,8 +290,8 @@ def _db_url(tmp_path) -> str:
 def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, now):
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
-        name=TaskExecutionName(task_execution_name),
-                created_at=now,
+        name=TaskName(task_execution_name),
+                created_at=CreatedAt.from_datetime(now),
     )
     unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
     graph_node_executions = [
@@ -296,7 +299,7 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=NodeOrder(i),
             mode=Mode(m),
-            role=m,
+            role=NodeRole(m.upper()),
             node_type=NodeType(m),
         )
         for i, m in enumerate(modes)
@@ -307,8 +310,8 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node  # type: ignore[type-abstract]
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution  # type: ignore[type-abstract]
     return task_execution, graph_execution
 
 

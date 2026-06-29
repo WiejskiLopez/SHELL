@@ -10,6 +10,8 @@ from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_se
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
 )
+from typing import Any
+
 from shell.infrastructure.execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
@@ -84,7 +86,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         mock_client: AsyncMock,
     ) -> None:
         query = GraphDefinitionSemanticQuery(text="find me", purpose="planning")
-        response_data = {
+        response_data: dict[str, Any] = {
             "id": "def-456",
             "name": "semantic_match",
             "system_role": None,

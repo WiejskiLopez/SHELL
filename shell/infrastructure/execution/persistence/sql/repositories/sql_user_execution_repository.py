@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.user_execution.repositories.user_executio
     UserExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import UserExecutionId
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_entity_to_model,
     user_execution_model_to_entity,
@@ -42,7 +43,7 @@ class SqlUserExecutionRepository(UserExecutionRepository):
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id: UserExecutionId) -> bool:
+    async def exists(self, id: UserExecutionId) -> ExistsResult:
         query = select(UserExecutionModel).where(UserExecutionModel.id == id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
-        return row is not None
+        return ExistsResult(row is not None)

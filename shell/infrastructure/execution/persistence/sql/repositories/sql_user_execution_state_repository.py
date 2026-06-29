@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_state_entity_to_model,
@@ -58,11 +59,11 @@ class SqlUserExecutionStateRepository(UserExecutionStateRepository):
         self._session.add(model)
 
     async def delete(self, id_: object) -> None:
-        model = await self._session.get(UserExecutionStateModel, id_.value)
+        model = await self._session.get(UserExecutionStateModel, getattr(id_, 'value', id_))
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id_: object) -> bool:
-        query = select(UserExecutionStateModel).where(UserExecutionStateModel.id == id_.value)
+    async def exists(self, id_: object) -> ExistsResult:
+        query = select(UserExecutionStateModel).where(UserExecutionStateModel.id == getattr(id_, 'value', id_))
         row = (await self._session.execute(query)).scalar_one_or_none()
-        return row is not None
+        return ExistsResult(row is not None)

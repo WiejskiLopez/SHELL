@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
@@ -20,9 +21,6 @@ from ..models import TaskExecutionStateModel
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
-    )
-    from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
-        TaskExecutionStateId,
     )
     from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -56,12 +54,12 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
         model = task_execution_state_entity_to_model(payload)
         self._session.add(model)
 
-    async def delete(self, id_: TaskExecutionStateId) -> None:
-        model = await self._session.get(TaskExecutionStateModel, id_.value)
+    async def delete(self, id_: object) -> None:
+        model = await self._session.get(TaskExecutionStateModel, getattr(id_, 'value', id_))
         if model is not None:
             await self._session.delete(model)
 
-    async def exists(self, id_: TaskExecutionStateId) -> bool:
-        query = select(TaskExecutionStateModel).where(TaskExecutionStateModel.id == id_.value)
+    async def exists(self, id_: object) -> ExistsResult:
+        query = select(TaskExecutionStateModel).where(TaskExecutionStateModel.id == getattr(id_, 'value', id_))
         row = (await self._session.execute(query)).scalar_one_or_none()
-        return row is not None
+        return ExistsResult(row is not None)

@@ -116,7 +116,11 @@ class InMemoryQueryServices:
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
-        chunks = await self._unit_of_work.repository(InMemoryRagDocumentRepository).search_similar(query_embedding, top_k, domain)
+        from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+        from shell.domain.definition.value_objects.domain_tag import DomainTag
+        from shell.domain.definition.value_objects.embedding import Embedding
+
+        chunks = await self._unit_of_work.repository(InMemoryRagDocumentRepository).search_similar(Embedding(query_embedding), ChunkIndex(top_k), DomainTag(domain) if domain else None)
         return [
             RagChunkDto(
                 chunk_id=chunk.id.value,

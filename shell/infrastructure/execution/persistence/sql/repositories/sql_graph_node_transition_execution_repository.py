@@ -101,7 +101,7 @@ class SqlGraphNodeTransitionExecutionRepository:
         return GraphNodeTransitionExecution.restore(
             id_=GraphNodeTransitionExecutionId(model.id),
             graph_execution_id=GraphExecutionId(model.graph_execution_id),
-            source_node_execution_id=GraphNodeExecutionId(model.source_node_execution_id),
+            source_node_execution_id=GraphNodeExecutionId(model.source_node_execution_id) if model.source_node_execution_id else GraphNodeExecutionId(""),
             edge_type=EdgeType(model.transition_type.upper()),
             target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id) if model.target_node_execution_id else None,
             condition_expression=ConditionExpression(model.condition_expression) if model.condition_expression else None,

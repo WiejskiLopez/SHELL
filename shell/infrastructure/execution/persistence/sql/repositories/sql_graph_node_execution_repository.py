@@ -43,14 +43,14 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
             self._session.add(model)
         else:
             model.graph_execution_id = node.graph_execution_id.value if node.graph_execution_id else ""
-            model.position = node.position
+            model.position = node.position.value
             model.mode = node.mode.value
-            model.role = node.role
-            model.node_type = node.node_type
+            model.role = node.role.value
+            model.node_type = node.node_type.value
             model.status = node.status.value
-            model.timeout_seconds = node.timeout_seconds
-            model.max_retries = node.remaining_retries
-            model.retry_delay_seconds = node.retry_delay_seconds
+            model.timeout_seconds = node.timeout_seconds.value
+            model.max_retries = node.remaining_retries.value
+            model.retry_delay_seconds = node.retry_delay_seconds.value
 
     async def list_by_ids(self, ids: list[GraphNodeExecutionId]) -> list[GraphNodeExecution]:
         if not ids:
@@ -76,6 +76,7 @@ def _graph_node_execution_model_to_entity(
     from shell.domain.execution.value_objects.graph_node_execution_status import (
         GraphNodeExecutionStatus,
     )
+    from shell.domain.execution.value_objects.node_role import NodeRole
     from shell.domain.platform.value_objects.mode import Mode
 
     return GraphNodeExecution(
@@ -83,7 +84,7 @@ def _graph_node_execution_model_to_entity(
         graph_execution_id=(
             GraphExecutionId(model.graph_execution_id) if model.graph_execution_id else None
         ),
-        role=model.role,
+        role=NodeRole(model.role) if model.role else NodeRole.PLANNER,
         position=NodeOrder(model.position),
         mode=Mode(model.mode),
         node_type=NodeType(model.node_type),
@@ -100,7 +101,7 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         graph_execution_id=node.graph_execution_id.value if node.graph_execution_id else "",
         position=node.position.value,
         mode=node.mode.value,
-        role=node.role,
+        role=node.role.value,
         node_type=node.node_type.value,
         model="",
         command="",
