@@ -1,4 +1,4 @@
-from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_repository import (
+from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_repository import (  # type: ignore[attr-defined]
     GraphDefinitionModel,
     SqlGraphDefinitionRepository,
     select,

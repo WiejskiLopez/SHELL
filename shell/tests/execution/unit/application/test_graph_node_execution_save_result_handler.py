@@ -47,7 +47,7 @@ class TestGraphNodeExecutionSaveResultHandler:
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
         )
-        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
 
         handler = GraphNodeExecutionSaveResultHandler(unit_of_work, clock, id_generator)
         result_id = await handler.handle(

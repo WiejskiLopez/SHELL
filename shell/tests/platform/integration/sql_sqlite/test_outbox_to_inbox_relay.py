@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
@@ -27,7 +28,7 @@ class TestOutboxToInboxRelay:
         event = WorkflowStartedEvent.now(
             workflow_id=WorkflowId.generate(),
             task_execution_id=TaskExecutionId.generate(),
-            now=datetime(2026, 1, 1, tzinfo=UTC),
+            now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
         )
         await outbox_pub.publish([event])
 
@@ -58,7 +59,7 @@ class TestOutboxToInboxRelay:
                 TaskExecutionCreatedEvent.now(
                     task_execution_id=TaskExecutionId.generate(),
                     task_execution_name=TaskExecutionName("idm-task"),
-                    now=datetime(2026, 1, 1, tzinfo=UTC),
+                    now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
                 )
             ]
         )

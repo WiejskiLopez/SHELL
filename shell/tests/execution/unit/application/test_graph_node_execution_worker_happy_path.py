@@ -11,6 +11,7 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -32,7 +33,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
-                wf.id, _nodes[0].id, now=_NOW
+                wf.id, _nodes[0].id, now=CreatedAt.from_datetime(_NOW)
             )
         )
 
@@ -56,7 +57,7 @@ class TestGraphNodeExecutionWorkerHappyPath:
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
-                wf.id, _nodes[0].id, now=_NOW
+                wf.id, _nodes[0].id, now=CreatedAt.from_datetime(_NOW)
             )
         )
 

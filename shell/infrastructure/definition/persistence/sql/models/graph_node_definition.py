@@ -30,7 +30,7 @@ class GraphNodeDefinitionModel(Base, VersionedMixin):
     script: Mapped[str | None] = mapped_column(nullable=True)
     script_type: Mapped[str | None] = mapped_column(nullable=True)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}
 

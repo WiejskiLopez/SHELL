@@ -11,7 +11,7 @@ TAggregate = TypeVar("TAggregate")
 TId = TypeVar("TId")
 
 
-class RepositoryPort(Protocol[TAggregate, TId]):
+class RepositoryPort(Protocol[TAggregate, TId]):  # type: ignore[misc]
     """Minimal generic repository protocol.
 
     Every aggregate repository should extend this protocol so that

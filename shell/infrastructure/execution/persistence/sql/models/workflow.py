@@ -16,6 +16,6 @@ class WorkflowModel(Base, VersionedMixin):
     session_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}

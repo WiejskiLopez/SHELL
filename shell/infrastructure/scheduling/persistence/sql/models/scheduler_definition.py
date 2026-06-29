@@ -24,6 +24,6 @@ class SchedulerDefinitionModel(Base, VersionedMixin):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}

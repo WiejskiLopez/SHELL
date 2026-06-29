@@ -77,7 +77,8 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         user_execution.append_event(
             UserExecutionCreatedEvent.now(
                 user_execution_id=id_,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         return user_execution
+

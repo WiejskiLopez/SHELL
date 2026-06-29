@@ -200,7 +200,7 @@ class _SampleAggregate(AggregateRoot[_SampleId]):
 
     def do_something(self, payload: str) -> None:
         now = datetime.now(tz=UTC)
-        self.append_event(_SampleEvent(occurred_at=now, payload=payload))
+        self.append_event(_SampleEvent(occurred_at=CreatedAt.from_datetime(now), payload=payload))
 
 
 # ---------------------------------------------------------------------------
@@ -252,7 +252,7 @@ def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         task_execution_name=TaskExecutionName("t1"),
-        now=datetime(2026, 1, 1, tzinfo=UTC),
+        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
 
@@ -260,7 +260,7 @@ def _workflow_started() -> WorkflowStartedEvent:
     return WorkflowStartedEvent.now(
         workflow_id=WorkflowId.generate(),
         task_execution_id=TaskExecutionId.generate(),
-        now=datetime(2026, 1, 1, tzinfo=UTC),
+        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
 
@@ -338,9 +338,9 @@ def _build_graph_execution(
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node  # type: ignore[type-abstract]
+        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
     object.__setattr__(graph_execution, '_cached_nodes', graph_node_executions)
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution  # type: ignore[type-abstract]
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
     return task_execution, graph_execution
 
 
@@ -348,7 +348,7 @@ async def _persist_running_workflow(
     unit_of_work: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-    for ge in list(unit_of_work.repository(InMemoryGraphExecutionRepository)._store.values()):  # type: ignore[type-abstract]
+    for ge in list(unit_of_work.repository(InMemoryGraphExecutionRepository)._store.values()):
         if ge.task_execution_id == task_execution_id:
             object.__setattr__(ge, '_workflow_id', wf.id)
     wf.start_at(now=_NOW)

@@ -7,6 +7,7 @@ from shell.domain.session.aggregates.session.repositories.session_repository imp
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session import Session
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.session_commands import OpenSessionCommand
@@ -24,7 +25,7 @@ class SessionOpenHandler:
         session = Session.open(
             id_=session_id,
             goal=open_session_command.goal,
-            now=self._clock.now(),
+            now=CreatedAt.from_datetime(self._clock.now()),
         )
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.repository(SessionRepository).save(session)

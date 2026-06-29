@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
@@ -73,7 +74,7 @@ class TestTransactionalOutbox:
                         WorkflowStartedEvent.now(
                             workflow_id=WorkflowId("wf-rollback"),
                             task_execution_id=TaskExecutionId("rollback-task"),
-                            now=clock.now(),
+                            now=CreatedAt.from_datetime(clock.now()),
                         )
                     ]
                 )

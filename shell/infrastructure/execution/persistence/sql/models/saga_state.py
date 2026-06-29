@@ -15,6 +15,6 @@ class GraphExecutionSagaStateModel(Base, VersionedMixin):
     graph_node_definition_executions: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     status: Mapped[str] = mapped_column(nullable=False, default="PENDING")
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}

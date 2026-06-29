@@ -9,6 +9,7 @@ from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.purpose import Purpose
 from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -100,7 +101,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
                     graph_definition_id=id,
                     name=name,
                     purpose=purpose,
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
             )
 

@@ -32,7 +32,7 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
     max_retries: Mapped[int] = mapped_column(nullable=False, default=0)
     retry_delay_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}
 

@@ -33,7 +33,7 @@ class GraphExecutionModel(Base, VersionedMixin):
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict:
         return {"version_id_col": cls.version}
 

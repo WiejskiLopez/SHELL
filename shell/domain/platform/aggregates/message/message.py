@@ -168,7 +168,7 @@ class Message(AggregateRoot[MessageId]):
                 message_type=instance._message_type,
                 source=instance._source,
                 destination=instance._destination,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         return instance
@@ -187,6 +187,6 @@ class Message(AggregateRoot[MessageId]):
                 message_id=self.id,
                 previous_status=previous_status,
                 new_status=self._status,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )

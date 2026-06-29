@@ -13,6 +13,7 @@ from shell.domain.projekt.aggregates.project.exceptions.invalid_project_transiti
     InvalidProjectTransition,
 )
 from shell.domain.projekt.value_objects.project_id import ProjectId
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.projekt.value_objects.project_status import ProjectStatus
 
 if TYPE_CHECKING:
@@ -117,7 +118,7 @@ class Project(AggregateRoot[ProjectId]):
                 f"Cannot archive project in status {self._status!r}"
             )
         self._status = ProjectStatus.ARCHIVED
-        self.append_event(ProjectArchivedEvent.now(self._id, now=now))
+        self.append_event(ProjectArchivedEvent.now(self._id, now=CreatedAt.from_datetime(now)))
 
     def activate(self, now: datetime) -> None:
         if self._status != ProjectStatus.ARCHIVED:
@@ -125,4 +126,4 @@ class Project(AggregateRoot[ProjectId]):
                 f"Cannot activate project in status {self._status!r}"
             )
         self._status = ProjectStatus.ACTIVE
-        self.append_event(ProjectActivatedEvent.now(self._id, now=now))
+        self.append_event(ProjectActivatedEvent.now(self._id, now=CreatedAt.from_datetime(now)))

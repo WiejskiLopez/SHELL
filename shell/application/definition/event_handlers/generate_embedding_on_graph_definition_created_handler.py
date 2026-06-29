@@ -15,6 +15,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.embedding_text import EmbeddingText
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -59,7 +60,7 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
                 text=EmbeddingText(text),
                 embedding=Embedding(vector_bytes),
                 model=EmbeddingModel(self._embedder.model_name),
-                now=self._clock.now(),
+                now=CreatedAt.from_datetime(self._clock.now()),
             )
             await unit_of_work.repository(GraphDefinitionEmbeddingRepository).save(embedding_aggregate)
             unit_of_work.stage_events(embedding_aggregate.pull_events())

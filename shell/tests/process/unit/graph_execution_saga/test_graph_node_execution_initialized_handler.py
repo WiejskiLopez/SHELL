@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -73,7 +74,7 @@ class TestGraphNodeExecutionInitializedHandler:
             node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-1"),
             node_definition_id=GraphNodeDefinitionId("ndef-1"),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
 
         await handler.handle(event)
@@ -101,7 +102,7 @@ class TestGraphNodeExecutionInitializedHandler:
             node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-2"),
             node_definition_id=GraphNodeDefinitionId("ndef-1"),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
 
         await handler.handle(event)
@@ -121,7 +122,7 @@ class TestGraphNodeExecutionInitializedHandler:
             node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("ge-3"),
             node_definition_id=GraphNodeDefinitionId("ndef-1"),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
         await handler.handle(event_1)
         assert len(command_publisher.published) == 0
@@ -131,7 +132,7 @@ class TestGraphNodeExecutionInitializedHandler:
             node_id=GraphNodeExecutionId("gne-2"),
             parent_graph_execution_id=GraphExecutionId("ge-3"),
             node_definition_id=GraphNodeDefinitionId("ndef-2"),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
         await handler.handle(event_2)
 
@@ -150,7 +151,7 @@ class TestGraphNodeExecutionInitializedHandler:
             node_id=GraphNodeExecutionId("gne-1"),
             parent_graph_execution_id=GraphExecutionId("nonexistent"),
             node_definition_id=GraphNodeDefinitionId("ndef-1"),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
 
         await handler.handle(event)

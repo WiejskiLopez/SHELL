@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created_event_handler import (
     BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
 )
@@ -198,7 +199,7 @@ def _task_created_event(now: datetime) -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId("task-abc"),
         task_execution_name=TaskExecutionName("my-task"),
-        now=now,
+        now=CreatedAt.from_datetime(now),
     )
 
 
@@ -222,14 +223,14 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
+        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         assert graph_execution.initialization_status == GraphExecutionInitializationStatus.INITIALIZING
         assert len(graph_execution.graph_node_definition_execution_slots) == 2
-        nodes = await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(graph_execution.id)  # type: ignore[type-abstract]
+        nodes = await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(graph_execution.id)
         assert len(nodes) == 0
         assert any(isinstance(e, GraphExecutionInitializedEvent) for e in unit_of_work.committed_events)
 
@@ -268,7 +269,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
+        first_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert first_graph is not None
@@ -278,7 +279,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
+        second_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             TaskExecutionId("task-abc")
         )
         assert second_graph is not None
@@ -309,6 +310,6 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         assert fresh_unit_of_work.committed_events == []
         # Graph must not exist either.
         assert (
-            await fresh_unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(TaskExecutionId("task-abc"))  # type: ignore[type-abstract]
+            await fresh_unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(TaskExecutionId("task-abc"))
             is None
         )

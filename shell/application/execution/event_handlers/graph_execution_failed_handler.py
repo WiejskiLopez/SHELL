@@ -10,6 +10,9 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
     TaskExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.goal import Goal
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -78,9 +81,9 @@ class GraphExecutionFailedHandler:
                 GraphExecutionCreatedEvent.now(
                     graph_execution_id=new_graph.id,
                     task_execution_id=graph_execution.task_execution_id,
-                    now=now,
-                    goal=replan_goal,
-                    depth=0,
+                    now=CreatedAt.from_datetime(now),
+                    goal=Goal(replan_goal),
+                    depth=GraphDepth(0),
                 ),
             )
             await unit_of_work.repository(GraphExecutionRepository).save(new_graph)

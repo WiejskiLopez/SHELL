@@ -30,6 +30,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
     WorkflowRepository,
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
@@ -86,7 +87,7 @@ class WorkflowRunTaskerHandler:
                         GraphNodeExecutionRequestedEvent.now(
                             workflow_id=workflow.id,
                             graph_node_execution_id=nodes[0].id,
-                            now=now,
+                            now=CreatedAt.from_datetime(now),
                         ),
                     ])
 

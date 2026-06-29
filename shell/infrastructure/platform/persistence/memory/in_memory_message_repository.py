@@ -14,7 +14,7 @@ from shell.infrastructure.platform.persistence.in_memory_repository import InMem
 
 class InMemoryMessageRepository(InMemoryRepository[Message, MessageId], MessageRepository):
 
-    async def list_by_workflow_id(self, workflow_id: str) -> list[Message]:
+    async def list_by_workflow_id(self, workflow_id: str) -> list[Message]:  # type: ignore[override]
         return [
             copy.deepcopy(item)
             for item in self._store.values()

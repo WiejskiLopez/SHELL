@@ -9,6 +9,7 @@ from shell.domain.user.aggregates.user.exceptions.invalid_user_transition import
     InvalidUserTransition,
 )
 from shell.domain.user.value_objects.user_id import UserId
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.user.value_objects.user_status import UserStatus
 
 if TYPE_CHECKING:
@@ -98,7 +99,7 @@ class User(AggregateRoot[UserId]):
                 f"Cannot enable user in status {self._status!r}"
             )
         self._status = UserStatus.ACTIVE
-        self.append_event(UserEnabledEvent.now(self._id, now=now))
+        self.append_event(UserEnabledEvent.now(self._id, now=CreatedAt.from_datetime(now)))
 
     def disable(self, now: datetime) -> None:
         if self._status != UserStatus.ACTIVE:
@@ -106,4 +107,4 @@ class User(AggregateRoot[UserId]):
                 f"Cannot disable user in status {self._status!r}"
             )
         self._status = UserStatus.DISABLED
-        self.append_event(UserDisabledEvent.now(self._id, now=now))
+        self.append_event(UserDisabledEvent.now(self._id, now=CreatedAt.from_datetime(now)))

@@ -18,7 +18,7 @@ from shell.domain.execution.value_objects.graph_node_definition_id import GraphN
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.platform.ports.time import Time
+    from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
 
 
 class GraphExecutionNotFoundError(Exception):

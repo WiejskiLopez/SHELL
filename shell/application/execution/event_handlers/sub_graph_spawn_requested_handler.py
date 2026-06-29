@@ -107,13 +107,14 @@ class SubGraphSpawnRequestedHandler:
                     )
                     return
             else:
-                graph_definition = await self._definition_provider.get_graph_definition(event.graph_definition_id.value)
-                if graph_definition is None:
+                resolved = await self._definition_provider.get_graph_definition(event.graph_definition_id.value)
+                if resolved is None:
                     self._logger.warning(
                         "sub_graph_spawn.definition_not_found",
                         definition_id=event.graph_definition_id,
                     )
                     return
+                graph_definition = resolved
 
             state_input: dict[str, Any] = event.state_input.to_dict() if event.state_input else {}
             if self._security is not None:

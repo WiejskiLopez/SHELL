@@ -17,7 +17,7 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 
-class InMemoryAgentConfigExecutionRepository(InMemoryRepository[AgentConfigExecution, AgentConfigExecutionId], AgentConfigExecutionRepository):
+class InMemoryAgentConfigExecutionRepository(InMemoryRepository[AgentConfigExecution, AgentConfigExecutionId], AgentConfigExecutionRepository):  # type: ignore[misc]
 
     async def get_by_session_execution_id(
         self, session_execution_id: SessionExecutionId

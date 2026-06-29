@@ -19,7 +19,7 @@ from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemoryGraphExecutionStateRepository(InMemoryRepository[GraphExecutionState, GraphExecutionStateId], GraphExecutionStateRepository):
+class InMemoryGraphExecutionStateRepository(InMemoryRepository[GraphExecutionState, GraphExecutionStateId], GraphExecutionStateRepository):  # type: ignore[misc]
 
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection

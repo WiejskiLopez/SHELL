@@ -50,7 +50,7 @@ class PlannerResultHandler:
             return
 
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)  # type: ignore[type-abstract]
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "planner_result_handler.node_not_found",
@@ -58,7 +58,7 @@ class PlannerResultHandler:
                 )
                 return
 
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(  # type: ignore[type-abstract]
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
                 node.graph_execution_id
             )
             if graph_execution is None:
@@ -113,9 +113,9 @@ class PlannerResultHandler:
                 )
 
             if stage == "direct" and plan:
-                graph_execution.plan_complete(plan=plan, now=now)
+                graph_execution.plan_complete(plan=plan, now=now.value)
 
-            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
+            await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)
             unit_of_work.stage_events(list(graph_execution.pull_events()))
 
             self._logger.info(

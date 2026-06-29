@@ -26,7 +26,7 @@ class InMemoryGraphExecutionRepository(InMemoryRepository[GraphExecution, GraphE
     def link_task_executions(self, repo: InMemoryTaskExecutionRepository) -> None:
         self._task_executions = repo
 
-    async def get_by_task_execution_id(
+    async def get_by_task_execution_id(  # type: ignore[override]
         self, task_execution_id: TaskExecutionId
     ) -> GraphExecution | None:
         for graph_execution in self._store.values():

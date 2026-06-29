@@ -92,7 +92,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         session_execution.append_event(
             SessionExecutionCreatedEvent.now(
                 session_execution_id=id_,
-                now=now,
+                now=CreatedAt.from_datetime(now),
             )
         )
         return session_execution

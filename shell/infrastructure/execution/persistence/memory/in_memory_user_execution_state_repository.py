@@ -17,7 +17,7 @@ from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState, UserExecutionStateId], UserExecutionStateRepository):
+class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState, UserExecutionStateId], UserExecutionStateRepository):  # type: ignore[misc]
 
     async def get_latest_by_user_execution_id(
         self,
@@ -42,4 +42,4 @@ class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState
         self._store[payload.id.value] = copy.deepcopy(payload)
 
     async def exists(self, id_: object) -> ExistsResult:
-        return ExistsResult(id_.value in self._store)
+        return ExistsResult(id_.value in self._store)  # type: ignore[attr-defined]

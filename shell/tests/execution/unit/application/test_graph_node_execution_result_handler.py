@@ -13,6 +13,7 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -33,7 +34,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             GraphNodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
                 workflow_id=wf.id,
-                now=_NOW,
+                now=CreatedAt.from_datetime(_NOW),
             )
         )
 
@@ -56,7 +57,7 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
             GraphNodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
                 workflow_id=wf.id,
-                now=_NOW,
+                now=CreatedAt.from_datetime(_NOW),
             )
         )
 
@@ -81,7 +82,7 @@ class TestGraphNodeExecutionResultHandlerFailure:
                 node_id=_nodes[0].id,
                 workflow_id=wf.id,
                 reason="boom",
-                now=_NOW,
+                now=CreatedAt.from_datetime(_NOW),
             )
         )
 
@@ -112,7 +113,7 @@ class TestGraphNodeExecutionResultHandlerIdempotency:
             GraphNodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
                 workflow_id=wf.id,
-                now=_NOW,
+                now=CreatedAt.from_datetime(_NOW),
             )
         )
 

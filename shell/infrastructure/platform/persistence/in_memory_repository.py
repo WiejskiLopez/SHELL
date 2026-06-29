@@ -27,7 +27,7 @@ class InMemoryRepository(Generic[TAggregate, TId]):
         return self._store.get(key)
 
     async def save(self, entity: TAggregate) -> None:
-        key = entity.id.value if hasattr(entity.id, "value") else str(entity.id)
+        key = entity.id.value if hasattr(entity.id, "value") else str(entity.id)  # type: ignore[attr-defined]
         self._store[key] = entity
 
     async def delete(self, id: TId) -> None:

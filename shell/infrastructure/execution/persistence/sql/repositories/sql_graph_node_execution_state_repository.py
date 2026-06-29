@@ -91,7 +91,7 @@ class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
         from shell.domain.platform.value_objects.created_at import CreatedAt
         from shell.domain.platform.value_objects.state_data import StateData
 
-        return GraphNodeExecutionState(
+        return GraphNodeExecutionState(  # type: ignore[call-arg]
             id=GraphNodeExecutionStateId(model.id),
             graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),
             direction=StateDirection(model.direction),

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
+
 import pytest
 from shell.application.execution.command_handlers.graph_node_execution_attach_handler import (
     GraphExecutionNotFoundError,
@@ -225,13 +227,13 @@ class TestSagaFlowBuildToReady:
         task_event = TaskExecutionCreatedEvent.now(
             task_execution_id=TaskExecutionId("task-e2e"),
             task_execution_name=TaskExecutionName("e2e-test"),
-            now=clock.now(),
+            now=CreatedAt.from_datetime(clock.now()),
         )
 
         async with unit_of_work:
             await build_handler.handle(task_event)
 
-        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
+        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             TaskExecutionId("task-e2e")
         )
         assert graph_execution is not None
@@ -301,7 +303,7 @@ class TestSagaFlowBuildToReady:
                 ])
 
         # Verify nodes were created
-        all_nodes = list(unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store.values())  # type: ignore[type-abstract]
+        all_nodes = list(unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store.values())
         assert len(all_nodes) == 2
         assert len(node_initialized_events) == 2
 
@@ -342,7 +344,7 @@ class TestSagaFlowBuildToReady:
 
         # ── 7. Final assertions ──
         # Graph should be fully initialized
-        updated_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_id(  # type: ignore[type-abstract]
+        updated_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_id(
             GraphExecutionId(graph_execution_id_str)
         )
         assert updated_graph is not None

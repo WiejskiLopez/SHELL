@@ -46,14 +46,14 @@ class InMemoryQueryServices:
         task_execution = await self._unit_of_work.repository(InMemoryTaskExecutionRepository).get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
-        graph_execution = await self._unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(  # type: ignore[type-abstract]
+        graph_execution = await self._unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
             task_execution.id
         )
         graph_node_executions = []
         if graph_execution is not None:
             from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
 
-            nodes = await self._unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(  # type: ignore[type-abstract]
+            nodes = await self._unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(
                 graph_execution.id
             )
             graph_node_executions = [

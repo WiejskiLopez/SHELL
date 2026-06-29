@@ -40,7 +40,7 @@ class CorrelationIdInterceptor:
 
         if dataclasses.is_dataclass(client_call_details):
             updated_details = dataclasses.replace(
-                client_call_details, metadata=metadata
+                client_call_details, metadata=metadata  # type: ignore[type-var]
             )
         else:
             updated_details = client_call_details

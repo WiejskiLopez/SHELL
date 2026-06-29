@@ -19,7 +19,7 @@ from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState, TaskExecutionStateId], TaskExecutionStateRepository):
+class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState, TaskExecutionStateId], TaskExecutionStateRepository):  # type: ignore[misc]
 
     async def get_latest_by_task_id(
         self,
@@ -41,5 +41,5 @@ class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)
 
-    async def exists(self, id_: TaskExecutionStateId) -> ExistsResult:
+    async def exists(self, id_: TaskExecutionStateId) -> ExistsResult:  # type: ignore[override]
         return ExistsResult(id_.value in self._store)

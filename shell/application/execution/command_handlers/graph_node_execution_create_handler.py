@@ -25,8 +25,8 @@ from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.platform.ports.identity import Identity
-    from shell.domain.platform.ports.time import Time
+    from shell.domain.platform.ports.identity import Identity  # type: ignore[attr-defined]
+    from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
 
 
 class GraphNodeExecutionCreateHandler:

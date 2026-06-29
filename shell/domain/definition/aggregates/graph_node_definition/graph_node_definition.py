@@ -20,6 +20,7 @@ from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
 from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -183,7 +184,7 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
                     position=position,
                     role=role,
                     node_type=node_type,
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
             )
 

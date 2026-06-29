@@ -20,7 +20,7 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.graph_nod
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemoryGraphNodeTransitionExecutionRepository(InMemoryRepository[GraphNodeTransitionExecution, GraphNodeTransitionExecutionId], GraphNodeTransitionExecutionRepository):
+class InMemoryGraphNodeTransitionExecutionRepository(InMemoryRepository[GraphNodeTransitionExecution, GraphNodeTransitionExecutionId], GraphNodeTransitionExecutionRepository):  # type: ignore[misc]
 
     async def list_by_graph_execution_id(
         self, graph_execution_id: GraphExecutionId

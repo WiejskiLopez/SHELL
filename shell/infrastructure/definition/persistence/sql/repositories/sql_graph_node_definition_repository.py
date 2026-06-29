@@ -151,7 +151,7 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         model.node_type = entity.node_type.value
         model.model = entity.model.value if entity.model else None
         model.command = entity.command.value if entity.command else ""
-        model.timeout = entity.timeout.value if entity.timeout is not None else 0
+        model.timeout = entity.timeout.value if entity.timeout is not None else 0  # type: ignore[assignment]
         model.retries = entity.retries.value if entity.retries is not None else 0
         model.log_level = entity.log_level.value if entity.log_level else "INFO"
         model.max_step = entity.max_step.value if entity.max_step is not None else 0

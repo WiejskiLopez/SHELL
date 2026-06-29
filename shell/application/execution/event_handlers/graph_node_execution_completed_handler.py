@@ -54,6 +54,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 )
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -230,8 +231,8 @@ class GraphNodeExecutionCompletedHandler:
 
         target_node_id = loop_transition.target_node_execution_id
         unit_of_work.stage_events([
-            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, target_node_id, now),
-            GraphNodeExecutionRequestedEvent.now(workflow.id, target_node_id, now),
+            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, target_node_id, CreatedAt.from_datetime(now)),  # type: ignore[arg-type]
+            GraphNodeExecutionRequestedEvent.now(workflow.id, target_node_id, CreatedAt.from_datetime(now)),  # type: ignore[arg-type]
         ])
 
     async def _advance_or_finish(
@@ -253,8 +254,8 @@ class GraphNodeExecutionCompletedHandler:
             return
         next_node = next_nodes[0]
         unit_of_work.stage_events([
-            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, next_node.id, now),
-            GraphNodeExecutionRequestedEvent.now(workflow.id, next_node.id, now),
+            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, next_node.id, CreatedAt.from_datetime(now)),
+            GraphNodeExecutionRequestedEvent.now(workflow.id, next_node.id, CreatedAt.from_datetime(now)),
         ])
 
     async def _handle_failure(
@@ -274,8 +275,8 @@ class GraphNodeExecutionCompletedHandler:
 
         if error_handler_node is not None:
             unit_of_work.stage_events([
-                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, error_handler_node, now),
-                GraphNodeExecutionRequestedEvent.now(workflow.id, error_handler_node, now),
+                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, error_handler_node, CreatedAt.from_datetime(now)),
+                GraphNodeExecutionRequestedEvent.now(workflow.id, error_handler_node, CreatedAt.from_datetime(now)),
             ])
             return
 

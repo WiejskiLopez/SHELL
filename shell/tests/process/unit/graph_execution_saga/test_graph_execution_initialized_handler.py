@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -90,7 +91,7 @@ class TestGraphExecutionInitializedHandler:
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition_id,
             graph_node_definition_ids=node_def_ids,
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
 
         await handler.handle(event)
@@ -122,7 +123,7 @@ class TestGraphExecutionInitializedHandler:
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition_id,
             graph_node_definition_ids=(),
-            occurred_at=self.NOW,
+            occurred_at=CreatedAt.from_datetime(self.NOW),
         )
 
         await handler.handle(event)

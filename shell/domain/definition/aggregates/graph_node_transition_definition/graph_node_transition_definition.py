@@ -15,6 +15,7 @@ from shell.domain.definition.value_objects.transition_retry_delay import Transit
 from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.edge_type import EdgeType
 
 if TYPE_CHECKING:
@@ -162,7 +163,7 @@ class GraphNodeTransitionDefinition(AggregateRoot[GraphNodeTransitionDefinitionI
                     source_node_definition_id=source_node_definition_id,
                     target_node_definition_id=target_node_definition_id,
                     transition_type=transition_type,
-                    now=now,
+                    now=CreatedAt.from_datetime(now),
                 )
             )
 
