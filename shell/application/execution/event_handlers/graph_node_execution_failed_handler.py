@@ -54,11 +54,6 @@ class GraphNodeExecutionFailedHandler:
                 return
 
             now = self._clock.now()
-            error = (
-                graph_node_execution_failed_event.error
-                if graph_node_execution_failed_event.error
-                else ErrorDescription("unknown error")
-            )
-            node.fail(error, now)
+            node.fail(graph_node_execution_failed_event.error, now)
             await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
             unit_of_work.stage_events(node.pull_events())

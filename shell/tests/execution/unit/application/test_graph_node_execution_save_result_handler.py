@@ -64,6 +64,8 @@ class TestGraphNodeExecutionSaveResultHandler:
                 graph_node_execution_id="node-1",
                 status="done",
                 stdout="ok",
+                stderr="",
+                artifact_uri="",
             )
         )
         assert result_id

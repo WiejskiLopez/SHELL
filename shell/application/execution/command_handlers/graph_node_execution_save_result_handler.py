@@ -65,9 +65,9 @@ class GraphNodeExecutionSaveResultHandler:
                 direction=StateDirection.OUT,
                 payload={
                     "status": status.value,
-                    "stdout": save_graph_node_execution_result_command.stdout or "",
-                    "stderr": save_graph_node_execution_result_command.stderr or "",
-                    "artifact_uri": save_graph_node_execution_result_command.artifact_uri or "",
+                    "stdout": save_graph_node_execution_result_command.stdout,
+                    "stderr": save_graph_node_execution_result_command.stderr,
+                    "artifact_uri": save_graph_node_execution_result_command.artifact_uri,
                 },
                 now=now,
             )

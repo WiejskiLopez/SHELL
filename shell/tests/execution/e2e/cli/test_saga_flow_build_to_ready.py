@@ -295,10 +295,12 @@ class TestSagaFlowBuildToReady:
             cmd = CreateGraphNodeExecutionCommand(
                 graph_execution_id=payload["graph_execution_id"],
                 graph_node_definition_id=payload["graph_node_definition_id"],
-                position=payload.get("position"),
-                role=payload.get("role"),
-                mode=payload.get("mode"),
-                node_type=payload.get("node_type"),
+                position=payload["position"],
+                role=payload["role"],
+                mode=payload["mode"],
+                node_type=payload["node_type"],
+                remaining_retries=payload["remaining_retries"],
+                timeout_seconds=payload["timeout_seconds"],
             )
             async with unit_of_work:
                 await create_handler.handle(cmd)

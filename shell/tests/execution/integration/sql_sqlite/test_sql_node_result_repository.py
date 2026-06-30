@@ -84,6 +84,8 @@ class TestSqlNodeResultRepository:
                 graph_node_execution_id="node-sql-nr-1",
                 status="done",
                 stdout="success",
+                stderr="",
+                artifact_uri="",
             )
         )
 

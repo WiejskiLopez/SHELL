@@ -2,21 +2,37 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+_ROLE_VALUES = {"PLANNER", "AGENT", "TOOL", "VERIFIER"}
+_MODE_VALUES = {"agent", "router", "tasker", "tool", "worker", "planner", "verifier"}
+
 
 @dataclass(frozen=True, slots=True)
 class CreateGraphNodeExecutionCommand:
     graph_execution_id: str
     graph_node_definition_id: str
-    position: int | None = None
-    role: str | None = None
-    mode: str | None = None
-    node_type: str | None = None
-    remaining_retries: int | None = None
-    retry_delay_seconds: int | None = None
-    timeout_seconds: int | None = None
+    position: int
+    role: str
+    mode: str
+    node_type: str
+    remaining_retries: int
+    timeout_seconds: int
 
     def __post_init__(self) -> None:
         if not self.graph_execution_id:
             raise ValueError("graph_execution_id cannot be empty")
         if not self.graph_node_definition_id:
             raise ValueError("graph_node_definition_id cannot be empty")
+        if not self.role:
+            raise ValueError("role cannot be empty")
+        if self.role not in _ROLE_VALUES:
+            raise ValueError(f"role must be one of {_ROLE_VALUES}, got {self.role!r}")
+        if not self.mode:
+            raise ValueError("mode cannot be empty")
+        if self.mode not in _MODE_VALUES:
+            raise ValueError(f"mode must be one of {_MODE_VALUES}, got {self.mode!r}")
+        if self.position < 0:
+            raise ValueError(f"position must be >= 0, got {self.position}")
+        if self.remaining_retries < 0:
+            raise ValueError(f"remaining_retries must be >= 0, got {self.remaining_retries}")
+        if self.timeout_seconds < 0:
+            raise ValueError(f"timeout_seconds must be >= 0, got {self.timeout_seconds}")

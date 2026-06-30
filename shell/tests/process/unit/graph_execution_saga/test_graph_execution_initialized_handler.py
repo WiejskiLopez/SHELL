@@ -17,6 +17,10 @@ from shell.domain.execution.events import GraphExecutionInitializedEvent
 from shell.domain.execution.value_objects.graph_definition_id import (
     GraphDefinitionIdRef,
 )
+from shell.domain.execution.value_objects.graph_execution_definition import (
+    GraphExecutionDefinition,
+    GraphNodeExecutionDefinition,
+)
 from shell.domain.execution.value_objects.graph_node_definition_id import (
     GraphNodeDefinitionId,
 )
@@ -37,8 +41,11 @@ if TYPE_CHECKING:
 
 
 class FakeDefinitionProvider:
-    async def get_graph_definition(self, definition_id: str) -> None:
-        return None
+    def __init__(self, definition: GraphExecutionDefinition | None = None) -> None:
+        self._definition = definition
+
+    async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None:
+        return self._definition
 
     async def get_graph_definition_by_semantic_name(self, query: object) -> None:
         return None
@@ -54,8 +61,14 @@ class TestGraphExecutionInitializedHandler:
         return GraphExecutionSaga(repository=saga_repository)
 
     @pytest.fixture()
-    def definition_provider(self) -> FakeDefinitionProvider:
-        return FakeDefinitionProvider()
+    def definition_provider(
+        self, graph_execution_definition: GraphExecutionDefinition | None
+    ) -> FakeDefinitionProvider:
+        return FakeDefinitionProvider(definition=graph_execution_definition)
+
+    @pytest.fixture()
+    def graph_execution_definition(self) -> GraphExecutionDefinition | None:
+        return None
 
     @pytest.fixture()
     def handler(
@@ -86,6 +99,66 @@ class TestGraphExecutionInitializedHandler:
             GraphNodeDefinitionId("ndef-1"),
             GraphNodeDefinitionId("ndef-2"),
             GraphNodeDefinitionId("ndef-3"),
+        )
+
+        handler._definition_provider = FakeDefinitionProvider(
+            definition=GraphExecutionDefinition(
+                id="gd-1",
+                name="test-def",
+                graph_node_execution_definitions=[
+                    GraphNodeExecutionDefinition(
+                        position=0,
+                        role="PLANNER",
+                        mode="planner",
+                        node_type="planner",
+                        model="",
+                        command="",
+                        timeout=60,
+                        retries=3,
+                        log_level="INFO",
+                        max_step=None,
+                        no_ask_user=False,
+                        autopilot=False,
+                        status_initial="",
+                        script="",
+                        script_type="",
+                    ),
+                    GraphNodeExecutionDefinition(
+                        position=1,
+                        role="AGENT",
+                        mode="worker",
+                        node_type="agent",
+                        model="",
+                        command="",
+                        timeout=60,
+                        retries=3,
+                        log_level="INFO",
+                        max_step=None,
+                        no_ask_user=False,
+                        autopilot=False,
+                        status_initial="",
+                        script="",
+                        script_type="",
+                    ),
+                    GraphNodeExecutionDefinition(
+                        position=2,
+                        role="TOOL",
+                        mode="tool",
+                        node_type="tool",
+                        model="",
+                        command="",
+                        timeout=60,
+                        retries=3,
+                        log_level="INFO",
+                        max_step=None,
+                        no_ask_user=False,
+                        autopilot=False,
+                        status_initial="",
+                        script="",
+                        script_type="",
+                    ),
+                ],
+            )
         )
 
         event = GraphExecutionInitializedEvent(

@@ -51,19 +51,13 @@ class GraphNodeExecutionCreateHandler:
             graph_execution_id=graph_execution_id,
             parent_graph_execution_id=graph_execution_id,
             node_definition_id=GraphNodeDefinitionId(command.graph_node_definition_id),
-            role=NodeRole(command.role) if command.role else NodeRole.PLANNER,
-            position=NodeOrder(command.position) if command.position is not None else NodeOrder(0),
-            mode=Mode(command.mode) if command.mode else Mode.WORKER,
-            node_type=NodeType(command.node_type) if command.node_type else NodeType(""),
-            remaining_retries=RemainingRetries(
-                command.remaining_retries if command.remaining_retries is not None else 3
-            ),
-            retry_delay_seconds=RetryDelaySeconds(
-                command.retry_delay_seconds if command.retry_delay_seconds is not None else 5
-            ),
-            timeout_seconds=TimeoutSeconds(
-                command.timeout_seconds if command.timeout_seconds is not None else 60
-            ),
+            role=NodeRole(command.role),
+            position=NodeOrder(command.position),
+            mode=Mode(command.mode),
+            node_type=NodeType(command.node_type),
+            remaining_retries=RemainingRetries(command.remaining_retries),
+            retry_delay_seconds=RetryDelaySeconds(0),
+            timeout_seconds=TimeoutSeconds(command.timeout_seconds),
             now=now,
         )
         async with self._unit_of_work as unit_of_work:

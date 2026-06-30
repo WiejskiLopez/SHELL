@@ -22,7 +22,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphNodeExecutionFailedEvent(DomainEvent):
     node_id: GraphNodeExecutionId
     role: NodeRole
-    error: ErrorDescription | None = None
+    error: ErrorDescription
     workflow_id: WorkflowId | None = None
 
     @property
@@ -31,7 +31,7 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
 
     @property
     def reason(self) -> str:
-        return self.error.value if self.error else ""
+        return self.error.value
 
     @classmethod
     def now(
@@ -44,7 +44,9 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
         reason: str | None = None,
     ) -> GraphNodeExecutionFailedEvent:
         actual_error = (
-            error if error is not None else (ErrorDescription(reason) if reason else None)
+            error
+            if error is not None
+            else (ErrorDescription(reason) if reason else ErrorDescription("unknown error"))
         )
         return cls(
             occurred_at=now,
@@ -63,5 +65,5 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
             schema_version=SchemaVersion(schema_version),
             node_id=GraphNodeExecutionId(payload["node_id"]),
             role=NodeRole(payload["role"]),
-            error=ErrorDescription(payload.get("error", "")) if payload["error"] else None,
+            error=ErrorDescription(payload.get("error") or "unknown error"),
         )

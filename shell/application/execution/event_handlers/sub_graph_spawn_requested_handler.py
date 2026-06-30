@@ -123,7 +123,7 @@ class SubGraphSpawnRequestedHandler:
                     return
                 graph_definition = resolved
 
-            state_input: dict[str, Any] = event.state_input.to_dict() if event.state_input else {}
+            state_input: dict[str, Any] = event.state_input.to_dict()
             if self._security is not None:
                 scope = await self._security.resolve_scope(
                     parent.id, event.graph_definition_id.value

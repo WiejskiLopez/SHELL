@@ -46,24 +46,24 @@ class GraphExecutionInitializedHandler:
         )
 
         for i, node_def_id in enumerate(event.graph_node_definition_ids):
-            position: int | None = None
-            role: str | None = None
-            mode: str | None = None
-            node_type: str | None = None
-            if definition and i < len(definition.graph_node_execution_definitions):
-                ndef = definition.graph_node_execution_definitions[i]
-                position = ndef.position
-                role = ndef.role
-                mode = ndef.mode
-                node_type = ndef.node_type
+            if definition is None or i >= len(definition.graph_node_execution_definitions):
+                self._logger.error(
+                    "graph_execution_initialized_handler.definition_missing",
+                    node_index=i,
+                    definition_id=event.graph_definition_id.value,
+                )
+                continue
 
+            ndef = definition.graph_node_execution_definitions[i]
             command = CreateGraphNodeExecutionCommand(
                 graph_execution_id=event.graph_execution_id.value,
                 graph_node_definition_id=node_def_id.value,
-                position=position,
-                role=role,
-                mode=mode,
-                node_type=node_type,
+                position=ndef.position,
+                role=ndef.role,
+                mode=ndef.mode,
+                node_type=ndef.node_type,
+                remaining_retries=ndef.retries,
+                timeout_seconds=ndef.timeout,
             )
             await self._command_publisher.publish(
                 command_type="CreateGraphNodeExecutionCommand",
@@ -74,6 +74,8 @@ class GraphExecutionInitializedHandler:
                     "role": command.role,
                     "mode": command.mode,
                     "node_type": command.node_type,
+                    "remaining_retries": command.remaining_retries,
+                    "timeout_seconds": command.timeout_seconds,
                 },
                 occurred_at=event.occurred_at.value,
             )

@@ -75,11 +75,7 @@ class PlannerResultHandler:
                 )
                 return
 
-            result: dict[str, Any] = (
-                graph_node_execution_completed_event.result.to_dict()
-                if graph_node_execution_completed_event.result
-                else {}
-            )
+            result: dict[str, Any] = graph_node_execution_completed_event.result.to_dict()
             stage = result.get("stage", "")
             spawns: list[dict[str, Any]] = result.get("spawns", [])
             plan = result.get("plan", {})

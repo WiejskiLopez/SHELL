@@ -8,9 +8,9 @@ class SaveGraphNodeExecutionResultCommand:
     workflow_id: str
     graph_node_execution_id: str
     status: str
-    stdout: str = ""
-    stderr: str = ""
-    artifact_uri: str = ""
+    stdout: str
+    stderr: str
+    artifact_uri: str
 
     def __post_init__(self) -> None:
         if not self.workflow_id:
