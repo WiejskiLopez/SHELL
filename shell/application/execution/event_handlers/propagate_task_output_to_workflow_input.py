@@ -22,7 +22,7 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
+    from shell.domain.execution.aggregates.task_execution.events.event import (
         TaskExecutionCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
@@ -42,15 +42,15 @@ class PropagateTaskOutputToWorkflowInput:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, task_execution_completed_event: TaskExecutionCompletedEvent) -> None:
+    async def handle(self, event: TaskExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
-                task_execution_completed_event.task_execution_id
+                event.task_execution_id
             )
             if task_execution is None or task_execution.workflow_id is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.task_not_found",
-                    task_execution_id=task_execution_completed_event.task_execution_id.value,
+                    task_execution_id=event.task_execution_id.value,
                 )
                 return
 
@@ -66,9 +66,9 @@ class PropagateTaskOutputToWorkflowInput:
 
             now = self._clock.now()
             output_payload: dict[str, Any] = {
-                "task_execution_id": task_execution_completed_event.task_execution_id.value,
-                "task_execution_name": task_execution_completed_event.task_execution_name.value,
-                "output": task_execution_completed_event.output,
+                "task_execution_id": event.task_execution_id.value,
+                "task_execution_name": event.task_execution_name.value,
+                "output": event.output,
             }
             state = WorkflowState.create(
                 id_=self._id_generator.new_id(WorkflowStateId),

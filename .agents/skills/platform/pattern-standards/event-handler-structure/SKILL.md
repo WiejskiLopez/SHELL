@@ -11,12 +11,12 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 
 - Event Handler to komponent warstwy aplikacyjnej, który subskrybuje konkretny Domain Event i wykonuje reakcję biznesową.
 - Analogicznie do Command Handlera: buduje agregat z repozytorium, dostarcza mu dane przez serwisy (porty w module agregatu), wywołuje metodę agregatu, zapisuje + publikuje eventy.
-- **Różnica vs Command Handler**: event handler musi być idempotentny (inbox pattern) i tolerować brak agregatu (eventual consistency).
+- **Różnica vs Command Handler**: event handler musi być idempotentny.
 
 ## Jedna reakcja = jeden agregat
 
 - Event Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej reakcji.
-- Jeśli reakcja na event wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców (szczegóły w [handler-structure](../handler-structure/SKILL.md#koordynacja-wielu-agregatów--gdy-1-handler-to-za-mało)):
+- Jeśli reakcja na event wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców:
 
 ### Event Chain (choreografia)
 
@@ -31,7 +31,7 @@ class WorkflowStartedHandler:
         async with self._unit_of_work as unit_of_work:
             task = await unit_of_work.repository(TaskExecutionRepository).get_by_id(...)
             if task is None:
-                return
+                raise TaskExecutionNotFound(...)
             task.execute_in_workflow(event.workflow_id)
             unit_of_work.repository(TaskExecutionRepository).save(task)
             unit_of_work.stage_events(task.pull_events())
@@ -85,35 +85,20 @@ if TYPE_CHECKING:
 ## Struktura metody — wzorzec
 
 ```python
-async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
+async def handle(self, event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
-        # 1. Budujemy agregat z repozytorium
         workflow = await unit_of_work.workflow_repository.get_by_id(
-            workflow_started_event.workflow_id
+            event.workflow_id
         )
         if workflow is None:
-            # 2. Normalne przy eventual consistency — warning, nie błąd
-            self._logger.warning('Workflow %s not found', workflow_started_event.workflow_id)
-            return
+            raise WorkflowNotFound(event.workflow_id)
 
-        # 3. Przez serwisy domenowe (porty w module agregatu)
-        #    dostarczamy agregatowi kompletny dataset do decyzji
-        eligibility = await self._eligibility_service.check(workflow.owner_id)
+        workflow.start(now=self._clock.now())
 
-        # 4. Wołamy metodę agregatu z kompletem parametrów
-        workflow.confirm_started(eligibility=eligibility, now=self._clock.now())
-
-        # 5. W tej samej transakcji: zapis + eventy
         unit_of_work.workflow_repository.save(workflow)
         unit_of_work.stage_events(workflow.pull_events())
 ```
 
-## Idempotentność
-
-- Handler **musi** być idempotentny — wielokrotne przetworzenie tego samego eventu daje ten sam efekt.
-- **Idempotentność jest zapewniana przez InboxProcessor (infrastruktura)** — sprawdza `inbox_event` przed dispatchem do handlera. Event handler sam nie sprawdza inboxa.
-- Handler odpowiada za **projektową idempotentność** — guard clauses na stan agregatu przed mutacją (np. `if workflow.status is not WorkflowStatus.IDLE: return`).
-- Więcej: [idempotent-handler-pattern](../idempotent-handler-pattern/SKILL.md)
 
 ## Zero decyzji biznesowych
 
@@ -146,19 +131,18 @@ class EligibilityPort(Protocol):
     async def check(self, customer_id: CustomerId) -> Eligibility: ...
 ```
 
-> **Szczegóły implementacji adapterów → [port-adapter-structure](../port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval)**
+
 
 ## Agregat nie istnieje
 
-- Przy eventual consistency agregat może nie istnieć w momencie przetworzenia eventu.
-- **Nie rzucaj błędu** — zaloguj warning i `return`.
-- To normalne, że event dotarł szybciej niż stan agregatu został zapisany.
+- Jeśli agregat nie istnieje w repozytorium — **rzuć błąd** (np. `WorkflowNotFound`).
+- Brak agregatu przy przetwarzaniu eventu to błąd, nie normalny przypadek.
+- Eventual consistency jest obsługiwana na poziomie architektury (kolejkowanie, retry), nie przez ignorowanie błędów w handlerze.
 
 ```python
 # DOBRY
 if workflow is None:
-    self._logger.warning('Workflow %s not found — eventual consistency delay', event.workflow_id)
-    return
+    raise WorkflowNotFound(event.workflow_id)
 ```
 
 ## UoW
@@ -169,10 +153,10 @@ if workflow is None:
 
 ## Logowanie
 
-- Log warning gdy agregat nie istnieje — normalne przy eventual consistency.
+- Handler nie loguje na poziomie biznesowym. Brak agregatu skutkuje wyjątkiem propagowanym wyżej.
 - Duplicate event detection logowany przez InboxProcessor (infrastruktura), nie w handlerze.
 
-> **Reguły nazewnictwa → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md#handlers)**
+
 
 ## Lokalizacja
 

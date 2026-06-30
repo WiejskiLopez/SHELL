@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
+from shell.domain.execution.aggregates.workflow.events.event import (
     WorkflowStartedEvent,
 )
 from shell.domain.execution.value_objects.work_dir import WorkDir
@@ -30,28 +30,28 @@ class WorkflowStartedAttachTaskExecutionHandler:
         self._unit_of_work = unit_of_work
         self._logger = logger
 
-    async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
-        if workflow_started_event.task_execution_id is None:
+    async def handle(self, event: WorkflowStartedEvent) -> None:
+        if event.task_execution_id is None:
             self._logger.warning(
                 "workflow_started_attach_task_execution_handler.missing_task_execution_id",
-                workflow_id=workflow_started_event.workflow_id.value,
+                workflow_id=event.workflow_id.value,
             )
             return
 
         async with self._unit_of_work as unit_of_work:
             task_execution = await unit_of_work.repository(
                 TaskExecutionRepository
-            ).get_by_id(workflow_started_event.task_execution_id)
+            ).get_by_id(event.task_execution_id)
             if task_execution is None:
                 self._logger.warning(
                     "workflow_started_attach_task_execution_handler.task_not_found",
-                    task_execution_id=workflow_started_event.task_execution_id.value,
+                    task_execution_id=event.task_execution_id.value,
                 )
                 return
 
-            if workflow_started_event.work_dir:
-                task_execution.prepare_workspace(workflow_started_event.work_dir)
+            if event.work_dir:
+                task_execution.prepare_workspace(event.work_dir)
 
-            task_execution.execute_in_workflow(workflow_started_event.workflow_id)
+            task_execution.execute_in_workflow(event.workflow_id)
             await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
             unit_of_work.stage_events(task_execution.pull_events())

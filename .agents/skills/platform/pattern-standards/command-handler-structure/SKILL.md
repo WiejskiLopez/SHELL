@@ -20,7 +20,7 @@ description: Reguły struktury Command Handler — koordynacja bez logiki biznes
 
 - Command Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej komendy.
 - Handler ładuje **jeden** agregat z repozytorium, woła **jedną** metodę domenową (lub tworzy nowy agregat przez factory), zapisuje **jeden** agregat.
-- Jeśli logika wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców (szczegóły w [handler-structure](../handler-structure/SKILL.md#koordynacja-wielu-agregatów--gdy-1-handler-to-za-mało)):
+- Jeśli logika wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców:
 
 ### Event Chain (choreografia)
 
@@ -45,7 +45,7 @@ class WorkflowStartedHandler:
         async with self._unit_of_work as unit_of_work:
             task = await unit_of_work.repository(TaskExecutionRepository).get_by_id(...)
             if task is None:
-                return
+                raise TaskExecutionNotFound(...)
             task.execute_in_workflow(event.workflow_id)
             unit_of_work.repository(TaskExecutionRepository).save(task)
             unit_of_work.stage_events(task.pull_events())
@@ -120,11 +120,11 @@ if TYPE_CHECKING:
 ## Struktura metody — wzorzec
 
 ```python
-async def handle(self, complete_order_command: CompleteOrderCommand) -> str:
+async def handle(self, command: CompleteOrderCommand) -> str:
     async with self._unit_of_work as unit_of_work:
         # 1. Budujemy agregat z repozytorium
         order = await unit_of_work.order_repository.get_by_id(
-            OrderId(complete_order_command.order_id)
+            OrderId(command.order_id)
         )
 
         # 2. Przez serwisy domenowe (porty w module agregatu)
@@ -175,8 +175,7 @@ class SqlWorkflowDataAdapter:
         return self._mapper.to_summary(model)
 ```
 
-> **Szczegóły definiowania portów → [domain-service-structure](../../pattern-standards/domain-service-structure/SKILL.md#porty-do-pobierania-danych-międzyagregatowych)**
-> **Szczegóły implementacji adapterów → [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval)**
+
 
 ## Zero decyzji w handlerze
 
@@ -244,7 +243,7 @@ async def handle(self, command: SomeCommand) -> None:
 
 - `shell/application/<bc>/command_handlers/`
 
-> **Reguły nazewnictwa → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md)**
+
 
 ## Bezpieczeństwo
 

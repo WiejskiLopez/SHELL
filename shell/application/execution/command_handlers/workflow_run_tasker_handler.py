@@ -36,9 +36,9 @@ class WorkflowRunTaskerHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, run_tasker_workflow_command: RunTaskerWorkflowCommand) -> str:
+    async def handle(self, command: RunTaskerWorkflowCommand) -> str:
         """Persist a RUNNING workflow; return the workflow id."""
-        task_execution_id = TaskExecutionId(run_tasker_workflow_command.task_execution_id)
+        task_execution_id = TaskExecutionId(command.task_execution_id)
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
@@ -49,7 +49,7 @@ class WorkflowRunTaskerHandler:
             workflow.start_at(
                 now=now,
                 task_execution_id=task_execution_id,
-                work_dir=run_tasker_workflow_command.work_dir,
+                work_dir=command.work_dir,
             )
             await unit_of_work.repository(WorkflowRepository).save(workflow)
             unit_of_work.stage_events(workflow.pull_events())

@@ -49,7 +49,7 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         self._logger = logger
         self._name = name
 
-    async def handle(self, task_execution_created_event: TaskExecutionCreatedEvent) -> None:
+    async def handle(self, event: TaskExecutionCreatedEvent) -> None:
         now = self._clock.now()
 
         query = GraphDefinitionSemanticQuery(
@@ -68,11 +68,11 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         async with self._unit_of_work as unit_of_work:
             existing = await unit_of_work.repository(
                 GraphExecutionRepository
-            ).get_by_task_execution_id(task_execution_created_event.task_execution_id)
+            ).get_by_task_execution_id(event.task_execution_id)
             if existing is not None:
                 self._logger.info(
                     "Graph already exists for task — skipping build",
-                    task_execution_id=task_execution_created_event.task_execution_id.value,
+                    task_execution_id=event.task_execution_id.value,
                 )
                 return
 
@@ -84,7 +84,7 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
             graph_execution = GraphExecution.initialize(
                 id_=graph_execution_id,
-                task_execution_id=task_execution_created_event.task_execution_id,
+                task_execution_id=event.task_execution_id,
                 graph_definition_id=GraphDefinitionIdRef(graph_definition.id),
                 graph_node_definition_ids=graph_node_definition_ids,
                 now=now,
@@ -94,6 +94,6 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         self._logger.info(
             "Graph built for task",
-            task_execution_id=task_execution_created_event.task_execution_id.value,
+            task_execution_id=event.task_execution_id.value,
             graph_execution_id=graph_execution.id.value,
         )

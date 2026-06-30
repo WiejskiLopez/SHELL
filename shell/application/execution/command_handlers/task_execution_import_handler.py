@@ -45,9 +45,9 @@ class TaskExecutionImportHandler:
         self._task_execution_loader = task_execution_loader
         self._logger = logger
 
-    async def handle(self, import_task_execution_command: ImportTaskExecutionCommand) -> str:
-        content = await self._task_execution_loader.load(import_task_execution_command.md_path)
-        task_execution_name = TaskExecutionName(import_task_execution_command.task_execution_name)
+    async def handle(self, command: ImportTaskExecutionCommand) -> str:
+        content = await self._task_execution_loader.load(command.md_path)
+        task_execution_name = TaskExecutionName(command.task_execution_name)
         current_time = self._clock.now()
         async with self._unit_of_work as unit_of_work:
             task_execution = TaskExecution.create(

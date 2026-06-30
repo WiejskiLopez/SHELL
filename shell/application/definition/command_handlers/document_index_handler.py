@@ -26,26 +26,26 @@ class DocumentIndexHandler:
         self._id_generator = id_generator
         self._embedder = embedder
 
-    async def handle(self, index_document_command: IndexDocumentCommand) -> str:
+    async def handle(self, command: IndexDocumentCommand) -> str:
         doc_id = self._id_generator.new_id(RagDocumentId)
         max_chunks = max(
             1,
-            len(index_document_command.text)
-            // max(1, index_document_command.chunk_size - index_document_command.overlap)
+            len(command.text)
+            // max(1, command.chunk_size - command.overlap)
             + 2,
         )
         chunk_ids = [self._id_generator.new_id(RagChunkId) for _ in range(max_chunks)]
         doc = build_rag_document(
             doc_id=doc_id,
             chunk_ids=chunk_ids,
-            source_uri=index_document_command.source_uri,
-            title=index_document_command.title,
-            domain=index_document_command.domain,
-            text=index_document_command.text,
+            source_uri=command.source_uri,
+            title=command.title,
+            domain=command.domain,
+            text=command.text,
             embedder=self._embedder,
             now=self._clock.now(),
-            chunk_size=index_document_command.chunk_size,
-            overlap=index_document_command.overlap,
+            chunk_size=command.chunk_size,
+            overlap=command.overlap,
         )
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.repository(RagDocumentRepository).save(doc)

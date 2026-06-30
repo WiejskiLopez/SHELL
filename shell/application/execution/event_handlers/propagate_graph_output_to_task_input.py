@@ -22,7 +22,7 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
+    from shell.domain.execution.aggregates.graph_execution.events.event import (
         GraphExecutionCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
@@ -42,15 +42,15 @@ class PropagateGraphOutputToTaskInput:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
+    async def handle(self, event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
-                graph_execution_completed_event.graph_execution_id
+                event.graph_execution_id
             )
             if graph_execution is None:
                 self._logger.warning(
                     "propagate_graph_output_to_task_input.graph_not_found",
-                    graph_execution_id=graph_execution_completed_event.graph_execution_id.value,
+                    graph_execution_id=event.graph_execution_id.value,
                 )
                 return
 
@@ -69,8 +69,8 @@ class PropagateGraphOutputToTaskInput:
 
             now = self._clock.now()
             output_payload: dict[str, Any] = {
-                "graph_execution_id": graph_execution_completed_event.graph_execution_id.value,
-                "verifier_result": graph_execution_completed_event.verifier_result,
+                "graph_execution_id": event.graph_execution_id.value,
+                "verifier_result": event.verifier_result,
             }
             state = TaskExecutionState.create(
                 id_=self._id_generator.new_id(TaskExecutionStateId),

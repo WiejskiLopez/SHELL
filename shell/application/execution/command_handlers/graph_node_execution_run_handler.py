@@ -54,23 +54,23 @@ class GraphNodeExecutionRunHandler:
         self._runner = runner
         self._strategy = strategy
 
-    async def handle(self, run_graph_node_execution_command: RunGraphNodeExecutionCommand) -> str:
+    async def handle(self, command: RunGraphNodeExecutionCommand) -> str:
         """Execute node and return node id."""
-        workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
+        workflow_id = WorkflowId(command.workflow_id)
         graph_node_execution_id = GraphNodeExecutionId(
-            run_graph_node_execution_command.graph_node_execution_id
+            command.graph_node_execution_id
         )
 
         async with self._unit_of_work as unit_of_work:
             workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
             if workflow is None:
-                raise WorkflowNotFound(run_graph_node_execution_command.workflow_id)
+                raise WorkflowNotFound(command.workflow_id)
 
             node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
                 graph_node_execution_id
             )
             if node is None:
-                raise WorkflowNotFound(run_graph_node_execution_command.graph_node_execution_id)
+                raise WorkflowNotFound(command.graph_node_execution_id)
 
             now = self._clock.now()
             node.start(now)
@@ -79,8 +79,8 @@ class GraphNodeExecutionRunHandler:
 
         try:
             exec_result = await self._strategy.execute(
-                graph_node_execution_id=run_graph_node_execution_command.graph_node_execution_id,
-                workspace_path=run_graph_node_execution_command.workspace_path,
+                graph_node_execution_id=command.graph_node_execution_id,
+                workspace_path=command.workspace_path,
                 runner=self._runner,
             )
         except Exception as exc:

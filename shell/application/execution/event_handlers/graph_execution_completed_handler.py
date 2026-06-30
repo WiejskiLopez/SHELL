@@ -13,7 +13,7 @@ from shell.domain.execution.value_objects.task_execution_status import TaskExecu
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
+    from shell.domain.execution.aggregates.graph_execution.events.event import (
         GraphExecutionCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
@@ -33,15 +33,15 @@ class GraphExecutionCompletedHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
+    async def handle(self, event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
-                graph_execution_completed_event.graph_execution_id
+                event.graph_execution_id
             )
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_completed_handler.graph_execution_not_found",
-                    graph_execution_id=graph_execution_completed_event.graph_execution_id.value,
+                    graph_execution_id=event.graph_execution_id.value,
                 )
                 return
 

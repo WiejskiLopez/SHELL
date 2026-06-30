@@ -30,7 +30,7 @@ class WorkflowStartHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, start_workflow_command: StartWorkflowCommand) -> str:
+    async def handle(self, command: StartWorkflowCommand) -> str:
         now = self._clock.now()
         async with self._unit_of_work as unit_of_work:
             workflow = Workflow.new(
@@ -39,7 +39,7 @@ class WorkflowStartHandler:
             )
             workflow.start_at(
                 now=now,
-                task_execution_id=TaskExecutionId(start_workflow_command.task_execution_id),
+                task_execution_id=TaskExecutionId(command.task_execution_id),
             )
             await unit_of_work.repository(WorkflowRepository).save(workflow)
             unit_of_work.stage_events(workflow.pull_events())

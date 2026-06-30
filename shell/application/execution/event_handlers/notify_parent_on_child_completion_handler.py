@@ -33,12 +33,12 @@ class NotifyParentOnChildCompletionHandler:
         self._unit_of_work = unit_of_work
         self._logger = logger
 
-    async def handle(self, workflow_completed_event: WorkflowCompletedEvent) -> None:
+    async def handle(self, event: WorkflowCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             graph_executions = await unit_of_work.repository(
                 GraphExecutionRepository
             ).get_by_workflow_id(
-                workflow_completed_event.workflow_id,
+                event.workflow_id,
             )
             if not graph_executions:
                 return
@@ -68,7 +68,7 @@ class NotifyParentOnChildCompletionHandler:
             parent_graph.append_event(
                 GraphExecutionSubGraphSettledEvent.now(
                     parent_graph_execution_id=parent_id,
-                    now=workflow_completed_event.occurred_at,
+                    now=event.occurred_at,
                 )
             )
 

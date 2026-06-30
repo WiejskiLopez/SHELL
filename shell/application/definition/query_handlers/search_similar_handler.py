@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.definition.dto.rag_chunk import RagChunkDto
-    from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
+    from shell.application.definition.queries.query import SearchSimilarQuery
     from shell.application.platform.ports.queries import RagQueryService
     from shell.domain.definition.services.rag_index_service import Embedder
 
@@ -15,9 +15,9 @@ class SearchSimilarHandler:
         self._queries = queries
         self._embedder = embedder
 
-    async def handle(self, search_similar_query: SearchSimilarQuery) -> list[RagChunkDto]:
-        vector = self._embedder.embed_text(search_similar_query.query_text)
+    async def handle(self, query: SearchSimilarQuery) -> list[RagChunkDto]:
+        vector = self._embedder.embed_text(query.query_text)
         vector_bytes = struct.pack(f"{len(vector)}f", *vector)
         return await self._queries.search_similar(
-            vector_bytes, search_similar_query.top_k, search_similar_query.domain
+            vector_bytes, query.top_k, query.domain
         )

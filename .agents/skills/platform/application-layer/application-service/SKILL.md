@@ -43,10 +43,10 @@ class DeleteExecutionHandler:
     def __init__(self, authorization_service: AuthorizationService, repository: ExecutionRepository, unit_of_work: UnitOfWork) -> None:
         ...
 
-    async def handle(self, delete_execution_command: DeleteExecutionCommand) -> None:
-        self._authorization_service.assert_can_delete(delete_execution_command.user_id, delete_execution_command.execution_id)
+    async def handle(self, command: DeleteExecutionCommand) -> None:
+        self._authorization_service.assert_can_delete(command.user_id, command.execution_id)
         async with self._unit_of_work:
-            execution = await self._repository.get(ExecutionId(delete_execution_command.execution_id))
+            execution = await self._repository.get(ExecutionId(command.execution_id))
             execution.delete()
             await self._repository.save(execution)
             self._unit_of_work.stage_events(execution.pull_events())

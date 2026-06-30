@@ -20,11 +20,11 @@ class SessionOpenHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, open_session_command: OpenSessionCommand) -> SessionId:
+    async def handle(self, command: OpenSessionCommand) -> SessionId:
         session_id = self._id_generator.new_id(SessionId)
         session = Session.open(
             id_=session_id,
-            goal=open_session_command.goal,
+            goal=command.goal,
             now=CreatedAt.from_datetime(self._clock.now()),
         )
         async with self._unit_of_work as unit_of_work:

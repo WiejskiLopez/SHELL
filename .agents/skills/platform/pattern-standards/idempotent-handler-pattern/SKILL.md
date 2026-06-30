@@ -22,29 +22,28 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 [Outbox] → OutboxToInboxRelay → [InboxEvent] → InboxProcessor (dedup) → EventBus → Handler
 ```
 
-## Guard clauses w handlerze
+## Idempotentność na poziomie domeny
 
-- Handler odpowiada za **projektową idempotentność** — sprawdzenie stanu agregatu przed mutacją.
-- Jeśli agregat już jest w stanie docelowym (event już obsłużony), handler loguje warning i `return`.
+- Agregat sam odpowiada za swoją idempotentność — metody domenowe sprawdzają wewnętrznie czy operacja jest dozwolona w danym stanie.
+- Jeśli agregat jest już w stanie docelowym (event już obsłużony), metoda domenowa jest **idempotentna** (nie zmienia stanu, nie rzuca błędu) lub rzuca `DomainError` jeśli to invariant.
+- Handler nie podejmuje decyzji biznesowych — deleguje do agregatu.
 
 ```python
-async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
+async def handle(self, event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflow_repository.get_by_id(workflow_started_event.workflow_id)
+        workflow = await unit_of_work.workflow_repository.get_by_id(event.workflow_id)
         if workflow is None:
-            self._logger.warning('Workflow %s not found', workflow_started_event.workflow_id)
-            return
-        # Guard clause: sprawdź czy event nie został już obsłużony
-        if workflow.status is not WorkflowStatus.IDLE:
-            self._logger.warning('Workflow %s already started', workflow_started_event.workflow_id)
-            return
-        workflow.start()
+            raise WorkflowNotFound(event.workflow_id)
+        workflow.start(now=self._clock.now())
+        unit_of_work.workflow_repository.save(workflow)
         unit_of_work.stage_events(workflow.pull_events())
 ```
 
 ## Kluczowe zasady
 
-- Idempotentność na poziomie infrastruktury (InboxProcessor) + guard clauses w handlerze.
-- Guard clause przed mutacją, nie po.
-- Log warning gdy agregat nie istnieje (normalne przy eventual consistency) lub gdy stan wskazuje na już obsłużony event.
+- Deduplikacja na poziomie infrastruktury (InboxProcessor) — handler nie sprawdza inboxa.
+- Idempotentność na poziomie domeny — agregat sam decyduje czy operacja jest dozwolona.
+- Handler nie sprawdza stanu agregatu — deleguje do domeny.
+- Brak agregatu to błąd — handler rzuca wyjątkiem, nie loguje warninga i nie ignoruje.
+- Optimistic locking (`ConcurrentModificationError`) zabezpiecza przed race conditions na poziomie repozytorium.
 - Idempotency key dla API zewnętrznych.

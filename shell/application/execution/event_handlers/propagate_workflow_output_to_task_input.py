@@ -25,7 +25,7 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+    from shell.domain.execution.aggregates.workflow.events.event import (
         WorkflowCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
@@ -45,9 +45,9 @@ class PropagateWorkflowOutputToTaskInput:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, workflow_completed_event: WorkflowCompletedEvent) -> None:
+    async def handle(self, event: WorkflowCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            task_execution_id = workflow_completed_event.task_execution_id
+            task_execution_id = event.task_execution_id
             if task_execution_id is None:
                 self._logger.warning(
                     "propagate_workflow_output_to_task_input.task_execution_id_missing",
@@ -65,12 +65,12 @@ class PropagateWorkflowOutputToTaskInput:
                 return
 
             workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(
-                workflow_completed_event.workflow_id
+                event.workflow_id
             )
             if workflow is None:
                 self._logger.warning(
                     "propagate_workflow_output_to_task_input.workflow_not_found",
-                    workflow_id=workflow_completed_event.workflow_id.value,
+                    workflow_id=event.workflow_id.value,
                 )
                 return
 
@@ -79,7 +79,7 @@ class PropagateWorkflowOutputToTaskInput:
                 WorkflowStateRepository
             ).list_by_workflow_id_and_direction(workflow.id, StateDirection.OUT)
             output_payload: dict[str, Any] = {
-                "workflow_id": workflow_completed_event.workflow_id.value,
+                "workflow_id": event.workflow_id.value,
                 "state_outputs": [s.state_data.to_dict() for s in workflow_states],
             }
             state = TaskExecutionState.create(

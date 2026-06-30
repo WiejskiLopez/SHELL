@@ -23,7 +23,7 @@ class WorkflowStartHandler:
     def __init__(self, ...) -> None:
         ...
 
-    async def handle(self, start_workflow_command: StartWorkflowCommand) -> None:
+    async def handle(self, command: StartWorkflowCommand) -> None:
         ...
 ```
 
@@ -55,7 +55,7 @@ if TYPE_CHECKING:
     from shell.domain.workflow.repository import WorkflowRepository
 ```
 
-> **Reguły nazewnictwa handlerów → [naming-convention-standard](../../naming-standards/naming-convention-standard/SKILL.md#handlers)**
+
 
 ## Command i Event Handler — wspólne reguły
 
@@ -67,10 +67,8 @@ Command Handlery i Event Handlery stosują analogiczne reguły struktury:
 | Zero decyzji biznesowych | ✅ | ✅ |
 | Porty serwisów w module agregatu | ✅ | ✅ |
 | save + stage_events | ✅ | ✅ |
-| Idempotentność (guard clauses) | ❌ | ✅ |
-| Tolerancja braku agregatu | ❌ (błąd) | ✅ (warning) |
+| Brak agregatu w repozytorium | ❌ (błąd) | ❌ (błąd) |
 
-> Szczegółowe reguły: [command-handler-structure](../command-handler-structure/SKILL.md) · [event-handler-structure](../event-handler-structure/SKILL.md)
 
 ## Koordynacja wielu agregatów — gdy 1 handler to za mało
 
@@ -78,7 +76,7 @@ Gdy logika wymaga modyfikacji więcej niż jednego agregatu, **nigdy nie robimy 
 
 ### Opcja 1: Event Chain (choreografia)
 
-Handler A modyfikuje agregat A → emituje event → Handler B reaguje, modyfikuje agregat B → opcjonalnie event zwrotny do A dla spójności (z guard clause `if already_processed: return` by uniknąć cykli).
+Handler A modyfikuje agregat A → emituje event → Handler B reaguje, modyfikuje agregat B → opcjonalnie event zwrotny do A dla spójności.
 
 ```python
 # Handler A: modyfikuje tylko Workflow
@@ -95,8 +93,7 @@ async def handle(self, event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
         task = await unit_of_work.repository(TaskExecutionRepository).get_by_id(...)
         if task is None:
-            self._logger.warning(...)
-            return
+            raise TaskExecutionNotFound(...)
         task.execute_in_workflow(event.workflow_id)
         unit_of_work.repository(TaskExecutionRepository).save(task)
         unit_of_work.stage_events(task.pull_events())
@@ -173,7 +170,7 @@ Wszystkie handlery stosują następujące reguły obsługi błędów:
 
 ## Logowanie
 
-1. **Event handler** — `logger.warning()` gdy agregat nie istnieje (normalne przy eventual consistency).
+1. **Event handler** — nie loguje na poziomie handlera. Brak agregatu skutkuje wyjątkiem propagowanym wyżej.
 2. **Command handler** — nie loguje na poziomie handlera. Logowanie jest realizowane przez middleware (np. `LoggingMiddleware`).
 3. **Query handler** — nie loguje. Logowanie zapytań jest poza handlerem.
 4. **Audit log** — realizowany przez dedykowany `EventBus` subscriber (np. `LogAuditHandler`), nie przez handler biznesowy.

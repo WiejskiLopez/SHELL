@@ -190,7 +190,7 @@ Nigdy nie używaj kontenera jako Service Locator w kodzie produkcyjnym. Kontener
 ```python
 # ŹLE — Service Locator antypattern
 class CreateExecutionHandler:
-    async def handle(self, create_execution_command: CreateExecutionCommand) -> None:
+    async def handle(self, command: CreateExecutionCommand) -> None:
         repository = container.resolve(ExecutionRepository)  # ŹLE!
         ...
 
