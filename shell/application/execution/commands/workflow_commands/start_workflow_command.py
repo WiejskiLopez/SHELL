@@ -7,6 +7,6 @@ from dataclasses import dataclass
 class StartWorkflowCommand:
     task_execution_id: str
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.task_execution_id:
+            raise ValueError("task_execution_id cannot be empty")

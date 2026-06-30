@@ -12,55 +12,39 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 - Każdy handler eventu/komendy musi być idempotentny — wielokrotne wywołanie z tym samym inputem daje ten sam efekt.
 - Wymagane przez at-least-once delivery gwarancję outboxa.
 
-## Inbox pattern
+## Inbox pattern — warstwa infrastruktury
 
-- Inbox przechowuje ID przetworzonych eventów — zapobiega wielokrotnemu przetworzeniu.
-- Zapis do inbox jest w TEJ SAMEJ TRANSAKCJI co zmiana domenowa wywołana przez event.
+- Idempotentność jest zapewniana przez **InboxProcessor** na poziomie infrastruktury.
+- `InboxProcessor` odczytuje `inbox_event`, sprawdza duplikaty i dispatchuje do handlera tylko dla nieprzetworzonych eventów.
+- Event handler **nie sprawdza inboxa** — to odpowiedzialność infrastruktury.
+
+```
+[Outbox] → OutboxToInboxRelay → [InboxEvent] → InboxProcessor (dedup) → EventBus → Handler
+```
+
+## Guard clauses w handlerze
+
+- Handler odpowiada za **projektową idempotentność** — sprawdzenie stanu agregatu przed mutacją.
+- Jeśli agregat już jest w stanie docelowym (event już obsłużony), handler loguje warning i `return`.
 
 ```python
 async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
-        # 1. Sprawdź czy już przetworzono
-        if await unit_of_work.inbox_repository.contains(workflow_started_event.event_id):
-            self._logger.debug('Event %s already processed, skipping', workflow_started_event.event_id)
-            return
-
-        # 2. Wykonaj operację
         workflow = await unit_of_work.workflow_repository.get_by_id(workflow_started_event.workflow_id)
         if workflow is None:
             self._logger.warning('Workflow %s not found', workflow_started_event.workflow_id)
             return
-        workflow.notify_started(workflow_started_event.started_by)
-        unit_of_work.stage_events(workflow.pull_events())
-
-        # 3. Oznacz jako przetworzone (ta sama transakcja)
-        unit_of_work.inbox_repository.add(workflow_started_event.event_id)
-```
-
-## Sprawdzanie stanu
-
-- Przed mutacją sprawdź czy stan agregatu nie wskazuje że event został już obsłużony.
-- W połączeniu z Inbox daje双重 zabezpieczenie.
-
-```python
-async def handle(self, workflow_started_event: WorkflowStartedEvent) -> None:
-    async with self._unit_of_work as unit_of_work:
-        if await unit_of_work.inbox_repository.contains(workflow_started_event.event_id):
-            return
-        workflow = await unit_of_work.workflow_repository.get_by_id(workflow_started_event.workflow_id)
-        if workflow is None:
-            return
+        # Guard clause: sprawdź czy event nie został już obsłużony
         if workflow.status is not WorkflowStatus.IDLE:
             self._logger.warning('Workflow %s already started', workflow_started_event.workflow_id)
             return
         workflow.start()
         unit_of_work.stage_events(workflow.pull_events())
-        unit_of_work.inbox_repository.add(workflow_started_event.event_id)
 ```
 
 ## Kluczowe zasady
 
-- Inbox + agregat w tej samej transakcji.
-- Sprawdzenie przed mutacją, nie po.
-- Log warning gdy agregat nie istnieje (normalne przy eventual consistency).
+- Idempotentność na poziomie infrastruktury (InboxProcessor) + guard clauses w handlerze.
+- Guard clause przed mutacją, nie po.
+- Log warning gdy agregat nie istnieje (normalne przy eventual consistency) lub gdy stan wskazuje na już obsłużony event.
 - Idempotency key dla API zewnętrznych.

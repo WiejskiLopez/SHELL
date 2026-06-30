@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -54,6 +55,14 @@ class GraphExecutionCompletedHandler:
                 self._logger.warning(
                     "graph_execution_completed_handler.task_execution_not_found",
                     task_execution_id=graph_execution.task_execution_id.value,
+                )
+                return
+
+            if task_execution.status != TaskExecutionStatus.IN_PROGRESS:
+                self._logger.warning(
+                    "graph_execution_completed_handler.task_not_in_progress",
+                    task_execution_id=graph_execution.task_execution_id.value,
+                    status=task_execution.status.value,
                 )
                 return
 

@@ -9,8 +9,8 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
 )
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import TaskExecutionCreatedEvent
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_repository import (
-    InMemoryTaskExecutionStateRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+    InMemoryTaskExecutionRepository,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -38,7 +38,7 @@ class TestTaskExecutionImportHandler:
         assert len(unit_of_work.committed_events) == 1
         assert isinstance(unit_of_work.committed_events[0], TaskExecutionCreatedEvent)
 
-    async def test_creates_task_execution_state_input_with_description(
+    async def test_creates_task_execution_with_body(
         self,
         unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
@@ -52,11 +52,11 @@ class TestTaskExecutionImportHandler:
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await unit_of_work.repository(
-            InMemoryTaskExecutionStateRepository
-        ).get_latest_by_task_id(TaskExecutionId(task_execution_id))
-        assert state_input is not None
-        assert state_input.state_data.to_dict() == {"description": "# SQL Task"}
+        repo = unit_of_work.repository(InMemoryTaskExecutionRepository)
+        task_execution = await repo.get_by_id(TaskExecutionId(task_execution_id))
+        assert task_execution is not None
+        assert task_execution.body is not None
+        assert task_execution.body.value == "# SQL Task"
 
     async def test_reimport_creates_new_state_input(
         self,

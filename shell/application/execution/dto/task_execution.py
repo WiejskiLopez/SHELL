@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 class TaskExecutionDto:
     id: str
     name: str = ""
+    body: str = ""
     created_at: datetime | None = None
     work_dir: str = ""
     workflow_id: str | None = None

@@ -20,7 +20,7 @@ Warstwa Domeny (Agregat/VO)  → biznesowa: invarianty, reguły, proces
 shell/framework/api/requests/<nazwa>_request.py
 
 # Walidacja komend (aplikacja)
-shell/application/<bc>/commands/<command>.py  # validate() method
+shell/application/<bc>/commands/<command>.py  # __post_init__
 
 # Walidacja biznesowa (domena)
 shell/domain/<bc>/value_objects/<nazwa>.py     # __post_init__

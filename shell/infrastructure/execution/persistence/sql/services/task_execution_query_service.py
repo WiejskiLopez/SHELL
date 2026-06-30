@@ -54,6 +54,7 @@ class TaskExecutionQueryService:
             return TaskExecutionDto(
                 id=model.id,
                 name=model.name,
+                body=model.body or "",
                 created_at=model.created_at,
                 graph_node_executions=tuple(graph_node_executions),
             )

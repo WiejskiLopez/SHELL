@@ -1,3 +1,13 @@
+"""GraphExecutionFailedHandler — reacts to GraphExecution failure.
+
+Two mutually exclusive paths:
+1. If task can't continue (exhausted): modifies **only** TaskExecution.
+2. If task can continue: creates a new GraphExecution (replan) — modifies
+   **only** GraphExecution. The cycle increment on TaskExecution is handled
+   by ``GraphExecutionCreatedTaskExecutionCycleHandler`` reacting to the
+   ``GraphExecutionCreatedEvent`` from the replan graph.
+"""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,7 +23,6 @@ from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -64,34 +73,19 @@ class GraphExecutionFailedHandler:
                 return
 
             now = self._clock.now()
-            can_continue = task_execution.increment_cycle()
-            if not can_continue:
+            if task_execution.current_cycle >= task_execution.max_planning_cycles:
                 task_execution.exhaust(now)
                 await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
                 unit_of_work.stage_events(task_execution.pull_events())
                 return
 
-            replan_goal = f"replan: {graph_execution.task_execution_id.value} - {graph_execution_failed_event.reason}"
+            replan_goal = Goal(f"replan: {graph_execution.task_execution_id.value} - {graph_execution_failed_event.reason}")
             new_graph = GraphExecution.create_main_round(
                 id_=self._id_generator.new_id(GraphExecutionId),
                 task_execution_id=graph_execution.task_execution_id,
                 depth=GraphDepth(0),
                 max_subgraph_depth=MaxSubgraphDepth(5),
             )
-            from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
-                GraphExecutionCreatedEvent,
-            )
-
-            new_graph.append_event(
-                GraphExecutionCreatedEvent.now(
-                    graph_execution_id=new_graph.id,
-                    task_execution_id=graph_execution.task_execution_id,
-                    now=CreatedAt.from_datetime(now),
-                    goal=Goal(replan_goal),
-                    depth=GraphDepth(0),
-                ),
-            )
+            new_graph.emit_created_event(goal=replan_goal, now=now)
             await unit_of_work.repository(GraphExecutionRepository).save(new_graph)
-            await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
             unit_of_work.stage_events(new_graph.pull_events())
-            unit_of_work.stage_events(task_execution.pull_events())

@@ -7,6 +7,6 @@ from dataclasses import dataclass
 class CloseSessionCommand:
     session_id: str
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.session_id:
+            raise ValueError("session_id cannot be empty")

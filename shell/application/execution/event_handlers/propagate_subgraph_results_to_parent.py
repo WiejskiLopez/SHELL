@@ -43,6 +43,5 @@ class PropagateSubgraphResultsToParent:
                 )
                 return
 
-            self._clock.now()
             await unit_of_work.repository(GraphExecutionRepository).save(parent_graph)
             unit_of_work.stage_events(parent_graph.pull_events())

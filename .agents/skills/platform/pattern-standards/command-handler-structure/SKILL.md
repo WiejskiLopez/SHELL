@@ -19,13 +19,87 @@ description: Reguły struktury Command Handler — koordynacja bez logiki biznes
 ## Jedna komenda = jeden agregat
 
 - Command Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej komendy.
-- Jeśli logika wymaga koordynacji wielu agregatów — należy użyć Process Managera (sagi), który wysyła osobne komendy do osobnych handlerów.
-- Handler ładuje **jeden** agregat z repozytorium, woła **jedną** metodę domenową, zapisuje **jeden** agregat.
+- Handler ładuje **jeden** agregat z repozytorium, woła **jedną** metodę domenową (lub tworzy nowy agregat przez factory), zapisuje **jeden** agregat.
+- Jeśli logika wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców (szczegóły w [handler-structure](../handler-structure/SKILL.md#koordynacja-wielu-agregatów--gdy-1-handler-to-za-mało)):
+
+### Event Chain (choreografia)
+
+Handler A modyfikuje agregat A → emituje event → Handler B (osobny, w tym samym lub innym BC) reaguje i modyfikuje agregat B → opcjonalnie event zwrotny do A.
+
+Stosuj dla prostych sekwencji 2-3 agregatów, gdzie eventual consistency jest akceptowalna.
+
+```python
+# DOBRY — Event Chain: dwa osobne handlery, każdy modyfikuje 1 agregat
+
+class WorkflowStartHandler:
+    async def handle(self, command: StartWorkflowCommand) -> None:
+        async with self._unit_of_work as unit_of_work:
+            workflow = Workflow.new(...)
+            workflow.start(now=now)
+            unit_of_work.repository(WorkflowRepository).save(workflow)
+            unit_of_work.stage_events(workflow.pull_events())
+        # → WorkflowStartedEvent → TaskExecution reaguje w osobnym handlerze
+
+class WorkflowStartedHandler:
+    async def handle(self, event: WorkflowStartedEvent) -> None:
+        async with self._unit_of_work as unit_of_work:
+            task = await unit_of_work.repository(TaskExecutionRepository).get_by_id(...)
+            if task is None:
+                return
+            task.execute_in_workflow(event.workflow_id)
+            unit_of_work.repository(TaskExecutionRepository).save(task)
+            unit_of_work.stage_events(task.pull_events())
+```
+
+### Saga / Process Manager (orkiestracja)
+
+Gdy agregat A musi skoordynować kilka agregatów podrzędnych:
+1. Agregat A emituje event → Saga przechwytuje
+2. Saga emituje osobne komendy — **każda modyfikuje dokładnie 1 agregat**
+3. Każdy agregat odpowiada eventem do sagi
+4. Saga po zebraniu odpowiedzi emituje event końcowy do agregatu A
+
+Stosuj gdy potrzeba kompensacji, timeoutów, śledzenia stanu, lub proces ma 3+ agregatów.
+
+```python
+# DOBRY — Saga: osobne komendy, każda modyfikuje 1 agregat
+
+class GraphExecutionSaga:
+    async def handle(self, event: GraphExecutionStartedEvent) -> None:
+        await self._command_bus.publish(ExecuteNodeCommand(...))
+        # → ExecuteNodeHandler modyfikuje tylko GraphNodeExecution
+
+    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
+        if self._has_more_nodes(event):
+            await self._command_bus.publish(ExecuteNodeCommand(next_node))
+        else:
+            await self._command_bus.publish(AdvanceWorkflowCommand(...))
+            # → AdvanceWorkflowHandler modyfikuje tylko Workflow
+```
+
+### Przykład ZŁY (zabroniony)
+
+```python
+async def handle(self, command: SomeCommand) -> None:
+    async with self._unit_of_work as unit_of_work:
+        order = await unit_of_work.order_repository.get_by_id(...)
+        task = await unit_of_work.task_repository.get_by_id(...)
+
+        # Zapisuje 2 agregaty w jednym handlerze — ZABRONIONE
+        order.complete(...)
+        task.start(...)
+
+        unit_of_work.order_repository.save(order)        # 1. agregat
+        unit_of_work.task_repository.save(task)          # 2. agregat — ŹLE!
+        unit_of_work.stage_events(order.pull_events())
+        unit_of_work.stage_events(task.pull_events())
+```
 
 ## Klasa
 
 - Zależności wstrzykiwane przez konstruktor.
 - Porty repozytoriów i serwisów w TYPE_CHECKING.
+- Import komendy może być w TYPE_CHECKING — używana tylko w sygnaturze `handle()`.
 
 ```python
 from __future__ import annotations
@@ -33,19 +107,20 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from shell.application.workflow.commands import StartWorkflowCommand
     from shell.domain.workflow.repository import WorkflowRepository
     from shell.domain.platform.ports import UnitOfWork
 ```
 
 ## Metoda handle
 
-- Pojedyncza `async handle(self, command: TCommand) -> None`.
-- Komenda zmienia stan, zwraca None (lub ID utworzonego obiektu).
+- Pojedyncza `async handle(self, command: TCommand) -> str`.
+- Komenda zmienia stan, zwraca ID utworzonego agregatu jako `str`.
 
 ## Struktura metody — wzorzec
 
 ```python
-async def handle(self, complete_order_command: CompleteOrderCommand) -> None:
+async def handle(self, complete_order_command: CompleteOrderCommand) -> str:
     async with self._unit_of_work as unit_of_work:
         # 1. Budujemy agregat z repozytorium
         order = await unit_of_work.order_repository.get_by_id(
@@ -154,8 +229,16 @@ async def handle(self, command: SomeCommand) -> None:
 ## Walidacja
 
 - **Strukturalna** (typy, formaty, zakresy) — na granicy API, przez Pydantic w warstwie framework.
+- **Komendy** — walidacja w `__post_init__` (dataclass), nie w metodzie `validate()` wołanej przez handler.
 - **Biznesowa** — w domenie (Value Object w `__post_init__`, guard clauses w agregacie).
 - Handler nie waliduje — deleguje do domeny.
+
+## Obsługa błędów
+
+- **Błędy domenowe** (`DomainError`) — propagują do frameworka, handler nie łapie.
+- **Błędy infrastrukturalne** (`RepositoryException`) — propagują, handler nie łapie.
+- **Jedyny wyjątek**: `ConcurrentModificationError` (optymistyczne blokowanie) — może być złapany dla retry/logowania.
+- Handler nie ma bloków `try/except` na logikę biznesową.
 
 ## Lokalizacja
 

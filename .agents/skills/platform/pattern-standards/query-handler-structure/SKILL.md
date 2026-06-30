@@ -16,6 +16,7 @@ description: Reguły struktury Query Handler — read-only, QueryService, zwraca
 
 - Zależności wstrzykiwane przez konstruktor.
 - QueryService w TYPE_CHECKING.
+- Import query może być w TYPE_CHECKING — używana tylko w sygnaturze `handle()`.
 
 ```python
 from __future__ import annotations
@@ -23,6 +24,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from shell.application.workflow.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
     from shell.application.workflow.query_services import WorkflowQueryService
 ```
 

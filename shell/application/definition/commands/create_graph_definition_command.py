@@ -11,7 +11,7 @@ class CreateGraphDefinitionCommand:
     graph_node_definitions: list[dict[str, Any]] = field(default_factory=list)
     transition_definitions: list[dict[str, Any]] = field(default_factory=list)
 
-    def validate(self) -> None:
+    def __post_init__(self) -> None:
         if not self.name:
             raise ValueError("name cannot be empty")
         if not self.purpose:

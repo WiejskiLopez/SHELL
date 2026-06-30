@@ -68,6 +68,7 @@ from shell.domain.execution.value_objects.ids import (
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 from shell.domain.execution.value_objects.work_dir import WorkDir
@@ -129,9 +130,15 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
+    body = (
+        TaskExecutionBody(task_execution_model.body)
+        if task_execution_model.body
+        else None
+    )
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
         name=TaskName(task_execution_model.name),
+        body=body,
         created_at=CreatedAt.from_datetime(_ensure_utc(task_execution_model.created_at)),
         work_dir=WorkDir(task_execution_model.work_dir or ""),
         workflow_id=(
@@ -152,6 +159,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
     return TaskExecutionModel(
         id=task_execution.id.value,
         name=task_execution.name.value,
+        body=task_execution.body.value if task_execution.body else "",
         work_dir=task_execution.work_dir.value if task_execution.work_dir else "",
         created_at=_created_at_value(task_execution.created_at),
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
@@ -161,6 +169,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
 def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution) -> None:
     model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
     model.name = entity.name.value
+    model.body = entity.body.value if entity.body else model.body
     model.work_dir = entity.work_dir.value if entity.work_dir else ""
     model.workflow_id = entity.workflow_id.value if entity.workflow_id else None
     model.created_at = _created_at_value(entity.created_at)  # type: ignore[assignment]

@@ -9,6 +9,8 @@ class RunGraphNodeExecutionCommand:
     graph_node_execution_id: str
     workspace_path: str
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.workflow_id:
+            raise ValueError("workflow_id cannot be empty")
+        if not self.graph_node_execution_id:
+            raise ValueError("graph_node_execution_id cannot be empty")

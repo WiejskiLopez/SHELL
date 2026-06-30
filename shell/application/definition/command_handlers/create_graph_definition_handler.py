@@ -18,6 +18,7 @@ from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
 from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.definition.value_objects.purpose import Purpose
+from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.definition.commands.create_graph_definition_command import (
@@ -39,8 +40,7 @@ class CreateGraphDefinitionHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, command: CreateGraphDefinitionCommand) -> None:
-        command.validate()
+    async def handle(self, command: CreateGraphDefinitionCommand) -> str:
         now = self._clock.now()
         graph_id = self._id_generator.new_id(GraphDefinitionId)
         node_ids: list[GraphNodeDefinitionId] = []
@@ -49,7 +49,6 @@ class CreateGraphDefinitionHandler:
         for node_dict in command.graph_node_definitions:
             node_id = self._id_generator.new_id(GraphNodeDefinitionId)
             node_ids.append(node_id)
-            from shell.domain.platform.value_objects.mode import Mode
 
             node = GraphNodeDefinition.create(
                 id=node_id,
@@ -76,3 +75,5 @@ class CreateGraphDefinitionHandler:
             )
             await unit_of_work.repository(GraphDefinitionRepository).save(graph)
             unit_of_work.stage_events(graph.pull_events())
+
+        return graph_id.value

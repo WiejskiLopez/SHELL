@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_node_execution_status import GraphNodeExecutionStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -40,6 +41,14 @@ class GraphNodeExecutionTimeoutExpiredHandler:
                 self._logger.warning(
                     "graph_node_timed_out.node_not_found",
                     node_id=event.node_id.value,
+                )
+                return
+
+            if node.status != GraphNodeExecutionStatus.RUNNING:
+                self._logger.warning(
+                    "graph_node_timed_out.node_not_running",
+                    node_id=event.node_id.value,
+                    status=node.status.value,
                 )
                 return
 

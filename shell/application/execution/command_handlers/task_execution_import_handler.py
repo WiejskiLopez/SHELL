@@ -13,16 +13,9 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
     TaskExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
-    TaskExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-    TaskExecutionState,
-)
-from shell.domain.execution.value_objects.ids import TaskExecutionId, TaskExecutionStateId
+from shell.domain.execution.value_objects.ids import TaskExecutionId
+from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.task_execution_commands import (
@@ -60,15 +53,9 @@ class TaskExecutionImportHandler:
             task_execution = TaskExecution.create(
                 id_=self._id_generator.new_id(TaskExecutionId),
                 name=task_execution_name,
+                body=TaskExecutionBody(content),
                 now=current_time,
             )
-            state_input = TaskExecutionState.create(
-                id_=self._id_generator.new_id(TaskExecutionStateId),
-                task_execution_id=task_execution.id,
-                state_data=StateData({"description": content}),
-                now=CreatedAt.from_datetime(current_time),
-            )
             await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
-            await unit_of_work.repository(TaskExecutionStateRepository).save(state_input)
             unit_of_work.stage_events(task_execution.pull_events())
         return task_execution.id.value

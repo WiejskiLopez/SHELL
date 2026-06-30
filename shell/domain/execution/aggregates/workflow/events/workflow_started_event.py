@@ -19,6 +19,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class WorkflowStartedEvent(DomainEvent):
     workflow_id: WorkflowId
     task_execution_id: TaskExecutionId | None = None
+    work_dir: str | None = None
 
     @classmethod
     def from_payload(
@@ -30,6 +31,7 @@ class WorkflowStartedEvent(DomainEvent):
             schema_version=SchemaVersion(schema_version),
             workflow_id=WorkflowId(payload["workflow_id"]),
             task_execution_id=TaskExecutionId(task_id) if task_id else None,
+            work_dir=payload.get("work_dir"),
         )
 
     @classmethod
@@ -38,9 +40,11 @@ class WorkflowStartedEvent(DomainEvent):
         workflow_id: WorkflowId,
         now: CreatedAt,
         task_execution_id: TaskExecutionId | None = None,
+        work_dir: str | None = None,
     ) -> WorkflowStartedEvent:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
             task_execution_id=task_execution_id,
+            work_dir=work_dir,
         )

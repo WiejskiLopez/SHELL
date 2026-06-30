@@ -7,6 +7,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 )
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
+from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.task_name import TaskName
@@ -28,6 +29,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_max_planning_cycles",
         "_current_cycle",
         "_name",
+        "_body",
         "_work_dir",
         "_created_at",
     )
@@ -36,6 +38,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self,
         id: TaskExecutionId,
         name: TaskName | None = None,
+        body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
@@ -47,6 +50,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._max_planning_cycles = max_planning_cycles or MaxPlanningCycles(5)
         self._current_cycle = PlanningCycle(0)
         self._name = name if name is not None else TaskName("default")
+        self._body = body
         self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
         self._created_at = created_at
 
@@ -55,6 +59,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         cls,
         id: TaskExecutionId,
         name: TaskName | None = None,
+        body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
@@ -63,6 +68,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         return cls(
             id=id,
             name=name,
+            body=body,
             workflow_id=workflow_id,
             max_planning_cycles=max_planning_cycles,
             work_dir=work_dir,
@@ -176,6 +182,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         return self._current_cycle
 
     @property
+    def body(self) -> TaskExecutionBody | None:
+        return self._body
+
+    @property
     def work_dir(self) -> WorkDir:
         return self._work_dir
 
@@ -203,12 +213,14 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         id_: TaskExecutionId,
         name: Any,
         now: datetime,
+        body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
         task_name = name if isinstance(name, TaskName) else TaskName(str(name))
         task_execution = cls(
             id=id_,
             name=task_name,
+            body=body,
             workflow_id=workflow_id,
             created_at=CreatedAt.from_datetime(now),
         )

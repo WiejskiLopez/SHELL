@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_node_execution_status import GraphNodeExecutionStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -40,6 +41,14 @@ class GraphNodeExecutionStartedHandler:
                 self._logger.warning(
                     "graph_node_execution_started_handler.node_not_found",
                     node_id=graph_node_execution_started_event.node_id.value,
+                )
+                return
+
+            if node.status != GraphNodeExecutionStatus.PENDING:
+                self._logger.warning(
+                    "graph_node_execution_started_handler.node_already_started",
+                    node_id=graph_node_execution_started_event.node_id.value,
+                    status=node.status.value,
                 )
                 return
 

@@ -43,7 +43,7 @@ class GraphNodeExecutionCreateHandler:
         self._identity = identity
         self._time = time
 
-    async def handle(self, command: CreateGraphNodeExecutionCommand) -> None:
+    async def handle(self, command: CreateGraphNodeExecutionCommand) -> str:
         now = self._time.now()
         graph_execution_id = GraphExecutionId(command.graph_execution_id)
         node_execution = GraphNodeExecution.new(
@@ -69,3 +69,4 @@ class GraphNodeExecutionCreateHandler:
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.repository(GraphNodeExecutionRepository).save(node_execution)
             unit_of_work.stage_events(node_execution.pull_events())
+        return node_execution.id.value

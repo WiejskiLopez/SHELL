@@ -15,7 +15,6 @@ from shell.application.execution.query_handlers.workflow_get_by_id_handler impor
     WorkflowGetByIdHandler,
 )
 from shell.domain.execution.events import WorkflowStartedEvent
-from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
 )
@@ -104,15 +103,15 @@ class TestWorkflowStartHandler:
         assert wf_id
         assert any(isinstance(e, WorkflowStartedEvent) for e in unit_of_work.committed_events)
 
-    async def test_task_not_found_raises(
+    async def test_task_not_found_skips(
         self,
         unit_of_work: InMemoryUnitOfWork,
         clock: FakeClock,
         id_generator: FakeIdGenerator,
     ) -> None:
         handler = WorkflowStartHandler(unit_of_work, clock, id_generator)
-        with pytest.raises(TaskExecutionNotFound):
-            await handler.handle(StartWorkflowCommand("nonexistent"))
+        wf_id = await handler.handle(StartWorkflowCommand("nonexistent"))
+        assert wf_id  # Workflow created, TaskExecution attach deferred to event handler
 
     async def test_workflow_persisted(
         self,

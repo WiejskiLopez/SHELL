@@ -38,4 +38,5 @@ class RunnerConfigBootstrapHandler:
                 now=CreatedAt.from_datetime(self._clock.now()),
             )
             await unit_of_work.repository(RunnerConfigRepository).save(config)
+            unit_of_work.stage_events(config.pull_events())
         return config.id.value

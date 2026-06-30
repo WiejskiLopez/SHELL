@@ -12,6 +12,8 @@ class IndexDocumentCommand:
     chunk_size: int = 500
     overlap: int = 50
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.source_uri:
+            raise ValueError("source_uri cannot be empty")
+        if not self.title:
+            raise ValueError("title cannot be empty")

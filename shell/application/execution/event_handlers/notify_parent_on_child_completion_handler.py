@@ -12,7 +12,9 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
     GraphExecutionSubGraphSettledEvent,
 )
-from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
@@ -32,10 +34,6 @@ class NotifyParentOnChildCompletionHandler:
         self._logger = logger
 
     async def handle(self, workflow_completed_event: WorkflowCompletedEvent) -> None:
-        from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-            GraphExecutionRepository,
-        )
-
         async with self._unit_of_work as unit_of_work:
             graph_executions = await unit_of_work.repository(
                 GraphExecutionRepository
@@ -63,11 +61,8 @@ class NotifyParentOnChildCompletionHandler:
             children = await unit_of_work.repository(GraphExecutionRepository).get_by_parent_id(
                 parent_id
             )
-            all_settled = all(
-                c.status in (GraphExecutionStatus.COMPLETED, GraphExecutionStatus.FAILED)
-                for c in children
-            )
-            if not all_settled:
+            children_statuses = [c.status for c in children]
+            if not parent_graph._check_all_children_settled(children_statuses):
                 return
 
             parent_graph.append_event(

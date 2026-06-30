@@ -67,7 +67,8 @@ def start(self) -> None:
 
 ## Komenda z walidacją
 
-- Command może mieć metodę `validate()` wołaną przez handler przed delegacją do domeny.
+- Command waliduje się podczas tworzenia — w `__post_init__` (dataclass) lub automatycznie (Pydantic).
+- Handler **nie woła** `command.validate()` — walidacja jest automatyczna.
 
 ```python
 @dataclass(frozen=True)
@@ -76,7 +77,7 @@ class StartWorkflowCommand:
     owner_id: str
     nodes: list[NodeConfigDto]
 
-    def validate(self) -> None:
+    def __post_init__(self) -> None:
         if not self.name.strip():
             raise InvalidCommand('name', 'Workflow name cannot be empty')
         if not self.nodes:

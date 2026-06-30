@@ -26,7 +26,7 @@ class DocumentIndexHandler:
         self._id_generator = id_generator
         self._embedder = embedder
 
-    async def handle(self, index_document_command: IndexDocumentCommand) -> RagDocumentId:
+    async def handle(self, index_document_command: IndexDocumentCommand) -> str:
         doc_id = self._id_generator.new_id(RagDocumentId)
         max_chunks = max(
             1,
@@ -49,4 +49,5 @@ class DocumentIndexHandler:
         )
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.repository(RagDocumentRepository).save(doc)
-        return doc_id
+            unit_of_work.stage_events(doc.pull_events())
+        return doc_id.value

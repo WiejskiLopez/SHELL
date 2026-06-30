@@ -1,8 +1,7 @@
 """PlannerResultHandler — processes GraphNodeExecutionCompletedEvent for PLANNER nodes.
 
 Subscribes to GraphNodeExecutionCompletedEvent with role=PLANNER.
-Calls GraphExecution.request_sub_graph_spawn() for each spawn entry,
-or emits GraphPlannedEvent for direct plans.
+Delegates spawn and plan logic to GraphExecution domain methods.
 """
 
 from __future__ import annotations
@@ -12,9 +11,13 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.node_role import NodeRole
 
 if TYPE_CHECKING:
@@ -86,37 +89,22 @@ class PlannerResultHandler:
                 goal = spawn.get("goal", "")
                 if not goal:
                     continue
-                from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-                    GraphExecutionId as GEId,
-                )
 
-                child_id = GEId.generate()
+                child_id = GraphExecutionId.generate()
                 definition_id = ""
                 try:
                     definition_id = await self._sub_graph_discovery.find_unique(goal)
-                    definition = await self._definition_provider.get_graph_definition(definition_id)
-                    if definition is not None:
-                        len(definition.graph_node_execution_definitions)
+                    await self._definition_provider.get_graph_definition(definition_id)
                 except Exception:
                     self._logger.warning(
                         "planner_result_handler.definition_resolve_failed",
                         goal=goal,
                     )
-                from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
-                    GraphExecutionSubGraphSpawnRequestedEvent,
-                )
-                from shell.domain.execution.value_objects.graph_definition_id import (
-                    GraphDefinitionIdRef,
-                )
 
-                graph_execution.append_event(
-                    GraphExecutionSubGraphSpawnRequestedEvent.now(
-                        parent_graph_execution_id=graph_execution.id,
-                        child_graph_execution_id=child_id,
-                        graph_definition_id=GraphDefinitionIdRef(definition_id or ""),
-                        now=now,
-                        state_input=None,
-                    )
+                graph_execution.request_sub_graph_spawn(
+                    child_graph_execution_id=child_id,
+                    graph_definition_id=GraphDefinitionIdRef(definition_id or ""),
+                    now=now.value,
                 )
 
             if stage == "direct" and plan:

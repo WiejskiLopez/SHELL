@@ -243,13 +243,13 @@ def test_dto_fields_use_only_primitives() -> None:
     )
 
 
-# ── 5. All commands have validate() ─────────────────────────────────
+# ── 5. All commands have __post_init__ ─────────────────────────────────
 
 
-_KNOWN_COMMANDS_NO_VALIDATE: frozenset[str] = frozenset({})
+_KNOWN_COMMANDS_NO_POST_INIT: frozenset[str] = frozenset({})
 
 
-def test_all_commands_have_validate() -> None:
+def test_all_commands_have_post_init() -> None:
     missing: list[str] = []
     for cmd_dir in (BASE / "application").rglob("commands"):
         if not cmd_dir.is_dir():
@@ -267,14 +267,14 @@ def test_all_commands_have_validate() -> None:
                 if not _is_frozen_dataclass(node):
                     continue
                 key = f"{py_file.relative_to(BASE).as_posix()}: {node.name}"
-                if key in _KNOWN_COMMANDS_NO_VALIDATE:
+                if key in _KNOWN_COMMANDS_NO_POST_INIT:
                     continue
-                has_validate = any(
-                    isinstance(m, ast.FunctionDef) and m.name == "validate" for m in node.body
+                has_post_init = any(
+                    isinstance(m, ast.FunctionDef) and m.name == "__post_init__" for m in node.body
                 )
-                if not has_validate:
+                if not has_post_init:
                     missing.append(f"{py_file.relative_to(BASE)}: {node.name}")
-    assert not missing, "Command dataclasses must define validate():\n" + "\n".join(missing)
+    assert not missing, "Command dataclasses must define __post_init__:\n" + "\n".join(missing)
 
 
 # ── 6. No Domain Service imports infrastructure ─────────────────────

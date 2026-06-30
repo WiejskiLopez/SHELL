@@ -261,6 +261,55 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             )
         )
 
+    def request_sub_graph_spawn(
+        self,
+        child_graph_execution_id: GraphExecutionId,
+        graph_definition_id: GraphDefinitionIdRef,
+        now: datetime,
+        state_input: dict[str, Any] | None = None,
+    ) -> None:
+        if self._execution_status != GraphExecutionStatus.EXECUTING:
+            raise InvalidGraphStateError(
+                f"Cannot spawn sub-graph in status {self._execution_status}"
+            )
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
+            GraphExecutionSubGraphSpawnRequestedEvent,
+        )
+
+        self.append_event(
+            GraphExecutionSubGraphSpawnRequestedEvent.now(
+                parent_graph_execution_id=self._id,
+                child_graph_execution_id=child_graph_execution_id,
+                graph_definition_id=graph_definition_id,
+                now=CreatedAt.from_datetime(now),
+                state_input=state_input,
+            )
+        )
+
+    def _check_all_children_settled(self, children_statuses: list[GraphExecutionStatus]) -> bool:
+        """Check if all children are in a terminal (settled) state."""
+        terminal = {GraphExecutionStatus.COMPLETED, GraphExecutionStatus.FAILED}
+        return all(c in terminal for c in children_statuses)
+
+    def emit_created_event(self, goal: Goal, now: datetime) -> None:
+        if self._execution_status != GraphExecutionStatus.PENDING:
+            raise InvalidGraphStateError(
+                f"Cannot emit created event in status {self._execution_status}"
+            )
+        from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
+            GraphExecutionCreatedEvent,
+        )
+
+        self.append_event(
+            GraphExecutionCreatedEvent.now(
+                graph_execution_id=self._id,
+                task_execution_id=self._task_execution_id,
+                now=CreatedAt.from_datetime(now),
+                goal=goal,
+                depth=self._depth,
+            ),
+        )
+
     def complete(self, verifier_result: StateData | dict[str, Any] | None, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.VERIFYING:
             raise InvalidGraphStateError(

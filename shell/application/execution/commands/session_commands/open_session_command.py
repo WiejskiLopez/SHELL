@@ -7,6 +7,6 @@ from dataclasses import dataclass
 class OpenSessionCommand:
     goal: str
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.goal:
+            raise ValueError("goal cannot be empty")

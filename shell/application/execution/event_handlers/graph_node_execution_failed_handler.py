@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_n
     GraphNodeExecutionRepository,
 )
 from shell.domain.execution.value_objects.error_description import ErrorDescription
+from shell.domain.execution.value_objects.graph_node_execution_status import GraphNodeExecutionStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -41,6 +42,14 @@ class GraphNodeExecutionFailedHandler:
                 self._logger.warning(
                     "graph_node_execution_failed_handler.node_not_found",
                     node_id=graph_node_execution_failed_event.node_id.value,
+                )
+                return
+
+            if node.status != GraphNodeExecutionStatus.RUNNING:
+                self._logger.warning(
+                    "graph_node_execution_failed_handler.node_not_running",
+                    node_id=graph_node_execution_failed_event.node_id.value,
+                    status=node.status.value,
                 )
                 return
 

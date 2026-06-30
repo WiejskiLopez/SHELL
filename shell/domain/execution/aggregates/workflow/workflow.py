@@ -141,6 +141,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         now: datetime,
         task_execution_id: TaskExecutionId | None = None,
+        work_dir: str | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
             raise InvalidWorkflowTransition(
@@ -148,7 +149,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self.append_event(
             WorkflowStartedEvent.now(
-                self.id, now=CreatedAt.from_datetime(now), task_execution_id=task_execution_id
+                self.id,
+                now=CreatedAt.from_datetime(now),
+                task_execution_id=task_execution_id,
+                work_dir=work_dir,
             )
         )
 

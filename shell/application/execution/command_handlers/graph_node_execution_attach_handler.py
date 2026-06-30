@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
     GraphNodeExecutionId,
 )
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+from shell.domain.platform.exceptions.domain_error import DomainError
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.attach_graph_node_executions_command import (
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
 
 
-class GraphExecutionNotFoundError(Exception):
+class GraphExecutionNotFoundError(DomainError):
     pass
 
 
@@ -34,7 +35,7 @@ class GraphNodeExecutionAttachHandler:
         self._unit_of_work = unit_of_work
         self._time = time
 
-    async def handle(self, command: AttachGraphNodeExecutionsCommand) -> None:
+    async def handle(self, command: AttachGraphNodeExecutionsCommand) -> str:
         now = self._time.now()
         async with self._unit_of_work as unit_of_work:
             graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
@@ -54,3 +55,4 @@ class GraphNodeExecutionAttachHandler:
 
             await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)
             unit_of_work.stage_events(graph_execution.pull_events())
+        return command.graph_execution_id

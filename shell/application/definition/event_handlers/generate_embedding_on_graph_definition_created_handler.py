@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
     GraphDefinitionEmbedding,
 )
+from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+    GraphDefinitionEmbeddingRepository,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
     GraphDefinitionEmbeddingId,
 )
@@ -38,10 +41,6 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
         self._embedder = embedder
 
     async def handle(self, event: GraphDefinitionCreatedEvent) -> None:
-        from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
-            GraphDefinitionEmbeddingRepository,
-        )
-
         text = f"{event.name.value} {event.purpose.value}"
         vector = self._embedder.embed_text(text)
         vector_bytes = struct.pack(f"{len(vector)}f", *vector)

@@ -15,6 +15,8 @@ class CreateGraphNodeExecutionCommand:
     retry_delay_seconds: int | None = None
     timeout_seconds: int | None = None
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.graph_execution_id:
+            raise ValueError("graph_execution_id cannot be empty")
+        if not self.graph_node_definition_id:
+            raise ValueError("graph_node_definition_id cannot be empty")

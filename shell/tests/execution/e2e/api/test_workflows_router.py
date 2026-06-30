@@ -13,11 +13,12 @@ if TYPE_CHECKING:
 
 
 class TestWorkflowsRouter:
-    async def test_start_workflow_unknown_task_returns_error(self, tmp_path: pathlib.Path) -> None:
+    async def test_start_workflow_unknown_task_returns_created(self, tmp_path: pathlib.Path) -> None:
+        """Workflow creation is decoupled from TaskExecution validation — returns 201."""
         app = await _make_app(tmp_path)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post("/workflows", json={"task_execution_id": "no_such_task"})
-        assert resp.status_code in (400, 404)
+        assert resp.status_code == 201
 
     async def test_start_and_get_workflow(self, tmp_path: pathlib.Path) -> None:
         md = tmp_path / "wf_task_execution.md"

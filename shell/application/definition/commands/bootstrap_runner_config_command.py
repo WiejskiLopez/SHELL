@@ -9,6 +9,8 @@ class BootstrapRunnerConfigCommand:
     kind: str
     body: dict[str, object] = field(default_factory=dict)
 
-    @classmethod
-    def validate(cls) -> None:
-        pass
+    def __post_init__(self) -> None:
+        if not self.package_name:
+            raise ValueError("package_name cannot be empty")
+        if not self.kind:
+            raise ValueError("kind cannot be empty")
