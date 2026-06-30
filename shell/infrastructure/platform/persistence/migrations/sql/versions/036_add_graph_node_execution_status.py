@@ -17,9 +17,7 @@ depends_on = None
 
 def upgrade() -> None:
     with op.batch_alter_table("graph_node_execution") as batch:
-        batch.add_column(
-            sa.Column("status", sa.String, nullable=False, server_default="pending")
-        )
+        batch.add_column(sa.Column("status", sa.String, nullable=False, server_default="pending"))
 
 
 def downgrade() -> None:

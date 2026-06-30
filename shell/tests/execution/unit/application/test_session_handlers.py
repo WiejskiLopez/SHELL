@@ -2,22 +2,31 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
-from shell.application.execution.commands.session_commands import CloseSessionCommand
-from shell.application.execution.commands.session_commands import OpenSessionCommand
+
+from shell.application.execution.commands.session_commands import (
+    CloseSessionCommand,
+    OpenSessionCommand,
+)
 from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
-from shell.application.execution.query_handlers.session_get_history_handler import SessionGetHistoryHandler
+from shell.application.execution.query_handlers.session_get_history_handler import (
+    SessionGetHistoryHandler,
+)
 from shell.application.session.command_handlers.session_handlers import (
     SessionCloseHandler,
     SessionNotFound,
     SessionOpenHandler,
 )
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
-    FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
-    InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
-    InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
-)
+
+if TYPE_CHECKING:
+    from shell.infrastructure.platform.persistence.memory import (
+        FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
+        FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
+        InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
+        InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
 
 
 class TestSessionHandlers:

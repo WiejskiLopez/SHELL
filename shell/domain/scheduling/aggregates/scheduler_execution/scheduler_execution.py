@@ -4,9 +4,9 @@ from typing import Any, Self
 
 from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.reason import Reason
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
@@ -67,10 +67,14 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._scheduler_definition_id = scheduler_definition_id
         self._status = ExecutionStatus(status) if isinstance(status, str) else status
         self._trigger_event_id = (
-            TriggerEventId(trigger_event_id) if isinstance(trigger_event_id, str) else trigger_event_id
+            TriggerEventId(trigger_event_id)
+            if isinstance(trigger_event_id, str)
+            else trigger_event_id
         )
         self._trigger_event_type = (
-            TriggerEventType(trigger_event_type) if isinstance(trigger_event_type, str) else trigger_event_type
+            TriggerEventType(trigger_event_type)
+            if isinstance(trigger_event_type, str)
+            else trigger_event_type
         )
         self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
         self._action_ref_type = (
@@ -171,15 +175,19 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
     def updated_at(self) -> Timestamp:
         return self._updated_at
 
-    def start(self, action_ref: ActionRef | str, action_ref_type: ActionRefType | str, now: Timestamp) -> None:
+    def start(
+        self, action_ref: ActionRef | str, action_ref_type: ActionRefType | str, now: Timestamp
+    ) -> None:
         self._status = ExecutionStatus.EXECUTING
         self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
-        self._action_ref_type = ActionRefType(action_ref_type) if isinstance(action_ref_type, str) else action_ref_type
+        self._action_ref_type = (
+            ActionRefType(action_ref_type) if isinstance(action_ref_type, str) else action_ref_type
+        )
         self._started_at = now
         self._updated_at = now
         self.append_event(
             SchedulerExecutionStartedEvent(
-                occurred_at=now.value,
+                occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
                 action_ref=self._action_ref,
                 action_ref_type=self._action_ref_type,
@@ -198,13 +206,15 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = now
         self.append_event(
             SchedulerExecutionCompletedEvent(
-                occurred_at=now.value,
+                occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
                 output_state=self._output_state,
             )
         )
 
-    def fail(self, error: ErrorDescription | str | None = None, now: Timestamp | None = None) -> None:
+    def fail(
+        self, error: ErrorDescription | str | None = None, now: Timestamp | None = None
+    ) -> None:
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.FAILED
@@ -213,7 +223,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = now
         self.append_event(
             SchedulerExecutionFailedEvent(
-                occurred_at=now.value,
+                occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
                 error=self._error,
             )
@@ -228,7 +238,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         actual_reason = Reason(reason) if isinstance(reason, str) else reason
         self.append_event(
             SchedulerExecutionSkippedEvent(
-                occurred_at=now.value,
+                occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
                 reason=actual_reason,
             )

@@ -17,7 +17,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SchedulerExecutionFailedEvent(DomainEvent):
     execution_id: SchedulerExecutionId
-    error: ErrorDescription
+    error: ErrorDescription | None = None
 
     @classmethod
     def from_payload(

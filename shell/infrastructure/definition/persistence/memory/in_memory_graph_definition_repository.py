@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.aggregates.graph_definition.repositories import (
     GraphDefinitionRepository,
@@ -7,12 +9,15 @@ from shell.domain.definition.aggregates.graph_definition.repositories import (
 from shell.domain.definition.aggregates.graph_definition.value_objects import (
     GraphDefinitionId,
 )
-from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.definition.value_objects.graph_name import GraphName
 
-class InMemoryGraphDefinitionRepository(InMemoryRepository[GraphDefinition, GraphDefinitionId], GraphDefinitionRepository):
 
+class InMemoryGraphDefinitionRepository(
+    InMemoryRepository[GraphDefinition, GraphDefinitionId], GraphDefinitionRepository
+):
     async def get(self, graph_execution_id: GraphDefinitionId) -> GraphDefinition | None:
         return self._store.get(graph_execution_id.value)
 

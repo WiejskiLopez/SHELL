@@ -16,10 +16,9 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_key import StateKey
+from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -28,6 +27,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
     )
+    from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
@@ -51,15 +51,15 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self,
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData = StateData({}),
-        is_current: IsCurrent = IsCurrent(True),
+        direction: StateDirection,
+        is_current: IsCurrent,
+        state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
         self._direction = direction
-        self._state_data = state_data
+        self._state_data = state_data or StateData({})
         self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
@@ -69,9 +69,9 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         cls,
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData = StateData({}),
-        is_current: IsCurrent = IsCurrent(True),
+        direction: StateDirection,
+        is_current: IsCurrent,
+        state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
@@ -145,7 +145,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)
+        return self._state_data.get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
         if self._state_data.get(key) is not None:

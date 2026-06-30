@@ -52,15 +52,15 @@ def test_app_mappers_have_to_dto() -> None:
             continue
         has_to_dto = False
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                if node.name.endswith("_to_dto"):
-                    has_to_dto = True
-                    break
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.endswith(
+                "_to_dto"
+            ):
+                has_to_dto = True
+                break
         if not has_to_dto:
             violations.append(f"{mapper_path.relative_to(BASE)}: missing *_to_dto function")
     assert not violations, (
-        "Application mappers must have at least a *_to_dto function:\n"
-        + "\n".join(violations)
+        "Application mappers must have at least a *_to_dto function:\n" + "\n".join(violations)
     )
 
 
@@ -69,8 +69,9 @@ def test_app_mappers_have_to_dto() -> None:
 
 def test_mappers_have_no_business_logic() -> None:
     violations: list[str] = []
-    for mapper_path in list((BASE / "infrastructure").rglob("**/mappers/**/*.py")) + \
-                        list((BASE / "application").rglob("**/mappers/**/*.py")):
+    for mapper_path in list((BASE / "infrastructure").rglob("**/mappers/**/*.py")) + list(
+        (BASE / "application").rglob("**/mappers/**/*.py")
+    ):
         if mapper_path.name == "__init__.py":
             continue
         tree = parse_file(mapper_path)
@@ -80,13 +81,16 @@ def test_mappers_have_no_business_logic() -> None:
         ast_lines = content.splitlines()
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                func_lines = set(range(node.lineno or 0, (node.end_lineno or node.lineno) + 1))
+                set(range(node.lineno or 0, (node.end_lineno or node.lineno) + 1))
                 for sub in ast.walk(node):
                     if isinstance(sub, ast.If):
                         test_src = ast.unparse(sub.test)
                         if "==" in test_src or "is" in test_src:
                             line = ast_lines[sub.lineno - 1].strip() if sub.lineno else ""
-                            if not any(kw in line for kw in ["None", "is not None", "is None", "isinstance", "type("]):
+                            if not any(
+                                kw in line
+                                for kw in ["None", "is not None", "is None", "isinstance", "type("]
+                            ):
                                 violations.append(
                                     f"{mapper_path.relative_to(BASE)}: {node.name} has business logic at line {sub.lineno}"
                                 )

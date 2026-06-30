@@ -2,22 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
 from shell.domain.execution.aggregates.graph_node_execution_state.events.graph_node_execution_state_changed_event import (
     GraphNodeExecutionStateChangedEvent,
 )
 from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
     GraphNodeExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
 
 
 class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
@@ -113,7 +114,7 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)
+        return self._state_data.get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
         if self._state_data.get(key) is not None:
@@ -124,11 +125,11 @@ class GraphNodeExecutionState(AggregateRoot[GraphNodeExecutionStateId]):
             self.append_event(
                 GraphNodeExecutionStateChangedEvent.now(
                     graph_node_execution_id=self._graph_node_execution_id,
-                graph_node_execution_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=None,
+                    graph_node_execution_state_id=self.id,
+                    direction=self._direction,
+                    key=key,
+                    old_value=old_value,
+                    new_value=None,
                     now=self._created_at,
                 )
             )

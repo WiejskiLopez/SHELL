@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.definition.exceptions.graph_definition_not_found_exception import GraphDefinitionNotFoundException
+from shell.application.definition.exceptions.graph_definition_not_found_exception import (
+    GraphDefinitionNotFoundException,
+)
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
     GraphDefinitionSemanticQuery,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.ids import GraphExecutionId
 
@@ -21,10 +23,10 @@ if TYPE_CHECKING:
         Logger,
         UnitOfWork,
     )
-    from shell.domain.execution.events import TaskExecutionCreatedEvent
     from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
+    from shell.domain.execution.events import TaskExecutionCreatedEvent
 
 
 GRAPH_DEFINITION_NAME = "base_planner"
@@ -64,9 +66,9 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
             )
 
         async with self._unit_of_work as unit_of_work:
-            existing = await unit_of_work.repository(GraphExecutionRepository).get_by_task_execution_id(
-                task_execution_created_event.task_execution_id
-            )
+            existing = await unit_of_work.repository(
+                GraphExecutionRepository
+            ).get_by_task_execution_id(task_execution_created_event.task_execution_id)
             if existing is not None:
                 self._logger.info(
                     "Graph already exists for task — skipping build",

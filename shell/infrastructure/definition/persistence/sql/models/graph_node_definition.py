@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
-from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from typing import TYPE_CHECKING, Any
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+
+from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+
+if TYPE_CHECKING:
+    from shell.infrastructure.definition.persistence.sql.models.graph_definition import (  # noqa: E402 — łamie circular import GraphNodeDefinitionModel ↔ GraphDefinitionModel
+        GraphDefinitionModel,  # noqa: TC002 — GraphDefinitionModel używany w Mapped[GraphDefinitionModel] w relacji SQLAlchemy
+    )
 
 
 class GraphNodeDefinitionModel(Base, VersionedMixin):
@@ -30,16 +38,11 @@ class GraphNodeDefinitionModel(Base, VersionedMixin):
     script: Mapped[str | None] = mapped_column(nullable=True)
     script_type: Mapped[str | None] = mapped_column(nullable=True)
 
-    @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict:
+    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 
     graph_definition_model: Mapped[GraphDefinitionModel] = relationship(
         "GraphDefinitionModel",
         back_populates="graph_node_execution_models",
     )
-
-
-from shell.infrastructure.definition.persistence.sql.models.graph_definition import (  # noqa: E402 — łamie circular import GraphNodeDefinitionModel ↔ GraphDefinitionModel
-    GraphDefinitionModel,  # noqa: TC002 — GraphDefinitionModel używany w Mapped[GraphDefinitionModel] w relacji SQLAlchemy
-)

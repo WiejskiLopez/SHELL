@@ -1,24 +1,22 @@
 from __future__ import annotations
 
 import uuid
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
+
+from sqlalchemy.orm.exc import StaleDataError
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
-from shell.domain.platform.envelope import Envelope
-from shell.domain.platform.exceptions.concurrent_modification_error import (
-    ConcurrentModificationError,
+from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+    GraphDefinitionEmbeddingRepository,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
+    GraphNodeTransitionDefinitionRepository,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
     GraphNodeDefinitionRepository,
-)
-from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
-    GraphNodeTransitionDefinitionRepository,
-)
-from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
-    GraphDefinitionEmbeddingRepository,
 )
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
@@ -52,6 +50,10 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.platform.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
+from shell.domain.platform.envelope import Envelope
+from shell.domain.platform.exceptions.concurrent_modification_error import (
+    ConcurrentModificationError,
+)
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
@@ -66,7 +68,6 @@ from shell.infrastructure.definition.persistence.sql.repositories import (
 from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphExecutionRepository,
     SqlGraphExecutionStateInputRepository,
-    SqlGraphExecutionStateOutputRepository,
     SqlGraphNodeExecutionRepository,
     SqlGraphNodeExecutionStateRepository,
     SqlGraphNodeTransitionExecutionRepository,
@@ -88,10 +89,12 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
-from shell.domain.platform.aggregates.message.message import Message
-from shell.domain.platform.events import DomainEvent
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from sqlalchemy.orm.exc import StaleDataError
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
 
@@ -139,8 +142,13 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[abstract, return-value]
         if sql_type is not None:
             return sql_type(self._active_session)
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import SqlSchedulerDefinitionRepository
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import SqlSchedulerExecutionRepository
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
+            SqlSchedulerDefinitionRepository,
+        )
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
+            SqlSchedulerExecutionRepository,
+        )
+
         if repo_type is SqlSchedulerDefinitionRepository:
             return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
         if repo_type is SqlSchedulerExecutionRepository:
@@ -192,7 +200,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                     receiver_service=message.destination.value,
                     correlation_id=get_correlation_id(),
                 )
-                message_outbox = OutboxMessageModel(
+                OutboxMessageModel(
                     id=str(uuid.uuid4()),
                     envelope=envelope.to_dict(),
                     created_at=message.created_at.value,

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
+
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.tests.conftest_helpers import _make_app
@@ -38,8 +39,6 @@ class TestWorkflowsRouter:
             assert resp_import.status_code == 201
             task_execution_id = resp_import.json()["task_execution_id"]
 
-            resp = await client.post(
-                "/workflows", json={"task_execution_id": task_execution_id}
-            )
+            resp = await client.post("/workflows", json={"task_execution_id": task_execution_id})
 
             assert resp.status_code == 201

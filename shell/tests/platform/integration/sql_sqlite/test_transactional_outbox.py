@@ -5,16 +5,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from sqlalchemy import select
+
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.domain.execution.events import WorkflowStartedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
-from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-)
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -23,10 +22,13 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeTaskLoader,
 )
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.infrastructure.platform.persistence import (
+        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
 
 
 class TestTransactionalOutbox:

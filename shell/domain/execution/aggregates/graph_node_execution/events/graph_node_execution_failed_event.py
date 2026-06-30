@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.platform.events import DomainEvent
@@ -42,7 +43,9 @@ class GraphNodeExecutionFailedEvent(DomainEvent):
         workflow_id: WorkflowId | None = None,
         reason: str | None = None,
     ) -> GraphNodeExecutionFailedEvent:
-        actual_error = error if error is not None else (ErrorDescription(reason) if reason else None)
+        actual_error = (
+            error if error is not None else (ErrorDescription(reason) if reason else None)
+        )
         return cls(
             occurred_at=now,
             node_id=node_id,

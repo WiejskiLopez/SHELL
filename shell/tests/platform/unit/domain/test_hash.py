@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from shell.domain.platform.value_objects.hash import Hash
 
 

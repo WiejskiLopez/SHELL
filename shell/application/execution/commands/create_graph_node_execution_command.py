@@ -11,6 +11,9 @@ class CreateGraphNodeExecutionCommand:
     role: str | None = None
     mode: str | None = None
     node_type: str | None = None
+    remaining_retries: int | None = None
+    retry_delay_seconds: int | None = None
+    timeout_seconds: int | None = None
 
     @classmethod
     def validate(cls) -> None:

@@ -7,14 +7,19 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
 )
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     TaskExecutionId,
 )
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
@@ -29,16 +34,39 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         ge = GraphExecution(
             id=GraphExecutionId.generate(),
             task_execution_id=TaskExecutionId.generate(),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
         )
         nodes = [
             GraphNodeExecution(
-                id=GraphNodeExecutionId("b"), position=NodeOrder(1), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("b"),
+                position=NodeOrder(1),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("a"), position=NodeOrder(0), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("a"),
+                position=NodeOrder(0),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("c"), position=NodeOrder(2), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("c"),
+                position=NodeOrder(2),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
         ]
         for n in nodes:
@@ -57,6 +85,8 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         ge = GraphExecution(
             id=GraphExecutionId.generate(),
             task_execution_id=TaskExecutionId.generate(),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
         )
         node_repo = InMemoryGraphNodeExecutionRepository()
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
@@ -68,16 +98,39 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
         ge = GraphExecution(
             id=GraphExecutionId.generate(),
             task_execution_id=TaskExecutionId.generate(),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
         )
         nodes = [
             GraphNodeExecution(
-                id=GraphNodeExecutionId("z"), position=NodeOrder(5), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("z"),
+                position=NodeOrder(5),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("y"), position=NodeOrder(3), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("y"),
+                position=NodeOrder(3),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
             GraphNodeExecution(
-                id=GraphNodeExecutionId("x"), position=NodeOrder(1), mode=Mode("agent"), role=NodeRole.AGENT, node_type=NodeType("agent"),
+                id=GraphNodeExecutionId("x"),
+                position=NodeOrder(1),
+                mode=Mode("agent"),
+                role=NodeRole.AGENT,
+                node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             ),
         ]
         for n in nodes:

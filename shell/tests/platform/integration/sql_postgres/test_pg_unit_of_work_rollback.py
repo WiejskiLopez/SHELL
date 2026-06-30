@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from shell.application.definition.queries.runner_config_get_query import (
+    RunnerConfigGetQuery as GetRunnerConfigQuery,
+)
 from shell.application.definition.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler as GetRunnerConfigHandler,
 )
-from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery as GetRunnerConfigQuery
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
 from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (

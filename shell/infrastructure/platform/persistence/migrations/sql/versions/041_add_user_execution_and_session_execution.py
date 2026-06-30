@@ -78,9 +78,7 @@ def upgrade() -> None:
 
     # ── workflow.session_execution_id ─────────────────────────────────────
     with op.batch_alter_table("workflow") as batch:
-        batch.add_column(
-            sa.Column("session_execution_id", sa.String(), nullable=True)
-        )
+        batch.add_column(sa.Column("session_execution_id", sa.String(), nullable=True))
 
 
 def downgrade() -> None:

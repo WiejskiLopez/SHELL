@@ -2,23 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-    GraphExecutionState,
-)
-from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-    GraphExecutionStateId,
-)
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
 )
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
@@ -45,7 +45,9 @@ class GraphExecutionCreatedHandler:
 
     async def handle(self, graph_execution_created_event: GraphExecutionCreatedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_created_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                graph_execution_created_event.graph_execution_id
+            )
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_created_handler.graph_execution_not_found",

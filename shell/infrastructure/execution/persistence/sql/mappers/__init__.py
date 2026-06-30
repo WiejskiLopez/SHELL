@@ -5,17 +5,27 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.aggregates.graph_node_transition_definition.graph_node_transition_definition import (
-    GraphNodeTransitionDefinition,
-)
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
 from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
     GraphNodeDefinitionId,
 )
+from shell.domain.definition.aggregates.graph_node_transition_definition.graph_node_transition_definition import (
+    GraphNodeTransitionDefinition,
+)
 from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
     GraphNodeTransitionDefinitionId,
+)
+from shell.domain.definition.value_objects.condition_language import ConditionLanguage
+from shell.domain.definition.value_objects.data_mapping import DataMapping
+from shell.domain.definition.value_objects.max_loop_count import MaxLoopCount
+from shell.domain.definition.value_objects.retry_count import RetryCount
+from shell.domain.definition.value_objects.transition_label import TransitionLabel
+from shell.domain.definition.value_objects.transition_priority import TransitionPriority
+from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+    TransitionTimeoutSeconds,
 )
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
@@ -57,20 +67,11 @@ from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
 from shell.domain.execution.value_objects.is_current import IsCurrent
-from shell.domain.execution.value_objects.max_iterations import MaxIterations
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-from shell.domain.definition.value_objects.condition_language import ConditionLanguage
-from shell.domain.definition.value_objects.data_mapping import DataMapping
-from shell.domain.definition.value_objects.max_loop_count import MaxLoopCount
-from shell.domain.definition.value_objects.retry_count import RetryCount
-from shell.domain.definition.value_objects.transition_label import TransitionLabel
-from shell.domain.definition.value_objects.transition_priority import TransitionPriority
-from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
-from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
@@ -92,6 +93,12 @@ from shell.infrastructure.execution.persistence.sql.models import (
     WorkflowModel,
     WorkflowStateModel,
 )
+from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+    GraphExecutionStateInputModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+    GraphExecutionStateOutputModel,
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
@@ -108,12 +115,6 @@ if TYPE_CHECKING:
         UserExecutionState,
     )
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
-        GraphExecutionStateInputModel,
-    )
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
-        GraphExecutionStateOutputModel,
-    )
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -158,7 +159,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
 
 
 def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution) -> None:
-    model.status = entity.status.value if hasattr(entity.status, 'value') else entity.status
+    model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
     model.name = entity.name.value
     model.work_dir = entity.work_dir.value if entity.work_dir else ""
     model.workflow_id = entity.workflow_id.value if entity.workflow_id else None
@@ -219,7 +220,12 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             else None
         ),
         depth=GraphDepth(graph_execution_model.depth),
-        initialization_status=GraphExecutionInitializationStatus(graph_execution_model.initialization_status) if graph_execution_model.initialization_status else None,
+        max_subgraph_depth=MaxSubgraphDepth(graph_execution_model.max_subgraph_depth),
+        initialization_status=GraphExecutionInitializationStatus(
+            graph_execution_model.initialization_status
+        )
+        if graph_execution_model.initialization_status
+        else None,
         graph_node_definition_execution_slots=slots,
     )
 
@@ -282,10 +288,16 @@ def graph_node_transition_definition_model_to_entity(
         target_node_definition_id=GraphNodeDefinitionId(model.target_node_definition_id),
         transition_type=EdgeType(model.transition_type.upper()),
         priority=TransitionPriority(model.priority),
-        condition_expression=ConditionExpression(model.condition_expression) if model.condition_expression else None,
-        condition_language=ConditionLanguage(model.condition_language) if model.condition_language else None,
+        condition_expression=ConditionExpression(model.condition_expression)
+        if model.condition_expression
+        else None,
+        condition_language=ConditionLanguage(model.condition_language)
+        if model.condition_language
+        else None,
         max_loop_count=MaxLoopCount(model.max_loop_count),
-        timeout_seconds=TransitionTimeoutSeconds(model.timeout_seconds) if model.timeout_seconds is not None else None,
+        timeout_seconds=TransitionTimeoutSeconds(model.timeout_seconds)
+        if model.timeout_seconds is not None
+        else None,
         retry_count=RetryCount(model.retry_count),
         retry_delay_seconds=TransitionRetryDelay(model.retry_delay_seconds),
         data_mapping=DataMapping(dict(model.data_mapping)) if model.data_mapping else None,
@@ -322,12 +334,20 @@ def graph_node_transition_definition_entity_to_model(
 
 
 def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
-    model.status = entity.status.value if hasattr(entity.status, 'value') else str(entity.status)
-    model.initialization_status = entity.initialization_status.value if hasattr(entity.initialization_status, 'value') else str(entity.initialization_status)
-    model.parent_graph_execution_id = entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
+    model.status = entity.status.value if hasattr(entity.status, "value") else str(entity.status)
+    model.initialization_status = (
+        entity.initialization_status.value
+        if hasattr(entity.initialization_status, "value")
+        else str(entity.initialization_status)
+    )
+    model.parent_graph_execution_id = (
+        entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
+    )
     model.depth = entity.depth.value
     model.graph_node_definition_executions = {
-        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+        if slot.graph_node_execution_id
+        else None
         for slot in entity.graph_node_definition_execution_slots
     }
 
@@ -348,12 +368,17 @@ def graph_execution_entity_to_model(
         ),
         initialization_status=graph_execution.initialization_status.value,
         graph_node_definition_executions={
-            slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+            slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+            if slot.graph_node_execution_id
+            else None
             for slot in graph_execution.graph_node_definition_execution_slots
         },
         state_input={},
         state_output={},
         depth=graph_execution.depth.value if graph_execution.depth else 0,
+        max_subgraph_depth=graph_execution.max_subgraph_depth.value
+        if graph_execution.max_subgraph_depth
+        else 5,
         timeout_at=None,
         correlation_id=get_correlation_id(),
         tags={},
@@ -385,9 +410,7 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
         id=work_flow.id.value,
         status=work_flow.status.value,
         session_execution_id=(
-            work_flow.session_execution_id.value
-            if work_flow.session_execution_id
-            else None
+            work_flow.session_execution_id.value if work_flow.session_execution_id else None
         ),
         session_id=work_flow.session_id.value if work_flow.session_id else None,
         created_at=work_flow.created_at.value,
@@ -395,7 +418,7 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
 
 
 def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
-    model.status = entity.status.value if hasattr(entity.status, 'value') else entity.status
+    model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
     model.session_execution_id = (
         entity.session_execution_id.value if entity.session_execution_id else None
     )
@@ -441,7 +464,9 @@ def graph_node_execution_result_entity_to_model(
 # ── GraphExecutionState ───────────────────────────────────────────────────────
 
 
-def graph_execution_state_input_model_to_entity(model: GraphExecutionStateInputModel) -> GraphExecutionState:
+def graph_execution_state_input_model_to_entity(
+    model: GraphExecutionStateInputModel,
+) -> GraphExecutionState:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
@@ -463,7 +488,9 @@ def graph_execution_state_input_model_to_entity(model: GraphExecutionStateInputM
     )
 
 
-def graph_execution_state_input_entity_to_model(entity: GraphExecutionState) -> GraphExecutionStateInputModel:
+def graph_execution_state_input_entity_to_model(
+    entity: GraphExecutionState,
+) -> GraphExecutionStateInputModel:
     return GraphExecutionStateInputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
@@ -476,7 +503,9 @@ def graph_execution_state_input_entity_to_model(entity: GraphExecutionState) -> 
 # ── GraphExecutionStateOutput ─────────────────────────────────────────────────
 
 
-def graph_execution_state_output_model_to_entity(model: GraphExecutionStateOutputModel) -> GraphExecutionState:
+def graph_execution_state_output_model_to_entity(
+    model: GraphExecutionStateOutputModel,
+) -> GraphExecutionState:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
@@ -498,7 +527,9 @@ def graph_execution_state_output_model_to_entity(model: GraphExecutionStateOutpu
     )
 
 
-def graph_execution_state_output_entity_to_model(entity: GraphExecutionState) -> GraphExecutionStateOutputModel:
+def graph_execution_state_output_entity_to_model(
+    entity: GraphExecutionState,
+) -> GraphExecutionStateOutputModel:
     return GraphExecutionStateOutputModel(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
@@ -631,7 +662,9 @@ def session_execution_update_model(model: SessionExecutionModel, entity: Session
 # ── SessionExecution State ─────────────────────────────────────────────────────
 
 
-def session_execution_state_model_to_entity(model: SessionExecutionStateModel) -> SessionExecutionState:
+def session_execution_state_model_to_entity(
+    model: SessionExecutionStateModel,
+) -> SessionExecutionState:
     from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
         SessionExecutionState,
     )
@@ -646,7 +679,9 @@ def session_execution_state_model_to_entity(model: SessionExecutionStateModel) -
     )
 
 
-def session_execution_state_entity_to_model(entity: SessionExecutionState) -> SessionExecutionStateModel:
+def session_execution_state_entity_to_model(
+    entity: SessionExecutionState,
+) -> SessionExecutionStateModel:
     return SessionExecutionStateModel(
         id=entity.id.value,
         session_execution_id=entity.session_execution_id.value,

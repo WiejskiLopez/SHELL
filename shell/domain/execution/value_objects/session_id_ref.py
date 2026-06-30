@@ -9,4 +9,5 @@ class SessionIdRef(EntityId):
     Intentionally duplicated for BC isolation.
     See shell.domain.session.aggregates.session.value_objects.session_id.SessionId
     """
+
     pass

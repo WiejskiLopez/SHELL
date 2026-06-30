@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
 if TYPE_CHECKING:
-    from shell.domain.platform.events import DomainEvent
     from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
 

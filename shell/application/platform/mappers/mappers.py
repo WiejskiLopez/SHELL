@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 from shell.application.definition.dto.runner_config import RunnerConfigDto
+from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
 from shell.application.execution.dto.workflow import WorkflowDto
@@ -48,9 +48,9 @@ def node_result_to_dto(result: GraphNodeExecutionResult) -> GraphNodeExecutionRe
         graph_node_execution_id=result.graph_node_execution_id.value,
         workflow_id=result.workflow_id.value,
         status=result.status.value,
-        stdout=result.stdout.value,
-        stderr=result.stderr.value,
-        artifact_uri=result.artifact_uri.value,
+        stdout=result.stdout.value if result.stdout else None,
+        stderr=result.stderr.value if result.stderr else None,
+        artifact_uri=result.artifact_uri.value if result.artifact_uri else None,
         created_at=result.created_at.value,
     )
 

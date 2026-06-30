@@ -23,9 +23,9 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphExecutionCreatedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
+    goal: Goal
+    depth: GraphDepth
     parent_graph_execution_id: GraphExecutionId | None = None
-    goal: Goal = Goal("")
-    depth: GraphDepth = GraphDepth(0)
 
     @classmethod
     def now(
@@ -33,9 +33,9 @@ class GraphExecutionCreatedEvent(DomainEvent):
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         now: CreatedAt,
+        goal: Goal,
+        depth: GraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        goal: Goal = Goal(""),
-        depth: GraphDepth = GraphDepth(0),
     ) -> GraphExecutionCreatedEvent:
         return cls(
             occurred_at=now,

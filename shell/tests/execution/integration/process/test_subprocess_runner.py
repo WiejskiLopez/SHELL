@@ -12,7 +12,7 @@ from shell.infrastructure.execution.process.subprocess_runner import (
 
 
 def _make_manifest(name: str, mode: str = "worker") -> Manifest:
-    return Manifest(name=name, mode=mode, role=mode, node_type="node", version="0")
+    return Manifest(name=name, mode=Mode(mode), role=mode, node_type="node", version="0")
 
 
 class TestSubprocessGraphNodeExecutionProcessRunner:

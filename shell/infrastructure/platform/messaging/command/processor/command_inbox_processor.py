@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import text
+
 from shell.infrastructure.platform.context import (
     causation_id_var,
     correlation_id_var,
@@ -10,11 +12,11 @@ from shell.infrastructure.platform.context import (
 from shell.infrastructure.platform.messaging.serialization.command_deserializer import (
     CommandDeserializer,
 )
-from sqlalchemy import text
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.command_bus import CommandBus
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.application.platform.bus.command_bus import CommandBus
 
 
 class CommandInboxProcessor:

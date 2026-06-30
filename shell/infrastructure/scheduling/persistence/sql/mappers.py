@@ -137,7 +137,9 @@ def scheduler_execution_entity_to_model(
 # ---------------------------------------------------------------------------
 
 
-def scheduler_definition_update_model(model: SchedulerDefinitionModel, entity: SchedulerDefinition) -> None:
+def scheduler_definition_update_model(
+    model: SchedulerDefinitionModel, entity: SchedulerDefinition
+) -> None:
     model.name = entity.name.value
     model.description = entity.description.value if entity.description else None
     model.source_context = entity.trigger_config.source_context

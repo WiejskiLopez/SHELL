@@ -9,4 +9,5 @@ class GraphDefinitionIdRef(EntityId):
     Intentionally duplicated for BC isolation.
     See shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id.GraphDefinitionId
     """
+
     pass

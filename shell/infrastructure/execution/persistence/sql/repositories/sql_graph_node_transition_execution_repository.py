@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -16,15 +18,14 @@ from shell.domain.execution.aggregates.graph_node_transition_execution.value_obj
     GraphNodeTransitionExecutionId,
 )
 from shell.domain.execution.value_objects.condition_language import ConditionLanguage
-from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.max_iterations import MaxIterations
 from shell.domain.execution.value_objects.transition_status import TransitionStatus
+from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +35,9 @@ class SqlGraphNodeTransitionExecutionRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, id_: GraphNodeTransitionExecutionId) -> GraphNodeTransitionExecution | None:
+    async def get_by_id(
+        self, id_: GraphNodeTransitionExecutionId
+    ) -> GraphNodeTransitionExecution | None:
         query = select(GraphNodeTransitionExecutionModel).where(
             GraphNodeTransitionExecutionModel.id == id_.value
         )
@@ -71,11 +74,17 @@ class SqlGraphNodeTransitionExecutionRepository:
             id=transition.id.value,
             graph_execution_id=transition.graph_execution_id.value,
             source_node_execution_id=transition.source_node_execution_id.value,
-            target_node_execution_id=transition.target_node_execution_id.value if transition.target_node_execution_id else "",
+            target_node_execution_id=transition.target_node_execution_id.value
+            if transition.target_node_execution_id
+            else "",
             transition_type=transition.edge_type.value,
             priority=0,
-            condition_expression=transition.condition_expression.value if transition.condition_expression else None,
-            condition_language=transition.condition_language.value if transition.condition_language else None,
+            condition_expression=transition.condition_expression.value
+            if transition.condition_expression
+            else None,
+            condition_language=transition.condition_language.value
+            if transition.condition_language
+            else None,
             max_loop_count=transition.max_iterations.value if transition.max_iterations else 0,
             status=transition.status.value,
             current_iteration=transition.current_iteration.value,
@@ -97,16 +106,28 @@ class SqlGraphNodeTransitionExecutionRepository:
         row = (await self._session.execute(query)).scalar_one_or_none()
         return row is not None
 
-    def _model_to_entity(self, model: GraphNodeTransitionExecutionModel) -> GraphNodeTransitionExecution:
+    def _model_to_entity(
+        self, model: GraphNodeTransitionExecutionModel
+    ) -> GraphNodeTransitionExecution:
         return GraphNodeTransitionExecution.restore(
             id_=GraphNodeTransitionExecutionId(model.id),
             graph_execution_id=GraphExecutionId(model.graph_execution_id),
-            source_node_execution_id=GraphNodeExecutionId(model.source_node_execution_id) if model.source_node_execution_id else GraphNodeExecutionId(""),
+            source_node_execution_id=GraphNodeExecutionId(model.source_node_execution_id)
+            if model.source_node_execution_id
+            else GraphNodeExecutionId(""),
             edge_type=EdgeType(model.transition_type.upper()),
-            target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id) if model.target_node_execution_id else None,
-            condition_expression=ConditionExpression(model.condition_expression) if model.condition_expression else None,
-            condition_language=ConditionLanguage(model.condition_language) if model.condition_language else None,
+            target_node_execution_id=GraphNodeExecutionId(model.target_node_execution_id)
+            if model.target_node_execution_id
+            else None,
+            condition_expression=ConditionExpression(model.condition_expression)
+            if model.condition_expression
+            else None,
+            condition_language=ConditionLanguage(model.condition_language)
+            if model.condition_language
+            else None,
             max_iterations=MaxIterations(model.max_loop_count),
             status=TransitionStatus(model.status) if model.status else None,
-            current_iteration=CurrentIteration(model.current_iteration) if model.current_iteration else None,
+            current_iteration=CurrentIteration(model.current_iteration)
+            if model.current_iteration
+            else None,
         )

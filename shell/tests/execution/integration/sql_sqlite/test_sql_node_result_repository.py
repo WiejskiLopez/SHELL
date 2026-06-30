@@ -7,36 +7,46 @@ from typing import TYPE_CHECKING
 from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
     GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
-from shell.application.execution.queries.graph_node_execution_get_result_query import GraphNodeExecutionGetResultQuery
-from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import GraphNodeExecutionGetResultHandler
+from shell.application.execution.commands.graph_node_execution_commands import (
+    SaveGraphNodeExecutionResultCommand,
+)
+from shell.application.execution.queries.graph_node_execution_get_result_query import (
+    GraphNodeExecutionGetResultQuery,
+)
+from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
+    GraphNodeExecutionGetResultHandler,
+)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
 from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
 from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
-)
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
-    WorkflowRepository,
-)
-from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-)
-from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
-    FakeEventPublisher,  # noqa: TC002 — FakeEventPublisher używany w sygnaturach fixture'ów pytest
-    FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.infrastructure.platform.persistence import (
+        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
+    from shell.infrastructure.platform.persistence.memory import (
+        FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
+        FakeEventPublisher,  # noqa: TC002 — FakeEventPublisher używany w sygnaturach fixture'ów pytest
+        FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
+    )
 
 
 class TestSqlNodeResultRepository:
@@ -61,6 +71,9 @@ class TestSqlNodeResultRepository:
                 mode=Mode.WORKER,
                 role=NodeRole.AGENT,
                 node_type=NodeType("worker"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             )
             await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
 

@@ -131,7 +131,7 @@ class TestMessage:
 
     def test_restore_preserves_all_fields(self) -> None:
         now = datetime.now(tz=UTC)
-        later = datetime.now(tz=UTC)
+        datetime.now(tz=UTC)
         msg_id = MessageId.generate()
 
         original = Message.new(

@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from shell.application.platform.context import (
     reset_correlation_id,
     set_correlation_id,
 )
-from starlette.middleware.base import BaseHTTPMiddleware
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable

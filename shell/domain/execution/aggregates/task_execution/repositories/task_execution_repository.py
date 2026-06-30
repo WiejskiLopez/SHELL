@@ -8,8 +8,8 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class TaskExecutionRepository(Protocol):
@@ -22,4 +22,3 @@ class TaskExecutionRepository(Protocol):
     async def list_current(self) -> list[TaskExecution]: ...
     async def delete(self, id: TaskExecutionId) -> None: ...
     async def exists(self, id: TaskExecutionId) -> ExistsResult: ...
-    

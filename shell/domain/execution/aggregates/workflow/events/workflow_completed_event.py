@@ -34,7 +34,10 @@ class WorkflowCompletedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, workflow_id: WorkflowId, now: CreatedAt, task_execution_id: TaskExecutionId | None = None
+        cls,
+        workflow_id: WorkflowId,
+        now: CreatedAt,
+        task_execution_id: TaskExecutionId | None = None,
     ) -> WorkflowCompletedEvent:
         return cls(
             occurred_at=now,

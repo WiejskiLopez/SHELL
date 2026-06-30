@@ -3,12 +3,12 @@ from __future__ import annotations
 from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -20,10 +20,10 @@ from shell.tests.conftest_helpers import (
 class TestGraphNodeExecutionWorkerIdempotency:
     async def test_terminal_workflow_ignores_event(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "terminal", ["agent"])
-        wf = await _persist_running_workflow(
-            unit_of_work, task_execution.id, _nodes[0].id
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "terminal", ["agent"]
         )
+        wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         wf.finish(now=_NOW)
         async with unit_of_work:
@@ -35,10 +35,9 @@ class TestGraphNodeExecutionWorkerIdempotency:
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
-                wf.id, _nodes[0].id,                 now=CreatedAt.from_datetime(_NOW)
+                wf.id, _nodes[0].id, now=CreatedAt.from_datetime(_NOW)
             )
         )
 
         assert runner.calls == []
         assert unit_of_work.committed_events == []
-

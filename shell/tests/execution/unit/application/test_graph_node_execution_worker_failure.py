@@ -5,12 +5,12 @@ from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -22,17 +22,17 @@ from shell.tests.conftest_helpers import (
 class TestGraphNodeExecutionWorkerFailure:
     async def test_node_failure_records_failed_and_does_not_abort(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "fail", ["agent", "tool"])
-        wf = await _persist_running_workflow(
-            unit_of_work, task_execution.id, _nodes[0].id
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "fail", ["agent", "tool"]
         )
+        wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         runner = FakeGraphNodeExecutionProcessRunner(returncode=1, stderr="boom")
         worker = _make_worker(unit_of_work, runner)
 
         await worker.handle(
             GraphNodeExecutionRequestedEvent.now(
-                wf.id, _nodes[0].id,                 now=CreatedAt.from_datetime(_NOW)
+                wf.id, _nodes[0].id, now=CreatedAt.from_datetime(_NOW)
             )
         )
 
@@ -42,5 +42,3 @@ class TestGraphNodeExecutionWorkerFailure:
 
         types = [type(e) for e in unit_of_work.committed_events]
         assert GraphNodeExecutionFailedEvent in types
-
-

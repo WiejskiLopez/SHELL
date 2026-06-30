@@ -5,12 +5,6 @@ from typing import TYPE_CHECKING, Any, Self
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
-)
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_initialization_status import (
@@ -20,15 +14,22 @@ from shell.domain.execution.value_objects.graph_execution_status import GraphExe
 from shell.domain.execution.value_objects.graph_node_definition_execution_slot import (
     GraphNodeDefinitionExecutionSlot,
 )
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.reason import Reason
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from datetime import datetime
+
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
+    from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+    from shell.domain.execution.value_objects.reason import Reason
 
 
 class GraphExecution(AggregateRoot[GraphExecutionId]):
@@ -47,9 +48,9 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self,
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
+        depth: GraphDepth,
+        max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        depth: GraphDepth = GraphDepth(0),
-        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
         graph_definition_id: GraphDefinitionIdRef | None = None,
         initialization_status: GraphExecutionInitializationStatus | None = None,
         graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
@@ -60,18 +61,30 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self._depth = depth
         self._max_subgraph_depth = max_subgraph_depth
         self._execution_status = GraphExecutionStatus.PENDING
-        self._graph_definition_id = graph_definition_id if graph_definition_id is not None else GraphDefinitionIdRef.generate()
-        self._graph_node_definition_execution_slots = graph_node_definition_execution_slots if graph_node_definition_execution_slots is not None else []
-        self._initialization_status = initialization_status if initialization_status is not None else GraphExecutionInitializationStatus.PENDING
+        self._graph_definition_id = (
+            graph_definition_id
+            if graph_definition_id is not None
+            else GraphDefinitionIdRef.generate()
+        )
+        self._graph_node_definition_execution_slots = (
+            graph_node_definition_execution_slots
+            if graph_node_definition_execution_slots is not None
+            else []
+        )
+        self._initialization_status = (
+            initialization_status
+            if initialization_status is not None
+            else GraphExecutionInitializationStatus.PENDING
+        )
 
     @classmethod
     def restore(
         cls,
         id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
+        depth: GraphDepth,
+        max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
-        depth: GraphDepth = GraphDepth(0),
-        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
         graph_definition_id: GraphDefinitionIdRef | None = None,
         initialization_status: GraphExecutionInitializationStatus | None = None,
         graph_node_definition_execution_slots: list[GraphNodeDefinitionExecutionSlot] | None = None,
@@ -98,7 +111,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         graph_node_definition_ids: list[GraphNodeDefinitionId],
         now: datetime,
     ) -> GraphExecution:
-        instance = cls(id=id_, task_execution_id=task_execution_id)
+        instance = cls(
+            id=id_,
+            task_execution_id=task_execution_id,
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
+        )
         instance._graph_definition_id = graph_definition_id
         instance._graph_node_definition_execution_slots = [
             GraphNodeDefinitionExecutionSlot(
@@ -151,9 +169,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
                 new_slots.append(slot)
 
         if not found:
-            raise UnknownNodeDefinitionError(
-                f"Node definition {node_definition_id} not found"
-            )
+            raise UnknownNodeDefinitionError(f"Node definition {node_definition_id} not found")
 
         self._graph_node_definition_execution_slots = new_slots
 
@@ -255,7 +271,9 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             GraphExecutionCompletedEvent,
         )
 
-        actual_result = StateData(verifier_result) if isinstance(verifier_result, dict) else verifier_result
+        actual_result = (
+            StateData(verifier_result) if isinstance(verifier_result, dict) else verifier_result
+        )
         self.append_event(
             GraphExecutionCompletedEvent.now(
                 graph_execution_id=self._id,
@@ -271,9 +289,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             GraphExecutionStatus.VERIFYING,
             GraphExecutionStatus.SUSPENDED,
         ):
-            raise InvalidGraphStateError(
-                f"Cannot fail graph in status {self._execution_status}"
-            )
+            raise InvalidGraphStateError(f"Cannot fail graph in status {self._execution_status}")
         self._execution_status = GraphExecutionStatus.FAILED
         from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
             GraphExecutionFailedEvent,
@@ -296,16 +312,12 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     def suspend(self, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.EXECUTING:
-            raise InvalidGraphStateError(
-                f"Cannot suspend graph in status {self._execution_status}"
-            )
+            raise InvalidGraphStateError(f"Cannot suspend graph in status {self._execution_status}")
         self._execution_status = GraphExecutionStatus.SUSPENDED
 
     def resume(self, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.SUSPENDED:
-            raise InvalidGraphStateError(
-                f"Cannot resume graph in status {self._execution_status}"
-            )
+            raise InvalidGraphStateError(f"Cannot resume graph in status {self._execution_status}")
         self._execution_status = GraphExecutionStatus.EXECUTING
 
     # --- Factory methods ---
@@ -315,8 +327,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         cls,
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        depth: GraphDepth = GraphDepth(0),
-        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
+        depth: GraphDepth,
+        max_subgraph_depth: MaxSubgraphDepth,
     ) -> GraphExecution:
         instance = cls(
             id=id_,
@@ -334,7 +346,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         task_execution_id: TaskExecutionId,
         parent_id: GraphExecutionId,
         parent_depth: GraphDepth,
-        max_subgraph_depth: MaxSubgraphDepth = MaxSubgraphDepth(5),
+        max_subgraph_depth: MaxSubgraphDepth,
     ) -> GraphExecution:
         depth_val = GraphDepth(parent_depth.value + 1)
         if depth_val.value > max_subgraph_depth.value:

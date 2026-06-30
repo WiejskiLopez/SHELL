@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+
 from shell.application.session.dto.session import SessionDto
 from shell.infrastructure.execution.http.session_query_service_http_adapter import (
     SessionQueryServiceHttpAdapter,
 )
-
-if TYPE_CHECKING:
-    import httpx
 
 
 class TestSessionQueryServiceHttpAdapter:
@@ -43,7 +40,9 @@ class TestSessionQueryServiceHttpAdapter:
             "opened_at": "2024-01-01T00:00:00",
             "closed_at": None,
         }
-        mock_client.get = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value=response_data)))
+        mock_client.get = AsyncMock(
+            return_value=Mock(status_code=200, json=Mock(return_value=response_data))
+        )
         result = await adapter.get_session_history("session-1")
         assert isinstance(result, SessionDto)
         assert result.id == "session-1"
@@ -63,7 +62,9 @@ class TestSessionQueryServiceHttpAdapter:
             "opened_at": "2024-01-01T00:00:00",
             "closed_at": "2024-01-02T00:00:00",
         }
-        mock_client.get = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value=response_data)))
+        mock_client.get = AsyncMock(
+            return_value=Mock(status_code=200, json=Mock(return_value=response_data))
+        )
         result = await adapter.get_session_history("session-2")
         assert isinstance(result, SessionDto)
         assert result.closed_at is not None
@@ -73,6 +74,10 @@ class TestSessionQueryServiceHttpAdapter:
         adapter: SessionQueryServiceHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
-        mock_client.get = AsyncMock(return_value=Mock(status_code=500, raise_for_status=Mock(side_effect=Exception("Server error"))))
+        mock_client.get = AsyncMock(
+            return_value=Mock(
+                status_code=500, raise_for_status=Mock(side_effect=Exception("Server error"))
+            )
+        )
         with pytest.raises(Exception, match="Server error"):
             await adapter.get_session_history("session-1")

@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell.process.execution.graph_execution_saga.state import (
+        GraphExecutionSagaState,
+    )
 
 import pytest
-from shell.process.execution.graph_execution_saga.state import (
-    GraphExecutionSagaState,
-)
 
 
 class InMemoryGraphExecutionSagaRepository:
@@ -19,7 +22,8 @@ class InMemoryGraphExecutionSagaRepository:
         self._store[saga.graph_execution_id] = saga
 
     async def get_by_graph_execution_id(
-        self, graph_execution_id: str,
+        self,
+        graph_execution_id: str,
     ) -> GraphExecutionSagaState | None:
         return self._store.get(graph_execution_id)
 

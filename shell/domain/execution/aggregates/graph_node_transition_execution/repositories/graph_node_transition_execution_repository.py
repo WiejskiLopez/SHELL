@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,
-)
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
-from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
-    GraphNodeTransitionExecution,
-)
-from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
-    GraphNodeTransitionExecutionId,
-)
-from shell.domain.platform.value_objects.exists_result import ExistsResult
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
+        GraphNodeTransitionExecution,
+    )
+    from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
+        GraphNodeTransitionExecutionId,
+    )
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class GraphNodeTransitionExecutionRepository(Protocol):
@@ -33,6 +34,4 @@ class GraphNodeTransitionExecutionRepository(Protocol):
         self, node_id: GraphNodeExecutionId
     ) -> list[GraphNodeTransitionExecution]: ...
 
-    async def save(
-        self, transition: GraphNodeTransitionExecution
-    ) -> None: ...
+    async def save(self, transition: GraphNodeTransitionExecution) -> None: ...

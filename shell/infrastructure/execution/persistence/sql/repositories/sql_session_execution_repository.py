@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.session_execution.repositories.session_execution_repository import (
     SessionExecutionRepository,
-)
-from shell.domain.execution.value_objects.ids import (
-    SessionExecutionId,
-    UserExecutionId,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.persistence.sql.mappers import (
@@ -15,13 +13,17 @@ from shell.infrastructure.execution.persistence.sql.mappers import (
     session_execution_model_to_entity,
     session_execution_update_model,
 )
-from sqlalchemy import select
 
 from ..models import SessionExecutionModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session_execution import SessionExecution
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.session_execution import SessionExecution
+    from shell.domain.execution.value_objects.ids import (
+        SessionExecutionId,
+        UserExecutionId,
+    )
 
 
 class SqlSessionExecutionRepository(SessionExecutionRepository):

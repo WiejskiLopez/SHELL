@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from shell.domain.platform.value_objects.aggregate_id import AggregateId
 from shell.domain.platform.value_objects.aggregate_type import AggregateType
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.event_id import EventId
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
+
+if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

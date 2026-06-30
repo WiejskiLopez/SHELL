@@ -10,5 +10,5 @@ class GraphNodeExecutionDto:
     mode: str
     role: str
     node_type: str
-    model: str
-    command: str
+    model: str | None = None
+    command: str | None = None

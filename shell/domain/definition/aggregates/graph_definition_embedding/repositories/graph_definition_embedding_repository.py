@@ -15,10 +15,13 @@ if TYPE_CHECKING:
 
 
 class GraphDefinitionEmbeddingRepository(Protocol):
-    async def get_by_id(self, id: GraphDefinitionEmbeddingId) -> GraphDefinitionEmbedding | None: ...
+    async def get_by_id(
+        self, id: GraphDefinitionEmbeddingId
+    ) -> GraphDefinitionEmbedding | None: ...
 
     async def get_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> GraphDefinitionEmbedding | None: ...
 
     async def save(self, embedding: GraphDefinitionEmbedding) -> None: ...

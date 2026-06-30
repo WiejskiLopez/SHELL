@@ -5,12 +5,9 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.value_objects.environment import Environment
-from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
-from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -21,7 +18,12 @@ from shell.domain.session.aggregates.session.exceptions.invalid_session_transiti
     InvalidSessionTransition,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
+
+if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 
 class Session(AggregateRoot[SessionId]):
@@ -159,9 +161,7 @@ class Session(AggregateRoot[SessionId]):
 
     def close(self, now: UpdatedAt) -> None:
         if self._status != SessionStatus.OPEN:
-            raise InvalidSessionTransition(
-                f"Cannot close session in status {self._status!r}"
-            )
+            raise InvalidSessionTransition(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
         self._closed_at = now
         self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))

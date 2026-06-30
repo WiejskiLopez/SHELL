@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+
 from shell.infrastructure.definition.persistence.sql.services import (
     RagQueryService,
     RunnerConfigQueryService,
@@ -18,7 +19,6 @@ from shell.infrastructure.execution.http.graph_execution_definition_provider_htt
 from shell.infrastructure.execution.http.session_query_service_http_adapter import (
     SessionQueryServiceHttpAdapter,
 )
-from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
     SqlGraphExecutionSagaRepository,
 )
@@ -31,6 +31,7 @@ from shell.infrastructure.execution.persistence.sql.services import (
 from shell.infrastructure.execution.process.subprocess_runner import (
     SubprocessGraphNodeExecutionProcessRunner,
 )
+from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
@@ -115,11 +116,13 @@ class InfrastructureContainer(containers.DeclarativeContainer):
 
     # 6. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
 
-
     # 7. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
     graph_execution_saga_repository_factory = providers.Factory(
         SqlGraphExecutionSagaRepository,
-        session=providers.Factory(lambda: session_factory()()),  # type: ignore[name-defined]
+        session=providers.Factory(
+            lambda sf: sf(),
+            sf=session_factory,
+        ),
     )
     sql_command_outbox_publisher_factory = providers.Singleton(
         SqlCommandOutboxPublisher,

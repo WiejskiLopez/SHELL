@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
+from typing import TYPE_CHECKING
+
 from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
     GraphNodeExecutionResultId,
 )
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
-from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
-from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
 from shell.domain.platform.base.entity import Entity
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.status import Status
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+    from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+    from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.status import Status
 
 
 class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
@@ -32,10 +36,10 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         graph_node_execution_id: GraphNodeExecutionId,
         workflow_id: WorkflowId,
         status: Status,
-        stdout: ExecutionStdout,
-        stderr: ExecutionStderr,
-        artifact_uri: ArtifactUri,
         created_at: CreatedAt,
+        stdout: ExecutionStdout | None = None,
+        stderr: ExecutionStderr | None = None,
+        artifact_uri: ArtifactUri | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_node_execution_id = graph_node_execution_id
@@ -59,15 +63,15 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         return self._status
 
     @property
-    def stdout(self) -> ExecutionStdout:
+    def stdout(self) -> ExecutionStdout | None:
         return self._stdout
 
     @property
-    def stderr(self) -> ExecutionStderr:
+    def stderr(self) -> ExecutionStderr | None:
         return self._stderr
 
     @property
-    def artifact_uri(self) -> ArtifactUri:
+    def artifact_uri(self) -> ArtifactUri | None:
         return self._artifact_uri
 
     @property
@@ -82,9 +86,9 @@ class GraphNodeExecutionResult(Entity[GraphNodeExecutionResultId]):
         graph_node_execution_id: GraphNodeExecutionId,
         workflow_id: WorkflowId,
         status: Status,
-        stdout: ExecutionStdout = ExecutionStdout(""),
-        stderr: ExecutionStderr = ExecutionStderr(""),
-        artifact_uri: ArtifactUri = ArtifactUri(""),
+        stdout: ExecutionStdout | None = None,
+        stderr: ExecutionStderr | None = None,
+        artifact_uri: ArtifactUri | None = None,
         now: CreatedAt,
     ) -> GraphNodeExecutionResult:
         return cls(

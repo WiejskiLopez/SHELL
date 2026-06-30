@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
+
 from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.domain.platform.exceptions import DomainError
 from shell.framework.definition.api.routers import definitions as definitions_router
@@ -14,11 +15,11 @@ from shell.framework.execution.api.routers import (
     task_executions,
     workflows,
 )
+from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
+from shell.framework.platform.api.middleware.error_handler import domain_error_handler
 from shell.framework.projekt.api.routers import projects as projects_router
 from shell.framework.session.api.routers import sessions as sessions_router
 from shell.framework.user.api.routers import users as users_router
-from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
-from shell.framework.platform.api.middleware.error_handler import domain_error_handler
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator

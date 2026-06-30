@@ -11,28 +11,32 @@ from shell.application.execution.command_handlers.workflow_start_handler import 
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
 from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
-from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
+    WorkflowGetByIdHandler,
+)
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.platform.value_objects.mode import Mode
-from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-)
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
+from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -43,6 +47,10 @@ from shell.infrastructure.platform.persistence.memory import (
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.infrastructure.platform.persistence import (
+        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
 
 
 class TestSqlWorkflowRepository:
@@ -69,6 +77,8 @@ class TestSqlWorkflowRepository:
             graph_execution = GraphExecution(
                 id=GraphExecutionId.generate(),
                 task_execution_id=task_execution.id,
+                depth=GraphDepth(0),
+                max_subgraph_depth=MaxSubgraphDepth(5),
             )
             node = GraphNodeExecution(
                 id=GraphNodeExecutionId("wf-task-node-0"),
@@ -76,6 +86,9 @@ class TestSqlWorkflowRepository:
                 mode=Mode("agent"),
                 role=NodeRole.AGENT,
                 node_type=NodeType("agent"),
+                remaining_retries=RemainingRetries(3),
+                retry_delay_seconds=RetryDelaySeconds(5),
+                timeout_seconds=TimeoutSeconds(60),
             )
             node._graph_execution_id = graph_execution.id
             await u.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]

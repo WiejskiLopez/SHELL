@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.application.definition.dto.runner_config import RunnerConfigDto
 from shell.infrastructure.definition.persistence.sql.models import RunnerConfigModel
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

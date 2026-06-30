@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.exists_result import ExistsResult

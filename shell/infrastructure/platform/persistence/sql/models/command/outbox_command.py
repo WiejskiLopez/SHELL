@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime  # noqa: TC003 — needed by SQLAlchemy declarative at runtime
+
+from sqlalchemy.orm import Mapped, mapped_column
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
-from sqlalchemy.orm import Mapped, mapped_column
 
 
 class OutboxCommandModel(Base):

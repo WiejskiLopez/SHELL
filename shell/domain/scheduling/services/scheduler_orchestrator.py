@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.reason import Reason
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.timestamp import Timestamp
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
@@ -21,6 +20,7 @@ from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEven
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
+    from shell.domain.platform.value_objects.timestamp import Timestamp
     from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
     )
@@ -91,5 +91,7 @@ class SchedulerOrchestrator:
         if error:
             execution.fail(error=ErrorDescription(error), now=now)
         else:
-            execution.complete(output_state=StateData(output_state) if output_state else None, now=now)
+            execution.complete(
+                output_state=StateData(output_state) if output_state else None, now=now
+            )
         return execution.pull_events()

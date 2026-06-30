@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.projekt.aggregates.project.events.project_activated_event import (
     ProjectActivatedEvent,
 )
@@ -13,7 +14,6 @@ from shell.domain.projekt.aggregates.project.exceptions.invalid_project_transiti
     InvalidProjectTransition,
 )
 from shell.domain.projekt.value_objects.project_id import ProjectId
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.projekt.value_objects.project_status import ProjectStatus
 
 if TYPE_CHECKING:
@@ -114,16 +114,12 @@ class Project(AggregateRoot[ProjectId]):
 
     def archive(self, now: datetime) -> None:
         if self._status != ProjectStatus.ACTIVE:
-            raise InvalidProjectTransition(
-                f"Cannot archive project in status {self._status!r}"
-            )
+            raise InvalidProjectTransition(f"Cannot archive project in status {self._status!r}")
         self._status = ProjectStatus.ARCHIVED
         self.append_event(ProjectArchivedEvent.now(self._id, now=CreatedAt.from_datetime(now)))
 
     def activate(self, now: datetime) -> None:
         if self._status != ProjectStatus.ARCHIVED:
-            raise InvalidProjectTransition(
-                f"Cannot activate project in status {self._status!r}"
-            )
+            raise InvalidProjectTransition(f"Cannot activate project in status {self._status!r}")
         self._status = ProjectStatus.ACTIVE
         self.append_event(ProjectActivatedEvent.now(self._id, now=CreatedAt.from_datetime(now)))

@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
-from shell.process.execution.graph_execution_saga.ports.graph_execution_saga_repository import (
-    GraphExecutionSagaRepository,
-)
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaState,
     GraphExecutionSagaStatus,
 )
+
+if TYPE_CHECKING:
+    from shell.process.execution.graph_execution_saga.ports.graph_execution_saga_repository import (
+        GraphExecutionSagaRepository,
+    )
 
 
 class GraphExecutionSaga:

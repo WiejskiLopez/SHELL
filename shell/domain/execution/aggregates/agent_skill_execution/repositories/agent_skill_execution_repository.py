@@ -1,17 +1,18 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
-    AgentExecutionId,
-)
-from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
-    AgentSkillExecution,
-)
-from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
-    AgentSkillExecutionId,
-)
-from shell.domain.platform.value_objects.exists_result import ExistsResult
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+        AgentExecutionId,
+    )
+    from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
+        AgentSkillExecution,
+    )
+    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
+        AgentSkillExecutionId,
+    )
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class AgentSkillExecutionRepository(Protocol):

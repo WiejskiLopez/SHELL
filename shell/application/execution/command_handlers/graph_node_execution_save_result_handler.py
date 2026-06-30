@@ -4,26 +4,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution_state import GraphNodeExecutionState
-from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
-    GraphNodeExecutionStateId,
-)
-from shell.domain.execution.exceptions import WorkflowNotFound
-from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
+from shell.domain.execution.aggregates.graph_node_execution_state import GraphNodeExecutionState
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+    GraphNodeExecutionStateId,
 )
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
+from shell.domain.execution.exceptions import WorkflowNotFound
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.status import Status
 
 if TYPE_CHECKING:
-    from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
+    from shell.application.execution.commands.graph_node_execution_commands import (
+        SaveGraphNodeExecutionResultCommand,
+    )
     from shell.application.platform.ports.ports import Clock, IdGenerator, UnitOfWork
 
 
@@ -38,8 +40,12 @@ class GraphNodeExecutionSaveResultHandler:
         self._clock = clock
         self._id_generator = id_generator
 
-    async def handle(self, save_graph_node_execution_result_command: SaveGraphNodeExecutionResultCommand) -> str:
-        graph_node_execution_id = GraphNodeExecutionId(save_graph_node_execution_result_command.graph_node_execution_id)
+    async def handle(
+        self, save_graph_node_execution_result_command: SaveGraphNodeExecutionResultCommand
+    ) -> str:
+        graph_node_execution_id = GraphNodeExecutionId(
+            save_graph_node_execution_result_command.graph_node_execution_id
+        )
         workflow_id = WorkflowId(save_graph_node_execution_result_command.workflow_id)
         status = Status(save_graph_node_execution_result_command.status)
         now = self._clock.now()
@@ -49,7 +55,9 @@ class GraphNodeExecutionSaveResultHandler:
             if workflow is None:
                 raise WorkflowNotFound(save_graph_node_execution_result_command.workflow_id)
 
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
+                graph_node_execution_id
+            )
             if node is not None:
                 result_id = GraphNodeExecutionStateId.generate()
                 state = GraphNodeExecutionState.create(

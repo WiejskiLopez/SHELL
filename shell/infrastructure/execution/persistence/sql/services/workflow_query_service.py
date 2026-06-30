@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.application.execution.dto.workflow import WorkflowDto
 from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker

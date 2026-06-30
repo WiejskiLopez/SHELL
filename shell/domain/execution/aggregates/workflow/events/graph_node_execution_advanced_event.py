@@ -29,7 +29,9 @@ class GraphNodeExecutionAdvancedEvent(DomainEvent):
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
             workflow_id=WorkflowId(payload["workflow_id"]),
-            from_graph_node_execution_id=GraphNodeExecutionId(payload["from_graph_node_execution_id"]),
+            from_graph_node_execution_id=GraphNodeExecutionId(
+                payload["from_graph_node_execution_id"]
+            ),
             to_graph_node_execution_id=GraphNodeExecutionId(payload["to_graph_node_execution_id"]),
         )
 

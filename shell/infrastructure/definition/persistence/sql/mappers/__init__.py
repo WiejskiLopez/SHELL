@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
 from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
     GraphNodeDefinition,
+)
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+    GraphNodeDefinitionId as _AggGraphNodeDefinitionId,
 )
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.runner_config import RunnerConfig
@@ -14,12 +18,6 @@ from shell.domain.definition.value_objects.autopilot import Autopilot
 from shell.domain.definition.value_objects.command_text import CommandText
 from shell.domain.definition.value_objects.domain_tag import DomainTag
 from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-    GraphDefinitionId,
-)
-from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-    GraphNodeDefinitionId as _AggGraphNodeDefinitionId,
-)
 from shell.domain.definition.value_objects.ids import (
     GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
@@ -45,7 +43,9 @@ from shell.domain.definition.value_objects.script_type_name import ScriptTypeNam
 from shell.domain.definition.value_objects.source_uri import SourceUri
 from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.definition.value_objects.title import Title
-from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+    TransitionTimeoutSeconds,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
@@ -56,7 +56,6 @@ from shell.infrastructure.definition.persistence.sql.models import (
     RagDocumentModel,
     RunnerConfigModel,
 )
-
 
 # ---------------------------------------------------------------------------
 # RunnerConfig
@@ -105,7 +104,9 @@ def graph_definition_model_to_entity(
         id=GraphDefinitionId(graph_definition_model.id),
         name=GraphName(graph_definition_model.name),
         purpose=Purpose(graph_definition_model.purpose),
-        system_role=SystemRole(graph_definition_model.system_role) if graph_definition_model.system_role is not None else None,
+        system_role=SystemRole(graph_definition_model.system_role)
+        if graph_definition_model.system_role is not None
+        else None,
         graph_node_definition_ids=[
             GraphNodeDefinitionId(node.id)
             for node in (graph_definition_model.graph_node_execution_models or [])
@@ -124,7 +125,9 @@ def graph_definition_entity_to_model(
         id=str(graph_definition.id.value),
         name=str(graph_definition.name.value),
         purpose=str(graph_definition.purpose.value),
-        system_role=str(graph_definition.system_role.value) if graph_definition.system_role is not None else None,
+        system_role=str(graph_definition.system_role.value)
+        if graph_definition.system_role is not None
+        else None,
     )
     return graph_definition_model
 
@@ -145,17 +148,29 @@ def graph_node_definition_model_to_entity(
         mode=Mode(str(graph_node_definition_model.mode)),
         role=NodeRoleName(graph_node_definition_model.role),
         node_type=NodeTypeName(graph_node_definition_model.node_type),
-        model=ModelName(graph_node_definition_model.model) if graph_node_definition_model.model is not None else None,
+        model=ModelName(graph_node_definition_model.model)
+        if graph_node_definition_model.model is not None
+        else None,
         command=CommandText(graph_node_definition_model.command),
         timeout=TransitionTimeoutSeconds(graph_node_definition_model.timeout),
         retries=RetryCount(graph_node_definition_model.retries),
         log_level=LogLevel(graph_node_definition_model.log_level),
-        max_step=MaxStep(graph_node_definition_model.max_step) if graph_node_definition_model.max_step is not None else None,
-        no_ask_user=NoAskUser(bool(graph_node_definition_model.no_ask_user)) if graph_node_definition_model.no_ask_user is not None else None,
-        autopilot=Autopilot(bool(graph_node_definition_model.autopilot)) if graph_node_definition_model.autopilot is not None else None,
+        max_step=MaxStep(graph_node_definition_model.max_step)
+        if graph_node_definition_model.max_step is not None
+        else None,
+        no_ask_user=NoAskUser(bool(graph_node_definition_model.no_ask_user))
+        if graph_node_definition_model.no_ask_user is not None
+        else None,
+        autopilot=Autopilot(bool(graph_node_definition_model.autopilot))
+        if graph_node_definition_model.autopilot is not None
+        else None,
         status_initial=InitialStatus(graph_node_definition_model.status_initial),
-        script=ScriptText(graph_node_definition_model.script) if graph_node_definition_model.script is not None else None,
-        script_type=ScriptTypeName(graph_node_definition_model.script_type) if graph_node_definition_model.script_type is not None else None,
+        script=ScriptText(graph_node_definition_model.script)
+        if graph_node_definition_model.script is not None
+        else None,
+        script_type=ScriptTypeName(graph_node_definition_model.script_type)
+        if graph_node_definition_model.script_type is not None
+        else None,
     )
 
 
@@ -170,28 +185,56 @@ def graph_node_definition_entity_to_model(
         mode=graph_node_definition.mode.value,
         role=graph_node_definition.role.value,
         node_type=graph_node_definition.node_type.value,
-        model=graph_node_definition.model.value if graph_node_definition.model is not None else None,
-        command=graph_node_definition.command.value if graph_node_definition.command is not None else "",
-        timeout=graph_node_definition.timeout.value if graph_node_definition.timeout is not None else 0,
-        retries=graph_node_definition.retries.value if graph_node_definition.retries is not None else 0,
-        log_level=graph_node_definition.log_level.value if graph_node_definition.log_level is not None else "",
-        max_step=graph_node_definition.max_step.value if graph_node_definition.max_step is not None else None,
-        no_ask_user=graph_node_definition.no_ask_user.value if graph_node_definition.no_ask_user is not None else None,
-        autopilot=graph_node_definition.autopilot.value if graph_node_definition.autopilot is not None else None,
-        status_initial=graph_node_definition.status_initial.value if graph_node_definition.status_initial is not None else "",
-        script=graph_node_definition.script.value if graph_node_definition.script is not None else None,
-        script_type=graph_node_definition.script_type.value if graph_node_definition.script_type is not None else None,
+        model=graph_node_definition.model.value
+        if graph_node_definition.model is not None
+        else None,
+        command=graph_node_definition.command.value
+        if graph_node_definition.command is not None
+        else "",
+        timeout=graph_node_definition.timeout.value
+        if graph_node_definition.timeout is not None
+        else 0,
+        retries=graph_node_definition.retries.value
+        if graph_node_definition.retries is not None
+        else 0,
+        log_level=graph_node_definition.log_level.value
+        if graph_node_definition.log_level is not None
+        else "",
+        max_step=graph_node_definition.max_step.value
+        if graph_node_definition.max_step is not None
+        else None,
+        no_ask_user=graph_node_definition.no_ask_user.value
+        if graph_node_definition.no_ask_user is not None
+        else None,
+        autopilot=graph_node_definition.autopilot.value
+        if graph_node_definition.autopilot is not None
+        else None,
+        status_initial=graph_node_definition.status_initial.value
+        if graph_node_definition.status_initial is not None
+        else "",
+        script=graph_node_definition.script.value
+        if graph_node_definition.script is not None
+        else None,
+        script_type=graph_node_definition.script_type.value
+        if graph_node_definition.script_type is not None
+        else None,
     )
 
 
-def graph_node_definition_update_model(model: GraphNodeDefinitionModel, entity: GraphNodeDefinition) -> None:
+def graph_node_definition_update_model(
+    model: GraphNodeDefinitionModel, entity: GraphNodeDefinition
+) -> None:
     model.position = entity.position.value
     model.mode = entity.mode.value
     model.role = entity.role.value
     model.node_type = entity.node_type.value
     model.model = entity.model.value if entity.model is not None else None
     model.command = entity.command.value if entity.command is not None else ""
-    model.timeout = entity.timeout.value if entity.timeout is not None and entity.timeout.value is not None else 0
+    model.timeout = (
+        entity.timeout.value
+        if entity.timeout is not None and entity.timeout.value is not None
+        else 0
+    )
     model.retries = entity.retries.value if entity.retries is not None else 0
     model.log_level = entity.log_level.value if entity.log_level is not None else ""
     model.max_step = entity.max_step.value if entity.max_step is not None else None

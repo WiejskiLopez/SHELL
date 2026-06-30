@@ -5,11 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from shell.domain.platform.value_objects.created_at import CreatedAt
+
+from shell.application.definition.exceptions.graph_definition_not_found_exception import (
+    GraphDefinitionNotFoundException,
+)
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created_event_handler import (
     BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
 )
-from shell.application.definition.exceptions.graph_definition_not_found_exception import GraphDefinitionNotFoundException
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
@@ -24,9 +26,6 @@ from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
     GraphExecutionInitializedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
-    GraphDefinitionSemanticQuery,
-)
 from shell.domain.execution.events import TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
@@ -37,6 +36,7 @@ from shell.domain.execution.value_objects.graph_execution_initialization_status 
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
@@ -56,6 +56,10 @@ from shell.infrastructure.platform.persistence.memory import (
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+        GraphDefinitionSemanticQuery,
+    )
+
 
 class _InMemoryGraphDefinitionQueryService:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
@@ -63,11 +67,15 @@ class _InMemoryGraphDefinitionQueryService:
         self._node_repo = unit_of_work.repository(InMemoryGraphNodeDefinitionRepository)
 
     async def get_graph_definition_by_semantic_name(
-        self, query: GraphDefinitionSemanticQuery,
+        self,
+        query: GraphDefinitionSemanticQuery,
     ) -> GraphExecutionDefinition | None:
         if query.default_graph_definition is not None:
-            for def_entity in (await self._repo.list_all()):
-                if def_entity.system_role is not None and def_entity.system_role.value == query.default_graph_definition:
+            for def_entity in await self._repo.list_all():
+                if (
+                    def_entity.system_role is not None
+                    and def_entity.system_role.value == query.default_graph_definition
+                ):
                     return await self._to_dto(def_entity)
         entity = await self._repo.get_graph_definition_by_name(GraphName(query.text))
         if entity is None:
@@ -179,7 +187,7 @@ async def _seed_graph_definition(
     await unit_of_work.repository(InMemoryGraphNodeDefinitionRepository).save(node2)
 
     repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)
-    keys_to_remove = [k for k, v in repo._store.items() if v.name == name]
+    keys_to_remove = [k for k, v in repo._store.items() if v.name.value == name]
     for k in keys_to_remove:
         del repo._store[k]
 
@@ -218,21 +226,31 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
     ) -> None:
         await _seed_graph_definition(unit_of_work)
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
-            unit_of_work, _InMemoryGraphDefinitionQueryService(unit_of_work), clock, id_generator, logger
+            unit_of_work,
+            _InMemoryGraphDefinitionQueryService(unit_of_work),
+            clock,
+            id_generator,
+            logger,
         )
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
-            TaskExecutionId("task-abc")
-        )
+        graph_execution = await unit_of_work.repository(
+            InMemoryGraphExecutionRepository
+        ).get_by_task_execution_id(TaskExecutionId("task-abc"))
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
-        assert graph_execution.initialization_status == GraphExecutionInitializationStatus.INITIALIZING
+        assert (
+            graph_execution.initialization_status == GraphExecutionInitializationStatus.INITIALIZING
+        )
         assert len(graph_execution.graph_node_definition_execution_slots) == 2
-        nodes = await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).list_by_graph_execution_id(graph_execution.id)
+        nodes = await unit_of_work.repository(
+            InMemoryGraphNodeExecutionRepository
+        ).list_by_graph_execution_id(graph_execution.id)
         assert len(nodes) == 0
-        assert any(isinstance(e, GraphExecutionInitializedEvent) for e in unit_of_work.committed_events)
+        assert any(
+            isinstance(e, GraphExecutionInitializedEvent) for e in unit_of_work.committed_events
+        )
 
     async def test_graph_definition_not_found_raises(
         self,
@@ -249,7 +267,11 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         fresh_unit_of_work = InMemoryUnitOfWork()
         fresh_unit_of_work._graph_definition_repository = InMemoryGraphDefinitionRepository()
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
-            fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
+            fresh_unit_of_work,
+            _InMemoryGraphDefinitionQueryService(fresh_unit_of_work),
+            clock,
+            id_generator,
+            logger,
         )
 
         with pytest.raises(GraphDefinitionNotFoundException):
@@ -264,14 +286,18 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
     ) -> None:
         await _seed_graph_definition(unit_of_work)
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
-            unit_of_work, _InMemoryGraphDefinitionQueryService(unit_of_work), clock, id_generator, logger
+            unit_of_work,
+            _InMemoryGraphDefinitionQueryService(unit_of_work),
+            clock,
+            id_generator,
+            logger,
         )
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
-            TaskExecutionId("task-abc")
-        )
+        first_graph = await unit_of_work.repository(
+            InMemoryGraphExecutionRepository
+        ).get_by_task_execution_id(TaskExecutionId("task-abc"))
         assert first_graph is not None
         first_graph_execution_id = first_graph.id
 
@@ -279,9 +305,9 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(
-            TaskExecutionId("task-abc")
-        )
+        second_graph = await unit_of_work.repository(
+            InMemoryGraphExecutionRepository
+        ).get_by_task_execution_id(TaskExecutionId("task-abc"))
         assert second_graph is not None
         assert second_graph.id == first_graph_execution_id
         assert unit_of_work.committed_events == []
@@ -301,7 +327,11 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         fresh_unit_of_work = InMemoryUnitOfWork()
         fresh_unit_of_work._graph_definition_repository = InMemoryGraphDefinitionRepository()
         handler = BuildGraphExecutionOnTaskExecutionCreatedEventHandler(
-            fresh_unit_of_work, _InMemoryGraphDefinitionQueryService(fresh_unit_of_work), clock, id_generator, logger
+            fresh_unit_of_work,
+            _InMemoryGraphDefinitionQueryService(fresh_unit_of_work),
+            clock,
+            id_generator,
+            logger,
         )
 
         with pytest.raises(GraphDefinitionNotFoundException):
@@ -310,6 +340,8 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         assert fresh_unit_of_work.committed_events == []
         # Graph must not exist either.
         assert (
-            await fresh_unit_of_work.repository(InMemoryGraphExecutionRepository).get_by_task_execution_id(TaskExecutionId("task-abc"))
+            await fresh_unit_of_work.repository(
+                InMemoryGraphExecutionRepository
+            ).get_by_task_execution_id(TaskExecutionId("task-abc"))
             is None
         )

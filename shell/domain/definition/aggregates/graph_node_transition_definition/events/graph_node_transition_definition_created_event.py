@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.edge_type import EdgeType
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.edge_type import EdgeType
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 if TYPE_CHECKING:
@@ -67,9 +67,13 @@ class GraphNodeTransitionDefinitionCreatedEvent(DomainEvent):
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
-            graph_node_transition_definition_id=GraphNodeTransitionDefinitionId(payload.get("graph_node_transition_definition_id", "")),
+            graph_node_transition_definition_id=GraphNodeTransitionDefinitionId(
+                payload.get("graph_node_transition_definition_id", "")
+            ),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             source_node_definition_id=GraphNodeDefinitionId(source_id) if source_id else None,
-            target_node_definition_id=GraphNodeDefinitionId(payload.get("target_node_definition_id", "")),
+            target_node_definition_id=GraphNodeDefinitionId(
+                payload.get("target_node_definition_id", "")
+            ),
             transition_type=EdgeType(payload.get("transition_type", "")),
         )

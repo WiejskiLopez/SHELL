@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+    GraphNodeExecution,
+)
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
@@ -7,16 +10,14 @@ from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphN
     GraphExecutionId,
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
-)
 from shell.infrastructure.platform.persistence.in_memory_repository import (
     InMemoryRepository,
 )
 
 
-class InMemoryGraphNodeExecutionRepository(InMemoryRepository[GraphNodeExecution, GraphNodeExecutionId], GraphNodeExecutionRepository):
-
+class InMemoryGraphNodeExecutionRepository(
+    InMemoryRepository[GraphNodeExecution, GraphNodeExecutionId], GraphNodeExecutionRepository
+):
     async def list_by_ids(self, ids: list[GraphNodeExecutionId]) -> list[GraphNodeExecution]:
         return [self._store[i.value] for i in ids if i.value in self._store]
 

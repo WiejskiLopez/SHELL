@@ -42,24 +42,28 @@ def _get_imports(path: pathlib.Path) -> list[str]:
     return imports
 
 
-_KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset({
-    "domain/execution/services/sub_graph_execution_service.py: imports 'shell.application.platform.ports.unit_of_work'",
-})
+_KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset(
+    {
+        "domain/execution/services/sub_graph_execution_service.py: imports 'shell.application.platform.ports.unit_of_work'",
+    }
+)
 
 _KNOWN_APP_VIOLATIONS: frozenset[str] = frozenset({})
 
-_KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset({
-    "framework/platform/api/app.py",
-    "framework/platform/cli/main.py",
-    "framework/execution/api/routers/envelopes.py",
-    "framework/execution/api/routers/graph_node_execution.py",
-    "framework/execution/api/routers/task_executions/__init__.py",
-    "framework/execution/api/routers/workflows/__init__.py",
-    "framework/definition/api/routers/definitions/__init__.py",
-    "framework/session/api/routers/sessions/__init__.py",
-    "framework/user/api/routers/users/__init__.py",
-    "framework/projekt/api/routers/projects/__init__.py",
-})
+_KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset(
+    {
+        "framework/platform/api/app.py",
+        "framework/platform/cli/main.py",
+        "framework/execution/api/routers/envelopes.py",
+        "framework/execution/api/routers/graph_node_execution.py",
+        "framework/execution/api/routers/task_executions/__init__.py",
+        "framework/execution/api/routers/workflows/__init__.py",
+        "framework/definition/api/routers/definitions/__init__.py",
+        "framework/session/api/routers/sessions/__init__.py",
+        "framework/user/api/routers/users/__init__.py",
+        "framework/projekt/api/routers/projects/__init__.py",
+    }
+)
 
 _FORBIDDEN: dict[str, list[str]] = {
     "domain": [
@@ -136,8 +140,7 @@ def test_process_layer_imports() -> None:
 
 # ── 4. Infrastructure must not import framework or bootstrap ──────
 
-_INFRA_FRAMEWORK_KNOWN: frozenset[str] = frozenset({
-})
+_INFRA_FRAMEWORK_KNOWN: frozenset[str] = frozenset({})
 
 
 def test_infrastructure_does_not_import_framework() -> None:
@@ -150,7 +153,9 @@ def test_infrastructure_does_not_import_framework() -> None:
                     key = f"{path.relative_to(BASE)}: imports {imp!r}"
                     if key not in _INFRA_FRAMEWORK_KNOWN:
                         violations.append(key)
-    assert not violations, "Infrastructure must not import framework/bootstrap:\n" + "\n".join(violations)
+    assert not violations, "Infrastructure must not import framework/bootstrap:\n" + "\n".join(
+        violations
+    )
 
 
 # ── 5. Framework must not import bootstrap (except main) ──────────
@@ -174,13 +179,19 @@ def test_framework_does_not_import_bootstrap() -> None:
 
 # ── 6. Shared must not import any other layer ──────────────────────
 
-_SHARED_KNOWN: frozenset[str] = frozenset({
-})
+_SHARED_KNOWN: frozenset[str] = frozenset({})
 
 
 def test_shared_does_not_import_other_layers() -> None:
     violations: list[str] = []
-    forbidden = ["shell.domain", "shell.application", "shell.process", "shell.infrastructure", "shell.framework", "shell.bootstrap"]
+    forbidden = [
+        "shell.domain",
+        "shell.application",
+        "shell.process",
+        "shell.infrastructure",
+        "shell.framework",
+        "shell.bootstrap",
+    ]
     for path in _iter_python_files("shared"):
         for imp in _get_imports(path):
             for banned in forbidden:
@@ -188,4 +199,6 @@ def test_shared_does_not_import_other_layers() -> None:
                     key = f"{path.relative_to(BASE)}: imports {imp!r}"
                     if key not in _SHARED_KNOWN:
                         violations.append(key)
-    assert not violations, "Shared layer must not import any other project layer:\n" + "\n".join(violations)
+    assert not violations, "Shared layer must not import any other project layer:\n" + "\n".join(
+        violations
+    )

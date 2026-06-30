@@ -6,8 +6,6 @@ from shell.domain.definition.value_objects.autopilot import Autopilot
 from shell.domain.definition.value_objects.chunk_index import ChunkIndex
 from shell.domain.definition.value_objects.chunk_text import ChunkText
 from shell.domain.definition.value_objects.command_text import CommandText
-from shell.domain.platform.value_objects.condition_expression import ConditionExpression
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.definition.value_objects.condition_language import ConditionLanguage
 from shell.domain.definition.value_objects.data_mapping import DataMapping
 from shell.domain.definition.value_objects.domain_tag import DomainTag
@@ -36,7 +34,11 @@ from shell.domain.definition.value_objects.title import Title
 from shell.domain.definition.value_objects.transition_label import TransitionLabel
 from shell.domain.definition.value_objects.transition_priority import TransitionPriority
 from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
-from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+    TransitionTimeoutSeconds,
+)
+from shell.domain.platform.value_objects.condition_expression import ConditionExpression
+from shell.domain.platform.value_objects.created_at import CreatedAt
 
 __all__ = [
     "Autopilot",

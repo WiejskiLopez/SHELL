@@ -28,7 +28,12 @@ class DocumentIndexHandler:
 
     async def handle(self, index_document_command: IndexDocumentCommand) -> RagDocumentId:
         doc_id = self._id_generator.new_id(RagDocumentId)
-        max_chunks = max(1, len(index_document_command.text) // max(1, index_document_command.chunk_size - index_document_command.overlap) + 2)
+        max_chunks = max(
+            1,
+            len(index_document_command.text)
+            // max(1, index_document_command.chunk_size - index_document_command.overlap)
+            + 2,
+        )
         chunk_ids = [self._id_generator.new_id(RagChunkId) for _ in range(max_chunks)]
         doc = build_rag_document(
             doc_id=doc_id,

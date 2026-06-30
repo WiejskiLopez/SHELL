@@ -1,9 +1,17 @@
 from __future__ import annotations
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
-from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from typing import TYPE_CHECKING, Any
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+
+from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+
+if TYPE_CHECKING:
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphExecutionModel
+        GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
+    )
 
 
 class GraphNodeExecutionModel(Base, VersionedMixin):
@@ -32,15 +40,10 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
     max_retries: Mapped[int] = mapped_column(nullable=False, default=0)
     retry_delay_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
 
-    @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict:
+    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 
     graph_execution_model: Mapped[GraphExecutionModel] = relationship(
         "GraphExecutionModel", back_populates="graph_node_execution_models"
     )
-
-
-from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphExecutionModel
-    GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
-)

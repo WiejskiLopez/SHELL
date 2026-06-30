@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
-from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
+    WorkflowGetByIdHandler,
+)
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
     WorkflowCompletedEvent,

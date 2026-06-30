@@ -1,4 +1,5 @@
 """Enabled value object — boolean domain wrapper."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

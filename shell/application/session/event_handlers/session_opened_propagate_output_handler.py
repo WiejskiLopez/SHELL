@@ -5,15 +5,16 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.domain.session.aggregates.session.events.session_opened_event import (
-    SessionOpenedEvent,
-)
+from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
+    from shell.domain.session.aggregates.session.events.session_opened_event import (
+        SessionOpenedEvent,
+    )
 
 
 class SessionOpenedPropagateOutputHandler:
@@ -31,7 +32,9 @@ class SessionOpenedPropagateOutputHandler:
 
     async def handle(self, session_opened_event: SessionOpenedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            workflows = await unit_of_work.repository(WorkflowRepository).get_by_session_id(session_opened_event.session_id)  # type: ignore[arg-type]
+            workflows = await unit_of_work.repository(WorkflowRepository).get_by_session_id(
+                SessionIdRef(session_opened_event.session_id.value)
+            )
             if not workflows:
                 self._logger.warning(
                     "session_opened_propagate_output_handler.no_workflows",

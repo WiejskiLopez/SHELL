@@ -42,10 +42,18 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         self._name = name if isinstance(name, GraphName) else GraphName(name)
         self._purpose = purpose if isinstance(purpose, Purpose) else Purpose(purpose)
         self._system_role = (
-            system_role if isinstance(system_role, SystemRole) else SystemRole(system_role) if system_role is not None else None
+            system_role
+            if isinstance(system_role, SystemRole)
+            else SystemRole(system_role)
+            if system_role is not None
+            else None
         )
-        self._graph_node_definition_ids = list(graph_node_definition_ids) if graph_node_definition_ids else []
-        self._transition_definition_ids = list(transition_definition_ids) if transition_definition_ids else []
+        self._graph_node_definition_ids = (
+            list(graph_node_definition_ids) if graph_node_definition_ids else []
+        )
+        self._transition_definition_ids = (
+            list(transition_definition_ids) if transition_definition_ids else []
+        )
 
     @classmethod
     def restore(

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.application.definition.dto.rag_chunk import RagChunkDto
+if TYPE_CHECKING:
+    from shell.application.definition.dto.rag_chunk import RagChunkDto
 
 
 class RagQueryService(Protocol):

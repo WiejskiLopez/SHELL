@@ -13,7 +13,7 @@ class GraphNodeExecutionResultDto:
     graph_node_execution_id: str
     workflow_id: str
     status: str
-    stdout: str
-    stderr: str
-    artifact_uri: str
     created_at: datetime
+    stdout: str | None = None
+    stderr: str | None = None
+    artifact_uri: str | None = None

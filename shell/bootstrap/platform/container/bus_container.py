@@ -8,6 +8,7 @@ from dependency_injector import containers, providers
 
 if TYPE_CHECKING:
     from dependency_injector.providers import Singleton
+
     from shell.application.platform.bus.command_bus import CommandBus
     from shell.application.platform.bus.event_bus import EventBus
     from shell.application.platform.bus.query_bus import QueryBus

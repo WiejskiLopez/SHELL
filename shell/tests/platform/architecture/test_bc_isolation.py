@@ -8,10 +8,12 @@ from _arch_helpers import BASE, get_imports, iter_py_files
 _BCS = frozenset({"execution", "definition", "session", "user", "projekt", "scheduling"})
 
 # Allowed cross-BC import targets (ports, contracts, DTOs)
-_ALLOWED_CROSS_BC = frozenset({
-    "shell.domain.platform",
-    "shell.application.platform",
-})
+_ALLOWED_CROSS_BC = frozenset(
+    {
+        "shell.domain.platform",
+        "shell.application.platform",
+    }
+)
 
 
 def _is_cross_bc_import(imp: str, source_bc: str) -> str | None:
@@ -25,10 +27,7 @@ def _is_cross_bc_import(imp: str, source_bc: str) -> str | None:
 
 
 def _is_allowed_cross_bc(imp: str) -> bool:
-    for allowed in _ALLOWED_CROSS_BC:
-        if imp == allowed or imp.startswith(allowed + "."):
-            return True
-    return False
+    return any(imp == allowed or imp.startswith(allowed + ".") for allowed in _ALLOWED_CROSS_BC)
 
 
 # ── 1. No direct cross-BC imports ────────────────────────────────
@@ -125,6 +124,5 @@ def test_cross_bc_http_adapters_use_httpx_not_sql() -> None:
                 if ".repositories." in imp:
                     violations.append(f"{rel}: imports repositories {imp!r}")
     assert not violations, (
-        "Cross-BC HTTP adapters must use httpx, not SQL/repositories:\n"
-        + "\n".join(violations)
+        "Cross-BC HTTP adapters must use httpx, not SQL/repositories:\n" + "\n".join(violations)
     )

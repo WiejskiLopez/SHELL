@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
+from typing import TYPE_CHECKING
+
+from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+    GraphNodeExecutionState,
 )
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
@@ -9,16 +11,20 @@ from shell.domain.execution.aggregates.graph_node_execution_state.repositories.g
 from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
     GraphNodeExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
-    GraphNodeExecutionState,
-)
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
-class InMemoryGraphNodeExecutionStateRepository(InMemoryRepository[GraphNodeExecutionState, GraphNodeExecutionStateId], GraphNodeExecutionStateRepository):
 
+class InMemoryGraphNodeExecutionStateRepository(
+    InMemoryRepository[GraphNodeExecutionState, GraphNodeExecutionStateId],
+    GraphNodeExecutionStateRepository,
+):
     def __init__(self) -> None:
         self._store: dict[str, list[GraphNodeExecutionState]] = {}  # type: ignore[assignment]
 
@@ -37,7 +43,11 @@ class InMemoryGraphNodeExecutionStateRepository(InMemoryRepository[GraphNodeExec
     async def list_by_graph_node_execution_and_direction(
         self, graph_node_execution_id: GraphNodeExecutionId, direction: StateDirection
     ) -> list[GraphNodeExecutionState]:
-        return [s for s in self._store.get(graph_node_execution_id.value, []) if s.direction == direction]
+        return [
+            s
+            for s in self._store.get(graph_node_execution_id.value, [])
+            if s.direction == direction
+        ]
 
     async def save(self, state: GraphNodeExecutionState) -> None:
         key = state.graph_node_execution_id.value

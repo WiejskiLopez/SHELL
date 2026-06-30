@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+
 from shell.domain.user.value_objects.user_id import UserId
 from shell.infrastructure.user.http.user_acl_http_adapter import UserAclHttpAdapter
-
-if TYPE_CHECKING:
-    import httpx
 
 
 class TestUserAclHttpAdapter:
@@ -34,7 +31,11 @@ class TestUserAclHttpAdapter:
         adapter: UserAclHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
-        mock_client.get = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value={"id": "user-1"})))
-        with pytest.raises(NotImplementedError, match="User deserialization from JSON not implemented yet"):
+        mock_client.get = AsyncMock(
+            return_value=Mock(status_code=200, json=Mock(return_value={"id": "user-1"}))
+        )
+        with pytest.raises(
+            NotImplementedError, match="User deserialization from JSON not implemented yet"
+        ):
             await adapter.get_user(UserId("user-1"))
         mock_client.get.assert_awaited_once_with("/api/v1/users/user-1")

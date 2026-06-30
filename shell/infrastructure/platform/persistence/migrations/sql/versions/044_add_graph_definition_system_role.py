@@ -23,7 +23,8 @@ def upgrade() -> None:
     with op.batch_alter_table("graph_definition") as batch:
         batch.add_column(sa.Column("system_role", sa.String(50), nullable=True))
         batch.create_unique_constraint(
-            "uq_graph_definition_system_role", ["system_role"],
+            "uq_graph_definition_system_role",
+            ["system_role"],
         )
 
 

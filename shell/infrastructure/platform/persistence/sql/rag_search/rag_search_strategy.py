@@ -4,15 +4,17 @@ import logging
 import struct
 from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.definition.services.rag_index_service import cosine_similarity
-from shell.infrastructure.definition.persistence.sql.models import RagChunkModel, RagDocumentModel
-from shell.infrastructure.definition.persistence.sql.mappers import rag_chunk_model_to_entity
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
+from shell.domain.definition.services.rag_index_service import cosine_similarity
+from shell.infrastructure.definition.persistence.sql.mappers import rag_chunk_model_to_entity
+from shell.infrastructure.definition.persistence.sql.models import RagChunkModel, RagDocumentModel
+
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.rag_document import RagChunk
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.domain.definition.aggregates.rag_document import RagChunk
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +118,9 @@ class PgVectorRagSearchStrategy:
         ]
 
 
-def create_rag_search_strategy(session_factory: async_sessionmaker[AsyncSession]) -> RagSearchStrategy:
+def create_rag_search_strategy(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> RagSearchStrategy:
     engine = getattr(session_factory, "bind", None)
     dialect_name: str = engine.dialect.name if engine is not None else "unknown"
     if dialect_name == "postgresql":

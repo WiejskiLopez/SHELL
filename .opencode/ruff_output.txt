@@ -1,0 +1,3168 @@
+TC002 Move third-party import `shell.application.definition.commands.create_graph_definition_command.CreateGraphDefinitionCommand` into a type-checking block
+ --> shell\application\definition\command_handlers\create_graph_definition_handler.py:6:5
+  |
+5 | from shell.application.definition.commands.create_graph_definition_command import (
+6 |     CreateGraphDefinitionCommand,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event.GraphDefinitionCreatedEvent` into a type-checking block
+ --> shell\application\definition\event_handlers\generate_embedding_on_graph_definition_created_handler.py:7:5
+  |
+6 | from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+7 |     GraphDefinitionCreatedEvent,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.definition.dto.graph_definition.GraphDefinitionDto` into a type-checking block
+ --> shell\application\definition\ports\queries\graph_definition_query_service.py:5:63
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.definition.dto.graph_definition import GraphDefinitionDto
+  |                                                               ^^^^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.definition.dto.rag_chunk.RagChunkDto` into a type-checking block
+ --> shell\application\definition\ports\queries\rag_query_service.py:5:56
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.definition.dto.rag_chunk import RagChunkDto
+  |                                                        ^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.definition.dto.runner_config.RunnerConfigDto` into a type-checking block
+ --> shell\application\definition\ports\queries\runner_config_query_service.py:5:60
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.definition.dto.runner_config import RunnerConfigDto
+  |                                                            ^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.execution.commands.attach_graph_node_executions_command.AttachGraphNodeExecutionsCommand` into a type-checking block
+ --> shell\application\execution\command_handlers\graph_node_execution_attach_handler.py:6:5
+  |
+5 | from shell.application.execution.commands.attach_graph_node_executions_command import (
+6 |     AttachGraphNodeExecutionsCommand,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.execution.commands.create_graph_node_execution_command.CreateGraphNodeExecutionCommand` into a type-checking block
+ --> shell\application\execution\command_handlers\graph_node_execution_create_handler.py:6:5
+  |
+5 | from shell.application.execution.commands.create_graph_node_execution_command import (
+6 |     CreateGraphNodeExecutionCommand,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+  |
+help: Move into type-checking block
+
+F841 Local variable `graph_node_execution_id` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:56:9
+   |
+54 |         """Execute node and return NodeResult id."""
+55 |         workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
+56 |         graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+57 |         now = self._clock.now()
+   |
+help: Remove assignment to unused variable `graph_node_execution_id`
+
+F841 Local variable `now` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:57:9
+   |
+55 |         workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
+56 |         graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
+57 |         now = self._clock.now()
+   |         ^^^
+58 |
+59 |         async with self._unit_of_work as unit_of_work:
+   |
+help: Remove assignment to unused variable `now`
+
+F841 Local variable `stdout` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:77:13
+   |
+75 |             failure_reason = ""
+76 |         except Exception as exc:
+77 |             stdout = ""
+   |             ^^^^^^
+78 |             stderr = str(exc)
+79 |             node_status = Status.failed()
+   |
+help: Remove assignment to unused variable `stdout`
+
+F841 Local variable `stderr` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:78:13
+   |
+76 |         except Exception as exc:
+77 |             stdout = ""
+78 |             stderr = str(exc)
+   |             ^^^^^^
+79 |             node_status = Status.failed()
+80 |             failure_reason = str(exc)
+   |
+help: Remove assignment to unused variable `stderr`
+
+F841 Local variable `node_status` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:79:13
+   |
+77 |             stdout = ""
+78 |             stderr = str(exc)
+79 |             node_status = Status.failed()
+   |             ^^^^^^^^^^^
+80 |             failure_reason = str(exc)
+   |
+help: Remove assignment to unused variable `node_status`
+
+F841 Local variable `failure_reason` is assigned to but never used
+  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:80:13
+   |
+78 |             stderr = str(exc)
+79 |             node_status = Status.failed()
+80 |             failure_reason = str(exc)
+   |             ^^^^^^^^^^^^^^
+81 |
+82 |         async with self._unit_of_work as unit_of_work:
+   |
+help: Remove assignment to unused variable `failure_reason`
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event.GraphNodeExecutionInitializedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\graph_node_execution_initialized_handler.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+ 9 |     GraphNodeExecutionInitializedEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event.GraphNodeExecutionTimeoutExpiredEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\graph_node_execution_timed_out_handler.py:8:5
+   |
+ 7 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
+ 8 |     GraphNodeExecutionTimeoutExpiredEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 9 | )
+10 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+   |
+help: Move into type-checking block
+
+F841 Local variable `current_graph_execution` is assigned to but never used
+   --> shell\application\execution\event_handlers\graph_node_execution_worker.py:230:13
+    |
+229 |             graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
+230 |             current_graph_execution = graph_executions[0] if graph_executions else None
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+231 |
+232 |             if not await self._is_event_relevant(workflow, graph_node_execution_requested_event):
+    |
+help: Remove assignment to unused variable `current_graph_execution`
+
+TC002 Move third-party import `shell.domain.execution.events.WorkflowCompletedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\notify_parent_on_child_completion_handler.py:16:5
+   |
+14 | )
+15 | from shell.domain.execution.events import (
+16 |     WorkflowCompletedEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+17 | )
+18 | from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event.GraphNodeExecutionCompletedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\planner_result_handler.py:16:5
+   |
+14 | )
+15 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+16 |     GraphNodeExecutionCompletedEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+17 | )
+18 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+   |
+help: Move into type-checking block
+
+F841 Local variable `expected_count` is assigned to but never used
+  --> shell\application\execution\event_handlers\planner_result_handler.py:92:25
+   |
+90 |                     definition = await self._definition_provider.get_graph_definition(definition_id)
+91 |                     if definition is not None:
+92 |                         expected_count = len(definition.graph_node_execution_definitions)
+   |                         ^^^^^^^^^^^^^^
+93 |                 except Exception:
+94 |                     self._logger.warning(
+   |
+help: Remove assignment to unused variable `expected_count`
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event.GraphExecutionCompletedEvent` into a type-checking block
+ --> shell\application\execution\event_handlers\propagate_graph_output_to_task_input.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
+6 |     GraphExecutionCompletedEvent,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event.GraphNodeExecutionCompletedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\propagate_node_output_to_graph_input.py:18:5
+   |
+16 | )
+17 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+18 |     GraphNodeExecutionCompletedEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+19 | )
+20 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event.GraphExecutionSubGraphSettledEvent` into a type-checking block
+ --> shell\application\execution\event_handlers\propagate_subgraph_results_to_parent.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
+6 |     GraphExecutionSubGraphSettledEvent,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+  |
+help: Move into type-checking block
+
+F841 Local variable `now` is assigned to but never used
+  --> shell\application\execution\event_handlers\propagate_subgraph_results_to_parent.py:44:13
+   |
+42 |                 return
+43 |
+44 |             now = self._clock.now()
+   |             ^^^
+45 |             await unit_of_work.repository(GraphExecutionRepository).save(parent_graph)
+46 |             unit_of_work.stage_events(parent_graph.pull_events())
+   |
+help: Remove assignment to unused variable `now`
+
+TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event.TaskExecutionCompletedEvent` into a type-checking block
+ --> shell\application\execution\event_handlers\propagate_task_output_to_workflow_input.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
+6 |     TaskExecutionCompletedEvent,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.events.workflow_completed_event.WorkflowCompletedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\propagate_workflow_output_to_task_input.py:15:5
+   |
+13 | )
+14 | from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+15 |     WorkflowCompletedEvent,
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+16 | )
+17 | from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event.GraphExecutionSubGraphSpawnRequestedEvent` into a type-checking block
+ --> shell\application\execution\event_handlers\sub_graph_spawn_requested_handler.py:7:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution import GraphExecution
+6 | from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
+7 |     GraphExecutionSubGraphSpawnRequestedEvent,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.execution.dto.graph_node_execution_result.GraphNodeExecutionResultDto` into a type-checking block
+ --> shell\application\execution\ports\queries\graph_node_execution_result_query_service.py:5:73
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
+  |                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.session.dto.session.SessionDto` into a type-checking block
+ --> shell\application\execution\ports\queries\session_query_service.py:5:51
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.session.dto.session import SessionDto
+  |                                                   ^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.execution.dto.task_execution.TaskExecutionDto` into a type-checking block
+ --> shell\application\execution\ports\queries\task_execution_query_service.py:5:60
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.execution.dto.task_execution import TaskExecutionDto
+  |                                                            ^^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.application.execution.dto.workflow.WorkflowDto` into a type-checking block
+ --> shell\application\execution\ports\queries\workflow_query_service.py:5:54
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.application.execution.dto.workflow import WorkflowDto
+  |                                                      ^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.events.session_opened_event.SessionOpenedEvent` into a type-checking block
+  --> shell\application\session\event_handlers\propagate_session_output_to_workflow_input.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.session.aggregates.session.events.session_opened_event import (
+ 9 |     SessionOpenedEvent,
+   |     ^^^^^^^^^^^^^^^^^^
+10 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.events.session_opened_event.SessionOpenedEvent` into a type-checking block
+  --> shell\application\session\event_handlers\session_opened_propagate_output_handler.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.session.aggregates.session.events.session_opened_event import (
+ 9 |     SessionOpenedEvent,
+   |     ^^^^^^^^^^^^^^^^^^
+10 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\definition\aggregates\graph_definition_embedding\graph_definition_embedding.py:10:60
+   |
+ 8 | from shell.domain.definition.value_objects.embedding_text import EmbeddingText
+ 9 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+11 |
+12 | if TYPE_CHECKING:
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.chunk_text.ChunkText` into a type-checking block
+  --> shell\domain\definition\aggregates\rag_document\rag_document.py:10:62
+   |
+ 8 | )
+ 9 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+10 | from shell.domain.definition.value_objects.chunk_text import ChunkText
+   |                                                              ^^^^^^^^^
+11 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+12 | from shell.domain.definition.value_objects.embedding import Embedding
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.embedding.Embedding` into a type-checking block
+  --> shell\domain\definition\aggregates\rag_document\rag_document.py:12:61
+   |
+10 | from shell.domain.definition.value_objects.chunk_text import ChunkText
+11 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+12 | from shell.domain.definition.value_objects.embedding import Embedding
+   |                                                             ^^^^^^^^^
+13 | from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
+14 | from shell.domain.definition.value_objects.ids import RagDocumentId
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.embedding_model.EmbeddingModel` into a type-checking block
+  --> shell\domain\definition\aggregates\rag_document\rag_document.py:13:67
+   |
+11 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+12 | from shell.domain.definition.value_objects.embedding import Embedding
+13 | from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
+   |                                                                   ^^^^^^^^^^^^^^
+14 | from shell.domain.definition.value_objects.ids import RagDocumentId
+15 | from shell.domain.definition.value_objects.source_uri import SourceUri
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.chunk_index.ChunkIndex` into a type-checking block
+ --> shell\domain\definition\repositories\rag_repository.py:5:63
+  |
+3 | from typing import TYPE_CHECKING, Protocol
+4 |
+5 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+  |                                                               ^^^^^^^^^^
+6 |
+7 | if TYPE_CHECKING:
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.config.Config` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_config_execution\agent_config_execution.py:8:57
+   |
+ 6 |     AgentConfigExecutionId,
+ 7 | )
+ 8 | from shell.domain.execution.value_objects.config import Config
+   |                                                         ^^^^^^
+ 9 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_config_execution\agent_config_execution.py:10:60
+   |
+ 8 | from shell.domain.execution.value_objects.config import Config
+ 9 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+11 | from shell.domain.platform.value_objects.updated_at import UpdatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution.agent_execution.AgentExecution` into a type-checking block
+ --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.agent_execution.agent_execution import (
+6 |     AgentExecution,
+  |     ^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id.AgentExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+ 9 |     AgentExecutionId,
+   |     ^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:12:5
+   |
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+12 |     GraphNodeExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:14:63
+   |
+12 |     GraphNodeExecutionId,
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |                                                               ^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id.AgentExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\agent_skill_execution\agent_skill_execution.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+6 |     AgentExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.skill_payload.SkillPayload` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_skill_execution\agent_skill_execution.py:11:64
+   |
+ 9 |     AgentSkillExecutionId,
+10 | )
+11 | from shell.domain.execution.value_objects.skill_payload import SkillPayload
+   |                                                                ^^^^^^^^^^^^
+12 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+13 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_skill_execution\agent_skill_execution.py:13:60
+   |
+11 | from shell.domain.execution.value_objects.skill_payload import SkillPayload
+12 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+13 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id.AgentExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\agent_skill_execution\repositories\agent_skill_execution_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+6 |     AgentExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution.AgentSkillExecution` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_skill_execution\repositories\agent_skill_execution_repository.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
+ 9 |     AgentSkillExecution,
+   |     ^^^^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id.AgentSkillExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_skill_execution\repositories\agent_skill_execution_repository.py:12:5
+   |
+10 | )
+11 | from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
+12 |     AgentSkillExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+  --> shell\domain\execution\aggregates\agent_skill_execution\repositories\agent_skill_execution_repository.py:14:63
+   |
+12 |     AgentSkillExecutionId,
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |                                                               ^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_completed_event.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.platform.events import DomainEvent
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_completed_event.py:9:60
+   |
+ 7 | )
+ 8 | from shell.domain.platform.events import DomainEvent
+ 9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+10 | from shell.domain.platform.value_objects.state_data import StateData
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_data.StateData` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_completed_event.py:10:60
+   |
+ 8 | from shell.domain.platform.events import DomainEvent
+ 9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+10 | from shell.domain.platform.value_objects.state_data import StateData
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_planned_event.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.platform.events import DomainEvent
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_planned_event.py:9:60
+   |
+ 7 | )
+ 8 | from shell.domain.platform.events import DomainEvent
+ 9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+10 | from shell.domain.platform.value_objects.state_data import StateData
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_data.StateData` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_planned_event.py:10:60
+   |
+ 8 | from shell.domain.platform.events import DomainEvent
+ 9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+10 | from shell.domain.platform.value_objects.state_data import StateData
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_settled_event.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.platform.events import DomainEvent
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_settled_event.py:9:60
+  |
+7 | )
+8 | from shell.domain.platform.events import DomainEvent
+9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_spawn_requested_event.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.graph_definition_id.GraphDefinitionIdRef` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_spawn_requested_event.py:8:70
+   |
+ 6 |     GraphExecutionId,
+ 7 | )
+ 8 | from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+   |                                                                      ^^^^^^^^^^^^^^^^^^^^
+ 9 | from shell.domain.platform.events import DomainEvent
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_spawn_requested_event.py:10:60
+   |
+ 8 | from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+ 9 | from shell.domain.platform.events import DomainEvent
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+11 | from shell.domain.platform.value_objects.state_data import StateData
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_data.StateData` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\events\graph_execution_sub_graph_spawn_requested_event.py:11:60
+   |
+ 9 | from shell.domain.platform.events import DomainEvent
+10 | from shell.domain.platform.value_objects.created_at import CreatedAt
+11 | from shell.domain.platform.value_objects.state_data import StateData
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+ 9 |     GraphNodeExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id.TaskExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:12:5
+   |
+10 | )
+11 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+12 |     TaskExecutionId,
+   |     ^^^^^^^^^^^^^^^
+13 | )
+14 | from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.graph_node_definition_id.GraphNodeDefinitionId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:23:75
+   |
+21 |     GraphNodeDefinitionExecutionSlot,
+22 | )
+23 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+   |                                                                           ^^^^^^^^^^^^^^^^^^^^^
+24 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+25 | from shell.domain.execution.value_objects.reason import Reason
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.reason.Reason` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:25:57
+   |
+23 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+24 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+25 | from shell.domain.execution.value_objects.reason import Reason
+   |                                                         ^^^^^^
+26 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+27 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_execution_state\graph_execution_state.py:20:60
+   |
+18 | from shell.domain.execution.value_objects.state_key import StateKey
+19 | from shell.domain.platform.base import AggregateRoot
+20 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+21 | from shell.domain.platform.value_objects.state_data import StateData
+22 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+6 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id.GraphNodeExecutionResultId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
+ 9 |     GraphNodeExecutionResultId,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:11:82
+   |
+ 9 |     GraphNodeExecutionResultId,
+10 | )
+11 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+   |                                                                                  ^^^^^^^^^^
+12 | from shell.domain.execution.value_objects.node_role import NodeRole
+13 | from shell.domain.platform.events import DomainEvent
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:14:60
+   |
+12 | from shell.domain.execution.value_objects.node_role import NodeRole
+13 | from shell.domain.platform.events import DomainEvent
+14 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+15 | from shell.domain.platform.value_objects.state_data import StateData
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_data.StateData` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:15:60
+   |
+13 | from shell.domain.platform.events import DomainEvent
+14 | from shell.domain.platform.value_objects.created_at import CreatedAt
+15 | from shell.domain.platform.value_objects.state_data import StateData
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_failed_event.py:12:82
+   |
+10 |     GraphNodeExecutionId,
+11 | )
+12 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+   |                                                                                  ^^^^^^^^^^
+13 | from shell.domain.execution.value_objects.error_description import ErrorDescription
+14 | from shell.domain.execution.value_objects.node_role import NodeRole
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.node_role.NodeRole` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:14:60
+   |
+12 | )
+13 | from shell.domain.execution.value_objects.node_order import NodeOrder
+14 | from shell.domain.execution.value_objects.node_role import NodeRole
+   |                                                            ^^^^^^^^
+15 | from shell.domain.execution.value_objects.node_type import NodeType
+16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.node_type.NodeType` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:15:60
+   |
+13 | from shell.domain.execution.value_objects.node_order import NodeOrder
+14 | from shell.domain.execution.value_objects.node_role import NodeRole
+15 | from shell.domain.execution.value_objects.node_type import NodeType
+   |                                                            ^^^^^^^^
+16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+17 | from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.retry_delay_seconds.RetryDelaySeconds` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:17:70
+   |
+15 | from shell.domain.execution.value_objects.node_type import NodeType
+16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+17 | from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+   |                                                                      ^^^^^^^^^^^^^^^^^
+18 | from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
+19 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.timeout_seconds.TimeoutSeconds` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:18:66
+   |
+16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+17 | from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+18 | from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
+   |                                                                  ^^^^^^^^^^^^^^
+19 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+20 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.mode.Mode` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:21:54
+   |
+19 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+20 | from shell.domain.platform.value_objects.created_at import CreatedAt
+21 | from shell.domain.platform.value_objects.mode import Mode
+   |                                                      ^^^^
+22 | from shell.domain.platform.value_objects.state_data import StateData
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_node_execution_state\graph_node_execution_state.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+6 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_node_execution_state.events.graph_node_execution_state_changed_event import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+6 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state.GraphNodeExecutionState` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+ 9 |     GraphNodeExecutionState,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id.GraphNodeExecutionStateId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:12:5
+   |
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+12 |     GraphNodeExecutionStateId,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:14:63
+   |
+12 |     GraphNodeExecutionStateId,
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |                                                               ^^^^^^^^^^^^
+15 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:15:65
+   |
+13 | )
+14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+15 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.condition_language.ConditionLanguage` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\graph_node_transition_execution.py:8:69
+   |
+ 6 |     GraphNodeTransitionExecutionId,
+ 7 | )
+ 8 | from shell.domain.execution.value_objects.condition_language import ConditionLanguage
+   |                                                                     ^^^^^^^^^^^^^^^^^
+ 9 | from shell.domain.execution.value_objects.condition_result import ConditionResult
+10 | from shell.domain.execution.value_objects.current_iteration import CurrentIteration
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.condition_expression.ConditionExpression` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\graph_node_transition_execution.py:15:70
+   |
+13 | from shell.domain.execution.value_objects.transition_status import TransitionStatus
+14 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+15 | from shell.domain.platform.value_objects.condition_expression import ConditionExpression
+   |                                                                      ^^^^^^^^^^^^^^^^^^^
+16 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+ 9 |     GraphNodeExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution.GraphNodeTransitionExecution` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:12:5
+   |
+10 | )
+11 | from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
+12 |     GraphNodeTransitionExecution,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+13 | )
+14 | from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id.GraphNodeTransitionExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:15:5
+   |
+13 | )
+14 | from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
+15 |     GraphNodeTransitionExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+16 | )
+17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:17:63
+   |
+15 |     GraphNodeTransitionExecutionId,
+16 | )
+17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |                                                               ^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id.UserExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\session_execution\session_execution.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+ 9 |     UserExecutionId,
+   |     ^^^^^^^^^^^^^^^
+10 | )
+11 | from shell.domain.platform.base import AggregateRoot
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\execution\aggregates\session_execution_state\session_execution_state.py:7:60
+  |
+5 | from shell.domain.execution.value_objects.is_current import IsCurrent
+6 | from shell.domain.platform.base import AggregateRoot
+7 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+8 | from shell.domain.platform.value_objects.state_data import StateData
+9 | from shell.domain.platform.value_objects.state_direction import StateDirection
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id.TaskExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\task_execution\events\task_execution_created_event.py:11:5
+   |
+10 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+11 |     TaskExecutionId,
+   |     ^^^^^^^^^^^^^^^
+12 | )
+13 | from shell.domain.execution.value_objects.task_description import TaskDescription
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.task_execution_name.TaskExecutionName` into a type-checking block
+  --> shell\domain\execution\aggregates\task_execution\events\task_execution_created_event.py:14:70
+   |
+12 | )
+13 | from shell.domain.execution.value_objects.task_description import TaskDescription
+14 | from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+   |                                                                      ^^^^^^^^^^^^^^^^^
+15 | from shell.domain.platform.events import DomainEvent
+16 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\task_execution\events\task_execution_created_event.py:16:60
+   |
+14 | from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+15 | from shell.domain.platform.events import DomainEvent
+16 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.reason.Reason` into a type-checking block
+  --> shell\domain\execution\aggregates\task_execution\task_execution.py:10:57
+   |
+ 8 | from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
+ 9 | from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
+10 | from shell.domain.execution.value_objects.reason import Reason
+   |                                                         ^^^^^^
+11 | from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+12 | from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
+   |
+help: Move into type-checking block
+
+SIM108 Use ternary operator `task_name = name if isinstance(name, TaskName) else TaskName(str(name))` instead of `if`-`else`-block
+   --> shell\domain\execution\aggregates\task_execution\task_execution.py:218:9
+    |
+216 |           workflow_id: WorkflowId | None = None,
+217 |       ) -> TaskExecution:
+218 | /         if isinstance(name, TaskName):
+219 | |             task_name = name
+220 | |         else:
+221 | |             task_name = TaskName(str(name))
+    | |___________________________________________^
+222 |           task_execution = cls(
+223 |               id=id_,
+    |
+help: Replace `if`-`else`-block with `task_name = name if isinstance(name, TaskName) else TaskName(str(name))`
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\task_execution_state\task_execution_state.py:13:60
+   |
+11 | from shell.domain.execution.value_objects.is_current import IsCurrent
+12 | from shell.domain.platform.base import AggregateRoot
+13 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+14 | from shell.domain.platform.value_objects.state_data import StateData
+15 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\execution\aggregates\user_execution_state\user_execution_state.py:7:60
+  |
+5 | from shell.domain.execution.value_objects.is_current import IsCurrent
+6 | from shell.domain.platform.base import AggregateRoot
+7 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+8 | from shell.domain.platform.value_objects.state_data import StateData
+9 | from shell.domain.platform.value_objects.state_direction import StateDirection
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:4:5
+  |
+3 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+4 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:9:82
+   |
+ 7 |     GraphNodeExecutionResultId,
+ 8 | )
+ 9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+   |                                                                                  ^^^^^^^^^^
+10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+11 | from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.artifact_uri.ArtifactUri` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:10:63
+   |
+ 8 | )
+ 9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+   |                                                               ^^^^^^^^^^^
+11 | from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+12 | from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.execution_stderr.ExecutionStderr` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:11:67
+   |
+ 9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+11 | from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+   |                                                                   ^^^^^^^^^^^^^^^
+12 | from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+13 | from shell.domain.platform.base.entity import Entity
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.execution_stdout.ExecutionStdout` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:12:67
+   |
+10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+11 | from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
+12 | from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+   |                                                                   ^^^^^^^^^^^^^^^
+13 | from shell.domain.platform.base.entity import Entity
+14 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:14:60
+   |
+12 | from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+13 | from shell.domain.platform.base.entity import Entity
+14 | from shell.domain.platform.value_objects.created_at import CreatedAt
+   |                                                            ^^^^^^^^^
+15 | from shell.domain.platform.value_objects.status import Status
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.status.Status` into a type-checking block
+  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:15:56
+   |
+13 | from shell.domain.platform.base.entity import Entity
+14 | from shell.domain.platform.value_objects.created_at import CreatedAt
+15 | from shell.domain.platform.value_objects.status import Status
+   |                                                        ^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+ --> shell\domain\execution\aggregates\workflow_state\workflow_state.py:5:82
+  |
+3 | from typing import TYPE_CHECKING, Self
+4 |
+5 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+  |                                                                                  ^^^^^^^^^^
+6 | from shell.domain.platform.base.aggregate_root import AggregateRoot
+7 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |
+help: Move into type-checking block
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> shell\domain\execution\services\sub_graph_execution_service.py:176:42
+    |
+174 |         )
+175 |
+176 |         for node_def_id, node_exec_id in zip(node_def_ids, node_execution_ids):
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+177 |             sub_graph_execution.attach_node_execution(
+178 |                 node_definition_id=node_def_id,
+    |
+help: Add explicit value for parameter `strict=`
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.GraphNodeExecutionId` into a type-checking block
+ --> shell\domain\execution\value_objects\graph_node_definition_execution_slot.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects import (
+6 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.graph_node_definition_id.GraphNodeDefinitionId` into a type-checking block
+ --> shell\domain\execution\value_objects\graph_node_definition_execution_slot.py:8:75
+  |
+6 |     GraphNodeExecutionId,
+7 | )
+8 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+  |                                                                           ^^^^^^^^^^^^^^^^^^^^^
+9 | from shell.domain.platform.base.value_object import ValueObject
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\platform\events\domain_event.py:7:60
+  |
+5 | from shell.domain.platform.value_objects.aggregate_id import AggregateId
+6 | from shell.domain.platform.value_objects.aggregate_type import AggregateType
+7 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+8 | from shell.domain.platform.value_objects.event_id import EventId
+9 | from shell.domain.platform.value_objects.schema_version import SchemaVersion
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.projekt.value_objects.project_id.ProjectId` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_skill.py:7:59
+  |
+5 | from shell.domain.platform.base.entity import Entity
+6 | from shell.domain.platform.value_objects.created_at import CreatedAt
+7 | from shell.domain.projekt.value_objects.project_id import ProjectId
+  |                                                           ^^^^^^^^^
+8 | from shell.domain.projekt.value_objects.project_skill_id import ProjectSkillId
+9 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_input.py:5:60
+  |
+3 | from dataclasses import dataclass
+4 |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.projekt.value_objects.project_id.ProjectId` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_input.py:6:59
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+  |                                                           ^^^^^^^^^
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.projekt.value_objects.project_skill_payload.ProjectSkillPayload` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_input.py:7:70
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |                                                                      ^^^^^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_output.py:5:60
+  |
+3 | from dataclasses import dataclass
+4 |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.projekt.value_objects.project_id.ProjectId` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_output.py:6:59
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+  |                                                           ^^^^^^^^^
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.projekt.value_objects.project_skill_payload.ProjectSkillPayload` into a type-checking block
+ --> shell\domain\projekt\aggregates\project\entities\project_state_output.py:7:70
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.projekt.value_objects.project_id import ProjectId
+7 | from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+  |                                                                      ^^^^^^^^^^^^^^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+ --> shell\domain\scheduling\aggregates\scheduler_definition\repositories\scheduler_definition_repository.py:5:63
+  |
+3 | from typing import TYPE_CHECKING, Protocol
+4 |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+  |                                                               ^^^^^^^^^^^^
+6 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+7 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.source_context.SourceContext` into a type-checking block
+ --> shell\domain\scheduling\aggregates\scheduler_definition\repositories\scheduler_definition_repository.py:6:66
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+  |                                                                  ^^^^^^^^^^^^^
+7 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.trigger_event_type.TriggerEventType` into a type-checking block
+ --> shell\domain\scheduling\aggregates\scheduler_definition\repositories\scheduler_definition_repository.py:7:70
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+7 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+  |                                                                      ^^^^^^^^^^^^^^^^
+8 |
+9 | if TYPE_CHECKING:
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+ --> shell\domain\scheduling\aggregates\scheduler_execution\repositories\scheduler_execution_repository.py:5:63
+  |
+3 | from typing import TYPE_CHECKING, Protocol
+4 |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+  |                                                               ^^^^^^^^^^^^
+6 | from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+7 |     ExecutionStatus,
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status.ExecutionStatus` into a type-checking block
+ --> shell\domain\scheduling\aggregates\scheduler_execution\repositories\scheduler_execution_repository.py:7:5
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+7 |     ExecutionStatus,
+  |     ^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.action_ref.ActionRef` into a type-checking block
+  --> shell\domain\scheduling\aggregates\scheduler_execution\repositories\scheduler_execution_repository.py:9:62
+   |
+ 7 |     ExecutionStatus,
+ 8 | )
+ 9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+   |                                                              ^^^^^^^^^
+10 | from shell.domain.scheduling.value_objects.count_result import CountResult
+11 | from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.count_result.CountResult` into a type-checking block
+  --> shell\domain\scheduling\aggregates\scheduler_execution\repositories\scheduler_execution_repository.py:10:64
+   |
+ 8 | )
+ 9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+10 | from shell.domain.scheduling.value_objects.count_result import CountResult
+   |                                                                ^^^^^^^^^^^
+11 | from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.ids.SchedulerDefinitionId` into a type-checking block
+  --> shell\domain\scheduling\aggregates\scheduler_execution\repositories\scheduler_execution_repository.py:11:55
+   |
+ 9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+10 | from shell.domain.scheduling.value_objects.count_result import CountResult
+11 | from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+   |                                                       ^^^^^^^^^^^^^^^^^^^^^
+12 |
+13 | if TYPE_CHECKING:
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.timestamp.Timestamp` into a type-checking block
+  --> shell\domain\scheduling\services\scheduler_orchestrator.py:9:59
+   |
+ 7 | from shell.domain.platform.value_objects.created_at import CreatedAt
+ 8 | from shell.domain.platform.value_objects.state_data import StateData
+ 9 | from shell.domain.platform.value_objects.timestamp import Timestamp
+   |                                                           ^^^^^^^^^
+10 | from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
+11 |     SchedulerExecution,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.updated_at.UpdatedAt` into a type-checking block
+  --> shell\domain\session\aggregates\session\session.py:11:60
+   |
+ 9 | from shell.domain.platform.value_objects.created_at import CreatedAt
+10 | from shell.domain.platform.value_objects.environment import Environment
+11 | from shell.domain.platform.value_objects.updated_at import UpdatedAt
+   |                                                            ^^^^^^^^^
+12 | from shell.domain.session.aggregates.session.events.session_closed_event import (
+13 |     SessionClosedEvent,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
+ --> shell\domain\session\aggregates\session_state\repositories\session_state_repository.py:5:63
+  |
+3 | from typing import Protocol
+4 |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+  |                                                               ^^^^^^^^^^^^
+6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+ --> shell\domain\session\aggregates\session_state\repositories\session_state_repository.py:6:65
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+  |                                                                 ^^^^^^^^^^^^^^
+7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+8 | from shell.domain.session.aggregates.session_state.session_state import SessionState
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.value_objects.session_id.SessionId` into a type-checking block
+ --> shell\domain\session\aggregates\session_state\repositories\session_state_repository.py:7:78
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+  |                                                                              ^^^^^^^^^
+8 | from shell.domain.session.aggregates.session_state.session_state import SessionState
+9 | from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session_state.session_state.SessionState` into a type-checking block
+  --> shell\domain\session\aggregates\session_state\repositories\session_state_repository.py:8:73
+   |
+ 6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+ 7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+ 8 | from shell.domain.session.aggregates.session_state.session_state import SessionState
+   |                                                                         ^^^^^^^^^^^^
+ 9 | from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
+10 |     SessionStateId,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session_state.value_objects.session_state_id.SessionStateId` into a type-checking block
+  --> shell\domain\session\aggregates\session_state\repositories\session_state_repository.py:10:5
+   |
+ 8 | from shell.domain.session.aggregates.session_state.session_state import SessionState
+ 9 | from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
+10 |     SessionStateId,
+   |     ^^^^^^^^^^^^^^
+11 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.value_objects.session_id.SessionId` into a type-checking block
+  --> shell\domain\session\aggregates\session_state\session_state.py:9:78
+   |
+ 7 | from shell.domain.platform.value_objects.state_data import StateData
+ 8 | from shell.domain.platform.value_objects.state_direction import StateDirection
+ 9 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+   |                                                                              ^^^^^^^^^
+10 | from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
+11 |     SessionStateChangedEvent,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.user.value_objects.user_id.UserId` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_skill.py:9:53
+  |
+7 | from shell.domain.user.value_objects.skill_id import SkillId
+8 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+9 | from shell.domain.user.value_objects.user_id import UserId
+  |                                                     ^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_input.py:5:60
+  |
+3 | from dataclasses import dataclass
+4 |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.user.value_objects.skill_payload.SkillPayload` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_input.py:6:59
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+  |                                                           ^^^^^^^^^^^^
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.user.value_objects.user_id.UserId` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_input.py:7:53
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |                                                     ^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_output.py:5:60
+  |
+3 | from dataclasses import dataclass
+4 |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+  |                                                            ^^^^^^^^^
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.user.value_objects.skill_payload.SkillPayload` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_output.py:6:59
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+  |                                                           ^^^^^^^^^^^^
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.user.value_objects.user_id.UserId` into a type-checking block
+ --> shell\domain\user\aggregates\user\entities\user_state_output.py:7:53
+  |
+5 | from shell.domain.platform.value_objects.created_at import CreatedAt
+6 | from shell.domain.user.value_objects.skill_payload import SkillPayload
+7 | from shell.domain.user.value_objects.user_id import UserId
+  |                                                     ^^^^^^
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.graph_name.GraphName` into a type-checking block
+  --> shell\infrastructure\definition\persistence\memory\in_memory_graph_definition_repository.py:10:62
+   |
+ 8 |     GraphDefinitionId,
+ 9 | )
+10 | from shell.domain.definition.value_objects.graph_name import GraphName
+   |                                                              ^^^^^^^^^
+11 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.aggregates.graph_definition.value_objects.GraphDefinitionId` into a type-checking block
+ --> shell\infrastructure\definition\persistence\memory\in_memory_graph_node_definition_repository.py:4:5
+  |
+3 | from shell.domain.definition.aggregates.graph_definition.value_objects import (
+4 |     GraphDefinitionId,
+  |     ^^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.chunk_index.ChunkIndex` into a type-checking block
+ --> shell\infrastructure\definition\persistence\memory\in_memory_rag_document_repository.py:7:63
+  |
+5 | from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+6 | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+7 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+  |                                                               ^^^^^^^^^^
+8 | from shell.domain.definition.value_objects.ids import (
+9 |     RagDocumentId,
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.package_name.PackageName` into a type-checking block
+ --> shell\infrastructure\definition\persistence\memory\in_memory_runner_config_repository.py:8:64
+  |
+6 |     RunnerConfigId,
+7 | )
+8 | from shell.domain.definition.value_objects.package_name import PackageName
+  |                                                                ^^^^^^^^^^^
+9 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+  |
+help: Move into type-checking block
+
+F401 `datetime.UTC` imported but unused
+ --> shell\infrastructure\definition\persistence\sql\mappers\__init__.py:5:22
+  |
+3 | from __future__ import annotations
+4 |
+5 | from datetime import UTC, datetime
+  |                      ^^^
+6 |
+7 | from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+  |
+help: Remove unused import
+
+F401 `datetime.datetime` imported but unused
+ --> shell\infrastructure\definition\persistence\sql\mappers\__init__.py:5:27
+  |
+3 | from __future__ import annotations
+4 |
+5 | from datetime import UTC, datetime
+  |                           ^^^^^^^^
+6 |
+7 | from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+  |
+help: Remove unused import
+
+F401 [*] `typing.TYPE_CHECKING` imported but unused
+ --> shell\infrastructure\definition\persistence\sql\mappers\graph_definition_mapper.py:3:20
+  |
+1 | from __future__ import annotations
+2 |
+3 | from typing import TYPE_CHECKING
+  |                    ^^^^^^^^^^^^^
+4 |
+5 | from shell.application.definition.dto.graph_definition import GraphDefinitionDto
+  |
+help: Remove unused import: `typing.TYPE_CHECKING`
+
+TC002 Move third-party import `shell.domain.definition.value_objects.graph_name.GraphName` into a type-checking block
+  --> shell\infrastructure\definition\persistence\sql\repositories\sql_graph_definition_repository.py:8:62
+   |
+ 6 |     GraphDefinitionRepository,
+ 7 | )
+ 8 | from shell.domain.definition.value_objects.graph_name import GraphName
+   |                                                              ^^^^^^^^^
+ 9 | from shell.infrastructure.definition.persistence.sql.mappers import (
+10 |     graph_definition_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.aggregates.rag_document.RagChunk` into a type-checking block
+ --> shell\infrastructure\definition\persistence\sql\repositories\sql_rag_document_repository.py:6:61
+  |
+4 | from typing import TYPE_CHECKING
+5 |
+6 | from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+  |                                                             ^^^^^^^^
+7 | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+8 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.aggregates.rag_document.RagDocument` into a type-checking block
+ --> shell\infrastructure\definition\persistence\sql\repositories\sql_rag_document_repository.py:6:71
+  |
+4 | from typing import TYPE_CHECKING
+5 |
+6 | from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+  |                                                                       ^^^^^^^^^^^
+7 | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+8 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.chunk_index.ChunkIndex` into a type-checking block
+  --> shell\infrastructure\definition\persistence\sql\repositories\sql_rag_document_repository.py:8:63
+   |
+ 6 | from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+ 7 | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+ 8 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+   |                                                               ^^^^^^^^^^
+ 9 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+10 | from shell.domain.definition.value_objects.embedding import Embedding
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.domain_tag.DomainTag` into a type-checking block
+  --> shell\infrastructure\definition\persistence\sql\repositories\sql_rag_document_repository.py:9:62
+   |
+ 7 | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+ 8 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+ 9 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+   |                                                              ^^^^^^^^^
+10 | from shell.domain.definition.value_objects.embedding import Embedding
+11 | from shell.domain.definition.value_objects.ids import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.definition.value_objects.embedding.Embedding` into a type-checking block
+  --> shell\infrastructure\definition\persistence\sql\repositories\sql_rag_document_repository.py:10:61
+   |
+ 8 | from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+ 9 | from shell.domain.definition.value_objects.domain_tag import DomainTag
+10 | from shell.domain.definition.value_objects.embedding import Embedding
+   |                                                             ^^^^^^^^^
+11 | from shell.domain.definition.value_objects.ids import (
+12 |     RagDocumentId,  # noqa: TC002 ÔÇö RagDocumentId u┼╝ywany w konstruktorach w repozytorium
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query.GraphDefinitionSemanticQuery` into a type-checking block
+ --> shell\infrastructure\execution\http\graph_execution_definition_provider_http_adapter.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+6 |     GraphDefinitionSemanticQuery,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_agent_execution_repository.py:15:5
+   |
+13 | )
+14 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+15 |     GraphNodeExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^^^
+16 | )
+17 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id.AgentExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_agent_skill_execution_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+6 |     AgentExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_graph_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_graph_execution_state_repository.py:18:65
+   |
+16 | )
+17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+18 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+19 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_graph_node_execution_state_repository.py:4:5
+  |
+3 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+4 |     GraphNodeExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_graph_node_execution_state_repository.py:16:65
+   |
+14 | )
+15 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+16 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+17 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id.SessionExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_session_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+6 |     SessionExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.session_execution_state import SessionExecutionState
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_session_execution_state_repository.py:16:65
+   |
+14 | )
+15 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+16 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+17 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id.TaskExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_task_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+6 |     TaskExecutionId,
+  |     ^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_task_execution_state_repository.py:18:65
+   |
+16 | )
+17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+18 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+19 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id.UserExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_user_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+6 |     UserExecutionId,
+  |     ^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_user_execution_state_repository.py:16:65
+   |
+14 | )
+15 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+16 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+17 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id.SessionExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_workflow_repository.py:4:5
+  |
+3 | from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+4 |     SessionExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.execution.aggregates.workflow import Workflow
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.session_id_ref.SessionIdRef` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_workflow_repository.py:13:65
+   |
+11 |     WorkflowId,  # noqa: TC002 ÔÇö WorkflowId u┼╝ywany w konstruktorach w repozytorium
+12 | )
+13 | from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
+   |                                                                 ^^^^^^^^^^^^
+14 | from shell.infrastructure.platform.persistence.in_memory_repository import (
+15 |     InMemoryRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_workflow_state_repository.py:5:82
+  |
+3 | import copy
+4 |
+5 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+  |                                                                                  ^^^^^^^^^^
+6 | from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+7 |     WorkflowStateRepository,
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\memory\in_memory_workflow_state_repository.py:14:65
+   |
+12 | from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
+13 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+14 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+15 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+F401 `shell.domain.execution.value_objects.max_iterations.MaxIterations` imported but unused
+  --> shell\infrastructure\execution\persistence\sql\mappers\__init__.py:70:65
+   |
+68 | )
+69 | from shell.domain.execution.value_objects.is_current import IsCurrent
+70 | from shell.domain.execution.value_objects.max_iterations import MaxIterations
+   |                                                                 ^^^^^^^^^^^^^
+71 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+72 | from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+   |
+help: Remove unused import: `shell.domain.execution.value_objects.max_iterations.MaxIterations`
+
+F401 `shell.domain.execution.value_objects.task_execution_name.TaskExecutionName` imported but unused
+  --> shell\infrastructure\execution\persistence\sql\mappers\__init__.py:72:70
+   |
+70 | from shell.domain.execution.value_objects.max_iterations import MaxIterations
+71 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+72 | from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+   |                                                                      ^^^^^^^^^^^^^^^^^
+73 | from shell.domain.execution.value_objects.task_name import TaskName
+74 | from shell.domain.execution.value_objects.user_id_ref import UserIdRef
+   |
+help: Remove unused import: `shell.domain.execution.value_objects.task_execution_name.TaskExecutionName`
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_graph_execution_state_input_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_graph_execution_state_input_repository.py:12:65
+   |
+10 | )
+11 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+12 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+13 | from shell.infrastructure.execution.persistence.sql.mappers import (
+14 |     graph_execution_state_input_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_graph_execution_state_output_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+6 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_graph_execution_state_output_repository.py:12:65
+   |
+10 | )
+11 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+12 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+13 | from shell.infrastructure.execution.persistence.sql.mappers import (
+14 |     graph_execution_state_output_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.ids.SessionExecutionId` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_session_execution_repository.py:9:5
+   |
+ 7 | )
+ 8 | from shell.domain.execution.value_objects.ids import (
+ 9 |     SessionExecutionId,
+   |     ^^^^^^^^^^^^^^^^^^
+10 |     UserExecutionId,
+11 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.ids.UserExecutionId` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_session_execution_repository.py:10:5
+   |
+ 8 | from shell.domain.execution.value_objects.ids import (
+ 9 |     SessionExecutionId,
+10 |     UserExecutionId,
+   |     ^^^^^^^^^^^^^^^
+11 | )
+12 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id.SessionExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_session_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+6 |     SessionExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.session_execution_state.repositories.session_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_session_execution_state_repository.py:12:65
+   |
+10 | )
+11 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+12 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+13 | from shell.infrastructure.execution.persistence.sql.mappers import (
+14 |     session_execution_state_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id.TaskExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_task_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+6 |     TaskExecutionId,
+  |     ^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_task_execution_state_repository.py:12:65
+   |
+10 | )
+11 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+12 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+13 | from shell.infrastructure.execution.persistence.sql.mappers import (
+14 |     task_execution_state_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.ids.UserExecutionId` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_user_execution_repository.py:8:54
+   |
+ 6 |     UserExecutionRepository,
+ 7 | )
+ 8 | from shell.domain.execution.value_objects.ids import UserExecutionId
+   |                                                      ^^^^^^^^^^^^^^^
+ 9 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+10 | from shell.infrastructure.execution.persistence.sql.mappers import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id.UserExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_user_execution_state_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+6 |     UserExecutionId,
+  |     ^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_user_execution_state_repository.py:12:65
+   |
+10 | )
+11 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+12 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+13 | from shell.infrastructure.execution.persistence.sql.mappers import (
+14 |     user_execution_state_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id.SessionExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_workflow_repository.py:6:5
+  |
+5 | from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+6 |     SessionExecutionId,
+  |     ^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.value_objects.session_id_ref.SessionIdRef` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_workflow_repository.py:14:65
+   |
+12 |     WorkflowId,  # noqa: TC002 ÔÇö WorkflowId u┼╝ywany w konstruktorach w repozytorium
+13 | )
+14 | from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
+   |                                                                 ^^^^^^^^^^^^
+15 | from shell.infrastructure.execution.persistence.sql.mappers import (
+16 |     workflow_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\sql\repositories\sql_workflow_state_repository.py:5:82
+  |
+3 | from typing import TYPE_CHECKING
+4 |
+5 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+  |                                                                                  ^^^^^^^^^^
+6 | from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+7 |     WorkflowStateRepository,
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\execution\persistence\sql\repositories\sql_workflow_state_repository.py:10:65
+   |
+ 8 | )
+ 9 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+10 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+11 | from shell.infrastructure.execution.persistence.sql.mappers import (
+12 |     workflow_state_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC003 Move standard library import `datetime.datetime` into a type-checking block
+ --> shell\infrastructure\platform\messaging\command\sql_command_outbox_publisher.py:4:22
+  |
+3 | import uuid
+4 | from datetime import datetime
+  |                      ^^^^^^^^
+5 | from typing import TYPE_CHECKING
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.envelope.Envelope` into a type-checking block
+  --> shell\infrastructure\platform\messaging\message\sql_message_outbox_publisher.py:9:44
+   |
+ 7 | from typing import TYPE_CHECKING
+ 8 |
+ 9 | from shell.domain.platform.envelope import Envelope
+   |                                            ^^^^^^^^
+10 | from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import (
+11 |     OutboxMessageModel,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_input_repository.py:4:5
+  |
+3 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+4 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution_state.graph_execution_state.GraphExecutionState` into a type-checking block
+ --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_input_repository.py:7:5
+  |
+5 | )
+6 | from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+7 |     GraphExecutionState,
+  |     ^^^^^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_input_repository.py:13:65
+   |
+11 | )
+12 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+13 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
+ --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_output_repository.py:4:5
+  |
+3 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+4 |     GraphExecutionId,
+  |     ^^^^^^^^^^^^^^^^
+5 | )
+6 | from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution_state.graph_execution_state.GraphExecutionState` into a type-checking block
+ --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_output_repository.py:7:5
+  |
+5 | )
+6 | from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+7 |     GraphExecutionState,
+  |     ^^^^^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_graph_execution_state_output_repository.py:13:65
+   |
+11 | )
+12 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+13 | from shell.domain.platform.value_objects.state_direction import StateDirection
+   |                                                                 ^^^^^^^^^^^^^^
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.aggregates.message.value_objects.destination.Destination` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_message_repository.py:9:80
+   |
+ 7 |     MessageRepository,
+ 8 | )
+ 9 | from shell.domain.platform.aggregates.message.value_objects.destination import Destination
+   |                                                                                ^^^^^^^^^^^
+10 | from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
+11 | from shell.domain.platform.aggregates.message.value_objects.source import Source
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.aggregates.message.value_objects.source.Source` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_message_repository.py:11:75
+   |
+ 9 | from shell.domain.platform.aggregates.message.value_objects.destination import Destination
+10 | from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
+11 | from shell.domain.platform.aggregates.message.value_objects.source import Source
+   |                                                                           ^^^^^^
+12 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+   |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> shell\infrastructure\platform\persistence\memory\in_memory_unit_of_work.py:1:1
+    |
+  1 | / from __future__ import annotations
+  2 | |
+  3 | | from typing import TypeVar
+  4 | |
+  5 | | from shell.application.platform.ports.unit_of_work import UnitOfWork
+  6 | |
+  7 | | from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+  8 | |     GraphDefinitionEmbeddingRepository,
+  9 | | )
+ 10 | | from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository impÔÇŽ
+ 11 | |     GraphNodeTransitionDefinitionRepository,
+ 12 | | )
+ 13 | | from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+ 14 | |     GraphDefinitionRepository,
+ 15 | | )
+ 16 | | from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
+ 17 | |     GraphNodeDefinitionRepository,
+ 18 | | )
+ 19 | | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+ 20 | | from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+ 21 | | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+ 22 | |     GraphExecutionRepository,
+ 23 | | )
+ 24 | | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+ 25 | |     GraphExecutionStateRepository,
+ 26 | | )
+ 27 | | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+ 28 | |     GraphNodeExecutionRepository,
+ 29 | | )
+ 30 | | from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+ 31 | |     GraphNodeExecutionStateRepository,
+ 32 | | )
+ 33 | | from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository importÔÇŽ
+ 34 | |     GraphNodeTransitionExecutionRepository,
+ 35 | | )
+ 36 | | from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+ 37 | |     TaskExecutionRepository,
+ 38 | | )
+ 39 | | from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+ 40 | |     TaskExecutionStateRepository,
+ 41 | | )
+ 42 | | from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+ 43 | |     WorkflowRepository,
+ 44 | | )
+ 45 | | from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+ 46 | |     WorkflowStateRepository,
+ 47 | | )
+ 48 | | from shell.domain.platform.aggregates.message.message import Message
+ 49 | | from shell.domain.platform.aggregates.message.repositories.message_repository import (
+ 50 | |     MessageRepository,
+ 51 | | )
+ 52 | | from shell.domain.platform.events import DomainEvent
+ 53 | | from shell.domain.session.aggregates.session.repositories.session_repository import (
+ 54 | |     SessionRepository,
+ 55 | | )
+ 56 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_embedding_repository import (
+ 57 | |     InMemoryGraphDefinitionEmbeddingRepository,
+ 58 | | )
+ 59 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
+ 60 | |     InMemoryGraphDefinitionRepository,
+ 61 | | )
+ 62 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
+ 63 | |     InMemoryGraphNodeDefinitionRepository,
+ 64 | | )
+ 65 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_transition_definition_repository import (
+ 66 | |     InMemoryGraphNodeTransitionDefinitionRepository,
+ 67 | | )
+ 68 | | from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
+ 69 | |     InMemoryRagDocumentRepository,
+ 70 | | )
+ 71 | | from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
+ 72 | |     InMemoryRunnerConfigRepository,
+ 73 | | )
+ 74 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+ 75 | |     InMemoryGraphExecutionRepository,
+ 76 | | )
+ 77 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+ 78 | |     InMemoryGraphNodeExecutionRepository,
+ 79 | | )
+ 80 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_state_repository import (
+ 81 | |     InMemoryGraphNodeExecutionStateRepository,
+ 82 | | )
+ 83 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
+ 84 | |     InMemoryGraphNodeTransitionExecutionRepository,
+ 85 | | )
+ 86 | | from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+ 87 | |     InMemoryTaskExecutionRepository,
+ 88 | | )
+ 89 | | from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_repository import (
+ 90 | |     InMemoryTaskExecutionStateRepository,
+ 91 | | )
+ 92 | | from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
+ 93 | |     InMemoryWorkflowRepository,
+ 94 | | )
+ 95 | | from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_repository import (
+ 96 | |     InMemoryWorkflowStateRepository,
+ 97 | | )
+ 98 | | from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
+ 99 | |     InMemoryGraphExecutionStateRepository,
+100 | | )
+101 | | from shell.infrastructure.platform.persistence.memory.in_memory_message_repository import (
+102 | |     InMemoryMessageRepository,
+103 | | )
+104 | | from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
+105 | |     InMemorySessionRepository,
+106 | | )
+    | |_^
+107 |
+108 |   TRepository = TypeVar("TRepository")
+    |
+help: Organize imports
+
+TC002 Move third-party import `shell.domain.platform.aggregates.message.message.Message` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_unit_of_work.py:48:62
+   |
+46 |     WorkflowStateRepository,
+47 | )
+48 | from shell.domain.platform.aggregates.message.message import Message
+   |                                                              ^^^^^^^
+49 | from shell.domain.platform.aggregates.message.repositories.message_repository import (
+50 |     MessageRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.events.DomainEvent` into a type-checking block
+  --> shell\infrastructure\platform\persistence\memory\in_memory_unit_of_work.py:52:42
+   |
+50 |     MessageRepository,
+51 | )
+52 | from shell.domain.platform.events import DomainEvent
+   |                                          ^^^^^^^^^^^
+53 | from shell.domain.session.aggregates.session.repositories.session_repository import (
+54 |     SessionRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.value_objects.workflow_reference.WorkflowReference` into a type-checking block
+  --> shell\infrastructure\platform\persistence\sql\repositories\sql_message_repository.py:8:68
+   |
+ 6 |     MessageRepository,
+ 7 | )
+ 8 | from shell.domain.platform.value_objects.workflow_reference import WorkflowReference
+   |                                                                    ^^^^^^^^^^^^^^^^^
+ 9 | from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
+10 |     message_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.aggregates.message.message.Message` into a type-checking block
+  --> shell\infrastructure\platform\persistence\sql_alchemy_uow.py:48:62
+   |
+46 |     WorkflowStateRepository,
+47 | )
+48 | from shell.domain.platform.aggregates.message.message import Message
+   |                                                              ^^^^^^^
+49 | from shell.domain.platform.aggregates.message.repositories.message_repository import (
+50 |     MessageRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.platform.events.DomainEvent` into a type-checking block
+  --> shell\infrastructure\platform\persistence\sql_alchemy_uow.py:53:42
+   |
+51 | )
+52 | from shell.domain.platform.envelope import Envelope
+53 | from shell.domain.platform.events import DomainEvent
+   |                                          ^^^^^^^^^^^
+54 | from shell.domain.platform.exceptions.concurrent_modification_error import (
+55 |     ConcurrentModificationError,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `sqlalchemy.ext.asyncio.AsyncSession` into a type-checking block
+  --> shell\infrastructure\platform\persistence\sql_alchemy_uow.py:92:36
+   |
+90 |     SqlSessionRepository,
+91 | )
+92 | from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+   |                                    ^^^^^^^^^^^^
+93 | from sqlalchemy.orm.exc import StaleDataError
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `sqlalchemy.ext.asyncio.async_sessionmaker` into a type-checking block
+  --> shell\infrastructure\platform\persistence\sql_alchemy_uow.py:92:50
+   |
+90 |     SqlSessionRepository,
+91 | )
+92 | from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+   |                                                  ^^^^^^^^^^^^^^^^^^
+93 | from sqlalchemy.orm.exc import StaleDataError
+   |
+help: Move into type-checking block
+
+F841 Local variable `message_outbox` is assigned to but never used
+   --> shell\infrastructure\platform\persistence\sql_alchemy_uow.py:198:17
+    |
+196 |                     correlation_id=get_correlation_id(),
+197 |                 )
+198 |                 message_outbox = OutboxMessageModel(
+    |                 ^^^^^^^^^^^^^^
+199 |                     id=str(uuid.uuid4()),
+200 |                     envelope=envelope.to_dict(),
+    |
+help: Remove assignment to unused variable `message_outbox`
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.source_context.SourceContext` into a type-checking block
+ --> shell\infrastructure\scheduling\persistence\memory\in_memory_scheduler_definition_repository.py:7:66
+  |
+5 | )
+6 | from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+7 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+  |                                                                  ^^^^^^^^^^^^^
+8 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+9 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.trigger_event_type.TriggerEventType` into a type-checking block
+ --> shell\infrastructure\scheduling\persistence\memory\in_memory_scheduler_definition_repository.py:8:70
+  |
+6 | from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
+7 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+8 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+  |                                                                      ^^^^^^^^^^^^^^^^
+9 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status.ExecutionStatus` into a type-checking block
+ --> shell\infrastructure\scheduling\persistence\memory\in_memory_scheduler_execution_repository.py:7:5
+  |
+5 | )
+6 | from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+7 |     ExecutionStatus,
+  |     ^^^^^^^^^^^^^^^
+8 | )
+9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.action_ref.ActionRef` into a type-checking block
+  --> shell\infrastructure\scheduling\persistence\memory\in_memory_scheduler_execution_repository.py:9:62
+   |
+ 7 |     ExecutionStatus,
+ 8 | )
+ 9 | from shell.domain.scheduling.value_objects.action_ref import ActionRef
+   |                                                              ^^^^^^^^^
+10 | from shell.domain.scheduling.value_objects.count_result import CountResult
+11 | from shell.domain.scheduling.value_objects.ids import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.source_context.SourceContext` into a type-checking block
+  --> shell\infrastructure\scheduling\persistence\sql\repositories\sql_scheduler_definition_repository.py:9:66
+   |
+ 7 |     SchedulerDefinitionId,  # noqa: TC002 ÔÇö SchedulerDefinitionId u┼╝ywany w konstruktorach w repozytorium
+ 8 | )
+ 9 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+   |                                                                  ^^^^^^^^^^^^^
+10 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+11 | from shell.infrastructure.scheduling.persistence.sql.mappers import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.scheduling.value_objects.trigger_event_type.TriggerEventType` into a type-checking block
+  --> shell\infrastructure\scheduling\persistence\sql\repositories\sql_scheduler_definition_repository.py:10:70
+   |
+ 8 | )
+ 9 | from shell.domain.scheduling.value_objects.source_context import SourceContext
+10 | from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+   |                                                                      ^^^^^^^^^^^^^^^^
+11 | from shell.infrastructure.scheduling.persistence.sql.mappers import (
+12 |     scheduler_definition_entity_to_model,
+   |
+help: Move into type-checking block
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> shell\infrastructure\scheduling\services\scheduler_service.py:21:5
+   |
+20 |   if TYPE_CHECKING:
+21 | /     from collections.abc import Callable, Coroutine
+22 | |     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
+23 | |         SchedulerJob,
+24 | |     )
+25 | |     from shell.domain.scheduling.services.pending_graph_finder import (
+26 | |         GraphExecutionRepository as PendingGraphRepo,
+27 | |     )
+28 | |     from shell.domain.scheduling.services.pending_graph_finder import (
+29 | |         PendingGraphFinder,
+30 | |     )
+31 | |     from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
+32 | |     from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import (
+33 | |         OutboxToInboxRelay,
+34 | |     )
+35 | |     from shell.infrastructure.platform.messaging.event.processor.inbox_processor import (
+36 | |         InboxProcessor,
+37 | |     )
+38 | |     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+   | |_______________________________________________________________________^
+39 |
+40 |   logger = logging.getLogger(__name__)
+   |
+help: Organize imports
+
+TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
+ --> shell\infrastructure\session\persistence\memory\in_memory_session_state_repository.py:6:65
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+  |                                                                 ^^^^^^^^^^^^^^
+7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+8 | from shell.domain.session.aggregates.session_state.repositories.session_state_repository import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.value_objects.session_id.SessionId` into a type-checking block
+ --> shell\infrastructure\session\persistence\memory\in_memory_session_state_repository.py:7:78
+  |
+5 | from shell.domain.platform.value_objects.exists_result import ExistsResult
+6 | from shell.domain.platform.value_objects.state_direction import StateDirection
+7 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+  |                                                                              ^^^^^^^^^
+8 | from shell.domain.session.aggregates.session_state.repositories.session_state_repository import (
+9 |     SessionStateRepository,
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.session.aggregates.session.value_objects.session_id.SessionId` into a type-checking block
+  --> shell\infrastructure\session\persistence\sql\repositories\sql_session_repository.py:8:78
+   |
+ 6 |     SessionRepository,
+ 7 | )
+ 8 | from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+   |                                                                              ^^^^^^^^^
+ 9 | from shell.infrastructure.session.persistence.sql.mappers import (
+10 |     session_entity_to_model,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.process.execution.graph_execution_saga.ports.graph_execution_saga_repository.GraphExecutionSagaRepository` into a type-checking block
+ --> shell\process\execution\graph_execution_saga\graph_execution_saga.py:6:5
+  |
+5 | from shell.process.execution.graph_execution_saga.ports.graph_execution_saga_repository import (
+6 |     GraphExecutionSagaRepository,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+8 | from shell.process.execution.graph_execution_saga.state import (
+  |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.process.execution.graph_execution_saga.state.GraphExecutionSagaState` into a type-checking block
+ --> shell\process\execution\graph_execution_saga\ports\graph_execution_saga_repository.py:6:5
+  |
+5 | from shell.process.execution.graph_execution_saga.state import (
+6 |     GraphExecutionSagaState,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^
+7 | )
+  |
+help: Move into type-checking block
+
+F403 `from shell.tests.conftest_helpers import *` used; unable to detect undefined names
+  --> shell\tests\conftest.py:25:1
+   |
+23 |     InMemoryUnitOfWork,
+24 | )
+25 | from shell.tests.conftest_helpers import *
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+26 |
+27 | # ---------------------------------------------------------------------------
+   |
+
+E402 Module level import not at top of file
+  --> shell\tests\conftest.py:41:1
+   |
+39 | # ---------------------------------------------------------------------------
+40 |
+41 | import os
+   | ^^^^^^^^^
+42 |
+43 | POSTGRES_URL = os.environ.get(
+   |
+
+E402 Module level import not at top of file
+   --> shell\tests\conftest.py:130:1
+    |
+128 | # ---------------------------------------------------------------------------
+129 |
+130 | from typing import TYPE_CHECKING
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+131 |
+132 | from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+    |
+
+E402 Module level import not at top of file
+   --> shell\tests\conftest.py:132:1
+    |
+130 | from typing import TYPE_CHECKING
+131 |
+132 | from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+133 | from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+134 | from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+    |
+
+E402 Module level import not at top of file
+   --> shell\tests\conftest.py:133:1
+    |
+132 | from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+133 | from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+134 | from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+135 | from shell.infrastructure.platform.persistence.sql import build_session_factory
+    |
+
+E402 Module level import not at top of file
+   --> shell\tests\conftest.py:134:1
+    |
+132 | from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+133 | from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+134 | from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+135 | from shell.infrastructure.platform.persistence.sql import build_session_factory
+    |
+
+E402 Module level import not at top of file
+   --> shell\tests\conftest.py:135:1
+    |
+133 | from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+134 | from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+135 | from shell.infrastructure.platform.persistence.sql import build_session_factory
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+136 |
+137 | if TYPE_CHECKING:
+    |
+
+B007 Loop control variable `cmd_type` not used within loop body
+   --> shell\tests\execution\e2e\cli\test_saga_flow_build_to_ready.py:289:13
+    |
+287 |         )
+288 |
+289 |         for cmd_type, payload in created_cmds:
+    |             ^^^^^^^^
+290 |             cmd = CreateGraphNodeExecutionCommand(
+291 |                 graph_execution_id=payload["graph_execution_id"],
+    |
+help: Rename unused `cmd_type` to `_cmd_type`
+
+F841 Local variable `handler` is assigned to but never used
+  --> shell\tests\execution\integration\sql_postgres\test_pg_node_result_repository.py:58:9
+   |
+56 |             await u.repository(GraphNodeExecutionRepository).save(node)
+57 |
+58 |         handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_gen)
+   |         ^^^^^^^
+59 |
+60 |         q = GraphNodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
+   |
+help: Remove assignment to unused variable `handler`
+
+TC002 Move third-party import `shell.infrastructure.platform.persistence.SqlAlchemyUnitOfWork` into a type-checking block
+  --> shell\tests\execution\integration\sql_sqlite\test_sql_task_execution_repository.py:15:5
+   |
+13 | from shell.infrastructure.execution.persistence.sql.services import TaskExecutionQueryService
+14 | from shell.infrastructure.platform.persistence import (
+15 |     SqlAlchemyUnitOfWork,
+   |     ^^^^^^^^^^^^^^^^^^^^
+16 | )
+17 | from shell.infrastructure.platform.persistence.memory import (
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query.GraphDefinitionSemanticQuery` into a type-checking block
+  --> shell\tests\execution\unit\application\test_build_graph_execution_on_task_execution_created_event_handler.py:29:5
+   |
+27 | )
+28 | from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+29 |     GraphDefinitionSemanticQuery,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+30 | )
+31 | from shell.domain.execution.events import TaskExecutionCreatedEvent
+   |
+help: Move into type-checking block
+
+F841 Local variable `body` is assigned to but never used
+  --> shell\tests\platform\architecture\_arch_helpers.py:57:5
+   |
+56 | def find_functions(tree: ast.Module, class_node: ast.ClassDef | None = None) -> Iterator[ast.FunctionDef]:
+57 |     body = class_node.body if class_node else tree.body
+   |     ^^^^
+58 |     for node in ast.walk(class_node if class_node else tree):
+59 |         if isinstance(node, ast.FunctionDef):
+   |
+help: Remove assignment to unused variable `body`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> shell\tests\platform\architecture\_arch_helpers.py:59:9
+   |
+57 |       body = class_node.body if class_node else tree.body
+58 |       for node in ast.walk(class_node if class_node else tree):
+59 | /         if isinstance(node, ast.FunctionDef):
+60 | |             if class_node is None or node in class_node.body:
+   | |_____________________________________________________________^
+61 |                   yield node
+   |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> shell\tests\platform\architecture\_arch_helpers.py:68:9
+   |
+66 |           if isinstance(base, ast.Name) and base.id == base_name:
+67 |               return True
+68 | /         if isinstance(base, ast.Subscript):
+69 | |             if isinstance(base.value, ast.Name) and base.value.id == base_name:
+   | |_______________________________________________________________________________^
+70 |                   return True
+71 |       return False
+   |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\_arch_helpers.py:131:9
+    |
+129 |       names: list[str] = []
+130 |       for stmt in node.body:
+131 | /         if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+132 | |             if not stmt.name.startswith("_"):
+    | |_____________________________________________^
+133 |                   names.append(stmt.name)
+134 |       return names
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> shell\tests\platform\architecture\test_application_structure.py:69:29
+   |
+67 |                       if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
+68 |                           for line in ast.walk(stmt):
+69 | /                             if isinstance(line, ast.Attribute):
+70 | |                                 if isinstance(line.value, ast.Name) and line.value.id == "self":
+   | |________________________________________________________________________________________________^
+71 |                                       handler_attrs.add(line.attr)
+72 |                   if not handler_attrs:
+   |
+help: Combine `if` statements using `and`
+
+SIM110 Use `return any(imp == allowed or imp.startswith(allowed + ".") for allowed in _ALLOWED_CROSS_BC)` instead of `for` loop
+  --> shell\tests\platform\architecture\test_bc_isolation.py:28:5
+   |
+27 |   def _is_allowed_cross_bc(imp: str) -> bool:
+28 | /     for allowed in _ALLOWED_CROSS_BC:
+29 | |         if imp == allowed or imp.startswith(allowed + "."):
+30 | |             return True
+31 | |     return False
+   | |________________^
+   |
+help: Replace with `return any(imp == allowed or imp.startswith(allowed + ".") for allowed in _ALLOWED_CROSS_BC)`
+
+SIM110 Use `return any(isinstance(base, ast.Name) and base.id == "StrEnum" for base in node.bases)` instead of `for` loop
+  --> shell\tests\platform\architecture\test_domain_structure.py:35:5
+   |
+33 |   def _is_strenum(node: ast.ClassDef) -> bool:
+34 |       """Check if a class extends StrEnum (which can't have slots=True)."""
+35 | /     for base in node.bases:
+36 | |         if isinstance(base, ast.Name) and base.id == "StrEnum":
+37 | |             return True
+38 | |     return False
+   | |________________^
+   |
+help: Replace with `return any(isinstance(base, ast.Name) and base.id == "StrEnum" for base in node.bases)`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_domain_structure.py:149:25
+    |
+147 |                   if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
+148 |                       for line in ast.walk(stmt):
+149 | /                         if isinstance(line, ast.Attribute):
+150 | |                             if isinstance(line.value, ast.Name) and line.value.id == "self":
+151 | |                                 if not line.attr.startswith("_"):
+    | |_________________________________________________________________^
+152 |                                       key = f"{path.relative_to(BASE)}: {node.name}.__init__ assigns to public {line.attr!r}"
+153 |                                       if key not in _KNOWN_PUBLIC_INIT_ATTRS:
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_domain_structure.py:150:29
+    |
+148 |                       for line in ast.walk(stmt):
+149 |                           if isinstance(line, ast.Attribute):
+150 | /                             if isinstance(line.value, ast.Name) and line.value.id == "self":
+151 | |                                 if not line.attr.startswith("_"):
+    | |_________________________________________________________________^
+152 |                                       key = f"{path.relative_to(BASE)}: {node.name}.__init__ assigns to public {line.attr!r}"
+153 |                                       if key not in _KNOWN_PUBLIC_INIT_ATTRS:
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_domain_structure.py:493:25
+    |
+491 |                   if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
+492 |                       for line in ast.walk(stmt):
+493 | /                         if isinstance(line, ast.Attribute):
+494 | |                             if isinstance(line.value, ast.Name) and line.value.id == "self":
+    | |____________________________________________________________________________________________^
+495 |                                   state_attrs.add(line.attr)
+496 |               non_dep_attrs = [a for a in state_attrs if not a.endswith("_")]
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_domain_structure.py:816:9
+    |
+814 |           if isinstance(base, ast.Name) and base.id in {"Protocol", "ABC"}:
+815 |               return True
+816 | /         if isinstance(base, ast.Subscript):
+817 | |             if isinstance(base.value, ast.Name) and base.value.id == "Protocol":
+    | |________________________________________________________________________________^
+818 |                   return True
+819 |       return False
+    |
+help: Combine `if` statements using `and`
+
+F841 Local variable `test_id` is assigned to but never used
+  --> shell\tests\platform\architecture\test_enterprise_patterns.py:51:17
+   |
+49 |                     imports.append(node.module)
+50 |             elif isinstance(node, ast.If):
+51 |                 test_id = None
+   |                 ^^^^^^^
+52 |                 if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
+53 |                     continue
+   |
+help: Remove assignment to unused variable `test_id`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_enterprise_patterns.py:234:21
+    |
+232 |                       continue
+233 |                   for stmt in node.body:
+234 | /                     if isinstance(stmt, ast.AnnAssign) and stmt.annotation:
+235 | |                         if _has_complex_type(stmt.annotation):
+    | |______________________________________________________________^
+236 |                               field_name = (
+237 |                                   stmt.target.id
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_enterprise_patterns.py:319:13
+    |
+317 |               continue
+318 |           for imp in _get_imports(path):
+319 | /             if imp.endswith("Model") or imp.endswith("models"):
+320 | |                 if "sql" in imp or "orm" in imp:
+    | |________________________________________________^
+321 |                       violations.append(f"{rel}: imports ORM model {imp!r}")
+322 |               if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_enterprise_patterns.py:329:13
+    |
+327 |               continue
+328 |           for imp in _get_imports(path):
+329 | /             if imp.endswith("Model") or imp.endswith("models"):
+330 | |                 if "sql" in imp or "orm" in imp:
+    | |________________________________________________^
+331 |                       violations.append(f"{rel}: imports ORM model {imp!r}")
+332 |               if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_general_conventions.py:161:17
+    |
+159 |               for i, line in enumerate(content.splitlines(), 1):
+160 |                   stripped = line.strip()
+161 | /                 if stripped.startswith("#") and "# noqa" not in stripped:
+162 | |                     if not stripped.startswith("#!") and not stripped.startswith("# -*-"):
+163 | |                         if re.match(r"# \w", stripped):
+    | |_______________________________________________________^
+164 |                               violations.append(f"{rel}:{i}: {stripped[:80]}")
+165 |       assert not violations, (
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_general_conventions.py:162:21
+    |
+160 |                   stripped = line.strip()
+161 |                   if stripped.startswith("#") and "# noqa" not in stripped:
+162 | /                     if not stripped.startswith("#!") and not stripped.startswith("# -*-"):
+163 | |                         if re.match(r"# \w", stripped):
+    | |_______________________________________________________^
+164 |                               violations.append(f"{rel}:{i}: {stripped[:80]}")
+165 |       assert not violations, (
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> shell\tests\platform\architecture\test_mapper_structure.py:55:13
+   |
+53 |           has_to_dto = False
+54 |           for node in ast.walk(tree):
+55 | /             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+56 | |                 if node.name.endswith("_to_dto"):
+   | |_________________________________________________^
+57 |                       has_to_dto = True
+58 |                       break
+   |
+help: Combine `if` statements using `and`
+
+F841 Local variable `func_lines` is assigned to but never used
+  --> shell\tests\platform\architecture\test_mapper_structure.py:83:17
+   |
+81 |         for node in ast.walk(tree):
+82 |             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+83 |                 func_lines = set(range(node.lineno or 0, (node.end_lineno or node.lineno) + 1))
+   |                 ^^^^^^^^^^
+84 |                 for sub in ast.walk(node):
+85 |                     if isinstance(sub, ast.If):
+   |
+help: Remove assignment to unused variable `func_lines`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> shell\tests\platform\architecture\test_naming_conventions.py:161:25
+    |
+159 |                           if name.isupper():
+160 |                               continue
+161 | /                         if name[0].isupper() and not name.startswith("__"):
+162 | |                             if isinstance(node.value, (ast.Constant, ast.List, ast.Dict, ast.Set, ast.Tuple)):
+    | |______________________________________________________________________________________________________________^
+163 |                                   violations.append(f"{rel}: {target.id}")
+164 |       assert not violations, (
+    |
+help: Combine `if` statements using `and`
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+  --> shell\tests\platform\architecture\test_process_structure.py:78:25
+   |
+76 |                   if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
+77 |                       for line in ast.walk(stmt):
+78 | /                         if isinstance(line, ast.Attribute):
+79 | |                             if isinstance(line.value, ast.Name) and line.value.id == "self":
+   | |____________________________________________________________________________________________^
+80 |                                   handler_attrs.add(line.attr)
+81 |               if not handler_attrs:
+   |
+help: Combine `if` statements using `and`
+
+F841 Local variable `later` is assigned to but never used
+   --> shell\tests\platform\unit\domain\test_message.py:134:9
+    |
+132 |     def test_restore_preserves_all_fields(self) -> None:
+133 |         now = datetime.now(tz=UTC)
+134 |         later = datetime.now(tz=UTC)
+    |         ^^^^^
+135 |         msg_id = MessageId.generate()
+    |
+help: Remove assignment to unused variable `later`
+
+TC002 Move third-party import `shell.process.execution.graph_execution_saga.state.GraphExecutionSagaState` into a type-checking block
+  --> shell\tests\process\conftest.py:12:5
+   |
+10 | import pytest
+11 | from shell.process.execution.graph_execution_saga.state import (
+12 |     GraphExecutionSagaState,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+13 | )
+   |
+help: Move into type-checking block
+
+B017 Do not assert blind exception: `Exception`
+   --> shell\tests\process\integration\sql_sqlite\test_graph_execution_saga_repository.py:102:18
+    |
+100 |             )
+101 |             import pytest
+102 |             with pytest.raises(Exception):
+    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
+103 |                 await repo.save(saga_2)
+104 |                 await session.commit()
+    |
+
+TC002 Move third-party import `shell.tests.process.conftest.FakeCommandOutboxPublisher` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_execution_initialized_handler.py:29:5
+   |
+27 | )
+28 | from shell.tests.process.conftest import (
+29 |     FakeCommandOutboxPublisher,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+30 |     FakeLogger,
+31 |     InMemoryGraphExecutionSagaRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.FakeLogger` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_execution_initialized_handler.py:30:5
+   |
+28 | from shell.tests.process.conftest import (
+29 |     FakeCommandOutboxPublisher,
+30 |     FakeLogger,
+   |     ^^^^^^^^^^
+31 |     InMemoryGraphExecutionSagaRepository,
+32 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.InMemoryGraphExecutionSagaRepository` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_execution_initialized_handler.py:31:5
+   |
+29 |     FakeCommandOutboxPublisher,
+30 |     FakeLogger,
+31 |     InMemoryGraphExecutionSagaRepository,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+32 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.FakeCommandOutboxPublisher` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:24:5
+   |
+22 | )
+23 | from shell.tests.process.conftest import (
+24 |     FakeCommandOutboxPublisher,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+25 |     FakeLogger,
+26 |     InMemoryGraphExecutionSagaRepository,
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.FakeLogger` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:25:5
+   |
+23 | from shell.tests.process.conftest import (
+24 |     FakeCommandOutboxPublisher,
+25 |     FakeLogger,
+   |     ^^^^^^^^^^
+26 |     InMemoryGraphExecutionSagaRepository,
+27 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.InMemoryGraphExecutionSagaRepository` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:26:5
+   |
+24 |     FakeCommandOutboxPublisher,
+25 |     FakeLogger,
+26 |     InMemoryGraphExecutionSagaRepository,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+27 | )
+   |
+help: Move into type-checking block
+
+TC002 Move third-party import `shell.tests.process.conftest.InMemoryGraphExecutionSagaRepository` into a type-checking block
+  --> shell\tests\process\unit\graph_execution_saga\test_manager.py:13:5
+   |
+11 | )
+12 | from shell.tests.process.conftest import (
+13 |     InMemoryGraphExecutionSagaRepository,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+14 | )
+   |
+help: Move into type-checking block
+
+F841 Local variable `saga` is assigned to but never used
+  --> shell\tests\process\unit\graph_execution_saga\test_manager.py:50:9
+   |
+48 |         saga_repository: InMemoryGraphExecutionSagaRepository,
+49 |     ) -> None:
+50 |         saga = await manager.create_saga(
+   |         ^^^^
+51 |             graph_execution_id=self.GRAPH_EXECUTION_ID,
+52 |             expected_nodes_count=3,
+   |
+help: Remove assignment to unused variable `saga`
+
+Found 265 errors.
+[*] 3 fixable with the `--fix` option (234 hidden fixes can be enabled with the `--unsafe-fixes` option).

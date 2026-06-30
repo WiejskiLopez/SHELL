@@ -9,9 +9,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-    GraphNodeExecutionCompletedEvent,
-)
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -24,6 +21,9 @@ if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+        GraphNodeExecutionCompletedEvent,
     )
     from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
     from shell.domain.platform.ports.log import Logger
@@ -45,12 +45,16 @@ class PlannerResultHandler:
         self._definition_provider = definition_provider
         self._sub_graph_discovery = sub_graph_discovery
 
-    async def handle(self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent) -> None:
+    async def handle(
+        self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent
+    ) -> None:
         if graph_node_execution_completed_event.role != NodeRole.PLANNER:
             return
 
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_completed_event.node_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
+                graph_node_execution_completed_event.node_id
+            )
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "planner_result_handler.node_not_found",
@@ -68,7 +72,11 @@ class PlannerResultHandler:
                 )
                 return
 
-            result: dict[str, Any] = graph_node_execution_completed_event.result.to_dict() if graph_node_execution_completed_event.result else {}
+            result: dict[str, Any] = (
+                graph_node_execution_completed_event.result.to_dict()
+                if graph_node_execution_completed_event.result
+                else {}
+            )
             stage = result.get("stage", "")
             spawns: list[dict[str, Any]] = result.get("spawns", [])
             plan = result.get("plan", {})
@@ -84,12 +92,11 @@ class PlannerResultHandler:
 
                 child_id = GEId.generate()
                 definition_id = ""
-                expected_count = 0
                 try:
                     definition_id = await self._sub_graph_discovery.find_unique(goal)
                     definition = await self._definition_provider.get_graph_definition(definition_id)
                     if definition is not None:
-                        expected_count = len(definition.graph_node_execution_definitions)
+                        len(definition.graph_node_execution_definitions)
                 except Exception:
                     self._logger.warning(
                         "planner_result_handler.definition_resolve_failed",

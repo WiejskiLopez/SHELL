@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
-    AgentExecutionId,
+from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
+    AgentSkillExecution,
 )
 from shell.domain.execution.aggregates.agent_skill_execution.repositories.agent_skill_execution_repository import (
     AgentSkillExecutionRepository,
@@ -11,15 +12,18 @@ from shell.domain.execution.aggregates.agent_skill_execution.repositories.agent_
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
-from shell.domain.execution.aggregates.agent_skill_execution.agent_skill_execution import (
-    AgentSkillExecution,
-)
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+        AgentExecutionId,
+    )
 
-class InMemoryAgentSkillExecutionRepository(InMemoryRepository[AgentSkillExecution, AgentSkillExecutionId], AgentSkillExecutionRepository):
 
+class InMemoryAgentSkillExecutionRepository(
+    InMemoryRepository[AgentSkillExecution, AgentSkillExecutionId], AgentSkillExecutionRepository
+):
     async def list_by_agent_execution_id(
         self, agent_execution_id: AgentExecutionId
     ) -> list[AgentSkillExecution]:

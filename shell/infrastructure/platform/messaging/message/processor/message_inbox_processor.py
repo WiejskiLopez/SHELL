@@ -5,18 +5,20 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.platform.envelope import Envelope
 from shell.infrastructure.platform.persistence.sql.models.message.inbox_message import (
     InboxMessageModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
     from shell.application.platform.bus.message_bus import MessageBus
     from shell.domain.platform.aggregates.message.repositories.message_repository import (
         MessageRepository,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class MessageInboxProcessor:

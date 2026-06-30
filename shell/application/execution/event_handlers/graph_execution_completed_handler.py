@@ -34,7 +34,9 @@ class GraphExecutionCompletedHandler:
 
     async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_completed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                graph_execution_completed_event.graph_execution_id
+            )
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_completed_handler.graph_execution_not_found",

@@ -9,4 +9,5 @@ class ProjectIdRef(EntityId):
     Intentionally duplicated for BC isolation.
     See shell.domain.projekt.value_objects.project_id.ProjectId
     """
+
     pass

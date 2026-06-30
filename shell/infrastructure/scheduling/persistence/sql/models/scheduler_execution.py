@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from typing import Any
+
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 from shell.infrastructure.scheduling.persistence.sql.models._compat import JSONB
 from shell.infrastructure.scheduling.persistence.sql.models.base import Base
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 
 class SchedulerExecutionModel(Base, VersionedMixin):
@@ -26,6 +28,6 @@ class SchedulerExecutionModel(Base, VersionedMixin):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=False)
 
-    @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict:
+    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}

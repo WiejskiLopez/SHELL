@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+
 from shell.domain.platform.value_objects.timestamp import Timestamp
 
 

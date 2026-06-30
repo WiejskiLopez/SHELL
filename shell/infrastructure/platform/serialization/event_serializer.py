@@ -112,7 +112,10 @@ class DomainEventSerializer:
             return value
         if isinstance(value, (str, int, float, bool)) and dataclasses.is_dataclass(target_type):
             _fields = dataclasses.fields(target_type)
-            if len(_fields) == 1 and not hasattr(target_type, "__dataclass_params__") or not target_type.__dataclass_params__.kw_only:  # type: ignore[attr-defined]
+            if len(_fields) == 1 and (
+                not hasattr(target_type, "__dataclass_params__")
+                or not target_type.__dataclass_params__.kw_only
+            ):
                 return target_type(value)  # type: ignore[call-arg]
         value_obj_map: dict[type, type] = {
             WorkflowId: WorkflowId,

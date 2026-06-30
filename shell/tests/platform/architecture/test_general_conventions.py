@@ -16,7 +16,12 @@ def test_future_annotations_in_every_file() -> None:
         rel = path.relative_to(BASE).as_posix()
         if rel in _KNOWN_MISSING_FUTURE:
             continue
-        if "tests" in rel or rel.startswith("config/") or rel.startswith("shell.egg-info/") or rel.startswith(".venv/"):
+        if (
+            "tests" in rel
+            or rel.startswith("config/")
+            or rel.startswith("shell.egg-info/")
+            or rel.startswith(".venv/")
+        ):
             continue
         if "migrations/versions" in rel:
             continue
@@ -69,10 +74,7 @@ def test_functions_have_type_hints() -> None:
                     violations.append(
                         f"{rel}: {node.name} (return_hint={has_return_hint}, param_hints={has_param_hints})"
                     )
-    assert not violations, (
-        "All functions must have type hints:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "All functions must have type hints:\n" + "\n".join(violations)
 
 
 # ── 3. __init__.py only re-exports ────────────────────────────────
@@ -83,7 +85,7 @@ _KNOWN_INIT_DEFINITIONS: frozenset[str] = frozenset({})
 
 def test_init_files_only_re_export() -> None:
     violations: list[str] = []
-    _INIT_KNOW_DEFINE = frozenset({})
+    _INIT_KNOW_DEFINE: set[str] = set()
     _RESTRICTED_LAYERS = ("domain/", "application/", "process/", "bootstrap/")
     for init_file in BASE.rglob("__init__.py"):
         rel = init_file.relative_to(BASE).as_posix()
@@ -102,8 +104,7 @@ def test_init_files_only_re_export() -> None:
                 if key not in _KNOWN_INIT_DEFINITIONS:
                     violations.append(key)
     assert not violations, (
-        "__init__.py should only re-export, not define classes/functions:\n"
-        + "\n".join(violations)
+        "__init__.py should only re-export, not define classes/functions:\n" + "\n".join(violations)
     )
 
 
@@ -117,7 +118,9 @@ _NOQA_KNOWN_WITHOUT_REASON: frozenset[str] = frozenset({})
 
 def test_noqa_has_justification() -> None:
     violations: list[str] = []
-    _TEST_FILES = frozenset({"test_general_conventions.py", "test_enterprise_patterns.py", "test_domain_structure.py"})
+    _TEST_FILES = frozenset(
+        {"test_general_conventions.py", "test_enterprise_patterns.py", "test_domain_structure.py"}
+    )
     for path in iter_py_files(BASE):
         rel = path.relative_to(BASE).as_posix()
         if rel in _NOQA_KNOWN_INVALID:
@@ -158,11 +161,14 @@ def test_no_comments_in_production_code() -> None:
             content = path.read_text(encoding="utf-8")
             for i, line in enumerate(content.splitlines(), 1):
                 stripped = line.strip()
-                if stripped.startswith("#") and "# noqa" not in stripped:
-                    if not stripped.startswith("#!") and not stripped.startswith("# -*-"):
-                        if re.match(r"# \w", stripped):
-                            violations.append(f"{rel}:{i}: {stripped[:80]}")
+                if (
+                    stripped.startswith("#")
+                    and "# noqa" not in stripped
+                    and not stripped.startswith("#!")
+                    and not stripped.startswith("# -*-")
+                    and re.match(r"# \w", stripped)
+                ):
+                    violations.append(f"{rel}:{i}: {stripped[:80]}")
     assert not violations, (
-        "Domain/application code should avoid comments (except # noqa):\n"
-        + "\n".join(violations)
+        "Domain/application code should avoid comments (except # noqa):\n" + "\n".join(violations)
     )

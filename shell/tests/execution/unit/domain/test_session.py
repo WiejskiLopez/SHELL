@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session import Session

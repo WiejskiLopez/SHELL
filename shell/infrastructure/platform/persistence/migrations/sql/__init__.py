@@ -6,8 +6,9 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from shell.infrastructure.platform.persistence.sql.models import Base
 from sqlalchemy.ext.asyncio import create_async_engine
+
+from shell.infrastructure.platform.persistence.sql.models import Base
 
 # Alembic Config object
 config = context.config

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
 

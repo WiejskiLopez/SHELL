@@ -12,11 +12,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
-    GraphNodeExecutionRequestedEvent,
-)
-from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -26,9 +21,14 @@ from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_n
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
+    GraphNodeExecutionRequestedEvent,
+)
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
+from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -60,7 +60,9 @@ class WorkflowRunTaskerHandler:
         now = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_current_by_id(task_execution_id)
+            task_execution = await unit_of_work.repository(
+                TaskExecutionRepository
+            ).get_current_by_id(task_execution_id)
             if task_execution is None:
                 raise TaskExecutionNotFound(run_tasker_workflow_command.task_execution_id)
 
@@ -77,19 +79,23 @@ class WorkflowRunTaskerHandler:
                 task_execution_id=task_execution_id,
             )
 
-            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.repository(
+                GraphExecutionRepository
+            ).get_by_workflow_id(workflow.id)
             if graph_executions:
-                nodes = await unit_of_work.repository(GraphNodeExecutionRepository).list_by_graph_execution_id(
-                    graph_executions[0].id
-                )
+                nodes = await unit_of_work.repository(
+                    GraphNodeExecutionRepository
+                ).list_by_graph_execution_id(graph_executions[0].id)
                 if nodes:
-                    unit_of_work.stage_events([
-                        GraphNodeExecutionRequestedEvent.now(
-                            workflow_id=workflow.id,
-                            graph_node_execution_id=nodes[0].id,
-                            now=CreatedAt.from_datetime(now),
-                        ),
-                    ])
+                    unit_of_work.stage_events(
+                        [
+                            GraphNodeExecutionRequestedEvent.now(
+                                workflow_id=workflow.id,
+                                graph_node_execution_id=nodes[0].id,
+                                now=CreatedAt.from_datetime(now),
+                            ),
+                        ]
+                    )
 
             await unit_of_work.repository(WorkflowRepository).save(workflow)
             unit_of_work.stage_events(workflow.pull_events())

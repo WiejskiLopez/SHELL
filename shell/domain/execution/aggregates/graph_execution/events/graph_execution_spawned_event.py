@@ -19,7 +19,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphExecutionSpawnedEvent(DomainEvent):
     parent_graph_execution_id: GraphExecutionId
     child_graph_execution_id: GraphExecutionId
-    goal: Goal = Goal("")
+    goal: Goal
 
     @classmethod
     def now(
@@ -27,7 +27,7 @@ class GraphExecutionSpawnedEvent(DomainEvent):
         parent_graph_execution_id: GraphExecutionId,
         child_graph_execution_id: GraphExecutionId,
         now: CreatedAt,
-        goal: Goal = Goal(""),
+        goal: Goal,
     ) -> GraphExecutionSpawnedEvent:
         return cls(
             occurred_at=now,

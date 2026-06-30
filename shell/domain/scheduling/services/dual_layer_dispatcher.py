@@ -58,7 +58,10 @@ class DualLayerDispatcher:
                     await inbox.mark_processed(event["id"])
                 continue
 
-            if self._pending_graph_finder is not None and self._graph_execution_repository is not None:
+            if (
+                self._pending_graph_finder is not None
+                and self._graph_execution_repository is not None
+            ):
                 graph = await self._pending_graph_finder.find_next(self._graph_execution_repository)
                 if graph is not None:
                     handler = handlers.get("graph_pending")

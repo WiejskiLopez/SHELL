@@ -13,11 +13,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
-    GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
 )
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
 )
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
@@ -28,17 +31,15 @@ from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
-)
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
+        GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
+    )
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
         SubGraphObserver,
@@ -153,6 +154,7 @@ class SubGraphExecutionService:
                 role=NodeRole(node_def.role),
                 node_type=NodeType(node_def.node_type),
                 remaining_retries=RemainingRetries(node_def.retries),
+                retry_delay_seconds=RetryDelaySeconds(0),
                 timeout_seconds=TimeoutSeconds(node_def.timeout),
                 now=now,
             )
@@ -166,6 +168,7 @@ class SubGraphExecutionService:
             task_execution_id=parent_graph_execution.task_execution_id,
             parent_id=parent_graph_execution.id,
             parent_depth=parent_graph_execution.depth,
+            max_subgraph_depth=parent_graph_execution.max_subgraph_depth,
         )
 
         sub_graph_execution.prepare_node_definitions(
@@ -173,7 +176,7 @@ class SubGraphExecutionService:
             graph_node_definition_ids=node_def_ids,
         )
 
-        for node_def_id, node_exec_id in zip(node_def_ids, node_execution_ids):
+        for node_def_id, node_exec_id in zip(node_def_ids, node_execution_ids, strict=False):
             sub_graph_execution.attach_node_execution(
                 node_definition_id=node_def_id,
                 node_execution_id=node_exec_id,

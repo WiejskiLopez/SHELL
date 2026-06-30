@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
     GraphNodeExecutionStateModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -22,7 +23,9 @@ class NodeResultQueryService:
         async with self._session_factory() as session:
             stmt = (
                 select(GraphNodeExecutionStateModel)
-                .where(GraphNodeExecutionStateModel.graph_node_execution_id == graph_node_execution_id)
+                .where(
+                    GraphNodeExecutionStateModel.graph_node_execution_id == graph_node_execution_id
+                )
                 .where(GraphNodeExecutionStateModel.direction == "OUT")
                 .where(GraphNodeExecutionStateModel.is_current == True)  # noqa: E712 -- comparison to True is intentional
                 .limit(1)

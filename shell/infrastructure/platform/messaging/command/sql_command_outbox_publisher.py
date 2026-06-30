@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
 from shell.infrastructure.platform.persistence.sql.models.command import OutboxCommandModel
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 

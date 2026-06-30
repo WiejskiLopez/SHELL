@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
 )
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.infrastructure.platform.persistence.in_memory_repository import (
     InMemoryRepository,
 )
@@ -20,7 +20,9 @@ if TYPE_CHECKING:
     )
 
 
-class InMemoryGraphExecutionRepository(InMemoryRepository[GraphExecution, GraphExecutionId], GraphExecutionRepository):
+class InMemoryGraphExecutionRepository(
+    InMemoryRepository[GraphExecution, GraphExecutionId], GraphExecutionRepository
+):
     _task_executions: InMemoryTaskExecutionRepository | None = None
 
     def link_task_executions(self, repo: InMemoryTaskExecutionRepository) -> None:
@@ -53,7 +55,5 @@ class InMemoryGraphExecutionRepository(InMemoryRepository[GraphExecution, GraphE
         ]
         return [ge for ge in self._store.values() if ge.task_execution_id.value in task_ids]
 
-    async def get_main_rounds(
-        self, task_execution_id: TaskExecutionId
-    ) -> list[GraphExecution]:
+    async def get_main_rounds(self, task_execution_id: TaskExecutionId) -> list[GraphExecution]:
         return []

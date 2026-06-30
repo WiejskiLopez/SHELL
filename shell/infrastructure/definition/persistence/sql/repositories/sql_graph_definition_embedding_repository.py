@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories import (
     GraphDefinitionEmbeddingRepository,
 )
@@ -11,9 +13,10 @@ from shell.domain.definition.value_objects.embedding_text import EmbeddingText
 from shell.infrastructure.definition.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
@@ -23,7 +26,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
         GraphDefinitionEmbeddingId,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
@@ -31,16 +33,17 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
         self._session = session
 
     async def get_by_id(
-        self, id: GraphDefinitionEmbeddingId,
+        self,
+        id: GraphDefinitionEmbeddingId,
     ) -> GraphDefinitionEmbedding | None:
+        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+            GraphDefinitionId,
+        )
         from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
             GraphDefinitionEmbedding,
         )
         from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
             GraphDefinitionEmbeddingId,
-        )
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
         )
 
         model = await self._session.get(GraphDefinitionEmbeddingModel, id.value)
@@ -55,7 +58,8 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
         )
 
     async def get_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> GraphDefinitionEmbedding | None:
         from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
             GraphDefinitionEmbedding,
@@ -81,7 +85,8 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
 
     async def save(self, embedding: GraphDefinitionEmbedding) -> None:
         model = await self._session.get(
-            GraphDefinitionEmbeddingModel, embedding.id.value,
+            GraphDefinitionEmbeddingModel,
+            embedding.id.value,
         )
         if model is None:
             model = GraphDefinitionEmbeddingModel(

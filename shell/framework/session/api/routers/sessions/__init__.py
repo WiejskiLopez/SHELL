@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
+
 from shell.application.session.dto.session import SessionDto
 
 if TYPE_CHECKING:

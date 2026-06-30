@@ -1,26 +1,30 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
-)
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
 )
 from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
     TaskExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-    TaskExecutionState,
-)
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
-class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState, TaskExecutionStateId], TaskExecutionStateRepository):  # type: ignore[misc]
 
+class InMemoryTaskExecutionStateRepository(  # type: ignore[misc]
+    InMemoryRepository[TaskExecutionState, TaskExecutionStateId], TaskExecutionStateRepository
+):
     async def get_latest_by_task_id(
         self,
         task_execution_id: TaskExecutionId,
@@ -36,7 +40,9 @@ class InMemoryTaskExecutionStateRepository(InMemoryRepository[TaskExecutionState
         return copy.deepcopy(latest) if latest is not None else None
 
     async def save(self, payload: TaskExecutionState) -> None:
-        existing = await self.get_latest_by_task_id(payload.task_execution_id, direction=payload.direction)
+        existing = await self.get_latest_by_task_id(
+            payload.task_execution_id, direction=payload.direction
+        )
         if existing is not None:
             existing.supersede()
         self._store[payload.id.value] = copy.deepcopy(payload)

@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.definition.commands.create_graph_definition_command import (
-    CreateGraphDefinitionCommand,
-)
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
     GraphNodeDefinition,
 )
-from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
@@ -17,12 +13,16 @@ from shell.domain.definition.repositories.graph_definition_repository.graph_node
     GraphNodeDefinitionRepository,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
+from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
 from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
 from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.definition.value_objects.purpose import Purpose
 
 if TYPE_CHECKING:
+    from shell.application.definition.commands.create_graph_definition_command import (
+        CreateGraphDefinitionCommand,
+    )
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.time import Clock

@@ -27,7 +27,11 @@ class AggregateRoot(Entity[TId]):
         self._events = []
 
     def append_event(self, event: DomainEvent) -> None:
-        object.__setattr__(event, "aggregate_id", AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id)))
+        object.__setattr__(
+            event,
+            "aggregate_id",
+            AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id)),
+        )
         object.__setattr__(event, "aggregate_type", AggregateType(type(self).__name__))
         self._events.append(event)
 

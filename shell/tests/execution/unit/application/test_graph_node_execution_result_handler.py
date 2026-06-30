@@ -9,11 +9,11 @@ from shell.domain.execution.events import (
     WorkflowCompletedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -25,7 +25,9 @@ from shell.tests.conftest_helpers import (
 class TestGraphNodeExecutionResultHandlerHappyPath:
     async def test_completed_advances_to_next_node(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "adv", ["agent", "tool"])
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "adv", ["agent", "tool"]
+        )
         wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         handler = _make_result_handler(unit_of_work)
@@ -48,7 +50,9 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
 
     async def test_completed_on_last_node_finishes_workflow(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "fin", ["agent"])
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "fin", ["agent"]
+        )
         wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         handler = _make_result_handler(unit_of_work)
@@ -72,7 +76,9 @@ class TestGraphNodeExecutionResultHandlerHappyPath:
 class TestGraphNodeExecutionResultHandlerFailure:
     async def test_failed_aborts_under_fail_fast_policy(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "abort", ["agent", "tool"])
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "abort", ["agent", "tool"]
+        )
         wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         handler = _make_result_handler(unit_of_work)
@@ -99,7 +105,9 @@ class TestGraphNodeExecutionResultHandlerFailure:
 class TestGraphNodeExecutionResultHandlerIdempotency:
     async def test_terminal_workflow_ignores_result_event(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "term", ["agent"])
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "term", ["agent"]
+        )
         wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         wf.finish(now=_NOW)

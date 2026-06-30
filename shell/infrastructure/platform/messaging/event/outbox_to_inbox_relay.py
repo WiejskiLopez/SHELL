@@ -14,15 +14,17 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.platform.persistence.sql.models import InboxEventModel, OutboxEventModel
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+
+from shell.infrastructure.platform.persistence.sql.models import InboxEventModel, OutboxEventModel
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.application.platform.ports.ports import EventPublisher
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.application.platform.ports.ports import EventPublisher
 
 logger = logging.getLogger(__name__)
 

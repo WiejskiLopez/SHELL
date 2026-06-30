@@ -3,9 +3,6 @@ from __future__ import annotations
 import struct
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
-    GraphDefinitionCreatedEvent,
-)
 from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
     GraphDefinitionEmbedding,
 )
@@ -20,8 +17,11 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.platform.ports.time import Clock
+    from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+        GraphDefinitionCreatedEvent,
+    )
     from shell.domain.definition.services.rag_index_service import Embedder
+    from shell.domain.platform.ports.time import Clock
 
 
 class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
@@ -49,9 +49,14 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
         embedding_id = self._id_generator.new_id(GraphDefinitionEmbeddingId)
 
         async with self._unit_of_work as unit_of_work:
-            if await unit_of_work.repository(GraphDefinitionEmbeddingRepository).get_by_graph_definition_id(
-                event.graph_definition_id,
-            ) is not None:
+            if (
+                await unit_of_work.repository(
+                    GraphDefinitionEmbeddingRepository
+                ).get_by_graph_definition_id(
+                    event.graph_definition_id,
+                )
+                is not None
+            ):
                 return
 
             embedding_aggregate = GraphDefinitionEmbedding.create(
@@ -62,5 +67,7 @@ class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
                 model=EmbeddingModel(self._embedder.model_name),
                 now=CreatedAt.from_datetime(self._clock.now()),
             )
-            await unit_of_work.repository(GraphDefinitionEmbeddingRepository).save(embedding_aggregate)
+            await unit_of_work.repository(GraphDefinitionEmbeddingRepository).save(
+                embedding_aggregate
+            )
             unit_of_work.stage_events(embedding_aggregate.pull_events())

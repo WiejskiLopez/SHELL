@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
-from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
-    UserExecutionId,
-)
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
     from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 

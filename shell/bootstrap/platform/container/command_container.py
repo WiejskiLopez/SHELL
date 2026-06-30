@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+
 from shell.application.definition.command_handlers.create_graph_definition_handler import (
     CreateGraphDefinitionHandler,
 )

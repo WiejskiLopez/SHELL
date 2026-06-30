@@ -22,7 +22,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
     transition_id: GraphNodeTransitionExecutionId
     source_node_id: GraphNodeExecutionId
-    iteration: CurrentIteration = CurrentIteration(0)
+    iteration: CurrentIteration
 
     @classmethod
     def now(
@@ -30,7 +30,7 @@ class GraphNodeTransitionExecutionLoopedEvent(DomainEvent):
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
         now: CreatedAt,
-        iteration: CurrentIteration = CurrentIteration(0),
+        iteration: CurrentIteration,
     ) -> GraphNodeTransitionExecutionLoopedEvent:
         return cls(
             occurred_at=now,

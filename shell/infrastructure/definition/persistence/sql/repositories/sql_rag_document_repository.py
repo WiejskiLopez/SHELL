@@ -3,28 +3,30 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+from sqlalchemy import delete as sa_delete
+from sqlalchemy.orm import selectinload
+
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-from shell.domain.definition.value_objects.domain_tag import DomainTag
-from shell.domain.definition.value_objects.embedding import Embedding
-from shell.domain.definition.value_objects.ids import (
-    RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
-)
 from shell.infrastructure.definition.persistence.sql.mappers import (
     rag_chunk_entity_to_model,
     rag_document_entity_to_model,
     rag_document_model_to_entity,
     rag_document_update_model,
 )
-from sqlalchemy import delete as sa_delete
-from sqlalchemy.orm import selectinload
 
 from ..models import RagChunkModel, RagDocumentModel
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+    from shell.domain.definition.value_objects.domain_tag import DomainTag
+    from shell.domain.definition.value_objects.embedding import Embedding
+    from shell.domain.definition.value_objects.ids import (
+        RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
+    )
+    from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,7 @@ class SqlRagDocumentRepository(RagDocumentRepository):
     async def search_similar(
         self,
         query_embedding: Embedding,
-        top_k: ChunkIndex = ChunkIndex(5),
+        top_k: ChunkIndex,
         domain: DomainTag | None = None,
     ) -> list[RagChunk]:
         strategy = self._get_strategy()

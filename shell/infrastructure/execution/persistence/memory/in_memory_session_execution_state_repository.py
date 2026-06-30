@@ -1,24 +1,29 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
-    SessionExecutionId,
-)
+from shell.domain.execution.aggregates.session_execution_state import SessionExecutionState
 from shell.domain.execution.aggregates.session_execution_state.repositories.session_execution_state_repository import (
     SessionExecutionStateRepository,
 )
 from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
     SessionExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.aggregates.session_execution_state import SessionExecutionState
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+        SessionExecutionId,
+    )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
-class InMemorySessionExecutionStateRepository(InMemoryRepository[SessionExecutionState, SessionExecutionStateId], SessionExecutionStateRepository):  # type: ignore[misc]
 
+class InMemorySessionExecutionStateRepository(  # type: ignore[misc]
+    InMemoryRepository[SessionExecutionState, SessionExecutionStateId],
+    SessionExecutionStateRepository,
+):
     async def get_latest_by_session_execution_id(
         self,
         session_execution_id: SessionExecutionId,

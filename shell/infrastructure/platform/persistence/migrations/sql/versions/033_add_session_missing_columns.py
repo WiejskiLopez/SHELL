@@ -23,9 +23,15 @@ def upgrade() -> None:
     with op.batch_alter_table("session") as batch:
         batch.add_column(sa.Column("user_id", sa.String(255), nullable=False, server_default=""))
         batch.add_column(sa.Column("project_id", sa.String(255), nullable=False, server_default=""))
-        batch.add_column(sa.Column("environment_os", sa.String(64), nullable=False, server_default=""))
-        batch.add_column(sa.Column("environment_runtime", sa.String(64), nullable=False, server_default=""))
-        batch.add_column(sa.Column("environment_cwd", sa.String(1024), nullable=False, server_default=""))
+        batch.add_column(
+            sa.Column("environment_os", sa.String(64), nullable=False, server_default="")
+        )
+        batch.add_column(
+            sa.Column("environment_runtime", sa.String(64), nullable=False, server_default="")
+        )
+        batch.add_column(
+            sa.Column("environment_cwd", sa.String(1024), nullable=False, server_default="")
+        )
 
 
 def downgrade() -> None:

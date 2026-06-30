@@ -100,8 +100,9 @@ async def reset_database(url: str) -> None:
             os.remove(db_path)
     else:
         # PostgreSQL / other: drop all user tables via metadata
-        from shell.infrastructure.platform.persistence.sql.models import Base
         from sqlalchemy import text
+
+        from shell.infrastructure.platform.persistence.sql.models import Base
 
         engine = create_async_engine(url, echo=False, future=True)
         async with engine.begin() as conn:
@@ -131,11 +132,12 @@ async def seed_base_data(url: str) -> None:
 
 
 def _seed_sync(sync_conn) -> None:
+    from sqlalchemy.orm import Session
+
     from shell.infrastructure.definition.persistence.sql.models import (
         GraphDefinitionModel,
         GraphNodeDefinitionModel,
     )
-    from sqlalchemy.orm import Session
 
     session = Session(sync_conn)
 

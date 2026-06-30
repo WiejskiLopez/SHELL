@@ -70,8 +70,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._session_id = session_id or None
         self._status = status or WorkflowStatus.ACTIVE
         self._created_at = (
-            created_at if isinstance(created_at, CreatedAt) else CreatedAt.from_datetime(created_at)
-        ) if created_at is not None else CreatedAt.now()
+            (
+                created_at
+                if isinstance(created_at, CreatedAt)
+                else CreatedAt.from_datetime(created_at)
+            )
+            if created_at is not None
+            else CreatedAt.now()
+        )
 
     @classmethod
     def restore(
@@ -141,7 +147,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
                 f"start_at requires status=ACTIVE, got {self._status.value!r}"
             )
         self.append_event(
-            WorkflowStartedEvent.now(self.id, now=CreatedAt.from_datetime(now), task_execution_id=task_execution_id)
+            WorkflowStartedEvent.now(
+                self.id, now=CreatedAt.from_datetime(now), task_execution_id=task_execution_id
+            )
         )
 
     def finish(
@@ -155,7 +163,11 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = WorkflowStatus.COMPLETED
         self.append_event(
-            WorkflowCompletedEvent.now(self.id, now=CreatedAt.from_datetime(now) if now is not None else None, task_execution_id=task_execution_id)
+            WorkflowCompletedEvent.now(
+                self.id,
+                now=CreatedAt.from_datetime(now) if now is not None else CreatedAt.now(),
+                task_execution_id=task_execution_id,
+            )
         )
 
     def fail(
@@ -170,7 +182,9 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = WorkflowStatus.FAILED
         self.append_event(
-            WorkflowFailedEvent.now(self.id, now=CreatedAt.from_datetime(now), task_execution_id=task_execution_id)
+            WorkflowFailedEvent.now(
+                self.id, now=CreatedAt.from_datetime(now), task_execution_id=task_execution_id
+            )
         )
 
     def abort(
@@ -187,7 +201,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._status = WorkflowStatus.ABORTED
         actual_reason = Reason(reason) if isinstance(reason, str) else reason
         self.append_event(
-            WorkflowAbortedEvent.now(self.id, now=CreatedAt.from_datetime(now), reason=actual_reason, task_execution_id=task_execution_id)
+            WorkflowAbortedEvent.now(
+                self.id,
+                now=CreatedAt.from_datetime(now),
+                reason=actual_reason,
+                task_execution_id=task_execution_id,
+            )
         )
 
     def pause(self, *, now: datetime) -> None:
@@ -205,5 +224,3 @@ class Workflow(AggregateRoot["WorkflowId"]):
             )
         self._status = WorkflowStatus.ACTIVE
         self.append_event(WorkflowResumedEvent.now(self.id, now=CreatedAt.from_datetime(now)))
-
-

@@ -17,11 +17,13 @@ if TYPE_CHECKING:
 
 class GraphNodeDefinitionRepository(Protocol):
     async def get_by_id(
-        self, graph_node_definition_id: GraphNodeDefinitionId,
+        self,
+        graph_node_definition_id: GraphNodeDefinitionId,
     ) -> GraphNodeDefinition | None: ...
 
     async def list_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> list[GraphNodeDefinition]: ...
 
     async def save(self, node: GraphNodeDefinition) -> None: ...

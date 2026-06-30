@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
+from shell.domain.execution.exceptions import TaskExecutionNotFound
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 
 if TYPE_CHECKING:
@@ -37,9 +37,9 @@ class WorkflowStartHandler:
     async def handle(self, start_workflow_command: StartWorkflowCommand) -> str:
         now = self._clock.now()
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_current_by_id(
-                TaskExecutionId(start_workflow_command.task_execution_id)
-            )
+            task_execution = await unit_of_work.repository(
+                TaskExecutionRepository
+            ).get_current_by_id(TaskExecutionId(start_workflow_command.task_execution_id))
             if task_execution is None:
                 raise TaskExecutionNotFound(start_workflow_command.task_execution_id)
 

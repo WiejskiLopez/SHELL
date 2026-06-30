@@ -5,7 +5,9 @@ from __future__ import annotations
 from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
     GraphNodeExecutionSaveResultHandler,
 )
-from shell.application.execution.commands.graph_node_execution_commands import SaveGraphNodeExecutionResultCommand
+from shell.application.execution.commands.graph_node_execution_commands import (
+    SaveGraphNodeExecutionResultCommand,
+)
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
@@ -14,8 +16,11 @@ from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, Workf
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
 )
@@ -46,6 +51,9 @@ class TestGraphNodeExecutionSaveResultHandler:
             mode=Mode.WORKER,
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
+            remaining_retries=RemainingRetries(3),
+            retry_delay_seconds=RetryDelaySeconds(5),
+            timeout_seconds=TimeoutSeconds(60),
         )
         await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
 
@@ -60,7 +68,9 @@ class TestGraphNodeExecutionSaveResultHandler:
         )
         assert result_id
 
-        states = await unit_of_work.repository(InMemoryGraphNodeExecutionStateRepository).list_by_graph_node_execution_and_direction(
+        states = await unit_of_work.repository(
+            InMemoryGraphNodeExecutionStateRepository
+        ).list_by_graph_node_execution_and_direction(
             GraphNodeExecutionId("node-1"), StateDirection.OUT
         )
         assert len(states) > 0

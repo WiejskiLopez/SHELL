@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowStartedEvent
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.messaging.memory_outbox_store import InMemoryOutboxStore
 
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
+
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 
 if TYPE_CHECKING:
@@ -43,5 +44,7 @@ async def get_definition_by_semantic_name(
 ) -> GraphDefinitionDto | None:
     result = await query_service.get_graph_definition_by_semantic_name(payload)
     if result is None:
-        raise HTTPException(status_code=404, detail="No definition found for the given semantic query")
+        raise HTTPException(
+            status_code=404, detail="No definition found for the given semantic query"
+        )
     return result

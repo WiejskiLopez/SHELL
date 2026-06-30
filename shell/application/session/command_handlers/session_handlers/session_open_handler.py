@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.aggregates.session import Session
-from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.session_commands import OpenSessionCommand

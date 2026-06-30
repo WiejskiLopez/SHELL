@@ -37,7 +37,11 @@ class WorkflowAbortedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, workflow_id: WorkflowId, now: CreatedAt, reason: Reason | None = None, task_execution_id: TaskExecutionId | None = None
+        cls,
+        workflow_id: WorkflowId,
+        now: CreatedAt,
+        reason: Reason | None = None,
+        task_execution_id: TaskExecutionId | None = None,
     ) -> WorkflowAbortedEvent:
         return cls(
             occurred_at=now,

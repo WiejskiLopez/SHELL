@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.application.session.dto.session import SessionDto
+if TYPE_CHECKING:
+    from shell.application.session.dto.session import SessionDto
 
 
 class SessionQueryService(Protocol):

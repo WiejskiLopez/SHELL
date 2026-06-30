@@ -59,7 +59,9 @@ class GraphDefinitionEmbeddingCreatedEvent(DomainEvent):
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
-            graph_definition_embedding_id=GraphDefinitionEmbeddingId(payload.get("graph_definition_embedding_id", "")),
+            graph_definition_embedding_id=GraphDefinitionEmbeddingId(
+                payload.get("graph_definition_embedding_id", "")
+            ),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             text=EmbeddingText(payload.get("text", "")),
             embedding=Embedding(bytes(payload.get("embedding", b""))),

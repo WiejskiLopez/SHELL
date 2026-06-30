@@ -33,7 +33,9 @@ class TestRunTaskerWorkflowPartialFailure:
             stdout="execution failed", returncode=1
         )
 
-        events = await _run_tasker_full(unit_of_work, clock, id_generator, command, runner=failing_runner)
+        events = await _run_tasker_full(
+            unit_of_work, clock, id_generator, command, runner=failing_runner
+        )
 
         assert any(isinstance(e, GraphNodeExecutionFailedEvent) for e in events)
         assert any(isinstance(e, WorkflowAbortedEvent) for e in events)

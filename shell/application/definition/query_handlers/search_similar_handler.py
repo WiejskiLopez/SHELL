@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.definition.dto.rag_chunk import RagChunkDto
-    from shell.application.platform.ports.queries import RagQueryService  # type: ignore[attr-defined]
     from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
+    from shell.application.platform.ports.queries import RagQueryService
     from shell.domain.definition.services.rag_index_service import Embedder
 
 
@@ -19,4 +19,6 @@ class SearchSimilarHandler:
 
         vector = self._embedder.embed_text(search_similar_query.query_text)
         vector_bytes = struct.pack(f"{len(vector)}f", *vector)
-        return await self._queries.search_similar(vector_bytes, search_similar_query.top_k, search_similar_query.domain)  # type: ignore[no-any-return]
+        return await self._queries.search_similar(
+            vector_bytes, search_similar_query.top_k, search_similar_query.domain
+        )

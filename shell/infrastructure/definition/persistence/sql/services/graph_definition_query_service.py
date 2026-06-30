@@ -5,6 +5,9 @@ import math
 import struct
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
+
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
 from shell.infrastructure.definition.persistence.sql.models import (
@@ -13,12 +16,11 @@ from shell.infrastructure.definition.persistence.sql.models import (
 from shell.infrastructure.definition.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
 )
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 
 if TYPE_CHECKING:
-    from shell.domain.definition.services.rag_index_service import Embedder
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.domain.definition.services.rag_index_service import Embedder
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,8 @@ class SqlGraphDefinitionQueryService:
         self._embedder = embedder
 
     async def get_graph_definition_by_semantic_name(
-        self, payload: dict[str, object],
+        self,
+        payload: dict[str, object],
     ) -> GraphDefinitionDto | None:
         default_role = payload.get("default_graph_definition")
         if default_role:
@@ -121,9 +124,7 @@ class SqlGraphDefinitionQueryService:
         best_model: GraphDefinitionEmbeddingModel | None = None
 
         for model in rows:
-            chunk_vec = list(
-                struct.unpack(f"{len(model.embedding) // 4}f", model.embedding)
-            )
+            chunk_vec = list(struct.unpack(f"{len(model.embedding) // 4}f", model.embedding))
             score = self._cosine_similarity(query_vec, chunk_vec)
             if score > best_score:
                 best_score = score
@@ -156,7 +157,8 @@ class SqlGraphDefinitionQueryService:
             return self._to_dto(model)
 
     async def get_graph_definition_by_system_role(
-        self, role: str,
+        self,
+        role: str,
     ) -> GraphDefinitionDto | None:
         async with self._session_factory() as session:
             stmt = (

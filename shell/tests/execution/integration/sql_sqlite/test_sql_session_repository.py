@@ -5,16 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.execution.persistence.sql.services import SessionQueryService
-from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-)
-from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
-    FakeClock,
-    FakeIdGenerator,
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.infrastructure.platform.persistence import (
+        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
+    from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
+        FakeClock,
+        FakeIdGenerator,
+    )
 
 
 class TestSqlSessionRepository:
@@ -25,10 +26,16 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.execution.commands.session_commands import CloseSessionCommand
-        from shell.application.execution.commands.session_commands import OpenSessionCommand
-        from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
-        from shell.application.execution.query_handlers.session_get_history_handler import SessionGetHistoryHandler
+        from shell.application.execution.commands.session_commands import (
+            CloseSessionCommand,
+            OpenSessionCommand,
+        )
+        from shell.application.execution.queries.session_get_history_query import (
+            SessionGetHistoryQuery,
+        )
+        from shell.application.execution.query_handlers.session_get_history_handler import (
+            SessionGetHistoryHandler,
+        )
         from shell.application.session.command_handlers.session_handlers import (
             SessionCloseHandler,
             SessionOpenHandler,

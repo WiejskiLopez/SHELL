@@ -7,7 +7,6 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 )
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
-from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.task_name import TaskName
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.domain.execution.value_objects.reason import Reason
 
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
@@ -73,9 +73,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     def start(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.CREATED:
-            raise InvalidTaskStateError(
-                f"Cannot start task in status {self._status}"
-            )
+            raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
         from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
             TaskExecutionStartedEvent,
@@ -90,9 +88,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     def complete(self, output: str = "", now: datetime | None = None) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
-            raise InvalidTaskStateError(
-                f"Cannot complete task in status {self._status}"
-            )
+            raise InvalidTaskStateError(f"Cannot complete task in status {self._status}")
         self._status = TaskExecutionStatus.COMPLETED
         from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
             TaskExecutionCompletedEvent,
@@ -109,9 +105,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     def fail(self, reason: Reason, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
-            raise InvalidTaskStateError(
-                f"Cannot fail task in status {self._status}"
-            )
+            raise InvalidTaskStateError(f"Cannot fail task in status {self._status}")
         self._status = TaskExecutionStatus.FAILED
         from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
             TaskExecutionFailedEvent,
@@ -127,9 +121,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     def timeout(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
-            raise InvalidTaskStateError(
-                f"Cannot timeout task in status {self._status}"
-            )
+            raise InvalidTaskStateError(f"Cannot timeout task in status {self._status}")
         self._status = TaskExecutionStatus.TIMED_OUT
         from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
             TaskExecutionTimeoutExpiredEvent,
@@ -144,9 +136,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     def exhaust(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
-            raise InvalidTaskStateError(
-                f"Cannot exhaust task in status {self._status}"
-            )
+            raise InvalidTaskStateError(f"Cannot exhaust task in status {self._status}")
         self._status = TaskExecutionStatus.EXHAUSTED
         from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
             TaskExecutionExhaustedEvent,
@@ -215,10 +205,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         now: datetime,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
-        if isinstance(name, TaskName):
-            task_name = name
-        else:
-            task_name = TaskName(str(name))
+        task_name = name if isinstance(name, TaskName) else TaskName(str(name))
         task_execution = cls(
             id=id_,
             name=task_name,

@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+
+from shell.application.definition.event_handlers.generate_embedding_on_graph_definition_created_handler import (
+    GenerateEmbeddingOnGraphDefinitionCreatedHandler,
+)
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created_event_handler import (
     BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
 )
@@ -56,9 +60,6 @@ from shell.application.execution.event_handlers.propagate_task_output_to_workflo
 )
 from shell.application.execution.event_handlers.propagate_workflow_output_to_task_input import (
     PropagateWorkflowOutputToTaskInput,
-)
-from shell.application.definition.event_handlers.generate_embedding_on_graph_definition_created_handler import (
-    GenerateEmbeddingOnGraphDefinitionCreatedHandler,
 )
 from shell.application.execution.event_handlers.sub_graph_spawn_requested_handler import (
     SubGraphSpawnRequestedHandler,
@@ -233,5 +234,3 @@ class EventContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
-
-

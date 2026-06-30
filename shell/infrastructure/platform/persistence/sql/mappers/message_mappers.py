@@ -5,9 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from shell.infrastructure.platform.persistence.sql.models.message.message import MessageModel
+
 if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message
-    from shell.infrastructure.platform.persistence.sql.models.message.message import MessageModel
 
 
 def message_entity_to_model(message: Message) -> MessageModel:
@@ -57,8 +58,11 @@ def message_model_to_entity(model: MessageModel) -> Message:
             return None
         return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
 
-    received_at_dt = model.received_at
-    received = Timestamp.from_datetime(received_at_dt.replace(tzinfo=UTC) if received_at_dt and received_at_dt.tzinfo is None else received_at_dt) if model.received_at else None  # type: ignore[arg-type]
+    received = None
+    if model.received_at is not None:
+        received_utc = _utc(model.received_at)
+        if received_utc is not None:
+            received = Timestamp.from_datetime(received_utc)
 
     return Message.restore(
         id=MessageId(model.id),

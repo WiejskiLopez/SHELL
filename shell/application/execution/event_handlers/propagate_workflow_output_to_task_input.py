@@ -2,20 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-    TaskExecutionState,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
-    WorkflowCompletedEvent,
-)
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.value_objects.ids import TaskExecutionStateId
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
 )
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
@@ -23,11 +17,17 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
+from shell.domain.execution.value_objects.ids import TaskExecutionStateId
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+        WorkflowCompletedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -54,7 +54,9 @@ class PropagateWorkflowOutputToTaskInput:
                 )
                 return
 
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(task_execution_id)
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
+                task_execution_id
+            )
             if task_execution is None:
                 self._logger.warning(
                     "propagate_workflow_output_to_task_input.task_not_found",
@@ -62,7 +64,9 @@ class PropagateWorkflowOutputToTaskInput:
                 )
                 return
 
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_completed_event.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(
+                workflow_completed_event.workflow_id
+            )
             if workflow is None:
                 self._logger.warning(
                     "propagate_workflow_output_to_task_input.workflow_not_found",
@@ -71,9 +75,9 @@ class PropagateWorkflowOutputToTaskInput:
                 return
 
             now = self._clock.now()
-            workflow_states = await unit_of_work.repository(WorkflowStateRepository).list_by_workflow_id_and_direction(
-                workflow.id, StateDirection.OUT
-            )
+            workflow_states = await unit_of_work.repository(
+                WorkflowStateRepository
+            ).list_by_workflow_id_and_direction(workflow.id, StateDirection.OUT)
             output_payload: dict[str, Any] = {
                 "workflow_id": workflow_completed_event.workflow_id.value,
                 "state_outputs": [s.state_data.to_dict() for s in workflow_states],

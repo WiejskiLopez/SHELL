@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
+
 from shell.domain.definition.exceptions import RunnerConfigNotFound
 from shell.domain.execution.exceptions import (
     NodeNotFound,
@@ -12,7 +13,7 @@ from shell.domain.execution.exceptions import (
     WorkflowNotFound,
 )
 from shell.domain.platform.exceptions import (
-    DomainError,  # noqa: TC002 — DomainError używany w sygnaturze domain_error_handler() i isinstance() w _NOT_FOUND
+    DomainError,  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
 )
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,

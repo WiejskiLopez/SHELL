@@ -6,13 +6,25 @@ from typing import TYPE_CHECKING, Protocol
 
 from dependency_injector import containers, providers
 
-from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import GraphNodeExecutionGetResultHandler
-from shell.application.definition.query_handlers.runner_config_get_handler import RunnerConfigGetHandler
+from shell.application.definition.query_handlers.runner_config_get_handler import (
+    RunnerConfigGetHandler,
+)
 from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
-from shell.application.execution.query_handlers.session_get_history_handler import SessionGetHistoryHandler
-from shell.application.execution.query_handlers.task_execution_get_by_name_handler import TaskExecutionGetByNameHandler
-from shell.application.execution.query_handlers.task_execution_get_current_handler import TaskExecutionGetCurrentHandler
-from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
+    GraphNodeExecutionGetResultHandler,
+)
+from shell.application.execution.query_handlers.session_get_history_handler import (
+    SessionGetHistoryHandler,
+)
+from shell.application.execution.query_handlers.task_execution_get_by_name_handler import (
+    TaskExecutionGetByNameHandler,
+)
+from shell.application.execution.query_handlers.task_execution_get_current_handler import (
+    TaskExecutionGetCurrentHandler,
+)
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
+    WorkflowGetByIdHandler,
+)
 
 if TYPE_CHECKING:
     from dependency_injector.providers import Factory

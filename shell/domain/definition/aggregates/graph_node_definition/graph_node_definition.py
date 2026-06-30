@@ -18,7 +18,9 @@ from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.definition.value_objects.retry_count import RetryCount
 from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
-from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+    TransitionTimeoutSeconds,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -76,18 +78,52 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
         self._position = position if isinstance(position, NodePosition) else NodePosition(position)
         self._mode = mode
         self._role = role if isinstance(role, NodeRoleName) else NodeRoleName(role)
-        self._node_type = node_type if isinstance(node_type, NodeTypeName) else NodeTypeName(node_type)
+        self._node_type = (
+            node_type if isinstance(node_type, NodeTypeName) else NodeTypeName(node_type)
+        )
         self._model = model if model is None or isinstance(model, ModelName) else ModelName(model)
-        self._command = command if command is None or isinstance(command, CommandText) else CommandText(command)
-        self._timeout = timeout if timeout is None or isinstance(timeout, TransitionTimeoutSeconds) else TransitionTimeoutSeconds(timeout)
-        self._retries = retries if retries is None or isinstance(retries, RetryCount) else RetryCount(retries)
-        self._log_level = log_level if log_level is None or isinstance(log_level, LogLevel) else LogLevel(log_level)
-        self._max_step = max_step if max_step is None or isinstance(max_step, MaxStep) else MaxStep(max_step)
-        self._no_ask_user = no_ask_user if no_ask_user is None or isinstance(no_ask_user, NoAskUser) else NoAskUser(no_ask_user)
-        self._autopilot = autopilot if autopilot is None or isinstance(autopilot, Autopilot) else Autopilot(autopilot)
-        self._status_initial = status_initial if status_initial is None or isinstance(status_initial, InitialStatus) else InitialStatus(status_initial)
-        self._script = script if script is None or isinstance(script, ScriptText) else ScriptText(script)
-        self._script_type = script_type if script_type is None or isinstance(script_type, ScriptTypeName) else ScriptTypeName(script_type)
+        self._command = (
+            command if command is None or isinstance(command, CommandText) else CommandText(command)
+        )
+        self._timeout = (
+            timeout
+            if timeout is None or isinstance(timeout, TransitionTimeoutSeconds)
+            else TransitionTimeoutSeconds(timeout)
+        )
+        self._retries = (
+            retries if retries is None or isinstance(retries, RetryCount) else RetryCount(retries)
+        )
+        self._log_level = (
+            log_level
+            if log_level is None or isinstance(log_level, LogLevel)
+            else LogLevel(log_level)
+        )
+        self._max_step = (
+            max_step if max_step is None or isinstance(max_step, MaxStep) else MaxStep(max_step)
+        )
+        self._no_ask_user = (
+            no_ask_user
+            if no_ask_user is None or isinstance(no_ask_user, NoAskUser)
+            else NoAskUser(no_ask_user)
+        )
+        self._autopilot = (
+            autopilot
+            if autopilot is None or isinstance(autopilot, Autopilot)
+            else Autopilot(autopilot)
+        )
+        self._status_initial = (
+            status_initial
+            if status_initial is None or isinstance(status_initial, InitialStatus)
+            else InitialStatus(status_initial)
+        )
+        self._script = (
+            script if script is None or isinstance(script, ScriptText) else ScriptText(script)
+        )
+        self._script_type = (
+            script_type
+            if script_type is None or isinstance(script_type, ScriptTypeName)
+            else ScriptTypeName(script_type)
+        )
 
     @classmethod
     def restore(

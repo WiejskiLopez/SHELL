@@ -5,16 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.definition.persistence.sql.services import RagQueryService
-from shell.infrastructure.platform.persistence import (
-    SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
-)
-from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
-    FakeClock,
-    FakeIdGenerator,
-)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.infrastructure.platform.persistence import (
+        SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
+    )
+    from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
+        FakeClock,
+        FakeIdGenerator,
+    )
 
 
 class TestSqlRagDocumentRepository:
@@ -30,7 +31,9 @@ class TestSqlRagDocumentRepository:
         )
         from shell.application.definition.commands.rag_commands import IndexDocumentCommand
         from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
-        from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
+        from shell.application.definition.query_handlers.search_similar_handler import (
+            SearchSimilarHandler,
+        )
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)
@@ -58,7 +61,9 @@ class TestSqlRagDocumentRepository:
         )
         from shell.application.definition.commands.rag_commands import IndexDocumentCommand
         from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
-        from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
+        from shell.application.definition.query_handlers.search_similar_handler import (
+            SearchSimilarHandler,
+        )
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
         embedder = HashEmbedder(dim=64)

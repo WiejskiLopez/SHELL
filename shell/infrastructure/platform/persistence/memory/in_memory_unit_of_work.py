@@ -1,15 +1,60 @@
 from __future__ import annotations
 
-from typing import TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
-
-TRepository = TypeVar("TRepository")
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
-    InMemoryGraphDefinitionRepository,
+from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+    GraphDefinitionEmbeddingRepository,
+)
+from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
+    GraphNodeTransitionDefinitionRepository,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
+from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
+    GraphNodeDefinitionRepository,
+)
+from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
+    GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+    GraphNodeTransitionExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+    WorkflowStateRepository,
+)
+from shell.domain.platform.aggregates.message.repositories.message_repository import (
+    MessageRepository,
+)
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
 )
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_embedding_repository import (
     InMemoryGraphDefinitionEmbeddingRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
+    InMemoryGraphDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
     InMemoryGraphNodeDefinitionRepository,
@@ -57,55 +102,11 @@ from shell.infrastructure.session.persistence.memory.in_memory_session_repositor
     InMemorySessionRepository,
 )
 
-from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-    GraphDefinitionRepository,
-)
-from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
-    GraphNodeDefinitionRepository,
-)
-from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
-    GraphNodeTransitionDefinitionRepository,
-)
-from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
-    GraphDefinitionEmbeddingRepository,
-)
-from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
-    GraphExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
-    GraphNodeExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
-    GraphNodeTransitionExecutionRepository,
-)
-from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
-    TaskExecutionRepository,
-)
-from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
-    TaskExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
-    WorkflowRepository,
-)
-from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
-    WorkflowStateRepository,
-)
-from shell.domain.platform.aggregates.message.message import Message
-from shell.domain.platform.aggregates.message.repositories.message_repository import (
-    MessageRepository,
-)
-from shell.domain.platform.events import DomainEvent
-from shell.domain.session.aggregates.session.repositories.session_repository import (
-    SessionRepository,
-)
+if TYPE_CHECKING:
+    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.platform.events import DomainEvent
+
+TRepository = TypeVar("TRepository")
 
 
 class InMemoryUnitOfWork(UnitOfWork):
@@ -120,9 +121,13 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
         self._graph_node_definition_repository = InMemoryGraphNodeDefinitionRepository()
-        self._graph_node_transition_definition_repository = InMemoryGraphNodeTransitionDefinitionRepository()
+        self._graph_node_transition_definition_repository = (
+            InMemoryGraphNodeTransitionDefinitionRepository()
+        )
         self._graph_definition_embedding_repository = InMemoryGraphDefinitionEmbeddingRepository()
-        self._graph_node_transition_execution_repository = InMemoryGraphNodeTransitionExecutionRepository()
+        self._graph_node_transition_execution_repository = (
+            InMemoryGraphNodeTransitionExecutionRepository()
+        )
         self._graph_node_execution_state_repository = InMemoryGraphNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
         self._workflow_state_repository = InMemoryWorkflowStateRepository()

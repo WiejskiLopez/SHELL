@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Self
 
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.enabled import Enabled
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.value_objects.batch_size import BatchSize
 from shell.domain.scheduling.value_objects.ids import (
@@ -40,7 +40,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         job_type: JobType,
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
-        enabled: Enabled = Enabled.yes(),
+        enabled: Enabled,
         config: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: Timestamp | None = None,
@@ -50,7 +50,9 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         self._name = JobName(name) if isinstance(name, str) else name
         self._job_type = JobType(job_type) if isinstance(job_type, str) else job_type
         self._interval_seconds = (
-            IntervalSeconds(interval_seconds) if isinstance(interval_seconds, (int, float)) else interval_seconds
+            IntervalSeconds(interval_seconds)
+            if isinstance(interval_seconds, (int, float))
+            else interval_seconds
         )
         self._batch_size = BatchSize(batch_size) if isinstance(batch_size, int) else batch_size
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
@@ -67,7 +69,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         job_type: JobType,
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
-        enabled: Enabled = Enabled.yes(),
+        enabled: Enabled,
         config: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: Timestamp | None = None,

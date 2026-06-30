@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.application.execution.strategies.graph_node_execution_strategy.agent_strategy import (
     AgentStrategy,
 )
 from shell.application.execution.strategies.graph_node_execution_strategy.planner_strategy import (
     PlannerStrategy,
-)
-from shell.application.execution.strategies.graph_node_execution_strategy.protocol import (
-    GraphNodeExecutionStrategy,  # noqa: TC002 — GraphNodeExecutionStrategy używany w słowniku _STRATEGY_MAP i sygnaturze get_strategy()
 )
 from shell.application.execution.strategies.graph_node_execution_strategy.router_strategy import (
     RouterStrategy,
@@ -21,6 +20,11 @@ from shell.application.execution.strategies.graph_node_execution_strategy.tool_s
 from shell.application.execution.strategies.graph_node_execution_strategy.worker_strategy import (
     WorkerStrategy,
 )
+
+if TYPE_CHECKING:
+    from shell.application.execution.strategies.graph_node_execution_strategy.protocol import (
+        GraphNodeExecutionStrategy,  # noqa: TC002 — GraphNodeExecutionStrategy używany w słowniku _STRATEGY_MAP i sygnaturze get_strategy()
+    )
 
 _STRATEGY_MAP: dict[str, GraphNodeExecutionStrategy] = {
     "agent": AgentStrategy(),

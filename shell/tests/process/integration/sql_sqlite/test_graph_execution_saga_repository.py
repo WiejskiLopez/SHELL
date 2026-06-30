@@ -41,9 +41,7 @@ class TestGraphExecutionSagaRepositorySqlite:
             assert stored.status == GraphExecutionSagaStatus.PENDING
             assert stored.version == 1
 
-    async def test_update_existing_saga(
-        self, session_factory: async_sessionmaker
-    ) -> None:
+    async def test_update_existing_saga(self, session_factory: async_sessionmaker) -> None:
         async with session_factory() as session:
             repo = SqlGraphExecutionSagaRepository(session)
             saga = GraphExecutionSagaState(
@@ -70,9 +68,7 @@ class TestGraphExecutionSagaRepositorySqlite:
             assert stored.status == GraphExecutionSagaStatus.COMPLETED
             assert stored.version > 1
 
-    async def test_get_nonexistent_returns_none(
-        self, session_factory: async_sessionmaker
-    ) -> None:
+    async def test_get_nonexistent_returns_none(self, session_factory: async_sessionmaker) -> None:
         async with session_factory() as session:
             repo = SqlGraphExecutionSagaRepository(session)
             result = await repo.get_by_graph_execution_id("nonexistent")
@@ -99,7 +95,9 @@ class TestGraphExecutionSagaRepositorySqlite:
                 expected_nodes_count=5,
             )
             import pytest
-            with pytest.raises(Exception):
+            from sqlalchemy.exc import IntegrityError
+
+            with pytest.raises(IntegrityError):
                 await repo.save(saga_2)
                 await session.commit()
 

@@ -11,6 +11,10 @@ Uses AST parsing (no imports executed) to check:
 from __future__ import annotations
 
 import ast
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from _arch_helpers import (
     BASE,
@@ -25,7 +29,7 @@ from _arch_helpers import (
 _PROCESS_HANDLER_EXCEPTIONS: frozenset[str] = frozenset({})
 
 
-def _iter_process_handler_files() -> list:
+def _iter_process_handler_files() -> list[Path]:
     files = []
     for handler_dir in (BASE / "process").rglob("handlers"):
         if handler_dir.is_dir():
@@ -71,9 +75,12 @@ def test_process_handlers_are_stateless() -> None:
             for stmt in node.body:
                 if isinstance(stmt, ast.FunctionDef) and stmt.name == "__init__":
                     for line in ast.walk(stmt):
-                        if isinstance(line, ast.Attribute):
-                            if isinstance(line.value, ast.Name) and line.value.id == "self":
-                                handler_attrs.add(line.attr)
+                        if (
+                            isinstance(line, ast.Attribute)
+                            and isinstance(line.value, ast.Name)
+                            and line.value.id == "self"
+                        ):
+                            handler_attrs.add(line.attr)
             if not handler_attrs:
                 violations.append(f"{path.relative_to(BASE)}: class {node.name} has no constructor")
     assert not violations, (
@@ -96,11 +103,10 @@ def test_process_handlers_have_async_handle() -> None:
                 continue
             for stmt in node.body:
                 if isinstance(stmt, ast.FunctionDef) and stmt.name == "handle":
-                    violations.append(f"{path.relative_to(BASE)}: {node.name}.handle is sync (should be async)")
-    assert not violations, (
-        "Process handler.handle() must be async:\n"
-        + "\n".join(violations)
-    )
+                    violations.append(
+                        f"{path.relative_to(BASE)}: {node.name}.handle is sync (should be async)"
+                    )
+    assert not violations, "Process handler.handle() must be async:\n" + "\n".join(violations)
 
 
 # ── 4. Saga state is a dataclass ─────────────────────────────────────
@@ -115,19 +121,20 @@ def test_saga_state_is_dataclass() -> None:
         for node in find_classes(tree):
             if "State" in node.name or "Status" in node.name:
                 has_dataclass = any(
-                    isinstance(d, ast.Name) and d.id == "dataclass"
-                    or isinstance(d, ast.Call) and isinstance(d.func, ast.Name) and d.func.id == "dataclass"
+                    isinstance(d, ast.Name)
+                    and d.id == "dataclass"
+                    or isinstance(d, ast.Call)
+                    and isinstance(d.func, ast.Name)
+                    and d.func.id == "dataclass"
                     for d in node.decorator_list
                 )
                 has_str_enum = any(
-                    isinstance(b, ast.Name) and b.id == "StrEnum"
-                    for b in node.bases
+                    isinstance(b, ast.Name) and b.id == "StrEnum" for b in node.bases
                 )
                 if not has_dataclass and not has_str_enum:
                     violations.append(f"{state_file.relative_to(BASE)}: class {node.name}")
-    assert not violations, (
-        "Saga state classes must be @dataclass or StrEnum:\n"
-        + "\n".join(violations)
+    assert not violations, "Saga state classes must be @dataclass or StrEnum:\n" + "\n".join(
+        violations
     )
 
 
@@ -143,12 +150,17 @@ def test_process_handlers_dont_mutate_aggregates() -> None:
         if rel in _PROCESS_HANDLER_MUTATION_KNOWN:
             continue
         content = path.read_text(encoding="utf-8")
-        mutation_patterns = ["stage_events(", ".save(", ".commit(", "append_event(", "pull_events()"]
+        mutation_patterns = [
+            "stage_events(",
+            ".save(",
+            ".commit(",
+            "append_event(",
+            "pull_events()",
+        ]
         for pattern in mutation_patterns:
             if pattern in content:
                 violations.append(f"{rel}: contains {pattern!r}")
     assert not violations, (
         "Process handlers must not directly mutate aggregates or UoW "
-        "(no stage_events, save, commit, append_event, pull_events):\n"
-        + "\n".join(violations)
+        "(no stage_events, save, commit, append_event, pull_events):\n" + "\n".join(violations)
     )

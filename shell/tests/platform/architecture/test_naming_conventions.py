@@ -25,18 +25,35 @@ def test_classes_use_pascal_case() -> None:
         for node in find_classes(tree):
             if node.name[0].islower():
                 violations.append(f"{path.relative_to(BASE)}: class {node.name}")
-    assert not violations, (
-        "All classes must use PascalCase:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "All classes must use PascalCase:\n" + "\n".join(violations)
 
 
 # ── 2. Functions/methods use snake_case ──────────────────────────
 
-_ALLOWED_CAPS_METHODS = frozenset({
-    "ID", "DTO", "VO", "HTTP", "JSON", "YAML", "XML", "API", "URL", "URI",
-    "DB", "SQL", "ORM", "CLI", "GUI", "UID", "UUID", "SHA", "AES", "RSA",
-})
+_ALLOWED_CAPS_METHODS = frozenset(
+    {
+        "ID",
+        "DTO",
+        "VO",
+        "HTTP",
+        "JSON",
+        "YAML",
+        "XML",
+        "API",
+        "URL",
+        "URI",
+        "DB",
+        "SQL",
+        "ORM",
+        "CLI",
+        "GUI",
+        "UID",
+        "UUID",
+        "SHA",
+        "AES",
+        "RSA",
+    }
+)
 
 
 def test_methods_use_snake_case() -> None:
@@ -58,10 +75,7 @@ def test_methods_use_snake_case() -> None:
                     continue
                 if name[0].isupper():
                     violations.append(f"{path.relative_to(BASE)}: function {name}")
-    assert not violations, (
-        "Functions/methods must use snake_case:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "Functions/methods must use snake_case:\n" + "\n".join(violations)
 
 
 # ── 3. File names are snake_case ──────────────────────────────────
@@ -73,32 +87,31 @@ def test_file_names_are_snake_case() -> None:
         name = path.stem
         if not re.match(r"^[a-z0-9_]+$", name):
             violations.append(f"{path.relative_to(BASE)}")
-    assert not violations, (
-        "Python file names must be snake_case:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "Python file names must be snake_case:\n" + "\n".join(violations)
 
 
 # ── 4. File name matches the main class in the file ───────────────
 
 
-_KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset({
-    "domain/scheduling/services/dual_layer_dispatcher.py: main class is Inbox (expected inbox.py)",
-    "domain/scheduling/services/pending_graph_finder.py: main class is GraphExecutionRepository (expected graph_execution_repository.py)",
-    "domain/scheduling/value_objects/ids.py: main class is SchedulerDefinitionId (expected scheduler_definition_id.py)",
-    "domain/platform/ports/identity.py: main class is IdGenerator (expected id_generator.py)",
-    "domain/platform/ports/log.py: main class is Logger (expected logger.py)",
-    "domain/platform/ports/time.py: main class is Clock (expected clock.py)",
-    "domain/execution/ports/sub_graph_policy.py: main class is Decision (expected decision.py)",
-    "domain/execution/ports/sub_graph_security.py: main class is Scope (expected scope.py)",
-    "domain/execution/services/graph_node_execution_output_interpreter.py: main class is OutputDecision (expected output_decision.py)",
-    "domain/execution/value_objects/graph_execution_definition.py: main class is GraphNodeExecutionDefinition (expected graph_node_execution_definition.py)",
-    "domain/execution/services/graph_node_execution_navigator/transition_based_navigator.py: main class is TransitionBasedGraphNodeExecutionNavigator (expected transition_based_graph_node_execution_navigator.py)",
-    "domain/execution/aggregates/graph_execution/ports/sub_graph_compensation.py: main class is CompensationDecision (expected compensation_decision.py)",
-    "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
-    "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
-    "domain/execution/value_objects/graph_definition_id.py: main class is GraphDefinitionIdRef (expected graph_definition_id_ref.py)",
-})
+_KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset(
+    {
+        "domain/scheduling/services/dual_layer_dispatcher.py: main class is Inbox (expected inbox.py)",
+        "domain/scheduling/services/pending_graph_finder.py: main class is GraphExecutionRepository (expected graph_execution_repository.py)",
+        "domain/scheduling/value_objects/ids.py: main class is SchedulerDefinitionId (expected scheduler_definition_id.py)",
+        "domain/platform/ports/identity.py: main class is IdGenerator (expected id_generator.py)",
+        "domain/platform/ports/log.py: main class is Logger (expected logger.py)",
+        "domain/platform/ports/time.py: main class is Clock (expected clock.py)",
+        "domain/execution/ports/sub_graph_policy.py: main class is Decision (expected decision.py)",
+        "domain/execution/ports/sub_graph_security.py: main class is Scope (expected scope.py)",
+        "domain/execution/services/graph_node_execution_output_interpreter.py: main class is OutputDecision (expected output_decision.py)",
+        "domain/execution/value_objects/graph_execution_definition.py: main class is GraphNodeExecutionDefinition (expected graph_node_execution_definition.py)",
+        "domain/execution/services/graph_node_execution_navigator/transition_based_navigator.py: main class is TransitionBasedGraphNodeExecutionNavigator (expected transition_based_graph_node_execution_navigator.py)",
+        "domain/execution/aggregates/graph_execution/ports/sub_graph_compensation.py: main class is CompensationDecision (expected compensation_decision.py)",
+        "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
+        "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
+        "domain/execution/value_objects/graph_definition_id.py: main class is GraphDefinitionIdRef (expected graph_definition_id_ref.py)",
+    }
+)
 
 _NAMING_CORE_LAYERS = frozenset({"domain/"})
 _NAMING_SOFT_AREAS = frozenset({"tests/", "/tests/", "/migrations/versions/", "/config/seed/"})
@@ -158,20 +171,24 @@ def test_constants_use_upper_case() -> None:
                             name = name.lstrip("_")
                         if name.isupper():
                             continue
-                        if name[0].isupper() and not name.startswith("__"):
-                            if isinstance(node.value, (ast.Constant, ast.List, ast.Dict, ast.Set, ast.Tuple)):
-                                violations.append(f"{rel}: {target.id}")
-    assert not violations, (
-        "Module-level constants must use UPPER_CASE:\n"
-        + "\n".join(violations)
-    )
+                        if (
+                            name[0].isupper()
+                            and not name.startswith("__")
+                            and isinstance(
+                                node.value, (ast.Constant, ast.List, ast.Dict, ast.Set, ast.Tuple)
+                            )
+                        ):
+                            violations.append(f"{rel}: {target.id}")
+    assert not violations, "Module-level constants must use UPPER_CASE:\n" + "\n".join(violations)
 
 
 # ── 6. No abbreviations in names ──────────────────────────────────
 
-_KNOWN_ABBREVIATION_VIOLATIONS: frozenset[str] = frozenset({
-    "domain/projekt/aggregates/project/project.py: function repo_url",
-})
+_KNOWN_ABBREVIATION_VIOLATIONS: frozenset[str] = frozenset(
+    {
+        "domain/projekt/aggregates/project/project.py: function repo_url",
+    }
+)
 
 
 def test_no_abbreviations_in_class_names() -> None:
@@ -185,10 +202,7 @@ def test_no_abbreviations_in_class_names() -> None:
                 key = f"{path.relative_to(BASE)}: class {node.name}"
                 if key not in _KNOWN_ABBREVIATION_VIOLATIONS:
                     violations.append(key)
-    assert not violations, (
-        "Class names must not use abbreviations:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "Class names must not use abbreviations:\n" + "\n".join(violations)
 
 
 def test_no_abbreviations_in_function_names() -> None:
@@ -221,9 +235,11 @@ def test_no_abbreviations_in_function_names() -> None:
 
 def test_handler_classes_end_with_handler() -> None:
     violations: list[str] = []
-    for handler_dir in [BASE / "application" / "command_handlers",
-                        BASE / "application" / "query_handlers",
-                        BASE / "application" / "event_handlers"]:
+    for handler_dir in [
+        BASE / "application" / "command_handlers",
+        BASE / "application" / "query_handlers",
+        BASE / "application" / "event_handlers",
+    ]:
         if not handler_dir.exists():
             continue
         for path in iter_py_files(handler_dir):
@@ -233,10 +249,7 @@ def test_handler_classes_end_with_handler() -> None:
             for node in find_classes(tree):
                 if not node.name.endswith("Handler"):
                     violations.append(f"{path.relative_to(BASE)}: class {node.name}")
-    assert not violations, (
-        "Handler classes must end with 'Handler':\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "Handler classes must end with 'Handler':\n" + "\n".join(violations)
 
 
 # ── 8. Repository port classes end with 'Repository' ──────────────
@@ -254,15 +267,16 @@ def test_repository_ports_end_with_repository() -> None:
             for node in find_classes(tree):
                 if not node.name.endswith("Repository"):
                     violations.append(f"{path.relative_to(BASE)}: class {node.name}")
-    assert not violations, (
-        "Repository port classes must end with 'Repository':\n"
-        + "\n".join(violations)
+    assert not violations, "Repository port classes must end with 'Repository':\n" + "\n".join(
+        violations
     )
 
 
 # ── 9. Entity classes use suffix naming where applicable ──────────
 
-_ENTITY_SUFFIXES = frozenset({"Entity", "Event", "Dto", "Model", "Adapter", "Mapper", "Service", "Specification"})
+_ENTITY_SUFFIXES = frozenset(
+    {"Entity", "Event", "Dto", "Model", "Adapter", "Mapper", "Service", "Specification"}
+)
 
 
 def test_domain_entity_no_suffix_overload() -> None:
@@ -275,7 +289,10 @@ def test_domain_entity_no_suffix_overload() -> None:
             # Aggregate root entities should not have "Entity" suffix
             if node.name.endswith("Entity"):
                 for base_node in node.bases:
-                    if isinstance(base_node, ast.Name) and base_node.id in {"AggregateRoot", "Entity"}:
+                    if isinstance(base_node, ast.Name) and base_node.id in {
+                        "AggregateRoot",
+                        "Entity",
+                    }:
                         violations.append(f"{path.relative_to(BASE)}: class {node.name}")
     assert not violations, (
         "Direct entity/aggregate classes should not have 'Entity' suffix in their name:\n"

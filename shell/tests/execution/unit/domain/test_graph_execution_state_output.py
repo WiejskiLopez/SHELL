@@ -13,9 +13,9 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 )
 from shell.domain.execution.events import GraphExecutionStateChangedEvent
 from shell.domain.execution.value_objects.is_current import IsCurrent
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.platform.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")
@@ -104,7 +104,7 @@ class TestGraphExecutionStateOutputMerge:
             id_=GraphExecutionStateId.generate(),
             graph_execution_id=GraphExecutionId("child"),
             direction=StateDirection.OUT,
-        now=CreatedAt.from_datetime(_NOW),
+            now=CreatedAt.from_datetime(_NOW),
         )
         child.update("y", 2)
         child.update("x", 999)

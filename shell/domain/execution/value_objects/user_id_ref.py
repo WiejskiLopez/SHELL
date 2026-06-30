@@ -9,4 +9,5 @@ class UserIdRef(EntityId):
     Intentionally duplicated for BC isolation.
     See shell.domain.user.value_objects.user_id.UserId
     """
+
     pass

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.scheduling.value_objects.ids import (
-    SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
-)
+from sqlalchemy import select
+
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_execution_entity_to_model,
     scheduler_execution_model_to_entity,
@@ -13,13 +12,16 @@ from shell.infrastructure.scheduling.persistence.sql.mappers import (
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from shell.domain.scheduling.value_objects.ids import (
+        SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
+    )
 
 
 class SqlSchedulerExecutionRepository:

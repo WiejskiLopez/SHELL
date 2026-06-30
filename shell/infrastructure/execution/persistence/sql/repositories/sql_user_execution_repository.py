@@ -2,23 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.user_execution.repositories.user_execution_repository import (
     UserExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import UserExecutionId
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_entity_to_model,
     user_execution_model_to_entity,
     user_execution_update_model,
 )
-from sqlalchemy import select
 
 from ..models import UserExecutionModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.user_execution import UserExecution
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.user_execution import UserExecution
+    from shell.domain.execution.value_objects.ids import UserExecutionId
 
 
 class SqlUserExecutionRepository(UserExecutionRepository):

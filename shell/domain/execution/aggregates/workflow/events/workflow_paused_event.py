@@ -27,9 +27,7 @@ class WorkflowPausedEvent(DomainEvent):
         )
 
     @classmethod
-    def now(
-        cls, workflow_id: WorkflowId, now: CreatedAt
-    ) -> WorkflowPausedEvent:
+    def now(cls, workflow_id: WorkflowId, now: CreatedAt) -> WorkflowPausedEvent:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,

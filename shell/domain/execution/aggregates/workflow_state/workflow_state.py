@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
@@ -97,6 +97,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
             WorkflowStateChangedEvent,
         )
+
         old_value = self._state_data.get(key)
         new_data = dict(self._state_data.to_dict())
         new_data[key] = value
@@ -114,12 +115,13 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)
+        return self._state_data.get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
         from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
             WorkflowStateChangedEvent,
         )
+
         if self._state_data.get(key) is not None:
             old_value = self._state_data.get(key)
             new_data = dict(self._state_data.to_dict())

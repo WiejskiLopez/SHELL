@@ -138,7 +138,5 @@ def downgrade() -> None:
     op.drop_index(
         "uq_task_execution_state_task_id_direction_current", table_name="task_execution_state"
     )
-    op.drop_index(
-        "ix_task_execution_state_task_execution_id", table_name="task_execution_state"
-    )
+    op.drop_index("ix_task_execution_state_task_execution_id", table_name="task_execution_state")
     op.drop_table("task_execution_state")

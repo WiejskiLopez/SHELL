@@ -2,13 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
-    TaskExecutionCompletedEvent,
-)
-from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import WorkflowStateId
-from shell.domain.execution.aggregates.workflow_state.workflow_state import (
-    WorkflowState,
-)
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
@@ -18,11 +11,20 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
+from shell.domain.execution.aggregates.workflow_state.workflow_state import (
+    WorkflowState,
+)
 from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
+        TaskExecutionCompletedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -42,7 +44,9 @@ class PropagateTaskOutputToWorkflowInput:
 
     async def handle(self, task_execution_completed_event: TaskExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(task_execution_completed_event.task_execution_id)
+            task_execution = await unit_of_work.repository(TaskExecutionRepository).get_by_id(
+                task_execution_completed_event.task_execution_id
+            )
             if task_execution is None or task_execution.workflow_id is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.task_not_found",
@@ -50,7 +54,9 @@ class PropagateTaskOutputToWorkflowInput:
                 )
                 return
 
-            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(task_execution.workflow_id)
+            workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(
+                task_execution.workflow_id
+            )
             if workflow is None:
                 self._logger.warning(
                     "propagate_task_output_to_workflow_input.workflow_not_found",

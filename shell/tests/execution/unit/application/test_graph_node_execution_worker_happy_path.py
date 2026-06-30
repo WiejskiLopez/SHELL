@@ -6,12 +6,12 @@ from shell.domain.execution.events import (
     GraphNodeExecutionRequestedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (
     FakeGraphNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.tests.conftest_helpers import (
     _NOW,
     _build_graph_execution,
@@ -23,10 +23,10 @@ from shell.tests.conftest_helpers import (
 class TestGraphNodeExecutionWorkerHappyPath:
     async def test_first_node_success_records_result_and_does_not_advance(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "happy", ["agent", "tool"])
-        wf = await _persist_running_workflow(
-            unit_of_work, task_execution.id, _nodes[0].id
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "happy", ["agent", "tool"]
         )
+        wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
         worker = _make_worker(unit_of_work, runner)
@@ -47,10 +47,10 @@ class TestGraphNodeExecutionWorkerHappyPath:
 
     async def test_last_node_success_records_result_and_does_not_finish(self) -> None:
         unit_of_work = InMemoryUnitOfWork()
-        task_execution, graph_execution, _nodes = _build_graph_execution(unit_of_work, "single", ["agent"])
-        wf = await _persist_running_workflow(
-            unit_of_work, task_execution.id, _nodes[0].id
+        task_execution, graph_execution, _nodes = _build_graph_execution(
+            unit_of_work, "single", ["agent"]
         )
+        wf = await _persist_running_workflow(unit_of_work, task_execution.id, _nodes[0].id)
 
         runner = FakeGraphNodeExecutionProcessRunner(returncode=0)
         worker = _make_worker(unit_of_work, runner)

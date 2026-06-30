@@ -48,7 +48,6 @@ def _get_imports(path: pathlib.Path) -> list[str]:
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     imports.append(node.module)
             elif isinstance(node, ast.If):
-                test_id = None
                 if isinstance(node.test, ast.Name) and node.test.id == "TYPE_CHECKING":
                     continue
                 _collect_imports(node.body)
@@ -121,9 +120,8 @@ def test_framework_does_not_import_infrastructure() -> None:
         for imp in _get_imports(path):
             if imp == "shell.infrastructure" or imp.startswith("shell.infrastructure."):
                 violations.append(f"{rel}: imports {imp!r}")
-    assert not violations, (
-        "framework/ must not import from infrastructure/:\n"
-        + "\n".join(violations)
+    assert not violations, "framework/ must not import from infrastructure/:\n" + "\n".join(
+        violations
     )
 
 
@@ -148,8 +146,7 @@ def test_all_aggregates_have_restore() -> None:
                 continue
 
             has_restore = any(
-                isinstance(m, ast.FunctionDef) and m.name == "restore"
-                for m in node.body
+                isinstance(m, ast.FunctionDef) and m.name == "restore" for m in node.body
             )
             if not has_restore:
                 key = f"{path.relative_to(BASE).as_posix()}: class {node.name}"
@@ -196,14 +193,12 @@ def test_all_repository_ports_have_in_memory() -> None:
         snake = _to_snake_case(class_name)
         expected_pat = f"in_memory_{snake}.py"
         found = any(
-            candidate.is_file()
-            for candidate in (BASE / "infrastructure").rglob(expected_pat)
+            candidate.is_file() for candidate in (BASE / "infrastructure").rglob(expected_pat)
         )
         if not found:
             missing.append(f"{file_path.relative_to(BASE)}: {class_name}")
     assert not missing, (
-        "Repository ports must have a corresponding InMemory implementation:\n"
-        + "\n".join(missing)
+        "Repository ports must have a corresponding InMemory implementation:\n" + "\n".join(missing)
     )
 
 
@@ -231,16 +226,17 @@ def test_dto_fields_use_only_primitives() -> None:
                 if cls_key in _DATETIME_EXEMPT_DTOS:
                     continue
                 for stmt in node.body:
-                    if isinstance(stmt, ast.AnnAssign) and stmt.annotation:
-                        if _has_complex_type(stmt.annotation):
-                            field_name = (
-                                stmt.target.id
-                                if isinstance(stmt.target, ast.Name)
-                                else repr(stmt.target)
-                            )
-                            violations.append(
-                                f"{py_file.relative_to(BASE)}: {node.name}.{field_name}"
-                            )
+                    if (
+                        isinstance(stmt, ast.AnnAssign)
+                        and stmt.annotation
+                        and _has_complex_type(stmt.annotation)
+                    ):
+                        field_name = (
+                            stmt.target.id
+                            if isinstance(stmt.target, ast.Name)
+                            else repr(stmt.target)
+                        )
+                        violations.append(f"{py_file.relative_to(BASE)}: {node.name}.{field_name}")
     assert not violations, (
         "DTO fields must not use datetime/Decimal types (use str instead):\n"
         + "\n".join(violations)
@@ -274,15 +270,11 @@ def test_all_commands_have_validate() -> None:
                 if key in _KNOWN_COMMANDS_NO_VALIDATE:
                     continue
                 has_validate = any(
-                    isinstance(m, ast.FunctionDef) and m.name == "validate"
-                    for m in node.body
+                    isinstance(m, ast.FunctionDef) and m.name == "validate" for m in node.body
                 )
                 if not has_validate:
                     missing.append(f"{py_file.relative_to(BASE)}: {node.name}")
-    assert not missing, (
-        "Command dataclasses must define validate():\n"
-        + "\n".join(missing)
-    )
+    assert not missing, "Command dataclasses must define validate():\n" + "\n".join(missing)
 
 
 # ── 6. No Domain Service imports infrastructure ─────────────────────
@@ -297,16 +289,14 @@ def test_domain_services_do_not_import_infrastructure() -> None:
             for imp in _get_imports(py_file):
                 if imp == "shell.infrastructure" or imp.startswith("shell.infrastructure."):
                     violations.append(f"{py_file.relative_to(BASE)}: imports {imp!r}")
-    assert not violations, (
-        "Domain services must not import from infrastructure/:\n"
-        + "\n".join(violations)
+    assert not violations, "Domain services must not import from infrastructure/:\n" + "\n".join(
+        violations
     )
 
 
 # ── 7. Application must not import ORM models directly ────────────
 
-_KNOWN_APP_ORM_IMPORTS: frozenset[str] = frozenset({
-})
+_KNOWN_APP_ORM_IMPORTS: frozenset[str] = frozenset({})
 
 
 def test_application_and_process_do_not_import_orm_models() -> None:
@@ -316,9 +306,8 @@ def test_application_and_process_do_not_import_orm_models() -> None:
         if rel in _KNOWN_APP_ORM_IMPORTS:
             continue
         for imp in _get_imports(path):
-            if imp.endswith("Model") or imp.endswith("models"):
-                if "sql" in imp or "orm" in imp:
-                    violations.append(f"{rel}: imports ORM model {imp!r}")
+            if (imp.endswith("Model") or imp.endswith("models")) and ("sql" in imp or "orm" in imp):
+                violations.append(f"{rel}: imports ORM model {imp!r}")
             if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
                 violations.append(f"{rel}: imports infrastructure model {imp!r}")
     for path in _iter_py_files(BASE / "process"):
@@ -326,23 +315,23 @@ def test_application_and_process_do_not_import_orm_models() -> None:
         if rel in _KNOWN_APP_ORM_IMPORTS:
             continue
         for imp in _get_imports(path):
-            if imp.endswith("Model") or imp.endswith("models"):
-                if "sql" in imp or "orm" in imp:
-                    violations.append(f"{rel}: imports ORM model {imp!r}")
+            if (imp.endswith("Model") or imp.endswith("models")) and ("sql" in imp or "orm" in imp):
+                violations.append(f"{rel}: imports ORM model {imp!r}")
             if imp.startswith("shell.infrastructure.") and "model" in imp.lower():
                 violations.append(f"{rel}: imports infrastructure model {imp!r}")
-    assert not violations, (
-        "Application layer must not import ORM models directly:\n"
-        + "\n".join(violations)
+    assert not violations, "Application layer must not import ORM models directly:\n" + "\n".join(
+        violations
     )
 
 
 # ── 8. No Service Locator pattern in production code ──────────────
 
-_SERVICE_LOCATOR_PATTERNS: frozenset[str] = frozenset({
-    "dependency_injector.providers",
-    "dependency_injector.containers",
-})
+_SERVICE_LOCATOR_PATTERNS: frozenset[str] = frozenset(
+    {
+        "dependency_injector.providers",
+        "dependency_injector.containers",
+    }
+)
 
 _KNOWN_SERVICE_LOCATOR: frozenset[str] = frozenset({})
 
@@ -401,12 +390,24 @@ def test_repository_ports_are_protocols() -> None:
                 if not node.name.endswith("Repository"):
                     continue
                 has_protocol = any(
-                    isinstance(b, ast.Name) and b.id in {"Protocol", "ABC"}
-                    for b in node.bases
+                    isinstance(b, ast.Name) and b.id in {"Protocol", "ABC"} for b in node.bases
                 )
                 if not has_protocol:
                     violations.append(f"{path.relative_to(BASE)}: class {node.name}")
-    assert not violations, (
-        "Repository ports must be Protocols or ABCs:\n"
-        + "\n".join(violations)
-    )
+    assert not violations, "Repository ports must be Protocols or ABCs:\n" + "\n".join(violations)
+
+
+def test_no_function_calls_in_default_arguments() -> None:
+    """B008 — żadne default argumenty nie mogą zawierać wywołań funkcji/konstruktorów."""
+    violations: list[str] = []
+    for path in _iter_py_files(BASE / "shell"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                for default in node.args.defaults + node.args.kw_defaults:
+                    if default is not None and isinstance(default, ast.Call):
+                        rel = path.relative_to(BASE)
+                        violations.append(
+                            f"{rel}:{node.lineno}: {node.name} — wywołanie w default arg"
+                        )
+    assert not violations, "\n".join(violations)

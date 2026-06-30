@@ -29,9 +29,13 @@ class GraphExecutionPlanningStartedHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_execution_planning_started_event: GraphExecutionPlanningStartedEvent) -> None:
+    async def handle(
+        self, graph_execution_planning_started_event: GraphExecutionPlanningStartedEvent
+    ) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_planning_started_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                graph_execution_planning_started_event.graph_execution_id
+            )
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_planning_started_handler.graph_execution_not_found",

@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
-    AgentExecutionId,
-)
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
-from shell.domain.execution.value_objects.skill_payload import SkillPayload
 from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
+        AgentExecutionId,
+    )
+    from shell.domain.execution.value_objects.skill_payload import SkillPayload
+    from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):

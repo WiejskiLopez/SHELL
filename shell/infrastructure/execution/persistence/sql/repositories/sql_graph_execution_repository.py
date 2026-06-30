@@ -2,27 +2,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
-)
-from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
-    GraphExecutionId,
-    TaskExecutionId,
-    WorkflowId,
 )
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
 )
-from sqlalchemy import select
 
 from ..models import GraphExecutionModel
 from ..models.task_execution import TaskExecutionModel
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution import GraphExecution
     from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.graph_execution import GraphExecution
+    from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+        GraphExecutionId,
+        TaskExecutionId,
+        WorkflowId,
+    )
 
 
 class SqlGraphExecutionRepository(GraphExecutionRepository):
@@ -68,7 +70,9 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
         return [graph_execution_model_to_entity(row) for row in rows if row is not None]
 
     async def save(self, graph_execution: GraphExecution) -> None:
-        graph_execution_model = await self._session.get(GraphExecutionModel, graph_execution.id.value)
+        graph_execution_model = await self._session.get(
+            GraphExecutionModel, graph_execution.id.value
+        )
         if graph_execution_model is None:
             graph_execution_model = graph_execution_entity_to_model(graph_execution)
             self._session.add(graph_execution_model)
@@ -79,10 +83,16 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
                 if graph_execution.parent_graph_execution_id
                 else None
             )
-            graph_execution_model.depth = graph_execution.depth.value if graph_execution.depth else 0
-            graph_execution_model.initialization_status = graph_execution.initialization_status.value
+            graph_execution_model.depth = (
+                graph_execution.depth.value if graph_execution.depth else 0
+            )
+            graph_execution_model.initialization_status = (
+                graph_execution.initialization_status.value
+            )
             graph_execution_model.graph_node_definition_executions = {
-                slot.graph_node_definition_id.value: slot.graph_node_execution_id.value if slot.graph_node_execution_id else None
+                slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
+                if slot.graph_node_execution_id
+                else None
                 for slot in graph_execution.graph_node_definition_execution_slots
             }
 

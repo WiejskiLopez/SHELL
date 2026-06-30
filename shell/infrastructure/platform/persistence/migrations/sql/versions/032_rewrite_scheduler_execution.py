@@ -41,8 +41,12 @@ def upgrade() -> None:
         batch.drop_column("completed_at")
 
         batch.add_column(sa.Column("name", sa.String(255), nullable=False, server_default=""))
-        batch.add_column(sa.Column("job_type", sa.String(64), nullable=False, server_default="messaging"))
-        batch.add_column(sa.Column("interval_seconds", sa.Float(), nullable=False, server_default="1.0"))
+        batch.add_column(
+            sa.Column("job_type", sa.String(64), nullable=False, server_default="messaging")
+        )
+        batch.add_column(
+            sa.Column("interval_seconds", sa.Float(), nullable=False, server_default="1.0")
+        )
         batch.add_column(sa.Column("batch_size", sa.Integer(), nullable=False, server_default="50"))
         batch.add_column(sa.Column("enabled", sa.Boolean(), nullable=False, server_default="true"))
         batch.add_column(sa.Column("config", sa.JSON(), nullable=False, server_default="{}"))
@@ -66,7 +70,9 @@ def downgrade() -> None:
         batch.add_column(sa.Column("action_ref", sa.String(255), nullable=True))
         batch.add_column(sa.Column("trigger_event_type", sa.String(128), nullable=True))
         batch.add_column(sa.Column("trigger_event_id", sa.String(255), nullable=True))
-        batch.add_column(sa.Column("status", sa.String(32), nullable=False, server_default="pending"))
+        batch.add_column(
+            sa.Column("status", sa.String(32), nullable=False, server_default="pending")
+        )
 
     op.create_index("ix_se_action_ref", "scheduler_execution", ["action_ref"])
     op.create_index("ix_se_status", "scheduler_execution", ["status"])

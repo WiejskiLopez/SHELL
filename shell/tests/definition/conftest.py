@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest  # noqa: F401 — used in type annotations and fixtures
+
 from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
     WorkflowRunTaskerHandler,
 )
@@ -41,30 +42,35 @@ from shell.domain.execution.events import (
     TaskExecutionCreatedEvent,
     WorkflowStartedEvent,
 )
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
     TaskExecutionId,
     WorkflowId,
 )
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
+from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
+    InMemoryGraphNodeExecutionRepository,
+)
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import (
     StdlibLogger,
     correlation_id_var,
 )
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
-)
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -214,7 +220,9 @@ def _new_workflow() -> Workflow:
     return Workflow.new(id_=WorkflowId.generate(), now=_NOW)
 
 
-def _ctx() -> object | None: return None
+def _ctx() -> object | None:
+    return None
+
 
 # ---------------------------------------------------------------------------
 # Navigator test helpers
@@ -230,6 +238,9 @@ def _graph_node_execution(
         mode=Mode(mode),
         role=NodeRole(mode.upper()),
         node_type=NodeType(mode),
+        remaining_retries=RemainingRetries(3),
+        retry_delay_seconds=RetryDelaySeconds(5),
+        timeout_seconds=TimeoutSeconds(60),
     )
 
 
@@ -237,6 +248,8 @@ def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecuti
     ge = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=TaskExecutionId.generate(),
+        depth=GraphDepth(0),
+        max_subgraph_depth=MaxSubgraphDepth(5),
     )
     for node in graph_node_executions:
         node._graph_execution_id = ge.id
@@ -318,9 +331,11 @@ def _build_graph_execution(
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskName(task_execution_name),
-                created_at=CreatedAt.from_datetime(_NOW),
+        created_at=CreatedAt.from_datetime(_NOW),
     )
-    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
+    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = (
+        task_execution
+    )
 
     graph_node_executions = [
         GraphNodeExecution(
@@ -329,28 +344,37 @@ def _build_graph_execution(
             mode=Mode(m),
             role=NodeRole(m.upper()),
             node_type=NodeType(m),
+            remaining_retries=RemainingRetries(3),
+            retry_delay_seconds=RetryDelaySeconds(5),
+            timeout_seconds=TimeoutSeconds(60),
         )
         for i, m in enumerate(modes)
     ]
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
+        depth=GraphDepth(0),
+        max_subgraph_depth=MaxSubgraphDepth(5),
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
-    object.__setattr__(graph_execution, '_cached_nodes', graph_node_executions)
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
+    object.__setattr__(graph_execution, "_cached_nodes", graph_node_executions)
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
+        graph_execution
+    )
     return task_execution, graph_execution
 
 
 async def _persist_running_workflow(
-    unit_of_work: InMemoryUnitOfWork, task_execution_id: TaskExecutionId, first_node: GraphNodeExecutionId
+    unit_of_work: InMemoryUnitOfWork,
+    task_execution_id: TaskExecutionId,
+    first_node: GraphNodeExecutionId,
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     for ge in list(unit_of_work.repository(InMemoryGraphExecutionRepository)._store.values()):
         if ge.task_execution_id == task_execution_id:
-            object.__setattr__(ge, '_workflow_id', wf.id)
+            object.__setattr__(ge, "_workflow_id", wf.id)
     wf.start_at(now=_NOW)
     async with unit_of_work:
         await unit_of_work.repository(InMemoryWorkflowRepository).save(wf)
@@ -449,9 +473,11 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskName(task_execution_name),
-                created_at=CreatedAt.from_datetime(now),
+        created_at=CreatedAt.from_datetime(now),
     )
-    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = task_execution
+    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = (
+        task_execution
+    )
     graph_node_executions = [
         GraphNodeExecution(
             id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
@@ -459,17 +485,24 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
             mode=Mode(m),
             role=NodeRole(m.upper()),
             node_type=NodeType(m),
+            remaining_retries=RemainingRetries(3),
+            retry_delay_seconds=RetryDelaySeconds(5),
+            timeout_seconds=TimeoutSeconds(60),
         )
         for i, m in enumerate(modes)
     ]
     graph_execution = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=task_execution.id,
+        depth=GraphDepth(0),
+        max_subgraph_depth=MaxSubgraphDepth(5),
     )
     for node in graph_node_executions:
         node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = graph_execution
+    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
+        graph_execution
+    )
     return task_execution, graph_execution
 
 
@@ -478,12 +511,18 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
     if runner is None:
         runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
     worker = GraphNodeExecutionWorker(
-        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger, runner=runner
+        unit_of_work=unit_of_work,
+        clock=clock,
+        id_generator=id_generator,
+        logger=logger,
+        runner=runner,
     )
     result_handler = GraphNodeExecutionCompletedHandler(
         unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
-    bootstrap_handler = WorkflowRunTaskerHandler(unit_of_work=unit_of_work, clock=clock, id_generator=id_generator)
+    bootstrap_handler = WorkflowRunTaskerHandler(
+        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator
+    )
     all_events = []
     await bootstrap_handler.handle(command)
     all_events.extend(unit_of_work.committed_events)
@@ -507,8 +546,3 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
         if not has_work:
             break
     return all_events
-
-
-
-
-

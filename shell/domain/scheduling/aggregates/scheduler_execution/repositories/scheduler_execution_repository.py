@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
-    ExecutionStatus,
-)
-from shell.domain.scheduling.value_objects.action_ref import ActionRef
-from shell.domain.scheduling.value_objects.count_result import CountResult
-from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
-
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
         SchedulerExecution,
     )
-    from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
+    from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
+        ExecutionStatus,
+    )
+    from shell.domain.scheduling.value_objects.action_ref import ActionRef
+    from shell.domain.scheduling.value_objects.count_result import CountResult
+    from shell.domain.scheduling.value_objects.ids import (
+        SchedulerDefinitionId,
+        SchedulerExecutionId,
+    )
 
 
 class SchedulerExecutionRepository(Protocol):
@@ -30,4 +31,3 @@ class SchedulerExecutionRepository(Protocol):
     ) -> CountResult: ...
 
     async def save(self, execution: SchedulerExecution) -> None: ...
-    

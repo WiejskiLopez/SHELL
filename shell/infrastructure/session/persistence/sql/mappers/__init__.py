@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.infrastructure.session.persistence.sql.models import SessionModel
 
 
@@ -25,7 +25,9 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         ),
         status=SessionStatus(session_model.status),
         opened_at=CreatedAt.from_datetime(session_model.opened_at),
-        closed_at=UpdatedAt.from_datetime(session_model.closed_at) if session_model.closed_at else None,
+        closed_at=UpdatedAt.from_datetime(session_model.closed_at)
+        if session_model.closed_at
+        else None,
     )
 
 

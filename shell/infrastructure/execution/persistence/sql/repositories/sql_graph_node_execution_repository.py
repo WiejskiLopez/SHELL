@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
@@ -17,7 +19,6 @@ from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
@@ -42,7 +43,9 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
             model = _graph_node_execution_entity_to_model(node)
             self._session.add(model)
         else:
-            model.graph_execution_id = node.graph_execution_id.value if node.graph_execution_id else ""
+            model.graph_execution_id = (
+                node.graph_execution_id.value if node.graph_execution_id else ""
+            )
             model.position = node.position.value
             model.mode = node.mode.value
             model.role = node.role.value

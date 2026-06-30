@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
+if TYPE_CHECKING:
+    from shell.application.execution.dto.graph_node_execution_result import (
+        GraphNodeExecutionResultDto,
+    )
 
 
 class GraphNodeExecutionResultQueryService(Protocol):

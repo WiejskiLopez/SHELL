@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-
 from typing import TypeVar
 
 from shell.domain.platform.base.entity_id import EntityId

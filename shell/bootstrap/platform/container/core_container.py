@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+
 from shell.infrastructure.scheduling.services.scheduler_service import SchedulerService
 
 from .application_container import ApplicationContainer

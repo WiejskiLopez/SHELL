@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.platform.value_objects.mode import Mode
+
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import GraphNodeExecutionProcessRunner
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
@@ -22,7 +24,7 @@ class _BaseStrategy:
 
         manifest = Manifest(
             name=graph_node_execution_id,
-            mode=self.mode,
+            mode=Mode(self.mode),
             role=self.mode,
             node_type=self.mode,
             version="1",

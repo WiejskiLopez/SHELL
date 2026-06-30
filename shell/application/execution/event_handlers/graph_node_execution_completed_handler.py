@@ -20,11 +20,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+    GraphNodeExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
+    GraphNodeTransitionExecutionRepository,
+)
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
     GraphNodeExecutionAdvancedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
     GraphNodeExecutionRequestedEvent,
+)
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
 )
 from shell.domain.execution.events import (
     GraphNodeExecutionCompletedEvent,
@@ -39,18 +51,6 @@ from shell.domain.execution.services.graph_node_execution_policy import (
     ContinueDecision,
     FailFastGraphNodeExecutionPolicy,
     GraphNodeExecutionPolicy,
-)
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
-    GraphNodeTransitionExecutionRepository,
-)
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
-    WorkflowRepository,
 )
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
@@ -90,7 +90,6 @@ class GraphNodeExecutionCompletedHandler:
         logger: Logger,
         navigator: GraphNodeExecutionNavigator | None = None,
         policy: GraphNodeExecutionPolicy | None = None,
-
     ) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock
@@ -101,7 +100,9 @@ class GraphNodeExecutionCompletedHandler:
         )
         self._policy: GraphNodeExecutionPolicy = policy or FailFastGraphNodeExecutionPolicy()
 
-    async def handle(self, graph_node_execution_result_event: GraphNodeExecutionResultEvent) -> None:
+    async def handle(
+        self, graph_node_execution_result_event: GraphNodeExecutionResultEvent
+    ) -> None:
         """Handle exactly one node execution result."""
         async with self._unit_of_work as unit_of_work:
             workflow_id = graph_node_execution_result_event.workflow_id
@@ -127,7 +128,9 @@ class GraphNodeExecutionCompletedHandler:
                 )
                 return
 
-            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
+            graph_executions = await unit_of_work.repository(
+                GraphExecutionRepository
+            ).get_by_workflow_id(workflow.id)
             if not graph_executions:
                 self._logger.warning(
                     "graph_node_execution_completed_handler.no_graph",
@@ -219,7 +222,11 @@ class GraphNodeExecutionCompletedHandler:
                 loop_transition = t
                 break
 
-        if loop_transition is None or loop_transition.max_iterations.value is None or loop_transition.max_iterations.value <= 0:
+        if (
+            loop_transition is None
+            or loop_transition.max_iterations.value is None
+            or loop_transition.max_iterations.value <= 0
+        ):
             await self._advance_or_finish(
                 workflow=workflow,
                 graph_execution=graph_execution,
@@ -230,10 +237,29 @@ class GraphNodeExecutionCompletedHandler:
             return
 
         target_node_id = loop_transition.target_node_execution_id
-        unit_of_work.stage_events([
-            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, target_node_id, CreatedAt.from_datetime(now)),  # type: ignore[arg-type]
-            GraphNodeExecutionRequestedEvent.now(workflow.id, target_node_id, CreatedAt.from_datetime(now)),  # type: ignore[arg-type]
-        ])
+        if target_node_id is None:
+            await self._advance_or_finish(
+                workflow=workflow,
+                graph_execution=graph_execution,
+                graph_node_execution_id=graph_node_execution_id,
+                now=now,
+                unit_of_work=unit_of_work,
+            )
+            return
+
+        unit_of_work.stage_events(
+            [
+                GraphNodeExecutionAdvancedEvent.now(
+                    workflow.id,
+                    graph_node_execution_id,
+                    target_node_id,
+                    CreatedAt.from_datetime(now),
+                ),
+                GraphNodeExecutionRequestedEvent.now(
+                    workflow.id, target_node_id, CreatedAt.from_datetime(now)
+                ),
+            ]
+        )
 
     async def _advance_or_finish(
         self,
@@ -246,17 +272,26 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
         next_nodes = list(
             await self._navigator.next_after_async(
-                graph_execution, graph_node_execution_id, unit_of_work.repository(GraphNodeExecutionRepository), unit_of_work.repository(GraphNodeTransitionExecutionRepository)
+                graph_execution,
+                graph_node_execution_id,
+                unit_of_work.repository(GraphNodeExecutionRepository),
+                unit_of_work.repository(GraphNodeTransitionExecutionRepository),
             )
         )
         if not next_nodes:
             workflow.finish(now, task_execution_id=graph_execution.task_execution_id)
             return
         next_node = next_nodes[0]
-        unit_of_work.stage_events([
-            GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, next_node.id, CreatedAt.from_datetime(now)),
-            GraphNodeExecutionRequestedEvent.now(workflow.id, next_node.id, CreatedAt.from_datetime(now)),
-        ])
+        unit_of_work.stage_events(
+            [
+                GraphNodeExecutionAdvancedEvent.now(
+                    workflow.id, graph_node_execution_id, next_node.id, CreatedAt.from_datetime(now)
+                ),
+                GraphNodeExecutionRequestedEvent.now(
+                    workflow.id, next_node.id, CreatedAt.from_datetime(now)
+                ),
+            ]
+        )
 
     async def _handle_failure(
         self,
@@ -270,14 +305,25 @@ class GraphNodeExecutionCompletedHandler:
     ) -> None:
 
         error_handler_node = await self._find_error_handler_transition(
-            graph_execution, graph_node_execution_id, unit_of_work.repository(GraphNodeTransitionExecutionRepository)
+            graph_execution,
+            graph_node_execution_id,
+            unit_of_work.repository(GraphNodeTransitionExecutionRepository),
         )
 
         if error_handler_node is not None:
-            unit_of_work.stage_events([
-                GraphNodeExecutionAdvancedEvent.now(workflow.id, graph_node_execution_id, error_handler_node, CreatedAt.from_datetime(now)),
-                GraphNodeExecutionRequestedEvent.now(workflow.id, error_handler_node, CreatedAt.from_datetime(now)),
-            ])
+            unit_of_work.stage_events(
+                [
+                    GraphNodeExecutionAdvancedEvent.now(
+                        workflow.id,
+                        graph_node_execution_id,
+                        error_handler_node,
+                        CreatedAt.from_datetime(now),
+                    ),
+                    GraphNodeExecutionRequestedEvent.now(
+                        workflow.id, error_handler_node, CreatedAt.from_datetime(now)
+                    ),
+                ]
+            )
             return
 
         decision = self._policy.decide_after_failure(workflow, graph_node_execution_id, reason)

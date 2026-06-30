@@ -64,6 +64,5 @@ def test_outbox_event_model_always_has_correlation_and_causation() -> None:
                     violations.append(violation)
     assert not violations, (
         "Wszystkie OutboxEventModel() muszą mieć correlation_id= i causation_id=; "
-        "wszystkie Envelope.from_message() muszą mieć correlation_id=:\n"
-        + "\n".join(violations)
+        "wszystkie Envelope.from_message() muszą mieć correlation_id=:\n" + "\n".join(violations)
     )

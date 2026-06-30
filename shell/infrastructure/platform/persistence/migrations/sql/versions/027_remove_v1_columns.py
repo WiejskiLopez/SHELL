@@ -42,13 +42,21 @@ def upgrade() -> None:
 def downgrade() -> None:
     with op.batch_alter_table("task_execution") as batch:
         batch.add_column(sa.Column("parent_task_execution_id", sa.String(36), nullable=True))
-        batch.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default=sa.text("true")))
+        batch.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default=sa.text("true"))
+        )
         batch.add_column(sa.Column("version", sa.Integer(), nullable=False, server_default="1"))
-        batch.create_index("ix_task_execution_parent_task_execution_id", ["parent_task_execution_id"])
+        batch.create_index(
+            "ix_task_execution_parent_task_execution_id", ["parent_task_execution_id"]
+        )
 
     with op.batch_alter_table("workflow") as batch:
         batch.add_column(sa.Column("task_execution_id", sa.String(36), nullable=True))
         batch.add_column(sa.Column("version", sa.Integer(), nullable=False, server_default="1"))
-        batch.add_column(sa.Column("current_graph_node_execution_id", sa.String(255), nullable=True))
+        batch.add_column(
+            sa.Column("current_graph_node_execution_id", sa.String(255), nullable=True)
+        )
         batch.create_index("ix_workflow_task_execution_id", ["task_execution_id"])
-        batch.create_index("ix_workflow_current_graph_node_execution_id", ["current_graph_node_execution_id"])
+        batch.create_index(
+            "ix_workflow_current_graph_node_execution_id", ["current_graph_node_execution_id"]
+        )

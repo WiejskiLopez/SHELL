@@ -1,18 +1,20 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
 )
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
+
+if TYPE_CHECKING:
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
 class SessionState(AggregateRoot[SessionStateId]):
@@ -106,7 +108,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)
+        return self._state_data.get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
         if self._state_data.get(key) is not None:
@@ -117,11 +119,11 @@ class SessionState(AggregateRoot[SessionStateId]):
             self.append_event(
                 SessionStateChangedEvent.now(
                     session_id=self._session_id,
-                session_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=None,
+                    session_state_id=self.id,
+                    direction=self._direction,
+                    key=key,
+                    old_value=old_value,
+                    new_value=None,
                     now=self._created_at,
                 )
             )

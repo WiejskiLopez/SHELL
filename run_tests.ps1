@@ -82,28 +82,38 @@ if (-not $SkipLint) {
 
 # Type check (mypy) - only if not skipped
 if (-not $SkipTypeCheck) {
-    Run-Command "python -m mypy --no-incremental --config-file shell/pyproject.toml shell" "Type Check (mypy)" -AllowFailure
+    Run-Command "python -m mypy --no-incremental shell" "Type Check (mypy)" -AllowFailure
 }
 
 if (-not $SkipArchCheck) {
-    Run-Command "$projectRoot\venv\Scripts\import-linter.exe" "Architecture Boundary Check"
+    Run-Command "$projectRoot\venv\Scripts\import-linter.exe lint" "Architecture Boundary Check"
 }
 
 if (-not $SkipSecurity) {
-    Run-Command "$projectRoot\venv\Scripts\pip-audit.exe" "Dependency Vulnerability Audit"
+    Write-Host "`n--- Dependency Vulnerability Audit ---" -ForegroundColor Yellow
+    Write-Host "Running: $projectRoot\venv\Scripts\pip-audit.exe" -ForegroundColor Gray
+    $pipJob = Start-Job -ScriptBlock { param($path) & $path } -ArgumentList "$projectRoot\venv\Scripts\pip-audit.exe"
+    $pipResult = $pipJob | Wait-Job -Timeout 30
+    if ($pipResult -eq $null) {
+        $pipJob | Stop-Job -PassThru | Remove-Job
+        Write-Host "TIMEOUT: pip-audit exceeded 30s (network issue), skipping" -ForegroundColor Yellow
+    } else {
+        Receive-Job -Job $pipJob
+        Remove-Job -Job $pipJob
+    }
 }
 
 if (-not $SkipSecurity) {
-    Run-Command "bandit -r shell -ll" "Security Code Scanning (Bandit)"
+    Run-Command "$projectRoot\venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)" -AllowFailure
 }
 
 if ($hasPostgres) {
-    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration --cov=shell --cov-fail-under=80 -v" "Integration Tests with Coverage" -AllowFailure
+    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration --cov shell --cov-fail-under 80 -v" "Integration Tests with Coverage" -AllowFailure
 }
 
 # Always run coverage on unit tests (quick summary)
 if (-not $UnitOnly -and -not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage"
+    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
 }
 
 

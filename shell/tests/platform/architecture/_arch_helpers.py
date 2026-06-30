@@ -3,13 +3,27 @@ from __future__ import annotations  # noqa: E402 -- required for all files
 import ast
 import pathlib
 import re
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent
 BASE = SHELL_SRC
 
 
-_EXCLUDED_DIRS = frozenset({".venv", "venv", "__pycache__", ".git", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".opencode"})
+_EXCLUDED_DIRS = frozenset(
+    {
+        ".venv",
+        "venv",
+        "__pycache__",
+        ".git",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".opencode",
+    }
+)
 
 
 def iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
@@ -50,21 +64,24 @@ def find_classes(tree: ast.Module) -> Iterator[ast.ClassDef]:
             yield node
 
 
-def find_functions(tree: ast.Module, class_node: ast.ClassDef | None = None) -> Iterator[ast.FunctionDef]:
-    body = class_node.body if class_node else tree.body
+def find_functions(
+    tree: ast.Module, class_node: ast.ClassDef | None = None
+) -> Iterator[ast.FunctionDef]:
     for node in ast.walk(class_node if class_node else tree):
-        if isinstance(node, ast.FunctionDef):
-            if class_node is None or node in class_node.body:
-                yield node
+        if isinstance(node, ast.FunctionDef) and (class_node is None or node in class_node.body):
+            yield node
 
 
 def extends_base(node: ast.ClassDef, base_name: str) -> bool:
     for base in node.bases:
         if isinstance(base, ast.Name) and base.id == base_name:
             return True
-        if isinstance(base, ast.Subscript):
-            if isinstance(base.value, ast.Name) and base.value.id == base_name:
-                return True
+        if (
+            isinstance(base, ast.Subscript)
+            and isinstance(base.value, ast.Name)
+            and base.value.id == base_name
+        ):
+            return True
     return False
 
 
@@ -80,9 +97,17 @@ def is_frozen_dataclass(node: ast.ClassDef, require_slots: bool = False) -> bool
                 has_frozen = False
                 has_slots = False
                 for kw in dec.keywords:
-                    if kw.arg == "frozen" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                    if (
+                        kw.arg == "frozen"
+                        and isinstance(kw.value, ast.Constant)
+                        and kw.value.value is True
+                    ):
                         has_frozen = True
-                    if kw.arg == "slots" and isinstance(kw.value, ast.Constant) and kw.value.value is True:
+                    if (
+                        kw.arg == "slots"
+                        and isinstance(kw.value, ast.Constant)
+                        and kw.value.value is True
+                    ):
                         has_slots = True
                 if has_frozen and (not require_slots or has_slots):
                     return True
@@ -125,9 +150,10 @@ def to_snake_case(pascal: str) -> str:
 def public_method_names(node: ast.ClassDef) -> list[str]:
     names: list[str] = []
     for stmt in node.body:
-        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if not stmt.name.startswith("_"):
-                names.append(stmt.name)
+        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and not stmt.name.startswith(
+            "_"
+        ):
+            names.append(stmt.name)
     return names
 
 
@@ -159,10 +185,23 @@ def has_complex_type(annotation: ast.AST) -> bool:
     return False
 
 
-_KNOWN_ABBREVIATIONS: frozenset[str] = frozenset({
-    "repo", "cmd", "uow", "ctx", "wf_id", "env_id",
-    "utils", "svc", "bc", "db", "http", "json", "yaml",
-})
+_KNOWN_ABBREVIATIONS: frozenset[str] = frozenset(
+    {
+        "repo",
+        "cmd",
+        "uow",
+        "ctx",
+        "wf_id",
+        "env_id",
+        "utils",
+        "svc",
+        "bc",
+        "db",
+        "http",
+        "json",
+        "yaml",
+    }
+)
 
 
 def has_abbreviation(name: str) -> bool:
@@ -179,6 +218,18 @@ def is_magic(name: str) -> bool:
     return name.startswith("__") and name.endswith("__")
 
 
-_SLOT_METHODS = frozenset({"__slots__", "__init__", "__post_init__", "__eq__", "__hash__",
-                           "__str__", "__repr__", "__aenter__", "__aexit__",
-                           "__enter__", "__exit__"})
+_SLOT_METHODS = frozenset(
+    {
+        "__slots__",
+        "__init__",
+        "__post_init__",
+        "__eq__",
+        "__hash__",
+        "__str__",
+        "__repr__",
+        "__aenter__",
+        "__aexit__",
+        "__enter__",
+        "__exit__",
+    }
+)

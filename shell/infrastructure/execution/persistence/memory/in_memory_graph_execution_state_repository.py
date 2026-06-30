@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
 )
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
@@ -11,16 +12,19 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-    GraphExecutionState,
-)
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
-class InMemoryGraphExecutionStateRepository(InMemoryRepository[GraphExecutionState, GraphExecutionStateId], GraphExecutionStateRepository):  # type: ignore[misc]
 
+class InMemoryGraphExecutionStateRepository(  # type: ignore[misc]
+    InMemoryRepository[GraphExecutionState, GraphExecutionStateId], GraphExecutionStateRepository
+):
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection
     ) -> GraphExecutionState | None:

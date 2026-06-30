@@ -24,7 +24,9 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 @dataclass(frozen=True, slots=True)
 class GraphExecutionReadyEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
-    graph_node_definition_executions: tuple[GraphNodeDefinitionExecutionSlot, ...] = field(default_factory=tuple)
+    graph_node_definition_executions: tuple[GraphNodeDefinitionExecutionSlot, ...] = field(
+        default_factory=tuple
+    )
 
     @classmethod
     def now(
@@ -48,7 +50,9 @@ class GraphExecutionReadyEvent(DomainEvent):
             slots = tuple(
                 GraphNodeDefinitionExecutionSlot(
                     graph_node_definition_id=GraphNodeDefinitionId(s["graph_node_definition_id"]),
-                    graph_node_execution_id=GraphNodeExecutionId(s["graph_node_execution_id"]) if s.get("graph_node_execution_id") else None,
+                    graph_node_execution_id=GraphNodeExecutionId(s["graph_node_execution_id"])
+                    if s.get("graph_node_execution_id")
+                    else None,
                 )
                 for s in slots_data
             )

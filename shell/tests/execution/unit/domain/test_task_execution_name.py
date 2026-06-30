@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 

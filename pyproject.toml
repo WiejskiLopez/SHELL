@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "shell"
 version = "0.1.0"
 description = "File-system-driven agent runtime shared library"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
 ]
@@ -22,3 +22,89 @@ include = ["shell*"]
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "TCH"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+    "fastapi.Header",
+]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+    "shell.infrastructure.persistence.sql.models.Base",
+    "sqlalchemy.orm.DeclarativeBase",
+    "pydantic.BaseModel",
+    "pydantic_settings.BaseSettings",
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+explicit_package_bases = true
+exclude = []
+mypy_path = ["shell/tests/platform/architecture"]
+
+[[tool.mypy.overrides]]
+module = [
+    "shell.infrastructure.*",
+    "shell.framework.*",
+    "shell.bootstrap.*",
+    "shell.tests.*",
+    "shell.config.*",
+]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+disallow_any_generics = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = [
+    "motor.*",
+    "asyncpg.*",
+    "aiosqlite.*",
+    "dependency_injector.*",
+    "alembic.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "shell.application.*",
+    "shell.process.*",
+]
+disable_error_code = ["type-abstract"]
+
+[tool.importlinter]
+root_package = "shell"
+
+[tool.importlinter.contract.layers]
+name = "Clean Architecture Layers"
+type = "layers"
+layers = [
+    "framework",
+    "process",
+    "bootstrap",
+    "infrastructure",
+    "application",
+    "domain",
+]
+
+[tool.importlinter.contract.layers.containers]
+framework = "shell.framework"
+process = "shell.process"
+bootstrap = "shell.bootstrap"
+infrastructure = "shell.infrastructure"
+application = "shell.application"
+domain = "shell.domain"

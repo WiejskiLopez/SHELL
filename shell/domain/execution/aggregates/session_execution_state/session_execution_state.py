@@ -3,10 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.value_objects.is_current import IsCurrent
+from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
         SessionExecutionStateId,
     )
+    from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
@@ -36,9 +36,9 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self,
         id: SessionExecutionStateId,
         session_execution_id: SessionExecutionId,
-        direction: StateDirection = StateDirection.IN,
+        direction: StateDirection,
+        is_current: IsCurrent,
         state_data: StateData | None = None,
-        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -54,9 +54,9 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         cls,
         id: SessionExecutionStateId,
         session_execution_id: SessionExecutionId,
-        direction: StateDirection = StateDirection.IN,
+        direction: StateDirection,
+        is_current: IsCurrent,
         state_data: StateData | None = None,
-        is_current: IsCurrent = IsCurrent(True),
         created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(

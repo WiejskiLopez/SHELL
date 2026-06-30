@@ -21,11 +21,19 @@ class RagDocumentChunksAddedEvent(DomainEvent):
     model: EmbeddingModel
 
     @classmethod
-    def now(cls, document_id: RagDocumentId, chunk_count: ChunkIndex, model: EmbeddingModel, now: CreatedAt) -> RagDocumentChunksAddedEvent:
+    def now(
+        cls,
+        document_id: RagDocumentId,
+        chunk_count: ChunkIndex,
+        model: EmbeddingModel,
+        now: CreatedAt,
+    ) -> RagDocumentChunksAddedEvent:
         return cls(occurred_at=now, document_id=document_id, chunk_count=chunk_count, model=model)
 
     @classmethod
-    def from_payload(cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1) -> Self:
+    def from_payload(
+        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
+    ) -> Self:
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),

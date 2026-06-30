@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from shell.domain.execution.events import WorkflowCompletedEvent
 from shell.domain.execution.exceptions import InvalidWorkflowTransition
 from shell.domain.execution.value_objects.ids import TaskExecutionId

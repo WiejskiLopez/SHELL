@@ -2,12 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.domain.scheduling.value_objects.ids import (
-    SchedulerDefinitionId,  # noqa: TC002 — SchedulerDefinitionId używany w konstruktorach w repozytorium
-)
-from shell.domain.scheduling.value_objects.source_context import SourceContext
-from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
 from shell.infrastructure.scheduling.persistence.sql.mappers import (
     scheduler_definition_entity_to_model,
     scheduler_definition_model_to_entity,
@@ -16,13 +13,18 @@ from shell.infrastructure.scheduling.persistence.sql.mappers import (
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from shell.domain.scheduling.value_objects.ids import (
+        SchedulerDefinitionId,  # noqa: TC002 — SchedulerDefinitionId używany w konstruktorach w repozytorium
+    )
+    from shell.domain.scheduling.value_objects.source_context import SourceContext
+    from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
 
 
 class SqlSchedulerDefinitionRepository:

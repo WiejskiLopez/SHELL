@@ -23,12 +23,12 @@ class InMemoryGraphDefinitionEmbeddingRepository(
     InMemoryRepository[GraphDefinitionEmbedding, GraphDefinitionEmbeddingId],
     GraphDefinitionEmbeddingRepository,
 ):
-
     async def save(self, embedding: GraphDefinitionEmbedding) -> None:
         self._store[embedding.id.value] = embedding
 
     async def get_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> GraphDefinitionEmbedding | None:
         for emb in self._store.values():
             if emb.graph_definition_id == graph_definition_id:

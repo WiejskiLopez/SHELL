@@ -4,10 +4,11 @@ import uuid
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import text
+
 from shell.infrastructure.platform.persistence.sql.models.command.inbox_command import (
     InboxCommandModel,
 )
-from sqlalchemy import text
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

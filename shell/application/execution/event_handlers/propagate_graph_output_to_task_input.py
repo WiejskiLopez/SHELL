@@ -2,15 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
-    GraphExecutionCompletedEvent,
-)
-from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-    TaskExecutionState,
-)
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.value_objects.ids import TaskExecutionStateId
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -20,11 +11,20 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
+)
+from shell.domain.execution.value_objects.ids import TaskExecutionStateId
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
+from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
+        GraphExecutionCompletedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -44,7 +44,9 @@ class PropagateGraphOutputToTaskInput:
 
     async def handle(self, graph_execution_completed_event: GraphExecutionCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_completed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                graph_execution_completed_event.graph_execution_id
+            )
             if graph_execution is None:
                 self._logger.warning(
                     "propagate_graph_output_to_task_input.graph_not_found",

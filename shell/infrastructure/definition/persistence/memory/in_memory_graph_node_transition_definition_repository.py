@@ -23,14 +23,11 @@ class InMemoryGraphNodeTransitionDefinitionRepository(
     InMemoryRepository[GraphNodeTransitionDefinition, GraphNodeTransitionDefinitionId],
     GraphNodeTransitionDefinitionRepository,
 ):
-
     async def save(self, transition: GraphNodeTransitionDefinition) -> None:
         self._store[transition.id.value] = transition
 
     async def list_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> list[GraphNodeTransitionDefinition]:
-        return [
-            t for t in self._store.values()
-            if t.graph_definition_id == graph_definition_id
-        ]
+        return [t for t in self._store.values() if t.graph_definition_id == graph_definition_id]

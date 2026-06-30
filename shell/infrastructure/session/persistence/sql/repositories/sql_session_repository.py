@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from sqlalchemy import select
+
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
@@ -11,13 +12,14 @@ from shell.infrastructure.session.persistence.sql.mappers import (
     session_model_to_entity,
     session_update_model,
 )
-from sqlalchemy import select
 
 from ..models import SessionModel
 
 if TYPE_CHECKING:
-    from shell.domain.session.aggregates.session import Session
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.session.aggregates.session import Session
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
 class SqlSessionRepository(SessionRepository):

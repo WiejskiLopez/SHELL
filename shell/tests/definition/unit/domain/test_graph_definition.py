@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
     GraphDefinitionCreatedEvent,
 )
+from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
@@ -15,7 +15,9 @@ from shell.domain.definition.value_objects.purpose import Purpose
 
 class TestGraphDefinition:
     def test_constructor_sets_name_and_purpose(self) -> None:
-        graph_definition = GraphDefinition(GraphDefinitionId("g1"), GraphName("test"), Purpose("for testing"))
+        graph_definition = GraphDefinition(
+            GraphDefinitionId("g1"), GraphName("test"), Purpose("for testing")
+        )
         assert graph_definition.name == GraphName("test")
         assert graph_definition.purpose == Purpose("for testing")
 

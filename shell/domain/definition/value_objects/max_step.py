@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Self
 
-
 from shell.domain.platform.base.value_object import ValueObject
 
 

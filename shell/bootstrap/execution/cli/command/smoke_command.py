@@ -42,7 +42,7 @@ class SmokeCommand(RunnableCommand):
         )
         print(f"[smoke] workflow started: {workflow_id}")
 
-        print(f"[smoke] envelopes routed: (RouteEnvelopesCommand removed — class does not exist)")
+        print("[smoke] envelopes routed: (RouteEnvelopesCommand removed — class does not exist)")
 
         dto = await query_bus.dispatch(WorkflowGetByIdQuery(workflow_id))
         print(f"[smoke] workflow status: {dto.status if dto else 'not found'}")

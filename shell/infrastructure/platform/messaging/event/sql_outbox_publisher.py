@@ -17,8 +17,9 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.domain.platform.events import DomainEvent
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.domain.platform.events import DomainEvent
 
 
 class SqlOutboxPublisher:

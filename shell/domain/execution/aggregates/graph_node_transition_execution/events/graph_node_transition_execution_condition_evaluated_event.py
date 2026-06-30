@@ -22,7 +22,7 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphNodeTransitionExecutionConditionEvaluatedEvent(DomainEvent):
     transition_id: GraphNodeTransitionExecutionId
     source_node_id: GraphNodeExecutionId
-    condition_result: ConditionResult = ConditionResult(False)
+    condition_result: ConditionResult
 
     @classmethod
     def now(
@@ -30,7 +30,7 @@ class GraphNodeTransitionExecutionConditionEvaluatedEvent(DomainEvent):
         transition_id: GraphNodeTransitionExecutionId,
         source_node_id: GraphNodeExecutionId,
         now: CreatedAt,
-        condition_result: ConditionResult = ConditionResult(False),
+        condition_result: ConditionResult,
     ) -> GraphNodeTransitionExecutionConditionEvaluatedEvent:
         return cls(
             occurred_at=now,

@@ -25,11 +25,11 @@ from shell.domain.execution.value_objects.graph_execution_definition import (
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-        GraphNodeExecution,
-    )
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
+        GraphNodeExecution,
     )
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 
@@ -174,7 +174,9 @@ class LatestVersionStrategy(SubGraphVersioning):
         from shell.domain.definition.value_objects.ids import GraphDefinitionId
 
         async with self._unit_of_work_factory() as unit_of_work:
-            definition = await unit_of_work.repository(GraphDefinitionRepository).get_by_id(GraphDefinitionId(definition_id))
+            definition = await unit_of_work.repository(GraphDefinitionRepository).get_by_id(
+                GraphDefinitionId(definition_id)
+            )
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
             node_defs = [

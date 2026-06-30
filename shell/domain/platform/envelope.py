@@ -66,5 +66,5 @@ class Envelope:
             trace_id=str(data.get("trace_id", "")),
             sender_service=str(data.get("sender_service", "")),
             receiver_service=str(data.get("receiver_service", "")),
-            transport_metadata=dict(data.get("transport_metadata", {}) or {}),
+            transport_metadata=dict(data.get("transport_metadata", {}) or {}),  # type: ignore[call-overload]
         )

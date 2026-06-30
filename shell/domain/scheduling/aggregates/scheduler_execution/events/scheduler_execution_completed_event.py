@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.events import DomainEvent
+from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from datetime import datetime

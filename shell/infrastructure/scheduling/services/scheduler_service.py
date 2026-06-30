@@ -9,16 +9,20 @@ them as APScheduler interval jobs.
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Coroutine
 from typing import TYPE_CHECKING, Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore[import-untyped]
+
 from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
     SqlSchedulerExecutionRepository,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Coroutine
+
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
@@ -35,7 +39,6 @@ if TYPE_CHECKING:
     from shell.infrastructure.platform.messaging.event.processor.inbox_processor import (
         InboxProcessor,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +154,11 @@ def _build_job_fn(
             try:
                 await outbox_relay.run_once()
                 processed = await inbox_processor.run_once()
-                if processed == 0 and pending_graph_finder is not None and graph_execution_repo is not None:
+                if (
+                    processed == 0
+                    and pending_graph_finder is not None
+                    and graph_execution_repo is not None
+                ):
                     graph = await pending_graph_finder.find_next(graph_execution_repo)
                     if graph is not None:
                         logger.info(

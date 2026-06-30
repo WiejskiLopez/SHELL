@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from typing import TYPE_CHECKING, Any
+
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeExecutionModel
+        GraphNodeExecutionModel,  # noqa: TC002 — GraphNodeExecutionModel używany w Mapped[list[GraphNodeExecutionModel]] w relacji SQLAlchemy
+    )
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeTransitionExecutionModel
+        GraphNodeTransitionExecutionModel,  # noqa: TC002 — GraphNodeTransitionExecutionModel używany w Mapped[list[...]] w relacji SQLAlchemy
+    )
 
 
 class GraphExecutionModel(Base, VersionedMixin):
@@ -18,7 +28,9 @@ class GraphExecutionModel(Base, VersionedMixin):
         nullable=False,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
-    graph_node_definition_executions: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    graph_node_definition_executions: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict
+    )
     initialization_status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status: Mapped[str] = mapped_column(nullable=False, default="created")
 
@@ -29,12 +41,13 @@ class GraphExecutionModel(Base, VersionedMixin):
     state_input: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     state_output: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     depth: Mapped[int] = mapped_column(nullable=False, default=0)
+    max_subgraph_depth: Mapped[int] = mapped_column(nullable=False, default=5)
     timeout_at: Mapped[datetime | None] = mapped_column(nullable=True)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
-    @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict:
+    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 
     graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
@@ -49,11 +62,3 @@ class GraphExecutionModel(Base, VersionedMixin):
             cascade="all, delete-orphan",
         )
     )
-
-
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeExecutionModel
-    GraphNodeExecutionModel,  # noqa: TC002 — GraphNodeExecutionModel używany w Mapped[list[GraphNodeExecutionModel]] w relacji SQLAlchemy
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeTransitionExecutionModel
-    GraphNodeTransitionExecutionModel,  # noqa: TC002 — GraphNodeTransitionExecutionModel używany w Mapped[list[...]] w relacji SQLAlchemy
-)

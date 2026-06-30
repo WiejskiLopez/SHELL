@@ -1,24 +1,28 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
-    UserExecutionId,
-)
+from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
 from shell.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
     UserExecutionStateId,
 )
-from shell.domain.platform.value_objects.state_direction import StateDirection
-from shell.domain.execution.aggregates.user_execution_state import UserExecutionState
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
-class InMemoryUserExecutionStateRepository(InMemoryRepository[UserExecutionState, UserExecutionStateId], UserExecutionStateRepository):  # type: ignore[misc]
 
+class InMemoryUserExecutionStateRepository(  # type: ignore[misc]
+    InMemoryRepository[UserExecutionState, UserExecutionStateId], UserExecutionStateRepository
+):
     async def get_latest_by_user_execution_id(
         self,
         user_execution_id: UserExecutionId,

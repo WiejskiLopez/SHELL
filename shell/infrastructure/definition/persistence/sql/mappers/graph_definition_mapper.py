@@ -1,19 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
-
-if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
-    from shell.domain.definition.value_objects.ids import (
-        GraphNodeDefinitionId,
-        GraphNodeTransitionDefinitionId,
-    )
-    from shell.infrastructure.definition.persistence.sql.models import (
-        GraphDefinitionModel,
-    )
+from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.value_objects.ids import (
+    GraphNodeDefinitionId,
+    GraphNodeTransitionDefinitionId,
+)
+from shell.infrastructure.definition.persistence.sql.models import (
+    GraphDefinitionModel,
+)
 
 
 def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitionDto:
@@ -47,18 +43,14 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
-    from shell.domain.definition.value_objects.graph_name import GraphName
-    from shell.domain.definition.value_objects.purpose import Purpose
-    from shell.domain.definition.value_objects.system_role import SystemRole
-    from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
+    from shell.domain.definition.value_objects.graph_name import GraphName
+    from shell.domain.definition.value_objects.purpose import Purpose
+    from shell.domain.definition.value_objects.system_role import SystemRole
 
-    node_ids = [
-        GraphNodeDefinitionId(nd.id)
-        for nd in (model.graph_node_execution_models or [])
-    ]
+    node_ids = [GraphNodeDefinitionId(nd.id) for nd in (model.graph_node_execution_models or [])]
     transition_ids = [
         GraphNodeTransitionDefinitionId(t.id)
         for t in (model.graph_node_transition_definition_models or [])

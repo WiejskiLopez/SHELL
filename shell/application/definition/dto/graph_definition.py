@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-from shell.application.definition.dto.graph_node_definition import (
-    GraphNodeDefinitionDto,  # noqa: TC002 — GraphNodeDefinitionDto używany w polu graph_node_definitions dataclass GraphDefinitionDto
-)
+if TYPE_CHECKING:
+    from shell.application.definition.dto.graph_node_definition import (
+        GraphNodeDefinitionDto,  # noqa: TC002 — GraphNodeDefinitionDto używany w polu graph_node_definitions dataclass GraphDefinitionDto
+    )
 
 
 @dataclass(frozen=True, slots=True)

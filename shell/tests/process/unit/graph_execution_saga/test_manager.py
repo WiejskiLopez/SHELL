@@ -2,25 +2,28 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
+
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
     GraphExecutionSaga,
 )
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaStatus,
 )
-from shell.tests.process.conftest import (
-    InMemoryGraphExecutionSagaRepository,
-)
+
+if TYPE_CHECKING:
+    from shell.tests.process.conftest import (
+        InMemoryGraphExecutionSagaRepository,
+    )
 
 
 class TestGraphExecutionSaga:
     GRAPH_EXECUTION_ID = "ge-1"
 
     @pytest.fixture()
-    def manager(
-        self, saga_repository: InMemoryGraphExecutionSagaRepository
-    ) -> GraphExecutionSaga:
+    def manager(self, saga_repository: InMemoryGraphExecutionSagaRepository) -> GraphExecutionSaga:
         return GraphExecutionSaga(repository=saga_repository)
 
     async def test_create_saga(
@@ -47,7 +50,7 @@ class TestGraphExecutionSaga:
         manager: GraphExecutionSaga,
         saga_repository: InMemoryGraphExecutionSagaRepository,
     ) -> None:
-        saga = await manager.create_saga(
+        await manager.create_saga(
             graph_execution_id=self.GRAPH_EXECUTION_ID,
             expected_nodes_count=3,
         )

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 -- Mapped[datetime] requires datetime at runtime
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
+
+from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 
 class UserExecutionModel(Base):

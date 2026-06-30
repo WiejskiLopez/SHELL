@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
@@ -51,9 +52,9 @@ class TestTaskExecutionImportHandler:
 
         from shell.domain.execution.value_objects.ids import TaskExecutionId
 
-        state_input = await unit_of_work.repository(InMemoryTaskExecutionStateRepository).get_latest_by_task_id(
-            TaskExecutionId(task_execution_id)
-        )
+        state_input = await unit_of_work.repository(
+            InMemoryTaskExecutionStateRepository
+        ).get_latest_by_task_id(TaskExecutionId(task_execution_id))
         assert state_input is not None
         assert state_input.state_data.to_dict() == {"description": "# SQL Task"}
 

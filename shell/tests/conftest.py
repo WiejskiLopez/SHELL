@@ -9,10 +9,16 @@ Provides fixtures for all three persistence backends:
 
 from __future__ import annotations
 
+import os
 import uuid
+from typing import TYPE_CHECKING
 
 import pytest
+
+from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import correlation_id_var
+from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -22,7 +28,19 @@ from shell.infrastructure.platform.persistence.memory import (
     InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
-from shell.tests.conftest_helpers import *
+from shell.infrastructure.platform.persistence.sql import build_session_factory
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import async_sessionmaker
+
+POSTGRES_URL = os.environ.get(
+    "POSTGRES_TEST_URL",
+    "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test",
+)
+MONGO_URL = os.environ.get("MONGO_TEST_URL", "mongodb://localhost:27018/?replicaSet=rs0")
+
+_postgres_available = os.environ.get("POSTGRES_TEST_URL") is not None
+_mongo_available = os.environ.get("MONGO_TEST_URL") is not None
 
 # ---------------------------------------------------------------------------
 # Markers
@@ -33,21 +51,6 @@ def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line("markers", "integration: integration tests requiring external services")
     config.addinivalue_line("markers", "e2e: end-to-end tests")
 
-
-# ---------------------------------------------------------------------------
-# Backend availability flags
-# ---------------------------------------------------------------------------
-
-import os
-
-POSTGRES_URL = os.environ.get(
-    "POSTGRES_TEST_URL",
-    "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test",
-)
-MONGO_URL = os.environ.get("MONGO_TEST_URL", "mongodb://localhost:27018/?replicaSet=rs0")
-
-_postgres_available = os.environ.get("POSTGRES_TEST_URL") is not None
-_mongo_available = os.environ.get("MONGO_TEST_URL") is not None
 
 # ---------------------------------------------------------------------------
 # Skip helpers
@@ -126,16 +129,6 @@ def fake_logger() -> FakeLogger:
 # ---------------------------------------------------------------------------
 # SQLite integration fixtures
 # ---------------------------------------------------------------------------
-
-from typing import TYPE_CHECKING
-
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
 @pytest.fixture(scope="module")

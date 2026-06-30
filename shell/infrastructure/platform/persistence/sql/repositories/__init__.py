@@ -37,7 +37,6 @@ __all__ = [
     "SqlGraphDefinitionRepository",
     "SqlGraphExecutionRepository",
     "SqlGraphNodeDefinitionRepository",
-
     "SqlMessageRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",

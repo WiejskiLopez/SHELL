@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
@@ -16,7 +18,6 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
     GraphNodeExecutionStateModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,20 +46,15 @@ class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
     async def list_by_graph_node_execution_and_direction(
         self, graph_node_execution_id: GraphNodeExecutionId, direction: StateDirection
     ) -> list[GraphNodeExecutionState]:
-        query = (
-            select(GraphNodeExecutionStateModel)
-            .where(
-                GraphNodeExecutionStateModel.graph_node_execution_id == graph_node_execution_id.value,
-                GraphNodeExecutionStateModel.direction == direction.value,
-            )
+        query = select(GraphNodeExecutionStateModel).where(
+            GraphNodeExecutionStateModel.graph_node_execution_id == graph_node_execution_id.value,
+            GraphNodeExecutionStateModel.direction == direction.value,
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [self._model_to_entity(r) for r in rows if r]
 
     async def save(self, state: GraphNodeExecutionState) -> None:
-        model = await self._session.get(
-            GraphNodeExecutionStateModel, state.id.value
-        )
+        model = await self._session.get(GraphNodeExecutionStateModel, state.id.value)
         if model is None:
             model = GraphNodeExecutionStateModel(
                 id=state.id.value,

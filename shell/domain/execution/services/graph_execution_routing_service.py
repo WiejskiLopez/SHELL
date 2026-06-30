@@ -34,30 +34,20 @@ class GraphExecutionRoutingService:
         3. If nothing found -> raise RoleNotResolvable.
         """
         non_router = [
-            gn for gn in graph_node_executions
-            if graph_node_execution_mode_is_not_router(gn)
+            gn for gn in graph_node_executions if graph_node_execution_mode_is_not_router(gn)
         ]
 
         if target_role:
-            matched = [
-                gn for gn in non_router if gn.role == target_role
-            ]
+            matched = [gn for gn in non_router if gn.role == target_role]
             if not matched:
-                raise RoleNotResolvable(
-                    f"No graph node with role={target_role!r} found"
-                )
+                raise RoleNotResolvable(f"No graph node with role={target_role!r} found")
             return matched[0].id
 
-        candidates = [
-            gn for gn in non_router
-            if gn.id != source_node_execution_id
-        ]
+        candidates = [gn for gn in non_router if gn.id != source_node_execution_id]
         if not candidates and non_router:
             candidates = non_router
         if not candidates:
-            raise RoleNotResolvable(
-                "Cannot resolve target: no routable nodes"
-            )
+            raise RoleNotResolvable("Cannot resolve target: no routable nodes")
         return candidates[0].id
 
 

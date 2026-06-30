@@ -21,5 +21,3 @@ class TestTaskExecution:
         events = task_execution.pull_events()
         assert len(events) == 1
         assert type(events[0]).__name__ == "TaskExecutionCreatedEvent"
-
-

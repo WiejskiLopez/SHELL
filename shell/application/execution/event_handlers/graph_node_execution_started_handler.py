@@ -29,9 +29,13 @@ class GraphNodeExecutionStartedHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_node_execution_started_event: GraphNodeExecutionStartedEvent) -> None:
+    async def handle(
+        self, graph_node_execution_started_event: GraphNodeExecutionStartedEvent
+    ) -> None:
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_started_event.node_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
+                graph_node_execution_started_event.node_id
+            )
             if node is None:
                 self._logger.warning(
                     "graph_node_execution_started_handler.node_not_found",

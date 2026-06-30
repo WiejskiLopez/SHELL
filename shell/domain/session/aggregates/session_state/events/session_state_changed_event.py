@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Self
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
+from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,

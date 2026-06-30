@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from shell.domain.platform.base.entity import Entity
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.projekt.value_objects.project_skill_id import ProjectSkillId
 from shell.domain.projekt.value_objects.project_skill_payload import ProjectSkillPayload
+
+if TYPE_CHECKING:
+    from shell.domain.projekt.value_objects.project_id import ProjectId
 
 
 class ProjectSkill(Entity[ProjectSkillId]):
@@ -41,7 +43,9 @@ class ProjectSkill(Entity[ProjectSkillId]):
         return self._created_at
 
     @classmethod
-    def new(cls, project_id: ProjectId, payload: dict[str, Any], now: CreatedAt | None = None) -> ProjectSkill:
+    def new(
+        cls, project_id: ProjectId, payload: dict[str, Any], now: CreatedAt | None = None
+    ) -> ProjectSkill:
         return cls(
             id=ProjectSkillId.generate(),
             project_id=project_id,

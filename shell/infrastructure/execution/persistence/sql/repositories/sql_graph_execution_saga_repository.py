@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.infrastructure.execution.persistence.sql.models.saga_state import (
     GraphExecutionSagaStateModel,
 )
@@ -9,7 +11,6 @@ from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaState,
     GraphExecutionSagaStatus,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

@@ -2,27 +2,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
-    UserExecutionId,
-)
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     user_execution_state_entity_to_model,
     user_execution_state_model_to_entity,
 )
-from sqlalchemy import select
 
 from ..models import UserExecutionStateModel
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
     from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
         UserExecutionState,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class SqlUserExecutionStateRepository(UserExecutionStateRepository):
@@ -50,20 +52,20 @@ class SqlUserExecutionStateRepository(UserExecutionStateRepository):
         )
         if existing is not None:
             existing.supersede()
-            old_model = await self._session.get(
-                UserExecutionStateModel, existing.id.value
-            )
+            old_model = await self._session.get(UserExecutionStateModel, existing.id.value)
             if old_model is not None:
                 old_model.is_current = existing.is_current.value
         model = user_execution_state_entity_to_model(payload)
         self._session.add(model)
 
     async def delete(self, id_: object) -> None:
-        model = await self._session.get(UserExecutionStateModel, getattr(id_, 'value', id_))
+        model = await self._session.get(UserExecutionStateModel, getattr(id_, "value", id_))
         if model is not None:
             await self._session.delete(model)
 
     async def exists(self, id_: object) -> ExistsResult:
-        query = select(UserExecutionStateModel).where(UserExecutionStateModel.id == getattr(id_, 'value', id_))
+        query = select(UserExecutionStateModel).where(
+            UserExecutionStateModel.id == getattr(id_, "value", id_)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return ExistsResult(row is not None)

@@ -27,10 +27,18 @@ class RagChunk(Entity[RagChunkId]):
     ) -> None:
         super().__init__(id)
         self._document_id = document_id
-        self._chunk_index = chunk_index if isinstance(chunk_index, ChunkIndex) else ChunkIndex(chunk_index)
-        self._chunk_text = chunk_text if isinstance(chunk_text, ChunkText) else ChunkText(chunk_text)
+        self._chunk_index = (
+            chunk_index if isinstance(chunk_index, ChunkIndex) else ChunkIndex(chunk_index)
+        )
+        self._chunk_text = (
+            chunk_text if isinstance(chunk_text, ChunkText) else ChunkText(chunk_text)
+        )
         self._embedding = embedding if isinstance(embedding, Embedding) else Embedding(embedding)
-        self._embedding_model = embedding_model if isinstance(embedding_model, EmbeddingModel) else EmbeddingModel(embedding_model)
+        self._embedding_model = (
+            embedding_model
+            if isinstance(embedding_model, EmbeddingModel)
+            else EmbeddingModel(embedding_model)
+        )
 
     @property
     def document_id(self) -> RagDocumentId:

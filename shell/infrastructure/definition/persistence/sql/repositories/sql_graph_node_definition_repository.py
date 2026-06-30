@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.definition.aggregates.graph_node_definition.repositories import (
     GraphNodeDefinitionRepository,
 )
@@ -9,9 +11,10 @@ from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphNodeDefinitionModel,
 )
-from sqlalchemy import select
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
@@ -21,7 +24,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
         GraphNodeDefinitionId,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
@@ -29,11 +31,9 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         self._session = session
 
     async def get_by_id(
-        self, graph_node_definition_id: GraphNodeDefinitionId,
+        self,
+        graph_node_definition_id: GraphNodeDefinitionId,
     ) -> GraphNodeDefinition | None:
-        from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-            GraphNodeDefinition,
-        )
 
         model = await self._session.get(GraphNodeDefinitionModel, graph_node_definition_id.value)
         if model is None:
@@ -41,11 +41,9 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         return self._model_to_entity(model)
 
     async def list_by_graph_definition_id(
-        self, graph_definition_id: GraphDefinitionId,
+        self,
+        graph_definition_id: GraphDefinitionId,
     ) -> list[GraphNodeDefinition]:
-        from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-            GraphNodeDefinition,
-        )
 
         stmt = select(GraphNodeDefinitionModel).where(
             GraphNodeDefinitionModel.graph_definition_id == graph_definition_id.value,
@@ -56,7 +54,8 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
 
     async def save(self, graph_node_definition: GraphNodeDefinition) -> None:
         model = await self._session.get(
-            GraphNodeDefinitionModel, graph_node_definition.id.value,
+            GraphNodeDefinitionModel,
+            graph_node_definition.id.value,
         )
         if model is None:
             model = self._entity_to_model(graph_node_definition)
@@ -74,7 +73,8 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         return ExistsResult(model is not None)
 
     def _model_to_entity(
-        self, model: GraphNodeDefinitionModel,
+        self,
+        model: GraphNodeDefinitionModel,
     ) -> GraphNodeDefinition:
         from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
             GraphDefinitionId,

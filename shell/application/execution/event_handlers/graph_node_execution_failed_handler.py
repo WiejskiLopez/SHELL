@@ -30,9 +30,13 @@ class GraphNodeExecutionFailedHandler:
         self._id_generator = id_generator
         self._logger = logger
 
-    async def handle(self, graph_node_execution_failed_event: GraphNodeExecutionFailedEvent) -> None:
+    async def handle(
+        self, graph_node_execution_failed_event: GraphNodeExecutionFailedEvent
+    ) -> None:
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_failed_event.node_id)
+            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
+                graph_node_execution_failed_event.node_id
+            )
             if node is None:
                 self._logger.warning(
                     "graph_node_execution_failed_handler.node_not_found",
@@ -41,7 +45,11 @@ class GraphNodeExecutionFailedHandler:
                 return
 
             now = self._clock.now()
-            error = graph_node_execution_failed_event.error if graph_node_execution_failed_event.error else ErrorDescription("unknown error")
+            error = (
+                graph_node_execution_failed_event.error
+                if graph_node_execution_failed_event.error
+                else ErrorDescription("unknown error")
+            )
             node.fail(error, now)
             await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
             unit_of_work.stage_events(node.pull_events())

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
+
 from shell.application.platform.bus.event_bus_publisher import EventBusPublisher
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
 from shell.infrastructure.platform.messaging.command.command_outbox_to_inbox_relay import (

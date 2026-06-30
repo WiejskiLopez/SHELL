@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
+    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
     from shell.domain.definition.value_objects.domain_tag import DomainTag
     from shell.domain.definition.value_objects.embedding import Embedding
     from shell.domain.definition.value_objects.ids import RagDocumentId
@@ -18,7 +17,7 @@ class RagDocumentRepository(Protocol):
     async def search_similar(
         self,
         query_embedding: Embedding,
-        top_k: ChunkIndex = ChunkIndex(5),
+        top_k: ChunkIndex,
         domain: DomainTag | None = None,
     ) -> list[RagChunk]: ...
     async def delete(self, id: RagDocumentId) -> None: ...

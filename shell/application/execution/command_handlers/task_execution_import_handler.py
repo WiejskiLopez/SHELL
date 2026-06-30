@@ -9,23 +9,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
-    TaskExecutionState,
-)
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.execution.value_objects.ids import TaskExecutionId, TaskExecutionStateId
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
+from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
+    TaskExecutionState,
+)
+from shell.domain.execution.value_objects.ids import TaskExecutionId, TaskExecutionStateId
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
-    from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
+    from shell.application.execution.commands.task_execution_commands import (
+        ImportTaskExecutionCommand,
+    )
     from shell.application.platform.ports.ports import (
         Clock,
         IdGenerator,

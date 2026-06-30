@@ -81,4 +81,3 @@ class UserExecution(AggregateRoot[UserExecutionId]):
             )
         )
         return user_execution
-

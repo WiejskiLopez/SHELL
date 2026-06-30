@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
+    GraphExecutionDefinitionProvider,
+)
 from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensation import (
     CompensationDecision,
     SubGraphCompensation,
-)
-from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
-    GraphExecutionDefinitionProvider,
 )
 from shell.domain.execution.ports.sub_graph_discovery import (
     SubGraphDiscovery,

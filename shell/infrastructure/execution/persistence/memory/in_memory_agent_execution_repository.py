@@ -1,24 +1,28 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.agent_execution.repositories.agent_execution_repository import (
-    AgentExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
 from shell.domain.execution.aggregates.agent_execution.agent_execution import (
     AgentExecution,
+)
+from shell.domain.execution.aggregates.agent_execution.repositories.agent_execution_repository import (
+    AgentExecutionRepository,
 )
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,
 )
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
 
-class InMemoryAgentExecutionRepository(InMemoryRepository[AgentExecution, AgentExecutionId], AgentExecutionRepository):
 
+class InMemoryAgentExecutionRepository(
+    InMemoryRepository[AgentExecution, AgentExecutionId], AgentExecutionRepository
+):
     async def get_by_node_execution_id(
         self, node_id: GraphNodeExecutionId
     ) -> AgentExecution | None:

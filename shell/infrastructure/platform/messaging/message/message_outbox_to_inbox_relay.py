@@ -6,14 +6,15 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+
 from shell.infrastructure.platform.persistence.sql.models.message.inbox_message import (
     InboxMessageModel,
 )
 from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import (
     OutboxMessageModel,
 )
-from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

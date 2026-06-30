@@ -2,24 +2,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import select
+
 from shell.domain.platform.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
-from shell.domain.platform.value_objects.workflow_reference import WorkflowReference
 from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
     message_entity_to_model,
     message_model_to_entity,
 )
-from sqlalchemy import select
 
 from ..models.message.message import MessageModel
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     from shell.domain.platform.aggregates.message.message import Message
     from shell.domain.platform.aggregates.message.value_objects.destination import Destination
     from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
     from shell.domain.platform.aggregates.message.value_objects.source import Source
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from shell.domain.platform.value_objects.workflow_reference import WorkflowReference
 
 
 class SqlMessageRepository(MessageRepository):

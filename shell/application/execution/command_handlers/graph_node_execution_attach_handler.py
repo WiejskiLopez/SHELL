@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.commands.attach_graph_node_executions_command import (
-    AttachGraphNodeExecutionsCommand,
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
 )
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
@@ -11,12 +11,12 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 
 if TYPE_CHECKING:
+    from shell.application.execution.commands.attach_graph_node_executions_command import (
+        AttachGraphNodeExecutionsCommand,
+    )
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
 

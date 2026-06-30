@@ -1,23 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import Any
 from unittest.mock import AsyncMock, Mock
 
 import pytest
+
 from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
     GraphDefinitionSemanticQuery,
 )
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
 )
-from typing import Any
-
 from shell.infrastructure.execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
-
-if TYPE_CHECKING:
-    import httpx
 
 
 class TestGraphExecutionDefinitionProviderHttpAdapter:
@@ -68,7 +64,9 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
                 }
             ],
         }
-        mock_client.get = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value=response_data)))
+        mock_client.get = AsyncMock(
+            return_value=Mock(status_code=200, json=Mock(return_value=response_data))
+        )
         result = await adapter.get_graph_definition("def-123")
         assert isinstance(result, GraphExecutionDefinition)
         assert result.id == "def-123"
@@ -92,7 +90,9 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
             "system_role": None,
             "graph_node_definitions": [],
         }
-        mock_client.post = AsyncMock(return_value=Mock(status_code=200, json=Mock(return_value=response_data)))
+        mock_client.post = AsyncMock(
+            return_value=Mock(status_code=200, json=Mock(return_value=response_data))
+        )
         result = await adapter.get_graph_definition_by_semantic_name(query)
         assert isinstance(result, GraphExecutionDefinition)
         assert result.id == "def-456"
@@ -116,6 +116,10 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         adapter: GraphExecutionDefinitionProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
-        mock_client.get = AsyncMock(return_value=Mock(status_code=500, raise_for_status=Mock(side_effect=Exception("Server error"))))
+        mock_client.get = AsyncMock(
+            return_value=Mock(
+                status_code=500, raise_for_status=Mock(side_effect=Exception("Server error"))
+            )
+        )
         with pytest.raises(Exception, match="Server error"):
             await adapter.get_graph_definition("def-123")

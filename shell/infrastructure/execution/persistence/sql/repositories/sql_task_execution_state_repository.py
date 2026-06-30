@@ -2,27 +2,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
-)
+from sqlalchemy import select
+
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
     task_execution_state_model_to_entity,
 )
-from sqlalchemy import select
 
 from ..models import TaskExecutionStateModel
 
 if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
     )
-    from sqlalchemy.ext.asyncio import AsyncSession
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
@@ -45,7 +47,9 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
         return task_execution_state_model_to_entity(row) if row else None
 
     async def save(self, payload: TaskExecutionState) -> None:
-        existing = await self.get_latest_by_task_id(payload.task_execution_id, direction=payload.direction)
+        existing = await self.get_latest_by_task_id(
+            payload.task_execution_id, direction=payload.direction
+        )
         if existing is not None:
             existing.supersede()
             old_model = await self._session.get(TaskExecutionStateModel, existing.id.value)
@@ -55,11 +59,13 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
         self._session.add(model)
 
     async def delete(self, id_: object) -> None:
-        model = await self._session.get(TaskExecutionStateModel, getattr(id_, 'value', id_))
+        model = await self._session.get(TaskExecutionStateModel, getattr(id_, "value", id_))
         if model is not None:
             await self._session.delete(model)
 
     async def exists(self, id_: object) -> ExistsResult:
-        query = select(TaskExecutionStateModel).where(TaskExecutionStateModel.id == getattr(id_, 'value', id_))
+        query = select(TaskExecutionStateModel).where(
+            TaskExecutionStateModel.id == getattr(id_, "value", id_)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return ExistsResult(row is not None)

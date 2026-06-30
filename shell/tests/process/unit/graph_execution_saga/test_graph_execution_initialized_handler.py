@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 import pytest
-from shell.domain.platform.value_objects.created_at import CreatedAt
+
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -19,17 +20,20 @@ from shell.domain.execution.value_objects.graph_definition_id import (
 from shell.domain.execution.value_objects.graph_node_definition_id import (
     GraphNodeDefinitionId,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
     GraphExecutionSaga,
 )
 from shell.process.execution.graph_execution_saga.handlers.graph_execution_initialized_handler import (
     GraphExecutionInitializedHandler,
 )
-from shell.tests.process.conftest import (
-    FakeCommandOutboxPublisher,
-    FakeLogger,
-    InMemoryGraphExecutionSagaRepository,
-)
+
+if TYPE_CHECKING:
+    from shell.tests.process.conftest import (
+        FakeCommandOutboxPublisher,
+        FakeLogger,
+        InMemoryGraphExecutionSagaRepository,
+    )
 
 
 class FakeDefinitionProvider:
@@ -38,8 +42,6 @@ class FakeDefinitionProvider:
 
     async def get_graph_definition_by_semantic_name(self, query: object) -> None:
         return None
-
-
 
 
 class TestGraphExecutionInitializedHandler:

@@ -6,6 +6,7 @@ from shell.domain.user.ports.user_acl import UserACL
 
 if TYPE_CHECKING:
     import httpx
+
     from shell.domain.user.aggregates.user.user import User
     from shell.domain.user.value_objects.user_id import UserId
 

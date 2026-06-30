@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
-    GraphDefinitionSemanticQuery,
-)
 from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,
 )
@@ -15,6 +12,10 @@ from shell.domain.execution.value_objects.graph_execution_definition import (
 
 if TYPE_CHECKING:
     import httpx
+
+    from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+        GraphDefinitionSemanticQuery,
+    )
 
 
 class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvider):
@@ -30,7 +31,8 @@ class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvid
         return self._map_to_execution(data)
 
     async def get_graph_definition_by_semantic_name(
-        self, query: GraphDefinitionSemanticQuery,
+        self,
+        query: GraphDefinitionSemanticQuery,
     ) -> GraphExecutionDefinition | None:
         payload = query.to_payload()
         response = await self._client.post("/api/v1/definitions/by-semantic-name", json=payload)

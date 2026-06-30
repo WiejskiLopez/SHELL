@@ -12,7 +12,9 @@ from shell.domain.definition.value_objects.retry_count import RetryCount
 from shell.domain.definition.value_objects.transition_label import TransitionLabel
 from shell.domain.definition.value_objects.transition_priority import TransitionPriority
 from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
-from shell.domain.definition.value_objects.transition_timeout_seconds import TransitionTimeoutSeconds
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+    TransitionTimeoutSeconds,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -63,22 +65,62 @@ class GraphNodeTransitionDefinition(AggregateRoot[GraphNodeTransitionDefinitionI
         data_mapping: DataMapping | None = None,
         label: TransitionLabel | None = None,
     ) -> None:
-        if transition_type == EdgeType.CONDITIONAL and (condition_expression is None or (isinstance(condition_expression, ConditionExpression) and not condition_expression.value)):
+        if transition_type == EdgeType.CONDITIONAL and (
+            condition_expression is None
+            or (
+                isinstance(condition_expression, ConditionExpression)
+                and not condition_expression.value
+            )
+        ):
             raise ValueError("CONDITIONAL transition requires condition_expression")
         super().__init__(id)
         self._graph_definition_id = graph_definition_id
         self._source_node_definition_id = source_node_definition_id
         self._target_node_definition_id = target_node_definition_id
         self._transition_type = transition_type
-        self._priority = priority if priority is None or isinstance(priority, TransitionPriority) else TransitionPriority(priority)
-        self._condition_expression = condition_expression if condition_expression is None or isinstance(condition_expression, ConditionExpression) else ConditionExpression(condition_expression)
-        self._condition_language = condition_language if condition_language is None or isinstance(condition_language, ConditionLanguage) else ConditionLanguage(condition_language)
-        self._max_loop_count = max_loop_count if max_loop_count is None or isinstance(max_loop_count, MaxLoopCount) else MaxLoopCount(max_loop_count)
-        self._timeout_seconds = timeout_seconds if timeout_seconds is None or isinstance(timeout_seconds, TransitionTimeoutSeconds) else TransitionTimeoutSeconds(timeout_seconds)
-        self._retry_count = retry_count if retry_count is None or isinstance(retry_count, RetryCount) else RetryCount(retry_count)
-        self._retry_delay_seconds = retry_delay_seconds if retry_delay_seconds is None or isinstance(retry_delay_seconds, TransitionRetryDelay) else TransitionRetryDelay(retry_delay_seconds)
-        self._data_mapping = data_mapping if data_mapping is None or isinstance(data_mapping, DataMapping) else DataMapping(data_mapping)
-        self._label = label if label is None or isinstance(label, TransitionLabel) else TransitionLabel(label)
+        self._priority = (
+            priority
+            if priority is None or isinstance(priority, TransitionPriority)
+            else TransitionPriority(priority)
+        )
+        self._condition_expression = (
+            condition_expression
+            if condition_expression is None or isinstance(condition_expression, ConditionExpression)
+            else ConditionExpression(condition_expression)
+        )
+        self._condition_language = (
+            condition_language
+            if condition_language is None or isinstance(condition_language, ConditionLanguage)
+            else ConditionLanguage(condition_language)
+        )
+        self._max_loop_count = (
+            max_loop_count
+            if max_loop_count is None or isinstance(max_loop_count, MaxLoopCount)
+            else MaxLoopCount(max_loop_count)
+        )
+        self._timeout_seconds = (
+            timeout_seconds
+            if timeout_seconds is None or isinstance(timeout_seconds, TransitionTimeoutSeconds)
+            else TransitionTimeoutSeconds(timeout_seconds)
+        )
+        self._retry_count = (
+            retry_count
+            if retry_count is None or isinstance(retry_count, RetryCount)
+            else RetryCount(retry_count)
+        )
+        self._retry_delay_seconds = (
+            retry_delay_seconds
+            if retry_delay_seconds is None or isinstance(retry_delay_seconds, TransitionRetryDelay)
+            else TransitionRetryDelay(retry_delay_seconds)
+        )
+        self._data_mapping = (
+            data_mapping
+            if data_mapping is None or isinstance(data_mapping, DataMapping)
+            else DataMapping(data_mapping)
+        )
+        self._label = (
+            label if label is None or isinstance(label, TransitionLabel) else TransitionLabel(label)
+        )
 
     @classmethod
     def restore(

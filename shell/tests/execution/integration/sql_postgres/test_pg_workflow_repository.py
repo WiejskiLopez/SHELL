@@ -7,7 +7,9 @@ from shell.application.execution.command_handlers.workflow_start_handler import 
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.application.execution.commands.workflow_commands import StartWorkflowCommand
 from shell.application.execution.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
-from shell.application.execution.query_handlers.workflow_get_by_id_handler import WorkflowGetByIdHandler
+from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
+    WorkflowGetByIdHandler,
+)
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )

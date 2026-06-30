@@ -65,7 +65,9 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
-            graph_node_definition_id=GraphNodeDefinitionId(payload.get("graph_node_definition_id", "")),
+            graph_node_definition_id=GraphNodeDefinitionId(
+                payload.get("graph_node_definition_id", "")
+            ),
             graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             position=NodePosition(payload.get("position", 0)),
             role=NodeRoleName(payload.get("role", "")),

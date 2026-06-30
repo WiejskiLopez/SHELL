@@ -25,6 +25,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     with op.batch_alter_table("task_execution") as batch:
-        batch.add_column(
-            sa.Column("body", sa.Text(), nullable=False, server_default="")
-        )
+        batch.add_column(sa.Column("body", sa.Text(), nullable=False, server_default=""))

@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
     GraphNodeTransitionExecutionId,
 )
-from shell.domain.execution.value_objects.condition_language import ConditionLanguage
 from shell.domain.execution.value_objects.condition_result import ConditionResult
-from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.execution.value_objects.current_iteration import CurrentIteration
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.max_iterations import MaxIterations
@@ -27,6 +25,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.spawn_spec import (
         SpawnSpec,
     )
+    from shell.domain.execution.value_objects.condition_language import ConditionLanguage
+    from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 
 
 class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]):
@@ -64,7 +64,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
         condition_language: ConditionLanguage | None = None,
-        max_iterations: MaxIterations = MaxIterations(None),
+        max_iterations: MaxIterations | None = None,
         status: TransitionStatus | None = None,
         current_iteration: CurrentIteration | None = None,
     ) -> None:
@@ -76,9 +76,11 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         self._edge_type = edge_type
         self._condition_expression = condition_expression
         self._condition_language = condition_language
-        self._max_iterations = max_iterations
+        self._max_iterations = max_iterations if max_iterations is not None else MaxIterations(None)
         self._status = status if status is not None else TransitionStatus.EVALUATED
-        self._current_iteration = current_iteration if current_iteration is not None else CurrentIteration(0)
+        self._current_iteration = (
+            current_iteration if current_iteration is not None else CurrentIteration(0)
+        )
 
     @classmethod
     def restore(
@@ -91,7 +93,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
         spawn_spec: SpawnSpec | None = None,
         condition_expression: ConditionExpression | None = None,
         condition_language: ConditionLanguage | None = None,
-        max_iterations: MaxIterations = MaxIterations(None),
+        max_iterations: MaxIterations | None = None,
         status: TransitionStatus | None = None,
         current_iteration: CurrentIteration | None = None,
     ) -> Self:
@@ -228,9 +230,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
 
     def take(self, now: datetime) -> None:
         if self._status != TransitionStatus.EVALUATED:
-            raise InvalidTransitionError(
-                f"Cannot take transition in status {self._status}"
-            )
+            raise InvalidTransitionError(f"Cannot take transition in status {self._status}")
         self._status = TransitionStatus.TAKEN
         from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_transition_applied_event import (
             GraphNodeTransitionExecutionTransitionAppliedEvent,
@@ -249,16 +249,12 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
 
     def skip(self) -> None:
         if self._status != TransitionStatus.EVALUATED:
-            raise InvalidTransitionError(
-                f"Cannot skip transition in status {self._status}"
-            )
+            raise InvalidTransitionError(f"Cannot skip transition in status {self._status}")
         self._status = TransitionStatus.SKIPPED
 
     def loop(self, now: datetime) -> None:
         if self._status != TransitionStatus.TAKEN:
-            raise InvalidTransitionError(
-                f"Cannot loop transition in status {self._status}"
-            )
+            raise InvalidTransitionError(f"Cannot loop transition in status {self._status}")
         if self._edge_type != EdgeType.LOOP:
             raise InvalidTransitionError(
                 f"Cannot loop non-LOOP transition (type={self._edge_type})"
@@ -284,9 +280,7 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
                 f"Cannot evaluate condition for non-CONDITIONAL transition (type={self._edge_type})"
             )
         if self._status != TransitionStatus.EVALUATED:
-            raise InvalidTransitionError(
-                f"Cannot evaluate condition in status {self._status}"
-            )
+            raise InvalidTransitionError(f"Cannot evaluate condition in status {self._status}")
         from shell.domain.execution.aggregates.graph_node_transition_execution.events.graph_node_transition_execution_condition_evaluated_event import (
             GraphNodeTransitionExecutionConditionEvaluatedEvent,
         )
@@ -305,7 +299,10 @@ class GraphNodeTransitionExecution(AggregateRoot[GraphNodeTransitionExecutionId]
             self.skip()
 
     def handle_error(
-        self, failed_node_id: GraphNodeExecutionId, handler_node_id: GraphNodeExecutionId, now: datetime
+        self,
+        failed_node_id: GraphNodeExecutionId,
+        handler_node_id: GraphNodeExecutionId,
+        now: datetime,
     ) -> None:
         if self._edge_type != EdgeType.ERROR_HANDLER:
             raise InvalidTransitionError(

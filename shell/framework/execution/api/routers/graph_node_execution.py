@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi import Request as _Request
-from shell.application.execution.queries.graph_node_execution_get_result_query import GraphNodeExecutionGetResultQuery
+
+from shell.application.execution.queries.graph_node_execution_get_result_query import (
+    GraphNodeExecutionGetResultQuery,
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.bus.query_bus import QueryBus

@@ -12,13 +12,13 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
     GraphExecutionSubGraphSettledEvent,
 )
-from shell.domain.execution.events import (
-    WorkflowCompletedEvent,
-)
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.events import (
+        WorkflowCompletedEvent,
+    )
     from shell.domain.platform.ports.log import Logger
 
 
@@ -37,7 +37,9 @@ class NotifyParentOnChildCompletionHandler:
         )
 
         async with self._unit_of_work as unit_of_work:
-            graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(
+            graph_executions = await unit_of_work.repository(
+                GraphExecutionRepository
+            ).get_by_workflow_id(
                 workflow_completed_event.workflow_id,
             )
             if not graph_executions:
@@ -48,7 +50,9 @@ class NotifyParentOnChildCompletionHandler:
                 return
 
             parent_id = graph_execution.parent_graph_execution_id
-            parent_graph = await unit_of_work.repository(GraphExecutionRepository).get_by_id(parent_id)
+            parent_graph = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                parent_id
+            )
             if parent_graph is None:
                 self._logger.warning(
                     "sub_graph.parent_graph_not_found",
@@ -56,7 +60,9 @@ class NotifyParentOnChildCompletionHandler:
                 )
                 return
 
-            children = await unit_of_work.repository(GraphExecutionRepository).get_by_parent_id(parent_id)
+            children = await unit_of_work.repository(GraphExecutionRepository).get_by_parent_id(
+                parent_id
+            )
             all_settled = all(
                 c.status in (GraphExecutionStatus.COMPLETED, GraphExecutionStatus.FAILED)
                 for c in children

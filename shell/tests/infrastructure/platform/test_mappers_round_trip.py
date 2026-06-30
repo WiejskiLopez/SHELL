@@ -18,7 +18,7 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.platform.value_objects.environment import Environment
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
@@ -26,30 +26,24 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
 from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.session.value_objects.session_status import SessionStatus
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
-from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
-from shell.domain.projekt.value_objects.project_id import ProjectId
 from shell.domain.session.aggregates.session import Session
-from shell.domain.user.value_objects.user_id import UserId
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-    _graph_node_execution_entity_to_model,
-    _graph_node_execution_model_to_entity,
-)
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+from shell.domain.session.value_objects.session_status import SessionStatus
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
@@ -57,6 +51,10 @@ from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_model_to_entity,
     workflow_entity_to_model,
     workflow_model_to_entity,
+)
+from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
+    _graph_node_execution_entity_to_model,
+    _graph_node_execution_model_to_entity,
 )
 from shell.infrastructure.session.persistence.sql.mappers import (
     session_entity_to_model,
@@ -80,7 +78,11 @@ def _raw(dt: datetime | Timestamp | None) -> datetime | None:
 
 class TestWorkflowMapper:
     def test_entity_to_model(self) -> None:
-        original = Workflow(id=WorkflowId("wf-1"), session_id=SessionIdRef("sess-1"), created_at=CreatedAt.from_datetime(_NOW))
+        original = Workflow(
+            id=WorkflowId("wf-1"),
+            session_id=SessionIdRef("sess-1"),
+            created_at=CreatedAt.from_datetime(_NOW),
+        )
         model = workflow_entity_to_model(original)
 
         assert model.id == "wf-1"
@@ -166,6 +168,8 @@ class TestGraphExecutionMapper:
         original = GraphExecution(
             id=GraphExecutionId("ge-1"),
             task_execution_id=TaskExecutionId("te-1"),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
         )
 
         model = graph_execution_entity_to_model(original)
@@ -183,6 +187,7 @@ class TestGraphExecutionMapper:
             state_input={},
             state_output={},
             depth=0,
+            max_subgraph_depth=5,
             tags={},
         )
         entity = graph_execution_model_to_entity(model)
@@ -205,6 +210,7 @@ class TestGraphExecutionMapper:
             state_input={},
             state_output={},
             depth=2,
+            max_subgraph_depth=5,
             tags={},
         )
         entity = graph_execution_model_to_entity(model)
@@ -218,6 +224,8 @@ class TestGraphExecutionMapper:
         original = GraphExecution(
             id=GraphExecutionId("ge-3"),
             task_execution_id=TaskExecutionId("te-1"),
+            depth=GraphDepth(0),
+            max_subgraph_depth=MaxSubgraphDepth(5),
         )
         model = graph_execution_entity_to_model(original)
         restored = graph_execution_model_to_entity(model)
@@ -239,6 +247,7 @@ class TestGraphExecutionMapper:
             state_input={},
             state_output={},
             depth=0,
+            max_subgraph_depth=5,
             tags={},
         )
         model.graph_node_execution_models = [
@@ -324,6 +333,9 @@ class TestGraphNodeExecutionMapper:
             mode=Mode.WORKER,
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
+            remaining_retries=RemainingRetries(3),
+            retry_delay_seconds=RetryDelaySeconds(5),
+            timeout_seconds=TimeoutSeconds(60),
         )
         model = _graph_node_execution_entity_to_model(original)
 
@@ -354,6 +366,9 @@ class TestGraphNodeExecutionMapper:
             mode=Mode.AGENT,
             role=NodeRole.AGENT,
             node_type=NodeType("llm"),
+            remaining_retries=RemainingRetries(3),
+            retry_delay_seconds=RetryDelaySeconds(5),
+            timeout_seconds=TimeoutSeconds(60),
         )
         model = _graph_node_execution_entity_to_model(original)
         restored = _graph_node_execution_model_to_entity(model)

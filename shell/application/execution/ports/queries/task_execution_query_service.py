@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from shell.application.execution.dto.task_execution import TaskExecutionDto
+if TYPE_CHECKING:
+    from shell.application.execution.dto.task_execution import TaskExecutionDto
 
 
 class TaskExecutionQueryService(Protocol):

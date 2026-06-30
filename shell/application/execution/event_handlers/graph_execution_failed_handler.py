@@ -9,9 +9,10 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.domain.execution.value_objects.goal import Goal
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.ids import GraphExecutionId
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -39,7 +40,9 @@ class GraphExecutionFailedHandler:
 
     async def handle(self, graph_execution_failed_event: GraphExecutionFailedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(graph_execution_failed_event.graph_execution_id)
+            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
+                graph_execution_failed_event.graph_execution_id
+            )
             if graph_execution is None:
                 self._logger.warning(
                     "graph_execution_failed_handler.graph_execution_not_found",
@@ -72,6 +75,8 @@ class GraphExecutionFailedHandler:
             new_graph = GraphExecution.create_main_round(
                 id_=self._id_generator.new_id(GraphExecutionId),
                 task_execution_id=graph_execution.task_execution_id,
+                depth=GraphDepth(0),
+                max_subgraph_depth=MaxSubgraphDepth(5),
             )
             from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
                 GraphExecutionCreatedEvent,
