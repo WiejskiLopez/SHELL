@@ -10,8 +10,6 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
     GraphNodeExecutionId,
 )
 from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
@@ -21,24 +19,18 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 class GraphNodeExecutionRetriedEvent(DomainEvent):
     node_id: GraphNodeExecutionId
     role: NodeRole
-    remaining_retries: RemainingRetries
-    retry_delay_seconds: RetryDelaySeconds
 
     @classmethod
     def now(
         cls,
         node_id: GraphNodeExecutionId,
         role: NodeRole,
-        remaining_retries: RemainingRetries,
-        retry_delay_seconds: RetryDelaySeconds,
         now: CreatedAt,
     ) -> GraphNodeExecutionRetriedEvent:
         return cls(
             occurred_at=now,
             node_id=node_id,
             role=role,
-            remaining_retries=remaining_retries,
-            retry_delay_seconds=retry_delay_seconds,
         )
 
     @classmethod
@@ -50,6 +42,4 @@ class GraphNodeExecutionRetriedEvent(DomainEvent):
             schema_version=SchemaVersion(schema_version),
             node_id=GraphNodeExecutionId(payload["node_id"]),
             role=NodeRole(payload["role"]),
-            remaining_retries=RemainingRetries(payload.get("remaining_retries", 0)),
-            retry_delay_seconds=RetryDelaySeconds(payload.get("retry_delay_seconds", 0)),
         )

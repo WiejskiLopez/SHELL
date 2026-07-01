@@ -30,10 +30,6 @@ from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphD
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.mode import Mode
@@ -333,9 +329,6 @@ class TestGraphNodeExecutionMapper:
             mode=Mode.WORKER,
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(60),
         )
         model = _graph_node_execution_entity_to_model(original)
 
@@ -366,9 +359,6 @@ class TestGraphNodeExecutionMapper:
             mode=Mode.AGENT,
             role=NodeRole.AGENT,
             node_type=NodeType("llm"),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(60),
         )
         model = _graph_node_execution_entity_to_model(original)
         restored = _graph_node_execution_model_to_entity(model)
@@ -388,9 +378,6 @@ class TestGraphNodeExecutionMapper:
             mode=Mode.PLANNER,
             role=NodeRole.PLANNER,
             node_type=NodeType("llm"),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(120),
         )
         model = _graph_node_execution_entity_to_model(original)
         restored = _graph_node_execution_model_to_entity(model)
@@ -402,7 +389,4 @@ class TestGraphNodeExecutionMapper:
         assert restored.mode == Mode.PLANNER
         assert restored.role == "PLANNER"
         assert restored.node_type.value == "llm"
-        assert restored.remaining_retries.value == 3
-        assert restored.retry_delay_seconds.value == 5
-        assert restored.timeout_seconds.value == 120
         assert restored.pull_events() == []

@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Clock
 
 
-class CreateGraphDefinitionHandler:
+class GraphDefinitionCreateHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,

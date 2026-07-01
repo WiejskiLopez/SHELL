@@ -43,11 +43,8 @@ from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphD
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -142,9 +139,6 @@ def _graph_node_execution(
         mode=Mode(mode),
         role=NodeRole(mode.upper()),
         node_type=NodeType(mode),
-        remaining_retries=RemainingRetries(3),
-        retry_delay_seconds=RetryDelaySeconds(5),
-        timeout_seconds=TimeoutSeconds(60),
     )
 
 
@@ -223,9 +217,6 @@ def _build_graph_execution(
             mode=Mode(m),
             role=NodeRole(m.upper()),
             node_type=NodeType(m),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(60),
         )
         for i, m in enumerate(modes)
     ]
@@ -328,9 +319,6 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
             mode=Mode(m),
             role=NodeRole(m.upper()),
             node_type=NodeType(m),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(60),
         )
         for i, m in enumerate(modes)
     ]

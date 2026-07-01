@@ -76,7 +76,7 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
         GraphNodeExecutionTimeoutExpiredEvent,
-        events.graph_node_execution_timed_out_handler_factory,
+        events.graph_node_execution_timeout_expired_handler_factory,
     )
     event_bus.subscribe(
         WorkflowCompletedEvent,

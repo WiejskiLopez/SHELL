@@ -57,10 +57,7 @@ class TestWorkflowStartHandler:
         from shell.domain.execution.value_objects.node_order import NodeOrder
         from shell.domain.execution.value_objects.node_role import NodeRole
         from shell.domain.execution.value_objects.node_type import NodeType
-        from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-        from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
         from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-        from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
         from shell.domain.platform.value_objects.mode import Mode
 
         task_execution = await unit_of_work.repository(
@@ -79,9 +76,6 @@ class TestWorkflowStartHandler:
             mode=Mode("agent"),
             role=NodeRole.AGENT,
             node_type=NodeType("agent"),
-            remaining_retries=RemainingRetries(3),
-            retry_delay_seconds=RetryDelaySeconds(5),
-            timeout_seconds=TimeoutSeconds(60),
         )
         node._graph_execution_id = graph_execution.id
         await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)

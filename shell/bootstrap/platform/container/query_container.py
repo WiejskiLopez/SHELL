@@ -6,10 +6,12 @@ from typing import TYPE_CHECKING, Protocol
 
 from dependency_injector import containers, providers
 
+from shell.application.definition.query_handlers.rag_search_similar_handler import (
+    RagSearchSimilarHandler,
+)
 from shell.application.definition.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler,
 )
-from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
 from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
     GraphNodeExecutionGetResultHandler,
 )
@@ -36,7 +38,7 @@ if TYPE_CHECKING:
         get_graph_node_execution_result_handler_factory: Factory[GraphNodeExecutionGetResultHandler]
         get_runner_config_handler_factory: Factory[RunnerConfigGetHandler]
         get_session_history_handler_factory: Factory[SessionGetHistoryHandler]
-        search_similar_handler_factory: Factory[SearchSimilarHandler]
+        search_similar_handler_factory: Factory[RagSearchSimilarHandler]
 
 
 class QueryContainer(containers.DeclarativeContainer):
@@ -63,5 +65,5 @@ class QueryContainer(containers.DeclarativeContainer):
         SessionGetHistoryHandler, queries=infra.session_query_http_service
     )
     search_similar_handler_factory = providers.Factory(
-        SearchSimilarHandler, queries=infra.rag_query_service, embedder=infra.embedder
+        RagSearchSimilarHandler, queries=infra.rag_query_service, embedder=infra.embedder
     )

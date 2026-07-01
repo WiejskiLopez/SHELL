@@ -58,9 +58,9 @@ class GraphNodeExecutionSaveResultHandler:
                     f"GraphNodeExecution {save_graph_node_execution_result_command.graph_node_execution_id} not found"
                 )
 
-            result_id = GraphNodeExecutionStateId.generate()
+            state_id = GraphNodeExecutionStateId.generate()
             state = GraphNodeExecutionState.create(
-                id_=result_id,
+                id_=state_id,
                 graph_node_execution_id=graph_node_execution_id,
                 direction=StateDirection.OUT,
                 payload={
@@ -74,4 +74,4 @@ class GraphNodeExecutionSaveResultHandler:
             await unit_of_work.repository(GraphNodeExecutionStateRepository).save(state)
             unit_of_work.stage_events(state.pull_events())
 
-            return result_id.value
+            return state_id.value

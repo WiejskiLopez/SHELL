@@ -23,9 +23,6 @@ from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, Workf
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 
@@ -49,9 +46,6 @@ class TestPgNodeResultRepository:
                 mode=Mode.WORKER,
                 role=NodeRole.AGENT,
                 node_type=NodeType("worker"),
-                remaining_retries=RemainingRetries(3),
-                retry_delay_seconds=RetryDelaySeconds(5),
-                timeout_seconds=TimeoutSeconds(60),
             )
             await u.repository(GraphNodeExecutionRepository).save(node)
 

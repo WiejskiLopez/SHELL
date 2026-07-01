@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
+from shell.application.definition.queries.rag_search_similar_query import RagSearchSimilarQuery
 from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery
-from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
 from shell.application.execution.queries.graph_node_execution_get_result_query import (
     GraphNodeExecutionGetResultQuery,
 )
@@ -36,4 +36,4 @@ def register_queries(core_container: CoreContainer) -> None:
     )
     q_bus.register(RunnerConfigGetQuery, queries.get_runner_config_handler_factory)
     q_bus.register(SessionGetHistoryQuery, queries.get_session_history_handler_factory)
-    q_bus.register(SearchSimilarQuery, queries.search_similar_handler_factory)
+    q_bus.register(RagSearchSimilarQuery, queries.search_similar_handler_factory)

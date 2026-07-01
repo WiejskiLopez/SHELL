@@ -13,9 +13,6 @@ from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_n
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
 )
@@ -51,9 +48,6 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
             model.role = node.role.value
             model.node_type = node.node_type.value
             model.status = node.status.value
-            model.timeout_seconds = node.timeout_seconds.value
-            model.max_retries = node.remaining_retries.value
-            model.retry_delay_seconds = node.retry_delay_seconds.value
 
     async def list_by_ids(self, ids: list[GraphNodeExecutionId]) -> list[GraphNodeExecution]:
         if not ids:
@@ -91,9 +85,6 @@ def _graph_node_execution_model_to_entity(
         position=NodeOrder(model.position),
         mode=Mode(model.mode),
         node_type=NodeType(model.node_type),
-        remaining_retries=RemainingRetries(model.max_retries or 0),
-        retry_delay_seconds=RetryDelaySeconds(model.retry_delay_seconds or 0),
-        timeout_seconds=TimeoutSeconds(model.timeout_seconds or 0),
         status=GraphNodeExecutionStatus(model.status) if model.status else None,
     )
 
@@ -117,8 +108,5 @@ def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNode
         source_dir="",
         status=node.status.value,
         status_initial="",
-        timeout_seconds=node.timeout_seconds.value,
-        max_retries=node.remaining_retries.value,
-        retry_delay_seconds=node.retry_delay_seconds.value,
     )
     return model

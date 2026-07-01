@@ -30,9 +30,11 @@ class TestSqlRagDocumentRepository:
             DocumentIndexHandler as IndexDocumentHandler,
         )
         from shell.application.definition.commands.rag_commands import IndexDocumentCommand
-        from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
-        from shell.application.definition.query_handlers.search_similar_handler import (
-            SearchSimilarHandler,
+        from shell.application.definition.queries.rag_search_similar_query import (
+            RagSearchSimilarQuery,
+        )
+        from shell.application.definition.query_handlers.rag_search_similar_handler import (
+            RagSearchSimilarHandler,
         )
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
@@ -43,8 +45,8 @@ class TestSqlRagDocumentRepository:
         )
         await IndexDocumentHandler(sql_uow, clock, id_generator, embedder).handle(cmd)
 
-        results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
-            SearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
+        results = await RagSearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
+            RagSearchSimilarQuery(query_text="SQLite RAG integration", top_k=5, domain="sql-test")
         )
         assert len(results) > 0
         assert all(r.domain == "sql-test" for r in results)
@@ -60,9 +62,11 @@ class TestSqlRagDocumentRepository:
             DocumentIndexHandler as IndexDocumentHandler,
         )
         from shell.application.definition.commands.rag_commands import IndexDocumentCommand
-        from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
-        from shell.application.definition.query_handlers.search_similar_handler import (
-            SearchSimilarHandler,
+        from shell.application.definition.queries.rag_search_similar_query import (
+            RagSearchSimilarQuery,
+        )
+        from shell.application.definition.query_handlers.rag_search_similar_handler import (
+            RagSearchSimilarHandler,
         )
         from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
@@ -72,7 +76,7 @@ class TestSqlRagDocumentRepository:
                 source_uri="file:///x.md", title="X", domain="domain-x", text="unique text x " * 20
             )
         )
-        results = await SearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
-            SearchSimilarQuery(query_text="unique text x", top_k=5, domain="domain-y")
+        results = await RagSearchSimilarHandler(RagQueryService(session_factory), embedder).handle(
+            RagSearchSimilarQuery(query_text="unique text x", top_k=5, domain="domain-y")
         )
         assert results == []

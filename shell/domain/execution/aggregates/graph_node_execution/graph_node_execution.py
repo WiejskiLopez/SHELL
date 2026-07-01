@@ -11,7 +11,6 @@ from shell.domain.execution.value_objects.graph_node_execution_status import (
     GraphNodeExecutionStatus,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
@@ -24,8 +23,6 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.value_objects.node_role import NodeRole
     from shell.domain.execution.value_objects.node_type import NodeType
-    from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-    from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
     from shell.domain.platform.value_objects.mode import Mode
 
 
@@ -39,9 +36,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         "_node_type",
         "_role",
         "_status",
-        "_remaining_retries",
-        "_retry_delay_seconds",
-        "_timeout_seconds",
     )
 
     def __init__(
@@ -51,9 +45,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         position: NodeOrder,
         mode: Mode,
         node_type: NodeType,
-        remaining_retries: RemainingRetries,
-        retry_delay_seconds: RetryDelaySeconds,
-        timeout_seconds: TimeoutSeconds,
         graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
         order: NodeOrder | None = None,
@@ -68,9 +59,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         self._node_type = node_type
         self._role = role
         self._status = status if status is not None else GraphNodeExecutionStatus.PENDING
-        self._remaining_retries = remaining_retries
-        self._retry_delay_seconds = retry_delay_seconds
-        self._timeout_seconds = timeout_seconds
 
     @classmethod
     def restore(
@@ -80,9 +68,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         position: NodeOrder,
         mode: Mode,
         node_type: NodeType,
-        remaining_retries: RemainingRetries,
-        retry_delay_seconds: RetryDelaySeconds,
-        timeout_seconds: TimeoutSeconds,
         graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
         order: NodeOrder | None = None,
@@ -97,9 +82,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             position=position,
             mode=mode,
             node_type=node_type,
-            remaining_retries=remaining_retries,
-            retry_delay_seconds=retry_delay_seconds,
-            timeout_seconds=timeout_seconds,
             status=status,
         )
 
@@ -114,9 +96,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         position: NodeOrder,
         mode: Mode,
         node_type: NodeType,
-        remaining_retries: RemainingRetries,
-        retry_delay_seconds: RetryDelaySeconds,
-        timeout_seconds: TimeoutSeconds,
         graph_execution_id: GraphExecutionId | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
@@ -132,9 +111,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             position=position,
             mode=mode,
             node_type=node_type,
-            remaining_retries=remaining_retries,
-            retry_delay_seconds=retry_delay_seconds,
-            timeout_seconds=timeout_seconds,
         )
         if parent_graph_execution_id is not None and graph_execution_id is not None:
             from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
@@ -211,9 +187,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     def retry(self, now: datetime) -> None:
         if self._status != GraphNodeExecutionStatus.FAILED:
             raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
-        if self._remaining_retries.value <= 0:
-            raise InvalidNodeStateError("No remaining retries available")
-        self._remaining_retries = RemainingRetries(self._remaining_retries.value - 1)
         self._status = GraphNodeExecutionStatus.PENDING
         from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_retried_event import (
             GraphNodeExecutionRetriedEvent,
@@ -223,8 +196,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             GraphNodeExecutionRetriedEvent.now(
                 node_id=self._id,
                 role=self._role,
-                remaining_retries=self._remaining_retries,
-                retry_delay_seconds=self._retry_delay_seconds,
                 now=CreatedAt.from_datetime(now),
             )
         )
@@ -278,18 +249,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     @property
     def status(self) -> GraphNodeExecutionStatus:
         return self._status
-
-    @property
-    def remaining_retries(self) -> RemainingRetries:
-        return self._remaining_retries
-
-    @property
-    def retry_delay_seconds(self) -> RetryDelaySeconds:
-        return self._retry_delay_seconds
-
-    @property
-    def timeout_seconds(self) -> TimeoutSeconds:
-        return self._timeout_seconds
 
 
 class InvalidNodeStateError(Exception):

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.definition.event_handlers.generate_embedding_on_graph_definition_created_handler import (
-    GenerateEmbeddingOnGraphDefinitionCreatedHandler,
+from shell.application.definition.event_handlers.graph_definition_created_generate_embedding_handler import (
+    GraphDefinitionCreatedGenerateEmbeddingHandler,
 )
 from shell.application.execution.event_handlers.build_graph_execution_on_task_execution_created_event_handler import (
     BuildGraphExecutionOnTaskExecutionCreatedEventHandler,
@@ -34,7 +34,7 @@ from shell.application.execution.event_handlers.graph_node_execution_initialized
 from shell.application.execution.event_handlers.graph_node_execution_started_handler import (
     GraphNodeExecutionStartedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_timed_out_handler import (
+from shell.application.execution.event_handlers.graph_node_execution_timeout_expired_handler import (
     GraphNodeExecutionTimeoutExpiredHandler,
 )
 from shell.application.execution.event_handlers.graph_node_execution_worker import (
@@ -108,7 +108,7 @@ class EventContainer(containers.DeclarativeContainer):
         navigator=domain.node_navigator_factory,
         policy=domain.graph_node_execution_policy_factory,
     )
-    graph_node_execution_timed_out_handler_factory = providers.Factory(
+    graph_node_execution_timeout_expired_handler_factory = providers.Factory(
         GraphNodeExecutionTimeoutExpiredHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
@@ -179,7 +179,7 @@ class EventContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
     )
     generate_embedding_on_graph_definition_created_factory = providers.Factory(
-        GenerateEmbeddingOnGraphDefinitionCreatedHandler,
+        GraphDefinitionCreatedGenerateEmbeddingHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,

@@ -29,9 +29,6 @@ from shell.domain.execution.value_objects.graph_node_definition_id import GraphN
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.state_direction import StateDirection
@@ -156,9 +153,6 @@ class SubGraphSpawnRequestedHandler:
                     position=NodeOrder(node_def.position),
                     mode=Mode(node_def.mode),
                     node_type=NodeType(node_def.node_type),
-                    remaining_retries=RemainingRetries(node_def.retries),
-                    retry_delay_seconds=RetryDelaySeconds(0),
-                    timeout_seconds=TimeoutSeconds(node_def.timeout),
                 )
                 await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
                 child.attach_node_execution(

@@ -36,9 +36,6 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
     source_dir: Mapped[str] = mapped_column(nullable=False, default="")
     status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
-    timeout_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
-    max_retries: Mapped[int] = mapped_column(nullable=False, default=0)
-    retry_delay_seconds: Mapped[int] = mapped_column(nullable=False, default=0)
 
     @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
     def __mapper_args__(cls) -> dict[str, Any]:

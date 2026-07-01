@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from shell.domain.platform.ports.time import Clock
 
 
-class GenerateEmbeddingOnGraphDefinitionCreatedHandler:
+class GraphDefinitionCreatedGenerateEmbeddingHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,

@@ -8,8 +8,10 @@ from shell.application.definition.command_handlers.document_index_handler import
     DocumentIndexHandler,
 )
 from shell.application.definition.commands.rag_commands import IndexDocumentCommand
-from shell.application.definition.queries.search_similar_query import SearchSimilarQuery
-from shell.application.definition.query_handlers.search_similar_handler import SearchSimilarHandler
+from shell.application.definition.queries.rag_search_similar_query import RagSearchSimilarQuery
+from shell.application.definition.query_handlers.rag_search_similar_handler import (
+    RagSearchSimilarHandler,
+)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
@@ -44,8 +46,8 @@ class TestDocumentIndexHandler:
         )
         assert doc_id is not None
 
-        results = await SearchSimilarHandler(queries, embedder).handle(
-            SearchSimilarQuery(query_text="Hello world", top_k=3, domain="test")
+        results = await RagSearchSimilarHandler(queries, embedder).handle(
+            RagSearchSimilarQuery(query_text="Hello world", top_k=3, domain="test")
         )
         assert len(results) > 0
         assert results[0].domain == "test"

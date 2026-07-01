@@ -30,9 +30,6 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNode
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -153,9 +150,6 @@ class SubGraphExecutionService:
                 mode=Mode(node_def.mode),
                 role=NodeRole(node_def.role),
                 node_type=NodeType(node_def.node_type),
-                remaining_retries=RemainingRetries(node_def.retries),
-                retry_delay_seconds=RetryDelaySeconds(0),
-                timeout_seconds=TimeoutSeconds(node_def.timeout),
                 now=now,
             )
             await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]

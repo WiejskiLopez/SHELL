@@ -529,10 +529,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         autopilot=True,
         task_execution_id=task_id,
         source_dir="/tmp/shell/dev/simple-agent",
-        status_initial="idle",
-        timeout_seconds=120,
-        max_retries=1,
-        retry_delay_seconds=5,
     )
     session.add(gne)
 
