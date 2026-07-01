@@ -18,9 +18,6 @@ from shell.domain.execution.value_objects.graph_node_definition_id import GraphN
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
-from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
-from shell.domain.execution.value_objects.timeout_seconds import TimeoutSeconds
 from shell.domain.platform.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -55,9 +52,6 @@ class GraphNodeExecutionCreateHandler:
             position=NodeOrder(command.position),
             mode=Mode(command.mode),
             node_type=NodeType(command.node_type),
-            remaining_retries=RemainingRetries(command.remaining_retries),
-            retry_delay_seconds=RetryDelaySeconds(0),
-            timeout_seconds=TimeoutSeconds(command.timeout_seconds),
             now=now,
         )
         async with self._unit_of_work as unit_of_work:

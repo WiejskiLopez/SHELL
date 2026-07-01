@@ -62,8 +62,6 @@ class GraphExecutionInitializedHandler:
                 role=ndef.role,
                 mode=ndef.mode,
                 node_type=ndef.node_type,
-                remaining_retries=ndef.retries,
-                timeout_seconds=ndef.timeout,
             )
             await self._command_publisher.publish(
                 command_type="CreateGraphNodeExecutionCommand",
@@ -74,8 +72,6 @@ class GraphExecutionInitializedHandler:
                     "role": command.role,
                     "mode": command.mode,
                     "node_type": command.node_type,
-                    "remaining_retries": command.remaining_retries,
-                    "timeout_seconds": command.timeout_seconds,
                 },
                 occurred_at=event.occurred_at.value,
             )

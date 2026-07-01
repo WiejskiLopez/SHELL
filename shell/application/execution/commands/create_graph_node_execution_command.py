@@ -14,8 +14,6 @@ class CreateGraphNodeExecutionCommand:
     role: str
     mode: str
     node_type: str
-    remaining_retries: int
-    timeout_seconds: int
 
     def __post_init__(self) -> None:
         if not self.graph_execution_id:
@@ -32,7 +30,3 @@ class CreateGraphNodeExecutionCommand:
             raise ValueError(f"mode must be one of {_MODE_VALUES}, got {self.mode!r}")
         if self.position < 0:
             raise ValueError(f"position must be >= 0, got {self.position}")
-        if self.remaining_retries < 0:
-            raise ValueError(f"remaining_retries must be >= 0, got {self.remaining_retries}")
-        if self.timeout_seconds < 0:
-            raise ValueError(f"timeout_seconds must be >= 0, got {self.timeout_seconds}")

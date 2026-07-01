@@ -299,8 +299,6 @@ class TestSagaFlowBuildToReady:
                 role=payload["role"],
                 mode=payload["mode"],
                 node_type=payload["node_type"],
-                remaining_retries=payload["remaining_retries"],
-                timeout_seconds=payload["timeout_seconds"],
             )
             async with unit_of_work:
                 await create_handler.handle(cmd)
