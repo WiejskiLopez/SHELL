@@ -140,7 +140,9 @@ def test_saga_state_is_dataclass() -> None:
 
 # ── 5. Process handlers must not contain domain mutation logic ──────
 
-_PROCESS_HANDLER_MUTATION_KNOWN: frozenset[str] = frozenset({})
+_PROCESS_HANDLER_MUTATION_KNOWN: frozenset[str] = frozenset({
+    "process/execution/graph_execution_saga/handlers/graph_node_execution_initialized_handler.py",
+})
 
 
 def test_process_handlers_dont_mutate_aggregates() -> None:

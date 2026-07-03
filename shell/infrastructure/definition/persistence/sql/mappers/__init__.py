@@ -19,7 +19,6 @@ from shell.domain.definition.value_objects.command_text import CommandText
 from shell.domain.definition.value_objects.domain_tag import DomainTag
 from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import (
-    GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
     RagChunkId,
     RagDocumentId,
@@ -49,14 +48,6 @@ from shell.domain.definition.value_objects.transition_timeout_seconds import (
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
-from shell.infrastructure.definition.persistence.sql.models import (
-    GraphDefinitionModel,
-    GraphNodeDefinitionModel,
-    RagChunkModel,
-    RagDocumentModel,
-    RunnerConfigModel,
-)
-
 # ---------------------------------------------------------------------------
 # RunnerConfig
 # ---------------------------------------------------------------------------
@@ -107,10 +98,6 @@ def graph_definition_model_to_entity(
         system_role=SystemRole(graph_definition_model.system_role)
         if graph_definition_model.system_role is not None
         else None,
-        graph_node_definition_ids=[
-            GraphNodeDefinitionId(node.id)
-            for node in (graph_definition_model.graph_node_execution_models or [])
-        ],
         transition_definition_ids=[
             GraphNodeTransitionDefinitionId(t.id)
             for t in (graph_definition_model.graph_node_transition_definition_models or [])
@@ -143,7 +130,6 @@ def graph_node_definition_model_to_entity(
 ) -> GraphNodeDefinition:
     return GraphNodeDefinition(
         id=_AggGraphNodeDefinitionId(graph_node_definition_model.id),
-        graph_definition_id=GraphDefinitionId(graph_node_definition_model.graph_definition_id),
         position=NodePosition(graph_node_definition_model.position),
         mode=Mode(str(graph_node_definition_model.mode)),
         role=NodeRoleName(graph_node_definition_model.role),
@@ -176,11 +162,9 @@ def graph_node_definition_model_to_entity(
 
 def graph_node_definition_entity_to_model(
     graph_node_definition: GraphNodeDefinition,
-    graph_definition_id: str,
 ) -> GraphNodeDefinitionModel:
     return GraphNodeDefinitionModel(
         id=graph_node_definition.id.value,
-        graph_definition_id=graph_definition_id,
         position=graph_node_definition.position.value,
         mode=graph_node_definition.mode.value,
         role=graph_node_definition.role.value,
@@ -290,11 +274,6 @@ def rag_document_update_model(model: RagDocumentModel, entity: RagDocument) -> N
 
 
 def rag_chunk_model_to_entity(rag_chunk_model: RagChunkModel) -> RagChunk:
-    from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-    from shell.domain.definition.value_objects.chunk_text import ChunkText
-    from shell.domain.definition.value_objects.embedding import Embedding
-    from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
-
     return RagChunk(
         id=RagChunkId(rag_chunk_model.id),
         document_id=RagDocumentId(rag_chunk_model.document_id),

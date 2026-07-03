@@ -26,8 +26,6 @@ class TestWorkflowsRouter:
 
         db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
         core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
-        from shell.framework.platform.api.app import create_app
-
         app = create_app(core_container)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp_import = await client.post(

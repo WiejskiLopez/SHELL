@@ -10,6 +10,7 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
+    graph_execution_update_model,
 )
 
 from ..models import GraphExecutionModel
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
+    from shell.domain.execution.value_objects.ids import (
         GraphExecutionId,
         TaskExecutionId,
         WorkflowId,
@@ -77,28 +78,4 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
             graph_execution_model = graph_execution_entity_to_model(graph_execution)
             self._session.add(graph_execution_model)
         else:
-            graph_execution_model.task_execution_id = graph_execution.task_execution_id.value
-            graph_execution_model.parent_graph_execution_id = (
-                graph_execution.parent_graph_execution_id.value
-                if graph_execution.parent_graph_execution_id
-                else None
-            )
-            graph_execution_model.depth = (
-                graph_execution.depth.value if graph_execution.depth else 0
-            )
-            graph_execution_model.initialization_status = (
-                graph_execution.initialization_status.value
-            )
-            graph_execution_model.graph_node_definition_executions = {
-                slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
-                if slot.graph_node_execution_id
-                else None
-                for slot in graph_execution.graph_node_definition_execution_slots
-            }
-
-
-__all__ = [
-    "GraphExecutionModel",
-    "SqlGraphExecutionRepository",
-    "TaskExecutionModel",
-]
+            graph_execution_update_model(graph_execution_model, graph_execution)

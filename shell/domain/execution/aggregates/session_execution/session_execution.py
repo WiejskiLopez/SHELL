@@ -17,6 +17,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 
+from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
+            SessionExecutionCreatedEvent,
+        )
 class SessionExecution(AggregateRoot[SessionExecutionId]):
     __slots__ = (
         "_user_execution_id",
@@ -85,10 +88,6 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
             session_id=session_id,
             created_at=CreatedAt.from_datetime(now),
         )
-        from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
-            SessionExecutionCreatedEvent,
-        )
-
         session_execution.append_event(
             SessionExecutionCreatedEvent.now(
                 session_execution_id=id_,

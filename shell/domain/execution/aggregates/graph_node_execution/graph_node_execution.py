@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.graph_node_execution.exceptions.invalid_node_state_error import (
+    InvalidNodeStateError,
+)
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
@@ -26,9 +29,26 @@ if TYPE_CHECKING:
     from shell.domain.platform.value_objects.mode import Mode
 
 
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
+            GraphNodeExecutionTimeoutExpiredEvent,
+        )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_retried_event import (
+            GraphNodeExecutionRetriedEvent,
+        )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
+            GraphNodeExecutionFailedEvent,
+        )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
+            GraphNodeExecutionCompletedEvent,
+        )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
+            GraphNodeExecutionStartedEvent,
+        )
+from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
+                GraphNodeExecutionInitializedEvent,
+            )
 class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     __slots__ = (
-        "_graph_execution_id",
         "_node_definition_id",
         "_order",
         "_position",
@@ -45,13 +65,11 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         position: NodeOrder,
         mode: Mode,
         node_type: NodeType,
-        graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
         order: NodeOrder | None = None,
         status: GraphNodeExecutionStatus | None = None,
     ) -> None:
         super().__init__(id)
-        self._graph_execution_id = graph_execution_id
         self._node_definition_id = node_definition_id
         self._order = order or NodeOrder(0)
         self._position = position
@@ -68,14 +86,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         position: NodeOrder,
         mode: Mode,
         node_type: NodeType,
-        graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
         order: NodeOrder | None = None,
         status: GraphNodeExecutionStatus | None = None,
     ) -> Self:
         return cls(
             id=id,
-            graph_execution_id=graph_execution_id,
             node_definition_id=node_definition_id,
             role=role,
             order=order,
@@ -97,14 +113,12 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         mode: Mode,
         node_type: NodeType,
         graph_execution_id: GraphExecutionId | None = None,
-        parent_graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: GraphNodeDefinitionId | None = None,
         order: NodeOrder | None = None,
         now: datetime,
     ) -> GraphNodeExecution:
         instance = cls(
             id=id,
-            graph_execution_id=graph_execution_id,
             node_definition_id=node_definition_id,
             role=role,
             order=order,
@@ -112,16 +126,11 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
             mode=mode,
             node_type=node_type,
         )
-        if parent_graph_execution_id is not None and graph_execution_id is not None:
-            from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
-                GraphNodeExecutionInitializedEvent,
-            )
-
+        if graph_execution_id is not None:
             instance.append_event(
                 GraphNodeExecutionInitializedEvent.now(
                     node_id=id,
                     graph_execution_id=graph_execution_id,
-                    parent_graph_execution_id=parent_graph_execution_id,
                     node_definition_id=node_definition_id or GraphNodeDefinitionId(""),
                     now=CreatedAt.from_datetime(now),
                 )
@@ -134,10 +143,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         if self._status != GraphNodeExecutionStatus.PENDING:
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = GraphNodeExecutionStatus.RUNNING
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
-            GraphNodeExecutionStartedEvent,
-        )
-
         self.append_event(
             GraphNodeExecutionStartedEvent.now(
                 node_id=self._id,
@@ -150,10 +155,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         if self._status != GraphNodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = GraphNodeExecutionStatus.COMPLETED
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-            GraphNodeExecutionCompletedEvent,
-        )
-
         actual_result = StateData(result) if isinstance(result, dict) else result
         self.append_event(
             GraphNodeExecutionCompletedEvent.now(
@@ -168,10 +169,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         if self._status != GraphNodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
         self._status = GraphNodeExecutionStatus.FAILED
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
-            GraphNodeExecutionFailedEvent,
-        )
-
         if isinstance(error, str):
             error = ErrorDescription(error)
 
@@ -188,10 +185,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         if self._status != GraphNodeExecutionStatus.FAILED:
             raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
         self._status = GraphNodeExecutionStatus.PENDING
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_retried_event import (
-            GraphNodeExecutionRetriedEvent,
-        )
-
         self.append_event(
             GraphNodeExecutionRetriedEvent.now(
                 node_id=self._id,
@@ -204,10 +197,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         if self._status != GraphNodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
         self._status = GraphNodeExecutionStatus.TIMED_OUT
-        from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
-            GraphNodeExecutionTimeoutExpiredEvent,
-        )
-
         self.append_event(
             GraphNodeExecutionTimeoutExpiredEvent.now(
                 node_id=self._id,
@@ -217,10 +206,6 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
         )
 
     # --- Properties ---
-
-    @property
-    def graph_execution_id(self) -> GraphExecutionId | None:
-        return self._graph_execution_id
 
     @property
     def node_definition_id(self) -> GraphNodeDefinitionId | None:
@@ -250,6 +235,3 @@ class GraphNodeExecution(AggregateRoot[GraphNodeExecutionId]):
     def status(self) -> GraphNodeExecutionStatus:
         return self._status
 
-
-class InvalidNodeStateError(Exception):
-    pass

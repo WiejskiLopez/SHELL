@@ -57,8 +57,6 @@ class InMemoryQueryServices:
         ).get_by_task_execution_id(task_execution.id)
         graph_node_executions = []
         if graph_execution is not None:
-            from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
-
             nodes = await self._unit_of_work.repository(
                 InMemoryGraphNodeExecutionRepository
             ).list_by_graph_execution_id(graph_execution.id)
@@ -129,10 +127,6 @@ class InMemoryQueryServices:
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]:
-        from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-        from shell.domain.definition.value_objects.domain_tag import DomainTag
-        from shell.domain.definition.value_objects.embedding import Embedding
-
         chunks = await self._unit_of_work.repository(InMemoryRagDocumentRepository).search_similar(
             Embedding(query_embedding), ChunkIndex(top_k), DomainTag(domain) if domain else None
         )

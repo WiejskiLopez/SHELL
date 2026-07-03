@@ -33,6 +33,9 @@ from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
+    GraphNodeLinkExecutionModel,
+)
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -84,9 +87,15 @@ class TestSqlWorkflowRepository:
                 role=NodeRole.AGENT,
                 node_type=NodeType("agent"),
             )
-            node._graph_execution_id = graph_execution.id
+            link_model = GraphNodeLinkExecutionModel(
+                id=f"{graph_execution.id.value}-{node.id.value}",
+                graph_execution_id=graph_execution.id.value,
+                graph_node_execution_id=node.id.value,
+                version=1,
+            )
             await u.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
             await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+            u._session.add(link_model)
             await u.commit()
 
         start = WorkflowStartHandler(sql_uow, clock, id_generator)

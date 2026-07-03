@@ -10,18 +10,28 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphNodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
     GraphNodeExecutionModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
+    GraphNodeLinkExecutionModel,
 )
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
 
+
+from shell.domain.execution.value_objects.graph_node_execution_status import (
+        GraphNodeExecutionStatus,
+    )
 class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -40,9 +50,6 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
             model = _graph_node_execution_entity_to_model(node)
             self._session.add(model)
         else:
-            model.graph_execution_id = (
-                node.graph_execution_id.value if node.graph_execution_id else ""
-            )
             model.position = node.position.value
             model.mode = node.mode.value
             model.role = node.role.value
@@ -60,27 +67,23 @@ class SqlGraphNodeExecutionRepository(GraphNodeExecutionRepository):
     async def list_by_graph_execution_id(
         self, graph_execution_id: GraphExecutionId
     ) -> list[GraphNodeExecution]:
-        query = self._base_query().where(
-            GraphNodeExecutionModel.graph_execution_id == graph_execution_id.value,
+        stmt = (
+            select(GraphNodeExecutionModel)
+            .join(
+                GraphNodeLinkExecutionModel,
+                GraphNodeLinkExecutionModel.graph_node_execution_id == GraphNodeExecutionModel.id,
+            )
+            .where(GraphNodeLinkExecutionModel.graph_execution_id == graph_execution_id.value)
         )
-        rows = (await self._session.execute(query)).scalars().all()
+        rows = (await self._session.execute(stmt)).scalars().all()
         return [_graph_node_execution_model_to_entity(r) for r in rows if r is not None]
 
 
 def _graph_node_execution_model_to_entity(
     model: GraphNodeExecutionModel,
 ) -> GraphNodeExecution:
-    from shell.domain.execution.value_objects.graph_node_execution_status import (
-        GraphNodeExecutionStatus,
-    )
-    from shell.domain.execution.value_objects.node_role import NodeRole
-    from shell.domain.platform.value_objects.mode import Mode
-
     return GraphNodeExecution(
         id=GraphNodeExecutionId(model.id),
-        graph_execution_id=(
-            GraphExecutionId(model.graph_execution_id) if model.graph_execution_id else None
-        ),
         role=NodeRole(model.role) if model.role else NodeRole.PLANNER,
         position=NodeOrder(model.position),
         mode=Mode(model.mode),
@@ -92,7 +95,6 @@ def _graph_node_execution_model_to_entity(
 def _graph_node_execution_entity_to_model(node: GraphNodeExecution) -> GraphNodeExecutionModel:
     model = GraphNodeExecutionModel(
         id=node.id.value,
-        graph_execution_id=node.graph_execution_id.value if node.graph_execution_id else "",
         position=node.position.value,
         mode=node.mode.value,
         role=node.role.value,

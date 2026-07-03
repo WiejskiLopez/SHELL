@@ -102,8 +102,6 @@ class OutboxToInboxRelay:
         rows: Sequence[OutboxEventModel],
         now: datetime,
     ) -> None:
-        import sqlalchemy as sa
-
         values = [
             {
                 "id": row.id,

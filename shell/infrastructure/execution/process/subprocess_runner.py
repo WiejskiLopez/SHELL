@@ -44,8 +44,6 @@ class SubprocessGraphNodeExecutionProcessRunner:
             run_env.update(env)
 
         if mode == "agent":
-            from shell.infrastructure.execution.process.command_builder import build_agent_command
-
             argv = build_agent_command(
                 manifest,
                 workspace_path,
@@ -68,8 +66,6 @@ class SubprocessGraphNodeExecutionProcessRunner:
         env: dict[str, str],
     ) -> list[str]:
         """Return argv for running a sub-node via the framework entrypoint."""
-        from shell.infrastructure.execution.process.command_builder import build_sub_node_command
-
         mode = str(manifest.mode)
         entrypoint = str(_ENTRYPOINTS_DIR / f"{mode}_entrypoint.py")
         env.get("SHELL_WORKFLOW_ID", "")

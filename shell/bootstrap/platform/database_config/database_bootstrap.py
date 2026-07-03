@@ -22,6 +22,4 @@ async def bootstrap_database(config: ShellConfig) -> None:
     await seed_base_data(url)
 
     if config.seed_dev_data:
-        from shell.config.seed.dev_data import seed_dev_data
-
         await seed_dev_data(url)

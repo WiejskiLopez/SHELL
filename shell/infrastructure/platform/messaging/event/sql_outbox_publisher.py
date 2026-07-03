@@ -50,8 +50,6 @@ class SqlOutboxPublisher:
                         )
                     )
                 except Exception:
-                    import logging
-
                     logging.getLogger(__name__).exception(
                         "Failed to serialize event %s", type(event).__name__
                     )

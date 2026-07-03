@@ -1,5 +1,6 @@
 """Phase cleanup — remove sub-graph and extra fields that are no longer used.
 
+import sqlalchemy as sa
 Revision ID: 021
 Revises: 020
 Create Date: 2026-06-21
@@ -39,8 +40,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    import sqlalchemy as sa
-
     # ── graph_execution ────────────────────────────────────────────────────
     with op.batch_alter_table("graph_execution") as batch:
         batch.add_column(

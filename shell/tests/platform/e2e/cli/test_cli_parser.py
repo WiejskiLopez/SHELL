@@ -3,8 +3,6 @@ from __future__ import annotations
 
 class TestCliParser:
     def test_parser_defaults(self) -> None:
-        from shell.framework.platform.cli.parser import parse_args
-
         ns = parse_args([])
         assert ns.mode is None
         assert ns.node_dir is None
@@ -12,8 +10,6 @@ class TestCliParser:
         assert ns.add_dirs == []
 
     def test_parser_flags(self) -> None:
-        from shell.framework.platform.cli.parser import parse_args
-
         ns = parse_args(
             [
                 "--node-dir",

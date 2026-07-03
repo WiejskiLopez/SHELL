@@ -24,8 +24,6 @@ def build_agent_command(
     extra_add_dirs: list[str] | None = None,
 ) -> list[str]:
     """Build argv for running the `copilot` agent binary."""
-    import shutil
-
     binary = shutil.which("copilot")
     if binary is None:
         raise FileNotFoundError("copilot binary not found on PATH. Install GitHub Copilot CLI.")
@@ -34,8 +32,6 @@ def build_agent_command(
     cmd: list[str] = []
 
     # On Windows .cmd/.bat wrappers need to be invoked via cmd /c
-    import os
-
     if os.name == "nt" and binary.lower().endswith((".cmd", ".bat")):
         cmd += ["cmd", "/c", binary]
     else:
@@ -43,8 +39,6 @@ def build_agent_command(
 
     if model:
         cmd += ["--model", model]
-
-    import pathlib
 
     workspace_path_obj = pathlib.Path(workspace_path)
     output_dir = workspace_path_obj / _DOT_NODE / DIR_OUTPUT

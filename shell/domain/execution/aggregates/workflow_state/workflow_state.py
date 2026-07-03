@@ -16,6 +16,9 @@ if TYPE_CHECKING:
     )
 
 
+from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
+            WorkflowStateChangedEvent,
+        )
 class WorkflowState(AggregateRoot["WorkflowStateId"]):
     __slots__ = ("_workflow_id", "_direction", "_state_data", "_created_at")
 
@@ -94,10 +97,6 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         return instance
 
     def update(self, key: str, value: object) -> None:
-        from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
-            WorkflowStateChangedEvent,
-        )
-
         old_value = self._state_data.get(key)
         new_data = dict(self._state_data.to_dict())
         new_data[key] = value
@@ -118,10 +117,6 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         return self._state_data.get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
-        from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
-            WorkflowStateChangedEvent,
-        )
-
         if self._state_data.get(key) is not None:
             old_value = self._state_data.get(key)
             new_data = dict(self._state_data.to_dict())

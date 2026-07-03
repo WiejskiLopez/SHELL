@@ -35,7 +35,5 @@ class InMemoryRepository(Generic[TAggregate, TId]):
         self._store.pop(key, None)
 
     async def exists(self, id: TId) -> ExistsResult:
-        from shell.domain.platform.value_objects.exists_result import ExistsResult
-
         key = id.value if hasattr(id, "value") else str(id)
         return ExistsResult(key in self._store)

@@ -8,8 +8,6 @@ class TestWorkspace:
         ws = Workspace()
         path = await ws.prepare("my-node", str(tmp_path))
 
-        import pathlib
-
         dot_node = pathlib.Path(path) / ".node"
         assert dot_node.exists()
         for subdir in ["input", "output", "logs", "temp", "prompt"]:
@@ -18,15 +16,11 @@ class TestWorkspace:
     async def test_prepare_returns_workspace_path(self, tmp_path: object) -> None:
         ws = Workspace()
         path = await ws.prepare("node-abc", str(tmp_path))
-        import pathlib
-
         assert pathlib.Path(path).name == "node-abc"
 
     async def test_cleanup_removes_workspace(self, tmp_path: object) -> None:
         ws = Workspace()
         path = await ws.prepare("node-to-clean", str(tmp_path))
-        import pathlib
-
         assert pathlib.Path(path).exists()
         await ws.cleanup(path)
         assert not pathlib.Path(path).exists()
@@ -35,8 +29,6 @@ class TestWorkspace:
         ws = Workspace()
         path = await ws.prepare("node-io", str(tmp_path))
         out = await ws.write_output(path, "result.txt", "hello world")
-        import pathlib
-
         assert pathlib.Path(out).read_text() == "hello world"
 
     async def test_read_input_missing_returns_empty(self, tmp_path: object) -> None:

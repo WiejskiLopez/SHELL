@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
+from datetime import (
+    datetime,  # noqa: TC003 — needed by SQLAlchemy ORM at runtime for Mapped[datetime | None]
+)
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import ForeignKey
@@ -11,11 +13,8 @@ from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 if TYPE_CHECKING:
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeExecutionModel
-        GraphNodeExecutionModel,  # noqa: TC002 — GraphNodeExecutionModel używany w Mapped[list[GraphNodeExecutionModel]] w relacji SQLAlchemy
-    )
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (  # noqa: E402 — łamie circular import GraphExecutionModel ↔ GraphNodeTransitionExecutionModel
-        GraphNodeTransitionExecutionModel,  # noqa: TC002 — GraphNodeTransitionExecutionModel używany w Mapped[list[...]] w relacji SQLAlchemy
+    from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
+        GraphNodeTransitionExecutionModel,
     )
 
 
@@ -28,10 +27,6 @@ class GraphExecutionModel(Base, VersionedMixin):
         nullable=False,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
-    graph_node_definition_executions: Mapped[dict] = mapped_column(
-        JSONB, nullable=False, default=dict
-    )
-    initialization_status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status: Mapped[str] = mapped_column(nullable=False, default="created")
 
     parent_graph_execution_id: Mapped[str | None] = mapped_column(
@@ -46,14 +41,9 @@ class GraphExecutionModel(Base, VersionedMixin):
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
-    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    @declared_attr
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
-
-    graph_node_execution_models: Mapped[list[GraphNodeExecutionModel]] = relationship(
-        "GraphNodeExecutionModel",
-        back_populates="graph_execution_model",
-    )
 
     graph_node_transition_execution_models: Mapped[list[GraphNodeTransitionExecutionModel]] = (
         relationship(

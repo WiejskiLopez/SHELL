@@ -20,11 +20,12 @@ from shell.domain.execution.aggregates.workflow_state.workflow_state import (
 from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.task_execution.events.event import (
         TaskExecutionCompletedEvent,
     )
+
+    from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 

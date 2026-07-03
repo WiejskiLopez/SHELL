@@ -37,8 +37,6 @@ _STRATEGY_MAP: dict[str, GraphNodeExecutionStrategy] = {
 
 
 def get_strategy(mode: str) -> GraphNodeExecutionStrategy:
-    from shell.domain.execution.exceptions import InvalidNodeMode
-
     strategy = _STRATEGY_MAP.get(mode)
     if strategy is None:
         raise InvalidNodeMode(f"Unknown node mode: {mode!r}")

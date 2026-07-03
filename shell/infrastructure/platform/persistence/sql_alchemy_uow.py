@@ -118,6 +118,13 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return self._session
 
     def repository(self, repo_type: type[TRepository]) -> TRepository:
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
+            SqlSchedulerExecutionRepository,
+        )
+        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
+            SqlSchedulerDefinitionRepository,
+        )
+
         domain_to_sql: dict[type, type] = {
             TaskExecutionRepository: SqlTaskExecutionRepository,
             TaskExecutionStateRepository: SqlTaskExecutionStateRepository,
@@ -142,13 +149,6 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             return sql_type(self._active_session, search_strategy=self._rag_search_strategy)  # type: ignore[abstract, return-value]
         if sql_type is not None:
             return sql_type(self._active_session)
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
-            SqlSchedulerDefinitionRepository,
-        )
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
-            SqlSchedulerExecutionRepository,
-        )
-
         if repo_type is SqlSchedulerDefinitionRepository:
             return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
         if repo_type is SqlSchedulerExecutionRepository:
@@ -171,6 +171,10 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             self._session = None
 
     async def commit(self) -> None:
+        from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
+            message_entity_to_model,
+        )
+
         if self._session is None:
             return
         try:
@@ -186,10 +190,6 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
                 self._session.add(outbox)
 
             for message in self._staged_messages:
-                from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
-                    message_entity_to_model,
-                )
-
                 model = message_entity_to_model(message)
                 self._session.add(model)
 

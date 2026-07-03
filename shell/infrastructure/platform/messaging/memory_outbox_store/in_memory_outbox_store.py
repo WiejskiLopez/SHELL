@@ -17,8 +17,6 @@ class InMemoryOutboxStore:
         self.records: list[OutboxRecord] = []
 
     async def publish(self, events: list[DomainEvent]) -> None:
-        import uuid
-
         correlation_id = get_correlation_id()
         causation_id = get_causation_id()
         serializer = DomainEventSerializer()
@@ -36,8 +34,6 @@ class InMemoryOutboxStore:
                     )
                 )
             except Exception:
-                import logging
-
                 logging.getLogger(__name__).exception(
                     "Failed to serialize event %s", type(event).__name__
                 )

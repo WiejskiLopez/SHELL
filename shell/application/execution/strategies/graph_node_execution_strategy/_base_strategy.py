@@ -20,8 +20,6 @@ class _BaseStrategy:
         workspace_path: str,
         runner: GraphNodeExecutionProcessRunner,
     ) -> ExecutionResult:
-        from shell.domain.execution.value_objects.manifest import Manifest
-
         manifest = Manifest(
             name=graph_node_execution_id,
             mode=Mode(self.mode),

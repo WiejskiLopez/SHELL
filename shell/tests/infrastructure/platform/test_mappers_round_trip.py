@@ -1,5 +1,11 @@
 """Round-trip tests for SQL ORM model <-> domain entity mappers.
 
+from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
+            GraphNodeExecutionModel,
+        )
+from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
+            GraphExecutionModel,
+        )
 Verifies each bidirectional mapper by creating an entity, mapping to a
 model, mapping back to an entity, and comparing key fields.
 
@@ -30,6 +36,7 @@ from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphD
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.mode import Mode
@@ -86,8 +93,6 @@ class TestWorkflowMapper:
         assert model.session_id == "sess-1"
 
     def test_model_to_entity(self) -> None:
-        from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
-
         model = WorkflowModel(id="wf-2", status="active", session_id="sess-2", created_at=_NOW)
         entity = workflow_model_to_entity(model)
 
@@ -172,10 +177,6 @@ class TestGraphExecutionMapper:
         assert model.timeout_at is None
 
     def test_model_to_entity(self) -> None:
-        from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
-            GraphExecutionModel,
-        )
-
         model = GraphExecutionModel(
             id="ge-1",
             task_execution_id="te-1",
@@ -194,10 +195,6 @@ class TestGraphExecutionMapper:
         assert entity.pull_events() == []
 
     def test_model_to_entity_with_nesting(self) -> None:
-        from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
-            GraphExecutionModel,
-        )
-
         model = GraphExecutionModel(
             id="ge-2",
             task_execution_id="te-1",
@@ -229,13 +226,6 @@ class TestGraphExecutionMapper:
         assert restored.id.value == original.id.value
 
     def test_model_to_entity_with_graph_node_executions(self) -> None:
-        from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
-            GraphExecutionModel,
-        )
-        from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
-            GraphNodeExecutionModel,
-        )
-
         model = GraphExecutionModel(
             id="ge-4",
             task_execution_id="te-1",
@@ -246,16 +236,6 @@ class TestGraphExecutionMapper:
             max_subgraph_depth=5,
             tags={},
         )
-        model.graph_node_execution_models = [
-            GraphNodeExecutionModel(
-                id="node-1",
-                graph_execution_id="ge-4",
-                position=0,
-                mode="worker",
-                role="default",
-                node_type="agent",
-            ),
-        ]
 
         entity = graph_execution_model_to_entity(model)
 
@@ -337,13 +317,8 @@ class TestGraphNodeExecutionMapper:
         assert model.mode == "worker"
         assert model.role == "AGENT"
         assert model.node_type == "worker"
-        assert model.graph_execution_id == ""
 
     def test_model_to_entity_minimal(self) -> None:
-        from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
-            GraphNodeExecutionModel,
-        )
-
         model = GraphNodeExecutionModel(id="gne-1", position=0, mode="worker")
         entity = _graph_node_execution_model_to_entity(model)
 
@@ -373,7 +348,6 @@ class TestGraphNodeExecutionMapper:
     def test_round_trip_full(self) -> None:
         original = GraphNodeExecution(
             id=GraphNodeExecutionId("gne-4"),
-            graph_execution_id=GraphExecutionId("ge-1"),
             position=NodeOrder(3),
             mode=Mode.PLANNER,
             role=NodeRole.PLANNER,
@@ -383,8 +357,6 @@ class TestGraphNodeExecutionMapper:
         restored = _graph_node_execution_model_to_entity(model)
 
         assert restored.id.value == "gne-4"
-        assert restored.graph_execution_id is not None
-        assert restored.graph_execution_id.value == "ge-1"
         assert restored.position.value == 3
         assert restored.mode == Mode.PLANNER
         assert restored.role == "PLANNER"

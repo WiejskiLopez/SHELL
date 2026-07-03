@@ -49,9 +49,6 @@ class TestSqlAuditPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
-        from shell.infrastructure.platform.persistence.sql.models import AuditEventModel
-
         pub = SqlAuditPublisher(session_factory)
         async with session_factory() as session:
             before = len((await session.execute(select(AuditEventModel))).scalars().all())

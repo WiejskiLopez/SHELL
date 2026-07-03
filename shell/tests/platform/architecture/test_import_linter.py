@@ -7,9 +7,6 @@ from _arch_helpers import BASE
 
 def test_import_linter_contracts() -> None:
     project_root = BASE.parent
-    import os
-    import shutil
-
     import_linter_path = shutil.which("import-linter")
     if import_linter_path is None:
         import_linter_path = str(BASE.parent / "venv" / "Scripts" / "import-linter.exe")

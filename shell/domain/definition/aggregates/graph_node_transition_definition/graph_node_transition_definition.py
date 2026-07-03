@@ -31,6 +31,9 @@ if TYPE_CHECKING:
     )
 
 
+from shell.domain.definition.aggregates.graph_node_transition_definition.events.graph_node_transition_definition_created_event import (
+            GraphNodeTransitionDefinitionCreatedEvent,
+        )
 class GraphNodeTransitionDefinition(AggregateRoot[GraphNodeTransitionDefinitionId]):
     __slots__ = (
         "_graph_definition_id",
@@ -191,10 +194,6 @@ class GraphNodeTransitionDefinition(AggregateRoot[GraphNodeTransitionDefinitionI
             retry_delay_seconds=retry_delay_seconds,
             data_mapping=data_mapping,
             label=label,
-        )
-
-        from shell.domain.definition.aggregates.graph_node_transition_definition.events.graph_node_transition_definition_created_event import (
-            GraphNodeTransitionDefinitionCreatedEvent,
         )
 
         if now is not None:

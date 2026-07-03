@@ -8,9 +8,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
-    GraphNodeExecutionFailedEvent,
-)
 from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
     GraphNodeExecutionState,
 )
@@ -24,6 +21,9 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
+        GraphNodeExecutionFailedEvent,
+    )
     from shell.domain.platform.ports.time import Clock
 
 

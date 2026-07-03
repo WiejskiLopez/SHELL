@@ -32,8 +32,6 @@ class TestPgWorkflowRepository:
         )
         await imp.handle(ImportTaskExecutionCommand("t.md", "pg-wf-task"))
 
-        from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-
         async with sql_uow as u:
             task_execution = await u.repository(TaskExecutionRepository).get_current_by_name(
                 TaskExecutionName("pg-wf-task")

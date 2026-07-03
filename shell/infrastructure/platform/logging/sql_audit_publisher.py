@@ -37,8 +37,6 @@ class SqlAuditPublisher:
                         )
                     )
                 except Exception:
-                    import logging
-
                     logging.getLogger(__name__).exception(
                         "Failed to serialize audit event %s", type(event).__name__
                     )

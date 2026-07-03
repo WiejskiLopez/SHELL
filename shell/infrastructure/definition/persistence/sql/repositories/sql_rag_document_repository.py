@@ -42,10 +42,6 @@ class SqlRagDocumentRepository(RagDocumentRepository):
 
     def _get_strategy(self) -> RagSearchStrategy:
         if self._search_strategy is None:
-            from shell.infrastructure.platform.persistence.sql.rag_search import (
-                InMemoryRagSearchStrategy,
-            )
-
             self._search_strategy = InMemoryRagSearchStrategy()
         return self._search_strategy
 
@@ -63,8 +59,6 @@ class SqlRagDocumentRepository(RagDocumentRepository):
             self._session.add(rag_chunk_entity_to_model(chunk))
 
     async def get_by_id(self, doc_id: RagDocumentId) -> RagDocument | None:
-        from sqlalchemy import select
-
         query = (
             select(RagDocumentModel)
             .options(selectinload(RagDocumentModel.chunks))

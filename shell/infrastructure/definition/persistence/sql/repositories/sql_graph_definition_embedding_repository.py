@@ -36,16 +36,6 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
         self,
         id: GraphDefinitionEmbeddingId,
     ) -> GraphDefinitionEmbedding | None:
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
-            GraphDefinitionEmbedding,
-        )
-        from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
-            GraphDefinitionEmbeddingId,
-        )
-
         model = await self._session.get(GraphDefinitionEmbeddingModel, id.value)
         if model is None:
             return None
@@ -61,13 +51,6 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
         self,
         graph_definition_id: GraphDefinitionId,
     ) -> GraphDefinitionEmbedding | None:
-        from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
-            GraphDefinitionEmbedding,
-        )
-        from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
-            GraphDefinitionEmbeddingId,
-        )
-
         stmt = select(GraphDefinitionEmbeddingModel).where(
             GraphDefinitionEmbeddingModel.graph_definition_id == graph_definition_id.value,
         )

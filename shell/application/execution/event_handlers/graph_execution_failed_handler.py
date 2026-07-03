@@ -25,11 +25,12 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.events.event import (
         GraphExecutionFailedEvent,
     )
+
+    from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 

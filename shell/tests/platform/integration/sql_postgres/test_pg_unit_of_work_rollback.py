@@ -23,13 +23,6 @@ class TestPgUnitOfWorkRollback:
     ) -> None:
         try:
             async with sql_uow as u:
-                from shell.domain.definition.entities.runner_config import RunnerConfig
-                from shell.domain.definition.value_objects.package_name import PackageName
-                from shell.domain.definition.value_objects.runner_body import RunnerBody
-                from shell.domain.definition.value_objects.runner_kind import RunnerKind
-                from shell.domain.platform.value_objects.created_at import CreatedAt
-                from shell.domain.platform.value_objects.hash import Hash
-
                 await u.repository(RunnerConfigRepository).save(
                     RunnerConfig.new(
                         id_=id_gen.new_id(RunnerConfigId),

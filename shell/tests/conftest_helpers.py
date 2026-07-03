@@ -1,5 +1,17 @@
 """Shared test helpers extracted from conftest.
 
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
+        InMemoryGraphNodeTransitionExecutionRepository,
+    )
+from shell.domain.execution.services.graph_node_execution_navigator import (
+        LinearGraphNodeExecutionNavigator,
+    )
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+        GraphExecutionRepository,
+    )
+from shell.application.execution.event_handlers.workflow_started_attach_task_execution_handler import (
+        WorkflowStartedAttachTaskExecutionHandler,
+    )
 Provides pure test-domain helpers (no pytest fixtures) used across all test
 modules in the shell test suite.
 """
@@ -22,6 +34,12 @@ from shell.application.execution.event_handlers.graph_node_execution_worker impo
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
+    GraphNodeLinkExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
+    GraphNodeLinkExecutionId,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
@@ -51,6 +69,9 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
+    InMemoryGraphNodeLinkExecutionRepository,
 )
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.memory import (
@@ -149,8 +170,6 @@ def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecuti
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
-    for node in graph_node_executions:
-        node._graph_execution_id = ge.id
     return ge
 
 
@@ -226,9 +245,16 @@ def _build_graph_execution(
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
+    link_repo = unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository)
     for node in graph_node_executions:
-        node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+        link_repo._store[
+            GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
+        ] = GraphNodeLinkExecution(
+            id=GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
+            graph_execution_id=graph_execution.id,
+            graph_node_execution_id=node.id,
+        )
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
         graph_execution
     )
@@ -285,10 +311,6 @@ def _make_result_handler(
 
 
 async def _make_app(tmp_path):
-    from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-    from shell.framework.platform.api.app import create_app
-    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
     return create_app(core_container)
@@ -328,9 +350,16 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
+    link_repo = unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository)
     for node in graph_node_executions:
-        node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+        link_repo._store[
+            GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
+        ] = GraphNodeLinkExecution(
+            id=GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
+            graph_execution_id=graph_execution.id,
+            graph_node_execution_id=node.id,
+        )
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
         graph_execution
     )
@@ -351,6 +380,9 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
     result_handler = GraphNodeExecutionCompletedHandler(
         unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
+    attach_handler = WorkflowStartedAttachTaskExecutionHandler(
+        unit_of_work=unit_of_work, logger=logger
+    )
     bootstrap_handler = WorkflowRunTaskerHandler(
         unit_of_work=unit_of_work, clock=clock, id_generator=id_generator
     )
@@ -364,7 +396,31 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
             break
         has_work = False
         for event in batch:
-            if isinstance(event, GraphNodeExecutionRequestedEvent):
+            if isinstance(event, WorkflowStartedEvent):
+                await attach_handler.handle(event)
+                all_events.extend(unit_of_work.committed_events)
+                has_work = True
+                # After attaching workflow, request first node
+                task_id = event.task_execution_id
+                if task_id is not None:
+                    ge_repo = unit_of_work.repository(GraphExecutionRepository)
+                    ge = await ge_repo.get_by_task_execution_id(task_id)
+                    if ge is not None:
+                        node_repo = unit_of_work.repository(InMemoryGraphNodeExecutionRepository)
+                        tr_repo = unit_of_work.repository(InMemoryGraphNodeTransitionExecutionRepository)
+                        nav = LinearGraphNodeExecutionNavigator()
+                        first_node = await nav.first_async(ge, node_repo, tr_repo)
+                        if first_node is not None:
+                            async with unit_of_work:
+                                request_event = GraphNodeExecutionRequestedEvent.now(
+                                    workflow_id=event.workflow_id,
+                                    graph_node_execution_id=first_node.id,
+                                    now=CreatedAt.from_datetime(_NOW),
+                                )
+                                unit_of_work.stage_events([request_event])
+                            all_events.extend(unit_of_work.committed_events)
+                            has_work = True
+            elif isinstance(event, GraphNodeExecutionRequestedEvent):
                 await worker.handle(event)
                 all_events.extend(unit_of_work.committed_events)
                 has_work = True

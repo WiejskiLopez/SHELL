@@ -75,8 +75,6 @@ class PgVectorRagSearchStrategy:
     ) -> list[RagChunk]:
         dim = len(query_embedding) // 4
         query_vec = list(struct.unpack(f"{dim}f", query_embedding))
-        from sqlalchemy import text
-
         vector_literal = "[" + ",".join(str(v) for v in query_vec) + "]"
         stmt = text(
             """

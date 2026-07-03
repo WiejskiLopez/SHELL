@@ -12,12 +12,12 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.execution.aggregates.workflow.events.event import (
-    WorkflowStartedEvent,
-)
-from shell.domain.execution.value_objects.work_dir import WorkDir
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.workflow.events.event import (
+        WorkflowStartedEvent,
+    )
+
     from shell.application.platform.ports.ports import Logger, UnitOfWork
 
 

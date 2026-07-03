@@ -42,12 +42,6 @@ class GraphDefinitionCreatedEvent(DomainEvent):
     def from_payload(
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.value_objects.graph_name import GraphName
-        from shell.domain.definition.value_objects.purpose import Purpose
-
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),

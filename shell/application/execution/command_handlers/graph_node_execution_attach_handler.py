@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.graph_execution.exceptions.graph_execution_not_found_error import (
+    GraphExecutionNotFoundError,
+)
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -12,7 +15,6 @@ from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_
     GraphNodeExecutionId,
 )
 from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
-from shell.domain.platform.exceptions.domain_error import DomainError
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.attach_graph_node_executions_command import (
@@ -20,10 +22,6 @@ if TYPE_CHECKING:
     )
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
-
-
-class GraphExecutionNotFoundError(DomainError):
-    pass
 
 
 class GraphNodeExecutionAttachHandler:

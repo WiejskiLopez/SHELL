@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
-from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.value_objects.ids import (
-    GraphNodeDefinitionId,
     GraphNodeTransitionDefinitionId,
 )
 from shell.infrastructure.definition.persistence.sql.models import (
@@ -12,45 +10,20 @@ from shell.infrastructure.definition.persistence.sql.models import (
 )
 
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+        GraphDefinitionId,
+    )
 def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitionDto:
     return GraphDefinitionDto(
         id=model.id,
         name=model.name,
         purpose=model.purpose,
         system_role=model.system_role,
-        graph_node_definitions=[
-            GraphNodeDefinitionDto(
-                id=graph_node_definition.id,
-                position=graph_node_definition.position,
-                mode=graph_node_definition.mode,
-                role=graph_node_definition.role,
-                node_type=graph_node_definition.node_type,
-                model=graph_node_definition.model or "",
-                command=graph_node_definition.command,
-                timeout=graph_node_definition.timeout,
-                retries=graph_node_definition.retries,
-                log_level=graph_node_definition.log_level,
-                max_step=graph_node_definition.max_step,
-                no_ask_user=graph_node_definition.no_ask_user or False,
-                autopilot=graph_node_definition.autopilot or False,
-                status_initial=graph_node_definition.status_initial,
-                script=graph_node_definition.script or "",
-                script_type=graph_node_definition.script_type or "",
-            )
-            for graph_node_definition in model.graph_node_execution_models or []
-        ],
+        graph_node_definitions=[],
     )
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
-    from shell.domain.definition.value_objects.graph_name import GraphName
-    from shell.domain.definition.value_objects.purpose import Purpose
-    from shell.domain.definition.value_objects.system_role import SystemRole
-
-    node_ids = [GraphNodeDefinitionId(nd.id) for nd in (model.graph_node_execution_models or [])]
     transition_ids = [
         GraphNodeTransitionDefinitionId(t.id)
         for t in (model.graph_node_transition_definition_models or [])
@@ -61,7 +34,6 @@ def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefini
         name=GraphName(model.name),
         purpose=Purpose(model.purpose),
         system_role=system_role,
-        graph_node_definition_ids=node_ids,
         transition_definition_ids=transition_ids,
     )
 

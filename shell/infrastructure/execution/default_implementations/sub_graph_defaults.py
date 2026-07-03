@@ -37,6 +37,12 @@ if TYPE_CHECKING:
 # ── Policy ───────────────────────────────────────────────────────────────────
 
 
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+                GraphDefinitionRepository,
+            )
+from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+            GraphDefinitionRepository,
+        )
 class DefaultSubGraphExecutionPolicy(SubGraphExecutionPolicy):
     """Default policy: no retry, abort on timeout/failure, no depth limit."""
 
@@ -168,11 +174,6 @@ class LatestVersionStrategy(SubGraphVersioning):
         version: int | None,
         parent_graph_execution_id: GraphExecutionId,
     ) -> GraphExecutionDefinition:
-        from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-            GraphDefinitionRepository,
-        )
-        from shell.domain.definition.value_objects.ids import GraphDefinitionId
-
         async with self._unit_of_work_factory() as unit_of_work:
             definition = await unit_of_work.repository(GraphDefinitionRepository).get_by_id(
                 GraphDefinitionId(definition_id)
@@ -224,10 +225,6 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
         query_lower = query.lower().strip()
 
         async with self._unit_of_work_factory() as unit_of_work:
-            from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-                GraphDefinitionRepository,
-            )
-
             all_defs = await unit_of_work.repository(GraphDefinitionRepository).list_all()
             if all_defs is None:
                 raise GraphDefinitionNotFound(query)

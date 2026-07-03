@@ -23,6 +23,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
+from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+            GraphNodeExecutionStateId,
+        )
 class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -81,12 +84,6 @@ class SqlGraphNodeExecutionStateRepository(GraphNodeExecutionStateRepository):
 
     @staticmethod
     def _model_to_entity(model: GraphNodeExecutionStateModel) -> GraphNodeExecutionState:
-        from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
-            GraphNodeExecutionStateId,
-        )
-        from shell.domain.platform.value_objects.created_at import CreatedAt
-        from shell.domain.platform.value_objects.state_data import StateData
-
         return GraphNodeExecutionState(  # type: ignore[call-arg]
             id=GraphNodeExecutionStateId(model.id),
             graph_node_execution_id=GraphNodeExecutionId(model.graph_node_execution_id),

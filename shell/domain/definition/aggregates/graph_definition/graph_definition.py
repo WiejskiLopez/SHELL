@@ -15,17 +15,18 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.definition.value_objects.ids import (
-        GraphNodeDefinitionId,
         GraphNodeTransitionDefinitionId,
     )
 
 
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+            GraphDefinitionCreatedEvent,
+        )
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     __slots__ = (
         "_name",
         "_purpose",
         "_system_role",
-        "_graph_node_definition_ids",
         "_transition_definition_ids",
     )
 
@@ -35,7 +36,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        graph_node_definition_ids: list[GraphNodeDefinitionId] | None = None,
         transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
     ) -> None:
         super().__init__(id)
@@ -48,9 +48,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             if system_role is not None
             else None
         )
-        self._graph_node_definition_ids = (
-            list(graph_node_definition_ids) if graph_node_definition_ids else []
-        )
         self._transition_definition_ids = (
             list(transition_definition_ids) if transition_definition_ids else []
         )
@@ -62,7 +59,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        graph_node_definition_ids: list[GraphNodeDefinitionId] | None = None,
         transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
     ) -> GraphDefinition:
         return cls(
@@ -70,7 +66,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             name=name,
             purpose=purpose,
             system_role=system_role,
-            graph_node_definition_ids=graph_node_definition_ids,
             transition_definition_ids=transition_definition_ids,
         )
 
@@ -81,7 +76,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        graph_node_definition_ids: list[GraphNodeDefinitionId] | None = None,
         transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
         now: datetime | None = None,
     ) -> GraphDefinition:
@@ -95,12 +89,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             name=name,
             purpose=purpose,
             system_role=system_role,
-            graph_node_definition_ids=graph_node_definition_ids,
             transition_definition_ids=transition_definition_ids,
-        )
-
-        from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
-            GraphDefinitionCreatedEvent,
         )
 
         if now is not None:
@@ -126,10 +115,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     @property
     def system_role(self) -> SystemRole | None:
         return self._system_role
-
-    @property
-    def graph_node_definition_ids(self) -> tuple[GraphNodeDefinitionId, ...]:
-        return tuple(self._graph_node_definition_ids)
 
     @property
     def transition_definition_ids(self) -> tuple[GraphNodeTransitionDefinitionId, ...]:

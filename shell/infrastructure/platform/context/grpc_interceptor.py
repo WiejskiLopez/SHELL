@@ -36,8 +36,6 @@ class CorrelationIdInterceptor:
         metadata.append(("x-correlation-id", corr_id))
 
         # Reconstruct client_call_details with updated metadata
-        import dataclasses
-
         if dataclasses.is_dataclass(client_call_details):
             updated_details = dataclasses.replace(
                 client_call_details,

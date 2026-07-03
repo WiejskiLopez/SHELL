@@ -3,26 +3,26 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
-if TYPE_CHECKING:
-    from datetime import datetime
-
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,
-)
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
-)
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+        GraphNodeExecutionId,
+    )
+    from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 
 
 @dataclass(frozen=True, slots=True)
 class GraphNodeExecutionInitializedEvent(DomainEvent):
     node_id: GraphNodeExecutionId
     graph_execution_id: GraphExecutionId
-    parent_graph_execution_id: GraphExecutionId
     node_definition_id: GraphNodeDefinitionId
 
     @classmethod
@@ -30,7 +30,6 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
         cls,
         node_id: GraphNodeExecutionId,
         graph_execution_id: GraphExecutionId,
-        parent_graph_execution_id: GraphExecutionId,
         node_definition_id: GraphNodeDefinitionId,
         now: CreatedAt,
     ) -> GraphNodeExecutionInitializedEvent:
@@ -38,7 +37,6 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
             occurred_at=now,
             node_id=node_id,
             graph_execution_id=graph_execution_id,
-            parent_graph_execution_id=parent_graph_execution_id,
             node_definition_id=node_definition_id,
         )
 
@@ -49,8 +47,7 @@ class GraphNodeExecutionInitializedEvent(DomainEvent):
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
-            node_id=GraphNodeExecutionId(payload["node_id"]),
-            graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
-            parent_graph_execution_id=GraphExecutionId(payload["parent_graph_execution_id"]),
-            node_definition_id=GraphNodeDefinitionId(payload["node_definition_id"]),
+            node_id=GraphNodeExecutionId(payload.get("node_id", "")),
+            graph_execution_id=GraphExecutionId(payload.get("graph_execution_id", "")),
+            node_definition_id=GraphNodeDefinitionId(payload.get("node_definition_id", "")),
         )

@@ -18,6 +18,9 @@ from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_
 from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
     GraphNodeExecutionStateModel,
 )
+from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
+    GraphNodeLinkExecutionModel,
+)
 from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
     GraphNodeTransitionExecutionModel,
 )
@@ -54,6 +57,7 @@ __all__ = [
     "GraphNodeExecutionModel",
     "GraphNodeExecutionResultModel",
     "GraphNodeExecutionStateModel",
+    "GraphNodeLinkExecutionModel",
     "GraphNodeTransitionExecutionModel",
     "JSON",
     "JSONB",

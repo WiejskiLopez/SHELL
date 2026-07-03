@@ -94,9 +94,6 @@ class TestGraphExecutionSagaRepositorySqlite:
                 graph_execution_id="ge-sql-3",
                 expected_nodes_count=5,
             )
-            import pytest
-            from sqlalchemy.exc import IntegrityError
-
             with pytest.raises(IntegrityError):
                 await repo.save(saga_2)
                 await session.commit()

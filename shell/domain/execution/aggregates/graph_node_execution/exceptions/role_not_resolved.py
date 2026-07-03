@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shell.domain.platform.exceptions.domain_error import DomainError
 
-class RoleNotResolved(Exception):
+
+class RoleNotResolved(DomainError):
     pass

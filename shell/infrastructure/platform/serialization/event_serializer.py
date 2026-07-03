@@ -11,6 +11,11 @@ if TYPE_CHECKING:
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
+from shell.domain.execution.value_objects.ids import (
+            GraphNodeExecutionId,
+            TaskExecutionId,
+            WorkflowId,
+        )
 logger = logging.getLogger(__name__)
 
 
@@ -73,12 +78,6 @@ class DomainEventSerializer:
         return str(value)
 
     def _deserialize_value(self, value: object, target_type: type) -> object:
-        from shell.domain.execution.value_objects.ids import (
-            GraphNodeExecutionId,
-            TaskExecutionId,
-            WorkflowId,
-        )
-
         if value is None:
             return None
         origin = getattr(target_type, "__origin__", None)

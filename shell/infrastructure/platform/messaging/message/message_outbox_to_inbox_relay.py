@@ -93,8 +93,6 @@ class MessageOutboxToInboxRelay:
         rows: Sequence[OutboxMessageModel],
         now: datetime,
     ) -> None:
-        import sqlalchemy as sa
-
         values = [
             {
                 "id": row.id,

@@ -12,8 +12,6 @@ class TestCliImportTaskExecution:
 
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
-            from shell.framework.platform.cli.main import _import_task_execution
-
             rc = await _import_task_execution(
                 [
                     "--task-name",
@@ -29,8 +27,6 @@ class TestCliImportTaskExecution:
     async def test_import_task_execution_missing_args_returns_1(self, tmp_path) -> None:
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
-            from shell.framework.platform.cli.main import _import_task_execution
-
             rc = await _import_task_execution([])
         finally:
             del os.environ["SHELL_DATABASE_URL"]

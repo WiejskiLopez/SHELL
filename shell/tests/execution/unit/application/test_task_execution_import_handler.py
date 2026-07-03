@@ -50,8 +50,6 @@ class TestTaskExecutionImportHandler:
         )
         task_execution_id = await handler.handle(ImportTaskExecutionCommand("t.md", "my-task"))
 
-        from shell.domain.execution.value_objects.ids import TaskExecutionId
-
         repo = unit_of_work.repository(InMemoryTaskExecutionRepository)
         task_execution = await repo.get_by_id(TaskExecutionId(task_execution_id))
         assert task_execution is not None

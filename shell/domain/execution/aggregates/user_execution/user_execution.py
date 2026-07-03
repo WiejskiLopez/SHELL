@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 
 
+from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
+            UserExecutionCreatedEvent,
+        )
 class UserExecution(AggregateRoot[UserExecutionId]):
     __slots__ = (
         "_user_id",
@@ -70,10 +73,6 @@ class UserExecution(AggregateRoot[UserExecutionId]):
             user_id=user_id,
             created_at=CreatedAt.from_datetime(now),
         )
-        from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
-            UserExecutionCreatedEvent,
-        )
-
         user_execution.append_event(
             UserExecutionCreatedEvent.now(
                 user_execution_id=id_,

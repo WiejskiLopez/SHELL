@@ -13,7 +13,6 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
     GraphExecutionRepository,
 )
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
@@ -77,16 +76,11 @@ class BuildGraphExecutionOnTaskExecutionCreatedEventHandler:
                 return
 
             graph_execution_id = self._id_generator.new_id(GraphExecutionId)
-            graph_node_definition_ids = [
-                GraphNodeDefinitionId.generate()
-                for _ in graph_definition.graph_node_execution_definitions
-            ]
 
             graph_execution = GraphExecution.initialize(
                 id_=graph_execution_id,
                 task_execution_id=event.task_execution_id,
                 graph_definition_id=GraphDefinitionIdRef(graph_definition.id),
-                graph_node_definition_ids=graph_node_definition_ids,
                 now=now,
             )
             await unit_of_work.repository(GraphExecutionRepository).save(graph_execution)

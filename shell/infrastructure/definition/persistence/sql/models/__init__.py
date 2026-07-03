@@ -12,6 +12,9 @@ from shell.infrastructure.definition.persistence.sql.models.graph_definition imp
 from shell.infrastructure.definition.persistence.sql.models.graph_node_definition import (
     GraphNodeDefinitionModel,
 )
+from shell.infrastructure.definition.persistence.sql.models.graph_node_link_definition import (
+    GraphNodeLinkDefinitionModel,
+)
 from shell.infrastructure.definition.persistence.sql.models.graph_node_transition_definition import (
     GraphNodeTransitionDefinitionModel,
 )
@@ -26,6 +29,7 @@ __all__ = [
     "ForeignKey",
     "GraphDefinitionModel",
     "GraphNodeDefinitionModel",
+    "GraphNodeLinkDefinitionModel",
     "GraphNodeTransitionDefinitionModel",
     "JSON",
     "JSONB",

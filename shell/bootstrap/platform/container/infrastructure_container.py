@@ -13,6 +13,9 @@ from shell.infrastructure.definition.persistence.sql.services.graph_definition_q
 )
 from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
 from shell.infrastructure.execution.filesystem.workspace import Workspace
+from shell.infrastructure.execution.http.graph_definition_node_provider_http_adapter import (
+    GraphDefinitionNodeProviderHttpAdapter,
+)
 from shell.infrastructure.execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
@@ -43,6 +46,9 @@ from shell.infrastructure.platform.messaging.command.sql_command_outbox_publishe
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.platform.time.system_clock import SystemClock
+from shell.infrastructure.session.http.workflow_session_provider_http_adapter import (
+    WorkflowSessionProviderHttpAdapter,
+)
 
 
 class InfrastructureContainer(containers.DeclarativeContainer):
@@ -91,6 +97,10 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         CorrelationIdAsyncClient,
         base_url=config.definition_api_url,
     )
+    execution_http_client = providers.Singleton(
+        CorrelationIdAsyncClient,
+        base_url=config.execution_api_url,
+    )
     session_http_client = providers.Singleton(
         CorrelationIdAsyncClient,
         base_url=config.session_api_url,
@@ -112,6 +122,14 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     session_query_http_service = providers.Factory(
         SessionQueryServiceHttpAdapter,
         client=session_http_client,
+    )
+    workflow_session_provider_factory = providers.Factory(
+        WorkflowSessionProviderHttpAdapter,
+        client=execution_http_client,
+    )
+    graph_definition_node_provider_factory = providers.Factory(
+        GraphDefinitionNodeProviderHttpAdapter,
+        client=definition_http_client,
     )
 
     # 6. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)

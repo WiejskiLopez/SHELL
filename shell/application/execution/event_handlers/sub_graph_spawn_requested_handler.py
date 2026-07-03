@@ -24,8 +24,15 @@ from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_n
 from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
     GraphNodeExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
+    GraphNodeLinkExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.repositories.graph_node_link_execution_repository import (
+    GraphNodeLinkExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
+    GraphNodeLinkExecutionId,
+)
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -137,29 +144,24 @@ class SubGraphSpawnRequestedHandler:
             )
 
             node_defs = graph_definition.graph_node_execution_definitions
-            node_definition_ids = [GraphNodeDefinitionId.generate() for _ in node_defs]
-            child.prepare_node_definitions(
-                graph_definition_id=GraphDefinitionIdRef(graph_definition.id),
-                graph_node_definition_ids=node_definition_ids,
-            )
 
-            for i, node_def in enumerate(node_defs):
+            for _i, node_def in enumerate(node_defs):
                 node_id = GraphNodeExecutionId.generate()
                 node = GraphNodeExecution(
                     id=node_id,
-                    graph_execution_id=child_id,
-                    node_definition_id=node_definition_ids[i],
                     role=NodeRole(node_def.role),
                     position=NodeOrder(node_def.position),
                     mode=Mode(node_def.mode),
                     node_type=NodeType(node_def.node_type),
                 )
                 await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
-                child.attach_node_execution(
-                    node_definition_id=node_definition_ids[i],
-                    node_execution_id=node_id,
-                    now=now,
+
+                link = GraphNodeLinkExecution(
+                    id=GraphNodeLinkExecutionId.generate(),
+                    graph_execution_id=child_id,
+                    graph_node_execution_id=node_id,
                 )
+                await unit_of_work.repository(GraphNodeLinkExecutionRepository).save(link)
 
             if state_input:
                 state = GraphExecutionState.create(

@@ -10,9 +10,6 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
     from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
         GraphNodeDefinitionId,
     )
@@ -24,7 +21,6 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class GraphNodeDefinitionCreatedEvent(DomainEvent):
     graph_node_definition_id: GraphNodeDefinitionId
-    graph_definition_id: GraphDefinitionId
     position: NodePosition
     role: NodeRoleName
     node_type: NodeTypeName
@@ -33,7 +29,6 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
     def now(
         cls,
         graph_node_definition_id: GraphNodeDefinitionId,
-        graph_definition_id: GraphDefinitionId,
         position: NodePosition,
         role: NodeRoleName,
         node_type: NodeTypeName,
@@ -42,7 +37,6 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
         return cls(
             occurred_at=now,
             graph_node_definition_id=graph_node_definition_id,
-            graph_definition_id=graph_definition_id,
             position=position,
             role=role,
             node_type=node_type,
@@ -52,23 +46,12 @@ class GraphNodeDefinitionCreatedEvent(DomainEvent):
     def from_payload(
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-            GraphNodeDefinitionId,
-        )
-        from shell.domain.definition.value_objects.node_position import NodePosition
-        from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-        from shell.domain.definition.value_objects.node_type_name import NodeTypeName
-
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),
             schema_version=SchemaVersion(schema_version),
             graph_node_definition_id=GraphNodeDefinitionId(
                 payload.get("graph_node_definition_id", "")
             ),
-            graph_definition_id=GraphDefinitionId(payload.get("graph_definition_id", "")),
             position=NodePosition(payload.get("position", 0)),
             role=NodeRoleName(payload.get("role", "")),
             node_type=NodeTypeName(payload.get("node_type", "")),

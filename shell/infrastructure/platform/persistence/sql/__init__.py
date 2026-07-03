@@ -45,11 +45,6 @@ _ALEMBIC_INI = str(Path(__file__).resolve().parents[4] / "alembic.ini")
 
 async def run_migrations(url: str) -> None:
     """Run all Alembic migrations up to head (used by tests and bootstrap)."""
-    import asyncio
-
-    from alembic import command
-    from alembic.config import Config
-
     alembic_cfg = Config(_ALEMBIC_INI)
     alembic_cfg.set_main_option("sqlalchemy.url", url)
     script_location = str(
@@ -72,12 +67,6 @@ async def reset_database(url: str) -> None:
 
     Use with SHELL_RESET_DB=true for a clean development database.
     """
-    import asyncio
-    import os
-
-    from alembic import command
-    from alembic.config import Config
-
     alembic_cfg = Config(_ALEMBIC_INI)
     alembic_cfg.set_main_option("sqlalchemy.url", url)
     script_location = str(
@@ -92,18 +81,12 @@ async def reset_database(url: str) -> None:
 
     if "sqlite" in url:
         # SQLite: just delete the file — cleanest reset
-        from sqlalchemy import make_url
-
         parsed = make_url(url)
         db_path = parsed.database
         if db_path and os.path.exists(db_path):
             os.remove(db_path)
     else:
         # PostgreSQL / other: drop all user tables via metadata
-        from sqlalchemy import text
-
-        from shell.infrastructure.platform.persistence.sql.models import Base
-
         engine = create_async_engine(url, echo=False, future=True)
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
@@ -132,8 +115,6 @@ async def seed_base_data(url: str) -> None:
 
 
 def _seed_sync(sync_conn) -> None:
-    from sqlalchemy.orm import Session
-
     from shell.infrastructure.definition.persistence.sql.models import (
         GraphDefinitionModel,
         GraphNodeDefinitionModel,

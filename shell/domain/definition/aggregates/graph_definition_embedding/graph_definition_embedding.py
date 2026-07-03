@@ -17,6 +17,9 @@ if TYPE_CHECKING:
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
+from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
+            GraphDefinitionEmbeddingCreatedEvent,
+        )
 class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     __slots__ = (
         "_graph_definition_id",
@@ -85,10 +88,6 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             created_at=now,
             updated_at=now,
         )
-        from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
-            GraphDefinitionEmbeddingCreatedEvent,
-        )
-
         instance.append_event(
             GraphDefinitionEmbeddingCreatedEvent.now(
                 graph_definition_embedding_id=id,

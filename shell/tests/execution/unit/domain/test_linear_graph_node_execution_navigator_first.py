@@ -4,6 +4,12 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
     GraphNodeExecution,
 )
+from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
+    GraphNodeLinkExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
+    GraphNodeLinkExecutionId,
+)
 from shell.domain.execution.services.graph_node_execution_navigator import (
     LinearGraphNodeExecutionNavigator,
 )
@@ -20,6 +26,9 @@ from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
+    InMemoryGraphNodeLinkExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
     InMemoryGraphNodeTransitionExecutionRepository,
@@ -60,11 +69,18 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
 
             ),
         ]
-        for n in nodes:
-            n._graph_execution_id = ge.id
         node_repo = InMemoryGraphNodeExecutionRepository()
+        link_repo = InMemoryGraphNodeLinkExecutionRepository()
+        node_repo.set_link_repo(link_repo)
         for n in nodes:
             await node_repo.save(n)
+            await link_repo.save(
+                GraphNodeLinkExecution(
+                    id=GraphNodeLinkExecutionId.generate(),
+                    graph_execution_id=ge.id,
+                    graph_node_execution_id=n.id,
+                )
+            )
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
 
         nav = LinearGraphNodeExecutionNavigator()
@@ -118,11 +134,18 @@ class TestLinearGraphNodeExecutionNavigatorFirst:
 
             ),
         ]
-        for n in nodes:
-            n._graph_execution_id = ge.id
         node_repo = InMemoryGraphNodeExecutionRepository()
+        link_repo = InMemoryGraphNodeLinkExecutionRepository()
+        node_repo.set_link_repo(link_repo)
         for n in nodes:
             await node_repo.save(n)
+            await link_repo.save(
+                GraphNodeLinkExecution(
+                    id=GraphNodeLinkExecutionId.generate(),
+                    graph_execution_id=ge.id,
+                    graph_node_execution_id=n.id,
+                )
+            )
         transition_repo = InMemoryGraphNodeTransitionExecutionRepository()
 
         nav = LinearGraphNodeExecutionNavigator()

@@ -98,8 +98,6 @@ class TestMessage:
         )
         message.mark_as_received(now)
 
-        import pytest
-
         with pytest.raises(ValueError, match="received"):
             message.mark_as_received(now)
 

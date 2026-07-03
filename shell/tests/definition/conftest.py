@@ -446,8 +446,6 @@ def pytest_collection_modifyitems(config, items):
 
 
 async def _make_app(tmp_path: pathlib.Path):
-    from shell.framework.platform.api.app import create_app
-
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
     core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
     return create_app(core_container)

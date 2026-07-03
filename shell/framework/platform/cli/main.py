@@ -18,6 +18,12 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 # Map of mode-name → default runner root dir (relative to this file if available).
+from shell.application.execution.commands.task_execution_commands import (
+        ImportTaskExecutionCommand,
+    )
+from shell.application.execution.commands.graph_node_execution_commands import (
+        RunGraphNodeExecutionCommand,
+    )
 _MODE_RUNNER_ROOTS: dict[str, str] = {
     "agent": "agent",
     "planner": "planner",
@@ -29,8 +35,6 @@ _MODE_RUNNER_ROOTS: dict[str, str] = {
 
 
 def _get_config() -> ShellConfig:
-    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-
     config = ShellConfig.from_environment()
     config.max_step = _get_max_step()
     return config
@@ -44,10 +48,6 @@ def _get_max_step() -> int:
 
 
 async def _run_node(mode: str, argv: Sequence[str]) -> int:
-    from shell.application.execution.commands.graph_node_execution_commands import (
-        RunGraphNodeExecutionCommand,
-    )
-
     parser = build_parser(prog=f"shell {mode}")
     ns = parser.parse_args(list(argv))
 
@@ -77,10 +77,6 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
 
 
 async def _import_task_execution(argv: Sequence[str]) -> int:
-    from shell.application.execution.commands.task_execution_commands import (
-        ImportTaskExecutionCommand,
-    )
-
     parser = build_parser(prog="shell import-task")
     ns = parser.parse_args(list(argv))
 
@@ -92,8 +88,6 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
             file=sys.stderr,
         )
         return 1
-
-    import pathlib
 
     md_path = str(pathlib.Path(task_dir) / f"{task_execution_name}.md")
 
@@ -112,8 +106,6 @@ async def _import_task_execution(argv: Sequence[str]) -> int:
 
 
 async def _run_tasker(argv: Sequence[str]) -> int:
-    from shell.framework.execution.orchestration.sync_workflow_runner import SyncWorkflowRunner
-
     parser = build_parser(prog="shell run-tasker")
     ns = parser.parse_args(list(argv))
 

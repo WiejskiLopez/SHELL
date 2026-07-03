@@ -27,15 +27,14 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
     from shell.domain.platform.value_objects.mode import Mode
 
 
+from shell.domain.definition.aggregates.graph_node_definition.events.graph_node_definition_created_event import (
+            GraphNodeDefinitionCreatedEvent,
+        )
 class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     __slots__ = (
-        "_graph_definition_id",
         "_position",
         "_mode",
         "_role",
@@ -56,7 +55,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     def __init__(
         self,
         id: GraphNodeDefinitionId,
-        graph_definition_id: GraphDefinitionId,
         position: NodePosition,
         mode: Mode,
         role: NodeRoleName,
@@ -74,7 +72,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
         script_type: ScriptTypeName | None = None,
     ) -> None:
         super().__init__(id)
-        self._graph_definition_id = graph_definition_id
         self._position = position if isinstance(position, NodePosition) else NodePosition(position)
         self._mode = mode
         self._role = role if isinstance(role, NodeRoleName) else NodeRoleName(role)
@@ -129,7 +126,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     def restore(
         cls,
         id: GraphNodeDefinitionId,
-        graph_definition_id: GraphDefinitionId,
         position: NodePosition,
         mode: Mode,
         role: NodeRoleName,
@@ -148,7 +144,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     ) -> GraphNodeDefinition:
         return cls(
             id=id,
-            graph_definition_id=graph_definition_id,
             position=position,
             mode=mode,
             role=role,
@@ -170,7 +165,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     def create(
         cls,
         id: GraphNodeDefinitionId,
-        graph_definition_id: GraphDefinitionId,
         position: NodePosition,
         mode: Mode,
         role: NodeRoleName,
@@ -190,7 +184,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
     ) -> GraphNodeDefinition:
         instance = cls(
             id=id,
-            graph_definition_id=graph_definition_id,
             position=position,
             mode=mode,
             role=role,
@@ -208,15 +201,10 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
             script_type=script_type,
         )
 
-        from shell.domain.definition.aggregates.graph_node_definition.events.graph_node_definition_created_event import (
-            GraphNodeDefinitionCreatedEvent,
-        )
-
         if now is not None:
             instance.append_event(
                 GraphNodeDefinitionCreatedEvent.now(
                     graph_node_definition_id=id,
-                    graph_definition_id=graph_definition_id,
                     position=position,
                     role=role,
                     node_type=node_type,
@@ -225,10 +213,6 @@ class GraphNodeDefinition(AggregateRoot[GraphNodeDefinitionId]):
             )
 
         return instance
-
-    @property
-    def graph_definition_id(self) -> GraphDefinitionId:
-        return self._graph_definition_id
 
     @property
     def position(self) -> NodePosition:

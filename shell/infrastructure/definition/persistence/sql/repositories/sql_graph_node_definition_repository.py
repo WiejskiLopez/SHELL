@@ -10,6 +10,7 @@ from shell.domain.definition.aggregates.graph_node_definition.repositories impor
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphNodeDefinitionModel,
+    GraphNodeLinkDefinitionModel,
 )
 
 if TYPE_CHECKING:
@@ -26,6 +27,9 @@ if TYPE_CHECKING:
     )
 
 
+from shell.domain.definition.value_objects.transition_timeout_seconds import (
+            TransitionTimeoutSeconds,
+        )
 class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -45,8 +49,14 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         graph_definition_id: GraphDefinitionId,
     ) -> list[GraphNodeDefinition]:
 
-        stmt = select(GraphNodeDefinitionModel).where(
-            GraphNodeDefinitionModel.graph_definition_id == graph_definition_id.value,
+        stmt = (
+            select(GraphNodeDefinitionModel)
+            .join(
+                GraphNodeLinkDefinitionModel,
+                GraphNodeLinkDefinitionModel.graph_node_definition_id
+                == GraphNodeDefinitionModel.id,
+            )
+            .where(GraphNodeLinkDefinitionModel.graph_definition_id == graph_definition_id.value)
         )
         result = await self._session.execute(stmt)
         models = result.scalars().all()
@@ -76,36 +86,8 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         self,
         model: GraphNodeDefinitionModel,
     ) -> GraphNodeDefinition:
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-            GraphNodeDefinition,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-            GraphNodeDefinitionId,
-        )
-        from shell.domain.definition.value_objects.autopilot import Autopilot
-        from shell.domain.definition.value_objects.command_text import CommandText
-        from shell.domain.definition.value_objects.initial_status import InitialStatus
-        from shell.domain.definition.value_objects.log_level import LogLevel
-        from shell.domain.definition.value_objects.max_step import MaxStep
-        from shell.domain.definition.value_objects.model_name import ModelName
-        from shell.domain.definition.value_objects.no_ask_user import NoAskUser
-        from shell.domain.definition.value_objects.node_position import NodePosition
-        from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-        from shell.domain.definition.value_objects.node_type_name import NodeTypeName
-        from shell.domain.definition.value_objects.retry_count import RetryCount
-        from shell.domain.definition.value_objects.script_text import ScriptText
-        from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
-        from shell.domain.definition.value_objects.transition_timeout_seconds import (
-            TransitionTimeoutSeconds,
-        )
-        from shell.domain.platform.value_objects.mode import Mode
-
         return GraphNodeDefinition(
             id=GraphNodeDefinitionId(model.id),
-            graph_definition_id=GraphDefinitionId(model.graph_definition_id),
             position=NodePosition(model.position),
             mode=Mode(model.mode),
             role=NodeRoleName(model.role),
@@ -126,7 +108,6 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
     def _entity_to_model(self, entity: GraphNodeDefinition) -> GraphNodeDefinitionModel:
         return GraphNodeDefinitionModel(
             id=entity.id.value,
-            graph_definition_id=entity.graph_definition_id.value,
             position=entity.position.value,
             mode=entity.mode.value,
             role=entity.role.value,
@@ -151,7 +132,7 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         model.node_type = entity.node_type.value
         model.model = entity.model.value if entity.model else None
         model.command = entity.command.value if entity.command else ""
-        model.timeout = entity.timeout.value if entity.timeout is not None else 0  # type: ignore[assignment]
+        model.timeout = entity.timeout.value if entity.timeout is not None else 0
         model.retries = entity.retries.value if entity.retries is not None else 0
         model.log_level = entity.log_level.value if entity.log_level else "INFO"
         model.max_step = entity.max_step.value if entity.max_step is not None else 0
@@ -160,9 +141,3 @@ class SqlGraphNodeDefinitionRepository(GraphNodeDefinitionRepository):
         model.status_initial = entity.status_initial.value if entity.status_initial else ""
         model.script = entity.script.value if entity.script else ""
         model.script_type = entity.script_type.value if entity.script_type else ""
-
-
-__all__ = [
-    "GraphNodeDefinitionModel",
-    "SqlGraphNodeDefinitionRepository",
-]

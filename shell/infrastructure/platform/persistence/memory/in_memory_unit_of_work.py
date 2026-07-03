@@ -6,6 +6,9 @@ from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
     GraphDefinitionEmbeddingRepository,
 )
+from shell.domain.definition.aggregates.graph_node_link_definition.repositories.graph_node_link_definition_repository import (
+    GraphNodeLinkDefinitionRepository,
+)
 from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
     GraphNodeTransitionDefinitionRepository,
 )
@@ -28,6 +31,9 @@ from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_n
 )
 from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
     GraphNodeExecutionStateRepository,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.repositories.graph_node_link_execution_repository import (
+    GraphNodeLinkExecutionRepository,
 )
 from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
     GraphNodeTransitionExecutionRepository,
@@ -59,6 +65,9 @@ from shell.infrastructure.definition.persistence.memory.in_memory_graph_definiti
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
     InMemoryGraphNodeDefinitionRepository,
 )
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_link_definition_repository import (
+    InMemoryGraphNodeLinkDefinitionRepository,
+)
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_transition_definition_repository import (
     InMemoryGraphNodeTransitionDefinitionRepository,
 )
@@ -76,6 +85,9 @@ from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_exec
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_state_repository import (
     InMemoryGraphNodeExecutionStateRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
+    InMemoryGraphNodeLinkExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
     InMemoryGraphNodeTransitionExecutionRepository,
@@ -106,6 +118,25 @@ if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
 
+from shell.domain.definition.aggregates.graph_node_link_definition.value_objects.graph_node_link_definition_id import (
+            GraphNodeLinkDefinitionId,
+        )
+from shell.domain.definition.aggregates.graph_node_link_definition.graph_node_link_definition import (
+            GraphNodeLinkDefinition,
+        )
+from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
+            GraphNodeDefinitionId,
+        )
+from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+            GraphNodeDefinition,
+        )
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+            GraphDefinitionId,
+        )
+from shell.domain.definition.aggregates.graph_definition.graph_definition import (
+            GraphDefinition,
+        )
+from datetime import UTC, datetime
 TRepository = TypeVar("TRepository")
 
 
@@ -114,6 +145,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._task_execution_repository = InMemoryTaskExecutionRepository()
         self._task_execution_state_repository = InMemoryTaskExecutionStateRepository()
         self._graph_node_execution_repository = InMemoryGraphNodeExecutionRepository()
+        self._graph_node_link_execution_repository = (
+            InMemoryGraphNodeLinkExecutionRepository()
+        )
+        self._graph_node_execution_repository.set_link_repo(
+            self._graph_node_link_execution_repository
+        )
         self._graph_execution_repository = InMemoryGraphExecutionRepository()
         self._graph_execution_repository.link_task_executions(self._task_execution_repository)
         self._workflow_repository = InMemoryWorkflowRepository()
@@ -121,6 +158,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
         self._graph_node_definition_repository = InMemoryGraphNodeDefinitionRepository()
+        self._graph_node_link_definition_repository = (
+            InMemoryGraphNodeLinkDefinitionRepository()
+        )
+        self._graph_node_definition_repository.set_link_repo(
+            self._graph_node_link_definition_repository
+        )
         self._graph_node_transition_definition_repository = (
             InMemoryGraphNodeTransitionDefinitionRepository()
         )
@@ -140,34 +183,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events: list[DomainEvent] = []
 
     async def seed_base_planner(self) -> None:
-        from datetime import UTC, datetime
-
-        from shell.domain.definition.aggregates.graph_definition.graph_definition import (
-            GraphDefinition,
-        )
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-            GraphNodeDefinition,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-            GraphNodeDefinitionId,
-        )
-        from shell.domain.definition.value_objects.graph_name import GraphName
-        from shell.domain.definition.value_objects.node_position import NodePosition
-        from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-        from shell.domain.definition.value_objects.node_type_name import NodeTypeName
-        from shell.domain.definition.value_objects.purpose import Purpose
-        from shell.domain.platform.value_objects.mode import Mode
-
         now = datetime.now(UTC)
         node_id = GraphNodeDefinitionId("base-planner-node-1")
         graph_id = GraphDefinitionId("base-planner-id")
 
         node = GraphNodeDefinition.create(
             id=node_id,
-            graph_definition_id=graph_id,
             position=NodePosition(0),
             mode=Mode("agent"),
             role=NodeRoleName("agent"),
@@ -176,17 +197,21 @@ class InMemoryUnitOfWork(UnitOfWork):
         )
         await self.repository(InMemoryGraphNodeDefinitionRepository).save(node)
 
-        from shell.domain.definition.value_objects.system_role import SystemRole
-
         graph = GraphDefinition.create(
             id=graph_id,
             name=GraphName("base_planner"),
             purpose=Purpose("default_planning"),
             system_role=SystemRole.PLANNER,
-            graph_node_definition_ids=[node_id],
             now=now,
         )
         await self.repository(InMemoryGraphDefinitionRepository).save(graph)
+
+        link = GraphNodeLinkDefinition(
+            id=GraphNodeLinkDefinitionId.generate(),
+            graph_definition_id=graph_id,
+            graph_node_definition_id=node_id,
+        )
+        await self.repository(InMemoryGraphNodeLinkDefinitionRepository).save(link)
 
     def repository(self, repo_type: type[TRepository]) -> TRepository:
         repos: dict[type, object] = {
@@ -206,6 +231,8 @@ class InMemoryUnitOfWork(UnitOfWork):
             GraphDefinitionRepository: self._graph_definition_repository,
             InMemoryGraphNodeDefinitionRepository: self._graph_node_definition_repository,
             GraphNodeDefinitionRepository: self._graph_node_definition_repository,
+            InMemoryGraphNodeLinkDefinitionRepository: self._graph_node_link_definition_repository,
+            GraphNodeLinkDefinitionRepository: self._graph_node_link_definition_repository,
             InMemoryGraphNodeTransitionDefinitionRepository: self._graph_node_transition_definition_repository,
             GraphNodeTransitionDefinitionRepository: self._graph_node_transition_definition_repository,
             InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
@@ -216,6 +243,8 @@ class InMemoryUnitOfWork(UnitOfWork):
             GraphNodeExecutionRepository: self._graph_node_execution_repository,
             InMemoryGraphNodeExecutionStateRepository: self._graph_node_execution_state_repository,
             GraphNodeExecutionStateRepository: self._graph_node_execution_state_repository,
+            InMemoryGraphNodeLinkExecutionRepository: self._graph_node_link_execution_repository,
+            GraphNodeLinkExecutionRepository: self._graph_node_link_execution_repository,
             InMemoryGraphNodeTransitionExecutionRepository: self._graph_node_transition_execution_repository,
             GraphNodeTransitionExecutionRepository: self._graph_node_transition_execution_repository,
             InMemoryWorkflowStateRepository: self._workflow_state_repository,

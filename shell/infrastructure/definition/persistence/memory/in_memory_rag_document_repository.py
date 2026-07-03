@@ -24,10 +24,6 @@ class InMemoryRagDocumentRepository(
         top_k: ChunkIndex,
         domain: DomainTag | None = None,
     ) -> list[RagChunk]:
-        import struct
-
-        from shell.domain.definition.services.rag_index_service import cosine_similarity
-
         query_bytes = query_embedding.value
         dim = len(query_bytes) // 4
         query_vec = list(struct.unpack(f"{dim}f", query_bytes))

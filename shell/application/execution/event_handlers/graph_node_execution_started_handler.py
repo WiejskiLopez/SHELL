@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
-from shell.domain.execution.value_objects.graph_node_execution_status import GraphNodeExecutionStatus
+from shell.domain.execution.value_objects.graph_node_execution_status import (
+    GraphNodeExecutionStatus,
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator

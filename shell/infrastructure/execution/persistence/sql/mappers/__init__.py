@@ -43,16 +43,8 @@ from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
 from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.graph_execution_initialization_status import (
-    GraphExecutionInitializationStatus,
-)
-from shell.domain.execution.value_objects.graph_node_definition_execution_slot import (
-    GraphNodeDefinitionExecutionSlot,
-)
-from shell.domain.execution.value_objects.graph_node_definition_id import (
-    GraphNodeDefinitionId as ExecutionGraphNodeDefinitionId,
-)
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     GraphNodeExecutionId,
@@ -118,6 +110,15 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 
 
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+        WorkflowStateId,
+    )
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+        GraphExecutionStateId,
+    )
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
 def _ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=UTC)
@@ -212,14 +213,6 @@ def task_execution_state_entity_to_model(
 
 
 def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
-    slots_raw = graph_execution_model.graph_node_definition_executions or {}
-    slots = [
-        GraphNodeDefinitionExecutionSlot(
-            graph_node_definition_id=ExecutionGraphNodeDefinitionId(def_id),
-            graph_node_execution_id=GraphNodeExecutionId(exec_id) if exec_id else None,
-        )
-        for def_id, exec_id in slots_raw.items()
-    ]
     return GraphExecution(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
@@ -230,12 +223,9 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         ),
         depth=GraphDepth(graph_execution_model.depth),
         max_subgraph_depth=MaxSubgraphDepth(graph_execution_model.max_subgraph_depth),
-        initialization_status=GraphExecutionInitializationStatus(
-            graph_execution_model.initialization_status
-        )
-        if graph_execution_model.initialization_status
+        graph_definition_id=GraphDefinitionIdRef(graph_execution_model.graph_definition_id)
+        if graph_execution_model.graph_definition_id
         else None,
-        graph_node_definition_execution_slots=slots,
     )
 
 
@@ -344,44 +334,25 @@ def graph_node_transition_definition_entity_to_model(
 
 def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
     model.status = entity.status.value if hasattr(entity.status, "value") else str(entity.status)
-    model.initialization_status = (
-        entity.initialization_status.value
-        if hasattr(entity.initialization_status, "value")
-        else str(entity.initialization_status)
-    )
     model.parent_graph_execution_id = (
         entity.parent_graph_execution_id.value if entity.parent_graph_execution_id else None
     )
     model.depth = entity.depth.value
-    model.graph_node_definition_executions = {
-        slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
-        if slot.graph_node_execution_id
-        else None
-        for slot in entity.graph_node_definition_execution_slots
-    }
+    model.graph_definition_id = entity.graph_definition_id.value
 
 
 def graph_execution_entity_to_model(
     graph_execution: GraphExecution,
 ) -> GraphExecutionModel:
-    from shell.infrastructure.platform.context import get_correlation_id
-
     graph_execution_model = GraphExecutionModel(
         id=graph_execution.id.value,
         task_execution_id=graph_execution.task_execution_id.value,
-        graph_definition_id="",
+        graph_definition_id=graph_execution.graph_definition_id.value,
         parent_graph_execution_id=(
             graph_execution.parent_graph_execution_id.value
             if graph_execution.parent_graph_execution_id
             else None
         ),
-        initialization_status=graph_execution.initialization_status.value,
-        graph_node_definition_executions={
-            slot.graph_node_definition_id.value: slot.graph_node_execution_id.value
-            if slot.graph_node_execution_id
-            else None
-            for slot in graph_execution.graph_node_definition_execution_slots
-        },
         state_input={},
         state_output={},
         depth=graph_execution.depth.value if graph_execution.depth else 0,
@@ -476,17 +447,6 @@ def graph_node_execution_result_entity_to_model(
 def graph_execution_state_input_model_to_entity(
     model: GraphExecutionStateInputModel,
 ) -> GraphExecutionState:
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
-    from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-        GraphExecutionState,
-    )
-    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-        GraphExecutionStateId,
-    )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
-
     return GraphExecutionState(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
@@ -515,17 +475,6 @@ def graph_execution_state_input_entity_to_model(
 def graph_execution_state_output_model_to_entity(
     model: GraphExecutionStateOutputModel,
 ) -> GraphExecutionState:
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
-    from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-        GraphExecutionState,
-    )
-    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-        GraphExecutionStateId,
-    )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
-
     return GraphExecutionState(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
@@ -552,11 +501,6 @@ def graph_execution_state_output_entity_to_model(
 
 
 def workflow_state_model_to_entity(model: WorkflowStateModel) -> WorkflowState:
-    from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
-        WorkflowStateId,
-    )
-    from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-
     return WorkflowState.restore(
         id=WorkflowStateId(model.id),
         workflow_id=WorkflowId(model.workflow_id),
@@ -581,8 +525,6 @@ def workflow_state_entity_to_model(entity: WorkflowState) -> WorkflowStateModel:
 
 
 def user_execution_model_to_entity(model: UserExecutionModel) -> UserExecution:
-    from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
-
     return UserExecution.restore(
         id=UserExecutionId(model.id),
         user_id=UserIdRef(model.user_id) if model.user_id else None,
@@ -608,10 +550,6 @@ def user_execution_update_model(model: UserExecutionModel, entity: UserExecution
 
 
 def user_execution_state_model_to_entity(model: UserExecutionStateModel) -> UserExecutionState:
-    from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
-        UserExecutionState,
-    )
-
     return UserExecutionState.restore(
         id=UserExecutionStateId(model.id),
         user_execution_id=UserExecutionId(model.user_execution_id),
@@ -637,11 +575,6 @@ def user_execution_state_entity_to_model(entity: UserExecutionState) -> UserExec
 
 
 def session_execution_model_to_entity(model: SessionExecutionModel) -> SessionExecution:
-    from shell.domain.execution.aggregates.session_execution.session_execution import (
-        SessionExecution,
-    )
-    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
-
     return SessionExecution.restore(
         id=SessionExecutionId(model.id),
         user_execution_id=(
@@ -674,10 +607,6 @@ def session_execution_update_model(model: SessionExecutionModel, entity: Session
 def session_execution_state_model_to_entity(
     model: SessionExecutionStateModel,
 ) -> SessionExecutionState:
-    from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
-        SessionExecutionState,
-    )
-
     return SessionExecutionState.restore(
         id=SessionExecutionStateId(model.id),
         session_execution_id=SessionExecutionId(model.session_execution_id),

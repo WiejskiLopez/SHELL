@@ -6,6 +6,15 @@ from shell.domain.definition.aggregates.graph_definition.graph_definition import
 from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
     GraphNodeDefinition,
 )
+from shell.domain.definition.aggregates.graph_node_link_definition.graph_node_link_definition import (
+    GraphNodeLinkDefinition,
+)
+from shell.domain.definition.aggregates.graph_node_link_definition.repositories.graph_node_link_definition_repository import (
+    GraphNodeLinkDefinitionRepository,
+)
+from shell.domain.definition.aggregates.graph_node_link_definition.value_objects.graph_node_link_definition_id import (
+    GraphNodeLinkDefinitionId,
+)
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
@@ -52,7 +61,6 @@ class GraphDefinitionCreateHandler:
 
             node = GraphNodeDefinition.create(
                 id=node_id,
-                graph_definition_id=graph_id,
                 position=NodePosition(node_dict.get("position", 0)),
                 mode=Mode(node_dict.get("mode", "worker")),
                 role=NodeRoleName(node_dict.get("role", "")),
@@ -70,10 +78,19 @@ class GraphDefinitionCreateHandler:
                 id=graph_id,
                 name=GraphName(command.name),
                 purpose=Purpose(command.purpose),
-                graph_node_definition_ids=node_ids,
                 now=now,
             )
             await unit_of_work.repository(GraphDefinitionRepository).save(graph)
             unit_of_work.stage_events(graph.pull_events())
+
+            for node_id in node_ids:
+                link = GraphNodeLinkDefinition(
+                    id=GraphNodeLinkDefinitionId.generate(),
+                    graph_definition_id=graph_id,
+                    graph_node_definition_id=node_id,
+                )
+                await unit_of_work.repository(
+                    GraphNodeLinkDefinitionRepository
+                ).save(link)
 
         return graph_id.value

@@ -26,8 +26,6 @@ class WorkerCommand(RunnableCommand):
 
         scheduler = core_container.scheduler_service()
 
-        import signal
-
         loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGTERM, scheduler.stop)
         loop.add_signal_handler(signal.SIGINT, scheduler.stop)

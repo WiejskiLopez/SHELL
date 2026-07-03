@@ -6,12 +6,13 @@ import struct
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload
 
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
+    GraphNodeDefinitionModel,
+    GraphNodeLinkDefinitionModel,
 )
 from shell.infrastructure.definition.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
@@ -56,16 +57,14 @@ class SqlGraphDefinitionQueryService:
             if embedding is None:
                 return None
 
-            stmt = (
-                select(GraphDefinitionModel)
-                .options(joinedload(GraphDefinitionModel.graph_node_execution_models))
-                .where(GraphDefinitionModel.id == embedding.graph_definition_id)
+            stmt = select(GraphDefinitionModel).where(
+                GraphDefinitionModel.id == embedding.graph_definition_id
             )
             res = await session.execute(stmt)
             model = res.unique().scalar_one_or_none()
             if model is None:
                 return None
-            return self._to_dto(model)
+            return await self._to_dto(session, model)
 
     async def _find_nearest(
         self,
@@ -83,8 +82,6 @@ class SqlGraphDefinitionQueryService:
         session: AsyncSession,
         query_embedding: bytes,
     ) -> GraphDefinitionEmbeddingModel | None:
-        from sqlalchemy import text
-
         dim = len(query_embedding) // 4
         query_vec = list(struct.unpack(f"{dim}f", query_embedding))
         vector_literal = "[" + ",".join(str(v) for v in query_vec) + "]"
@@ -145,57 +142,67 @@ class SqlGraphDefinitionQueryService:
 
     async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None:
         async with self._session_factory() as session:
-            stmt = (
-                select(GraphDefinitionModel)
-                .options(joinedload(GraphDefinitionModel.graph_node_execution_models))
-                .where(GraphDefinitionModel.id == definition_id)
+            stmt = select(GraphDefinitionModel).where(
+                GraphDefinitionModel.id == definition_id
             )
             res = await session.execute(stmt)
             model = res.unique().scalar_one_or_none()
             if model is None:
                 return None
-            return self._to_dto(model)
+            return await self._to_dto(session, model)
 
     async def get_graph_definition_by_system_role(
         self,
         role: str,
     ) -> GraphDefinitionDto | None:
         async with self._session_factory() as session:
-            stmt = (
-                select(GraphDefinitionModel)
-                .options(joinedload(GraphDefinitionModel.graph_node_execution_models))
-                .where(GraphDefinitionModel.system_role == role)
+            stmt = select(GraphDefinitionModel).where(
+                GraphDefinitionModel.system_role == role
             )
             res = await session.execute(stmt)
             model = res.unique().scalar_one_or_none()
             if model is None:
                 return None
-            return self._to_dto(model)
+            return await self._to_dto(session, model)
 
-    def _to_dto(self, model: GraphDefinitionModel) -> GraphDefinitionDto:
+    async def _to_dto(
+        self, session: AsyncSession, model: GraphDefinitionModel
+    ) -> GraphDefinitionDto:
+        link_stmt = (
+            select(GraphNodeDefinitionModel)
+            .join(
+                GraphNodeLinkDefinitionModel,
+                GraphNodeLinkDefinitionModel.graph_node_definition_id
+                == GraphNodeDefinitionModel.id,
+            )
+            .where(GraphNodeLinkDefinitionModel.graph_definition_id == model.id)
+            .order_by(GraphNodeDefinitionModel.position)
+        )
+        node_models = (await session.execute(link_stmt)).scalars().all()
+
         return GraphDefinitionDto(
             id=model.id,
             name=model.name,
             purpose=model.purpose,
             graph_node_definitions=[
                 GraphNodeDefinitionDto(
-                    id=graph_node_definition.id,
-                    position=graph_node_definition.position,
-                    mode=graph_node_definition.mode,
-                    role=graph_node_definition.role,
-                    node_type=graph_node_definition.node_type,
-                    model=graph_node_definition.model or "",
-                    command=graph_node_definition.command,
-                    timeout=graph_node_definition.timeout,
-                    retries=graph_node_definition.retries,
-                    log_level=graph_node_definition.log_level,
-                    max_step=graph_node_definition.max_step,
-                    no_ask_user=graph_node_definition.no_ask_user or False,
-                    autopilot=graph_node_definition.autopilot or False,
-                    status_initial=graph_node_definition.status_initial,
-                    script=graph_node_definition.script or "",
-                    script_type=graph_node_definition.script_type or "",
+                    id=node.id,
+                    position=node.position,
+                    mode=node.mode,
+                    role=node.role,
+                    node_type=node.node_type,
+                    model=node.model or "",
+                    command=node.command,
+                    timeout=node.timeout,
+                    retries=node.retries,
+                    log_level=node.log_level,
+                    max_step=node.max_step,
+                    no_ask_user=node.no_ask_user or False,
+                    autopilot=node.autopilot or False,
+                    status_initial=node.status_initial,
+                    script=node.script or "",
+                    script_type=node.script_type or "",
                 )
-                for graph_node_definition in model.graph_node_execution_models or []
+                for node in node_models or []
             ],
         )

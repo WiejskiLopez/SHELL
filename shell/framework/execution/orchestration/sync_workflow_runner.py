@@ -84,10 +84,6 @@ class SyncWorkflowRunner:
         task_execution_id: str,
         work_dir: str,
     ) -> SyncWorkflowResult:
-        from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
-        from shell.domain.execution.value_objects.ids import WorkflowId
-        from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-
         start_time = time.monotonic()
 
         cmd = RunTaskerWorkflowCommand(

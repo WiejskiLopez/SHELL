@@ -1,26 +1,17 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
-
-if TYPE_CHECKING:
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution import (  # noqa: E402 — łamie circular import GraphNodeExecutionModel ↔ GraphExecutionModel
-        GraphExecutionModel,  # noqa: TC002 — GraphExecutionModel używany w Mapped[GraphExecutionModel] w relacji SQLAlchemy
-    )
 
 
 class GraphNodeExecutionModel(Base, VersionedMixin):
     __tablename__ = "graph_node_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    graph_execution_id: Mapped[str] = mapped_column(
-        ForeignKey("graph_execution.id", ondelete="CASCADE"), nullable=False
-    )
     position: Mapped[int] = mapped_column(nullable=False, default=0)
     mode: Mapped[str] = mapped_column(nullable=False)
     role: Mapped[str] = mapped_column(nullable=False, default="")
@@ -37,10 +28,6 @@ class GraphNodeExecutionModel(Base, VersionedMixin):
     status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
 
-    @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
+    @declared_attr
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
-
-    graph_execution_model: Mapped[GraphExecutionModel] = relationship(
-        "GraphExecutionModel", back_populates="graph_node_execution_models"
-    )

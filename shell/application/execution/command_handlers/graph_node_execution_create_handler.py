@@ -46,7 +46,6 @@ class GraphNodeExecutionCreateHandler:
         node_execution = GraphNodeExecution.new(
             id=GraphNodeExecutionId.generate(),
             graph_execution_id=graph_execution_id,
-            parent_graph_execution_id=graph_execution_id,
             node_definition_id=GraphNodeDefinitionId(command.graph_node_definition_id),
             role=NodeRole(command.role),
             position=NodeOrder(command.position),

@@ -53,16 +53,6 @@ class GraphNodeTransitionDefinitionCreatedEvent(DomainEvent):
     def from_payload(
         cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
     ) -> Self:
-        from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-            GraphNodeDefinitionId,
-        )
-        from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
-            GraphNodeTransitionDefinitionId,
-        )
-
         source_id = payload["source_node_definition_id"]
         return cls(
             occurred_at=CreatedAt.from_datetime(occurred_at),

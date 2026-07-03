@@ -5,8 +5,6 @@ from shell.infrastructure.execution.filesystem.task_execution_loader import File
 
 class TestFileSystemTaskLoader:
     async def test_load_reads_both_files(self, tmp_path: object) -> None:
-        import pathlib
-
         md = pathlib.Path(str(tmp_path)) / "task_execution.md"
         md.write_text("# My Task", encoding="utf-8")
         loader = FileSystemTaskLoader()

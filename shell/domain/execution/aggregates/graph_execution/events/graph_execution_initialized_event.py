@@ -13,7 +13,6 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
@@ -24,7 +23,6 @@ class GraphExecutionInitializedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
     graph_definition_id: GraphDefinitionIdRef
-    graph_node_definition_ids: tuple[GraphNodeDefinitionId, ...]
 
     @classmethod
     def now(
@@ -32,7 +30,6 @@ class GraphExecutionInitializedEvent(DomainEvent):
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition_id: GraphDefinitionIdRef,
-        graph_node_definition_ids: list[GraphNodeDefinitionId],
         now: CreatedAt,
     ) -> GraphExecutionInitializedEvent:
         return cls(
@@ -40,7 +37,6 @@ class GraphExecutionInitializedEvent(DomainEvent):
             graph_execution_id=graph_execution_id,
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition_id,
-            graph_node_definition_ids=tuple(graph_node_definition_ids),
         )
 
     @classmethod
@@ -53,7 +49,4 @@ class GraphExecutionInitializedEvent(DomainEvent):
             graph_execution_id=GraphExecutionId(payload["graph_execution_id"]),
             task_execution_id=TaskExecutionId(payload["task_execution_id"]),
             graph_definition_id=GraphDefinitionIdRef(payload["graph_definition_id"]),
-            graph_node_definition_ids=tuple(
-                GraphNodeDefinitionId(nid) for nid in payload.get("graph_node_definition_ids", [])
-            ),
         )

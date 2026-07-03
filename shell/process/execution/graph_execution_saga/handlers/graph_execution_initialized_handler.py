@@ -10,15 +10,15 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
         GraphExecutionInitializedEvent,
     )
-    from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
-        GraphExecutionDefinitionProvider,
-    )
     from shell.domain.platform.ports.log import Logger
     from shell.process.execution.graph_execution_saga.graph_execution_saga import (
         GraphExecutionSaga,
     )
     from shell.process.execution.graph_execution_saga.ports.command_publisher import (
         CommandPublisher,
+    )
+    from shell.process.execution.graph_execution_saga.ports.graph_definition_node_provider import (
+        GraphDefinitionNodeProvider,
     )
 
 
@@ -27,41 +27,32 @@ class GraphExecutionInitializedHandler:
         self,
         saga_manager: GraphExecutionSaga,
         command_publisher: CommandPublisher,
+        definition_node_provider: GraphDefinitionNodeProvider,
         logger: Logger,
-        definition_provider: GraphExecutionDefinitionProvider,
     ) -> None:
         self._saga_manager = saga_manager
         self._command_publisher = command_publisher
+        self._definition_node_provider = definition_node_provider
         self._logger = logger
-        self._definition_provider = definition_provider
 
     async def handle(self, event: GraphExecutionInitializedEvent) -> None:
-        saga = await self._saga_manager.create_saga(
-            graph_execution_id=event.graph_execution_id.value,
-            expected_nodes_count=len(event.graph_node_definition_ids),
-        )
-
-        definition = await self._definition_provider.get_graph_definition(
+        node_definitions = await self._definition_node_provider.get_node_definitions(
             event.graph_definition_id.value,
         )
 
-        for i, node_def_id in enumerate(event.graph_node_definition_ids):
-            if definition is None or i >= len(definition.graph_node_execution_definitions):
-                self._logger.error(
-                    "graph_execution_initialized_handler.definition_missing",
-                    node_index=i,
-                    definition_id=event.graph_definition_id.value,
-                )
-                continue
+        saga = await self._saga_manager.create_saga(
+            graph_execution_id=event.graph_execution_id.value,
+            expected_nodes_count=len(node_definitions),
+        )
 
-            ndef = definition.graph_node_execution_definitions[i]
+        for node_def in node_definitions:
             command = CreateGraphNodeExecutionCommand(
                 graph_execution_id=event.graph_execution_id.value,
-                graph_node_definition_id=node_def_id.value,
-                position=ndef.position,
-                role=ndef.role,
-                mode=ndef.mode,
-                node_type=ndef.node_type,
+                graph_node_definition_id=node_def.node_id,
+                position=node_def.position,
+                role=node_def.role,
+                mode=node_def.mode,
+                node_type=node_def.node_type,
             )
             await self._command_publisher.publish(
                 command_type="CreateGraphNodeExecutionCommand",
@@ -80,5 +71,5 @@ class GraphExecutionInitializedHandler:
             "graph_execution_initialized_handler.saga_created",
             saga_id=saga.saga_id,
             graph_execution_id=event.graph_execution_id.value,
-            node_count=len(event.graph_node_definition_ids),
+            node_count=len(node_definitions),
         )

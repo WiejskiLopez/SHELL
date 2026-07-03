@@ -2,53 +2,34 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
-    WorkflowRepository,
-)
-from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
-
 if TYPE_CHECKING:
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
     from shell.domain.session.aggregates.session.events.event import (
         SessionOpenedEvent,
+    )
+    from shell.domain.session.ports.workflow_session_provider import (
+        WorkflowSessionProvider,
     )
 
 
 class SessionOpenedPropagateOutputHandler:
     def __init__(
         self,
-        unit_of_work: UnitOfWork,
-        clock: Clock,
-        id_generator: IdGenerator,
+        workflow_session_provider: WorkflowSessionProvider,
         logger: Logger,
     ) -> None:
-        self._unit_of_work = unit_of_work
-        self._clock = clock
-        self._id_generator = id_generator
+        self._workflow_session_provider = workflow_session_provider
         self._logger = logger
 
     async def handle(self, event: SessionOpenedEvent) -> None:
-        async with self._unit_of_work as unit_of_work:
-            workflows = await unit_of_work.repository(WorkflowRepository).get_by_session_id(
-                SessionIdRef(event.session_id.value)
-            )
-            if not workflows:
-                self._logger.warning(
-                    "session_opened_propagate_output_handler.no_workflows",
-                    session_id=event.session_id.value,
-                )
-                return
-
-            now = self._clock.now()
-            session_payload: dict[str, Any] = {
-                "session_id": event.session_id.value,
-                "user_id": event.user_id.value,
-                "project_id": event.project_id.value,
-            }
-            for workflow in workflows:
-                workflow.add_state_input(session_payload, now)  # type: ignore[attr-defined]
-                await unit_of_work.repository(WorkflowRepository).save(workflow)
-                unit_of_work.stage_events(workflow.pull_events())
+        session_payload: dict[str, Any] = {
+            "session_id": event.session_id.value,
+            "user_id": event.user_id.value,
+            "project_id": event.project_id.value,
+        }
+        await self._workflow_session_provider.add_session_output(
+            session_id=event.session_id.value,
+            user_id=event.user_id.value,
+            project_id=event.project_id.value,
+            payload=session_payload,
+        )

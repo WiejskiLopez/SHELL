@@ -4,6 +4,9 @@ from shell.infrastructure.definition.persistence.memory.in_memory_graph_definiti
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
     InMemoryGraphNodeDefinitionRepository,
 )
+from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_link_definition_repository import (
+    InMemoryGraphNodeLinkDefinitionRepository,
+)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
@@ -14,6 +17,7 @@ from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_
 __all__ = [
     "InMemoryGraphDefinitionRepository",
     "InMemoryGraphNodeDefinitionRepository",
+    "InMemoryGraphNodeLinkDefinitionRepository",
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
 ]

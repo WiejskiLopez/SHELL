@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_state_error import (
+    InvalidTaskStateError,
+)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
 from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.task_name import TaskName
@@ -20,8 +22,27 @@ if TYPE_CHECKING:
 
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.value_objects.reason import Reason
+    from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 
 
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+            TaskExecutionCreatedEvent,
+        )
+from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
+            TaskExecutionExhaustedEvent,
+        )
+from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
+            TaskExecutionTimeoutExpiredEvent,
+        )
+from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
+            TaskExecutionFailedEvent,
+        )
+from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
+            TaskExecutionCompletedEvent,
+        )
+from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
+            TaskExecutionStartedEvent,
+        )
 class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
         "_workflow_id",
@@ -81,10 +102,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.CREATED:
             raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
-            TaskExecutionStartedEvent,
-        )
-
         self.append_event(
             TaskExecutionStartedEvent.now(
                 task_execution_id=self._id,
@@ -96,10 +113,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot complete task in status {self._status}")
         self._status = TaskExecutionStatus.COMPLETED
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
-            TaskExecutionCompletedEvent,
-        )
-
         self.append_event(
             TaskExecutionCompletedEvent.now(
                 task_execution_id=self._id,
@@ -113,10 +126,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot fail task in status {self._status}")
         self._status = TaskExecutionStatus.FAILED
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
-            TaskExecutionFailedEvent,
-        )
-
         self.append_event(
             TaskExecutionFailedEvent.now(
                 task_execution_id=self._id,
@@ -129,10 +138,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot timeout task in status {self._status}")
         self._status = TaskExecutionStatus.TIMED_OUT
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
-            TaskExecutionTimeoutExpiredEvent,
-        )
-
         self.append_event(
             TaskExecutionTimeoutExpiredEvent.now(
                 task_execution_id=self._id,
@@ -144,10 +149,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot exhaust task in status {self._status}")
         self._status = TaskExecutionStatus.EXHAUSTED
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
-            TaskExecutionExhaustedEvent,
-        )
-
         self.append_event(
             TaskExecutionExhaustedEvent.now(
                 task_execution_id=self._id,
@@ -224,10 +225,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             workflow_id=workflow_id,
             created_at=CreatedAt.from_datetime(now),
         )
-        from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-            TaskExecutionCreatedEvent,
-        )
-
         task_execution.append_event(
             TaskExecutionCreatedEvent.now(
                 task_execution_id=id_,
@@ -237,6 +234,3 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         )
         return task_execution
 
-
-class InvalidTaskStateError(Exception):
-    pass

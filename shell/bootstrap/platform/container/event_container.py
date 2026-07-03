@@ -187,9 +187,7 @@ class EventContainer(containers.DeclarativeContainer):
     )
     propagate_session_output_to_workflow_input_factory = providers.Factory(
         PropagateSessionOutputToWorkflowInput,
-        unit_of_work=buses.unit_of_work_factory,
-        clock=infra.clock_factory,
-        id_generator=infra.id_generator_factory,
+        workflow_session_provider=infra.workflow_session_provider_factory,
         logger=infra.stdlib_logger,
     )
     handle_graph_execution_created_factory = providers.Factory(

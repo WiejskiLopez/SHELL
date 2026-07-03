@@ -18,6 +18,20 @@ if TYPE_CHECKING:
     )
 
 
+from shell.application.session.command_handlers.session_handlers import (
+            SessionCloseHandler,
+            SessionOpenHandler,
+        )
+from shell.application.execution.query_handlers.session_get_history_handler import (
+            SessionGetHistoryHandler,
+        )
+from shell.application.execution.queries.session_get_history_query import (
+            SessionGetHistoryQuery,
+        )
+from shell.application.execution.commands.session_commands import (
+            CloseSessionCommand,
+            OpenSessionCommand,
+        )
 class TestSqlSessionRepository:
     async def test_open_close_and_history(
         self,
@@ -26,21 +40,6 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.application.execution.commands.session_commands import (
-            CloseSessionCommand,
-            OpenSessionCommand,
-        )
-        from shell.application.execution.queries.session_get_history_query import (
-            SessionGetHistoryQuery,
-        )
-        from shell.application.execution.query_handlers.session_get_history_handler import (
-            SessionGetHistoryHandler,
-        )
-        from shell.application.session.command_handlers.session_handlers import (
-            SessionCloseHandler,
-            SessionOpenHandler,
-        )
-
         session_id = await SessionOpenHandler(sql_uow, clock, id_generator).handle(
             OpenSessionCommand(goal="integration test")
         )

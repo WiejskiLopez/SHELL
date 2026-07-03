@@ -7,13 +7,9 @@ from shell.tests.conftest_helpers import _db_url
 
 class TestCliMain:
     def test_main_no_args_returns_1(self) -> None:
-        from shell.framework.platform.cli.main import main
-
         assert main([]) == 1
 
     def test_main_unknown_mode_returns_1(self) -> None:
-        from shell.framework.platform.cli.main import main
-
         assert main(["unknown_mode"]) == 1
 
     async def test_main_import_task_execution_end_to_end(self, tmp_path) -> None:
@@ -22,8 +18,6 @@ class TestCliMain:
 
         os.environ["SHELL_DATABASE_URL"] = _db_url(tmp_path)
         try:
-            from shell.framework.platform.cli.main import _import_task_execution
-
             rc = await _import_task_execution(
                 ["--task-name", "e2e_task", "--task-dir", str(tmp_path)]
             )

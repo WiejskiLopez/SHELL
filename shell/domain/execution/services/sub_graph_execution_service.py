@@ -22,10 +22,17 @@ from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution
 from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
     GraphNodeExecutionRepository,
 )
+from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
+    GraphNodeLinkExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.repositories.graph_node_link_execution_repository import (
+    GraphNodeLinkExecutionRepository,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
+    GraphNodeLinkExecutionId,
+)
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
 from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
@@ -35,7 +42,7 @@ from shell.domain.platform.value_objects.mode import Mode
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
-        GraphExecutionDefinitionProvider,  # noqa: TC002 — GraphExecutionDefinitionProvider używany w konstruktorze SubGraphExecutionService
+        GraphExecutionDefinitionProvider,
     )
     from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
     from shell.domain.execution.ports.sub_graph_observer import (
@@ -134,29 +141,9 @@ class SubGraphExecutionService:
             )
             resolved_state = await self._security.filter_state(resolved_state, scope)
 
-        # ── Build child GraphNodeExecutions first ──────────────────────────
+        # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
         sub_graph_execution_id = self._id_generator.new_id(GraphExecutionId)
 
-        node_def_ids: list[GraphNodeDefinitionId] = []
-        node_execution_ids: list[GraphNodeExecutionId] = []
-        for node_def in graph_definition.graph_node_execution_definitions:
-            node_id = self._id_generator.new_id(GraphNodeExecutionId)
-            node_def_id = GraphNodeDefinitionId.generate()
-            node = GraphNodeExecution.new(
-                id=node_id,
-                graph_execution_id=sub_graph_execution_id,
-                node_definition_id=node_def_id,
-                position=NodeOrder(node_def.position),
-                mode=Mode(node_def.mode),
-                role=NodeRole(node_def.role),
-                node_type=NodeType(node_def.node_type),
-                now=now,
-            )
-            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
-            node_def_ids.append(node_def_id)
-            node_execution_ids.append(node_id)
-
-        # ── Build child GraphExecution (no child TaskExecution, no child Workflow) ──
         sub_graph_execution = GraphExecution.create_sub_graph(
             id_=sub_graph_execution_id,
             task_execution_id=parent_graph_execution.task_execution_id,
@@ -165,22 +152,33 @@ class SubGraphExecutionService:
             max_subgraph_depth=parent_graph_execution.max_subgraph_depth,
         )
 
-        sub_graph_execution.prepare_node_definitions(
-            graph_definition_id=GraphDefinitionIdRef(graph_definition_id),
-            graph_node_definition_ids=node_def_ids,
-        )
-
-        for node_def_id, node_exec_id in zip(node_def_ids, node_execution_ids, strict=False):
-            sub_graph_execution.attach_node_execution(
-                node_definition_id=node_def_id,
-                node_execution_id=node_exec_id,
+        # ── Build child GraphNodeExecutions and link to execution ──────────
+        node_execution_ids: list[GraphNodeExecutionId] = []
+        for node_def in graph_definition.graph_node_execution_definitions:
+            node_id = self._id_generator.new_id(GraphNodeExecutionId)
+            node = GraphNodeExecution.new(
+                id=node_id,
+                graph_execution_id=sub_graph_execution_id,
+                position=NodeOrder(node_def.position),
+                mode=Mode(node_def.mode),
+                role=NodeRole(node_def.role),
+                node_type=NodeType(node_def.node_type),
                 now=now,
             )
+            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)
+            _unit_of_work.stage_events(node.pull_events())
+            node_execution_ids.append(node_id)
+
+            link = GraphNodeLinkExecution(
+                id=GraphNodeLinkExecutionId.generate(),
+                graph_execution_id=sub_graph_execution_id,
+                graph_node_execution_id=node_id,
+            )
+            await _unit_of_work.repository(GraphNodeLinkExecutionRepository).save(link)
 
         # ── Persist ───────────────────────────────────────────────────────
-        await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)  # type: ignore[type-abstract]
-
-        _unit_of_work.stage_events(list(sub_graph_execution.pull_events()))
+        await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)
+        _unit_of_work.stage_events(sub_graph_execution.pull_events())
 
         # ── Observer notification ─────────────────────────────────────────
         if self._observer is not None:

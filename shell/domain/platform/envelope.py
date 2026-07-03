@@ -33,8 +33,6 @@ class Envelope:
         transport_metadata: dict[str, object] | None = None,
         correlation_id: str | None = None,
     ) -> Envelope:
-        import uuid
-
         metadata = dict(transport_metadata or {})
         if correlation_id is not None:
             metadata["correlation_id"] = correlation_id

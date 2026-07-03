@@ -11,6 +11,15 @@ if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message
 
 
+from shell.domain.platform.aggregates.message.value_objects.message_metadata import (
+        MessageMetadata,
+    )
+from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import (
+        MaterializedMetadata,
+    )
+from shell.domain.platform.aggregates.message.value_objects.business_payload import (
+        BusinessPayload,
+    )
 def message_entity_to_model(message: Message) -> MessageModel:
 
     mat = message.materialized_metadata
@@ -35,24 +44,6 @@ def message_entity_to_model(message: Message) -> MessageModel:
 
 
 def message_model_to_entity(model: MessageModel) -> Message:
-    from shell.domain.platform.aggregates.message.message import Message
-    from shell.domain.platform.aggregates.message.value_objects.business_payload import (
-        BusinessPayload,
-    )
-    from shell.domain.platform.aggregates.message.value_objects.destination import Destination
-    from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import (
-        MaterializedMetadata,
-    )
-    from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
-    from shell.domain.platform.aggregates.message.value_objects.message_metadata import (
-        MessageMetadata,
-    )
-    from shell.domain.platform.aggregates.message.value_objects.message_status import MessageStatus
-    from shell.domain.platform.aggregates.message.value_objects.message_type import MessageType
-    from shell.domain.platform.aggregates.message.value_objects.source import Source
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.timestamp import Timestamp
-
     def _utc(dt: datetime | None) -> datetime | None:
         if dt is None:
             return None

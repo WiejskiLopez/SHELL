@@ -17,11 +17,21 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects import (
         GraphDefinitionId,
     )
+    from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_link_definition_repository import (
+        InMemoryGraphNodeLinkDefinitionRepository,
+    )
 
 
 class InMemoryGraphNodeDefinitionRepository(
     InMemoryRepository[GraphNodeDefinition, GraphNodeDefinitionId], GraphNodeDefinitionRepository
 ):
+    def __init__(self) -> None:
+        super().__init__()
+        self._link_repo: object = None
+
+    def set_link_repo(self, link_repo: object) -> None:
+        self._link_repo = link_repo
+
     async def save(self, node: GraphNodeDefinition) -> None:
         self._store[node.id.value] = node
 
@@ -29,6 +39,14 @@ class InMemoryGraphNodeDefinitionRepository(
         self,
         graph_definition_id: GraphDefinitionId,
     ) -> list[GraphNodeDefinition]:
-        return [
-            node for node in self._store.values() if node.graph_definition_id == graph_definition_id
-        ]
+        if self._link_repo is None:
+            return []
+
+        link_repo: InMemoryGraphNodeLinkDefinitionRepository = self._link_repo  # type: ignore[assignment]
+        links = await link_repo.list_by_graph_definition_id(graph_definition_id)
+        result: list[GraphNodeDefinition] = []
+        for link in links:
+            node = self._store.get(link.graph_node_definition_id.value)
+            if node is not None:
+                result.append(node)
+        return result

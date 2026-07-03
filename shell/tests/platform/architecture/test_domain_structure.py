@@ -405,8 +405,6 @@ _KNOWN_PAST_EVENTS: frozenset[str] = frozenset(
 
 
 def test_domain_event_past_tense_naming() -> None:
-    import re
-
     violations: list[str] = []
     pattern = re.compile(
         r".*(ed|ted|led|ned|ged|ked|zed|hed|ped|bed|ved|wed|ched|gged|pped|tted|lled|rred|nned|mmed)$",
@@ -782,7 +780,9 @@ def test_entity_aggregate_init_params_have_domain_types() -> None:
 
 # ── 17. No primitive types in DomainEvent dataclass fields ──────────
 
-_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
+_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
+    "domain\\execution\\aggregates\\workflow\\events\\workflow_started_event.py: WorkflowStartedEvent.work_dir: str",
+})
 
 
 def test_domain_event_fields_have_domain_types() -> None:

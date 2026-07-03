@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
 )
@@ -14,9 +12,18 @@ from shell.application.execution.queries.workflow_get_by_id_query import Workflo
 from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
     WorkflowGetByIdHandler,
 )
+from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
+    GraphNodeLinkExecution,
+)
+from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
+    GraphNodeLinkExecutionId,
+)
 from shell.domain.execution.events import WorkflowStartedEvent
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
     InMemoryGraphNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
+    InMemoryGraphNodeLinkExecutionRepository,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -30,6 +37,7 @@ from shell.infrastructure.platform.persistence.memory import (
 )
 
 
+from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
 class TestWorkflowStartHandler:
     async def _import_task_execution(
         self,
@@ -49,17 +57,6 @@ class TestWorkflowStartHandler:
     async def _attach_graph_execution(
         unit_of_work: InMemoryUnitOfWork, task_execution_name: str
     ) -> None:
-        from shell.domain.execution.aggregates.graph_execution import GraphExecution
-        from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-        from shell.domain.execution.value_objects.graph_depth import GraphDepth
-        from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
-        from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-        from shell.domain.execution.value_objects.node_order import NodeOrder
-        from shell.domain.execution.value_objects.node_role import NodeRole
-        from shell.domain.execution.value_objects.node_type import NodeType
-        from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-        from shell.domain.platform.value_objects.mode import Mode
-
         task_execution = await unit_of_work.repository(
             InMemoryTaskExecutionRepository
         ).get_current_by_name(TaskExecutionName(task_execution_name))
@@ -77,9 +74,14 @@ class TestWorkflowStartHandler:
             role=NodeRole.AGENT,
             node_type=NodeType("agent"),
         )
-        node._graph_execution_id = graph_execution.id
+        link = GraphNodeLinkExecution(
+            id=GraphNodeLinkExecutionId.generate(),
+            graph_execution_id=graph_execution.id,
+            graph_node_execution_id=node.id,
+        )
         await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)
         await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
+        await unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository).save(link)
 
     async def test_happy_path(
         self,
