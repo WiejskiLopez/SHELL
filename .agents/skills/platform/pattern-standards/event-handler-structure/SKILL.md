@@ -50,11 +50,11 @@ Gdy agregat A emituje event wymagający koordynacji wielu agregatów:
 # DOBRY — Saga: osobne komendy, każda modyfikuje 1 agregat
 
 class NodeExecutionSaga:
-    async def handle(self, event: GraphNodeExecutionStartedEvent) -> None:
+    async def handle(self, event: NodeExecutionStartedEvent) -> None:
         await self._command_bus.publish(ExecuteNodeCommand(event.node_id))
-        # → ExecuteNodeHandler modyfikuje tylko GraphNodeExecution
+        # → ExecuteNodeHandler modyfikuje tylko NodeExecution
 
-    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
+    async def handle(self, event: NodeExecutionCompletedEvent) -> None:
         if self._needs_retry(event):
             await self._command_bus.publish(RetryNodeCommand(event.node_id))
         else:

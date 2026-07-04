@@ -10,7 +10,7 @@ DTO (kontrakt danych) jest własnością **domeny która go definiuje** (źród�
 Definition Domain (źródło)                Execution Domain (docelowa)
 ┌────────────────────────┐                ┌──────────────────────────┐
 │ GraphDefinitionDto     │── TYPE_CHECKING│ GraphExecutionDefinitionProvider        │
-│ GraphNodeDefinitionDto │  (tylko typy)  │ (port/Protocol)          │
+│ NodeDefinitionDto │  (tylko typy)  │ (port/Protocol)          │
 │ (application/dto/)     │                │ (domain/ports/)          │
 └────────────────────────┘                └──────────────────────────┘
 ```
@@ -53,7 +53,7 @@ Definition Domain (źródło)       Infrastructure                   Execution D
                                 └──────────────────────┘                   ▼
                                                                  ┌──────────────────────────┐
                                                                  │ GraphExecutionDefinition  │
-                                                                 │ GraphNodeExecutionDef     │
+                                                                 │ NodeExecutionDef     │
                                                                  │ (domain/value_objects/)   │
                                                                  └──────────────────────────┘
 ```

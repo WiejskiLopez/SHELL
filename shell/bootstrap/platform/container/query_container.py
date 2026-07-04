@@ -12,8 +12,8 @@ from shell.application.definition.query_handlers.rag_search_similar_handler impo
 from shell.application.definition.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler,
 )
-from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
-    GraphNodeExecutionGetResultHandler,
+from shell.application.execution.query_handlers.node_execution_get_result_handler import (
+    NodeExecutionGetResultHandler,
 )
 from shell.application.execution.query_handlers.session_get_history_handler import (
     SessionGetHistoryHandler,
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
         get_task_execution_by_name_handler_factory: Factory[TaskExecutionGetByNameHandler]
         get_current_task_execution_handler_factory: Factory[TaskExecutionGetCurrentHandler]
         get_workflow_handler_factory: Factory[WorkflowGetByIdHandler]
-        get_graph_node_execution_result_handler_factory: Factory[GraphNodeExecutionGetResultHandler]
+        get_node_execution_result_handler_factory: Factory[NodeExecutionGetResultHandler]
         get_runner_config_handler_factory: Factory[RunnerConfigGetHandler]
         get_session_history_handler_factory: Factory[SessionGetHistoryHandler]
         search_similar_handler_factory: Factory[RagSearchSimilarHandler]
@@ -55,8 +55,8 @@ class QueryContainer(containers.DeclarativeContainer):
     get_workflow_handler_factory = providers.Factory(
         WorkflowGetByIdHandler, queries=infra.workflow_query_service
     )
-    get_graph_node_execution_result_handler_factory = providers.Factory(
-        GraphNodeExecutionGetResultHandler, queries=infra.node_result_query_service
+    get_node_execution_result_handler_factory = providers.Factory(
+        NodeExecutionGetResultHandler, queries=infra.node_result_query_service
     )
     get_runner_config_handler_factory = providers.Factory(
         RunnerConfigGetHandler, queries=infra.runner_config_query_service

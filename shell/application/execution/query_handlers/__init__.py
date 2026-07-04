@@ -1,5 +1,5 @@
-from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
-    GraphNodeExecutionGetResultHandler,
+from shell.application.execution.query_handlers.node_execution_get_result_handler import (
+    NodeExecutionGetResultHandler,
 )
 from shell.application.execution.query_handlers.session_get_history_handler import (
     SessionGetHistoryHandler,
@@ -16,7 +16,7 @@ from shell.application.execution.query_handlers.workflow_get_by_id_handler impor
 
 __all__ = [
     "TaskExecutionGetCurrentHandler",
-    "GraphNodeExecutionGetResultHandler",
+    "NodeExecutionGetResultHandler",
     "SessionGetHistoryHandler",
     "TaskExecutionGetByNameHandler",
     "WorkflowGetByIdHandler",

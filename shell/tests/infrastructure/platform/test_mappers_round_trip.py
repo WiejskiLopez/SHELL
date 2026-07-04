@@ -1,7 +1,7 @@
 """Round-trip tests for SQL ORM model <-> domain entity mappers.
 
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
-            GraphNodeExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+            NodeExecutionModel,
         )
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
             GraphExecutionModel,
@@ -19,15 +19,15 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
+from shell.domain.execution.aggregates.node_execution.node_execution import (
+    NodeExecution,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
-    GraphNodeExecutionId,
+    NodeExecutionId,
     SessionIdRef,
     TaskExecutionId,
     WorkflowId,
@@ -55,9 +55,9 @@ from shell.infrastructure.execution.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-    _graph_node_execution_entity_to_model,
-    _graph_node_execution_model_to_entity,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_node_execution_repository import (
+    _node_execution_entity_to_model,
+    _node_execution_model_to_entity,
 )
 from shell.infrastructure.session.persistence.sql.mappers import (
     session_entity_to_model,
@@ -225,7 +225,7 @@ class TestGraphExecutionMapper:
 
         assert restored.id.value == original.id.value
 
-    def test_model_to_entity_with_graph_node_executions(self) -> None:
+    def test_model_to_entity_with_node_executions(self) -> None:
         model = GraphExecutionModel(
             id="ge-4",
             task_execution_id="te-1",
@@ -297,20 +297,20 @@ class TestSessionMapper:
 
 
 # ---------------------------------------------------------------------------
-# GraphNodeExecution  (private mappers in repository work cleanly)
+# NodeExecution  (private mappers in repository work cleanly)
 # ---------------------------------------------------------------------------
 
 
-class TestGraphNodeExecutionMapper:
+class TestNodeExecutionMapper:
     def test_entity_to_model_minimal(self) -> None:
-        original = GraphNodeExecution(
-            id=GraphNodeExecutionId("gne-1"),
+        original = NodeExecution(
+            id=NodeExecutionId("gne-1"),
             position=NodeOrder(0),
             mode=Mode.WORKER,
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
         )
-        model = _graph_node_execution_entity_to_model(original)
+        model = _node_execution_entity_to_model(original)
 
         assert model.id == "gne-1"
         assert model.position == 0
@@ -319,8 +319,8 @@ class TestGraphNodeExecutionMapper:
         assert model.node_type == "worker"
 
     def test_model_to_entity_minimal(self) -> None:
-        model = GraphNodeExecutionModel(id="gne-1", position=0, mode="worker")
-        entity = _graph_node_execution_model_to_entity(model)
+        model = NodeExecutionModel(id="gne-1", position=0, mode="worker")
+        entity = _node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"
         assert entity.position.value == 0
@@ -328,15 +328,15 @@ class TestGraphNodeExecutionMapper:
         assert entity.pull_events() == []
 
     def test_round_trip_minimal(self) -> None:
-        original = GraphNodeExecution(
-            id=GraphNodeExecutionId("gne-3"),
+        original = NodeExecution(
+            id=NodeExecutionId("gne-3"),
             position=NodeOrder(1),
             mode=Mode.AGENT,
             role=NodeRole.AGENT,
             node_type=NodeType("llm"),
         )
-        model = _graph_node_execution_entity_to_model(original)
-        restored = _graph_node_execution_model_to_entity(model)
+        model = _node_execution_entity_to_model(original)
+        restored = _node_execution_model_to_entity(model)
 
         assert restored.id.value == original.id.value
         assert restored.position == original.position
@@ -346,15 +346,15 @@ class TestGraphNodeExecutionMapper:
         assert restored.pull_events() == []
 
     def test_round_trip_full(self) -> None:
-        original = GraphNodeExecution(
-            id=GraphNodeExecutionId("gne-4"),
+        original = NodeExecution(
+            id=NodeExecutionId("gne-4"),
             position=NodeOrder(3),
             mode=Mode.PLANNER,
             role=NodeRole.PLANNER,
             node_type=NodeType("llm"),
         )
-        model = _graph_node_execution_entity_to_model(original)
-        restored = _graph_node_execution_model_to_entity(model)
+        model = _node_execution_entity_to_model(original)
+        restored = _node_execution_model_to_entity(model)
 
         assert restored.id.value == "gne-4"
         assert restored.position.value == 3

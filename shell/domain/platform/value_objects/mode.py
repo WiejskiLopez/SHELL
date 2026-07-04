@@ -12,7 +12,7 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 class Mode(ValueObject, StrEnum):
-    """Execution mode of a graph_node."""
+    """Execution mode of a node."""
 
     AGENT = "agent"
     ROUTER = "router"

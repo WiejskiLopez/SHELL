@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-        GraphNodeExecutionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
     )
     from shell.domain.platform.value_objects.exists_result import ExistsResult
 
@@ -22,7 +22,7 @@ class AgentExecutionRepository(Protocol):
     async def exists(self, id: AgentExecutionId) -> ExistsResult: ...
 
     async def get_by_node_execution_id(
-        self, node_id: GraphNodeExecutionId
+        self, node_id: NodeExecutionId
     ) -> AgentExecution | None: ...
 
     async def save(self, agent_execution: AgentExecution) -> None: ...

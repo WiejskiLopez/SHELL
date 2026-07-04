@@ -20,7 +20,7 @@ from shell.domain.execution.ports.sub_graph_security import Scope, SubGraphSecur
 from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
-    GraphNodeExecutionDefinition,
+    NodeExecutionDefinition,
 )
 
 if TYPE_CHECKING:
@@ -28,8 +28,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-        GraphNodeExecution,
+    from shell.domain.execution.aggregates.node_execution.node_execution import (
+        NodeExecution,
     )
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
 
@@ -49,14 +49,14 @@ class DefaultSubGraphExecutionPolicy(SubGraphExecutionPolicy):
     async def on_timeout(
         self,
         graph_execution: GraphExecution,
-        node: GraphNodeExecution,
+        node: NodeExecution,
     ) -> Decision:
         return Decision.abort("sub_graph_timed_out")
 
     async def on_failure(
         self,
         graph_execution: GraphExecution,
-        node: GraphNodeExecution,
+        node: NodeExecution,
         reason: str,
     ) -> Decision:
         return Decision.abort(reason)
@@ -181,7 +181,7 @@ class LatestVersionStrategy(SubGraphVersioning):
             if definition is None:
                 raise ValueError(f"GraphDefinition {definition_id!r} not found")
             node_defs = [
-                GraphNodeExecutionDefinition(
+                NodeExecutionDefinition(
                     position=n.position,
                     mode=str(n.mode),
                     role=n.role,
@@ -198,12 +198,12 @@ class LatestVersionStrategy(SubGraphVersioning):
                     script=n.script,
                     script_type=n.script_type,
                 )
-                for n in definition.graph_node_definitions
+                for n in definition.node_definitions
             ]
             return GraphExecutionDefinition(
                 id=definition.id.value,
                 name=definition.name,
-                graph_node_execution_definitions=node_defs,
+                node_execution_definitions=node_defs,
             )
 
 

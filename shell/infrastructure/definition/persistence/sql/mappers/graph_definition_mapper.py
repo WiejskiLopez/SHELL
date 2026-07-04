@@ -3,7 +3,7 @@ from __future__ import annotations
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
 from shell.domain.definition.value_objects.ids import (
-    GraphNodeTransitionDefinitionId,
+    NodeTransitionDefinitionId,
 )
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
@@ -19,14 +19,14 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
         name=model.name,
         purpose=model.purpose,
         system_role=model.system_role,
-        graph_node_definitions=[],
+        node_definitions=[],
     )
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
     transition_ids = [
-        GraphNodeTransitionDefinitionId(t.id)
-        for t in (model.graph_node_transition_definition_models or [])
+        NodeTransitionDefinitionId(t.id)
+        for t in (model.node_transition_definition_models or [])
     ]
     system_role = SystemRole(model.system_role) if model.system_role is not None else None
     return GraphDefinition(

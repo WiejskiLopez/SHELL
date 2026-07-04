@@ -15,23 +15,23 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
+from shell.domain.execution.aggregates.node_execution.node_execution import (
+    NodeExecution,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-    GraphNodeExecutionId,
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
-    GraphNodeLinkExecution,
+from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.repositories.graph_node_link_execution_repository import (
-    GraphNodeLinkExecutionRepository,
+from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
+    NodeLinkExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
-    GraphNodeLinkExecutionId,
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
@@ -143,25 +143,25 @@ class SubGraphSpawnRequestedHandler:
                 max_subgraph_depth=parent.max_subgraph_depth,
             )
 
-            node_defs = graph_definition.graph_node_execution_definitions
+            node_defs = graph_definition.node_execution_definitions
 
             for _i, node_def in enumerate(node_defs):
-                node_id = GraphNodeExecutionId.generate()
-                node = GraphNodeExecution(
+                node_id = NodeExecutionId.generate()
+                node = NodeExecution(
                     id=node_id,
                     role=NodeRole(node_def.role),
                     position=NodeOrder(node_def.position),
                     mode=Mode(node_def.mode),
                     node_type=NodeType(node_def.node_type),
                 )
-                await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
+                await unit_of_work.repository(NodeExecutionRepository).save(node)
 
-                link = GraphNodeLinkExecution(
-                    id=GraphNodeLinkExecutionId.generate(),
+                link = NodeLinkExecution(
+                    id=NodeLinkExecutionId.generate(),
                     graph_execution_id=child_id,
-                    graph_node_execution_id=node_id,
+                    node_execution_id=node_id,
                 )
-                await unit_of_work.repository(GraphNodeLinkExecutionRepository).save(link)
+                await unit_of_work.repository(NodeLinkExecutionRepository).save(link)
 
             if state_input:
                 state = GraphExecutionState.create(

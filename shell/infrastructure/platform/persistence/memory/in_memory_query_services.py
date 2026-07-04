@@ -22,8 +22,8 @@ from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+    InMemoryNodeExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
@@ -55,28 +55,28 @@ class InMemoryQueryServices:
         graph_execution = await self._unit_of_work.repository(
             InMemoryGraphExecutionRepository
         ).get_by_task_execution_id(task_execution.id)
-        graph_node_executions = []
+        node_executions = []
         if graph_execution is not None:
             nodes = await self._unit_of_work.repository(
-                InMemoryGraphNodeExecutionRepository
+                InMemoryNodeExecutionRepository
             ).list_by_graph_execution_id(graph_execution.id)
-            graph_node_executions = [
-                GraphNodeExecutionDto(
-                    id=graph_node_execution.id.value,
-                    position=graph_node_execution.position.value,
-                    mode=graph_node_execution.mode.value,
-                    role=graph_node_execution.role,
-                    node_type=graph_node_execution.node_type.value,
+            node_executions = [
+                NodeExecutionDto(
+                    id=node_execution.id.value,
+                    position=node_execution.position.value,
+                    mode=node_execution.mode.value,
+                    role=node_execution.role,
+                    node_type=node_execution.node_type.value,
                     model=None,
                     command=None,
                 )
-                for graph_node_execution in nodes
+                for node_execution in nodes
             ]
         return TaskExecutionDto(
             id=task_execution.id.value,
             name=task_execution.name.value,
             created_at=task_execution.created_at.value if task_execution.created_at else None,
-            graph_node_executions=tuple(graph_node_executions),
+            node_executions=tuple(node_executions),
         )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:

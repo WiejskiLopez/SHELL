@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
 from shell.domain.execution.events import (
-    GraphNodeExecutionFailedEvent,
+    NodeExecutionFailedEvent,
     WorkflowAbortedEvent,
     WorkflowCompletedEvent,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
-    FakeGraphNodeExecutionProcessRunner,
+    FakeNodeExecutionProcessRunner,
     FakeIdGenerator,
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
@@ -29,7 +29,7 @@ class TestRunTaskerWorkflowPartialFailure:
         command = RunTaskerWorkflowCommand(
             task_execution_id=task_execution.id.value, work_dir="/fake/work/dir"
         )
-        failing_runner = FakeGraphNodeExecutionProcessRunner(
+        failing_runner = FakeNodeExecutionProcessRunner(
             stdout="execution failed", returncode=1
         )
 
@@ -37,7 +37,7 @@ class TestRunTaskerWorkflowPartialFailure:
             unit_of_work, clock, id_generator, command, runner=failing_runner
         )
 
-        assert any(isinstance(e, GraphNodeExecutionFailedEvent) for e in events)
+        assert any(isinstance(e, NodeExecutionFailedEvent) for e in events)
         assert any(isinstance(e, WorkflowAbortedEvent) for e in events)
         assert not any(isinstance(e, WorkflowCompletedEvent) for e in events)
 

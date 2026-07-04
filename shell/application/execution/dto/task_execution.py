@@ -15,4 +15,4 @@ class TaskExecutionDto:
     created_at: datetime | None = None
     work_dir: str = ""
     workflow_id: str | None = None
-    graph_node_executions: tuple[Any, ...] = field(default_factory=tuple)
+    node_executions: tuple[Any, ...] = field(default_factory=tuple)

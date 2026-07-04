@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.application.execution.strategies.graph_node_execution_strategy import (
+from shell.application.execution.strategies.node_execution_strategy import (
     PlannerStrategy,
     get_strategy,
 )

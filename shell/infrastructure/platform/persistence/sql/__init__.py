@@ -117,7 +117,7 @@ async def seed_base_data(url: str) -> None:
 def _seed_sync(sync_conn) -> None:
     from shell.infrastructure.definition.persistence.sql.models import (
         GraphDefinitionModel,
-        GraphNodeDefinitionModel,
+        NodeDefinitionModel,
     )
 
     session = Session(sync_conn)
@@ -137,14 +137,14 @@ def _seed_sync(sync_conn) -> None:
         session.flush()
 
     node_exists = session.execute(
-        select(GraphNodeDefinitionModel).where(
-            GraphNodeDefinitionModel.graph_definition_id == graph_definition_model.id
+        select(NodeDefinitionModel).where(
+            NodeDefinitionModel.graph_definition_id == graph_definition_model.id
         )
     ).scalar_one_or_none()
 
     if node_exists is None:
         session.add(
-            GraphNodeDefinitionModel(
+            NodeDefinitionModel(
                 id="base-planner-node-1",
                 graph_definition_id=graph_definition_model.id,
                 position=0,

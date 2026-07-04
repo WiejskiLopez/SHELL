@@ -9,14 +9,14 @@ from shell.infrastructure.definition.persistence.sql.models.base import Base, De
 from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
     GraphDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_definition import (
-    GraphNodeDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_definition import (
+    NodeDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_link_definition import (
-    GraphNodeLinkDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
+    NodeLinkDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_transition_definition import (
-    GraphNodeTransitionDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
+    NodeTransitionDefinitionModel,
 )
 from shell.infrastructure.definition.persistence.sql.models.rag_chunk import RagChunkModel
 from shell.infrastructure.definition.persistence.sql.models.rag_document import RagDocumentModel
@@ -28,9 +28,9 @@ __all__ = [
     "DeclarativeBase",
     "ForeignKey",
     "GraphDefinitionModel",
-    "GraphNodeDefinitionModel",
-    "GraphNodeLinkDefinitionModel",
-    "GraphNodeTransitionDefinitionModel",
+    "NodeDefinitionModel",
+    "NodeLinkDefinitionModel",
+    "NodeTransitionDefinitionModel",
     "JSON",
     "JSONB",
     "Mapped",

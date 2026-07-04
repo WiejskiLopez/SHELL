@@ -1,4 +1,4 @@
-"""Workspace — filesystem implementation of the GraphNodeExecutionWorkspace port."""
+"""Workspace — filesystem implementation of the NodeExecutionWorkspace port."""
 
 from __future__ import annotations
 
@@ -27,9 +27,9 @@ class Workspace:
     ``<workspace_path>/.node/{input,output,logs,temp,prompt,scripts,status,port,archive}/``
     """
 
-    async def prepare(self, graph_node_execution_id: str, work_dir: str) -> str:
+    async def prepare(self, node_execution_id: str, work_dir: str) -> str:
         """Create workspace directory tree and return the workspace path."""
-        workspace_path = Path(work_dir) / graph_node_execution_id
+        workspace_path = Path(work_dir) / node_execution_id
         dot_node = workspace_path / _DOT_NODE
         for subdir in _NODE_SUBDIRS:
             (dot_node / subdir).mkdir(parents=True, exist_ok=True)

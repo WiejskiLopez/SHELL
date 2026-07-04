@@ -78,7 +78,7 @@ def test_event_container_has_all_providers():
 
 Wszystkie providery w kontenerach które są fabrykami handlerów używają sufiksu `_factory`:
 
-- `graph_node_execution_completed_handler_factory = providers.Factory(...)`
+- `node_execution_completed_handler_factory = providers.Factory(...)`
 - `log_audit_handler_factory = providers.Factory(...)`
 
 W fabrykach rejestrujących (event_factory.py, command_factory.py, itp.) odwołuj się przez:

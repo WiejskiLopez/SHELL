@@ -10,17 +10,17 @@ from shell.application.definition.command_handlers.graph_definition_create_handl
 from shell.application.definition.command_handlers.runner_config_bootstrap_handler import (
     RunnerConfigBootstrapHandler,
 )
-from shell.application.execution.command_handlers.graph_node_execution_attach_handler import (
-    GraphNodeExecutionAttachHandler,
+from shell.application.execution.command_handlers.node_execution_attach_handler import (
+    NodeExecutionAttachHandler,
 )
-from shell.application.execution.command_handlers.graph_node_execution_create_handler import (
-    GraphNodeExecutionCreateHandler,
+from shell.application.execution.command_handlers.node_execution_create_handler import (
+    NodeExecutionCreateHandler,
 )
-from shell.application.execution.command_handlers.graph_node_execution_run_handler import (
-    GraphNodeExecutionRunHandler,
+from shell.application.execution.command_handlers.node_execution_run_handler import (
+    NodeExecutionRunHandler,
 )
-from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
-    GraphNodeExecutionSaveResultHandler,
+from shell.application.execution.command_handlers.node_execution_save_result_handler import (
+    NodeExecutionSaveResultHandler,
 )
 from shell.application.execution.command_handlers.task_execution_import_handler import (
     TaskExecutionImportHandler,
@@ -53,8 +53,8 @@ class CommandContainer(containers.DeclarativeContainer):
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
     )
-    run_graph_node_execution_handler_factory = providers.Factory(
-        GraphNodeExecutionRunHandler,
+    run_node_execution_handler_factory = providers.Factory(
+        NodeExecutionRunHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
@@ -62,8 +62,8 @@ class CommandContainer(containers.DeclarativeContainer):
         runner=infra.runner_factory,
         strategy=domain.strategy,
     )
-    save_graph_node_execution_result_handler_factory = providers.Factory(
-        GraphNodeExecutionSaveResultHandler,
+    save_node_execution_result_handler_factory = providers.Factory(
+        NodeExecutionSaveResultHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
@@ -87,14 +87,14 @@ class CommandContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         navigator=domain.node_navigator_factory,
     )
-    create_graph_node_execution_handler_factory = providers.Factory(
-        GraphNodeExecutionCreateHandler,
+    create_node_execution_handler_factory = providers.Factory(
+        NodeExecutionCreateHandler,
         unit_of_work=buses.unit_of_work_factory,
         identity=infra.id_generator_factory,
         time=infra.clock_factory,
     )
-    attach_graph_node_executions_handler_factory = providers.Factory(
-        GraphNodeExecutionAttachHandler,
+    attach_node_executions_handler_factory = providers.Factory(
+        NodeExecutionAttachHandler,
         unit_of_work=buses.unit_of_work_factory,
         time=infra.clock_factory,
     )

@@ -4,29 +4,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_node_execution.exceptions.role_not_resolvable import (
+from shell.domain.execution.aggregates.node_execution.exceptions.role_not_resolvable import (
     RoleNotResolvable,
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-        GraphNodeExecution,
+    from shell.domain.execution.aggregates.node_execution.node_execution import (
+        NodeExecution,
     )
-    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-        GraphNodeExecutionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
     )
 
 
 class GraphExecutionRoutingService:
-    """Resolves target_role -> GraphNodeExecutionId using the task graph."""
+    """Resolves target_role -> NodeExecutionId using the task graph."""
 
     @staticmethod
-    def resolve_target_graph_node_execution(
-        graph_node_executions: tuple[GraphNodeExecution, ...],
-        source_node_execution_id: GraphNodeExecutionId,
+    def resolve_target_node_execution(
+        node_executions: tuple[NodeExecution, ...],
+        source_node_execution_id: NodeExecutionId,
         target_role: str | None,
-    ) -> GraphNodeExecutionId:
-        """Return receiver GraphNodeExecutionId for a given source node and optional target_role.
+    ) -> NodeExecutionId:
+        """Return receiver NodeExecutionId for a given source node and optional target_role.
 
         Rules:
         1. If target_role is set -> find first non-router node whose role matches.
@@ -34,7 +34,7 @@ class GraphExecutionRoutingService:
         3. If nothing found -> raise RoleNotResolvable.
         """
         non_router = [
-            gn for gn in graph_node_executions if graph_node_execution_mode_is_not_router(gn)
+            gn for gn in node_executions if node_execution_mode_is_not_router(gn)
         ]
 
         if target_role:
@@ -51,7 +51,7 @@ class GraphExecutionRoutingService:
         return candidates[0].id
 
 
-def graph_node_execution_mode_is_not_router(gn: GraphNodeExecution) -> bool:
+def node_execution_mode_is_not_router(gn: NodeExecution) -> bool:
     mode = getattr(gn, "mode", None)
     if mode is not None:
         return str(mode) != "router"

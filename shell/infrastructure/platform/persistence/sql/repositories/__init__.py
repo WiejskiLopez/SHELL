@@ -5,8 +5,8 @@ from __future__ import annotations
 from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_definition_repository import (
     SqlGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_definition_repository import (
-    SqlGraphNodeDefinitionRepository,
+from shell.infrastructure.definition.persistence.sql.repositories.sql_node_definition_repository import (
+    SqlNodeDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_document_repository import (
     SqlRagDocumentRepository,
@@ -36,7 +36,7 @@ from shell.infrastructure.session.persistence.sql.repositories.sql_session_repos
 __all__ = [
     "SqlGraphDefinitionRepository",
     "SqlGraphExecutionRepository",
-    "SqlGraphNodeDefinitionRepository",
+    "SqlNodeDefinitionRepository",
     "SqlMessageRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",

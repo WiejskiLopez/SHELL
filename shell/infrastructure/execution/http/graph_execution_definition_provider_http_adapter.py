@@ -7,7 +7,7 @@ from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_def
 )
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
-    GraphNodeExecutionDefinition,
+    NodeExecutionDefinition,
 )
 
 if TYPE_CHECKING:
@@ -48,8 +48,8 @@ class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvid
             id=data["id"],
             name=data["name"],
             system_role=data.get("system_role"),
-            graph_node_execution_definitions=[
-                GraphNodeExecutionDefinition(
+            node_execution_definitions=[
+                NodeExecutionDefinition(
                     position=node["position"],
                     mode=node["mode"],
                     role=node["role"],
@@ -66,6 +66,6 @@ class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvid
                     script=node.get("script", ""),
                     script_type=node.get("script_type", ""),
                 )
-                for node in data.get("graph_node_definitions", [])
+                for node in data.get("node_definitions", [])
             ],
         )

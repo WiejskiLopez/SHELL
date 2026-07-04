@@ -11,17 +11,17 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_in
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-    GraphNodeExecutionCompletedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+    NodeExecutionCompletedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
-    GraphNodeExecutionFailedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
+    NodeExecutionFailedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
-    GraphNodeExecutionInitializedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event import (
+    NodeExecutionInitializedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
-    GraphNodeExecutionTimeoutExpiredEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event import (
+    NodeExecutionTimeoutExpiredEvent,
 )
 from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
     SessionExecutionCreatedEvent,
@@ -35,11 +35,11 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_crea
 from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
     UserExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_advanced_event import (
-    GraphNodeExecutionAdvancedEvent,
+from shell.domain.execution.aggregates.workflow.events.node_execution_advanced_event import (
+    NodeExecutionAdvancedEvent,
 )
-from shell.domain.execution.aggregates.workflow.events.graph_node_execution_requested_event import (
-    GraphNodeExecutionRequestedEvent,
+from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
+    NodeExecutionRequestedEvent,
 )
 from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
@@ -59,11 +59,11 @@ __all__ = [
     "DomainEvent",
     "GraphExecutionConstructedEvent",
     "GraphExecutionStateChangedEvent",
-    "GraphNodeExecutionAdvancedEvent",
-    "GraphNodeExecutionCompletedEvent",
-    "GraphNodeExecutionFailedEvent",
-    "GraphNodeExecutionRequestedEvent",
-    "GraphNodeExecutionTimeoutExpiredEvent",
+    "NodeExecutionAdvancedEvent",
+    "NodeExecutionCompletedEvent",
+    "NodeExecutionFailedEvent",
+    "NodeExecutionRequestedEvent",
+    "NodeExecutionTimeoutExpiredEvent",
     "SessionExecutionCreatedEvent",
     "TaskExecutionCompletedEvent",
     "TaskExecutionCreatedEvent",
@@ -73,5 +73,5 @@ __all__ = [
     "WorkflowStartedEvent",
     "WorkflowAbortedEvent",
     "GraphExecutionInitializedEvent",
-    "GraphNodeExecutionInitializedEvent",
+    "NodeExecutionInitializedEvent",
 ]

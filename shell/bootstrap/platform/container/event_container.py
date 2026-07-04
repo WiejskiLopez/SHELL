@@ -22,23 +22,23 @@ from shell.application.execution.event_handlers.graph_execution_failed_handler i
 from shell.application.execution.event_handlers.graph_execution_planning_started_handler import (
     GraphExecutionPlanningStartedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
-    GraphNodeExecutionCompletedHandler,
+from shell.application.execution.event_handlers.node_execution_completed_handler import (
+    NodeExecutionCompletedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_failed_handler import (
-    GraphNodeExecutionFailedHandler,
+from shell.application.execution.event_handlers.node_execution_failed_handler import (
+    NodeExecutionFailedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_initialized_handler import (
-    GraphNodeExecutionInitializedHandler,
+from shell.application.execution.event_handlers.node_execution_initialized_handler import (
+    NodeExecutionInitializedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_started_handler import (
-    GraphNodeExecutionStartedHandler,
+from shell.application.execution.event_handlers.node_execution_started_handler import (
+    NodeExecutionStartedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_timeout_expired_handler import (
-    GraphNodeExecutionTimeoutExpiredHandler,
+from shell.application.execution.event_handlers.node_execution_timeout_expired_handler import (
+    NodeExecutionTimeoutExpiredHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_worker import (
-    GraphNodeExecutionWorker,
+from shell.application.execution.event_handlers.node_execution_worker import (
+    NodeExecutionWorker,
 )
 from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
     NotifyParentOnChildCompletionHandler,
@@ -91,25 +91,25 @@ class EventContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
-    graph_node_execution_worker_factory = providers.Factory(
-        GraphNodeExecutionWorker,
+    node_execution_worker_factory = providers.Factory(
+        NodeExecutionWorker,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         runner=infra.runner_factory,
         logger=infra.stdlib_logger,
     )
-    graph_node_execution_completed_handler_factory = providers.Factory(
-        GraphNodeExecutionCompletedHandler,
+    node_execution_completed_handler_factory = providers.Factory(
+        NodeExecutionCompletedHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
         navigator=domain.node_navigator_factory,
-        policy=domain.graph_node_execution_policy_factory,
+        policy=domain.node_execution_policy_factory,
     )
-    graph_node_execution_timeout_expired_handler_factory = providers.Factory(
-        GraphNodeExecutionTimeoutExpiredHandler,
+    node_execution_timeout_expired_handler_factory = providers.Factory(
+        NodeExecutionTimeoutExpiredHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
@@ -139,8 +139,8 @@ class EventContainer(containers.DeclarativeContainer):
         security=domain.sub_graph_security_factory,
         versioning=domain.sub_graph_versioning_factory,
     )
-    graph_node_execution_initialized_handler_factory = providers.Factory(
-        GraphNodeExecutionInitializedHandler,
+    node_execution_initialized_handler_factory = providers.Factory(
+        NodeExecutionInitializedHandler,
         logger=infra.stdlib_logger,
     )
     propagate_node_output_to_graph_input_factory = providers.Factory(
@@ -218,15 +218,15 @@ class EventContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
-    handle_graph_node_execution_started_factory = providers.Factory(
-        GraphNodeExecutionStartedHandler,
+    handle_node_execution_started_factory = providers.Factory(
+        NodeExecutionStartedHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
-    handle_graph_node_execution_failed_factory = providers.Factory(
-        GraphNodeExecutionFailedHandler,
+    handle_node_execution_failed_factory = providers.Factory(
+        NodeExecutionFailedHandler,
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,

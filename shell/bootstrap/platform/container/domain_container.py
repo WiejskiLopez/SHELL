@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.execution.strategies.graph_node_execution_strategy import get_strategy
-from shell.domain.execution.services.graph_node_execution_navigator import (
-    TransitionBasedGraphNodeExecutionNavigator,
+from shell.application.execution.strategies.node_execution_strategy import get_strategy
+from shell.domain.execution.services.node_execution_navigator import (
+    TransitionBasedNodeExecutionNavigator,
 )
-from shell.domain.execution.services.graph_node_execution_policy import (
-    FailFastGraphNodeExecutionPolicy,
+from shell.domain.execution.services.node_execution_policy import (
+    FailFastNodeExecutionPolicy,
 )
 from shell.infrastructure.execution.default_implementations.sub_graph_defaults import (
     DefaultSubGraphDiscovery,
@@ -26,8 +26,8 @@ class DomainContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    node_navigator_factory = providers.Singleton(TransitionBasedGraphNodeExecutionNavigator)
-    graph_node_execution_policy_factory = providers.Singleton(FailFastGraphNodeExecutionPolicy)
+    node_navigator_factory = providers.Singleton(TransitionBasedNodeExecutionNavigator)
+    node_execution_policy_factory = providers.Singleton(FailFastNodeExecutionPolicy)
 
     strategy = providers.Object(get_strategy("agent"))
 

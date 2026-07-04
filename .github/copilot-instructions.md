@@ -175,7 +175,7 @@ W systemie `shell` testy automatyczne są integralną częścią kodu produkcyjn
 - **`shell/tests/unit/domain/` — Testy Jednostkowe Domeny:**
   Testują czystą logikę biznesową i reguły encji/Value Objects. **Całkowity zakaz operacji I/O, dostępu do sieci czy systemów plików.** Nie używamy tu mocków ani dublerów portów aplikacji – domena jest testowana jako czysty Python (Pure Python).
 - **`shell/tests/unit/application/` — Testy Jednostkowe Aplikacji:**
-  Testują handlery przypadków użycia (`*Handler`). Wszelkie zależności infrastrukturalne są wstrzykiwane w postaci szybkich dublerów in-memory (`InMemory*` adaptery) oraz obiektów kontrolowanych stanu (`FakeClock`, `FakeIdGenerator`, `FakeGraphNodeExecutionProcessRunner`).
+  Testują handlery przypadków użycia (`*Handler`). Wszelkie zależności infrastrukturalne są wstrzykiwane w postaci szybkich dublerów in-memory (`InMemory*` adaptery) oraz obiektów kontrolowanych stanu (`FakeClock`, `FakeIdGenerator`, `FakeNodeExecutionProcessRunner`).
 - **`shell/tests/integration/` — Testy Integracyjne:**
   Weryfikują poprawność działania realnych adapterów z warstwy infrastruktury. Podzielone na dedykowane katalogi technologiczne:
   - `sql_sqlite/` oraz `sql_postgres/` — operacje na bazach relacyjnych (SQLAlchemy Async).

@@ -9,20 +9,20 @@ from shell.infrastructure.execution.persistence.sql.models.graph_execution_state
 from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
     GraphExecutionStateOutputModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
-    GraphNodeExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+    NodeExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_result import (
-    GraphNodeExecutionResultModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution_result import (
+    NodeExecutionResultModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
-    GraphNodeExecutionStateModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
+    NodeExecutionStateModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
-    GraphNodeLinkExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
+    NodeLinkExecutionModel,
 )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
-    GraphNodeTransitionExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
+    NodeTransitionExecutionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.saga_state import (
     GraphExecutionSagaStateModel,
@@ -54,11 +54,11 @@ __all__ = [
     "GraphExecutionSagaStateModel",
     "GraphExecutionStateInputModel",
     "GraphExecutionStateOutputModel",
-    "GraphNodeExecutionModel",
-    "GraphNodeExecutionResultModel",
-    "GraphNodeExecutionStateModel",
-    "GraphNodeLinkExecutionModel",
-    "GraphNodeTransitionExecutionModel",
+    "NodeExecutionModel",
+    "NodeExecutionResultModel",
+    "NodeExecutionStateModel",
+    "NodeLinkExecutionModel",
+    "NodeTransitionExecutionModel",
     "JSON",
     "JSONB",
     "SessionExecutionModel",

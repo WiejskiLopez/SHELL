@@ -57,60 +57,60 @@ class InMemoryUnitOfWork(UnitOfWork):       # line 110
 
 ## 2. Unused variables/imports (F841/F401)
 
-### 2a. `graph_node_execution_run_handler.py` — 6 F841
+### 2a. `node_execution_run_handler.py` — 6 F841
 
-**Root cause**: The method documents calling `Workflow.record_graph_node_execution_result` but that method does not exist. The handler is a **stub**: it loads then saves the workflow twice with no mutations, creates IDs it never uses, captures stdout/stderr/status/failure_reason but discards them, and returns `""`.
+**Root cause**: The method documents calling `Workflow.record_node_execution_result` but that method does not exist. The handler is a **stub**: it loads then saves the workflow twice with no mutations, creates IDs it never uses, captures stdout/stderr/status/failure_reason but discards them, and returns `""`.
 
 **Fix**: Implement the correct logic. The handler should:
 
-1. Mark `GraphNodeExecution` as `RUNNING` → `start(now)`
+1. Mark `NodeExecution` as `RUNNING` → `start(now)`
 2. Execute the strategy → `ExecutionResult`
-3. On success: `node.complete(result, now)`; create `GraphNodeExecutionState` with direction OUT containing stdout/stderr
+3. On success: `node.complete(result, now)`; create `NodeExecutionState` with direction OUT containing stdout/stderr
 4. On failure: `node.fail(error, now)`; create state with error info
 5. Save both aggregates, stage events from both, return result ID
 
 **Approximate implementation:**
 
 ```python
-async def handle(self, run_graph_node_execution_command: RunGraphNodeExecutionCommand) -> str:
-    workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
-    graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
+async def handle(self, run_node_execution_command: RunNodeExecutionCommand) -> str:
+    workflow_id = WorkflowId(run_node_execution_command.workflow_id)
+    node_execution_id = NodeExecutionId(run_node_execution_command.node_execution_id)
 
     async with self._unit_of_work as unit_of_work:
         workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(workflow_id)
         if workflow is None:
-            raise WorkflowNotFound(run_graph_node_execution_command.workflow_id)
+            raise WorkflowNotFound(run_node_execution_command.workflow_id)
 
-        node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(graph_node_execution_id)
+        node = await unit_of_work.repository(NodeExecutionRepository).get_by_id(node_execution_id)
         if node is None:
-            raise WorkflowNotFound(f"GraphNodeExecution {graph_node_execution_id} not found")
+            raise WorkflowNotFound(f"NodeExecution {node_execution_id} not found")
 
         now = self._clock.now()
         node.start(now)
-        await unit_of_work.repository(GraphNodeExecutionRepository).save(node)
+        await unit_of_work.repository(NodeExecutionRepository).save(node)
         unit_of_work.stage_events(node.pull_events())
 
     try:
         exec_result = await self._strategy.execute(
-            graph_node_execution_id=run_graph_node_execution_command.graph_node_execution_id,
-            workspace_path=run_graph_node_execution_command.workspace_path,
+            node_execution_id=run_node_execution_command.node_execution_id,
+            workspace_path=run_node_execution_command.workspace_path,
             runner=self._runner,
         )
     except Exception as exc:
         result_id = await self._save_failure(
-            graph_node_execution_id, workflow_id, ErrorDescription(str(exc))
+            node_execution_id, workflow_id, ErrorDescription(str(exc))
         )
         return result_id
 
     result_id = await self._save_success(
-        graph_node_execution_id, workflow_id,
+        node_execution_id, workflow_id,
         ExecutionStdout(exec_result.stdout) if exec_result.stdout else None,
         ExecutionStderr(exec_result.stderr) if exec_result.stderr else None,
     )
     return result_id
 ```
 
-(Plus `_save_success` and `_save_failure` helpers following the `GraphNodeExecutionSaveResultHandler` pattern.)
+(Plus `_save_success` and `_save_failure` helpers following the `NodeExecutionSaveResultHandler` pattern.)
 
 **Files touched**: 1 (with significant logic addition)
 
@@ -120,7 +120,7 @@ async def handle(self, run_graph_node_execution_command: RunGraphNodeExecutionCo
 |------|----------|--------|
 | `propagate_subgraph_results_to_parent.py:44` | `now` | Remove assignment |
 | `planner_result_handler.py:92` | `expected_count` | Remove assignment |
-| `graph_node_execution_worker.py:230` | `current_graph_execution` | Remove assignment |
+| `node_execution_worker.py:230` | `current_graph_execution` | Remove assignment |
 | `sql_alchemy_uow.py:195` | `message_outbox` | Inline `OutboxMessageModel(...)` into `.add()` |
 | `_arch_helpers.py:54` | `body` | Remove assignment (unused in function) |
 | `test_mapper_structure.py:83` | `func_lines` | Remove assignment |
@@ -203,7 +203,7 @@ These imports are currently (incorrectly) inside `if TYPE_CHECKING:` blocks but 
 
 | File | Import | Why used at runtime |
 |------|--------|-------------------|
-| `infrastructure/definition/persistence/sql/mappers/graph_definition_mapper.py` | `GraphNodeDefinitionId`, `GraphNodeTransitionDefinitionId`, `GraphDefinitionModel` | Called in mapper functions: `GraphNodeDefinitionId(nd.id)`, `GraphDefinitionModel(id=...)` |
+| `infrastructure/definition/persistence/sql/mappers/graph_definition_mapper.py` | `NodeDefinitionId`, `NodeTransitionDefinitionId`, `GraphDefinitionModel` | Called in mapper functions: `NodeDefinitionId(nd.id)`, `GraphDefinitionModel(id=...)` |
 | `infrastructure/execution/persistence/sql/mappers/__init__.py` | `GraphExecutionStateInputModel`, `GraphExecutionStateOutputModel` | Called in mapper functions: `GraphExecutionStateInputModel(id=...)` |
 | `infrastructure/platform/persistence/sql/mappers/message_mappers.py` | `MessageModel` | Called in mapper: `MessageModel(id=...)` |
 
@@ -266,7 +266,7 @@ This runs `ruff check shell/` as a pytest test. Any lint regression = red CI.
 3. D3 (TC004 — move imports OUT of TYPE_CHECKING) — dependency: none
 4. D2 (TC003 — stdlib to TYPE_CHECKING)          — dependency: none
 5. D1 (TC002 — 80 files, bulk)                  — dependency: none, but LARGEST
-6. 2a (graph_node_execution_run_handler logic)   — dependency: understand existing patterns (done)
+6. 2a (node_execution_run_handler logic)   — dependency: understand existing patterns (done)
 7. 2b+2c (F841/F401 - easy removals)            — dependency: after TC reshuffling
 8. 4 (one-off fixes)                             — dependency: none
 9. `ruff check --fix --unsafe-fixes shell/`      — cleanup pass

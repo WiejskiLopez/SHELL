@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from shell.application.platform.ports.execution import (
-    GraphNodeExecutionProcessRunner,
-    GraphNodeExecutionWorkspace,
+    NodeExecutionProcessRunner,
+    NodeExecutionWorkspace,
 )
 from shell.application.platform.ports.filesystem import TaskExecutionLoader
 from shell.application.platform.ports.identity import IdGenerator
@@ -18,8 +18,8 @@ __all__ = [
     "EventPublisher",
     "IdGenerator",
     "Logger",
-    "GraphNodeExecutionProcessRunner",
-    "GraphNodeExecutionWorkspace",
+    "NodeExecutionProcessRunner",
+    "NodeExecutionWorkspace",
     "TaskExecutionLoader",
     "UnitOfWork",
 ]

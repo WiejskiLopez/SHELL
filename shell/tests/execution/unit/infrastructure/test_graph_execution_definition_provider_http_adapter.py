@@ -44,7 +44,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
             "id": "def-123",
             "name": "test_definition",
             "system_role": "PLANNER",
-            "graph_node_definitions": [
+            "node_definitions": [
                 {
                     "position": 0,
                     "mode": "agent",
@@ -72,8 +72,8 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         assert result.id == "def-123"
         assert result.name == "test_definition"
         assert result.system_role == "PLANNER"
-        assert len(result.graph_node_execution_definitions) == 1
-        node = result.graph_node_execution_definitions[0]
+        assert len(result.node_execution_definitions) == 1
+        node = result.node_execution_definitions[0]
         assert node.position == 0
         assert node.mode == "agent"
         assert node.timeout == 60
@@ -88,7 +88,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
             "id": "def-456",
             "name": "semantic_match",
             "system_role": None,
-            "graph_node_definitions": [],
+            "node_definitions": [],
         }
         mock_client.post = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))

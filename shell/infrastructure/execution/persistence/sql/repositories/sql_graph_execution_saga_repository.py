@@ -27,13 +27,13 @@ class SqlGraphExecutionSagaRepository:
                 id=saga.saga_id,
                 graph_execution_id=saga.graph_execution_id,
                 expected_nodes_count=saga.expected_nodes_count,
-                graph_node_definition_executions=saga.graph_node_definition_executions,
+                node_definition_executions=saga.node_definition_executions,
                 status=saga.status.value,
             )
             self._session.add(model)
         else:
             model.expected_nodes_count = saga.expected_nodes_count
-            model.graph_node_definition_executions = saga.graph_node_definition_executions
+            model.node_definition_executions = saga.node_definition_executions
             model.status = saga.status.value
 
     async def get_by_graph_execution_id(
@@ -49,7 +49,7 @@ class SqlGraphExecutionSagaRepository:
             saga_id=row.id,
             graph_execution_id=row.graph_execution_id,
             expected_nodes_count=row.expected_nodes_count,
-            graph_node_definition_executions=dict(row.graph_node_definition_executions or {}),
+            node_definition_executions=dict(row.node_definition_executions or {}),
             status=GraphExecutionSagaStatus(row.status),
             version=row.version,
         )

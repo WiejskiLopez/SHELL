@@ -7,8 +7,8 @@ import logging
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
-    InMemoryGraphNodeDefinitionRepository,
+from shell.infrastructure.definition.persistence.memory.in_memory_node_definition_repository import (
+    InMemoryNodeDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
@@ -27,11 +27,11 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_reposi
 )
 from shell.infrastructure.platform.persistence.memory.fake_clock import FakeClock
 from shell.infrastructure.platform.persistence.memory.fake_event_publisher import FakeEventPublisher
-from shell.infrastructure.platform.persistence.memory.fake_graph_node_execution_process_runner import (
-    FakeGraphNodeExecutionProcessRunner,
+from shell.infrastructure.platform.persistence.memory.fake_node_execution_process_runner import (
+    FakeNodeExecutionProcessRunner,
 )
-from shell.infrastructure.platform.persistence.memory.fake_graph_node_execution_workspace import (
-    FakeGraphNodeExecutionWorkspace,
+from shell.infrastructure.platform.persistence.memory.fake_node_execution_workspace import (
+    FakeNodeExecutionWorkspace,
 )
 from shell.infrastructure.platform.persistence.memory.fake_id_generator import FakeIdGenerator
 from shell.infrastructure.platform.persistence.memory.fake_logger import FakeLogger
@@ -50,13 +50,13 @@ __all__ = [
     "FakeEventPublisher",
     "FakeIdGenerator",
     "FakeLogger",
-    "FakeGraphNodeExecutionProcessRunner",
-    "FakeGraphNodeExecutionWorkspace",
+    "FakeNodeExecutionProcessRunner",
+    "FakeNodeExecutionWorkspace",
     "FakeTaskLoader",
     "InMemoryQueryServices",
     "InMemoryUnitOfWork",
     "InMemoryGraphDefinitionRepository",
-    "InMemoryGraphNodeDefinitionRepository",
+    "InMemoryNodeDefinitionRepository",
     "InMemoryRagDocumentRepository",
     "InMemoryRunnerConfigRepository",
     "InMemoryGraphExecutionRepository",

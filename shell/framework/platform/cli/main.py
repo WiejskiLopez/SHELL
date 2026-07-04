@@ -21,8 +21,8 @@ if TYPE_CHECKING:
 from shell.application.execution.commands.task_execution_commands import (
         ImportTaskExecutionCommand,
     )
-from shell.application.execution.commands.graph_node_execution_commands import (
-        RunGraphNodeExecutionCommand,
+from shell.application.execution.commands.node_execution_commands import (
+        RunNodeExecutionCommand,
     )
 _MODE_RUNNER_ROOTS: dict[str, str] = {
     "agent": "agent",
@@ -56,12 +56,12 @@ async def _run_node(mode: str, argv: Sequence[str]) -> int:
     config.max_step = max_step
     core_container = await ApplicationFactory(config).build()
 
-    graph_node_execution_id = ns.node_dir or mode
+    node_execution_id = ns.node_dir or mode
     workflow_id = ns.workflow_id or "default"
     work_dir = ns.work_dir or os.getcwd()
 
-    command = RunGraphNodeExecutionCommand(
-        graph_node_execution_id=graph_node_execution_id,
+    command = RunNodeExecutionCommand(
+        node_execution_id=node_execution_id,
         workflow_id=workflow_id,
         workspace_path=work_dir,
     )

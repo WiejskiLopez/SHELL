@@ -103,9 +103,9 @@ _KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset(
         "domain/platform/ports/time.py: main class is Clock (expected clock.py)",
         "domain/execution/ports/sub_graph_policy.py: main class is Decision (expected decision.py)",
         "domain/execution/ports/sub_graph_security.py: main class is Scope (expected scope.py)",
-        "domain/execution/services/graph_node_execution_output_interpreter.py: main class is OutputDecision (expected output_decision.py)",
-        "domain/execution/value_objects/graph_execution_definition.py: main class is GraphNodeExecutionDefinition (expected graph_node_execution_definition.py)",
-        "domain/execution/services/graph_node_execution_navigator/transition_based_navigator.py: main class is TransitionBasedGraphNodeExecutionNavigator (expected transition_based_graph_node_execution_navigator.py)",
+        "domain/execution/services/node_execution_output_interpreter.py: main class is OutputDecision (expected output_decision.py)",
+        "domain/execution/value_objects/graph_execution_definition.py: main class is NodeExecutionDefinition (expected node_execution_definition.py)",
+        "domain/execution/services/node_execution_navigator/transition_based_navigator.py: main class is TransitionBasedNodeExecutionNavigator (expected transition_based_node_execution_navigator.py)",
         "domain/execution/aggregates/graph_execution/ports/sub_graph_compensation.py: main class is CompensationDecision (expected compensation_decision.py)",
         "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
         "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
@@ -187,8 +187,8 @@ def test_constants_use_upper_case() -> None:
 _KNOWN_ABBREVIATION_VIOLATIONS: frozenset[str] = frozenset(
     {
         "domain/projekt/aggregates/project/project.py: function repo_url",
-        "infrastructure/execution/persistence/memory/in_memory_graph_node_execution_repository.py: function set_link_repo",
-        "infrastructure/definition/persistence/memory/in_memory_graph_node_definition_repository.py: function set_link_repo",
+        "infrastructure/execution/persistence/memory/in_memory_node_execution_repository.py: function set_link_repo",
+        "infrastructure/definition/persistence/memory/in_memory_node_definition_repository.py: function set_link_repo",
     }
 )
 

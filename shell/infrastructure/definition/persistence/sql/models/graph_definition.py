@@ -9,8 +9,8 @@ from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 if TYPE_CHECKING:
-    from shell.infrastructure.definition.persistence.sql.models.graph_node_transition_definition import (
-        GraphNodeTransitionDefinitionModel,
+    from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
+        NodeTransitionDefinitionModel,
     )
 
 
@@ -26,9 +26,9 @@ class GraphDefinitionModel(Base, VersionedMixin):
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 
-    graph_node_transition_definition_models: Mapped[list[GraphNodeTransitionDefinitionModel]] = (
+    node_transition_definition_models: Mapped[list[NodeTransitionDefinitionModel]] = (
         relationship(
-            "GraphNodeTransitionDefinitionModel",
+            "NodeTransitionDefinitionModel",
             back_populates="graph_definition_model",
             cascade="all, delete-orphan",
         )

@@ -25,7 +25,7 @@
 
 ### Two-phase UoW — dla długotrwałych operacji
 
-Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `GraphNodeExecutionProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków.
+Gdy między pobraniem agregatu a zapisem wyniku jest długotrwała operacja zewnętrzna (np. `NodeExecutionProcessRunner.run()`), nie trzymaj otwartej transakcji na ten czas. Użyj dwóch osobnych bloków.
 
 ## Handler — bezstanowy
 
@@ -47,7 +47,7 @@ Każde pole DTO musi mieć źródło. Hardcoded `[]` albo `""` zamiast mapowania
 
 ## Strategy — NodeExecutionStrategy
 
-- W `application/strategies/graph_node_execution_strategy/`
+- W `application/strategies/node_execution_strategy/`
 - `protocol.py` definiuje kontrakt (Protocol) z adnotacją `@runtime_checkable`
 - `_base_strategy.py` — wspólna logika dla wszystkich strategii (budowa Manifest + runner.run)
 - `registry.py` — rejestr dostępnych strategii z rzucaniem `InvalidNodeMode` dla nieznanych trybów
@@ -56,7 +56,7 @@ Każde pole DTO musi mieć źródło. Hardcoded `[]` albo `""` zamiast mapowania
 
 - W `application/ports/` — interfejsy dla adapterów infrastrukturalnych
 - Każdy w osobnym module (`unit_of_work.py`, `time.py`, `logging.py`)
-- Obowiązkowe porty: `UnitOfWork`, `Clock`, `IdGenerator`, `EventPublisher`, `Logger`, `GraphNodeExecutionProcessRunner`, `GraphNodeExecutionWorkspace`, `TaskExecutionLoader`
+- Obowiązkowe porty: `UnitOfWork`, `Clock`, `IdGenerator`, `EventPublisher`, `Logger`, `NodeExecutionProcessRunner`, `NodeExecutionWorkspace`, `TaskExecutionLoader`
 - `ports.py` agreguje re-exporty dla wygody
 
 ## Factory / Bus — zakaz `Any` escape

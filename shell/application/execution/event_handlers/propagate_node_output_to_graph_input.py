@@ -14,8 +14,8 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_direction import StateDirection
@@ -23,8 +23,8 @@ from shell.domain.platform.value_objects.state_direction import StateDirection
 if TYPE_CHECKING:
     from shell.application.platform.ports.identity import IdGenerator
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-        GraphNodeExecutionCompletedEvent,
+    from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+        NodeExecutionCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
@@ -44,16 +44,16 @@ class PropagateNodeOutputToGraphInput:
         self._logger = logger
 
     async def handle(
-        self, graph_node_execution_completed_event: GraphNodeExecutionCompletedEvent
+        self, node_execution_completed_event: NodeExecutionCompletedEvent
     ) -> None:
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(GraphNodeExecutionRepository).get_by_id(
-                graph_node_execution_completed_event.node_id
+            node = await unit_of_work.repository(NodeExecutionRepository).get_by_id(
+                node_execution_completed_event.node_id
             )
             if node is None or node.graph_execution_id is None:
                 self._logger.warning(
                     "propagate_node_output_to_graph_input.node_not_found",
-                    node_id=graph_node_execution_completed_event.node_id.value,
+                    node_id=node_execution_completed_event.node_id.value,
                 )
                 return
 
@@ -69,9 +69,9 @@ class PropagateNodeOutputToGraphInput:
 
             now = self._clock.now()
             output_payload: dict[str, Any] = {
-                "node_id": graph_node_execution_completed_event.node_id.value,
-                "role": graph_node_execution_completed_event.role.value,
-                "result": graph_node_execution_completed_event.result,
+                "node_id": node_execution_completed_event.node_id.value,
+                "role": node_execution_completed_event.role.value,
+                "result": node_execution_completed_event.result,
             }
             state = GraphExecutionState.create(
                 id_=GraphExecutionStateId.generate(),

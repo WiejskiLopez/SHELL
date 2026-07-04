@@ -47,7 +47,7 @@ DOZWOLONE:
 class GraphExecution(AggregateRoot[GraphExecutionId]):
     _status: GraphExecutionStatus   # VO (enum)
     _skills: list[GraphExecutionSkill]  # kolekcja encji
-    _graph_node_execution_ids: list[GraphNodeExecutionId]  # kolekcja ID
+    _node_execution_ids: list[NodeExecutionId]  # kolekcja ID
     _transitions: list[TransitionDefinition]  # kolekcja VO
 ```
 

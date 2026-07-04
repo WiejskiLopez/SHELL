@@ -8,15 +8,15 @@ from shell.application.definition.commands.config_commands import BootstrapRunne
 from shell.application.definition.commands.create_graph_definition_command import (
     CreateGraphDefinitionCommand,
 )
-from shell.application.execution.commands.attach_graph_node_executions_command import (
-    AttachGraphNodeExecutionsCommand,
+from shell.application.execution.commands.attach_node_executions_command import (
+    AttachNodeExecutionsCommand,
 )
-from shell.application.execution.commands.create_graph_node_execution_command import (
-    CreateGraphNodeExecutionCommand,
+from shell.application.execution.commands.create_node_execution_command import (
+    CreateNodeExecutionCommand,
 )
-from shell.application.execution.commands.graph_node_execution_commands import (
-    RunGraphNodeExecutionCommand,
-    SaveGraphNodeExecutionResultCommand,
+from shell.application.execution.commands.node_execution_commands import (
+    RunNodeExecutionCommand,
+    SaveNodeExecutionResultCommand,
 )
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
 from shell.application.execution.commands.workflow_commands import (
@@ -43,11 +43,11 @@ def register_commands(core_container: CoreContainer) -> None:
     cmd_bus.register(ImportTaskExecutionCommand, commands.import_task_execution_handler_factory)
     cmd_bus.register(StartWorkflowCommand, commands.start_workflow_handler_factory)
     cmd_bus.register(
-        RunGraphNodeExecutionCommand, commands.run_graph_node_execution_handler_factory
+        RunNodeExecutionCommand, commands.run_node_execution_handler_factory
     )
     cmd_bus.register(
-        SaveGraphNodeExecutionResultCommand,
-        commands.save_graph_node_execution_result_handler_factory,
+        SaveNodeExecutionResultCommand,
+        commands.save_node_execution_result_handler_factory,
     )
     cmd_bus.register(
         BootstrapRunnerConfigCommand,
@@ -55,10 +55,10 @@ def register_commands(core_container: CoreContainer) -> None:
     )
     cmd_bus.register(RunTaskerWorkflowCommand, commands.run_tasker_workflow_handler_factory)
     cmd_bus.register(
-        CreateGraphNodeExecutionCommand,
-        commands.create_graph_node_execution_handler_factory,
+        CreateNodeExecutionCommand,
+        commands.create_node_execution_handler_factory,
     )
     cmd_bus.register(
-        AttachGraphNodeExecutionsCommand,
-        commands.attach_graph_node_executions_handler_factory,
+        AttachNodeExecutionsCommand,
+        commands.attach_node_executions_handler_factory,
     )

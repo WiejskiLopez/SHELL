@@ -12,7 +12,7 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
 from shell.domain.execution.value_objects.ids import (
-            GraphNodeExecutionId,
+            NodeExecutionId,
             TaskExecutionId,
             WorkflowId,
         )
@@ -119,7 +119,7 @@ class DomainEventSerializer:
         value_obj_map: dict[type, type] = {
             WorkflowId: WorkflowId,
             TaskExecutionId: TaskExecutionId,
-            GraphNodeExecutionId: GraphNodeExecutionId,
+            NodeExecutionId: NodeExecutionId,
         }
         vo_cls = value_obj_map.get(target_type)
         if vo_cls is not None:

@@ -13,8 +13,8 @@ from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
 
 if TYPE_CHECKING:
-    from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
-        GraphNodeTransitionExecutionModel,
+    from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
+        NodeTransitionExecutionModel,
     )
 
 
@@ -45,9 +45,9 @@ class GraphExecutionModel(Base, VersionedMixin):
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 
-    graph_node_transition_execution_models: Mapped[list[GraphNodeTransitionExecutionModel]] = (
+    node_transition_execution_models: Mapped[list[NodeTransitionExecutionModel]] = (
         relationship(
-            "GraphNodeTransitionExecutionModel",
+            "NodeTransitionExecutionModel",
             back_populates="graph_execution_model",
             cascade="all, delete-orphan",
         )

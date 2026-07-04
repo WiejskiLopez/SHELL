@@ -6,20 +6,20 @@ from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution 
 from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
         SchedulerDefinitionModel,
     )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_transition_execution import (
-        GraphNodeTransitionExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
+        NodeTransitionExecutionModel,
     )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
-        GraphNodeLinkExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
+        NodeLinkExecutionModel,
     )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_state_aggregate import (
-        GraphNodeExecutionStateModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
+        NodeExecutionStateModel,
     )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution_result import (
-        GraphNodeExecutionResultModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution_result import (
+        NodeExecutionResultModel,
     )
-from shell.infrastructure.execution.persistence.sql.models.graph_node_execution import (
-        GraphNodeExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+        NodeExecutionModel,
     )
 from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
         GraphExecutionStateOutputModel,
@@ -36,14 +36,14 @@ from shell.infrastructure.execution.persistence.sql.models.task_execution_state 
 from shell.infrastructure.execution.persistence.sql.models.task_execution import (
         TaskExecutionModel,
     )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_transition_definition import (
-        GraphNodeTransitionDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
+        NodeTransitionDefinitionModel,
     )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_link_definition import (
-        GraphNodeLinkDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
+        NodeLinkDefinitionModel,
     )
-from shell.infrastructure.definition.persistence.sql.models.graph_node_definition import (
-        GraphNodeDefinitionModel,
+from shell.infrastructure.definition.persistence.sql.models.node_definition import (
+        NodeDefinitionModel,
     )
 from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
         GraphDefinitionModel,
@@ -154,7 +154,7 @@ def _seed_graph_definitions(session: Session) -> None:
         purpose="Single agent node that executes autonomously",
     )
 
-    g1_node_1 = GraphNodeDefinitionModel(
+    g1_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-agent-1",
         position=0,
         mode="agent",
@@ -172,10 +172,10 @@ def _seed_graph_definitions(session: Session) -> None:
         script=None,
         script_type=None,
     )
-    g1_link_1 = GraphNodeLinkDefinitionModel(
+    g1_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-agent-1",
         graph_definition_id=g1.id,
-        graph_node_definition_id=g1_node_1.id,
+        node_definition_id=g1_node_1.id,
     )
 
     # ── Graph 2: Planner → Worker ────────────────────────────────────────────
@@ -185,7 +185,7 @@ def _seed_graph_definitions(session: Session) -> None:
         purpose="Two-node pipeline: planner creates a plan, worker executes it",
     )
 
-    g2_node_1 = GraphNodeDefinitionModel(
+    g2_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-planner-1",
         position=0,
         mode="planner",
@@ -203,13 +203,13 @@ def _seed_graph_definitions(session: Session) -> None:
         script=None,
         script_type=None,
     )
-    g2_link_1 = GraphNodeLinkDefinitionModel(
+    g2_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-planner-1",
         graph_definition_id=g2.id,
-        graph_node_definition_id=g2_node_1.id,
+        node_definition_id=g2_node_1.id,
     )
 
-    g2_node_2 = GraphNodeDefinitionModel(
+    g2_node_2 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-worker-1",
         position=1,
         mode="worker",
@@ -227,13 +227,13 @@ def _seed_graph_definitions(session: Session) -> None:
         script=None,
         script_type=None,
     )
-    g2_link_2 = GraphNodeLinkDefinitionModel(
+    g2_link_2 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-worker-1",
         graph_definition_id=g2.id,
-        graph_node_definition_id=g2_node_2.id,
+        node_definition_id=g2_node_2.id,
     )
 
-    g2_transition_1 = GraphNodeTransitionDefinitionModel(
+    g2_transition_1 = NodeTransitionDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gtransition-planner-to-worker",
         graph_definition_id=g2.id,
         source_node_definition_id=g2_node_1.id,
@@ -260,7 +260,7 @@ def _seed_graph_definitions(session: Session) -> None:
         purpose="Three-node pipeline: tasker delegates, router directs, agent acts",
     )
 
-    g3_node_1 = GraphNodeDefinitionModel(
+    g3_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-tasker-1",
         position=0,
         mode="tasker",
@@ -279,7 +279,7 @@ def _seed_graph_definitions(session: Session) -> None:
         script_type=None,
     )
 
-    g3_node_2 = GraphNodeDefinitionModel(
+    g3_node_2 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-router-1",
         position=1,
         mode="router",
@@ -298,7 +298,7 @@ def _seed_graph_definitions(session: Session) -> None:
         script_type=None,
     )
 
-    g3_node_3 = GraphNodeDefinitionModel(
+    g3_node_3 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-agent-2",
         position=2,
         mode="agent",
@@ -317,7 +317,7 @@ def _seed_graph_definitions(session: Session) -> None:
         script_type=None,
     )
 
-    g3_transition_1 = GraphNodeTransitionDefinitionModel(
+    g3_transition_1 = NodeTransitionDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gtransition-tasker-to-router",
         graph_definition_id=g3.id,
         source_node_definition_id=g3_node_1.id,
@@ -337,7 +337,7 @@ def _seed_graph_definitions(session: Session) -> None:
         updated_at=_NOW,
     )
 
-    g3_transition_2 = GraphNodeTransitionDefinitionModel(
+    g3_transition_2 = NodeTransitionDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gtransition-router-to-agent",
         graph_definition_id=g3.id,
         source_node_definition_id=g3_node_2.id,
@@ -357,20 +357,20 @@ def _seed_graph_definitions(session: Session) -> None:
         updated_at=_NOW,
     )
 
-    g3_link_1 = GraphNodeLinkDefinitionModel(
+    g3_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-tasker-1",
         graph_definition_id=g3.id,
-        graph_node_definition_id=g3_node_1.id,
+        node_definition_id=g3_node_1.id,
     )
-    g3_link_2 = GraphNodeLinkDefinitionModel(
+    g3_link_2 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-router-1",
         graph_definition_id=g3.id,
-        graph_node_definition_id=g3_node_2.id,
+        node_definition_id=g3_node_2.id,
     )
-    g3_link_3 = GraphNodeLinkDefinitionModel(
+    g3_link_3 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-agent-2",
         graph_definition_id=g3.id,
-        graph_node_definition_id=g3_node_3.id,
+        node_definition_id=g3_node_3.id,
     )
 
     # ── Persist (check existence first) ──────────────────────────────────────
@@ -544,8 +544,8 @@ def _seed_workflow_scenario(session: Session) -> None:
     )
     session.add(ges_output)
 
-    # -- GraphNodeExecution --
-    gne = GraphNodeExecutionModel(
+    # -- NodeExecution --
+    gne = NodeExecutionModel(
         id=gne_id,
         position=0,
         mode="agent",
@@ -562,15 +562,15 @@ def _seed_workflow_scenario(session: Session) -> None:
         source_dir="/tmp/shell/dev/simple-agent",
     )
     session.add(gne)
-    gne_link = GraphNodeLinkExecutionModel(
+    gne_link = NodeLinkExecutionModel(
         id=f"{ge_id}-{gne_id}",
         graph_execution_id=ge_id,
-        graph_node_execution_id=gne_id,
+        node_execution_id=gne_id,
     )
     session.add(gne_link)
 
-    # -- GraphNodeTransitionExecution --
-    transition = GraphNodeTransitionExecutionModel(
+    # -- NodeTransitionExecution --
+    transition = NodeTransitionExecutionModel(
         id=f"{_DEV_ID_PREFIX}-gtransition-exec-1",
         graph_execution_id=ge_id,
         source_node_execution_id=None,
@@ -592,9 +592,9 @@ def _seed_workflow_scenario(session: Session) -> None:
     session.add(transition)
 
     # -- NodeState --
-    ns = GraphNodeExecutionStateModel(
+    ns = NodeExecutionStateModel(
         id=f"{gne_id}-state-1",
-        graph_node_execution_id=gne_id,
+        node_execution_id=gne_id,
         direction="OUTPUT",
         state_data={"status": "done", "step": 1},
         is_current=True,
@@ -603,9 +603,9 @@ def _seed_workflow_scenario(session: Session) -> None:
     session.add(ns)
 
     # -- NodeResult --
-    result = GraphNodeExecutionResultModel(
+    result = NodeExecutionResultModel(
         id=f"{gne_id}-result-1",
-        graph_node_execution_id=gne_id,
+        node_execution_id=gne_id,
         workflow_id=WF_ID,
         status="completed",
         stdout="[dev] Sample agent output:\nTask analyzed successfully.\nNo issues found.",

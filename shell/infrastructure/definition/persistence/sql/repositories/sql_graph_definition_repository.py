@@ -33,7 +33,7 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
 
     def _base_query(self) -> Select[tuple[GraphDefinitionModel]]:
         return select(GraphDefinitionModel).options(
-            selectinload(GraphDefinitionModel.graph_node_transition_definition_models),
+            selectinload(GraphDefinitionModel.node_transition_definition_models),
         )
 
     async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:

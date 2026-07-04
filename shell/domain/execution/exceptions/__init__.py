@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from shell.domain.execution.aggregates.graph_node_execution.exceptions.invalid_node_mode import (
+from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_mode import (
     InvalidNodeMode,
 )
-from shell.domain.execution.aggregates.graph_node_execution.exceptions.max_step_exceeded import (
+from shell.domain.execution.aggregates.node_execution.exceptions.max_step_exceeded import (
     MaxStepExceeded,
 )
-from shell.domain.execution.aggregates.graph_node_execution.exceptions.role_not_resolvable import (
+from shell.domain.execution.aggregates.node_execution.exceptions.role_not_resolvable import (
     RoleNotResolvable,
 )
 from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_definition import (

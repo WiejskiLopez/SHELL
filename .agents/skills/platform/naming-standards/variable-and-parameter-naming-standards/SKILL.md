@@ -48,7 +48,7 @@ To oznacza również, że **nie ma listy "dozwolonych skrótów"** — lista wyj
 | `parent_id` | Czy `parent_graph_execution_id` czy `parent_workflow_id`? |
 | `msg_id` | `message_id` to pełna nazwa |
 | `gd` | `graph_definition` to pełna nazwa |
-| `nd` / `node_dto` | `graph_node_definition` — sufiks `dto` mylący gdy to nie DTO |
+| `nd` / `node_dto` | `node_definition` — sufiks `dto` mylący gdy to nie DTO |
 | `dto` | Zawsze opisz co za DTO: `graph_definition_dto` |
 | `def_id` | `definition_id` lub `graph_definition_id` |
 | `command` | Standardowa nazwa parametru w Command Handler |
@@ -91,9 +91,9 @@ gd = await self._definition_provider.get_graph_definition(def_id)
 graph_definition = await self._definition_provider.get_graph_definition(definition_id)
 
 # ZAMIAST:
-for node_dto in graph_definition.graph_node_execution_definitions:
+for node_dto in graph_definition.node_execution_definitions:
 # PISZ:
-for graph_node_definition in graph_definition.graph_node_execution_definitions:
+for node_definition in graph_definition.node_execution_definitions:
 ```
 
 ## Parametry handlerów
@@ -145,7 +145,7 @@ Jeśli pętla iteruje po kolekcji biznesowej (lista węzłów, lista zadań), zm
 
 ```python
 # POPRAWNIE:
-for graph_node_definition in graph_node_definitions:
+for node_definition in node_definitions:
 
 # ŹLE:
 for nd in nodes:

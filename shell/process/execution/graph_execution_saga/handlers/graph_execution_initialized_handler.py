@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.commands.create_graph_node_execution_command import (
-    CreateGraphNodeExecutionCommand,
+from shell.application.execution.commands.create_node_execution_command import (
+    CreateNodeExecutionCommand,
 )
 
 if TYPE_CHECKING:
@@ -46,19 +46,19 @@ class GraphExecutionInitializedHandler:
         )
 
         for node_def in node_definitions:
-            command = CreateGraphNodeExecutionCommand(
+            command = CreateNodeExecutionCommand(
                 graph_execution_id=event.graph_execution_id.value,
-                graph_node_definition_id=node_def.node_id,
+                node_definition_id=node_def.node_id,
                 position=node_def.position,
                 role=node_def.role,
                 mode=node_def.mode,
                 node_type=node_def.node_type,
             )
             await self._command_publisher.publish(
-                command_type="CreateGraphNodeExecutionCommand",
+                command_type="CreateNodeExecutionCommand",
                 payload={
                     "graph_execution_id": command.graph_execution_id,
-                    "graph_node_definition_id": command.graph_node_definition_id,
+                    "node_definition_id": command.node_definition_id,
                     "position": command.position,
                     "role": command.role,
                     "mode": command.mode,

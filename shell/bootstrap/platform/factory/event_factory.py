@@ -25,23 +25,23 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_pl
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_settled_event import (
     GraphExecutionSubGraphSettledEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-    GraphNodeExecutionCompletedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+    NodeExecutionCompletedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_failed_event import (
-    GraphNodeExecutionFailedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
+    NodeExecutionFailedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
-    GraphNodeExecutionInitializedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event import (
+    NodeExecutionInitializedEvent,
 )
-from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_started_event import (
-    GraphNodeExecutionStartedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_started_event import (
+    NodeExecutionStartedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
 from shell.domain.execution.events import (
-    GraphNodeExecutionTimeoutExpiredEvent,
+    NodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -75,19 +75,19 @@ def register_events(core_container: CoreContainer) -> None:
     event_bus.subscribe(WorkflowCompletedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(WorkflowFailedEvent, events.log_audit_handler_factory)
     event_bus.subscribe(
-        GraphNodeExecutionTimeoutExpiredEvent,
-        events.graph_node_execution_timeout_expired_handler_factory,
+        NodeExecutionTimeoutExpiredEvent,
+        events.node_execution_timeout_expired_handler_factory,
     )
     event_bus.subscribe(
         WorkflowCompletedEvent,
         events.notify_parent_on_child_completion_handler_factory,
     )
     event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent,
+        NodeExecutionCompletedEvent,
         events.propagate_node_output_to_graph_input_factory,
     )
     event_bus.subscribe(
-        GraphNodeExecutionCompletedEvent,
+        NodeExecutionCompletedEvent,
         events.planner_result_handler_factory,
     )
     event_bus.subscribe(
@@ -127,12 +127,12 @@ def register_events(core_container: CoreContainer) -> None:
         events.handle_graph_execution_failed_factory,
     )
     event_bus.subscribe(
-        GraphNodeExecutionStartedEvent,
-        events.handle_graph_node_execution_started_factory,
+        NodeExecutionStartedEvent,
+        events.handle_node_execution_started_factory,
     )
     event_bus.subscribe(
-        GraphNodeExecutionFailedEvent,
-        events.handle_graph_node_execution_failed_factory,
+        NodeExecutionFailedEvent,
+        events.handle_node_execution_failed_factory,
     )
 
     # ── Saga inicjalizacji grafu (warstwa process) ──
@@ -143,6 +143,6 @@ def register_events(core_container: CoreContainer) -> None:
         process_ctx.graph_execution_initialized_handler_factory,
     )
     event_bus.subscribe(
-        GraphNodeExecutionInitializedEvent,
-        process_ctx.graph_node_execution_initialized_handler_factory,
+        NodeExecutionInitializedEvent,
+        process_ctx.node_execution_initialized_handler_factory,
     )

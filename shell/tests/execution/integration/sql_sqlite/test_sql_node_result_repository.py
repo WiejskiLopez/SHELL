@@ -4,29 +4,29 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.command_handlers.graph_node_execution_save_result_handler import (
-    GraphNodeExecutionSaveResultHandler,
+from shell.application.execution.command_handlers.node_execution_save_result_handler import (
+    NodeExecutionSaveResultHandler,
 )
-from shell.application.execution.commands.graph_node_execution_commands import (
-    SaveGraphNodeExecutionResultCommand,
+from shell.application.execution.commands.node_execution_commands import (
+    SaveNodeExecutionResultCommand,
 )
-from shell.application.execution.queries.graph_node_execution_get_result_query import (
-    GraphNodeExecutionGetResultQuery,
+from shell.application.execution.queries.node_execution_get_result_query import (
+    NodeExecutionGetResultQuery,
 )
-from shell.application.execution.query_handlers.graph_node_execution_get_result_handler import (
-    GraphNodeExecutionGetResultHandler,
+from shell.application.execution.query_handlers.node_execution_get_result_handler import (
+    NodeExecutionGetResultHandler,
 )
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
+from shell.domain.execution.aggregates.node_execution.node_execution import (
+    NodeExecution,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.domain.execution.value_objects.ids import GraphNodeExecutionId, WorkflowId
+from shell.domain.execution.value_objects.ids import NodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -62,20 +62,20 @@ class TestSqlNodeResultRepository:
                     now=clock.now(),
                 )
             )
-            node = GraphNodeExecution(
-                id=GraphNodeExecutionId("node-sql-nr-1"),
+            node = NodeExecution(
+                id=NodeExecutionId("node-sql-nr-1"),
                 position=NodeOrder(0),
                 mode=Mode.WORKER,
                 role=NodeRole.AGENT,
                 node_type=NodeType("worker"),
             )
-            await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+            await u.repository(NodeExecutionRepository).save(node)  # type: ignore[type-abstract]
 
-        handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_generator)
+        handler = NodeExecutionSaveResultHandler(sql_uow, clock, id_generator)
         await handler.handle(
-            SaveGraphNodeExecutionResultCommand(
+            SaveNodeExecutionResultCommand(
                 workflow_id="wf-sql-nr-1",
-                graph_node_execution_id="node-sql-nr-1",
+                node_execution_id="node-sql-nr-1",
                 status="done",
                 stdout="success",
                 stderr="",
@@ -83,8 +83,8 @@ class TestSqlNodeResultRepository:
             )
         )
 
-        q = GraphNodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
-        dto = await q.handle(GraphNodeExecutionGetResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
+        q = NodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
+        dto = await q.handle(NodeExecutionGetResultQuery("node-sql-nr-1", "wf-sql-nr-1"))
         assert dto is not None
         assert dto.stdout == "success"
         assert dto.status == "done"

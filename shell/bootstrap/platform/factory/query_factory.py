@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any  # Dodano import Any
 
 from shell.application.definition.queries.rag_search_similar_query import RagSearchSimilarQuery
 from shell.application.definition.queries.runner_config_get_query import RunnerConfigGetQuery
-from shell.application.execution.queries.graph_node_execution_get_result_query import (
-    GraphNodeExecutionGetResultQuery,
+from shell.application.execution.queries.node_execution_get_result_query import (
+    NodeExecutionGetResultQuery,
 )
 from shell.application.execution.queries.session_get_history_query import SessionGetHistoryQuery
 from shell.application.execution.queries.task_execution_queries import (
@@ -32,7 +32,7 @@ def register_queries(core_container: CoreContainer) -> None:
     q_bus.register(TaskExecutionGetCurrentQuery, queries.get_current_task_execution_handler_factory)
     q_bus.register(WorkflowGetByIdQuery, queries.get_workflow_handler_factory)
     q_bus.register(
-        GraphNodeExecutionGetResultQuery, queries.get_graph_node_execution_result_handler_factory
+        NodeExecutionGetResultQuery, queries.get_node_execution_result_handler_factory
     )
     q_bus.register(RunnerConfigGetQuery, queries.get_runner_config_handler_factory)
     q_bus.register(SessionGetHistoryQuery, queries.get_session_history_handler_factory)

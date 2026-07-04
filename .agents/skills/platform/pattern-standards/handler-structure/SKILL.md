@@ -120,10 +120,10 @@ class GraphExecutionSaga:
     async def handle(self, event: GraphExecutionStartedEvent) -> None:
         # Krok 1: saga emituje komendę — osobny handler modyfikuje 1 agregat
         await self._command_bus.publish(ExecuteNodeCommand(...))
-        # → ExecuteNodeHandler modyfikuje tylko GraphNodeExecution
-        # → emituje GraphNodeExecutionCompletedEvent
+        # → ExecuteNodeHandler modyfikuje tylko NodeExecution
+        # → emituje NodeExecutionCompletedEvent
 
-    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
+    async def handle(self, event: NodeExecutionCompletedEvent) -> None:
         # Krok 2: saga odbiera wynik, decyduje o kolejnym kroku
         if self._has_next_node(event):
             await self._command_bus.publish(ExecuteNodeCommand(next_node))
@@ -166,7 +166,7 @@ Wszystkie handlery stosują następujące reguły obsługi błędów:
 1. **Błędy domenowe propagują** — jeśli agregat lub serwis domenowy rzuci `DomainError`, handler nie łapie go. Błąd propaguje do warstwy framework/API.
 2. **Błędy infrastrukturalne propagują** — `RepositoryException`, `ConnectionError` itp. nie są łapane w handlerze.
 3. **Jeden wyjątek: `ConcurrentModificationError`** (optymistyczne blokowanie) — może być złapany w handlerze dla retry lub logowania, jeśli jest to zamierzone.
-4. **Brak `try/except` na logikę biznesową** — handler nie ma bloków `try/except` które łapią błędy domenowe. Jedyny dozwolony przypadek: async execution gdzie błąd wykonania jest normalnym scenariuszem (np. `GraphNodeExecutionWorker`).
+4. **Brak `try/except` na logikę biznesową** — handler nie ma bloków `try/except` które łapią błędy domenowe. Jedyny dozwolony przypadek: async execution gdzie błąd wykonania jest normalnym scenariuszem (np. `NodeExecutionWorker`).
 
 ## Logowanie
 

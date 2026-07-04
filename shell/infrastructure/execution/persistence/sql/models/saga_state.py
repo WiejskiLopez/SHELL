@@ -15,7 +15,7 @@ class GraphExecutionSagaStateModel(Base, VersionedMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
     graph_execution_id: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
     expected_nodes_count: Mapped[int] = mapped_column(nullable=False)
-    graph_node_definition_executions: Mapped[dict] = mapped_column(
+    node_definition_executions: Mapped[dict] = mapped_column(
         JSONB, nullable=False, default=dict
     )
     status: Mapped[str] = mapped_column(nullable=False, default="PENDING")

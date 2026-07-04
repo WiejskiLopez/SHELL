@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-    GraphNodeDefinitionId,
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
 )
-from shell.domain.definition.aggregates.graph_node_transition_definition.graph_node_transition_definition import (
-    GraphNodeTransitionDefinition,
+from shell.domain.definition.aggregates.node_transition_definition.node_transition_definition import (
+    NodeTransitionDefinition,
 )
-from shell.domain.definition.aggregates.graph_node_transition_definition.value_objects.graph_node_transition_definition_id import (
-    GraphNodeTransitionDefinitionId,
+from shell.domain.definition.aggregates.node_transition_definition.value_objects.node_transition_definition_id import (
+    NodeTransitionDefinitionId,
 )
 from shell.domain.definition.value_objects.condition_language import ConditionLanguage
 from shell.domain.definition.value_objects.data_mapping import DataMapping
@@ -36,8 +36,8 @@ from shell.domain.execution.aggregates.task_execution_state.task_execution_state
     TaskExecutionState,
 )
 from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
-    GraphNodeExecutionResult,
+from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
+    NodeExecutionResult,
 )
 from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
 from shell.domain.execution.value_objects.edge_type import EdgeType
@@ -47,8 +47,8 @@ from shell.domain.execution.value_objects.graph_definition_id import GraphDefini
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
-    GraphNodeExecutionId,
-    GraphNodeExecutionResultId,
+    NodeExecutionId,
+    NodeExecutionResultId,
     SessionExecutionId,
     SessionExecutionStateId,
     SessionIdRef,
@@ -71,12 +71,12 @@ from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.definition.persistence.sql.models import (
-    GraphNodeTransitionDefinitionModel,
+    NodeTransitionDefinitionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
-    GraphNodeExecutionResultModel,
-    GraphNodeTransitionExecutionModel,
+    NodeExecutionResultModel,
+    NodeTransitionExecutionModel,
     SessionExecutionModel,
     SessionExecutionStateModel,
     TaskExecutionModel,
@@ -230,7 +230,7 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
 
 
 def transition_definition_model_to_entity(
-    model: GraphNodeTransitionExecutionModel,
+    model: NodeTransitionExecutionModel,
 ) -> TransitionDefinition:
     return TransitionDefinition(
         source_node_execution_id=model.source_node_execution_id or "",
@@ -252,8 +252,8 @@ def transition_definition_entity_to_model(
     transition: TransitionDefinition,
     graph_execution_id: str,
     now: datetime,
-) -> GraphNodeTransitionExecutionModel:
-    return GraphNodeTransitionExecutionModel(
+) -> NodeTransitionExecutionModel:
+    return NodeTransitionExecutionModel(
         id=f"{graph_execution_id}_{transition.source_node_execution_id}_{transition.target_node_execution_id or 'none'}_{transition.edge_type.value}",
         graph_execution_id=graph_execution_id,
         source_node_execution_id=transition.source_node_execution_id,
@@ -273,18 +273,18 @@ def transition_definition_entity_to_model(
     )
 
 
-def graph_node_transition_definition_model_to_entity(
-    model: GraphNodeTransitionDefinitionModel,
-) -> GraphNodeTransitionDefinition:
-    return GraphNodeTransitionDefinition(
-        id=GraphNodeTransitionDefinitionId(model.id),
+def node_transition_definition_model_to_entity(
+    model: NodeTransitionDefinitionModel,
+) -> NodeTransitionDefinition:
+    return NodeTransitionDefinition(
+        id=NodeTransitionDefinitionId(model.id),
         graph_definition_id=GraphDefinitionId(model.graph_definition_id),
         source_node_definition_id=(
-            GraphNodeDefinitionId(model.source_node_definition_id)
+            NodeDefinitionId(model.source_node_definition_id)
             if model.source_node_definition_id
             else None
         ),
-        target_node_definition_id=GraphNodeDefinitionId(model.target_node_definition_id),
+        target_node_definition_id=NodeDefinitionId(model.target_node_definition_id),
         transition_type=EdgeType(model.transition_type.upper()),
         priority=TransitionPriority(model.priority),
         condition_expression=ConditionExpression(model.condition_expression)
@@ -304,11 +304,11 @@ def graph_node_transition_definition_model_to_entity(
     )
 
 
-def graph_node_transition_definition_entity_to_model(
-    transition: GraphNodeTransitionDefinition,
+def node_transition_definition_entity_to_model(
+    transition: NodeTransitionDefinition,
     now: datetime,
-) -> GraphNodeTransitionDefinitionModel:
-    return GraphNodeTransitionDefinitionModel(
+) -> NodeTransitionDefinitionModel:
+    return NodeTransitionDefinitionModel(
         id=transition.id.value,
         graph_definition_id=transition.graph_definition_id.value,
         source_node_definition_id=(
@@ -407,16 +407,16 @@ def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
 
 
 # ---------------------------------------------------------------------------
-# GraphNodeExecutionResult
+# NodeExecutionResult
 # ---------------------------------------------------------------------------
 
 
-def graph_node_execution_result_model_to_entity(
-    result_model: GraphNodeExecutionResultModel,
-) -> GraphNodeExecutionResult:
-    return GraphNodeExecutionResult(
-        id=GraphNodeExecutionResultId(result_model.id),
-        graph_node_execution_id=GraphNodeExecutionId(result_model.graph_node_execution_id),
+def node_execution_result_model_to_entity(
+    result_model: NodeExecutionResultModel,
+) -> NodeExecutionResult:
+    return NodeExecutionResult(
+        id=NodeExecutionResultId(result_model.id),
+        node_execution_id=NodeExecutionId(result_model.node_execution_id),
         workflow_id=WorkflowId(result_model.workflow_id),
         status=Status(result_model.status),
         stdout=ExecutionStdout(result_model.stdout),
@@ -426,18 +426,18 @@ def graph_node_execution_result_model_to_entity(
     )
 
 
-def graph_node_execution_result_entity_to_model(
-    graph_node_execution_result: GraphNodeExecutionResult,
-) -> GraphNodeExecutionResultModel:
-    return GraphNodeExecutionResultModel(
-        id=graph_node_execution_result.id.value,
-        graph_node_execution_id=graph_node_execution_result.graph_node_execution_id.value,
-        workflow_id=graph_node_execution_result.workflow_id.value,
-        status=graph_node_execution_result.status.value,
-        stdout=graph_node_execution_result.stdout,
-        stderr=graph_node_execution_result.stderr,
-        artifact_uri=graph_node_execution_result.artifact_uri,
-        created_at=graph_node_execution_result.created_at,
+def node_execution_result_entity_to_model(
+    node_execution_result: NodeExecutionResult,
+) -> NodeExecutionResultModel:
+    return NodeExecutionResultModel(
+        id=node_execution_result.id.value,
+        node_execution_id=node_execution_result.node_execution_id.value,
+        workflow_id=node_execution_result.workflow_id.value,
+        status=node_execution_result.status.value,
+        stdout=node_execution_result.stdout,
+        stderr=node_execution_result.stderr,
+        artifact_uri=node_execution_result.artifact_uri,
+        created_at=node_execution_result.created_at,
     )
 
 

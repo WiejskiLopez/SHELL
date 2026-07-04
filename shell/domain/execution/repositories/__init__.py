@@ -8,8 +8,8 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
 from shell.domain.execution.aggregates.session_execution.repositories.session_execution_repository import (
     SessionExecutionRepository,
@@ -36,7 +36,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 __all__ = [
     "GraphExecutionRepository",
     "GraphExecutionStateRepository",
-    "GraphNodeExecutionRepository",
+    "NodeExecutionRepository",
     "SessionExecutionRepository",
     "SessionExecutionStateRepository",
     "TaskExecutionStateRepository",

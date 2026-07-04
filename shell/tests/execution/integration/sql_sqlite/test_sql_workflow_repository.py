@@ -18,23 +18,23 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution import GraphNodeExecution
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution import NodeExecution
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.mode import Mode
-from shell.infrastructure.execution.persistence.sql.models.graph_node_link_execution import (
-    GraphNodeLinkExecutionModel,
+from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
+    NodeLinkExecutionModel,
 )
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import (
@@ -80,21 +80,21 @@ class TestSqlWorkflowRepository:
                 depth=GraphDepth(0),
                 max_subgraph_depth=MaxSubgraphDepth(5),
             )
-            node = GraphNodeExecution(
-                id=GraphNodeExecutionId("wf-task-node-0"),
+            node = NodeExecution(
+                id=NodeExecutionId("wf-task-node-0"),
                 position=NodeOrder(0),
                 mode=Mode("agent"),
                 role=NodeRole.AGENT,
                 node_type=NodeType("agent"),
             )
-            link_model = GraphNodeLinkExecutionModel(
+            link_model = NodeLinkExecutionModel(
                 id=f"{graph_execution.id.value}-{node.id.value}",
                 graph_execution_id=graph_execution.id.value,
-                graph_node_execution_id=node.id.value,
+                node_execution_id=node.id.value,
                 version=1,
             )
             await u.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
-            await u.repository(GraphNodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+            await u.repository(NodeExecutionRepository).save(node)  # type: ignore[type-abstract]
             u._session.add(link_model)
             await u.commit()
 

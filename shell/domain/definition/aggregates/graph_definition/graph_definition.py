@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.definition.value_objects.ids import (
-        GraphNodeTransitionDefinitionId,
+        NodeTransitionDefinitionId,
     )
 
 
@@ -36,7 +36,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
+        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
     ) -> None:
         super().__init__(id)
         self._name = name if isinstance(name, GraphName) else GraphName(name)
@@ -59,7 +59,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
+        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
     ) -> GraphDefinition:
         return cls(
             id=id,
@@ -76,7 +76,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[GraphNodeTransitionDefinitionId] | None = None,
+        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
         now: datetime | None = None,
     ) -> GraphDefinition:
         if not name.value.strip():
@@ -117,5 +117,5 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         return self._system_role
 
     @property
-    def transition_definition_ids(self) -> tuple[GraphNodeTransitionDefinitionId, ...]:
+    def transition_definition_ids(self) -> tuple[NodeTransitionDefinitionId, ...]:
         return tuple(self._transition_definition_ids)

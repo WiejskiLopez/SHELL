@@ -1,7 +1,7 @@
 """Status value object.
 
 .. deprecated::
-   Use dedicated status enums (TaskExecutionStatus, GraphNodeExecutionStatus, WorkflowStatus)
+   Use dedicated status enums (TaskExecutionStatus, NodeExecutionStatus, WorkflowStatus)
    from shell.domain.execution.value_objects for new code.
 """
 

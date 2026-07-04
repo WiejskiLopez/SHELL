@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.execution.dto.graph_node_execution import GraphNodeExecutionDto
+from shell.application.execution.dto.node_execution import NodeExecutionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
-    GraphNodeExecutionModel,
-    GraphNodeLinkExecutionModel,
+    NodeExecutionModel,
+    NodeLinkExecutionModel,
     TaskExecutionModel,
 )
 
@@ -35,20 +35,20 @@ class TaskExecutionQueryService:
             graph_res = await session.execute(graph_stmt)
             graph_model = graph_res.scalar_one_or_none()
 
-            graph_node_executions: list[GraphNodeExecutionDto] = []
+            node_executions: list[NodeExecutionDto] = []
             if graph_model is not None:
                 node_stmt = (
-                    select(GraphNodeExecutionModel)
+                    select(NodeExecutionModel)
                     .join(
-                        GraphNodeLinkExecutionModel,
-                        GraphNodeLinkExecutionModel.graph_node_execution_id
-                        == GraphNodeExecutionModel.id,
+                        NodeLinkExecutionModel,
+                        NodeLinkExecutionModel.node_execution_id
+                        == NodeExecutionModel.id,
                     )
-                    .where(GraphNodeLinkExecutionModel.graph_execution_id == graph_model.id)
+                    .where(NodeLinkExecutionModel.graph_execution_id == graph_model.id)
                 )
                 node_models = (await session.execute(node_stmt)).scalars().all()
-                graph_node_executions = [
-                    GraphNodeExecutionDto(
+                node_executions = [
+                    NodeExecutionDto(
                         id=node_model.id,
                         position=node_model.position,
                         mode=node_model.mode,
@@ -65,7 +65,7 @@ class TaskExecutionQueryService:
                 name=model.name,
                 body=model.body or "",
                 created_at=model.created_at,
-                graph_node_executions=tuple(graph_node_executions),
+                node_executions=tuple(node_executions),
             )
 
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:

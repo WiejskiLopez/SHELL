@@ -8,35 +8,35 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-        GraphNodeExecutionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
     )
 
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):
-    __slots__ = ("_graph_node_execution_id",)
+    __slots__ = ("_node_execution_id",)
 
-    _graph_node_execution_id: GraphNodeExecutionId
+    _node_execution_id: NodeExecutionId
 
     def __init__(
         self,
         id_: AgentExecutionId,
-        graph_node_execution_id: GraphNodeExecutionId,
+        node_execution_id: NodeExecutionId,
     ) -> None:
         super().__init__(id_)
-        self._graph_node_execution_id = graph_node_execution_id
+        self._node_execution_id = node_execution_id
 
     @classmethod
     def restore(
         cls,
         id_: AgentExecutionId,
-        graph_node_execution_id: GraphNodeExecutionId,
+        node_execution_id: NodeExecutionId,
     ) -> Self:
         return cls(
             id_=id_,
-            graph_node_execution_id=graph_node_execution_id,
+            node_execution_id=node_execution_id,
         )
 
     @property
-    def graph_node_execution_id(self) -> GraphNodeExecutionId:
-        return self._graph_node_execution_id
+    def node_execution_id(self) -> NodeExecutionId:
+        return self._node_execution_id

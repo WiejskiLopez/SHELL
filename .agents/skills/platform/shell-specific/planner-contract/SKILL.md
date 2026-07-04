@@ -7,7 +7,7 @@ description: Kontrakt wyjściowy PLANNER node — format, przepływ, implementac
 
 ## 1. Rola Plannera
 
-Planner to `GraphNodeExecution` z `mode=PLANNER`. Jest schedulowany przez Scheduler jak każdy inny node — nie nasłuchuje, nie jest wywoływany ręcznie. Scheduler uruchamia go gdy:
+Planner to `NodeExecution` z `mode=PLANNER`. Jest schedulowany przez Scheduler jak każdy inny node — nie nasłuchuje, nie jest wywoływany ręcznie. Scheduler uruchamia go gdy:
 - planner node ma status `ready`
 - parent `GraphExecution` ma wszystkie poprzedzające go sub-grafy w statusie `done`
 
@@ -28,7 +28,7 @@ Planner po uruchomieniu (subprocess via `PlannerStrategy`) pisze na stdout **jed
 
 | Pole | Typ | Obowiązkowy | Opis |
 |------|-----|-------------|------|
-| `stage` | `string` | tak | Kontekst/informacje zebrane przez plannera podczas analizy. Trafia do `GraphNodeExecution.extra["planner_stage"]`. |
+| `stage` | `string` | tak | Kontekst/informacje zebrane przez plannera podczas analizy. Trafia do `NodeExecution.extra["planner_stage"]`. |
 | `spawn` | `string[]` | opcjonalny | Lista zapytań do bazy wektorowej. Każdy string opisuje czego potrzebuje (jaki sub-graf znaleźć). Pusta tablica lub brak → nic nie spawnuje. |
 
 **Zasady:**
@@ -47,19 +47,19 @@ Scheduler:
 Planner node:
   3. Wykonuje się (LLM → analiza → decyzja)
   4. Pisze na stdout: { "stage": "...", "spawn": ["...", "..."] }
-  5. Kończy się → GraphNodeExecutionWorker zapisuje ExecutionResult
+  5. Kończy się → NodeExecutionWorker zapisuje ExecutionResult
 
 Worker:
-  6. workflow.record_graph_node_execution_result(stdout, stderr, status)
-  7. Emituje GraphNodeExecutionCompletedEvent
+  6. workflow.record_node_execution_result(stdout, stderr, status)
+  7. Emituje NodeExecutionCompletedEvent
 
-PlannerResultHandler (subskrybuje GraphNodeExecutionCompletedEvent, sprawdza mode=PLANNER):
+PlannerResultHandler (subskrybuje NodeExecutionCompletedEvent, sprawdza mode=PLANNER):
   8. Parsuje JSON z result.stdout
-  9. stage → GraphNodeExecution.extra["planner_stage"] (zapis w stanie noda)
+  9. stage → NodeExecution.extra["planner_stage"] (zapis w stanie noda)
   10. Dla każdego spawn[i]:
-      Emituje SubGraphSpawnRequestedEvent { query: spawn[i], parent_graph_node_id, parent_graph_execution_id, ... }
+      Emituje SubGraphSpawnRequestedEvent { query: spawn[i], parent_node_id, parent_graph_execution_id, ... }
       → event trafia do tabeli schedulerowej (outbox)
-  11. Emituje PlannerSpawnsQueuedEvent { count: len(spawn), parent_graph_node_id }
+  11. Emituje PlannerSpawnsQueuedEvent { count: len(spawn), parent_node_id }
       → Scheduler ustawia planner node na status waiting
 
 Scheduler (FIFO, odczytuje eventy z tabeli w kolejności):
@@ -77,9 +77,9 @@ Scheduler (FIFO, odczytuje eventy z tabeli w kolejności):
       → Powtarza od kroku 13 z następnym spawn[i]
   19. Jeśli tak (wszystkie childy done):
       → Oznacza planner node jako done (status=SUCCESS)
-      → Emituje GraphNodeExecutionCompletedEvent dla plannera
+      → Emituje NodeExecutionCompletedEvent dla plannera
 
-GraphNodeExecutionCompletedHandler (Cycle B):
+NodeExecutionCompletedHandler (Cycle B):
   20. Normalna logika: sprawdza outgoing transitions → advance lub finish workflow
 ```
 
@@ -127,7 +127,7 @@ Implementacja:
 class SubGraphSpawnRequestedEvent(DomainEvent):
     query: str                       # zapytanie do bazy wektorowej
     parent_graph_execution_id: str   # parent GraphExecution.id
-    parent_graph_node_id: str        # planner GraphNodeExecution.id
+    parent_node_id: str        # planner NodeExecution.id
     correlation_id: str
 ```
 
@@ -137,7 +137,7 @@ class SubGraphSpawnRequestedEvent(DomainEvent):
 @dataclass(frozen=True)
 class PlannerSpawnsQueuedEvent(DomainEvent):
     parent_graph_execution_id: str
-    parent_graph_node_id: str
+    parent_node_id: str
     spawn_count: int                 # ile childy zaplanowano
 ```
 
@@ -148,7 +148,7 @@ class PlannerSpawnsQueuedEvent(DomainEvent):
 
 Kluczowe zmiany:
 - Parsuje `{ stage, spawn[] }` zamiast `{ steps: [{ action, sub_graph_definition_id }] }`
-- `stage` → `GraphNodeExecution.extra["planner_stage"]`
+- `stage` → `NodeExecution.extra["planner_stage"]`
 - `spawn[]` → emituje `SubGraphSpawnRequestedEvent` dla każdego elementu (zamiast bezpośredniego wołania `SubGraphExecutionService.spawn()`)
 - Emituje `PlannerSpawnsQueuedEvent` z liczbą spawnów
 - Nie wywołuje już `SubGraphExecutionService.spawn()` bezpośrednio
@@ -178,9 +178,9 @@ Scheduler musi obsługiwać:
 │  stdout: { "stage": "...", "spawn": ["a", "b"] }                    │
 │                              ↓                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ 2. GraphNodeExecutionWorker                                   │   │
-│  │    → record_graph_node_execution_result()                     │   │
-│  │    → GraphNodeExecutionCompletedEvent                         │   │
+│  │ 2. NodeExecutionWorker                                   │   │
+│  │    → record_node_execution_result()                     │   │
+│  │    → NodeExecutionCompletedEvent                         │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                              ↓                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
@@ -211,7 +211,7 @@ Scheduler musi obsługiwać:
 │  └──────────────────────────────────────────────────────────────┘   │
 │                              ↓                                       │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │ 6. GraphNodeExecutionCompletedHandler (Cycle B)               │   │
+│  │ 6. NodeExecutionCompletedHandler (Cycle B)               │   │
 │  │    → outgoing transitions → advance → next node               │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
@@ -223,5 +223,5 @@ Scheduler musi obsługiwać:
 2. **Handler nie spawnuje** — handler tylko emituje eventy. Spawning robi scheduler po odczytaniu eventu z tabeli.
 3. **Kolejność FIFO** — scheduler odczytuje eventy w kolejności, więc spawny wykonują się w tej samej kolejności co w tablicy.
 4. **Sekwencyjność spawnów** — child[1] nie powstanie dopóki child[0] się nie skończy (bo scheduler FIFO, a drugi `SubGraphSpawnRequestedEvent` czeka w kolejce za eventami child[0]).
-5. **Stage nie idzie do childów** — stage to notatka plannera, trafia tylko do `GraphNodeExecution.extra["planner_stage"]` w parent planner node. Childy mają dostęp do `GraphExecutionState` parenta.
+5. **Stage nie idzie do childów** — stage to notatka plannera, trafia tylko do `NodeExecution.extra["planner_stage"]` w parent planner node. Childy mają dostęp do `GraphExecutionState` parenta.
 6. **Scheduler decyduje o zakończeniu** — scheduler śledzi ile childów zaplanowano (`PlannerSpawnsQueuedEvent.count`) vs ile jest done. Gdy wszystkie — oznacza planner node jako done.

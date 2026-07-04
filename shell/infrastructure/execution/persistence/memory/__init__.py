@@ -1,11 +1,11 @@
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+    InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
-    InMemoryGraphNodeLinkExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+    InMemoryNodeLinkExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
@@ -22,8 +22,8 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_
 
 __all__ = [
     "InMemoryGraphExecutionRepository",
-    "InMemoryGraphNodeExecutionRepository",
-    "InMemoryGraphNodeLinkExecutionRepository",
+    "InMemoryNodeExecutionRepository",
+    "InMemoryNodeLinkExecutionRepository",
     "InMemoryTaskExecutionStateRepository",
     "InMemoryTaskExecutionRepository",
     "InMemoryWorkflowRepository",

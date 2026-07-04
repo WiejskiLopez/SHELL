@@ -110,7 +110,7 @@ def finish(self, *, now, task_execution_id=None) -> None:
 
 ## 10. Nadpisywanie wyników domenowych przez różne ścieżki
 
-**Co poszło nie tak.** `record_graph_node_execution_result` zapisuje wynik pod kluczem `graph_node_execution_id`. CrownScheduler woła ją dla noda, który **nigdy nie był faktycznie wykonany** (jest to join/planner w stanie `waiting`), z `stdout=str(combined_output)`. To **nadpisuje** oryginalny wynik Workera zapisany wcześniej pod tym samym kluczem, oraz emituje `CompletedEvent` dla noda, który fizycznie się nie wykonał.
+**Co poszło nie tak.** `record_node_execution_result` zapisuje wynik pod kluczem `node_execution_id`. CrownScheduler woła ją dla noda, który **nigdy nie był faktycznie wykonany** (jest to join/planner w stanie `waiting`), z `stdout=str(combined_output)`. To **nadpisuje** oryginalny wynik Workera zapisany wcześniej pod tym samym kluczem, oraz emituje `CompletedEvent` dla noda, który fizycznie się nie wykonał.
 
 **Dlaczego to boli.** Wynik "faktycznego wykonania noda" i "wake-up noda z `waiting` po ukończeniu dzieci" to semantycznie dwa różne wydarzenia. Traktowanie ich tą samą metodą gubi pierwotny wynik i myli konsumentów eventu.
 

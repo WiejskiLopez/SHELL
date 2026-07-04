@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.application.definition.dto.runner_config import RunnerConfigDto
-from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
+from shell.application.execution.dto.node_execution_result import NodeExecutionResultDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
 from shell.application.execution.dto.workflow import WorkflowDto
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
         TaskExecutionState,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.aggregates.workflow.entities.graph_node_execution_result import (
-        GraphNodeExecutionResult,
+    from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
+        NodeExecutionResult,
     )
     from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 
@@ -42,10 +42,10 @@ def workflow_to_dto(workflow: Workflow) -> WorkflowDto:
     )
 
 
-def node_result_to_dto(result: GraphNodeExecutionResult) -> GraphNodeExecutionResultDto:
-    return GraphNodeExecutionResultDto(
+def node_result_to_dto(result: NodeExecutionResult) -> NodeExecutionResultDto:
+    return NodeExecutionResultDto(
         id=result.id.value,
-        graph_node_execution_id=result.graph_node_execution_id.value,
+        node_execution_id=result.node_execution_id.value,
         workflow_id=result.workflow_id.value,
         status=result.status.value,
         stdout=result.stdout.value if result.stdout else None,

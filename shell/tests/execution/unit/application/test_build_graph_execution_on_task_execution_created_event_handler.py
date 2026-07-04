@@ -16,17 +16,17 @@ from shell.domain.definition.aggregates.graph_definition.graph_definition import
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-    GraphNodeDefinition,
+from shell.domain.definition.aggregates.node_definition.node_definition import (
+    NodeDefinition,
 )
-from shell.domain.definition.aggregates.graph_node_definition.value_objects.graph_node_definition_id import (
-    GraphNodeDefinitionId,
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
 )
-from shell.domain.definition.aggregates.graph_node_link_definition.graph_node_link_definition import (
-    GraphNodeLinkDefinition,
+from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+    NodeLinkDefinition,
 )
-from shell.domain.definition.aggregates.graph_node_link_definition.value_objects.graph_node_link_definition_id import (
-    GraphNodeLinkDefinitionId,
+from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
+    NodeLinkDefinitionId,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
@@ -35,7 +35,7 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_in
 from shell.domain.execution.events import TaskExecutionCreatedEvent
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
-    GraphNodeExecutionDefinition,
+    NodeExecutionDefinition,
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
@@ -44,18 +44,18 @@ from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_link_definition_repository import (
-    InMemoryGraphNodeLinkDefinitionRepository,
+from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
+    InMemoryNodeLinkDefinitionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+    InMemoryNodeExecutionRepository,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeIdGenerator,
     FakeLogger,
     InMemoryGraphExecutionRepository,
-    InMemoryGraphNodeDefinitionRepository,
+    InMemoryNodeDefinitionRepository,
     InMemoryUnitOfWork,
 )
 
@@ -73,8 +73,8 @@ from shell.infrastructure.definition.persistence.memory import (
 class _InMemoryGraphDefinitionQueryService:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
         self._repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)
-        self._node_repo = unit_of_work.repository(InMemoryGraphNodeDefinitionRepository)
-        self._link_repo = unit_of_work.repository(InMemoryGraphNodeLinkDefinitionRepository)
+        self._node_repo = unit_of_work.repository(InMemoryNodeDefinitionRepository)
+        self._link_repo = unit_of_work.repository(InMemoryNodeLinkDefinitionRepository)
 
     async def get_graph_definition_by_semantic_name(
         self,
@@ -100,17 +100,17 @@ class _InMemoryGraphDefinitionQueryService:
 
     async def _to_dto(self, entity: object) -> GraphExecutionDefinition:
         graph_definition: GraphDefinition = entity  # type: ignore[assignment]
-        nodes: list[GraphNodeDefinition] = []
+        nodes: list[NodeDefinition] = []
         links = await self._link_repo.list_by_graph_definition_id(graph_definition.id)
         for link in links:
-            node = await self._node_repo.get_by_id(link.graph_node_definition_id)
+            node = await self._node_repo.get_by_id(link.node_definition_id)
             if node is not None:
                 nodes.append(node)
         return GraphExecutionDefinition(
             id=graph_definition.id.value,
             name=graph_definition.name.value,
-            graph_node_execution_definitions=[
-                GraphNodeExecutionDefinition(
+            node_execution_definitions=[
+                NodeExecutionDefinition(
                     position=node.position.value,
                     mode=node.mode.value,
                     role=node.role.value,
@@ -161,10 +161,10 @@ async def _seed_graph_definition(
     unit_of_work: InMemoryUnitOfWork, name: str = "base_planner"
 ) -> GraphDefinition:
     now = datetime.now(UTC)
-    node1_id = GraphNodeDefinitionId("tn-1")
-    node2_id = GraphNodeDefinitionId("tn-2")
+    node1_id = NodeDefinitionId("tn-1")
+    node2_id = NodeDefinitionId("tn-2")
 
-    node1 = GraphNodeDefinition.create(
+    node1 = NodeDefinition.create(
         id=node1_id,
         position=NodePosition(0),
         mode=Mode("agent"),
@@ -172,7 +172,7 @@ async def _seed_graph_definition(
         node_type=NodeTypeName("agent"),
         now=now,
     )
-    node2 = GraphNodeDefinition.create(
+    node2 = NodeDefinition.create(
         id=node2_id,
         position=NodePosition(1),
         mode=Mode("worker"),
@@ -180,8 +180,8 @@ async def _seed_graph_definition(
         node_type=NodeTypeName("worker"),
         now=now,
     )
-    await unit_of_work.repository(InMemoryGraphNodeDefinitionRepository).save(node1)
-    await unit_of_work.repository(InMemoryGraphNodeDefinitionRepository).save(node2)
+    await unit_of_work.repository(InMemoryNodeDefinitionRepository).save(node1)
+    await unit_of_work.repository(InMemoryNodeDefinitionRepository).save(node2)
 
     repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)
     keys_to_remove = [k for k, v in repo._store.items() if v.name.value == name]
@@ -197,19 +197,19 @@ async def _seed_graph_definition(
     )
     await repo.save(graph_definition)
 
-    link_repo = unit_of_work.repository(InMemoryGraphNodeLinkDefinitionRepository)
+    link_repo = unit_of_work.repository(InMemoryNodeLinkDefinitionRepository)
     await link_repo.save(
-        GraphNodeLinkDefinition(
-            id=GraphNodeLinkDefinitionId.generate(),
+        NodeLinkDefinition(
+            id=NodeLinkDefinitionId.generate(),
             graph_definition_id=graph_definition.id,
-            graph_node_definition_id=node1_id,
+            node_definition_id=node1_id,
         )
     )
     await link_repo.save(
-        GraphNodeLinkDefinition(
-            id=GraphNodeLinkDefinitionId.generate(),
+        NodeLinkDefinition(
+            id=NodeLinkDefinitionId.generate(),
             graph_definition_id=graph_definition.id,
-            graph_node_definition_id=node2_id,
+            node_definition_id=node2_id,
         )
     )
     return graph_definition
@@ -253,7 +253,7 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
         assert graph_execution is not None
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         nodes = await unit_of_work.repository(
-            InMemoryGraphNodeExecutionRepository
+            InMemoryNodeExecutionRepository
         ).list_by_graph_execution_id(graph_execution.id)
         assert len(nodes) == 0
         assert any(

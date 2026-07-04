@@ -3,26 +3,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
-from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
-    GraphNodeDefinition,
+from shell.domain.definition.aggregates.node_definition.node_definition import (
+    NodeDefinition,
 )
-from shell.domain.definition.aggregates.graph_node_link_definition.graph_node_link_definition import (
-    GraphNodeLinkDefinition,
+from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+    NodeLinkDefinition,
 )
-from shell.domain.definition.aggregates.graph_node_link_definition.repositories.graph_node_link_definition_repository import (
-    GraphNodeLinkDefinitionRepository,
+from shell.domain.definition.aggregates.node_link_definition.repositories.node_link_definition_repository import (
+    NodeLinkDefinitionRepository,
 )
-from shell.domain.definition.aggregates.graph_node_link_definition.value_objects.graph_node_link_definition_id import (
-    GraphNodeLinkDefinitionId,
+from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
+    NodeLinkDefinitionId,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
-from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
-    GraphNodeDefinitionRepository,
+from shell.domain.definition.repositories.graph_definition_repository.node_definition_repository import (
+    NodeDefinitionRepository,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.ids import GraphDefinitionId, GraphNodeDefinitionId
+from shell.domain.definition.value_objects.ids import GraphDefinitionId, NodeDefinitionId
 from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
 from shell.domain.definition.value_objects.node_type_name import NodeTypeName
@@ -52,14 +52,14 @@ class GraphDefinitionCreateHandler:
     async def handle(self, command: CreateGraphDefinitionCommand) -> str:
         now = self._clock.now()
         graph_id = self._id_generator.new_id(GraphDefinitionId)
-        node_ids: list[GraphNodeDefinitionId] = []
-        node_aggregates: list[GraphNodeDefinition] = []
+        node_ids: list[NodeDefinitionId] = []
+        node_aggregates: list[NodeDefinition] = []
 
-        for node_dict in command.graph_node_definitions:
-            node_id = self._id_generator.new_id(GraphNodeDefinitionId)
+        for node_dict in command.node_definitions:
+            node_id = self._id_generator.new_id(NodeDefinitionId)
             node_ids.append(node_id)
 
-            node = GraphNodeDefinition.create(
+            node = NodeDefinition.create(
                 id=node_id,
                 position=NodePosition(node_dict.get("position", 0)),
                 mode=Mode(node_dict.get("mode", "worker")),
@@ -71,7 +71,7 @@ class GraphDefinitionCreateHandler:
 
         async with self._unit_of_work as unit_of_work:
             for node in node_aggregates:
-                await unit_of_work.repository(GraphNodeDefinitionRepository).save(node)
+                await unit_of_work.repository(NodeDefinitionRepository).save(node)
                 unit_of_work.stage_events(node.pull_events())
 
             graph = GraphDefinition.create(
@@ -84,13 +84,13 @@ class GraphDefinitionCreateHandler:
             unit_of_work.stage_events(graph.pull_events())
 
             for node_id in node_ids:
-                link = GraphNodeLinkDefinition(
-                    id=GraphNodeLinkDefinitionId.generate(),
+                link = NodeLinkDefinition(
+                    id=NodeLinkDefinitionId.generate(),
                     graph_definition_id=graph_id,
-                    graph_node_definition_id=node_id,
+                    node_definition_id=node_id,
                 )
                 await unit_of_work.repository(
-                    GraphNodeLinkDefinitionRepository
+                    NodeLinkDefinitionRepository
                 ).save(link)
 
         return graph_id.value

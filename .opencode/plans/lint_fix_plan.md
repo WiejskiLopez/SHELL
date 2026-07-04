@@ -37,7 +37,7 @@ class InMemoryUnitOfWork(UnitOfWork):
 
 ---
 
-### C2. `graph_node_execution_run_handler.py` — Fix F841 (6 unused vars)
+### C2. `node_execution_run_handler.py` — Fix F841 (6 unused vars)
 
 **Problem**: Lines 54-78 assign variables that are never read.
 
@@ -45,12 +45,12 @@ class InMemoryUnitOfWork(UnitOfWork):
 
 ```python
 # Before (lines 53-55):
-workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
-graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)  # UNUSED
+workflow_id = WorkflowId(run_node_execution_command.workflow_id)
+node_execution_id = NodeExecutionId(run_node_execution_command.node_execution_id)  # UNUSED
 now = self._clock.now()  # UNUSED
 
 # After:
-workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
+workflow_id = WorkflowId(run_node_execution_command.workflow_id)
 ```
 
 Also remove unused variables in try/except (lines 70-78). The entire `try` block can be simplified since `stdout`, `stderr`, `node_status`, `failure_reason` are all assigned but never used:
@@ -59,8 +59,8 @@ Also remove unused variables in try/except (lines 70-78). The entire `try` block
 # Replace lines 64-78 with:
 try:
     await self._strategy.execute(
-        graph_node_execution_id=run_graph_node_execution_command.graph_node_execution_id,
-        workspace_path=run_graph_node_execution_command.workspace_path,
+        node_execution_id=run_node_execution_command.node_execution_id,
+        workspace_path=run_node_execution_command.workspace_path,
         runner=self._runner,
     )
 except Exception:
@@ -100,13 +100,13 @@ self._active_session.add(OutboxMessageModel(...))
 
 ### C5. `planner_result_handler.py:92` — Fix F841
 
-**Problem**: `expected_count = len(definition.graph_node_execution_definitions)` assigned but never used.
+**Problem**: `expected_count = len(definition.node_execution_definitions)` assigned but never used.
 
 **Fix**: Remove the assignment:
 
 ```python
 # Before:
-expected_count = len(definition.graph_node_execution_definitions)
+expected_count = len(definition.node_execution_definitions)
 
 # After:
 # (remove the line entirely)
@@ -114,7 +114,7 @@ expected_count = len(definition.graph_node_execution_definitions)
 
 ---
 
-### C6. `graph_node_execution_worker.py:230` — Fix F841
+### C6. `node_execution_worker.py:230` — Fix F841
 
 **Problem**: `current_graph_execution = graph_executions[0] if graph_executions else None` assigned but never used.
 
@@ -132,7 +132,7 @@ expected_count = len(definition.graph_node_execution_definitions)
 
 ### C8. `test_pg_node_result_repository.py:54` — Fix F841
 
-**Problem**: `handler = GraphNodeExecutionSaveResultHandler(...)` assigned but never used.
+**Problem**: `handler = NodeExecutionSaveResultHandler(...)` assigned but never used.
 
 **Fix**: Remove the assignment.
 
@@ -171,7 +171,7 @@ Files where `from datetime import datetime` is imported under `TYPE_CHECKING` bu
 | `domain/execution/aggregates/graph_execution/events/graph_execution_planned_event.py` |
 | `domain/execution/aggregates/graph_execution/events/graph_execution_sub_graph_settled_event.py` |
 | `domain/execution/aggregates/graph_execution/events/graph_execution_sub_graph_spawn_requested_event.py` |
-| `domain/execution/aggregates/graph_node_execution/events/graph_node_execution_completed_event.py` |
+| `domain/execution/aggregates/node_execution/events/node_execution_completed_event.py` |
 | `domain/execution/aggregates/task_execution/events/task_execution_created_event.py` |
 
 **Fix**: Remove the `from datetime import datetime` line from each `TYPE_CHECKING` block.
@@ -281,12 +281,12 @@ if TYPE_CHECKING:
 - Move DTO imports into TYPE_CHECKING
 
 **Domain entities/aggregates** — some domain imports used only in type hints:
-- `graph_node_definition.py`: many VO imports only used in type hints → move to TYPE_CHECKING
+- `node_definition.py`: many VO imports only used in type hints → move to TYPE_CHECKING
 - `graph_definition_embedding.py`: `CreatedAt` → move to TYPE_CHECKING
 - Various event files: event-specific imports → move to TYPE_CHECKING
 - `rag_document.py`: `ChunkText`, `Embedding`, `EmbeddingModel` → TYPE_CHECKING
-- `graph_execution.py`: `GraphNodeExecutionId`, `TaskExecutionId`, `GraphNodeDefinitionId`, `Reason` → TYPE_CHECKING
-- `graph_node_execution.py`: `NodeRole`, `NodeType`, `RetryDelaySeconds`, `TimeoutSeconds`, `Mode` → TYPE_CHECKING
+- `graph_execution.py`: `NodeExecutionId`, `TaskExecutionId`, `NodeDefinitionId`, `Reason` → TYPE_CHECKING
+- `node_execution.py`: `NodeRole`, `NodeType`, `RetryDelaySeconds`, `TimeoutSeconds`, `Mode` → TYPE_CHECKING
 - `machine_state.py` aggregates: `WorkflowId`, `SessionId`, `GraphExecutionId`, etc. → TYPE_CHECKING
 - `task_execution.py`: `Reason` → TYPE_CHECKING
 - `agent_config_execution.py`: `Config`, `CreatedAt` → TYPE_CHECKING
@@ -297,10 +297,10 @@ if TYPE_CHECKING:
 
 **Repositories** — protocol files:
 - `rag_repository.py`: `ChunkIndex` → TYPE_CHECKING
-- `agent_execution_repository.py`: `AgentExecution`, `AgentExecutionId`, `GraphNodeExecutionId`, `ExistsResult` → TYPE_CHECKING
+- `agent_execution_repository.py`: `AgentExecution`, `AgentExecutionId`, `NodeExecutionId`, `ExistsResult` → TYPE_CHECKING
 - `agent_skill_execution_repository.py`: `AgentExecutionId`, `AgentSkillExecution`, `AgentSkillExecutionId`, `ExistsResult` → TYPE_CHECKING
-- `graph_node_execution_state_repository.py`: `GraphNodeExecutionId`, `GraphNodeExecutionState`, etc. → TYPE_CHECKING
-- `graph_node_transition_execution_repository.py`: `GraphExecutionId`, `GraphNodeExecutionId`, etc. → TYPE_CHECKING
+- `node_execution_state_repository.py`: `NodeExecutionId`, `NodeExecutionState`, etc. → TYPE_CHECKING
+- `node_transition_execution_repository.py`: `GraphExecutionId`, `NodeExecutionId`, etc. → TYPE_CHECKING
 - `scheduler_definition_repository.py`: `ExistsResult`, `SourceContext`, `TriggerEventType` → TYPE_CHECKING
 - `scheduler_execution_repository.py`: `ExistsResult`, `ExecutionStatus`, `ActionRef`, `CountResult`, `SchedulerDefinitionId` → TYPE_CHECKING
 - `session_state_repository.py`: `ExistsResult`, `StateDirection`, `SessionId`, `SessionState`, `SessionStateId` → TYPE_CHECKING
@@ -309,13 +309,13 @@ if TYPE_CHECKING:
 **Infrastructure** — in-memory repos:
 - Most in-memory repositories import domain types used only in type hints → move to TYPE_CHECKING
 - `in_memory_graph_definition_repository.py`: `GraphName` → TYPE_CHECKING
-- `in_memory_graph_node_definition_repository.py`: `GraphDefinitionId` → TYPE_CHECKING
+- `in_memory_node_definition_repository.py`: `GraphDefinitionId` → TYPE_CHECKING
 - `in_memory_rag_document_repository.py`: `ChunkIndex`, `RagChunk`, `RagDocument`, etc. → TYPE_CHECKING
 - `in_memory_runner_config_repository.py`: `PackageName` → TYPE_CHECKING
 - `in_memory_message_repository.py`: `Destination`, `Source` → TYPE_CHECKING
 - Various state in-memory repos: `GraphExecutionId`, `StateDirection`, `GraphExecutionState`, etc. → TYPE_CHECKING
 - `in_memory_workflow_repository.py`: `SessionExecutionId`, `SessionIdRef` → TYPE_CHECKING
-- `in_memory_agent_execution_repository.py`: `GraphNodeExecutionId` → TYPE_CHECKING
+- `in_memory_agent_execution_repository.py`: `NodeExecutionId` → TYPE_CHECKING
 - `in_memory_agent_skill_execution_repository.py`: `AgentExecutionId` → TYPE_CHECKING
 - `in_memory_workflow_state_repository.py`: `WorkflowId`, `StateDirection` → TYPE_CHECKING
 
@@ -347,7 +347,7 @@ if TYPE_CHECKING:
 **Tests**:
 - `test_sql_task_execution_repository.py`: `SqlAlchemyUnitOfWork` → TYPE_CHECKING
 - `test_graph_execution_initialized_handler.py`: `FakeCommandOutboxPublisher`, `FakeLogger`, `InMemoryGraphExecutionSagaRepository` → TYPE_CHECKING
-- `test_graph_node_execution_initialized_handler.py`: same → TYPE_CHECKING
+- `test_node_execution_initialized_handler.py`: same → TYPE_CHECKING
 - `test_manager.py`: `InMemoryGraphExecutionSagaRepository` → TYPE_CHECKING
 - `test_build_graph_execution_on_task_execution_created_event_handler.py`: `GraphDefinitionSemanticQuery` → TYPE_CHECKING
 - `conftest.py` (process): `GraphExecutionSagaState` → TYPE_CHECKING
@@ -377,7 +377,7 @@ These imports are hidden in `if TYPE_CHECKING:` blocks but ARE used at runtime (
 
 | File | Imports | Reason |
 |------|---------|--------|
-| `infrastructure/definition/persistence/sql/mappers/graph_definition_mapper.py` | `GraphNodeDefinitionId`, `GraphNodeTransitionDefinitionId`, `GraphDefinitionModel` | Used in function bodies (constructors, model instantiation) |
+| `infrastructure/definition/persistence/sql/mappers/graph_definition_mapper.py` | `NodeDefinitionId`, `NodeTransitionDefinitionId`, `GraphDefinitionModel` | Used in function bodies (constructors, model instantiation) |
 | `infrastructure/execution/persistence/sql/mappers/__init__.py` | `GraphExecutionStateInputModel`, `GraphExecutionStateOutputModel` | Used in function bodies |
 | `infrastructure/platform/persistence/sql/mappers/message_mappers.py` | `MessageModel` | Used in function body |
 

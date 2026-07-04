@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
-from shell.application.definition.dto.graph_node_definition import GraphNodeDefinitionDto
+from shell.application.definition.dto.node_definition import NodeDefinitionDto
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
-    GraphNodeDefinitionModel,
-    GraphNodeLinkDefinitionModel,
+    NodeDefinitionModel,
+    NodeLinkDefinitionModel,
 )
 from shell.infrastructure.definition.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
@@ -169,14 +169,14 @@ class SqlGraphDefinitionQueryService:
         self, session: AsyncSession, model: GraphDefinitionModel
     ) -> GraphDefinitionDto:
         link_stmt = (
-            select(GraphNodeDefinitionModel)
+            select(NodeDefinitionModel)
             .join(
-                GraphNodeLinkDefinitionModel,
-                GraphNodeLinkDefinitionModel.graph_node_definition_id
-                == GraphNodeDefinitionModel.id,
+                NodeLinkDefinitionModel,
+                NodeLinkDefinitionModel.node_definition_id
+                == NodeDefinitionModel.id,
             )
-            .where(GraphNodeLinkDefinitionModel.graph_definition_id == model.id)
-            .order_by(GraphNodeDefinitionModel.position)
+            .where(NodeLinkDefinitionModel.graph_definition_id == model.id)
+            .order_by(NodeDefinitionModel.position)
         )
         node_models = (await session.execute(link_stmt)).scalars().all()
 
@@ -184,8 +184,8 @@ class SqlGraphDefinitionQueryService:
             id=model.id,
             name=model.name,
             purpose=model.purpose,
-            graph_node_definitions=[
-                GraphNodeDefinitionDto(
+            node_definitions=[
+                NodeDefinitionDto(
                     id=node.id,
                     position=node.position,
                     mode=node.mode,

@@ -11,7 +11,7 @@ from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.domain.platform.exceptions import DomainError
 from shell.framework.definition.api.routers import definitions as definitions_router
 from shell.framework.execution.api.routers import (
-    graph_node_execution,
+    node_execution,
     task_executions,
     workflows,
 )
@@ -49,7 +49,7 @@ def create_app(core_container: CoreContainer) -> FastAPI:
     # Routers
     app.include_router(task_executions.router)
     app.include_router(workflows.router)
-    app.include_router(graph_node_execution.router)
+    app.include_router(node_execution.router)
     app.include_router(definitions_router.router, prefix="/api/v1")
     app.include_router(sessions_router.router, prefix="/api/v1")
     app.include_router(users_router.router, prefix="/api/v1")

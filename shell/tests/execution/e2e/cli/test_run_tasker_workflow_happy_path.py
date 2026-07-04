@@ -6,7 +6,7 @@ from shell.application.execution.query_handlers.workflow_get_by_id_handler impor
     WorkflowGetByIdHandler,
 )
 from shell.domain.execution.events import (
-    GraphNodeExecutionCompletedEvent,
+    NodeExecutionCompletedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
 )
@@ -36,7 +36,7 @@ class TestRunTaskerWorkflowHappyPath:
         )
         events = await _run_tasker_full(unit_of_work, clock, id_generator, command)
 
-        assert any(isinstance(e, GraphNodeExecutionCompletedEvent) for e in events)
+        assert any(isinstance(e, NodeExecutionCompletedEvent) for e in events)
         assert any(isinstance(e, WorkflowCompletedEvent) for e in events)
         assert not any(isinstance(e, WorkflowFailedEvent) for e in events)
 

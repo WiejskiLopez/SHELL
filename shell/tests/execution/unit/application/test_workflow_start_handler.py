@@ -12,18 +12,18 @@ from shell.application.execution.queries.workflow_get_by_id_query import Workflo
 from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
     WorkflowGetByIdHandler,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
-    GraphNodeLinkExecution,
+from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
-    GraphNodeLinkExecutionId,
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
 )
 from shell.domain.execution.events import WorkflowStartedEvent
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+    InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
-    InMemoryGraphNodeLinkExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+    InMemoryNodeLinkExecutionRepository,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -37,7 +37,7 @@ from shell.infrastructure.platform.persistence.memory import (
 )
 
 
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
 class TestWorkflowStartHandler:
     async def _import_task_execution(
         self,
@@ -67,21 +67,21 @@ class TestWorkflowStartHandler:
             depth=GraphDepth(0),
             max_subgraph_depth=MaxSubgraphDepth(5),
         )
-        node = GraphNodeExecution(
-            id=GraphNodeExecutionId(f"{task_execution_name}-node-0"),
+        node = NodeExecution(
+            id=NodeExecutionId(f"{task_execution_name}-node-0"),
             position=NodeOrder(0),
             mode=Mode("agent"),
             role=NodeRole.AGENT,
             node_type=NodeType("agent"),
         )
-        link = GraphNodeLinkExecution(
-            id=GraphNodeLinkExecutionId.generate(),
+        link = NodeLinkExecution(
+            id=NodeLinkExecutionId.generate(),
             graph_execution_id=graph_execution.id,
-            graph_node_execution_id=node.id,
+            node_execution_id=node.id,
         )
         await unit_of_work.repository(InMemoryGraphExecutionRepository).save(graph_execution)
-        await unit_of_work.repository(InMemoryGraphNodeExecutionRepository).save(node)
-        await unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository).save(link)
+        await unit_of_work.repository(InMemoryNodeExecutionRepository).save(node)
+        await unit_of_work.repository(InMemoryNodeLinkExecutionRepository).save(link)
 
     async def test_happy_path(
         self,

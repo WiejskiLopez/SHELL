@@ -35,7 +35,7 @@ class TestGraphExecutionSagaState:
         assert state.saga_id == self.SAGA_ID
         assert state.graph_execution_id == self.GRAPH_EXECUTION_ID
         assert state.expected_nodes_count == 2
-        assert state.graph_node_definition_executions == {}
+        assert state.node_definition_executions == {}
         assert state.status == GraphExecutionSagaStatus.PENDING
         assert state.version == 1
         assert state.is_complete is False
@@ -48,7 +48,7 @@ class TestGraphExecutionSagaState:
         )
         state.record_node_execution_created(self.NODE_DEF_1, self.NODE_EXEC_1)
 
-        assert state.graph_node_definition_executions == {self.NODE_DEF_1: self.NODE_EXEC_1}
+        assert state.node_definition_executions == {self.NODE_DEF_1: self.NODE_EXEC_1}
         assert state.is_complete is False
         assert state.status == GraphExecutionSagaStatus.PENDING
 
@@ -61,7 +61,7 @@ class TestGraphExecutionSagaState:
         state.record_node_execution_created(self.NODE_DEF_1, self.NODE_EXEC_1)
         state.record_node_execution_created(self.NODE_DEF_2, self.NODE_EXEC_2)
 
-        assert state.graph_node_definition_executions == {
+        assert state.node_definition_executions == {
             self.NODE_DEF_1: self.NODE_EXEC_1,
             self.NODE_DEF_2: self.NODE_EXEC_2,
         }
@@ -80,7 +80,7 @@ class TestGraphExecutionSagaState:
         assert state.status == GraphExecutionSagaStatus.COMPLETED
 
         state.record_node_execution_created(self.NODE_DEF_2, self.NODE_EXEC_2)
-        assert len(state.graph_node_definition_executions) == 2
+        assert len(state.node_definition_executions) == 2
         assert state.status == GraphExecutionSagaStatus.COMPLETED
 
     def test_is_complete_with_more_than_expected(self) -> None:

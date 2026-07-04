@@ -98,7 +98,7 @@ class TestGraphExecutionSagaRepositorySqlite:
                 await repo.save(saga_2)
                 await session.commit()
 
-    async def test_persists_graph_node_definition_executions(
+    async def test_persists_node_definition_executions(
         self, session_factory: async_sessionmaker
     ) -> None:
         async with session_factory() as session:
@@ -117,7 +117,7 @@ class TestGraphExecutionSagaRepositorySqlite:
             repo = SqlGraphExecutionSagaRepository(session)
             stored = await repo.get_by_graph_execution_id("ge-sql-4")
             assert stored is not None
-            assert stored.graph_node_definition_executions == {
+            assert stored.node_definition_executions == {
                 "ndef-a": "nexec-a",
                 "ndef-b": "nexec-b",
             }

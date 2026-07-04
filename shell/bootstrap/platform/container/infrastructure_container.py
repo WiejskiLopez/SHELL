@@ -32,7 +32,7 @@ from shell.infrastructure.execution.persistence.sql.services import (
     WorkflowQueryService,
 )
 from shell.infrastructure.execution.process.subprocess_runner import (
-    SubprocessGraphNodeExecutionProcessRunner,
+    SubprocessNodeExecutionProcessRunner,
 )
 from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
@@ -83,7 +83,7 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     id_generator_factory = providers.Factory(UuidIdGenerator)
     task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
     workspace_factory = providers.Factory(Workspace)
-    runner_factory = providers.Factory(SubprocessGraphNodeExecutionProcessRunner)
+    runner_factory = providers.Factory(SubprocessNodeExecutionProcessRunner)
 
     # 3. SQL query services (internal use by each BC's own REST API / handlers)
     graph_definition_query_service_factory = providers.Factory(

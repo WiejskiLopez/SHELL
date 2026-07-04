@@ -10,10 +10,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.services.graph_node_execution_policy import (
+from shell.domain.execution.services.node_execution_policy import (
     AbortDecision as PolicyAbortDecision,
 )
-from shell.domain.execution.services.graph_node_execution_policy import (
+from shell.domain.execution.services.node_execution_policy import (
     ContinueDecision,
 )
 from shell.domain.execution.value_objects.edge_type import EdgeType
@@ -24,11 +24,11 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
         TransitionDefinition,
     )
-    from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
-        GraphNodeTransitionExecution,
+    from shell.domain.execution.aggregates.node_transition_execution.node_transition_execution import (
+        NodeTransitionExecution,
     )
-    from shell.domain.execution.services.graph_node_execution_policy import (
-        GraphNodeExecutionPolicy,
+    from shell.domain.execution.services.node_execution_policy import (
+        NodeExecutionPolicy,
     )
 
 
@@ -72,13 +72,13 @@ class WorkflowTransitionService:
     def decide_after_completed(
         *,
         outgoing_transitions: Sequence[TransitionDefinition],
-        loop_transition_execution: GraphNodeTransitionExecution | None = None,
+        loop_transition_execution: NodeTransitionExecution | None = None,
     ) -> CompletedNodeDecision:
         """Decide what to do after a node completes successfully.
 
         Args:
             outgoing_transitions: Transition definitions outgoing from the completed node.
-            loop_transition_execution: The GraphNodeTransitionExecution aggregate
+            loop_transition_execution: The NodeTransitionExecution aggregate
                 for a LOOP transition, if one exists. Used to check loop exhaustion.
         """
         if not outgoing_transitions:
@@ -97,7 +97,7 @@ class WorkflowTransitionService:
     def _evaluate_loop(
         *,
         outgoing: Sequence[TransitionDefinition],
-        loop_transition_execution: GraphNodeTransitionExecution | None = None,
+        loop_transition_execution: NodeTransitionExecution | None = None,
     ) -> CompletedNodeDecision:
         loop_transition: TransitionDefinition | None = None
         for t in outgoing:
@@ -125,7 +125,7 @@ class WorkflowTransitionService:
         *,
         outgoing_transitions: Sequence[TransitionDefinition],
         reason: str,
-        policy: GraphNodeExecutionPolicy,
+        policy: NodeExecutionPolicy,
     ) -> FailedNodeDecision:
         """Decide what to do after a node fails.
 

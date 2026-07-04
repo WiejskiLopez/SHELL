@@ -67,9 +67,9 @@ Stosuj gdy potrzeba kompensacji, timeoutów, śledzenia stanu, lub proces ma 3+ 
 class GraphExecutionSaga:
     async def handle(self, event: GraphExecutionStartedEvent) -> None:
         await self._command_bus.publish(ExecuteNodeCommand(...))
-        # → ExecuteNodeHandler modyfikuje tylko GraphNodeExecution
+        # → ExecuteNodeHandler modyfikuje tylko NodeExecution
 
-    async def handle(self, event: GraphNodeExecutionCompletedEvent) -> None:
+    async def handle(self, event: NodeExecutionCompletedEvent) -> None:
         if self._has_more_nodes(event):
             await self._command_bus.publish(ExecuteNodeCommand(next_node))
         else:

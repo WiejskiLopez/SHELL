@@ -55,7 +55,7 @@ _KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset(
         "framework/platform/api/app.py",
         "framework/platform/cli/main.py",
         "framework/execution/api/routers/envelopes.py",
-        "framework/execution/api/routers/graph_node_execution.py",
+        "framework/execution/api/routers/node_execution.py",
         "framework/execution/api/routers/task_executions/__init__.py",
         "framework/execution/api/routers/workflows/__init__.py",
         "framework/definition/api/routers/definitions/__init__.py",

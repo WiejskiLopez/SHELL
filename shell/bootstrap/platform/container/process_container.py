@@ -10,8 +10,8 @@ from shell.process.execution.graph_execution_saga.graph_execution_saga import (
 from shell.process.execution.graph_execution_saga.handlers.graph_execution_initialized_handler import (
     GraphExecutionInitializedHandler,
 )
-from shell.process.execution.graph_execution_saga.handlers.graph_node_execution_initialized_handler import (
-    GraphNodeExecutionInitializedHandler,
+from shell.process.execution.graph_execution_saga.handlers.node_execution_initialized_handler import (
+    NodeExecutionInitializedHandler,
 )
 
 
@@ -34,8 +34,8 @@ class ProcessContainer(containers.DeclarativeContainer):
         logger=infra.stdlib_logger,
     )
 
-    graph_node_execution_initialized_handler_factory = providers.Factory(
-        GraphNodeExecutionInitializedHandler,
+    node_execution_initialized_handler_factory = providers.Factory(
+        NodeExecutionInitializedHandler,
         saga_manager=graph_execution_saga,
         command_publisher=infra.sql_command_outbox_publisher_factory,
         logger=infra.stdlib_logger,

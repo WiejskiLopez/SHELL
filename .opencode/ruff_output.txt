@@ -50,44 +50,44 @@ TC002 Move third-party import `shell.application.definition.dto.runner_config.Ru
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.application.execution.commands.attach_graph_node_executions_command.AttachGraphNodeExecutionsCommand` into a type-checking block
- --> shell\application\execution\command_handlers\graph_node_execution_attach_handler.py:6:5
+TC002 Move third-party import `shell.application.execution.commands.attach_node_executions_command.AttachNodeExecutionsCommand` into a type-checking block
+ --> shell\application\execution\command_handlers\node_execution_attach_handler.py:6:5
   |
-5 | from shell.application.execution.commands.attach_graph_node_executions_command import (
-6 |     AttachGraphNodeExecutionsCommand,
+5 | from shell.application.execution.commands.attach_node_executions_command import (
+6 |     AttachNodeExecutionsCommand,
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 7 | )
 8 | from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.application.execution.commands.create_graph_node_execution_command.CreateGraphNodeExecutionCommand` into a type-checking block
- --> shell\application\execution\command_handlers\graph_node_execution_create_handler.py:6:5
+TC002 Move third-party import `shell.application.execution.commands.create_node_execution_command.CreateNodeExecutionCommand` into a type-checking block
+ --> shell\application\execution\command_handlers\node_execution_create_handler.py:6:5
   |
-5 | from shell.application.execution.commands.create_graph_node_execution_command import (
-6 |     CreateGraphNodeExecutionCommand,
+5 | from shell.application.execution.commands.create_node_execution_command import (
+6 |     CreateNodeExecutionCommand,
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 7 | )
 8 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
   |
 help: Move into type-checking block
 
-F841 Local variable `graph_node_execution_id` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:56:9
+F841 Local variable `node_execution_id` is assigned to but never used
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:56:9
    |
 54 |         """Execute node and return NodeResult id."""
-55 |         workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
-56 |         graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
+55 |         workflow_id = WorkflowId(run_node_execution_command.workflow_id)
+56 |         node_execution_id = NodeExecutionId(run_node_execution_command.node_execution_id)
    |         ^^^^^^^^^^^^^^^^^^^^^^^
 57 |         now = self._clock.now()
    |
-help: Remove assignment to unused variable `graph_node_execution_id`
+help: Remove assignment to unused variable `node_execution_id`
 
 F841 Local variable `now` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:57:9
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:57:9
    |
-55 |         workflow_id = WorkflowId(run_graph_node_execution_command.workflow_id)
-56 |         graph_node_execution_id = GraphNodeExecutionId(run_graph_node_execution_command.graph_node_execution_id)
+55 |         workflow_id = WorkflowId(run_node_execution_command.workflow_id)
+56 |         node_execution_id = NodeExecutionId(run_node_execution_command.node_execution_id)
 57 |         now = self._clock.now()
    |         ^^^
 58 |
@@ -96,7 +96,7 @@ F841 Local variable `now` is assigned to but never used
 help: Remove assignment to unused variable `now`
 
 F841 Local variable `stdout` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:77:13
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:77:13
    |
 75 |             failure_reason = ""
 76 |         except Exception as exc:
@@ -108,7 +108,7 @@ F841 Local variable `stdout` is assigned to but never used
 help: Remove assignment to unused variable `stdout`
 
 F841 Local variable `stderr` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:78:13
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:78:13
    |
 76 |         except Exception as exc:
 77 |             stdout = ""
@@ -120,7 +120,7 @@ F841 Local variable `stderr` is assigned to but never used
 help: Remove assignment to unused variable `stderr`
 
 F841 Local variable `node_status` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:79:13
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:79:13
    |
 77 |             stdout = ""
 78 |             stderr = str(exc)
@@ -131,7 +131,7 @@ F841 Local variable `node_status` is assigned to but never used
 help: Remove assignment to unused variable `node_status`
 
 F841 Local variable `failure_reason` is assigned to but never used
-  --> shell\application\execution\command_handlers\graph_node_execution_run_handler.py:80:13
+  --> shell\application\execution\command_handlers\node_execution_run_handler.py:80:13
    |
 78 |             stderr = str(exc)
 79 |             node_status = Status.failed()
@@ -142,36 +142,36 @@ F841 Local variable `failure_reason` is assigned to but never used
    |
 help: Remove assignment to unused variable `failure_reason`
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event.GraphNodeExecutionInitializedEvent` into a type-checking block
-  --> shell\application\execution\event_handlers\graph_node_execution_initialized_handler.py:9:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event.NodeExecutionInitializedEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\node_execution_initialized_handler.py:9:5
    |
  7 | )
- 8 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_initialized_event import (
- 9 |     GraphNodeExecutionInitializedEvent,
+ 8 | from shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event import (
+ 9 |     NodeExecutionInitializedEvent,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 10 | )
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event.GraphNodeExecutionTimeoutExpiredEvent` into a type-checking block
-  --> shell\application\execution\event_handlers\graph_node_execution_timed_out_handler.py:8:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event.NodeExecutionTimeoutExpiredEvent` into a type-checking block
+  --> shell\application\execution\event_handlers\node_execution_timed_out_handler.py:8:5
    |
- 7 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_timeout_expired_event import (
- 8 |     GraphNodeExecutionTimeoutExpiredEvent,
+ 7 | from shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event import (
+ 8 |     NodeExecutionTimeoutExpiredEvent,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
  9 | )
-10 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+10 | from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
    |
 help: Move into type-checking block
 
 F841 Local variable `current_graph_execution` is assigned to but never used
-   --> shell\application\execution\event_handlers\graph_node_execution_worker.py:230:13
+   --> shell\application\execution\event_handlers\node_execution_worker.py:230:13
     |
 229 |             graph_executions = await unit_of_work.repository(GraphExecutionRepository).get_by_workflow_id(workflow.id)
 230 |             current_graph_execution = graph_executions[0] if graph_executions else None
     |             ^^^^^^^^^^^^^^^^^^^^^^^
 231 |
-232 |             if not await self._is_event_relevant(workflow, graph_node_execution_requested_event):
+232 |             if not await self._is_event_relevant(workflow, node_execution_requested_event):
     |
 help: Remove assignment to unused variable `current_graph_execution`
 
@@ -187,15 +187,15 @@ TC002 Move third-party import `shell.domain.execution.events.WorkflowCompletedEv
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event.GraphNodeExecutionCompletedEvent` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event.NodeExecutionCompletedEvent` into a type-checking block
   --> shell\application\execution\event_handlers\planner_result_handler.py:16:5
    |
 14 | )
-15 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-16 |     GraphNodeExecutionCompletedEvent,
+15 | from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+16 |     NodeExecutionCompletedEvent,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 17 | )
-18 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+18 | from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
    |
 help: Move into type-checking block
 
@@ -204,7 +204,7 @@ F841 Local variable `expected_count` is assigned to but never used
    |
 90 |                     definition = await self._definition_provider.get_graph_definition(definition_id)
 91 |                     if definition is not None:
-92 |                         expected_count = len(definition.graph_node_execution_definitions)
+92 |                         expected_count = len(definition.node_execution_definitions)
    |                         ^^^^^^^^^^^^^^
 93 |                 except Exception:
 94 |                     self._logger.warning(
@@ -222,15 +222,15 @@ TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event.GraphNodeExecutionCompletedEvent` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event.NodeExecutionCompletedEvent` into a type-checking block
   --> shell\application\execution\event_handlers\propagate_node_output_to_graph_input.py:18:5
    |
 16 | )
-17 | from shell.domain.execution.aggregates.graph_node_execution.events.graph_node_execution_completed_event import (
-18 |     GraphNodeExecutionCompletedEvent,
+17 | from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+18 |     NodeExecutionCompletedEvent,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 19 | )
-20 | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
+20 | from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
    |
 help: Move into type-checking block
 
@@ -292,12 +292,12 @@ TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.application.execution.dto.graph_node_execution_result.GraphNodeExecutionResultDto` into a type-checking block
- --> shell\application\execution\ports\queries\graph_node_execution_result_query_service.py:5:73
+TC002 Move third-party import `shell.application.execution.dto.node_execution_result.NodeExecutionResultDto` into a type-checking block
+ --> shell\application\execution\ports\queries\node_execution_result_query_service.py:5:73
   |
 3 | from typing import Protocol
 4 |
-5 | from shell.application.execution.dto.graph_node_execution_result import GraphNodeExecutionResultDto
+5 | from shell.application.execution.dto.node_execution_result import NodeExecutionResultDto
   |                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
 help: Move into type-checking block
@@ -456,16 +456,16 @@ TC002 Move third-party import `shell.domain.execution.aggregates.agent_execution
  9 |     AgentExecutionId,
    |     ^^^^^^^^^^^^^^^^
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+11 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
   --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:12:5
    |
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-12 |     GraphNodeExecutionId,
+11 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+12 |     NodeExecutionId,
    |     ^^^^^^^^^^^^^^^^^^^^
 13 | )
 14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
@@ -475,7 +475,7 @@ help: Move into type-checking block
 TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
   --> shell\domain\execution\aggregates\agent_execution\repositories\agent_execution_repository.py:14:63
    |
-12 |     GraphNodeExecutionId,
+12 |     NodeExecutionId,
 13 | )
 14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
    |                                                               ^^^^^^^^^^^^
@@ -689,12 +689,12 @@ TC002 Move third-party import `shell.domain.platform.value_objects.state_data.St
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
   --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:9:5
    |
  7 | )
- 8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
- 9 |     GraphNodeExecutionId,
+ 8 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+ 9 |     NodeExecutionId,
    |     ^^^^^^^^^^^^^^^^^^^^
 10 | )
 11 | from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
@@ -713,12 +713,12 @@ TC002 Move third-party import `shell.domain.execution.aggregates.task_execution.
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.value_objects.graph_node_definition_id.GraphNodeDefinitionId` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.value_objects.node_definition_id.NodeDefinitionId` into a type-checking block
   --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:23:75
    |
-21 |     GraphNodeDefinitionExecutionSlot,
+21 |     NodeDefinitionExecutionSlot,
 22 | )
-23 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+23 | from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
    |                                                                           ^^^^^^^^^^^^^^^^^^^^^
 24 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 25 | from shell.domain.execution.value_objects.reason import Reason
@@ -728,7 +728,7 @@ help: Move into type-checking block
 TC002 Move third-party import `shell.domain.execution.value_objects.reason.Reason` into a type-checking block
   --> shell\domain\execution\aggregates\graph_execution\graph_execution.py:25:57
    |
-23 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+23 | from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 24 | from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 25 | from shell.domain.execution.value_objects.reason import Reason
    |                                                         ^^^^^^
@@ -749,23 +749,23 @@ TC002 Move third-party import `shell.domain.platform.value_objects.created_at.Cr
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
- --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:6:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\node_execution\events\node_execution_completed_event.py:6:5
   |
-5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-6 |     GraphNodeExecutionId,
+5 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+6 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 7 | )
-8 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
+8 | from shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id import (
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id.GraphNodeExecutionResultId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:9:5
+TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id.NodeExecutionResultId` into a type-checking block
+  --> shell\domain\execution\aggregates\node_execution\events\node_execution_completed_event.py:9:5
    |
  7 | )
- 8 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
- 9 |     GraphNodeExecutionResultId,
+ 8 | from shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id import (
+ 9 |     NodeExecutionResultId,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
 10 | )
 11 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
@@ -773,9 +773,9 @@ TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:11:82
+  --> shell\domain\execution\aggregates\node_execution\events\node_execution_completed_event.py:11:82
    |
- 9 |     GraphNodeExecutionResultId,
+ 9 |     NodeExecutionResultId,
 10 | )
 11 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
    |                                                                                  ^^^^^^^^^^
@@ -785,7 +785,7 @@ TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:14:60
+  --> shell\domain\execution\aggregates\node_execution\events\node_execution_completed_event.py:14:60
    |
 12 | from shell.domain.execution.value_objects.node_role import NodeRole
 13 | from shell.domain.platform.events import DomainEvent
@@ -796,7 +796,7 @@ TC002 Move third-party import `shell.domain.platform.value_objects.created_at.Cr
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.state_data.StateData` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_completed_event.py:15:60
+  --> shell\domain\execution\aggregates\node_execution\events\node_execution_completed_event.py:15:60
    |
 13 | from shell.domain.platform.events import DomainEvent
 14 | from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -806,9 +806,9 @@ TC002 Move third-party import `shell.domain.platform.value_objects.state_data.St
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\events\graph_node_execution_failed_event.py:12:82
+  --> shell\domain\execution\aggregates\node_execution\events\node_execution_failed_event.py:12:82
    |
-10 |     GraphNodeExecutionId,
+10 |     NodeExecutionId,
 11 | )
 12 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
    |                                                                                  ^^^^^^^^^^
@@ -818,7 +818,7 @@ TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.node_role.NodeRole` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:14:60
+  --> shell\domain\execution\aggregates\node_execution\node_execution.py:14:60
    |
 12 | )
 13 | from shell.domain.execution.value_objects.node_order import NodeOrder
@@ -830,7 +830,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.node_role.No
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.node_type.NodeType` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:15:60
+  --> shell\domain\execution\aggregates\node_execution\node_execution.py:15:60
    |
 13 | from shell.domain.execution.value_objects.node_order import NodeOrder
 14 | from shell.domain.execution.value_objects.node_role import NodeRole
@@ -842,7 +842,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.node_type.No
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.retry_delay_seconds.RetryDelaySeconds` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:17:70
+  --> shell\domain\execution\aggregates\node_execution\node_execution.py:17:70
    |
 15 | from shell.domain.execution.value_objects.node_type import NodeType
 16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
@@ -854,7 +854,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.retry_delay_
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.timeout_seconds.TimeoutSeconds` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:18:66
+  --> shell\domain\execution\aggregates\node_execution\node_execution.py:18:66
    |
 16 | from shell.domain.execution.value_objects.remaining_retries import RemainingRetries
 17 | from shell.domain.execution.value_objects.retry_delay_seconds import RetryDelaySeconds
@@ -866,7 +866,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.timeout_seco
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.mode.Mode` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution\graph_node_execution.py:21:54
+  --> shell\domain\execution\aggregates\node_execution\node_execution.py:21:54
    |
 19 | from shell.domain.platform.base.aggregate_root import AggregateRoot
 20 | from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -876,46 +876,46 @@ TC002 Move third-party import `shell.domain.platform.value_objects.mode.Mode` in
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
- --> shell\domain\execution\aggregates\graph_node_execution_state\graph_node_execution_state.py:6:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\node_execution_state\node_execution_state.py:6:5
   |
-5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-6 |     GraphNodeExecutionId,
+5 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+6 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 7 | )
-8 | from shell.domain.execution.aggregates.graph_node_execution_state.events.graph_node_execution_state_changed_event import (
+8 | from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_changed_event import (
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
- --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:6:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\node_execution_state\repositories\node_execution_state_repository.py:6:5
   |
-5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-6 |     GraphNodeExecutionId,
+5 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+6 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 7 | )
-8 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+8 | from shell.domain.execution.aggregates.node_execution_state.node_execution_state import (
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state.GraphNodeExecutionState` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:9:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution_state.node_execution_state.NodeExecutionState` into a type-checking block
+  --> shell\domain\execution\aggregates\node_execution_state\repositories\node_execution_state_repository.py:9:5
    |
  7 | )
- 8 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
- 9 |     GraphNodeExecutionState,
+ 8 | from shell.domain.execution.aggregates.node_execution_state.node_execution_state import (
+ 9 |     NodeExecutionState,
    |     ^^^^^^^^^^^^^^^^^^^^^^^
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
+11 | from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id.GraphNodeExecutionStateId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:12:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id.NodeExecutionStateId` into a type-checking block
+  --> shell\domain\execution\aggregates\node_execution_state\repositories\node_execution_state_repository.py:12:5
    |
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_execution_state.value_objects.graph_node_execution_state_id import (
-12 |     GraphNodeExecutionStateId,
+11 | from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
+12 |     NodeExecutionStateId,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^
 13 | )
 14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
@@ -923,9 +923,9 @@ TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_exec
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:14:63
+  --> shell\domain\execution\aggregates\node_execution_state\repositories\node_execution_state_repository.py:14:63
    |
-12 |     GraphNodeExecutionStateId,
+12 |     NodeExecutionStateId,
 13 | )
 14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
    |                                                               ^^^^^^^^^^^^
@@ -934,7 +934,7 @@ TC002 Move third-party import `shell.domain.platform.value_objects.exists_result
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_execution_state\repositories\graph_node_execution_state_repository.py:15:65
+  --> shell\domain\execution\aggregates\node_execution_state\repositories\node_execution_state_repository.py:15:65
    |
 13 | )
 14 | from shell.domain.platform.value_objects.exists_result import ExistsResult
@@ -944,9 +944,9 @@ TC002 Move third-party import `shell.domain.platform.value_objects.state_directi
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.condition_language.ConditionLanguage` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\graph_node_transition_execution.py:8:69
+  --> shell\domain\execution\aggregates\node_transition_execution\node_transition_execution.py:8:69
    |
- 6 |     GraphNodeTransitionExecutionId,
+ 6 |     NodeTransitionExecutionId,
  7 | )
  8 | from shell.domain.execution.value_objects.condition_language import ConditionLanguage
    |                                                                     ^^^^^^^^^^^^^^^^^
@@ -956,7 +956,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.condition_la
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.condition_expression.ConditionExpression` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\graph_node_transition_execution.py:15:70
+  --> shell\domain\execution\aggregates\node_transition_execution\node_transition_execution.py:15:70
    |
 13 | from shell.domain.execution.value_objects.transition_status import TransitionStatus
 14 | from shell.domain.platform.base.aggregate_root import AggregateRoot
@@ -967,46 +967,46 @@ TC002 Move third-party import `shell.domain.platform.value_objects.condition_exp
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id.GraphExecutionId` into a type-checking block
- --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:6:5
+ --> shell\domain\execution\aggregates\node_transition_execution\repositories\node_transition_execution_repository.py:6:5
   |
 5 | from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
 6 |     GraphExecutionId,
   |     ^^^^^^^^^^^^^^^^
 7 | )
-8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
+8 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:9:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\node_transition_execution\repositories\node_transition_execution_repository.py:9:5
    |
  7 | )
- 8 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
- 9 |     GraphNodeExecutionId,
+ 8 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+ 9 |     NodeExecutionId,
    |     ^^^^^^^^^^^^^^^^^^^^
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
+11 | from shell.domain.execution.aggregates.node_transition_execution.node_transition_execution import (
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution.GraphNodeTransitionExecution` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:12:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_transition_execution.node_transition_execution.NodeTransitionExecution` into a type-checking block
+  --> shell\domain\execution\aggregates\node_transition_execution\repositories\node_transition_execution_repository.py:12:5
    |
 10 | )
-11 | from shell.domain.execution.aggregates.graph_node_transition_execution.graph_node_transition_execution import (
-12 |     GraphNodeTransitionExecution,
+11 | from shell.domain.execution.aggregates.node_transition_execution.node_transition_execution import (
+12 |     NodeTransitionExecution,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 13 | )
-14 | from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
+14 | from shell.domain.execution.aggregates.node_transition_execution.value_objects.node_transition_execution_id import (
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id.GraphNodeTransitionExecutionId` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:15:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_transition_execution.value_objects.node_transition_execution_id.NodeTransitionExecutionId` into a type-checking block
+  --> shell\domain\execution\aggregates\node_transition_execution\repositories\node_transition_execution_repository.py:15:5
    |
 13 | )
-14 | from shell.domain.execution.aggregates.graph_node_transition_execution.value_objects.graph_node_transition_execution_id import (
-15 |     GraphNodeTransitionExecutionId,
+14 | from shell.domain.execution.aggregates.node_transition_execution.value_objects.node_transition_execution_id import (
+15 |     NodeTransitionExecutionId,
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 16 | )
 17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
@@ -1014,9 +1014,9 @@ TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_tran
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.exists_result.ExistsResult` into a type-checking block
-  --> shell\domain\execution\aggregates\graph_node_transition_execution\repositories\graph_node_transition_execution_repository.py:17:63
+  --> shell\domain\execution\aggregates\node_transition_execution\repositories\node_transition_execution_repository.py:17:63
    |
-15 |     GraphNodeTransitionExecutionId,
+15 |     NodeTransitionExecutionId,
 16 | )
 17 | from shell.domain.platform.value_objects.exists_result import ExistsResult
    |                                                               ^^^^^^^^^^^^
@@ -1131,21 +1131,21 @@ TC002 Move third-party import `shell.domain.platform.value_objects.created_at.Cr
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
- --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:4:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+ --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:4:5
   |
-3 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-4 |     GraphNodeExecutionId,
+3 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+4 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 5 | )
-6 | from shell.domain.execution.aggregates.workflow.value_objects.graph_node_execution_result_id import (
+6 | from shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id import (
   |
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_objects.workflow_id.WorkflowId` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:9:82
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:9:82
    |
- 7 |     GraphNodeExecutionResultId,
+ 7 |     NodeExecutionResultId,
  8 | )
  9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
    |                                                                                  ^^^^^^^^^^
@@ -1155,7 +1155,7 @@ TC002 Move third-party import `shell.domain.execution.aggregates.workflow.value_
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.artifact_uri.ArtifactUri` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:10:63
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:10:63
    |
  8 | )
  9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
@@ -1167,7 +1167,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.artifact_uri
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.execution_stderr.ExecutionStderr` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:11:67
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:11:67
    |
  9 | from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
@@ -1179,7 +1179,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.execution_st
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.execution.value_objects.execution_stdout.ExecutionStdout` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:12:67
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:12:67
    |
 10 | from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
 11 | from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
@@ -1191,7 +1191,7 @@ TC002 Move third-party import `shell.domain.execution.value_objects.execution_st
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.created_at.CreatedAt` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:14:60
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:14:60
    |
 12 | from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
 13 | from shell.domain.platform.base.entity import Entity
@@ -1202,7 +1202,7 @@ TC002 Move third-party import `shell.domain.platform.value_objects.created_at.Cr
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.status.Status` into a type-checking block
-  --> shell\domain\execution\aggregates\workflow\entities\graph_node_execution_result.py:15:56
+  --> shell\domain\execution\aggregates\workflow\entities\node_execution_result.py:15:56
    |
 13 | from shell.domain.platform.base.entity import Entity
 14 | from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -1235,23 +1235,23 @@ B905 `zip()` without an explicit `strict=` parameter
     |
 help: Add explicit value for parameter `strict=`
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.GraphNodeExecutionId` into a type-checking block
- --> shell\domain\execution\value_objects\graph_node_definition_execution_slot.py:6:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.NodeExecutionId` into a type-checking block
+ --> shell\domain\execution\value_objects\node_definition_execution_slot.py:6:5
   |
-5 | from shell.domain.execution.aggregates.graph_node_execution.value_objects import (
-6 |     GraphNodeExecutionId,
+5 | from shell.domain.execution.aggregates.node_execution.value_objects import (
+6 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 7 | )
-8 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+8 | from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.value_objects.graph_node_definition_id.GraphNodeDefinitionId` into a type-checking block
- --> shell\domain\execution\value_objects\graph_node_definition_execution_slot.py:8:75
+TC002 Move third-party import `shell.domain.execution.value_objects.node_definition_id.NodeDefinitionId` into a type-checking block
+ --> shell\domain\execution\value_objects\node_definition_execution_slot.py:8:75
   |
-6 |     GraphNodeExecutionId,
+6 |     NodeExecutionId,
 7 | )
-8 | from shell.domain.execution.value_objects.graph_node_definition_id import GraphNodeDefinitionId
+8 | from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
   |                                                                           ^^^^^^^^^^^^^^^^^^^^^
 9 | from shell.domain.platform.base.value_object import ValueObject
   |
@@ -1618,13 +1618,13 @@ TC002 Move third-party import `shell.domain.definition.value_objects.graph_name.
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.definition.aggregates.graph_definition.value_objects.GraphDefinitionId` into a type-checking block
- --> shell\infrastructure\definition\persistence\memory\in_memory_graph_node_definition_repository.py:4:5
+ --> shell\infrastructure\definition\persistence\memory\in_memory_node_definition_repository.py:4:5
   |
 3 | from shell.domain.definition.aggregates.graph_definition.value_objects import (
 4 |     GraphDefinitionId,
   |     ^^^^^^^^^^^^^^^^^
 5 | )
-6 | from shell.domain.definition.aggregates.graph_node_definition.graph_node_definition import (
+6 | from shell.domain.definition.aggregates.node_definition.node_definition import (
   |
 help: Move into type-checking block
 
@@ -1770,12 +1770,12 @@ TC002 Move third-party import `shell.domain.execution.aggregates.graph_execution
   |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
   --> shell\infrastructure\execution\persistence\memory\in_memory_agent_execution_repository.py:15:5
    |
 13 | )
-14 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-15 |     GraphNodeExecutionId,
+14 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+15 |     NodeExecutionId,
    |     ^^^^^^^^^^^^^^^^^^^^
 16 | )
 17 | from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
@@ -1815,19 +1815,19 @@ TC002 Move third-party import `shell.domain.platform.value_objects.state_directi
    |
 help: Move into type-checking block
 
-TC002 Move third-party import `shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id.GraphNodeExecutionId` into a type-checking block
- --> shell\infrastructure\execution\persistence\memory\in_memory_graph_node_execution_state_repository.py:4:5
+TC002 Move third-party import `shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id.NodeExecutionId` into a type-checking block
+ --> shell\infrastructure\execution\persistence\memory\in_memory_node_execution_state_repository.py:4:5
   |
-3 | from shell.domain.execution.aggregates.graph_node_execution.value_objects.graph_node_execution_id import (
-4 |     GraphNodeExecutionId,
+3 | from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+4 |     NodeExecutionId,
   |     ^^^^^^^^^^^^^^^^^^^^
 5 | )
-6 | from shell.domain.execution.aggregates.graph_node_execution_state.graph_node_execution_state import (
+6 | from shell.domain.execution.aggregates.node_execution_state.node_execution_state import (
   |
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.domain.platform.value_objects.state_direction.StateDirection` into a type-checking block
-  --> shell\infrastructure\execution\persistence\memory\in_memory_graph_node_execution_state_repository.py:16:65
+  --> shell\infrastructure\execution\persistence\memory\in_memory_node_execution_state_repository.py:16:65
    |
 14 | )
 15 | from shell.domain.platform.value_objects.exists_result import ExistsResult
@@ -2294,14 +2294,14 @@ I001 [*] Import block is un-sorted or un-formatted
   7 | | from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
   8 | |     GraphDefinitionEmbeddingRepository,
   9 | | )
- 10 | | from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository impÔÇŽ
- 11 | |     GraphNodeTransitionDefinitionRepository,
+ 10 | | from shell.domain.definition.aggregates.node_transition_definition.repositories.node_transition_definition_repository impÔÇŽ
+ 11 | |     NodeTransitionDefinitionRepository,
  12 | | )
  13 | | from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
  14 | |     GraphDefinitionRepository,
  15 | | )
- 16 | | from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
- 17 | |     GraphNodeDefinitionRepository,
+ 16 | | from shell.domain.definition.repositories.graph_definition_repository.node_definition_repository import (
+ 17 | |     NodeDefinitionRepository,
  18 | | )
  19 | | from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
  20 | | from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
@@ -2311,14 +2311,14 @@ I001 [*] Import block is un-sorted or un-formatted
  24 | | from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
  25 | |     GraphExecutionStateRepository,
  26 | | )
- 27 | | from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
- 28 | |     GraphNodeExecutionRepository,
+ 27 | | from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+ 28 | |     NodeExecutionRepository,
  29 | | )
- 30 | | from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
- 31 | |     GraphNodeExecutionStateRepository,
+ 30 | | from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
+ 31 | |     NodeExecutionStateRepository,
  32 | | )
- 33 | | from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository importÔÇŽ
- 34 | |     GraphNodeTransitionExecutionRepository,
+ 33 | | from shell.domain.execution.aggregates.node_transition_execution.repositories.node_transition_execution_repository importÔÇŽ
+ 34 | |     NodeTransitionExecutionRepository,
  35 | | )
  36 | | from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
  37 | |     TaskExecutionRepository,
@@ -2346,11 +2346,11 @@ I001 [*] Import block is un-sorted or un-formatted
  59 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
  60 | |     InMemoryGraphDefinitionRepository,
  61 | | )
- 62 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_definition_repository import (
- 63 | |     InMemoryGraphNodeDefinitionRepository,
+ 62 | | from shell.infrastructure.definition.persistence.memory.in_memory_node_definition_repository import (
+ 63 | |     InMemoryNodeDefinitionRepository,
  64 | | )
- 65 | | from shell.infrastructure.definition.persistence.memory.in_memory_graph_node_transition_definition_repository import (
- 66 | |     InMemoryGraphNodeTransitionDefinitionRepository,
+ 65 | | from shell.infrastructure.definition.persistence.memory.in_memory_node_transition_definition_repository import (
+ 66 | |     InMemoryNodeTransitionDefinitionRepository,
  67 | | )
  68 | | from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
  69 | |     InMemoryRagDocumentRepository,
@@ -2361,14 +2361,14 @@ I001 [*] Import block is un-sorted or un-formatted
  74 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
  75 | |     InMemoryGraphExecutionRepository,
  76 | | )
- 77 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
- 78 | |     InMemoryGraphNodeExecutionRepository,
+ 77 | | from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+ 78 | |     InMemoryNodeExecutionRepository,
  79 | | )
- 80 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_state_repository import (
- 81 | |     InMemoryGraphNodeExecutionStateRepository,
+ 80 | | from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_state_repository import (
+ 81 | |     InMemoryNodeExecutionStateRepository,
  82 | | )
- 83 | | from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
- 84 | |     InMemoryGraphNodeTransitionExecutionRepository,
+ 83 | | from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
+ 84 | |     InMemoryNodeTransitionExecutionRepository,
  85 | | )
  86 | | from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
  87 | |     InMemoryTaskExecutionRepository,
@@ -2728,7 +2728,7 @@ B007 Loop control variable `cmd_type` not used within loop body
 288 |
 289 |         for cmd_type, payload in created_cmds:
     |             ^^^^^^^^
-290 |             cmd = CreateGraphNodeExecutionCommand(
+290 |             cmd = CreateNodeExecutionCommand(
 291 |                 graph_execution_id=payload["graph_execution_id"],
     |
 help: Rename unused `cmd_type` to `_cmd_type`
@@ -2736,12 +2736,12 @@ help: Rename unused `cmd_type` to `_cmd_type`
 F841 Local variable `handler` is assigned to but never used
   --> shell\tests\execution\integration\sql_postgres\test_pg_node_result_repository.py:58:9
    |
-56 |             await u.repository(GraphNodeExecutionRepository).save(node)
+56 |             await u.repository(NodeExecutionRepository).save(node)
 57 |
-58 |         handler = GraphNodeExecutionSaveResultHandler(sql_uow, clock, id_gen)
+58 |         handler = NodeExecutionSaveResultHandler(sql_uow, clock, id_gen)
    |         ^^^^^^^
 59 |
-60 |         q = GraphNodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
+60 |         q = NodeExecutionGetResultHandler(NodeResultQueryService(session_factory))
    |
 help: Remove assignment to unused variable `handler`
 
@@ -3107,7 +3107,7 @@ TC002 Move third-party import `shell.tests.process.conftest.InMemoryGraphExecuti
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.tests.process.conftest.FakeCommandOutboxPublisher` into a type-checking block
-  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:24:5
+  --> shell\tests\process\unit\graph_execution_saga\test_node_execution_initialized_handler.py:24:5
    |
 22 | )
 23 | from shell.tests.process.conftest import (
@@ -3119,7 +3119,7 @@ TC002 Move third-party import `shell.tests.process.conftest.FakeCommandOutboxPub
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.tests.process.conftest.FakeLogger` into a type-checking block
-  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:25:5
+  --> shell\tests\process\unit\graph_execution_saga\test_node_execution_initialized_handler.py:25:5
    |
 23 | from shell.tests.process.conftest import (
 24 |     FakeCommandOutboxPublisher,
@@ -3131,7 +3131,7 @@ TC002 Move third-party import `shell.tests.process.conftest.FakeLogger` into a t
 help: Move into type-checking block
 
 TC002 Move third-party import `shell.tests.process.conftest.InMemoryGraphExecutionSagaRepository` into a type-checking block
-  --> shell\tests\process\unit\graph_execution_saga\test_graph_node_execution_initialized_handler.py:26:5
+  --> shell\tests\process\unit\graph_execution_saga\test_node_execution_initialized_handler.py:26:5
    |
 24 |     FakeCommandOutboxPublisher,
 25 |     FakeLogger,

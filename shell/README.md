@@ -396,7 +396,7 @@ Importy idą **tylko w tym kierunku** — żadna niższa warstwa nie może impor
 ```
 domain/
 ├── entities/
-│   ├── task.py              Task, Graph, GraphNode
+│   ├── task.py              Task, Graph, Node
 │   ├── workflow.py          Workflow, NodeState
 │   ├── envelope.py          Envelope, EnvelopeEvent
 │   ├── node_result.py       NodeResult
@@ -445,7 +445,7 @@ application/
 ├── dto/                     DTO zwracane przez handlery zapytań
 ├── mappers/                 Entity ↔ DTO
 ├── ports/
-│   └── ports.py             UnitOfWork, Clock, IdGenerator, EventPublisher, Logger, GraphNodeExecutionProcessRunner, TaskLoader
+│   └── ports.py             UnitOfWork, Clock, IdGenerator, EventPublisher, Logger, NodeExecutionProcessRunner, TaskLoader
 ├── strategies/
 │   ├── node_execution_strategy.py   (Protocol)
 │   ├── agent_strategy.py
@@ -480,7 +480,7 @@ infrastructure/
 │   ├── node_workspace.py         Zarządza katalogiem roboczym node'a
 │   └── envelope_archive_fs.py    FS-based archiwum kopert
 ├── process/
-│   └── subprocess_runner.py      GraphNodeExecutionProcessRunner — uruchamia node'y przez subprocess
+│   └── subprocess_runner.py      NodeExecutionProcessRunner — uruchamia node'y przez subprocess
 ├── logging/
 │   ├── stdlib_logger.py          StdlibLogger (JSON output, correlation_id)
 │   ├── logging_event_publisher.py
@@ -528,14 +528,14 @@ bootstrap/
 ```mermaid
 graph TD
     Task -->|ma| Graph
-    Graph -->|zawiera| GraphNode
+    Graph -->|zawiera| Node
     Workflow -->|śledzi| NodeState
     Workflow -->|powiązany z| Task
     Envelope -->|należy do| Workflow
-    Envelope -->|dotyczy| GraphNode
+    Envelope -->|dotyczy| Node
     NodeResult -->|wynik| Envelope
-    Prompt -->|używany przez| GraphNode
-    RunnerConfig -->|konfiguruje| GraphNode
+    Prompt -->|używany przez| Node
+    RunnerConfig -->|konfiguruje| Node
     RagDocument -->|zawiera| RagChunk
     Session -->|zawiera| Message
 ```

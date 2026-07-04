@@ -16,24 +16,24 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
+from shell.domain.execution.aggregates.node_execution.node_execution import (
+    NodeExecution,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
-    GraphNodeLinkExecution,
+from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.repositories.graph_node_link_execution_repository import (
-    GraphNodeLinkExecutionRepository,
+from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
+    NodeLinkExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
-    GraphNodeLinkExecutionId,
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
 )
 from shell.domain.execution.ports.sub_graph_observer import SubGraphContext
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.ids import GraphExecutionId, GraphNodeExecutionId
+from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
@@ -91,7 +91,7 @@ class SubGraphExecutionService:
         self,
         *,
         parent_graph_execution: GraphExecution,
-        parent_tasker_node: GraphNodeExecution,
+        parent_tasker_node: NodeExecution,
         graph_definition_id: str,
         state_input: dict[str, Any] | None = None,
         unit_of_work: UnitOfWork | None = None,
@@ -152,11 +152,11 @@ class SubGraphExecutionService:
             max_subgraph_depth=parent_graph_execution.max_subgraph_depth,
         )
 
-        # ── Build child GraphNodeExecutions and link to execution ──────────
-        node_execution_ids: list[GraphNodeExecutionId] = []
-        for node_def in graph_definition.graph_node_execution_definitions:
-            node_id = self._id_generator.new_id(GraphNodeExecutionId)
-            node = GraphNodeExecution.new(
+        # ── Build child NodeExecutions and link to execution ──────────
+        node_execution_ids: list[NodeExecutionId] = []
+        for node_def in graph_definition.node_execution_definitions:
+            node_id = self._id_generator.new_id(NodeExecutionId)
+            node = NodeExecution.new(
                 id=node_id,
                 graph_execution_id=sub_graph_execution_id,
                 position=NodeOrder(node_def.position),
@@ -165,16 +165,16 @@ class SubGraphExecutionService:
                 node_type=NodeType(node_def.node_type),
                 now=now,
             )
-            await _unit_of_work.repository(GraphNodeExecutionRepository).save(node)
+            await _unit_of_work.repository(NodeExecutionRepository).save(node)
             _unit_of_work.stage_events(node.pull_events())
             node_execution_ids.append(node_id)
 
-            link = GraphNodeLinkExecution(
-                id=GraphNodeLinkExecutionId.generate(),
+            link = NodeLinkExecution(
+                id=NodeLinkExecutionId.generate(),
                 graph_execution_id=sub_graph_execution_id,
-                graph_node_execution_id=node_id,
+                node_execution_id=node_id,
             )
-            await _unit_of_work.repository(GraphNodeLinkExecutionRepository).save(link)
+            await _unit_of_work.repository(NodeLinkExecutionRepository).save(link)
 
         # ── Persist ───────────────────────────────────────────────────────
         await _unit_of_work.repository(GraphExecutionRepository).save(sub_graph_execution)

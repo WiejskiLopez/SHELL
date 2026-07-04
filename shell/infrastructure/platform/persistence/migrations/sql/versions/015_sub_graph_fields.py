@@ -1,4 +1,4 @@
-"""Phase 23 — add sub-graph fields to graph_execution and graph_node_execution.
+"""Phase 23 — add sub-graph fields to graph_execution and node_execution.
 
 Revision ID: 015
 Revises: 014
@@ -8,7 +8,7 @@ Create Date: 2026-06-19
   state_input, state_output, depth, timeout_at, correlation_id, tags
   to ``graph_execution``.
 * Add sub_graph_definition_id, sub_graph_definition_version,
-  timeout_seconds, max_retries, retry_delay_seconds to ``graph_node_execution``.
+  timeout_seconds, max_retries, retry_delay_seconds to ``node_execution``.
 """
 
 from __future__ import annotations
@@ -65,8 +65,8 @@ def upgrade() -> None:
             ondelete="SET NULL",
         )
 
-    # ── graph_node_execution ───────────────────────────────────────────────
-    with op.batch_alter_table("graph_node_execution") as batch:
+    # ── node_execution ───────────────────────────────────────────────
+    with op.batch_alter_table("node_execution") as batch:
         batch.add_column(
             sa.Column("sub_graph_definition_id", sa.String(36), nullable=True),
         )
@@ -85,8 +85,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # ── graph_node_execution ───────────────────────────────────────────────
-    with op.batch_alter_table("graph_node_execution") as batch:
+    # ── node_execution ───────────────────────────────────────────────
+    with op.batch_alter_table("node_execution") as batch:
         batch.drop_column("retry_delay_seconds")
         batch.drop_column("max_retries")
         batch.drop_column("timeout_seconds")

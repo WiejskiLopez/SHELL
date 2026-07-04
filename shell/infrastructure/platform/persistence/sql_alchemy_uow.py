@@ -9,14 +9,14 @@ from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
     GraphDefinitionEmbeddingRepository,
 )
-from shell.domain.definition.aggregates.graph_node_transition_definition.repositories.graph_node_transition_definition_repository import (
-    GraphNodeTransitionDefinitionRepository,
+from shell.domain.definition.aggregates.node_transition_definition.repositories.node_transition_definition_repository import (
+    NodeTransitionDefinitionRepository,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
-from shell.domain.definition.repositories.graph_definition_repository.graph_node_definition_repository import (
-    GraphNodeDefinitionRepository,
+from shell.domain.definition.repositories.graph_definition_repository.node_definition_repository import (
+    NodeDefinitionRepository,
 )
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
@@ -26,14 +26,14 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution.repositories.graph_node_execution_repository import (
-    GraphNodeExecutionRepository,
+from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
 )
-from shell.domain.execution.aggregates.graph_node_execution_state.repositories.graph_node_execution_state_repository import (
-    GraphNodeExecutionStateRepository,
+from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
+    NodeExecutionStateRepository,
 )
-from shell.domain.execution.aggregates.graph_node_transition_execution.repositories.graph_node_transition_execution_repository import (
-    GraphNodeTransitionExecutionRepository,
+from shell.domain.execution.aggregates.node_transition_execution.repositories.node_transition_execution_repository import (
+    NodeTransitionExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
@@ -60,17 +60,17 @@ from shell.domain.session.aggregates.session.repositories.session_repository imp
 from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionEmbeddingRepository,
     SqlGraphDefinitionRepository,
-    SqlGraphNodeDefinitionRepository,
-    SqlGraphNodeTransitionDefinitionRepository,
+    SqlNodeDefinitionRepository,
+    SqlNodeTransitionDefinitionRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlGraphExecutionRepository,
     SqlGraphExecutionStateInputRepository,
-    SqlGraphNodeExecutionRepository,
-    SqlGraphNodeExecutionStateRepository,
-    SqlGraphNodeTransitionExecutionRepository,
+    SqlNodeExecutionRepository,
+    SqlNodeExecutionStateRepository,
+    SqlNodeTransitionExecutionRepository,
     SqlTaskExecutionRepository,
     SqlTaskExecutionStateRepository,
     SqlWorkflowRepository,
@@ -135,12 +135,12 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             RunnerConfigRepository: SqlRunnerConfigRepository,
             RagDocumentRepository: SqlRagDocumentRepository,
             GraphDefinitionRepository: SqlGraphDefinitionRepository,
-            GraphNodeDefinitionRepository: SqlGraphNodeDefinitionRepository,
-            GraphNodeTransitionDefinitionRepository: SqlGraphNodeTransitionDefinitionRepository,
+            NodeDefinitionRepository: SqlNodeDefinitionRepository,
+            NodeTransitionDefinitionRepository: SqlNodeTransitionDefinitionRepository,
             GraphDefinitionEmbeddingRepository: SqlGraphDefinitionEmbeddingRepository,
-            GraphNodeExecutionRepository: SqlGraphNodeExecutionRepository,
-            GraphNodeExecutionStateRepository: SqlGraphNodeExecutionStateRepository,
-            GraphNodeTransitionExecutionRepository: SqlGraphNodeTransitionExecutionRepository,
+            NodeExecutionRepository: SqlNodeExecutionRepository,
+            NodeExecutionStateRepository: SqlNodeExecutionStateRepository,
+            NodeTransitionExecutionRepository: SqlNodeTransitionExecutionRepository,
             MessageRepository: SqlMessageRepository,
             SessionRepository: SqlSessionRepository,
         }

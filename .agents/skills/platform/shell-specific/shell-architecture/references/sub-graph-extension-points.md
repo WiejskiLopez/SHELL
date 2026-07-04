@@ -32,7 +32,7 @@ Sub-graf to `GraphExecution` z ustawionym `_parent_graph_execution_id`. Spawnuj�
 `Mode.TASKER` + `sub_graph_definition_id` — "foreign function call" do sub-grafu.
 Nie spawnuje procesu, spawnuje inny `GraphExecution`.
 
-1. `GraphNodeExecutionWorker` wykrywa `mode=TASKER` + `sub_graph_definition_id`
+1. `NodeExecutionWorker` wykrywa `mode=TASKER` + `sub_graph_definition_id`
 2. Deleguje do `SubGraphExecutionService.spawn()` (zamiast subprocessu)
 3. TASKER zostaje `IN_PROGRESS` — workflow cursor nie rusza
 4. Sub-graf wykonuje się niezależnie (może mieć własne TASKERY, PLANERY, etc.)
@@ -57,8 +57,8 @@ GraphExecution (child, depth=D+1) ... → koniec
         ├── CrownScheduler.on_child_completed(child_id)
         ├── Merge child state_output → TASKER.output_payload
         ├── Oznacza TASKER jako SUCCESS
-        └── workflow.record_graph_node_execution_result(TASKER, SUCCESS)
-              └── GraphNodeExecutionCompletedEvent → normalny Cycle B advance
+        └── workflow.record_node_execution_result(TASKER, SUCCESS)
+              └── NodeExecutionCompletedEvent → normalny Cycle B advance
 ```
 
 ## SubGraphExecutionService.spawn()
@@ -71,7 +71,7 @@ async def spawn(
     self,
     *,
     parent_graph: GraphExecution,
-    tasker_node: GraphNodeExecution,
+    tasker_node: NodeExecution,
     sub_graph_definition_id: str,
     version: int | None = None,
     state_input: dict | None = None,
@@ -141,8 +141,8 @@ Implementacje: `ConfigBasedGovernance` (limity z configu), `LLMGovernance` (LLM 
 
 ```python
 class SubGraphPolicy(Protocol):
-    async def on_timeout(self, graph_execution: GraphExecution, node: GraphNodeExecution) -> Decision: ...
-    async def on_failure(self, graph_execution: GraphExecution, node: GraphNodeExecution, reason: str) -> Decision: ...
+    async def on_timeout(self, graph_execution: GraphExecution, node: NodeExecution) -> Decision: ...
+    async def on_failure(self, graph_execution: GraphExecution, node: NodeExecution, reason: str) -> Decision: ...
     async def on_depth_exceeded(self, graph_execution: GraphExecution, max_depth: int) -> Decision: ...
 ```
 
@@ -176,7 +176,7 @@ Built-in: audit event na każdą zmianę stanu. Extension: OpenTelemetry, Promet
 ```python
 class SubGraphCompensation(Protocol):
     async def compensate(self, graph_execution: GraphExecution, reason: str) -> None: ...
-    async def on_child_failed(self, parent_graph: GraphExecution, child_graph: GraphExecution, tasker_node: GraphNodeExecution) -> CompensationDecision: ...
+    async def on_child_failed(self, parent_graph: GraphExecution, child_graph: GraphExecution, tasker_node: NodeExecution) -> CompensationDecision: ...
 ```
 
 Strategie: `NoOpCompensation` (brak cofania), `RollbackStateCompensation` (przywraca stan sprzed sub-grafu), `SagaCompensation` (cofa każdy węzeł od tyłu).

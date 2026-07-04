@@ -6,7 +6,7 @@ from shell.domain.platform.base.value_object import ValueObject
 
 
 @dataclass(frozen=True, slots=True)
-class GraphNodeExecutionDefinition(ValueObject):
+class NodeExecutionDefinition(ValueObject):
     position: int
     mode: str
     role: str
@@ -29,6 +29,6 @@ class GraphExecutionDefinition(ValueObject):
     id: str
     name: str
     system_role: str | None = None
-    graph_node_execution_definitions: list[GraphNodeExecutionDefinition] = field(
+    node_execution_definitions: list[NodeExecutionDefinition] = field(
         default_factory=list
     )

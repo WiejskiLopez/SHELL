@@ -45,7 +45,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "graph_node_execution",
+        "node_execution",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
             "graph_execution_id",
@@ -73,7 +73,7 @@ def upgrade() -> None:
         sa.Column("extra", sa.JSON, nullable=False, server_default="{}"),
     )
     op.create_index(
-        "ix_graph_node_execution_graph_execution_id", "graph_node_execution", ["graph_execution_id"]
+        "ix_node_execution_graph_execution_id", "node_execution", ["graph_execution_id"]
     )
 
     op.create_table(
@@ -107,8 +107,8 @@ def upgrade() -> None:
         sa.Column("workflow_id", sa.String(36), nullable=False),
         sa.Column("parent_id", sa.String(36), nullable=True),
         sa.Column("correlation_id", sa.String(36), nullable=False, server_default=""),
-        sa.Column("sender_graph_node_execution_id", sa.String(255), nullable=False),
-        sa.Column("receiver_graph_node_execution_id", sa.String(255), nullable=False),
+        sa.Column("sender_node_execution_id", sa.String(255), nullable=False),
+        sa.Column("receiver_node_execution_id", sa.String(255), nullable=False),
         sa.Column("source_role", sa.String(128), nullable=False, server_default=""),
         sa.Column("target_role", sa.String(128), nullable=False, server_default=""),
         sa.Column("sequence_id", sa.Integer, nullable=False, server_default="0"),
@@ -197,9 +197,9 @@ def upgrade() -> None:
         sa.Column("purpose", sa.String(255), nullable=False),
     )
 
-    # Tabela graph_node_definition
+    # Tabela node_definition
     op.create_table(
-        "graph_node_definition",
+        "node_definition",
         sa.Column("id", sa.String(36), primary_key=True),
         sa.Column(
             "graph_definition_id",
@@ -226,8 +226,8 @@ def upgrade() -> None:
     )
 
     op.create_index(
-        "ix_graph_node_definition_graph_definition_id",
-        "graph_node_definition",
+        "ix_node_definition_graph_definition_id",
+        "node_definition",
         ["graph_definition_id"],
     )
 
@@ -241,8 +241,8 @@ def downgrade() -> None:
     op.drop_table("envelope")
     op.drop_table("node_state")
     op.drop_table("workflow")
-    op.drop_table("graph_node_execution")
+    op.drop_table("node_execution")
     op.drop_table("graph_execution")
     op.drop_table("task_execution")
     op.drop_table("graph_definition")
-    op.drop_table("graph_node_definition")
+    op.drop_table("node_definition")

@@ -19,12 +19,12 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 |------------------------|------------|
 | `DefinitionProvider` | `GraphExecutionDefinitionProvider` |
 | `ExecutionChecker` | `SchedulerExecutionChecker` |
-| `NodeNavigator` | `GraphNodeExecutionNavigator` |
-| `NodeWorkspace` | `GraphNodeExecutionWorkspace` |
-| `NodeProcessRunner` | `GraphNodeExecutionProcessRunner` |
-| `NodeExecutionPolicy` | `GraphNodeExecutionPolicy` |
-| `OutputInterpreter` | `GraphNodeExecutionOutputInterpreter` |
-| `FailFastPolicy` | `FailFastGraphNodeExecutionPolicy` |
+| `NodeNavigator` | `NodeExecutionNavigator` |
+| `NodeWorkspace` | `NodeExecutionWorkspace` |
+| `NodeProcessRunner` | `NodeExecutionProcessRunner` |
+| `NodeExecutionPolicy` | `NodeExecutionPolicy` |
+| `OutputInterpreter` | `NodeExecutionOutputInterpreter` |
+| `FailFastPolicy` | `FailFastNodeExecutionPolicy` |
 
 ## Wzorce nazw według warstwy
 
@@ -38,7 +38,7 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 | Domain Event | `PascalCase + Event` | `WorkflowCompletedEvent`, `TaskExecutionCreatedEvent` |
 | Domain Service | `PascalCase + Service` | `EnvelopeLifecycleService`, `PricingService` |
 | Repository Port | `PascalCase + Repository` | `WorkflowRepository`, `TaskExecutionRepository` |
-| Child Entity | `PascalCase` | `EnvelopeEvent`, `GraphNodeExecutionResult` |
+| Child Entity | `PascalCase` | `EnvelopeEvent`, `NodeExecutionResult` |
 | Domain Exception | `PascalCase + domain context` | `WorkflowNotFoundException`, `OrderLimitExceeded` |
 
 ### Eventy domenowe — szczególne zasady
@@ -59,7 +59,7 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 - `PlaceOrderEvent` — to komenda, nie event
 - `PaymentEvent` — niejednoznaczne (rozpoczęcie? zakończenie? błąd?)
 - `ReserveStockEvent` — to komenda, nie event
-- `GraphNodeStateUpdatedEvent` — techniczne, nie biznesowe
+- `NodeStateUpdatedEvent` — techniczne, nie biznesowe
 
 ### Klasy factory
 
@@ -78,7 +78,7 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 
 - ✅ `WorkflowCompletedEvent`, `TaskExecutionCreatedEvent`, `EnvelopeRoutedEvent`
-- ❌ `GraphNodeStateUpdatedEvent`, `DataSavedEvent`, `ProcessFinishedEvent`
+- ❌ `NodeStateUpdatedEvent`, `DataSavedEvent`, `ProcessFinishedEvent`
 
 ### Klasy aplikacyjne
 

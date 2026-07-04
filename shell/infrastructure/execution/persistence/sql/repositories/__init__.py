@@ -10,14 +10,14 @@ from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execu
 from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_state_output_repository import (
     SqlGraphExecutionStateRepository as SqlGraphExecutionStateOutputRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_repository import (
-    SqlGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_node_execution_repository import (
+    SqlNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_execution_state_repository import (
-    SqlGraphNodeExecutionStateRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_node_execution_state_repository import (
+    SqlNodeExecutionStateRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_node_transition_execution_repository import (
-    SqlGraphNodeTransitionExecutionRepository,
+from shell.infrastructure.execution.persistence.sql.repositories.sql_node_transition_execution_repository import (
+    SqlNodeTransitionExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories.sql_session_execution_repository import (
     SqlSessionExecutionRepository,
@@ -52,9 +52,9 @@ __all__ = [
     "SqlGraphExecutionSagaRepository",
     "SqlGraphExecutionStateInputRepository",
     "SqlGraphExecutionStateOutputRepository",
-    "SqlGraphNodeExecutionRepository",
-    "SqlGraphNodeExecutionStateRepository",
-    "SqlGraphNodeTransitionExecutionRepository",
+    "SqlNodeExecutionRepository",
+    "SqlNodeExecutionStateRepository",
+    "SqlNodeTransitionExecutionRepository",
     "SqlSessionExecutionRepository",
     "SqlSessionExecutionStateRepository",
     "SqlSessionRepository",

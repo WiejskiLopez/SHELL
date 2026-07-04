@@ -1,4 +1,4 @@
-"""SubprocessGraphNodeExecutionProcessRunner — real GraphNodeExecutionProcessRunner adapter using asyncio subprocess."""
+"""SubprocessNodeExecutionProcessRunner — real NodeExecutionProcessRunner adapter using asyncio subprocess."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ _FRAMEWORK_MODES = {"router", "tasker", "tool", "worker", "agent"}
 _ENTRYPOINTS_DIR = pathlib.Path(__file__).parent.parent.parent / "framework" / "entrypoints"
 
 
-class SubprocessGraphNodeExecutionProcessRunner:
+class SubprocessNodeExecutionProcessRunner:
     """Runs a node subprocess using asyncio.create_subprocess_exec.
 
     Mode routing:

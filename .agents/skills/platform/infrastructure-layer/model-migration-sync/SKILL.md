@@ -45,13 +45,13 @@ Każda nowa tabela w modelu SQLAlchemy wymaga nowej migracji Alembic z `op.creat
 
 ```python
 # Nowy model
-class GraphNodeExecutionStateModel(Base):
-    __tablename__ = "graph_node_execution_state"
+class NodeExecutionStateModel(Base):
+    __tablename__ = "node_execution_state"
     # ...
 
 # Wymaga nowej migracji 042_....py
 def upgrade() -> None:
-    op.create_table("graph_node_execution_state", ...)
+    op.create_table("node_execution_state", ...)
 ```
 
 ## Reguła 3: Downgrade musi być symetryczny

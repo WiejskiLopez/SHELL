@@ -8,7 +8,7 @@ from typing import Any
 class CreateGraphDefinitionCommand:
     name: str
     purpose: str
-    graph_node_definitions: list[dict[str, Any]] = field(default_factory=list)
+    node_definitions: list[dict[str, Any]] = field(default_factory=list)
     transition_definitions: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:

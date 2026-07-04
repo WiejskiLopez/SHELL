@@ -1,10 +1,10 @@
 """Shared test helpers extracted from conftest.
 
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_transition_execution_repository import (
-        InMemoryGraphNodeTransitionExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
+        InMemoryNodeTransitionExecutionRepository,
     )
-from shell.domain.execution.services.graph_node_execution_navigator import (
-        LinearGraphNodeExecutionNavigator,
+from shell.domain.execution.services.node_execution_navigator import (
+        LinearNodeExecutionNavigator,
     )
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
         GraphExecutionRepository,
@@ -25,35 +25,35 @@ from datetime import UTC, datetime
 from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
     WorkflowRunTaskerHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_completed_handler import (
-    GraphNodeExecutionCompletedHandler,
+from shell.application.execution.event_handlers.node_execution_completed_handler import (
+    NodeExecutionCompletedHandler,
 )
-from shell.application.execution.event_handlers.graph_node_execution_worker import (
-    GraphNodeExecutionWorker,
+from shell.application.execution.event_handlers.node_execution_worker import (
+    NodeExecutionWorker,
 )
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-    GraphNodeExecution,
+from shell.domain.execution.aggregates.node_execution.node_execution import (
+    NodeExecution,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.graph_node_link_execution import (
-    GraphNodeLinkExecution,
+from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
 )
-from shell.domain.execution.aggregates.graph_node_link_execution.value_objects.graph_node_link_execution_id import (
-    GraphNodeLinkExecutionId,
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.events import (
-    GraphNodeExecutionCompletedEvent,
-    GraphNodeExecutionFailedEvent,
-    GraphNodeExecutionRequestedEvent,
+    NodeExecutionCompletedEvent,
+    NodeExecutionFailedEvent,
+    NodeExecutionRequestedEvent,
     TaskExecutionCreatedEvent,
     WorkflowStartedEvent,
 )
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
-    GraphNodeExecutionId,
+    NodeExecutionId,
     TaskExecutionId,
     WorkflowId,
 )
@@ -67,16 +67,16 @@ from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_execution_repository import (
-    InMemoryGraphNodeExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+    InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_node_link_execution_repository import (
-    InMemoryGraphNodeLinkExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+    InMemoryNodeLinkExecutionRepository,
 )
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
-    FakeGraphNodeExecutionProcessRunner,
+    FakeNodeExecutionProcessRunner,
     FakeIdGenerator,
     FakeLogger,
     InMemoryGraphExecutionRepository,
@@ -151,11 +151,11 @@ def _ctx() -> object | None:
 # ---------------------------------------------------------------------------
 
 
-def _graph_node_execution(
-    graph_node_execution_id: str, position: int, mode: str = "agent"
-) -> GraphNodeExecution:
-    return GraphNodeExecution(
-        id=GraphNodeExecutionId(graph_node_execution_id),
+def _node_execution(
+    node_execution_id: str, position: int, mode: str = "agent"
+) -> NodeExecution:
+    return NodeExecution(
+        id=NodeExecutionId(node_execution_id),
         position=NodeOrder(position),
         mode=Mode(mode),
         role=NodeRole(mode.upper()),
@@ -163,7 +163,7 @@ def _graph_node_execution(
     )
 
 
-def _graph_execution(*graph_node_executions: GraphNodeExecution) -> GraphExecution:
+def _graph_execution(*node_executions: NodeExecution) -> GraphExecution:
     ge = GraphExecution(
         id=GraphExecutionId.generate(),
         task_execution_id=TaskExecutionId.generate(),
@@ -213,13 +213,13 @@ def _spy_logger(
 
 
 # ---------------------------------------------------------------------------
-# GraphNodeExecutionWorker test helpers
+# NodeExecutionWorker test helpers
 # ---------------------------------------------------------------------------
 
 
 def _build_graph_execution(
     unit_of_work: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]
-) -> tuple[TaskExecution, GraphExecution, list[GraphNodeExecution]]:
+) -> tuple[TaskExecution, GraphExecution, list[NodeExecution]]:
     task_execution = TaskExecution(
         id=TaskExecutionId.generate(),
         name=TaskName(task_execution_name),
@@ -229,9 +229,9 @@ def _build_graph_execution(
         task_execution
     )
 
-    graph_node_executions = [
-        GraphNodeExecution(
-            id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
+    node_executions = [
+        NodeExecution(
+            id=NodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=NodeOrder(i),
             mode=Mode(m),
             role=NodeRole(m.upper()),
@@ -245,26 +245,26 @@ def _build_graph_execution(
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
-    link_repo = unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository)
-    for node in graph_node_executions:
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+    link_repo = unit_of_work.repository(InMemoryNodeLinkExecutionRepository)
+    for node in node_executions:
+        unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
         link_repo._store[
-            GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
-        ] = GraphNodeLinkExecution(
-            id=GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
+            NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
+        ] = NodeLinkExecution(
+            id=NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
             graph_execution_id=graph_execution.id,
-            graph_node_execution_id=node.id,
+            node_execution_id=node.id,
         )
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
         graph_execution
     )
-    return task_execution, graph_execution, graph_node_executions
+    return task_execution, graph_execution, node_executions
 
 
 async def _persist_running_workflow(
     unit_of_work: InMemoryUnitOfWork,
     task_execution_id: TaskExecutionId,
-    first_node: GraphNodeExecutionId,
+    first_node: NodeExecutionId,
 ) -> Workflow:
     wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
     wf.start_at(now=_NOW)
@@ -283,9 +283,9 @@ async def _persist_running_workflow(
 
 def _make_worker(
     unit_of_work: InMemoryUnitOfWork,
-    runner: FakeGraphNodeExecutionProcessRunner,
-) -> GraphNodeExecutionWorker:
-    return GraphNodeExecutionWorker(
+    runner: FakeNodeExecutionProcessRunner,
+) -> NodeExecutionWorker:
+    return NodeExecutionWorker(
         unit_of_work=unit_of_work,
         clock=FakeClock(_NOW),
         id_generator=FakeIdGenerator(),
@@ -296,8 +296,8 @@ def _make_worker(
 
 def _make_result_handler(
     unit_of_work: InMemoryUnitOfWork,
-) -> GraphNodeExecutionCompletedHandler:
-    return GraphNodeExecutionCompletedHandler(
+) -> NodeExecutionCompletedHandler:
+    return NodeExecutionCompletedHandler(
         unit_of_work=unit_of_work,
         clock=FakeClock(_NOW),
         id_generator=FakeIdGenerator(),
@@ -334,9 +334,9 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
     unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = (
         task_execution
     )
-    graph_node_executions = [
-        GraphNodeExecution(
-            id=GraphNodeExecutionId(f"{task_execution.id.value}-n{i}"),
+    node_executions = [
+        NodeExecution(
+            id=NodeExecutionId(f"{task_execution.id.value}-n{i}"),
             position=NodeOrder(i),
             mode=Mode(m),
             role=NodeRole(m.upper()),
@@ -350,15 +350,15 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
-    link_repo = unit_of_work.repository(InMemoryGraphNodeLinkExecutionRepository)
-    for node in graph_node_executions:
-        unit_of_work.repository(InMemoryGraphNodeExecutionRepository)._store[node.id.value] = node
+    link_repo = unit_of_work.repository(InMemoryNodeLinkExecutionRepository)
+    for node in node_executions:
+        unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
         link_repo._store[
-            GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
-        ] = GraphNodeLinkExecution(
-            id=GraphNodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
+            NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
+        ] = NodeLinkExecution(
+            id=NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
             graph_execution_id=graph_execution.id,
-            graph_node_execution_id=node.id,
+            node_execution_id=node.id,
         )
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
         graph_execution
@@ -369,15 +369,15 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
 async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=None):
     logger = FakeLogger()
     if runner is None:
-        runner = FakeGraphNodeExecutionProcessRunner(stdout="ok", returncode=0)
-    worker = GraphNodeExecutionWorker(
+        runner = FakeNodeExecutionProcessRunner(stdout="ok", returncode=0)
+    worker = NodeExecutionWorker(
         unit_of_work=unit_of_work,
         clock=clock,
         id_generator=id_generator,
         logger=logger,
         runner=runner,
     )
-    result_handler = GraphNodeExecutionCompletedHandler(
+    result_handler = NodeExecutionCompletedHandler(
         unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
     )
     attach_handler = WorkflowStartedAttachTaskExecutionHandler(
@@ -406,26 +406,26 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
                     ge_repo = unit_of_work.repository(GraphExecutionRepository)
                     ge = await ge_repo.get_by_task_execution_id(task_id)
                     if ge is not None:
-                        node_repo = unit_of_work.repository(InMemoryGraphNodeExecutionRepository)
-                        tr_repo = unit_of_work.repository(InMemoryGraphNodeTransitionExecutionRepository)
-                        nav = LinearGraphNodeExecutionNavigator()
+                        node_repo = unit_of_work.repository(InMemoryNodeExecutionRepository)
+                        tr_repo = unit_of_work.repository(InMemoryNodeTransitionExecutionRepository)
+                        nav = LinearNodeExecutionNavigator()
                         first_node = await nav.first_async(ge, node_repo, tr_repo)
                         if first_node is not None:
                             async with unit_of_work:
-                                request_event = GraphNodeExecutionRequestedEvent.now(
+                                request_event = NodeExecutionRequestedEvent.now(
                                     workflow_id=event.workflow_id,
-                                    graph_node_execution_id=first_node.id,
+                                    node_execution_id=first_node.id,
                                     now=CreatedAt.from_datetime(_NOW),
                                 )
                                 unit_of_work.stage_events([request_event])
                             all_events.extend(unit_of_work.committed_events)
                             has_work = True
-            elif isinstance(event, GraphNodeExecutionRequestedEvent):
+            elif isinstance(event, NodeExecutionRequestedEvent):
                 await worker.handle(event)
                 all_events.extend(unit_of_work.committed_events)
                 has_work = True
             elif isinstance(
-                event, (GraphNodeExecutionCompletedEvent, GraphNodeExecutionFailedEvent)
+                event, (NodeExecutionCompletedEvent, NodeExecutionFailedEvent)
             ):
                 await result_handler.handle(event)
                 all_events.extend(unit_of_work.committed_events)

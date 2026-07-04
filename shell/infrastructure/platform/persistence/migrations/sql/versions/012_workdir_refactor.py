@@ -1,4 +1,4 @@
-"""Phase 20 — move work_dir from workflow to task_execution, remove node_dir from graph_node_execution.
+"""Phase 20 — move work_dir from workflow to task_execution, remove node_dir from node_execution.
 
 Revision ID: 012
 Revises: 011
@@ -6,8 +6,8 @@ Create Date: 2026-06-19
 
 * Add ``task_execution.work_dir`` — execution context moved from workflow.
 * Remove ``workflow.work_dir`` — no longer needed (comes from task_execution).
-* Remove ``graph_node_execution.node_dir`` — redundant (never used in production).
-* Remove ``graph_node_execution.work_dir`` — redundant (comes from task_execution).
+* Remove ``node_execution.node_dir`` — redundant (never used in production).
+* Remove ``node_execution.work_dir`` — redundant (comes from task_execution).
 """
 
 from __future__ import annotations
@@ -30,14 +30,14 @@ def upgrade() -> None:
     with op.batch_alter_table("workflow") as batch:
         batch.drop_column("work_dir")
 
-    # --- graph_node_execution: drop node_dir and work_dir ---
-    with op.batch_alter_table("graph_node_execution") as batch:
+    # --- node_execution: drop node_dir and work_dir ---
+    with op.batch_alter_table("node_execution") as batch:
         batch.drop_column("node_dir")
         batch.drop_column("work_dir")
 
 
 def downgrade() -> None:
-    with op.batch_alter_table("graph_node_execution") as batch:
+    with op.batch_alter_table("node_execution") as batch:
         batch.add_column(sa.Column("work_dir", sa.String(512), nullable=False, server_default=""))
         batch.add_column(sa.Column("node_dir", sa.String(512), nullable=False, server_default=""))
 

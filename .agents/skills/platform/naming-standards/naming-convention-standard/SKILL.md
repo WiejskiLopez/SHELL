@@ -428,4 +428,4 @@ invoice.approve()
 | `ApproveInvoiceEventHandler` | Event w nazwie handlera | `InvoiceApprovedHandler` |
 | `StartWorkflowQuery` | Zły szyk (operation-first) | `WorkflowGetByIdQuery` |
 | `CommandHandler` (base) | Generyczna nazwa | Konkretna: `InvoiceApproveHandler` |
-| `GraphNodeStateUpdatedEvent` | Techniczne, nie biznesowe | `NodeStateChangedEvent` |
+| `NodeStateUpdatedEvent` | Techniczne, nie biznesowe | `NodeStateChangedEvent` |

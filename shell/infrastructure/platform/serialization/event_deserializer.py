@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from shell.domain.execution.events import (
     DomainEvent,
-    GraphNodeExecutionTimeoutExpiredEvent,
+    NodeExecutionTimeoutExpiredEvent,
     TaskExecutionCreatedEvent,
     WorkflowCompletedEvent,
     WorkflowFailedEvent,
@@ -26,7 +26,7 @@ class EventDeserializer:
             "WorkflowStarted": WorkflowStartedEvent,
             "WorkflowCompleted": WorkflowCompletedEvent,
             "WorkflowFailed": WorkflowFailedEvent,
-            "GraphNodeExecutionTimedOut": GraphNodeExecutionTimeoutExpiredEvent,
+            "NodeExecutionTimedOut": NodeExecutionTimeoutExpiredEvent,
         }
         self._serializer = DomainEventSerializer()
 

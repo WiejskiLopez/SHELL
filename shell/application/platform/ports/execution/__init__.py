@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from shell.application.platform.ports.execution.graph_node_execution_process_runner import (
-    GraphNodeExecutionProcessRunner,
+from shell.application.platform.ports.execution.node_execution_process_runner import (
+    NodeExecutionProcessRunner,
 )
-from shell.application.platform.ports.execution.graph_node_execution_workspace import (
-    GraphNodeExecutionWorkspace,
+from shell.application.platform.ports.execution.node_execution_workspace import (
+    NodeExecutionWorkspace,
 )
 
 __all__ = [
-    "GraphNodeExecutionProcessRunner",
-    "GraphNodeExecutionWorkspace",
+    "NodeExecutionProcessRunner",
+    "NodeExecutionWorkspace",
 ]

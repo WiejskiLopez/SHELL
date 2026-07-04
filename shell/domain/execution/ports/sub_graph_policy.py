@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.aggregates.graph_node_execution.graph_node_execution import (
-        GraphNodeExecution,
+    from shell.domain.execution.aggregates.node_execution.node_execution import (
+        NodeExecution,
     )
 
 
@@ -47,13 +47,13 @@ class SubGraphExecutionPolicy(Protocol):
     async def on_timeout(
         self,
         graph_execution: GraphExecution,
-        node: GraphNodeExecution,
+        node: NodeExecution,
     ) -> Decision: ...
 
     async def on_failure(
         self,
         graph_execution: GraphExecution,
-        node: GraphNodeExecution,
+        node: NodeExecution,
         reason: str,
     ) -> Decision: ...
 

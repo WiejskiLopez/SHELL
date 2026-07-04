@@ -7,12 +7,12 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_defi
     select,
     selectinload,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_definition_repository import (
-    GraphNodeDefinitionModel,
-    SqlGraphNodeDefinitionRepository,
+from shell.infrastructure.definition.persistence.sql.repositories.sql_node_definition_repository import (
+    NodeDefinitionModel,
+    SqlNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_node_transition_definition_repository import (
-    SqlGraphNodeTransitionDefinitionRepository,
+from shell.infrastructure.definition.persistence.sql.repositories.sql_node_transition_definition_repository import (
+    SqlNodeTransitionDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.sql.repositories.sql_rag_document_repository import (
     RagChunkModel,
@@ -28,14 +28,14 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_runner_con
 
 __all__ = [
     "GraphDefinitionModel",
-    "GraphNodeDefinitionModel",
+    "NodeDefinitionModel",
     "RagChunkModel",
     "RagDocumentModel",
     "RunnerConfigModel",
     "SqlGraphDefinitionEmbeddingRepository",
     "SqlGraphDefinitionRepository",
-    "SqlGraphNodeDefinitionRepository",
-    "SqlGraphNodeTransitionDefinitionRepository",
+    "SqlNodeDefinitionRepository",
+    "SqlNodeTransitionDefinitionRepository",
     "SqlRagDocumentRepository",
     "SqlRunnerConfigRepository",
     "logger",

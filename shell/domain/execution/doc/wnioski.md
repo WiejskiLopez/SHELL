@@ -2,11 +2,11 @@
 
 ## Wykonane zmiany
 
-### 1. Rozdzielenie TransitionDefinition od GraphNodeTransitionExecution
+### 1. Rozdzielenie TransitionDefinition od NodeTransitionExecution
 
-**Problem**: Klasa `GraphNodeTransitionExecution` istniała w dwóch miejscach:
-- `aggregates/graph_execution/entities/graph_node_transition_execution.py` — jako dataclass entity (definition)
-- `aggregates/graph_node_transition_execution/graph_node_transition_execution.py` — jako osobny aggregate root z FSM
+**Problem**: Klasa `NodeTransitionExecution` istniała w dwóch miejscach:
+- `aggregates/graph_execution/entities/node_transition_execution.py` — jako dataclass entity (definition)
+- `aggregates/node_transition_execution/node_transition_execution.py` — jako osobny aggregate root z FSM
 
 To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agregatu.
 
@@ -14,37 +14,37 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 - Entity dataclass → usunięta
 - Zastąpiona przez `TransitionDefinition` VO w `graph_execution/value_objects/`
 - `TransitionDefinition` jest ValueObject — nie ma własnej tożsamości, jest częścią `GraphExecution`
-- `GraphNodeTransitionExecution` aggregate zachowany — zarządza wykonaniem tranzycji (FSM: EVALUATED → TAKEN/SKIPPED, LOOP)
+- `NodeTransitionExecution` aggregate zachowany — zarządza wykonaniem tranzycji (FSM: EVALUATED → TAKEN/SKIPPED, LOOP)
 
 **Zmienione pliki**:
 - `aggregates/graph_execution/value_objects/transition_definition.py` — NOWY
 - `aggregates/graph_execution/value_objects/__init__.py` — dodany export
-- `aggregates/graph_execution/entities/graph_node_transition_execution.py` — usunięty
+- `aggregates/graph_execution/entities/node_transition_execution.py` — usunięty
 - `aggregates/graph_execution/entities/__init__.py` — oczyszczony
 
 ### 2. Legacy cleanup w GraphExecution
 
-**Problem**: `GraphExecution` miał ~50% legacy pól (`_graph_definition_id`, `_graph_node_execution_ids`, `_transitions` jako stary typ, `_loop_counters`, `_state_input`, `_state_output`, `_timeout_at`, `_correlation_id`, `_tags`) oraz metody (`from_graph_definition`, `add_graph_node_execution_id` legacy wrapper).
+**Problem**: `GraphExecution` miał ~50% legacy pól (`_graph_definition_id`, `_node_execution_ids`, `_transitions` jako stary typ, `_loop_counters`, `_state_input`, `_state_output`, `_timeout_at`, `_correlation_id`, `_tags`) oraz metody (`from_graph_definition`, `add_node_execution_id` legacy wrapper).
 
 **Rozwiązanie**:
 - Usunięto legacy pola: `_state_input`, `_state_output`, `_loop_counters`, `_graph_definition_id`, `_timeout_at`, `_correlation_id`, `_tags`
-- `_graph_node_execution_ids` zachowane jako V3 (używane przez nawigatory)
+- `_node_execution_ids` zachowane jako V3 (używane przez nawigatory)
 - `_transitions` zmienione na `list[TransitionDefinition]`
-- `increment_loop_counter()` usunięta — logika loop przeniesiona do `GraphNodeTransitionExecution`
+- `increment_loop_counter()` usunięta — logika loop przeniesiona do `NodeTransitionExecution`
 - `absorb_child_results()` uproszczona — używa `dict` zamiast wewnętrznych encji
 - `add_state_input()/add_state_output()` usunięte — state I/O są osobnymi agregatami
 - `from_graph_definition()` — usunięta
-- `graph_node_executions` property — zachowane (używane przez nawigatory)
+- `node_executions` property — zachowane (używane przez nawigatory)
 
 ### 3. Duplicate events w Workflow
 
 **Problem**: W `workflow/events/` istniały 4 pary zduplikowanych eventów:
-- `WorkflowGraphNodeExecutionRequestedEvent` = `GraphNodeExecutionRequestedEvent`
-- `WorkflowGraphNodeExecutionAdvancedEvent` = `GraphNodeExecutionAdvancedEvent`
-- `WorkflowGraphNodeExecutionCompletedEvent` — bez pary, ale zbędny
-- `WorkflowGraphNodeExecutionFailedEvent` — bez pary, ale zbędny
+- `WorkflowNodeExecutionRequestedEvent` = `NodeExecutionRequestedEvent`
+- `WorkflowNodeExecutionAdvancedEvent` = `NodeExecutionAdvancedEvent`
+- `WorkflowNodeExecutionCompletedEvent` — bez pary, ale zbędny
+- `WorkflowNodeExecutionFailedEvent` — bez pary, ale zbędny
 
-**Rozwiązanie**: Usunięto `WorkflowGraphNodeExecution*` warianty, zachowano `GraphNodeExecution*`.
+**Rozwiązanie**: Usunięto `WorkflowNodeExecution*` warianty, zachowano `NodeExecution*`.
 
 ### 4. Dodanie WorkflowStatus.FAILED
 
@@ -61,13 +61,13 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 
 **Rozwiązanie**: Dodano `WorkflowStateInputId` i `WorkflowStateOutputId` VOs, zaktualizowano encje.
 
-### 6. GraphNodeExecution retry
+### 6. NodeExecution retry
 
 **Problem**: Pole `retries` istniało w definicji, ale agregat nie miał metody `retry()`. Przejście `FAILED → PENDING` nie istniało.
 
 **Rozwiązanie**:
 - Dodano pole `_remaining_retries` (dekrementowane przy retry)
-- Dodano metodę `retry(now)` → `FAILED → PENDING` + `GraphNodeExecutionRetriedEvent`
+- Dodano metodę `retry(now)` → `FAILED → PENDING` + `NodeExecutionRetriedEvent`
 - Stan `PENDING` po retry pozwala na ponowne `start()`
 
 ### 7. Suspended w GraphExecution
@@ -101,9 +101,9 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 
 ### 11. WorkflowTransitionService dla TransitionDefinition
 
-**Problem**: Serwis używał starego entity `GraphNodeTransitionExecution` z `graph_execution/entities`.
+**Problem**: Serwis używał starego entity `NodeTransitionExecution` z `graph_execution/entities`.
 
-**Rozwiązanie**: Zaktualizowano na `TransitionDefinition` + `GraphNodeTransitionExecution` aggregate.
+**Rozwiązanie**: Zaktualizowano na `TransitionDefinition` + `NodeTransitionExecution` aggregate.
 
 ---
 
@@ -111,14 +111,14 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 
 ### Usunięte legacy
 - `GraphExecution._state_inputs`, `_state_outputs` (były dublowane z oddzielnymi agregatami)
-- `GraphExecution._loop_counters` (przeniesione do `GraphNodeTransitionExecution`)
+- `GraphExecution._loop_counters` (przeniesione do `NodeTransitionExecution`)
 - `GraphExecution._graph_definition_id`, `_timeout_at`, `_correlation_id`, `_tags`
 - `GraphExecution._state_input` (dict), `_state_output` (dict)
 - `GraphExecution.from_graph_definition()`
 - `GraphExecution.increment_loop_counter()`
-- `LoopCounter` VO (nieużywany, zastąpiony przez `GraphNodeTransitionExecution.current_iteration`)
-- `WorkflowGraphNodeExecutionRequestedEvent`, `WorkflowGraphNodeExecutionAdvancedEvent`, `WorkflowGraphNodeExecutionCompletedEvent`, `WorkflowGraphNodeExecutionFailedEvent`
-- Entity `graph_execution/entities/graph_node_transition_execution.py`
+- `LoopCounter` VO (nieużywany, zastąpiony przez `NodeTransitionExecution.current_iteration`)
+- `WorkflowNodeExecutionRequestedEvent`, `WorkflowNodeExecutionAdvancedEvent`, `WorkflowNodeExecutionCompletedEvent`, `WorkflowNodeExecutionFailedEvent`
+- Entity `graph_execution/entities/node_transition_execution.py`
 - Entity `graph_execution/entities/graph_execution_state_input.py` (dublowane z oddzielnym agregatem)
 - Entity `graph_execution/entities/graph_execution_state_output.py` (dublowane z oddzielnym agregatem)
 - `WorkflowStateInput.id` jako `WorkflowId` (zamienione na `WorkflowStateInputId`)
@@ -127,10 +127,10 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 - `EnvelopeLifecycleService.advance()` → `evaluate_status()`
 
 ### Zachowane jako V3 (nie legacy)
-- `GraphExecution._graph_node_execution_ids` — używane przez nawigatory
+- `GraphExecution._node_execution_ids` — używane przez nawigatory
 - `GraphExecution._transitions` — ale jako `list[TransitionDefinition]`
-- `GraphExecution.graph_node_executions` — helper do nawigacji
-- `GraphNodeExecution.position`, `mode`, `node_type` — używane przez infrastrukturę
+- `GraphExecution.node_executions` — helper do nawigacji
+- `NodeExecution.position`, `mode`, `node_type` — używane przez infrastrukturę
 - `TaskExecution.created_at`, `rename()`, `execute_in_workflow()`, `prepare_workspace()` — stare metody ale nie szkodzą
 
 ### Dodane nowe
@@ -138,12 +138,12 @@ To naruszało zasadę DDD: agregat nie może być encją wewnątrz innego agrega
 - `GraphExecutionStatus.SUSPENDED`
 - `WorkflowStatus.PAUSED`, `WorkflowStatus.FAILED`
 - `TaskExecutionStatus.TIMED_OUT`
-- `GraphNodeExecutionRetriedEvent`
+- `NodeExecutionRetriedEvent`
 - `TaskExecutionTimedOutEvent`
 - `WorkflowPausedEvent`, `WorkflowResumedEvent`
 - `Workflow.pause()`, `resume()`, `fail()`
 - `GraphExecution.suspend()`, `resume()`
-- `GraphNodeExecution.retry()`
+- `NodeExecution.retry()`
 - `TaskExecution.timeout()`
 - `WorkflowStateInputId`, `WorkflowStateOutputId` VOs
 
@@ -183,9 +183,9 @@ Po konsolidacji GraphExecution i TaskExecution pozostały inne agregaty z własn
 | **TaskExecution** | usunięte wewn. entity | usunięte wewn. entity | Osobny agregat `TaskExecutionState` z `kind` | ✅ OK |
 | **Workflow** | `WorkflowStateInput` entity | `WorkflowStateOutput` entity | Wewnętrzne entity wewnątrz Workflow | ❌ Należy wydzielić jako `WorkflowState` z `kind` |
 | **Session** | `SessionStateInput` entity | `SessionStateOutput` entity | Wewnętrzne entity wewnątrz Session | ❌ Należy wydzielić jako `SessionState` z `kind` |
-| **GraphNodeExecution** | `GraphNodeExecutionStateInput` entity | `GraphNodeExecutionStateOutput` entity | Wewnętrzne entity wewnątrz agregatu | ✅ OK — stan noda nie jest współdzielony z zewnątrz |
+| **NodeExecution** | `NodeExecutionStateInput` entity | `NodeExecutionStateOutput` entity | Wewnętrzne entity wewnątrz agregatu | ✅ OK — stan noda nie jest współdzielony z zewnątrz |
 
-**Problem krytyczny**: `add_state_input()` i `add_state_output()` zostały usunięte z `GraphExecution` i `TaskExecution`, ale **13 handlerów aplikacyjnych** wciąż je wywołuje (m.in. `graph_execution_created_handler.py`, `graph_node_execution_completed_propagate_output_handler.py`, `propagate_*_to_*.py`).
+**Problem krytyczny**: `add_state_input()` i `add_state_output()` zostały usunięte z `GraphExecution` i `TaskExecution`, ale **13 handlerów aplikacyjnych** wciąż je wywołuje (m.in. `graph_execution_created_handler.py`, `node_execution_completed_propagate_output_handler.py`, `propagate_*_to_*.py`).
 
 **Co trzeba zrobić później**:
 1. Przywrócić `add_state_input()`/`add_state_output()` w `GraphExecution` i `TaskExecution` jako delegację do `GraphExecutionState`/`TaskExecutionState` (z odpowiednim `kind`)
@@ -218,5 +218,5 @@ Workflow ma metody `add_state_input()/add_state_output()` ale nie ma dedykowanyc
 ### 7. Mapper GraphExecution — pola domyślne
 W mapperze `graph_execution_entity_to_model()` ustawiamy puste stringi dla usuniętych legacy pól (`graph_definition_id=""`, `state_input={}` itp.). Docelowo te kolumny w DB można usunąć lub oznaczyć jako nullable.
 
-### 8. `_graph_node_execution_ids` — refaktoring przyszłości
-Docelowo `GraphExecution` nie powinien trzymać listy ID node'ów — powinien delegować to do repozytorium `GraphNodeExecutionRepository` (jak robi to `TransitionBasedGraphNodeExecutionNavigator.first_async()`). Obecnie lista ID jest potrzebna nawigatorom synchronicznym (`graph_node_executions` property).
+### 8. `_node_execution_ids` — refaktoring przyszłości
+Docelowo `GraphExecution` nie powinien trzymać listy ID node'ów — powinien delegować to do repozytorium `NodeExecutionRepository` (jak robi to `TransitionBasedNodeExecutionNavigator.first_async()`). Obecnie lista ID jest potrzebna nawigatorom synchronicznym (`node_executions` property).

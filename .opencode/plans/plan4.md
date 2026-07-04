@@ -12,7 +12,7 @@
 | Agregaty (§1) | ✅ | Wszystkie 10 agregatów istnieje |
 | FSM TaskExecution (§8.2) | ✅ | Pełna maszyna stanów |
 | FSM GraphExecution (§9.2) | ✅ | Pełna maszyna stanów |
-| FSM GraphNodeExecution (§10.1) | ✅ | Pełna maszyna stanów |
+| FSM NodeExecution (§10.1) | ✅ | Pełna maszyna stanów |
 | FSM Workflow (§6) | ✅ | `abort()` emituje `WorkflowAbortedEvent` |
 | FSM Session (§4) | ✅ | `close()` emituje `SessionClosedEvent` |
 | Eventy (§13) | ⚠️ | Drobne rozbieżności pól (M5) |
@@ -136,14 +136,14 @@
 **Problem:** 4 deprecated eventy wciąż istnieją i są używane:
 - `GraphExecutionBuiltEvent` — emitowany przez `graph_execution.py:476`
 - `SubGraphSpawnRequestedEvent` — używany przez `planner_result_handler.py` i `sub_graph_spawn_requested_handler.py`
-- `PlannerResultEvent` — emitowany przez `graph_node_execution.py:263`
-- `graph_node_execution_timed_out_handler.py` — zarejestrowany w DI
+- `PlannerResultEvent` — emitowany przez `node_execution.py:263`
+- `node_execution_timed_out_handler.py` — zarejestrowany w DI
 
 **Naprawa:** Każdy wymaga przepięcia na V3 odpowiednik przed usunięciem.
 
 ---
 
-### L3. ✅ `GraphNodeExecutionTimedOutEvent` brak w spec
+### L3. ✅ `NodeExecutionTimedOutEvent` brak w spec
 
 **Problem:** Event istnieje w kodzie ale nie jest wymieniony w §13.3 DOMAINV3.md.  
 **Naprawa:** Dodać do DOMAINV3.md §13.3 jako brakujący event.
@@ -186,5 +186,5 @@ Faza 5 (🟢 L1-L4): Drobne czystki — ❌ wszystkie do zrobienia
 - [x] M5: TaskExecutionCreatedEvent zgodny ze spec
 - [x] L1: Wszystkie agregaty mają add_skill() — Session, Workflow, AgentExecution
 - [ ] L2: Wszystkie orphan eventy usunięte — 4 nadal w DI, wymagają przepięcia
-- [x] L3: GraphNodeExecutionTimedOutEvent dodany do spec
+- [x] L3: NodeExecutionTimedOutEvent dodany do spec
 - [ ] L4: VO rule w eventach — Reason VO utworzone, reszta deferowana
