@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+    from shell.domain.execution.value_objects.graph_definition_id_ref import GraphDefinitionIdRef
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 

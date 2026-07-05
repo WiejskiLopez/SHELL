@@ -18,9 +18,6 @@ from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.definition.value_objects.retry_count import RetryCount
 from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
-from shell.domain.definition.value_objects.transition_timeout_seconds import (
-    TransitionTimeoutSeconds,
-)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -63,7 +60,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         node_type: NodeTypeName,
         model: ModelName | None = None,
         command: CommandText | None = None,
-        timeout: TransitionTimeoutSeconds | None = None,
+        timeout: int | None = None,
         retries: RetryCount | None = None,
         log_level: LogLevel | None = None,
         max_step: MaxStep | None = None,
@@ -86,8 +83,8 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         )
         self._timeout = (
             timeout
-            if timeout is None or isinstance(timeout, TransitionTimeoutSeconds)
-            else TransitionTimeoutSeconds(timeout)
+            if timeout is None or isinstance(timeout, int)
+            else int(timeout)
         )
         self._retries = (
             retries if retries is None or isinstance(retries, RetryCount) else RetryCount(retries)
@@ -134,7 +131,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         node_type: NodeTypeName,
         model: ModelName | None = None,
         command: CommandText | None = None,
-        timeout: TransitionTimeoutSeconds | None = None,
+        timeout: int | None = None,
         retries: RetryCount | None = None,
         log_level: LogLevel | None = None,
         max_step: MaxStep | None = None,
@@ -173,7 +170,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         node_type: NodeTypeName,
         model: ModelName | None = None,
         command: CommandText | None = None,
-        timeout: TransitionTimeoutSeconds | None = None,
+        timeout: int | None = None,
         retries: RetryCount | None = None,
         log_level: LogLevel | None = None,
         max_step: MaxStep | None = None,
@@ -241,7 +238,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         return self._command
 
     @property
-    def timeout(self) -> TransitionTimeoutSeconds | None:
+    def timeout(self) -> int | None:
         return self._timeout
 
     @property

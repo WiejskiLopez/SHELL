@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.value_objects.error_description import ErrorDescription
-from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.error_description import ErrorDescription
+from shell.domain.platform.value_objects.reason import Reason
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,

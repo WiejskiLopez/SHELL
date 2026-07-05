@@ -15,9 +15,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.domain.execution.aggregates.node_transition_execution.repositories.node_transition_execution_repository import (
-        NodeTransitionExecutionRepository,
-    )
 
 
 class NodeExecutionNavigator(Protocol):
@@ -27,7 +24,6 @@ class NodeExecutionNavigator(Protocol):
         self,
         graph_execution: GraphExecution,
         node_repo: NodeExecutionRepository,
-        transition_repo: NodeTransitionExecutionRepository,
     ) -> NodeExecution | None: ...
 
     async def next_after_async(
@@ -35,5 +31,4 @@ class NodeExecutionNavigator(Protocol):
         graph_execution: GraphExecution,
         node_execution_id: NodeExecutionId,
         node_repo: NodeExecutionRepository,
-        transition_repo: NodeTransitionExecutionRepository,
     ) -> Iterable[NodeExecution]: ...

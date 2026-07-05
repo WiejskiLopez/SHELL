@@ -1,8 +1,8 @@
-"""GraphExecutionCreatedGoalStateHandler — creates GraphExecutionState from goal.
+"""GraphExecutionCreatedGoalStateHandler — creates initial GraphExecutionState.
 
-Subscribes to GraphExecutionCreatedEvent. If the event carries a goal, creates
-a GraphExecutionState (direction=IN) with the goal as payload.
-Modyfikuje tylko GraphExecutionState.
+Subscribes to GraphExecutionCreatedEvent and creates an empty GraphExecutionState
+(direction=IN) so the graph execution has an initial state slot.
+Goal data is not carried in the event — consumers fetch it from TaskExecution.
 """
 
 from __future__ import annotations
@@ -41,17 +41,13 @@ class GraphExecutionCreatedGoalStateHandler:
     async def handle(
         self, graph_execution_created_event: GraphExecutionCreatedEvent
     ) -> None:
-        if not graph_execution_created_event.goal:
-            return
-
-        now = self._clock.now()
         async with self._unit_of_work as unit_of_work:
+            now = self._clock.now()
             state = GraphExecutionState.create(
                 id_=GraphExecutionStateId.generate(),
                 graph_execution_id=graph_execution_created_event.graph_execution_id,
                 direction=StateDirection.IN,
                 now=CreatedAt.from_datetime(now),
             )
-            state.patch({"goal": graph_execution_created_event.goal.value})
             await unit_of_work.repository(GraphExecutionStateRepository).save(state)
             unit_of_work.stage_events(state.pull_events())

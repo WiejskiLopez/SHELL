@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
+    GraphDefinitionCreatedEvent,
+)
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
@@ -14,22 +17,12 @@ from shell.domain.platform.value_objects.created_at import CreatedAt
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.value_objects.ids import (
-        NodeTransitionDefinitionId,
-    )
-
-
-from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
-    GraphDefinitionCreatedEvent,
-)
-
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     __slots__ = (
         "_name",
         "_purpose",
         "_system_role",
-        "_transition_definition_ids",
     )
 
     def __init__(
@@ -38,7 +31,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
     ) -> None:
         super().__init__(id)
         self._name = name if isinstance(name, GraphName) else GraphName(name)
@@ -50,9 +42,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             if system_role is not None
             else None
         )
-        self._transition_definition_ids = (
-            list(transition_definition_ids) if transition_definition_ids else []
-        )
 
     @classmethod
     def restore(
@@ -61,14 +50,12 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
     ) -> GraphDefinition:
         return cls(
             id=id,
             name=name,
             purpose=purpose,
             system_role=system_role,
-            transition_definition_ids=transition_definition_ids,
         )
 
     @classmethod
@@ -78,7 +65,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         name: GraphName,
         purpose: Purpose,
         system_role: SystemRole | None = None,
-        transition_definition_ids: list[NodeTransitionDefinitionId] | None = None,
         now: datetime | None = None,
     ) -> GraphDefinition:
         if not name.value.strip():
@@ -91,7 +77,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             name=name,
             purpose=purpose,
             system_role=system_role,
-            transition_definition_ids=transition_definition_ids,
         )
 
         if now is not None:
@@ -117,7 +102,3 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     @property
     def system_role(self) -> SystemRole | None:
         return self._system_role
-
-    @property
-    def transition_definition_ids(self) -> tuple[NodeTransitionDefinitionId, ...]:
-        return tuple(self._transition_definition_ids)

@@ -14,6 +14,15 @@ class UnitOfWork(Protocol):
 
     def stage_events(self, events: list[DomainEvent]) -> None: ...
 
+    async def save(self, repo_type: type, aggregate: object) -> None:
+        """Zapisuje agregat przez repo i automatycznie stage'uje jego eventy.
+
+        Użycie (zamiast ręcznego repo.save() + stage_events()):
+            async with unit_of_work as uow:
+                await uow.save(UserRepository, user)
+        """
+        ...
+
     def stage_messages(self, messages: list[Message]) -> None: ...
 
     @property

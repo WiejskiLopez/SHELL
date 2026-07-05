@@ -38,13 +38,17 @@ from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
     GraphExecutionInitializedEvent,
 )
-from shell.domain.execution.events import TaskExecutionCreatedEvent
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+    TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     NodeExecutionDefinition,
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
@@ -121,7 +125,7 @@ class _InMemoryGraphDefinitionQueryService:
                     node_type=node.node_type.value,
                     model=node.model.value if node.model else "",
                     command=node.command.value if node.command else "",
-                    timeout=node.timeout.value if node.timeout else 0,  # type: ignore[arg-type]
+                    timeout=node.timeout if node.timeout else 0,
                     retries=node.retries.value if node.retries else 0,
                     log_level=node.log_level.value if node.log_level else "INFO",
                     max_step=node.max_step.value if node.max_step else None,
@@ -222,7 +226,7 @@ async def _seed_graph_definition(
 def _task_created_event(now: datetime) -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId("task-abc"),
-        task_execution_name=TaskExecutionName("my-task"),
+        task_execution_name=TaskExecutionName("test-task"),
         now=CreatedAt.from_datetime(now),
     )
 
@@ -251,10 +255,11 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         await handler.handle(_task_created_event(clock.now()))
 
-        graph_execution = await unit_of_work.repository(
+        graph_executions = await unit_of_work.repository(
             InMemoryGraphExecutionRepository
         ).get_by_task_execution_id(TaskExecutionId("task-abc"))
-        assert graph_execution is not None
+        assert len(graph_executions) == 1
+        graph_execution = graph_executions[0]
         assert graph_execution.task_execution_id == TaskExecutionId("task-abc")
         nodes = await unit_of_work.repository(
             InMemoryNodeExecutionRepository
@@ -303,21 +308,21 @@ class TestBuildGraphExecutionOnTaskExecutionCreatedEventHandler:
 
         # First call builds the graph.
         await handler.handle(_task_created_event(clock.now()))
-        first_graph = await unit_of_work.repository(
+        first_graphs = await unit_of_work.repository(
             InMemoryGraphExecutionRepository
         ).get_by_task_execution_id(TaskExecutionId("task-abc"))
-        assert first_graph is not None
-        first_graph_execution_id = first_graph.id
+        assert len(first_graphs) == 1
+        first_graph_execution_id = first_graphs[0].id
 
         unit_of_work.committed_events.clear()
         # Second call must be a no-op.
         await handler.handle(_task_created_event(clock.now()))
 
-        second_graph = await unit_of_work.repository(
+        second_graphs = await unit_of_work.repository(
             InMemoryGraphExecutionRepository
         ).get_by_task_execution_id(TaskExecutionId("task-abc"))
-        assert second_graph is not None
-        assert second_graph.id == first_graph_execution_id
+        assert len(second_graphs) == 1
+        assert second_graphs[0].id == first_graph_execution_id
         assert unit_of_work.committed_events == []
 
     async def test_no_events_published_on_failure(

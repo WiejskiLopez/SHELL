@@ -7,6 +7,7 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
@@ -14,7 +15,6 @@ from shell.infrastructure.execution.persistence.sql.mappers import (
 )
 
 from ..models import GraphExecutionModel
-from ..models.task_execution import TaskExecutionModel
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
@@ -24,7 +24,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.ids import (
         GraphExecutionId,
         TaskExecutionId,
-        WorkflowId,
     )
 
 
@@ -35,6 +34,9 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     def _base_query(self) -> Select[tuple[GraphExecutionModel]]:
         return select(GraphExecutionModel)
 
+    def _active_query(self) -> Select[tuple[GraphExecutionModel]]:
+        return self._base_query().where(GraphExecutionModel.deleted_at.is_(None))
+
     async def get_by_id(self, graph_execution_id: GraphExecutionId) -> GraphExecution | None:
         query = self._base_query().where(GraphExecutionModel.id == graph_execution_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
@@ -43,7 +45,7 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
     ) -> list[GraphExecution]:
-        query = self._base_query().where(
+        query = self._active_query().where(
             GraphExecutionModel.task_execution_id == task_execution_id.value
         )
         rows = (await self._session.execute(query)).scalars().all()
@@ -52,20 +54,8 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
     async def get_by_parent_id(
         self, parent_graph_execution_id: GraphExecutionId
     ) -> list[GraphExecution]:
-        query = self._base_query().where(
+        query = self._active_query().where(
             GraphExecutionModel.parent_graph_execution_id == parent_graph_execution_id.value
-        )
-        rows = (await self._session.execute(query)).scalars().all()
-        return [graph_execution_model_to_entity(row) for row in rows if row is not None]
-
-    async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[GraphExecution]:
-        query = (
-            self._base_query()
-            .join(
-                TaskExecutionModel,
-                GraphExecutionModel.task_execution_id == TaskExecutionModel.id,
-            )
-            .where(TaskExecutionModel.workflow_id == workflow_id.value)
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [graph_execution_model_to_entity(row) for row in rows if row is not None]
@@ -79,3 +69,12 @@ class SqlGraphExecutionRepository(GraphExecutionRepository):
             self._session.add(graph_execution_model)
         else:
             graph_execution_update_model(graph_execution_model, graph_execution)
+
+    async def delete(self, id: GraphExecutionId) -> None:
+        model = await self._session.get(GraphExecutionModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: GraphExecutionId) -> ExistsResult:
+        entity = await self.get_by_id(id)
+        return ExistsResult(entity is not None)

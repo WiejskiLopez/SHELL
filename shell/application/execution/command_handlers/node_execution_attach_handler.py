@@ -11,10 +11,12 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.attach_node_executions_command import (

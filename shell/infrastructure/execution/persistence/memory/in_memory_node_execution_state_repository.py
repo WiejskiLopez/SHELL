@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.node_execution_state.node_execution_state import (
@@ -55,7 +56,7 @@ class InMemoryNodeExecutionStateRepository(
             self._store[key] = []
         self._store[key].append(state)
 
-    async def delete(self, id_: NodeExecutionStateId) -> None:
+    async def delete(self, id_: NodeExecutionStateId, now: datetime | None = None) -> None:
         for states in self._store.values():
             for i, state in enumerate(states):
                 if state.id == id_:

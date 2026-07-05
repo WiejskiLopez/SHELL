@@ -22,13 +22,11 @@ from shell.domain.execution.aggregates.workflow.events.workflow_resumed_event im
 from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
-from shell.domain.execution.aggregates.workflow.exceptions.invalid_workflow_transition import (
-    InvalidWorkflowTransition,
-)
-from shell.domain.execution.value_objects.reason import Reason
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.deleted_at import DeletedAt
+from shell.domain.platform.value_objects.reason import Reason
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -49,6 +47,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         "_session_id",
         "_status",
         "_created_at",
+        "_deleted_at",
     )
 
     _session_execution_id: SessionExecutionId | None
@@ -64,6 +63,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
         created_at: CreatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._session_execution_id = session_execution_id
@@ -78,6 +78,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             if created_at is not None
             else CreatedAt.now()
         )
+        self._deleted_at = deleted_at
 
     @classmethod
     def restore(
@@ -88,6 +89,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
         created_at: CreatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -95,6 +97,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             session_id=session_id,
             status=status,
             created_at=created_at,
+            deleted_at=deleted_at,
         )
 
     # --- Properties ---
@@ -114,6 +117,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
+
+    @property
+    def deleted_at(self) -> DeletedAt | None:
+        return self._deleted_at
 
     # --- Factory ---
 
@@ -144,7 +151,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         work_dir: str | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"start_at requires status=ACTIVE, got {self._status.value!r}"
             )
         self.append_event(
@@ -162,7 +169,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"finish requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.COMPLETED
@@ -181,7 +188,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"fail requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.FAILED
@@ -199,7 +206,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"abort requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.ABORTED
@@ -215,7 +222,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     def pause(self, *, now: datetime) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"pause requires status=ACTIVE, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.PAUSED
@@ -223,7 +230,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     def resume(self, *, now: datetime) -> None:
         if self._status != WorkflowStatus.PAUSED:
-            raise InvalidWorkflowTransition(
+            raise ValueError(
                 f"resume requires status=PAUSED, got {self._status.value!r}"
             )
         self._status = WorkflowStatus.ACTIVE

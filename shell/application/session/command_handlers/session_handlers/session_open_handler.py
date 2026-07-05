@@ -28,5 +28,5 @@ class SessionOpenHandler:
             now=CreatedAt.from_datetime(self._clock.now()),
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(SessionRepository).save(session)
+            await unit_of_work.save(SessionRepository, session)
         return session_id

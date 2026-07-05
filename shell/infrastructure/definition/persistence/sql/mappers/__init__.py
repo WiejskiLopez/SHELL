@@ -23,7 +23,6 @@ from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import (
-    NodeTransitionDefinitionId,
     RagChunkId,
     RagDocumentId,
     RunnerConfigId,
@@ -46,9 +45,6 @@ from shell.domain.definition.value_objects.script_type_name import ScriptTypeNam
 from shell.domain.definition.value_objects.source_uri import SourceUri
 from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.definition.value_objects.title import Title
-from shell.domain.definition.value_objects.transition_timeout_seconds import (
-    TransitionTimeoutSeconds,
-)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
@@ -110,11 +106,7 @@ def graph_definition_model_to_entity(
         system_role=SystemRole(graph_definition_model.system_role)
         if graph_definition_model.system_role is not None
         else None,
-        transition_definition_ids=[
-            NodeTransitionDefinitionId(t.id)
-            for t in (graph_definition_model.node_transition_definition_models or [])
-        ],
-    )
+        )
 
 
 def graph_definition_entity_to_model(
@@ -150,7 +142,7 @@ def node_definition_model_to_entity(
         if node_definition_model.model is not None
         else None,
         command=CommandText(node_definition_model.command),
-        timeout=TransitionTimeoutSeconds(node_definition_model.timeout),
+        timeout=int(node_definition_model.timeout),
         retries=RetryCount(node_definition_model.retries),
         log_level=LogLevel(node_definition_model.log_level),
         max_step=MaxStep(node_definition_model.max_step)
@@ -187,7 +179,7 @@ def node_definition_entity_to_model(
         command=node_definition.command.value
         if node_definition.command is not None
         else "",
-        timeout=node_definition.timeout.value
+        timeout=node_definition.timeout
         if node_definition.timeout is not None
         else 0,
         retries=node_definition.retries.value
@@ -227,8 +219,8 @@ def node_definition_update_model(
     model.model = entity.model.value if entity.model is not None else None
     model.command = entity.command.value if entity.command is not None else ""
     model.timeout = (
-        entity.timeout.value
-        if entity.timeout is not None and entity.timeout.value is not None
+        entity.timeout
+        if entity.timeout is not None
         else 0
     )
     model.retries = entity.retries.value if entity.retries is not None else 0

@@ -15,10 +15,13 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_su
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.execution.events import (
+    from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
         WorkflowCompletedEvent,
     )
     from shell.domain.platform.ports.log import Logger
@@ -35,11 +38,18 @@ class NotifyParentOnChildCompletionHandler:
 
     async def handle(self, event: WorkflowCompletedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
+            task_execution_id = event.task_execution_id
+            if task_execution_id is None:
+                task_executions = await unit_of_work.repository(
+                    TaskExecutionRepository
+                ).get_by_workflow_id(event.workflow_id)
+                if not task_executions:
+                    return
+                task_execution_id = task_executions[0].id
+
             graph_executions = await unit_of_work.repository(
                 GraphExecutionRepository
-            ).get_by_workflow_id(
-                event.workflow_id,
-            )
+            ).get_by_task_execution_id(task_execution_id)
             if not graph_executions:
                 return
             graph_execution = graph_executions[0]

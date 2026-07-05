@@ -4,20 +4,35 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.execution.aggregates.graph_execution.exceptions.graph_execution_graph_definition_not_found_error import (
+    GraphExecutionGraphDefinitionNotFoundError,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.decision import (
+    Decision,
+    SubGraphExecutionPolicy,
+)
 from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_compensation import (
     CompensationDecision,
     SubGraphCompensation,
 )
-from shell.domain.execution.exceptions import GraphDefinitionNotFound
-from shell.domain.execution.ports.sub_graph_discovery import SubGraphDiscovery
-from shell.domain.execution.ports.sub_graph_governance import (
+from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_discovery import (
+    SubGraphDiscovery,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_governance import (
     SubGraphGovernance,
     TokenBudget,
 )
-from shell.domain.execution.ports.sub_graph_observer import SubGraphContext, SubGraphObserver
-from shell.domain.execution.ports.sub_graph_policy import Decision, SubGraphExecutionPolicy
-from shell.domain.execution.ports.sub_graph_security import Scope, SubGraphSecurity
-from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_observer import (
+    SubGraphContext,
+    SubGraphObserver,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_security import (
+    Scope,
+    SubGraphSecurity,
+)
+from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_versioning import (
+    SubGraphVersioning,
+)
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     NodeExecutionDefinition,
@@ -229,7 +244,7 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
         async with self._unit_of_work_factory() as unit_of_work:
             all_defs = await unit_of_work.repository(GraphDefinitionRepository).list_all()
             if all_defs is None:
-                raise GraphDefinitionNotFound(query)
+                raise GraphExecutionGraphDefinitionNotFoundError(query)
 
             best_match = None
             best_score: float = 0
@@ -257,6 +272,6 @@ class DefaultSubGraphDiscovery(SubGraphDiscovery):
                     best_match = definition
 
             if best_match is None or best_score == 0:
-                raise GraphDefinitionNotFound(query)
+                raise GraphExecutionGraphDefinitionNotFoundError(query)
 
             return best_match.id.value

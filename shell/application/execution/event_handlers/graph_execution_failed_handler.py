@@ -16,21 +16,22 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.value_objects.goal import Goal
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.execution.value_objects.goal import Goal
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import GraphExecutionId
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 
 if TYPE_CHECKING:
+    from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionFailedEvent,
     )
-
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -80,7 +81,7 @@ class GraphExecutionFailedHandler:
                 unit_of_work.stage_events(task_execution.pull_events())
                 return
 
-            replan_goal = Goal(f"replan: {graph_execution.task_execution_id.value} - {event.reason}")
+            replan_goal = Goal(f"replan: {graph_execution.task_execution_id.value}")
             new_graph = GraphExecution.create_main_round(
                 id_=self._id_generator.new_id(GraphExecutionId),
                 task_execution_id=graph_execution.task_execution_id,

@@ -6,7 +6,7 @@ from dependency_injector import containers, providers
 
 from shell.application.execution.strategies.node_execution_strategy import get_strategy
 from shell.domain.execution.services.node_execution_navigator import (
-    TransitionBasedNodeExecutionNavigator,
+    LinearNodeExecutionNavigator,
 )
 from shell.domain.execution.services.node_execution_policy import (
     FailFastNodeExecutionPolicy,
@@ -26,7 +26,7 @@ class DomainContainer(containers.DeclarativeContainer):
     infra = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
 
-    node_navigator_factory = providers.Singleton(TransitionBasedNodeExecutionNavigator)
+    node_navigator_factory = providers.Singleton(LinearNodeExecutionNavigator)
     node_execution_policy_factory = providers.Singleton(FailFastNodeExecutionPolicy)
 
     strategy = providers.Object(get_strategy("agent"))

@@ -13,7 +13,7 @@ from shell.infrastructure.platform.persistence.sql.models.message.outbox_message
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.domain.platform.envelope import Envelope
+    from shell.infrastructure.platform.messaging.envelope import Envelope
 
 
 class SqlMessageOutboxPublisher:

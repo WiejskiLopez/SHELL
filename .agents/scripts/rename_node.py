@@ -1,7 +1,5 @@
 """Rename node → node across the entire codebase (excluding .venv)."""
 import pathlib
-import os
-import sys
 
 EXCLUDE_DIRS = {'.venv', '__pycache__', '.git', '.mypy_cache', '.pytest_cache', '.ruff_cache'}
 EXCLUDE_FILES = {__file__}  # exclude this script itself

@@ -37,14 +37,22 @@ from shell.domain.execution.aggregates.node_execution.events.node_execution_init
 from shell.domain.execution.aggregates.node_execution.events.node_execution_started_event import (
     NodeExecutionStartedEvent,
 )
+from shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event import (
+    NodeExecutionTimeoutExpiredEvent,
+)
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
     TaskExecutionCompletedEvent,
 )
-from shell.domain.execution.events import (
-    NodeExecutionTimeoutExpiredEvent,
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
     WorkflowFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
 from shell.domain.session.aggregates.session.events.session_opened_event import (

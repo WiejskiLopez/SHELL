@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
@@ -27,6 +28,7 @@ class NodeDefinitionModel(Base, VersionedMixin):
     status_initial: Mapped[str] = mapped_column(nullable=False)
     script: Mapped[str | None] = mapped_column(nullable=True)
     script_type: Mapped[str | None] = mapped_column(nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:

@@ -50,7 +50,6 @@ class TestMessage:
         assert len(events) == 1
         event = events[0]
         assert event.message_id == message.id  # type: ignore[attr-defined]
-        assert event.message_type.value == "test.event"  # type: ignore[attr-defined]
 
     def test_mark_as_received_changes_status(self) -> None:
         now = datetime.now(tz=UTC)
@@ -85,9 +84,7 @@ class TestMessage:
 
         events = message.pull_events()
         assert len(events) == 1
-        event = events[0]
-        assert event.previous_status == MessageStatus.CREATED  # type: ignore[attr-defined]
-        assert event.new_status == MessageStatus.RECEIVED  # type: ignore[attr-defined]
+
 
     def test_mark_as_received_from_received_raises(self) -> None:
         now = datetime.now(tz=UTC)

@@ -4,31 +4,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-    GraphDefinitionId,
-)
-from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-    NodeDefinitionId,
-)
-from shell.domain.definition.aggregates.node_transition_definition.node_transition_definition import (
-    NodeTransitionDefinition,
-)
-from shell.domain.definition.aggregates.node_transition_definition.value_objects.node_transition_definition_id import (
-    NodeTransitionDefinitionId,
-)
-from shell.domain.definition.value_objects.condition_language import ConditionLanguage
-from shell.domain.definition.value_objects.data_mapping import DataMapping
-from shell.domain.definition.value_objects.max_loop_count import MaxLoopCount
-from shell.domain.definition.value_objects.retry_count import RetryCount
-from shell.domain.definition.value_objects.transition_label import TransitionLabel
-from shell.domain.definition.value_objects.transition_priority import TransitionPriority
-from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
-from shell.domain.definition.value_objects.transition_timeout_seconds import (
-    TransitionTimeoutSeconds,
-)
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
-    TransitionDefinition,
+from shell.domain.execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
 )
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
@@ -43,10 +25,16 @@ from shell.domain.execution.aggregates.session_execution_state.session_execution
     SessionExecutionState,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_execution_body import (
+    TaskExecutionBody,
+)
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )
 from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
+from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
     UserExecutionState,
 )
@@ -54,16 +42,17 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
     NodeExecutionResult,
 )
+from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
+from shell.domain.execution.value_objects.execution_stderr import (
+    ExecutionStderr,
+)
+from shell.domain.execution.value_objects.execution_stdout import (
+    ExecutionStdout,
+)
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
 )
 from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
-from shell.domain.execution.value_objects.edge_type import EdgeType
-from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
-from shell.domain.execution.value_objects.execution_stdout import ExecutionStdout
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
@@ -77,25 +66,15 @@ from shell.domain.execution.value_objects.ids import (
     UserExecutionStateId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.is_current import IsCurrent
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
-from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.user_id_ref import UserIdRef
-from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.status import Status
-from shell.infrastructure.definition.persistence.sql.models import (
-    NodeTransitionDefinitionModel,
-)
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     NodeExecutionResultModel,
-    NodeTransitionExecutionModel,
     SessionExecutionModel,
     SessionExecutionStateModel,
     TaskExecutionModel,
@@ -142,10 +121,15 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
             if task_execution_model.workflow_id
             else None
         ),
+        deleted_at=(
+            DeletedAt.from_datetime(task_execution_model.deleted_at)
+            if task_execution_model.deleted_at
+            else None
+        ),
     )
 
 
-def _created_at_value(dt: CreatedAt | datetime | None) -> datetime | None:
+def _created_at_value(dt: CreatedAt | DeletedAt | datetime | None) -> datetime | None:
     if dt is None:
         return None
     return dt.value if hasattr(dt, "value") else dt
@@ -159,6 +143,7 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         work_dir=task_execution.work_dir.value if task_execution.work_dir else "",
         created_at=_created_at_value(task_execution.created_at),
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
+        deleted_at=_created_at_value(task_execution.deleted_at),
     )
 
 
@@ -169,6 +154,7 @@ def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution
     model.work_dir = entity.work_dir.value if entity.work_dir else ""
     model.workflow_id = entity.workflow_id.value if entity.workflow_id else None
     model.created_at = _created_at_value(entity.created_at)  # type: ignore[assignment]
+    model.deleted_at = _created_at_value(entity.deleted_at)
 
 
 # ---------------------------------------------------------------------------
@@ -184,7 +170,7 @@ def task_execution_state_model_to_entity(
         task_execution_id=TaskExecutionId(model.task_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)),
-        is_current=IsCurrent(model.is_current),
+        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -197,7 +183,7 @@ def task_execution_state_entity_to_model(
         task_execution_id=entity.task_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )
 
@@ -221,110 +207,14 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         graph_definition_id=GraphDefinitionIdRef(graph_execution_model.graph_definition_id)
         if graph_execution_model.graph_definition_id
         else None,
-    )
-
-
-def transition_definition_model_to_entity(
-    model: NodeTransitionExecutionModel,
-) -> TransitionDefinition:
-    return TransitionDefinition(
-        source_node_execution_id=model.source_node_execution_id or "",
-        target_node_execution_id=model.target_node_execution_id,
-        edge_type=EdgeType(model.transition_type.upper()),
-        priority=model.priority,
-        condition_expression=model.condition_expression,
-        condition_language=model.condition_language,
-        max_iterations=model.max_loop_count,
-        timeout_seconds=model.timeout_seconds,
-        retry_count=model.retry_count,
-        retry_delay_seconds=model.retry_delay_seconds,
-        data_mapping=dict(model.data_mapping) if model.data_mapping else None,
-        label=model.label,
-    )
-
-
-def transition_definition_entity_to_model(
-    transition: TransitionDefinition,
-    graph_execution_id: str,
-    now: datetime,
-) -> NodeTransitionExecutionModel:
-    return NodeTransitionExecutionModel(
-        id=f"{graph_execution_id}_{transition.source_node_execution_id}_{transition.target_node_execution_id or 'none'}_{transition.edge_type.value}",
-        graph_execution_id=graph_execution_id,
-        source_node_execution_id=transition.source_node_execution_id,
-        target_node_execution_id=transition.target_node_execution_id,
-        transition_type=transition.edge_type.value,
-        priority=transition.priority,
-        condition_expression=transition.condition_expression,
-        condition_language=transition.condition_language,
-        max_loop_count=transition.max_iterations,
-        timeout_seconds=transition.timeout_seconds,
-        retry_count=transition.retry_count,
-        retry_delay_seconds=transition.retry_delay_seconds,
-        data_mapping=transition.data_mapping,
-        label=transition.label,
-        created_at=now,
-        updated_at=now,
-    )
-
-
-def node_transition_definition_model_to_entity(
-    model: NodeTransitionDefinitionModel,
-) -> NodeTransitionDefinition:
-    return NodeTransitionDefinition(
-        id=NodeTransitionDefinitionId(model.id),
-        graph_definition_id=GraphDefinitionId(model.graph_definition_id),
-        source_node_definition_id=(
-            NodeDefinitionId(model.source_node_definition_id)
-            if model.source_node_definition_id
+        deleted_at=(
+            DeletedAt.from_datetime(graph_execution_model.deleted_at)
+            if graph_execution_model.deleted_at
             else None
         ),
-        target_node_definition_id=NodeDefinitionId(model.target_node_definition_id),
-        transition_type=EdgeType(model.transition_type.upper()),
-        priority=TransitionPriority(model.priority),
-        condition_expression=ConditionExpression(model.condition_expression)
-        if model.condition_expression
-        else None,
-        condition_language=ConditionLanguage(model.condition_language)
-        if model.condition_language
-        else None,
-        max_loop_count=MaxLoopCount(model.max_loop_count),
-        timeout_seconds=TransitionTimeoutSeconds(model.timeout_seconds)
-        if model.timeout_seconds is not None
-        else None,
-        retry_count=RetryCount(model.retry_count),
-        retry_delay_seconds=TransitionRetryDelay(model.retry_delay_seconds),
-        data_mapping=DataMapping(dict(model.data_mapping)) if model.data_mapping else None,
-        label=TransitionLabel(model.label) if model.label else None,
     )
 
 
-def node_transition_definition_entity_to_model(
-    transition: NodeTransitionDefinition,
-    now: datetime,
-) -> NodeTransitionDefinitionModel:
-    return NodeTransitionDefinitionModel(
-        id=transition.id.value,
-        graph_definition_id=transition.graph_definition_id.value,
-        source_node_definition_id=(
-            transition.source_node_definition_id.value
-            if transition.source_node_definition_id
-            else None
-        ),
-        target_node_definition_id=transition.target_node_definition_id.value,
-        transition_type=transition.transition_type.value,
-        priority=transition.priority,
-        condition_expression=transition.condition_expression,
-        condition_language=transition.condition_language,
-        max_loop_count=transition.max_loop_count,
-        timeout_seconds=transition.timeout_seconds,
-        retry_count=transition.retry_count,
-        retry_delay_seconds=transition.retry_delay_seconds,
-        data_mapping=transition.data_mapping,
-        label=transition.label,
-        created_at=now,
-        updated_at=now,
-    )
 
 
 def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
@@ -334,6 +224,7 @@ def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecut
     )
     model.depth = entity.depth.value
     model.graph_definition_id = entity.graph_definition_id.value
+    model.deleted_at = _created_at_value(entity.deleted_at)
 
 
 def graph_execution_entity_to_model(
@@ -357,6 +248,7 @@ def graph_execution_entity_to_model(
         timeout_at=None,
         correlation_id=get_correlation_id(),
         tags={},
+        deleted_at=_created_at_value(graph_execution.deleted_at),
     )
     return graph_execution_model
 
@@ -377,6 +269,11 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
         ),
         session_id=SessionIdRef(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=CreatedAt.from_datetime(workflow_model.created_at),
+        deleted_at=(
+            DeletedAt.from_datetime(workflow_model.deleted_at)
+            if workflow_model.deleted_at
+            else None
+        ),
     )
 
 
@@ -389,6 +286,7 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
         ),
         session_id=work_flow.session_id.value if work_flow.session_id else None,
         created_at=work_flow.created_at.value,
+        deleted_at=_created_at_value(work_flow.deleted_at),
     )
 
 
@@ -447,7 +345,7 @@ def graph_execution_state_input_model_to_entity(
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.IN,
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=IsCurrent(model.is_current),
+        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -459,7 +357,7 @@ def graph_execution_state_input_entity_to_model(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
         state_data=entity.state_data,
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 
@@ -475,7 +373,7 @@ def graph_execution_state_output_model_to_entity(
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.OUT,
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=IsCurrent(model.is_current),
+        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -487,7 +385,7 @@ def graph_execution_state_output_entity_to_model(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
         state_data=entity.state_data,
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 
@@ -550,7 +448,7 @@ def user_execution_state_model_to_entity(model: UserExecutionStateModel) -> User
         user_execution_id=UserExecutionId(model.user_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=IsCurrent(model.is_current),
+        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -561,7 +459,7 @@ def user_execution_state_entity_to_model(entity: UserExecutionState) -> UserExec
         user_execution_id=entity.user_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )
 
@@ -607,7 +505,7 @@ def session_execution_state_model_to_entity(
         session_execution_id=SessionExecutionId(model.session_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=IsCurrent(model.is_current),
+        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -620,6 +518,6 @@ def session_execution_state_entity_to_model(
         session_execution_id=entity.session_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )

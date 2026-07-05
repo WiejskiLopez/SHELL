@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 from shell.domain.platform.aggregates.message.message import Message
 from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
-from shell.domain.platform.envelope import Envelope
+from shell.infrastructure.platform.messaging.envelope import Envelope
 
 
 def _sample_message() -> Message:

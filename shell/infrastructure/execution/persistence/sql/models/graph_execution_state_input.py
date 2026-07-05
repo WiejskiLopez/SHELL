@@ -20,3 +20,4 @@ class GraphExecutionStateInputModel(Base):
     state_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     is_current: Mapped[bool] = mapped_column(nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

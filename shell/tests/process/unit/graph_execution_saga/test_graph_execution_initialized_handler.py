@@ -25,15 +25,17 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
 from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
 from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
+    GraphExecutionInitializedEvent,
+)
+from shell.domain.execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
-)
-from shell.domain.execution.events import GraphExecutionInitializedEvent
-from shell.domain.execution.value_objects.graph_definition_id import (
-    GraphDefinitionIdRef,
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode

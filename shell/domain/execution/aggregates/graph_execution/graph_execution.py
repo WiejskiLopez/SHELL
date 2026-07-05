@@ -8,12 +8,13 @@ from shell.domain.execution.aggregates.graph_execution.exceptions.invalid_graph_
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+from shell.domain.execution.value_objects.graph_definition_id_ref import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.value_objects.goal import Goal
     from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
-    from shell.domain.execution.value_objects.reason import Reason
+    from shell.domain.platform.value_objects.reason import Reason
 
 
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
@@ -64,6 +65,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         "_max_subgraph_depth",
         "_execution_status",
         "_graph_definition_id",
+        "_deleted_at",
     )
 
     def __init__(
@@ -74,6 +76,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -86,6 +89,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             if graph_definition_id is not None
             else GraphDefinitionIdRef.generate()
         )
+        self._deleted_at = deleted_at
 
     @classmethod
     def restore(
@@ -96,6 +100,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -104,6 +109,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             depth=depth,
             max_subgraph_depth=max_subgraph_depth,
             graph_definition_id=graph_definition_id,
+            deleted_at=deleted_at,
         )
 
     # --- Inicjalizacja ---
@@ -346,4 +352,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
     @property
     def graph_definition_id(self) -> GraphDefinitionIdRef:
         return self._graph_definition_id
+
+    @property
+    def deleted_at(self) -> DeletedAt | None:
+        return self._deleted_at
 

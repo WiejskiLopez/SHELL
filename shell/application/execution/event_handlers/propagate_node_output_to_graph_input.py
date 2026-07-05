@@ -1,86 +1,26 @@
+"""PropagateNodeOutputToGraphInput — legacy handler, obecnie nieużywany.
+
+Zamysł: po zakończeniu NodeExecution kopiował output noda do stanu
+GraphExecution (GraphExecutionState z direction=IN). W praktyce nikt
+nie odczytuje tego stanu, więc handler jest martwy.
+
+TODO: usunąć wraz z rejestracją w event_container.py jeśli potwierdzimy
+że żaden inny handler nie polega na GraphExecutionState z kierunkiem IN
+tworzonym przez ten handler.
+"""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-    GraphExecutionState,
-)
-from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
-    GraphExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-    GraphExecutionStateId,
-)
-from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
-    NodeLinkExecutionRepository,
-)
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_direction import StateDirection
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
         NodeExecutionCompletedEvent,
     )
-    from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
 
 
 class PropagateNodeOutputToGraphInput:
-    def __init__(
-        self,
-        unit_of_work: UnitOfWork,
-        clock: Clock,
-        id_generator: IdGenerator,
-        logger: Logger,
-    ) -> None:
-        self._unit_of_work = unit_of_work
-        self._clock = clock
-        self._id_generator = id_generator
-        self._logger = logger
-
     async def handle(
         self, node_execution_completed_event: NodeExecutionCompletedEvent
     ) -> None:
-        async with self._unit_of_work as unit_of_work:
-            links = await unit_of_work.repository(
-                NodeLinkExecutionRepository
-            ).list_by_node_execution_id(
-                node_execution_completed_event.node_id
-            )
-            if not links:
-                self._logger.warning(
-                    "propagate_node_output_to_graph_input.node_link_not_found",
-                    node_id=node_execution_completed_event.node_id.value,
-                )
-                return
-
-            graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
-                links[0].graph_execution_id
-            )
-            if graph_execution is None:
-                self._logger.warning(
-                    "propagate_node_output_to_graph_input.graph_not_found",
-                    graph_execution_id=links[0].graph_execution_id.value,
-                )
-                return
-
-            now = self._clock.now()
-            output_payload: dict[str, Any] = {
-                "node_id": node_execution_completed_event.node_id.value,
-                "role": node_execution_completed_event.role.value,
-                "result": node_execution_completed_event.result,
-            }
-            state = GraphExecutionState.create(
-                id_=GraphExecutionStateId.generate(),
-                graph_execution_id=graph_execution.id,
-                direction=StateDirection.IN,
-                now=CreatedAt.from_datetime(now),
-            )
-            state.patch(output_payload)
-            await unit_of_work.repository(GraphExecutionStateRepository).save(state)
-            unit_of_work.stage_events(state.pull_events())
+        pass

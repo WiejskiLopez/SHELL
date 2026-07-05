@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from sqlalchemy.orm.exc import StaleDataError
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
     GraphDefinitionEmbeddingRepository,
-)
-from shell.domain.definition.aggregates.node_transition_definition.repositories.node_transition_definition_repository import (
-    NodeTransitionDefinitionRepository,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
@@ -20,6 +17,12 @@ from shell.domain.definition.repositories.graph_definition_repository.node_defin
 )
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
+    EdgeExecutionRepository,
+)
+from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
+    EdgeLinkExecutionRepository,
+)
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -31,9 +34,6 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 )
 from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
     NodeExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.node_transition_execution.repositories.node_transition_execution_repository import (
-    NodeTransitionExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
@@ -50,7 +50,6 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.platform.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
-from shell.domain.platform.envelope import Envelope
 from shell.domain.platform.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
@@ -61,22 +60,23 @@ from shell.infrastructure.definition.persistence.sql.repositories import (
     SqlGraphDefinitionEmbeddingRepository,
     SqlGraphDefinitionRepository,
     SqlNodeDefinitionRepository,
-    SqlNodeTransitionDefinitionRepository,
     SqlRagDocumentRepository,
     SqlRunnerConfigRepository,
 )
 from shell.infrastructure.execution.persistence.sql.repositories import (
+    SqlEdgeExecutionRepository,
+    SqlEdgeLinkExecutionRepository,
     SqlGraphExecutionRepository,
     SqlGraphExecutionStateInputRepository,
     SqlNodeExecutionRepository,
     SqlNodeExecutionStateRepository,
-    SqlNodeTransitionExecutionRepository,
     SqlTaskExecutionRepository,
     SqlTaskExecutionStateRepository,
     SqlWorkflowRepository,
     SqlWorkflowStateRepository,
 )
 from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
+from shell.infrastructure.platform.messaging.envelope import Envelope
 from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
     message_entity_to_model,
 )
@@ -138,11 +138,11 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             RagDocumentRepository: SqlRagDocumentRepository,
             GraphDefinitionRepository: SqlGraphDefinitionRepository,
             NodeDefinitionRepository: SqlNodeDefinitionRepository,
-            NodeTransitionDefinitionRepository: SqlNodeTransitionDefinitionRepository,
             GraphDefinitionEmbeddingRepository: SqlGraphDefinitionEmbeddingRepository,
             NodeExecutionRepository: SqlNodeExecutionRepository,
             NodeExecutionStateRepository: SqlNodeExecutionStateRepository,
-            NodeTransitionExecutionRepository: SqlNodeTransitionExecutionRepository,
+            EdgeExecutionRepository: SqlEdgeExecutionRepository,
+            EdgeLinkExecutionRepository: SqlEdgeLinkExecutionRepository,
             MessageRepository: SqlMessageRepository,
             SessionRepository: SqlSessionRepository,
         }
@@ -219,6 +219,11 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             await self._session.rollback()
         self._staged_events.clear()
         self._staged_messages.clear()
+
+    async def save(self, repo_type: type, aggregate: Any) -> None:
+        repo: Any = self.repository(repo_type)
+        await repo.save(aggregate)
+        self.stage_events(aggregate.pull_events())
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)

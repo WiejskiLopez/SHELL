@@ -1,3 +1,6 @@
+from shell.infrastructure.execution.persistence.memory.in_memory_edge_link_execution_repository import (
+    InMemoryEdgeLinkExecutionRepository,
+)
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
@@ -21,6 +24,7 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_
 )
 
 __all__ = [
+    "InMemoryEdgeLinkExecutionRepository",
     "InMemoryGraphExecutionRepository",
     "InMemoryNodeExecutionRepository",
     "InMemoryNodeLinkExecutionRepository",

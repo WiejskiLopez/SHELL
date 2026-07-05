@@ -22,10 +22,10 @@ if TYPE_CHECKING:
         SessionExecutionId,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
+    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
     from shell.domain.execution.value_objects.ids import (
         WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
     )
-    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
 
 
 class SqlWorkflowRepository(WorkflowRepository):

@@ -39,14 +39,12 @@ class NodeExecutionFailedStateHandler:
     async def handle(
         self, event: NodeExecutionFailedEvent
     ) -> None:
-        payload: dict[str, object] = {
-            "status": "failed",
-        }
-        if event.error is not None:
-            payload["error"] = event.error.value
-
         now = self._clock.now()
         async with self._unit_of_work as unit_of_work:
+            payload: dict[str, object] = {
+                "status": "failed",
+            }
+
             state = NodeExecutionState.create(
                 id_=NodeExecutionStateId.generate(),
                 node_execution_id=event.node_id,

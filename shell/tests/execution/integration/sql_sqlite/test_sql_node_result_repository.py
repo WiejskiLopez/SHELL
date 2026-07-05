@@ -22,14 +22,14 @@ from shell.domain.execution.aggregates.node_execution.node_execution import (
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
 from shell.domain.execution.value_objects.ids import NodeExecutionId, WorkflowId
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.services import NodeResultQueryService
 

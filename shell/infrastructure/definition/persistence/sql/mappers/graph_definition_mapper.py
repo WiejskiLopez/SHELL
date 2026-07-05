@@ -6,9 +6,6 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
     GraphDefinitionId,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.ids import (
-    NodeTransitionDefinitionId,
-)
 from shell.domain.definition.value_objects.purpose import Purpose
 from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.infrastructure.definition.persistence.sql.models import (
@@ -27,17 +24,12 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
-    transition_ids = [
-        NodeTransitionDefinitionId(t.id)
-        for t in (model.node_transition_definition_models or [])
-    ]
     system_role = SystemRole(model.system_role) if model.system_role is not None else None
     return GraphDefinition(
         id=GraphDefinitionId(model.id),
         name=GraphName(model.name),
         purpose=Purpose(model.purpose),
         system_role=system_role,
-        transition_definition_ids=transition_ids,
     )
 
 

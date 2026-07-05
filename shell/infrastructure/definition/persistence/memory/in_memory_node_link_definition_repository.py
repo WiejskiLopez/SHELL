@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
@@ -52,7 +53,7 @@ class InMemoryNodeLinkDefinitionRepository(
     async def save(self, link: NodeLinkDefinition) -> None:
         self._store[link.id.value] = link
 
-    async def delete(self, id: NodeLinkDefinitionId) -> None:
+    async def delete(self, id: NodeLinkDefinitionId, now: datetime | None = None) -> None:
         self._store.pop(id.value, None)
 
     async def exists(self, id: NodeLinkDefinitionId) -> ExistsResult:

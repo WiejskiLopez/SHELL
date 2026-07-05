@@ -11,13 +11,15 @@ from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.domain.platform.exceptions import DomainError
 from shell.framework.definition.api.routers import definitions as definitions_router
 from shell.framework.execution.api.routers import (
+    edge_executions,
+    edge_link_executions,
     node_execution,
     task_executions,
     workflows,
 )
 from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.framework.platform.api.middleware.error_handler import domain_error_handler
-from shell.framework.projekt.api.routers import projects as projects_router
+from shell.framework.project.api.routers import projects as projects_router
 from shell.framework.session.api.routers import sessions as sessions_router
 from shell.framework.user.api.routers import users as users_router
 
@@ -47,6 +49,8 @@ def create_app(core_container: CoreContainer) -> FastAPI:
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
     # Routers
+    app.include_router(edge_executions.router)
+    app.include_router(edge_link_executions.router)
     app.include_router(task_executions.router)
     app.include_router(workflows.router)
     app.include_router(node_execution.router)

@@ -7,9 +7,13 @@ from typing import TYPE_CHECKING
 from fastapi.responses import JSONResponse
 
 from shell.domain.definition.exceptions import RunnerConfigNotFound
-from shell.domain.execution.exceptions import (
-    NodeNotFound,
+from shell.domain.execution.aggregates.node_execution.exceptions.node_execution_not_found_error import (
+    NodeExecutionNotFoundError,
+)
+from shell.domain.execution.aggregates.task_execution.exceptions.task_execution_not_found import (
     TaskExecutionNotFound,
+)
+from shell.domain.execution.aggregates.workflow.exceptions.workflow_not_found import (
     WorkflowNotFound,
 )
 from shell.domain.platform.exceptions import (
@@ -25,7 +29,7 @@ if TYPE_CHECKING:
 _NOT_FOUND = {
     TaskExecutionNotFound,
     WorkflowNotFound,
-    NodeNotFound,
+    NodeExecutionNotFoundError,
     RunnerConfigNotFound,
 }
 

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.events import WorkflowAbortedEvent
-from shell.domain.execution.exceptions import InvalidWorkflowTransition
+from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
+    WorkflowAbortedEvent,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.tests.conftest_helpers import _NOW, _new_workflow
@@ -38,5 +39,5 @@ class TestAbort:
         wf = _new_workflow()
         wf.finish(now=_NOW)
         wf.pull_events()
-        with pytest.raises(InvalidWorkflowTransition):
+        with pytest.raises(ValueError):
             wf.abort(reason="late", now=_NOW)

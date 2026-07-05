@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -40,9 +41,6 @@ from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.definition.value_objects.retry_count import RetryCount
 from shell.domain.definition.value_objects.script_text import ScriptText
 from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
-from shell.domain.definition.value_objects.transition_timeout_seconds import (
-    TransitionTimeoutSeconds,
-)
 from shell.domain.platform.value_objects.mode import Mode
 
 
@@ -89,10 +87,12 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
         else:
             self._update_model(model, node_definition)
 
-    async def delete(self, id: NodeDefinitionId) -> None:
+    async def delete(self, id: NodeDefinitionId, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(NodeDefinitionModel, id.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id: NodeDefinitionId) -> ExistsResult:
         model = await self._session.get(NodeDefinitionModel, id.value)
@@ -110,7 +110,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
             node_type=NodeTypeName(model.node_type),
             model=ModelName(model.model) if model.model else None,
             command=CommandText(model.command) if model.command else None,
-            timeout=TransitionTimeoutSeconds(model.timeout) if model.timeout is not None else None,
+            timeout=model.timeout if model.timeout is not None else None,
             retries=RetryCount(model.retries) if model.retries is not None else None,
             log_level=LogLevel(model.log_level) if model.log_level else None,
             max_step=MaxStep(model.max_step) if model.max_step is not None else None,
@@ -130,7 +130,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
             node_type=entity.node_type.value,
             model=entity.model.value if entity.model else None,
             command=entity.command.value if entity.command else None,
-            timeout=entity.timeout.value if entity.timeout is not None else None,
+            timeout=entity.timeout,
             retries=entity.retries.value if entity.retries is not None else None,
             log_level=entity.log_level.value if entity.log_level else None,
             max_step=entity.max_step.value if entity.max_step is not None else None,
@@ -148,7 +148,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
         model.node_type = entity.node_type.value
         model.model = entity.model.value if entity.model else None
         model.command = entity.command.value if entity.command else ""
-        model.timeout = entity.timeout.value if entity.timeout is not None else 0  # type: ignore[assignment]
+        model.timeout = entity.timeout  # type: ignore[assignment]
         model.retries = entity.retries.value if entity.retries is not None else 0
         model.log_level = entity.log_level.value if entity.log_level else "INFO"
         model.max_step = entity.max_step.value if entity.max_step is not None else 0

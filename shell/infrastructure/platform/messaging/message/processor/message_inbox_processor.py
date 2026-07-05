@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.envelope import Envelope
+from shell.infrastructure.platform.messaging.envelope import Envelope
 from shell.infrastructure.platform.persistence.sql.models.message.inbox_message import (
     InboxMessageModel,
 )

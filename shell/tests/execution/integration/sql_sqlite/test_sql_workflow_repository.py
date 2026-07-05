@@ -18,20 +18,24 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.execution.aggregates.node_execution import NodeExecution
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
-from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
-    TaskExecutionRepository,
-)
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
+from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
     NodeLinkExecutionModel,

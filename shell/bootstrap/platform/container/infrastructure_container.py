@@ -109,9 +109,9 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         CorrelationIdAsyncClient,
         base_url=config.user_api_url,
     )
-    projekt_http_client = providers.Singleton(
+    project_http_client = providers.Singleton(
         CorrelationIdAsyncClient,
-        base_url=config.projekt_api_url,
+        base_url=config.project_api_url,
     )
 
     # 5. Cross-BC HTTP adapters (bridge execution → other BCs via REST API)

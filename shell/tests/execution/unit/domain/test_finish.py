@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.events import WorkflowCompletedEvent
-from shell.domain.execution.exceptions import InvalidWorkflowTransition
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
+    WorkflowCompletedEvent,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.tests.conftest_helpers import _NOW, _new_workflow
@@ -32,5 +33,5 @@ class TestFinish:
     def test_finish_from_completed_raises(self) -> None:
         wf = _new_workflow()
         wf.finish(now=_NOW)
-        with pytest.raises(InvalidWorkflowTransition):
+        with pytest.raises(ValueError):
             wf.finish(now=_NOW)

@@ -1,9 +1,16 @@
 from __future__ import annotations
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
     NodeLinkExecution,
 )
@@ -13,25 +20,17 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
 from shell.domain.execution.services.node_execution_navigator import (
     LinearNodeExecutionNavigator,
 )
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
     TaskExecutionId,
 )
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
-    InMemoryNodeTransitionExecutionRepository,
 )
 
 
@@ -73,11 +72,9 @@ class TestLinearNodeExecutionNavigatorNextAfter:
                     node_execution_id=n.id,
                 )
             )
-        transition_repo = InMemoryNodeTransitionExecutionRepository()
-
         nav = LinearNodeExecutionNavigator()
         nxt = list(
-            await nav.next_after_async(ge, NodeExecutionId("a"), node_repo, transition_repo)
+            await nav.next_after_async(ge, NodeExecutionId("a"), node_repo)
         )
         assert len(nxt) == 1
         assert nxt[0].id == NodeExecutionId("b")
@@ -119,13 +116,11 @@ class TestLinearNodeExecutionNavigatorNextAfter:
                     node_execution_id=n.id,
                 )
             )
-        transition_repo = InMemoryNodeTransitionExecutionRepository()
-
         nav = LinearNodeExecutionNavigator()
         assert (
             list(
                 await nav.next_after_async(
-                    ge, NodeExecutionId("b"), node_repo, transition_repo
+                    ge, NodeExecutionId("b"), node_repo
                 )
             )
             == []
@@ -160,13 +155,11 @@ class TestLinearNodeExecutionNavigatorNextAfter:
                     node_execution_id=n.id,
                 )
             )
-        transition_repo = InMemoryNodeTransitionExecutionRepository()
-
         nav = LinearNodeExecutionNavigator()
         assert (
             list(
                 await nav.next_after_async(
-                    ge, NodeExecutionId("ghost"), node_repo, transition_repo
+                    ge, NodeExecutionId("ghost"), node_repo
                 )
             )
             == []
@@ -217,14 +210,12 @@ class TestLinearNodeExecutionNavigatorNextAfter:
                     node_execution_id=n.id,
                 )
             )
-        transition_repo = InMemoryNodeTransitionExecutionRepository()
-
         nav = LinearNodeExecutionNavigator()
         nxt = list(
-            await nav.next_after_async(ge, NodeExecutionId("a"), node_repo, transition_repo)
+            await nav.next_after_async(ge, NodeExecutionId("a"), node_repo)
         )
         assert nxt and nxt[0].id == NodeExecutionId("b")
         nxt2 = list(
-            await nav.next_after_async(ge, NodeExecutionId("b"), node_repo, transition_repo)
+            await nav.next_after_async(ge, NodeExecutionId("b"), node_repo)
         )
         assert nxt2 and nxt2[0].id == NodeExecutionId("c")

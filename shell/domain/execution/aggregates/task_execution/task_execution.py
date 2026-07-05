@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import tempfile
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_state_error import (
@@ -16,13 +17,14 @@ from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.value_objects.reason import Reason
     from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
+    from shell.domain.platform.value_objects.reason import Reason
 
 
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
@@ -55,6 +57,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_body",
         "_work_dir",
         "_created_at",
+        "_deleted_at",
     )
 
     def __init__(
@@ -66,6 +69,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
         created_at: CreatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
@@ -74,8 +78,9 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._current_cycle = PlanningCycle(0)
         self._name = name if name is not None else TaskName("default")
         self._body = body
-        self._work_dir = work_dir if work_dir is not None else WorkDir("/tmp")
+        self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
         self._created_at = created_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def restore(
@@ -87,6 +92,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
         created_at: CreatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -96,6 +102,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             max_planning_cycles=max_planning_cycles,
             work_dir=work_dir,
             created_at=created_at,
+            deleted_at=deleted_at,
         )
 
     # --- V3 FSM ---
@@ -199,6 +206,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     @property
     def created_at(self) -> CreatedAt | None:
         return self._created_at
+
+    @property
+    def deleted_at(self) -> DeletedAt | None:
+        return self._deleted_at
 
     def rename(self, new_name: TaskName) -> None:
         self._name = new_name

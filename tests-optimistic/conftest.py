@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork

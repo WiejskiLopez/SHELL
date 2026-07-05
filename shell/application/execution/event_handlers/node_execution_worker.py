@@ -28,9 +28,6 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
 from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
     NodeExecutionCompletedEvent,
 )
@@ -46,8 +43,6 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.domain.execution.value_objects.error_description import ErrorDescription
-from shell.domain.execution.value_objects.ids import NodeExecutionResultId
 from shell.domain.execution.value_objects.manifest import Manifest
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.exceptions.concurrent_modification_error import (
@@ -65,7 +60,7 @@ if TYPE_CHECKING:
         NodeExecution,
     )
     from shell.domain.execution.aggregates.workflow import Workflow
-    from shell.domain.execution.events import (
+    from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
         NodeExecutionRequestedEvent,  # noqa: TC002 — NodeExecutionRequestedEvent używany w sygnaturze handle() i konstruktorze eventu
     )
     from shell.domain.execution.value_objects.execution_result import ExecutionResult
@@ -102,7 +97,7 @@ class NodeExecutionWorker:
     ) -> None:
         """Handle exactly one ``NodeExecutionRequestedEvent``."""
 
-        # ── 1. Load aggregate + graph_execution + node ──────────────────────────────
+        # ── 1. Load aggregate + node ─────────────────────────────────
         async with self._unit_of_work as unit_of_work:
             workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(
                 node_execution_requested_event.workflow_id
@@ -114,19 +109,16 @@ class NodeExecutionWorker:
                 )
                 return
 
-            graph_executions = await unit_of_work.repository(
-                GraphExecutionRepository
+            task_executions = await unit_of_work.repository(
+                TaskExecutionRepository
             ).get_by_workflow_id(workflow.id)
-            if not graph_executions:
+            if not task_executions:
                 self._logger.warning(
-                    "node_execution_worker.no_graph_execution",
+                    "node_execution_worker.no_task_execution",
                     workflow_id=node_execution_requested_event.workflow_id.value,
                 )
                 return
-            graph_execution = graph_executions[0]
-            task_execution = await unit_of_work.repository(
-                TaskExecutionRepository
-            ).get_current_by_id(graph_execution.task_execution_id)
+            task_execution = task_executions[0]
             work_dir = task_execution.work_dir if task_execution else ""
 
             node = await unit_of_work.repository(NodeExecutionRepository).get_by_id(
@@ -145,7 +137,7 @@ class NodeExecutionWorker:
             return
 
         # ── 2. Execute subprocess outside the UoW ────────────────────────
-        task_execution_id = graph_execution.task_execution_id.value
+        task_execution_id = task_execution.id.value
         success, stdout, stderr = await self._run_node(
             workflow, node, node_execution_requested_event, str(work_dir), task_execution_id
         )
@@ -157,7 +149,6 @@ class NodeExecutionWorker:
                 success=success,
                 stdout=stdout,
                 stderr=stderr,
-                graph_execution=graph_execution,
                 node_mode=node.mode.value if node else None,
             )
         except ConcurrentModificationError as exc:
@@ -236,11 +227,6 @@ class NodeExecutionWorker:
             if workflow is None:
                 return
 
-            graph_executions = await unit_of_work.repository(
-                GraphExecutionRepository
-            ).get_by_workflow_id(workflow.id)
-            graph_executions[0] if graph_executions else None
-
             if not await self._is_event_relevant(workflow, node_execution_requested_event):
                 return
 
@@ -250,8 +236,6 @@ class NodeExecutionWorker:
                 staged_events.append(
                     NodeExecutionCompletedEvent.now(
                         node_id=node_execution_requested_event.node_execution_id,
-                        workflow_id=workflow.id,
-                        result_id=self._id_generator.new_id(NodeExecutionResultId),
                         now=CreatedAt.from_datetime(now),
                     )
                 )
@@ -259,8 +243,6 @@ class NodeExecutionWorker:
                 staged_events.append(
                     NodeExecutionFailedEvent.now(
                         node_id=node_execution_requested_event.node_execution_id,
-                        workflow_id=workflow.id,
-                        error=ErrorDescription(stderr or "unknown error"),
                         now=CreatedAt.from_datetime(now),
                     )
                 )

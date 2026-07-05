@@ -17,15 +17,15 @@ class TestRepoDebug:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
-        from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-        from shell.domain.execution.aggregates.workflow.workflow import Workflow
+        import uuid
+
         from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+        from shell.domain.execution.aggregates.workflow.workflow import Workflow
         from shell.domain.platform.exceptions.concurrent_modification_error import (
             ConcurrentModificationError,
         )
-        from sqlalchemy import text
-        import uuid
+        from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
+        from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 
         wf_id = str(uuid.uuid4())
 

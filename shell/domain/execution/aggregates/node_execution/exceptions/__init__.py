@@ -1,6 +1,4 @@
-from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_execution_transition import (
-    InvalidNodeExecutionTransition,
-)
+
 from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_mode import (
     InvalidNodeMode,
 )
@@ -18,8 +16,7 @@ from shell.domain.execution.aggregates.node_execution.exceptions.role_not_resolv
 )
 
 __all__ = [
-    "InvalidNodeExecutionTransition",
-    "InvalidNodeMode",
+        "InvalidNodeMode",
     "InvalidNodeStateError",
     "MaxStepExceeded",
     "RoleNotResolvable",

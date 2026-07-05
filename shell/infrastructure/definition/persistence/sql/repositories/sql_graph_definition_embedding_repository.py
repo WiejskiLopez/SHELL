@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -85,7 +86,9 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
             model.embedding = embedding.embedding.value
             model.embedding_model = embedding.model.value
 
-    async def delete(self, id: GraphDefinitionEmbeddingId) -> None:
+    async def delete(self, id: GraphDefinitionEmbeddingId, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(GraphDefinitionEmbeddingModel, id.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now

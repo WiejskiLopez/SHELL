@@ -14,3 +14,4 @@ class SessionExecutionModel(Base):
     user_execution_id: Mapped[str | None] = mapped_column(nullable=True)
     session_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

@@ -8,7 +8,6 @@ from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_st
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 from shell.domain.execution.value_objects.node_execution_status import (
     NodeExecutionStatus,
@@ -16,6 +15,7 @@ from shell.domain.execution.value_objects.node_execution_status import (
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.domain.platform.value_objects.error_description import ErrorDescription
 from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
@@ -157,13 +157,11 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED
-        actual_result = StateData(result) if isinstance(result, dict) else result
         self.append_event(
             NodeExecutionCompletedEvent.now(
                 node_id=self._id,
                 role=self._role,
                 now=CreatedAt.from_datetime(now),
-                result=actual_result,
             )
         )
 
@@ -171,15 +169,12 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
         self._status = NodeExecutionStatus.FAILED
-        if isinstance(error, str):
-            error = ErrorDescription(error)
 
         self.append_event(
             NodeExecutionFailedEvent.now(
                 node_id=self._id,
                 role=self._role,
                 now=CreatedAt.from_datetime(now),
-                error=error,
             )
         )
 

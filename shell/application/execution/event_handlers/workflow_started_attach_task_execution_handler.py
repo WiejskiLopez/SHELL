@@ -14,11 +14,10 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 )
 
 if TYPE_CHECKING:
+    from shell.application.platform.ports.ports import Logger, UnitOfWork
     from shell.domain.execution.aggregates.workflow.events import (
         WorkflowStartedEvent,
     )
-
-    from shell.application.platform.ports.ports import Logger, UnitOfWork
 
 
 class WorkflowStartedAttachTaskExecutionHandler:
@@ -49,8 +48,8 @@ class WorkflowStartedAttachTaskExecutionHandler:
                 )
                 return
 
-            if event.work_dir:
-                task_execution.prepare_workspace(event.work_dir)
+            if task_execution.work_dir:
+                task_execution.prepare_workspace(task_execution.work_dir.value)
 
             task_execution.execute_in_workflow(event.workflow_id)
             await unit_of_work.repository(TaskExecutionRepository).save(task_execution)

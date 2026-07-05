@@ -37,5 +37,5 @@ class RunnerConfigBootstrapHandler:
                 config_hash=config_hash,
                 now=CreatedAt.from_datetime(self._clock.now()),
             )
-            await unit_of_work.repository(RunnerConfigRepository).save(config)
+            await unit_of_work.save(RunnerConfigRepository, config)
         return config.id.value

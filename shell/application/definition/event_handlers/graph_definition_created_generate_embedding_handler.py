@@ -3,6 +3,9 @@ from __future__ import annotations
 import struct
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
     GraphDefinitionEmbedding,
 )
@@ -41,13 +44,19 @@ class GraphDefinitionCreatedGenerateEmbeddingHandler:
         self._embedder = embedder
 
     async def handle(self, event: GraphDefinitionCreatedEvent) -> None:
-        text = f"{event.name.value} {event.purpose.value}"
-        vector = self._embedder.embed_text(text)
-        vector_bytes = struct.pack(f"{len(vector)}f", *vector)
-
-        embedding_id = self._id_generator.new_id(GraphDefinitionEmbeddingId)
-
         async with self._unit_of_work as unit_of_work:
+            graph_definition = await unit_of_work.repository(GraphDefinitionRepository).get(
+                event.graph_definition_id
+            )
+            if graph_definition is None:
+                return
+
+            text = f"{graph_definition.name.value} {graph_definition.purpose.value}"
+            vector = self._embedder.embed_text(text)
+            vector_bytes = struct.pack(f"{len(vector)}f", *vector)
+
+            embedding_id = self._id_generator.new_id(GraphDefinitionEmbeddingId)
+
             if (
                 await unit_of_work.repository(
                     GraphDefinitionEmbeddingRepository

@@ -14,7 +14,7 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
+    from shell.domain.execution.value_objects.ids import TaskExecutionId
     from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
         InMemoryTaskExecutionRepository,
     )
@@ -28,32 +28,23 @@ class InMemoryGraphExecutionRepository(
     def link_task_executions(self, repo: InMemoryTaskExecutionRepository) -> None:
         self._task_executions = repo
 
-    async def get_by_task_execution_id(  # type: ignore[override]
+    def _active(self) -> list[GraphExecution]:
+        return [ge for ge in self._store.values() if ge.deleted_at is None]
+
+    async def get_by_task_execution_id(
         self, task_execution_id: TaskExecutionId
-    ) -> GraphExecution | None:
-        for graph_execution in self._store.values():
-            if graph_execution.task_execution_id == task_execution_id:
-                return graph_execution
-        return None
+    ) -> list[GraphExecution]:
+        return [
+            ge
+            for ge in self._active()
+            if ge.task_execution_id == task_execution_id
+        ]
 
     async def get_by_parent_id(
         self, parent_graph_execution_id: GraphExecutionId
     ) -> list[GraphExecution]:
         return [
             ge
-            for ge in self._store.values()
+            for ge in self._active()
             if ge.parent_graph_execution_id == parent_graph_execution_id
         ]
-
-    async def get_by_workflow_id(self, workflow_id: WorkflowId) -> list[GraphExecution]:
-        if self._task_executions is None:
-            return []
-        task_ids = [
-            te.id.value
-            for te in self._task_executions._store.values()
-            if te.workflow_id == workflow_id
-        ]
-        return [ge for ge in self._store.values() if ge.task_execution_id.value in task_ids]
-
-    async def get_main_rounds(self, task_execution_id: TaskExecutionId) -> list[GraphExecution]:
-        return []

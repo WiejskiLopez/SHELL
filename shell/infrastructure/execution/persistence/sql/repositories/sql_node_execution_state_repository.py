@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -75,11 +76,13 @@ class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
         else:
             model.state_data = state.state_data.to_dict()
 
-    async def delete(self, id_: object) -> None:
+    async def delete(self, id_: object, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         id_value = id_.value if hasattr(id_, "value") else id_
         model = await self._session.get(NodeExecutionStateModel, id_value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id_: object) -> ExistsResult:
         id_value = id_.value if hasattr(id_, "value") else id_

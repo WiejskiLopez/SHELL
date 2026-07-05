@@ -39,17 +39,23 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_in
     GraphExecutionInitializedEvent,
 )
 from shell.domain.execution.aggregates.graph_execution.graph_execution import GraphExecution
+from shell.domain.execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.events import TaskExecutionCreatedEvent
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+    TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     NodeExecutionDefinition,
 )
 from shell.domain.execution.value_objects.ids import TaskExecutionId
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
@@ -174,7 +180,7 @@ class _InMemoryDefinitionProvider:
                     node_type=node.node_type.value,
                     model=node.model.value if node.model else "",
                     command=node.command.value if node.command else "",
-                    timeout=node.timeout.value if node.timeout else 0,  # type: ignore[arg-type]
+                    timeout=node.timeout if node.timeout else 0,
                     retries=node.retries.value if node.retries else 0,
                     log_level=node.log_level.value if node.log_level else "INFO",
                     max_step=node.max_step.value if node.max_step else None,
@@ -269,7 +275,7 @@ class TestSagaFlowBuildToReady:
         )
         task_event = TaskExecutionCreatedEvent.now(
             task_execution_id=TaskExecutionId("task-e2e"),
-            task_execution_name=TaskExecutionName("e2e-test"),
+            task_execution_name=TaskExecutionName("test-task"),
             now=CreatedAt.from_datetime(clock.now()),
         )
 

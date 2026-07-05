@@ -41,6 +41,7 @@ def session_entity_to_model(session: Session) -> SessionModel:
         environment_os=session.environment.os,
         environment_runtime=session.environment.runtime,
         environment_cwd=session.environment.cwd,
+        created_at=session.opened_at.value,
         opened_at=session.opened_at.value,
         closed_at=session.closed_at.value if session.closed_at is not None else None,
     )

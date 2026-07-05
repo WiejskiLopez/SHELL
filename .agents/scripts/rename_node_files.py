@@ -1,8 +1,6 @@
 """Rename files and directories: graph_node → node in their names."""
-import pathlib
 import os
-import shutil
-import sys
+import pathlib
 
 EXCLUDE_DIRS = {'.venv', '__pycache__', '.git', '.mypy_cache', '.pytest_cache', '.ruff_cache'}
 ROOT = pathlib.Path(r'C:\Users\palysiewicz\IdeaProjects\SHELL')

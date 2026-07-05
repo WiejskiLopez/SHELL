@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from shell.application.platform.ports.unit_of_work import UnitOfWork
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
@@ -8,9 +8,6 @@ from shell.domain.definition.aggregates.graph_definition_embedding.repositories.
 )
 from shell.domain.definition.aggregates.node_link_definition.repositories.node_link_definition_repository import (
     NodeLinkDefinitionRepository,
-)
-from shell.domain.definition.aggregates.node_transition_definition.repositories.node_transition_definition_repository import (
-    NodeTransitionDefinitionRepository,
 )
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
@@ -20,6 +17,12 @@ from shell.domain.definition.repositories.graph_definition_repository.node_defin
 )
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
+    EdgeExecutionRepository,
+)
+from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
+    EdgeLinkExecutionRepository,
+)
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
@@ -34,9 +37,6 @@ from shell.domain.execution.aggregates.node_execution_state.repositories.node_ex
 )
 from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
     NodeLinkExecutionRepository,
-)
-from shell.domain.execution.aggregates.node_transition_execution.repositories.node_transition_execution_repository import (
-    NodeTransitionExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
@@ -68,14 +68,17 @@ from shell.infrastructure.definition.persistence.memory.in_memory_node_definitio
 from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
     InMemoryNodeLinkDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_node_transition_definition_repository import (
-    InMemoryNodeTransitionDefinitionRepository,
-)
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
 from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_edge_execution_repository import (
+    InMemoryEdgeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_edge_link_execution_repository import (
+    InMemoryEdgeLinkExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
@@ -88,9 +91,6 @@ from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
-    InMemoryNodeTransitionExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
@@ -173,12 +173,12 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._node_definition_repository.set_link_repo(
             self._node_link_definition_repository
         )
-        self._node_transition_definition_repository = (
-            InMemoryNodeTransitionDefinitionRepository()
-        )
         self._graph_definition_embedding_repository = InMemoryGraphDefinitionEmbeddingRepository()
-        self._node_transition_execution_repository = (
-            InMemoryNodeTransitionExecutionRepository()
+        self._edge_execution_repository = (
+            InMemoryEdgeExecutionRepository()
+        )
+        self._edge_link_execution_repository = (
+            InMemoryEdgeLinkExecutionRepository()
         )
         self._node_execution_state_repository = InMemoryNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
@@ -242,9 +242,7 @@ class InMemoryUnitOfWork(UnitOfWork):
             NodeDefinitionRepository: self._node_definition_repository,
             InMemoryNodeLinkDefinitionRepository: self._node_link_definition_repository,
             NodeLinkDefinitionRepository: self._node_link_definition_repository,
-            InMemoryNodeTransitionDefinitionRepository: self._node_transition_definition_repository,
-            NodeTransitionDefinitionRepository: self._node_transition_definition_repository,
-            InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
+                    InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
             GraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
             InMemoryGraphExecutionStateRepository: self._graph_execution_state_repository,
             GraphExecutionStateRepository: self._graph_execution_state_repository,
@@ -254,8 +252,10 @@ class InMemoryUnitOfWork(UnitOfWork):
             NodeExecutionStateRepository: self._node_execution_state_repository,
             InMemoryNodeLinkExecutionRepository: self._node_link_execution_repository,
             NodeLinkExecutionRepository: self._node_link_execution_repository,
-            InMemoryNodeTransitionExecutionRepository: self._node_transition_execution_repository,
-            NodeTransitionExecutionRepository: self._node_transition_execution_repository,
+            InMemoryEdgeExecutionRepository: self._edge_execution_repository,
+            EdgeExecutionRepository: self._edge_execution_repository,
+            InMemoryEdgeLinkExecutionRepository: self._edge_link_execution_repository,
+            EdgeLinkExecutionRepository: self._edge_link_execution_repository,
             InMemoryWorkflowStateRepository: self._workflow_state_repository,
             WorkflowStateRepository: self._workflow_state_repository,
             InMemoryMessageRepository: self._message_repository,
@@ -271,6 +271,11 @@ class InMemoryUnitOfWork(UnitOfWork):
 
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
+
+    async def save(self, repo_type: type, aggregate: Any) -> None:
+        repo: Any = self.repository(repo_type)
+        await repo.save(aggregate)
+        self.stage_events(aggregate.pull_events())
 
     def stage_messages(self, messages: list[Message]) -> None:
         self._staged_messages.extend(messages)

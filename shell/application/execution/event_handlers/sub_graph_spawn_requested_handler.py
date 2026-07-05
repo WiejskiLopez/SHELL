@@ -24,6 +24,9 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
     NodeLinkExecution,
 )
@@ -33,9 +36,6 @@ from shell.domain.execution.aggregates.node_link_execution.repositories.node_lin
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.state_direction import StateDirection
@@ -49,9 +49,15 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
-    from shell.domain.execution.ports.sub_graph_governance import SubGraphGovernance
-    from shell.domain.execution.ports.sub_graph_security import SubGraphSecurity
-    from shell.domain.execution.ports.sub_graph_versioning import SubGraphVersioning
+    from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_governance import (
+        SubGraphGovernance,
+    )
+    from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_security import (
+        SubGraphSecurity,
+    )
+    from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_versioning import (
+        SubGraphVersioning,
+    )
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -127,7 +133,12 @@ class SubGraphSpawnRequestedHandler:
                     return
                 graph_definition = resolved
 
-            state_input: dict[str, Any] = event.state_input.to_dict()
+            current_state = await unit_of_work.repository(
+                GraphExecutionStateRepository
+            ).get_current_by_graph_execution_id_and_direction(
+                event.parent_graph_execution_id, StateDirection.IN
+            )
+            state_input: dict[str, Any] = current_state.state_data if current_state is not None else {}
             if self._security is not None:
                 scope = await self._security.resolve_scope(
                     parent.id, event.graph_definition_id.value

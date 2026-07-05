@@ -12,10 +12,12 @@ from shell.domain.definition.value_objects.chunk_index import ChunkIndex
 from shell.domain.definition.value_objects.domain_tag import DomainTag
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.package_name import PackageName
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
@@ -56,11 +58,12 @@ class InMemoryQueryServices:
         ).get_by_name(TaskExecutionName(name))
         if not task_execution:
             return None
-        graph_execution = await self._unit_of_work.repository(
+        graph_executions = await self._unit_of_work.repository(
             InMemoryGraphExecutionRepository
         ).get_by_task_execution_id(task_execution.id)
         node_executions = []
-        if graph_execution is not None:
+        if graph_executions:
+            graph_execution = graph_executions[0]
             nodes = await self._unit_of_work.repository(
                 InMemoryNodeExecutionRepository
             ).list_by_graph_execution_id(graph_execution.id)

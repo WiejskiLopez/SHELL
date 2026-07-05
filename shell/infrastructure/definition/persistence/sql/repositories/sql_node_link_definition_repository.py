@@ -22,6 +22,8 @@ from shell.infrastructure.definition.persistence.sql.models import (
 )
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -73,10 +75,10 @@ class SqlNodeLinkDefinitionRepository:
             model = self._entity_to_model(link)
             self._session.add(model)
 
-    async def delete(self, id: NodeLinkDefinitionId) -> None:
+    async def delete(self, id: NodeLinkDefinitionId, now: datetime) -> None:
         model = await self._session.get(NodeLinkDefinitionModel, id.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id: NodeLinkDefinitionId) -> ExistsResult:
         model = await self._session.get(NodeLinkDefinitionModel, id.value)

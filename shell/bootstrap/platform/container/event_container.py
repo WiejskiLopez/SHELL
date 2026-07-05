@@ -25,9 +25,6 @@ from shell.application.execution.event_handlers.graph_execution_planning_started
 from shell.application.execution.event_handlers.node_execution_completed_handler import (
     NodeExecutionCompletedHandler,
 )
-from shell.application.execution.event_handlers.node_execution_failed_handler import (
-    NodeExecutionFailedHandler,
-)
 from shell.application.execution.event_handlers.node_execution_initialized_handler import (
     NodeExecutionInitializedHandler,
 )
@@ -42,9 +39,6 @@ from shell.application.execution.event_handlers.node_execution_worker import (
 )
 from shell.application.execution.event_handlers.notify_parent_on_child_completion_handler import (
     NotifyParentOnChildCompletionHandler,
-)
-from shell.application.execution.event_handlers.planner_result_handler import (
-    PlannerResultHandler,
 )
 from shell.application.execution.event_handlers.propagate_graph_output_to_task_input import (
     PropagateGraphOutputToTaskInput,
@@ -119,14 +113,6 @@ class EventContainer(containers.DeclarativeContainer):
         NotifyParentOnChildCompletionHandler,
         unit_of_work=buses.unit_of_work_factory,
         logger=infra.stdlib_logger,
-    )
-    planner_result_handler_factory = providers.Factory(
-        PlannerResultHandler,
-        unit_of_work=buses.unit_of_work_factory,
-        clock=infra.clock_factory,
-        logger=infra.stdlib_logger,
-        definition_provider=infra.definition_provider_factory,
-        sub_graph_discovery=domain.sub_graph_discovery_factory,
     )
     sub_graph_spawn_requested_handler_factory = providers.Factory(
         SubGraphSpawnRequestedHandler,
@@ -225,10 +211,4 @@ class EventContainer(containers.DeclarativeContainer):
         id_generator=infra.id_generator_factory,
         logger=infra.stdlib_logger,
     )
-    handle_node_execution_failed_factory = providers.Factory(
-        NodeExecutionFailedHandler,
-        unit_of_work=buses.unit_of_work_factory,
-        clock=infra.clock_factory,
-        id_generator=infra.id_generator_factory,
-        logger=infra.stdlib_logger,
-    )
+

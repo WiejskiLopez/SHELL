@@ -13,9 +13,13 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
     TaskExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_execution_body import (
+    TaskExecutionBody,
+)
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
-from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 if TYPE_CHECKING:
     from shell.application.execution.commands.task_execution_commands import (

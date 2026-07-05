@@ -5,8 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 

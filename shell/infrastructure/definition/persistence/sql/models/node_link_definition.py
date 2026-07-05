@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import ForeignKey
@@ -29,6 +30,7 @@ class NodeLinkDefinitionModel(Base, VersionedMixin):
         ForeignKey("node_definition.id", ondelete="CASCADE"),
         nullable=False,
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:

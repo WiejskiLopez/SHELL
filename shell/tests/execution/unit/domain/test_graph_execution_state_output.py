@@ -5,14 +5,15 @@ from datetime import UTC, datetime
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
+    GraphExecutionStateChangedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
 )
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.events import GraphExecutionStateChangedEvent
-from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
@@ -34,7 +35,7 @@ class TestGraphExecutionStateOutputCreate:
     def test_create_has_empty_state(self) -> None:
         state = _make_state()
         assert state.state_data == {}
-        assert state.is_current == IsCurrent(True)
+        assert state.is_current
         assert state.graph_execution_id == _GE_ID
 
     def test_create_with_initial_data(self) -> None:
@@ -43,7 +44,7 @@ class TestGraphExecutionStateOutputCreate:
             graph_execution_id=_GE_ID,
             direction=StateDirection.OUT,
             state_data=StateData({"k": "v"}),
-            is_current=IsCurrent(True),
+            is_current=True,
             created_at=CreatedAt.from_datetime(_NOW),
         )
         assert state.get("k") == "v"
@@ -123,9 +124,9 @@ class TestGraphExecutionStateOutputMerge:
 class TestGraphExecutionStateOutputSupersede:
     def test_supersede_flags_not_current(self) -> None:
         state = _make_state()
-        assert state.is_current == IsCurrent(True)
+        assert state.is_current
         state.supersede()
-        assert state.is_current == IsCurrent(False)
+        assert not state.is_current
 
 
 class TestGraphExecutionStateOutputSnapshot:

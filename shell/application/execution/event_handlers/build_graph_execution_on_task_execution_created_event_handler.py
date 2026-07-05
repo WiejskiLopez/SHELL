@@ -12,7 +12,9 @@ from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_se
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
-from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
+from shell.domain.execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
 from shell.domain.execution.value_objects.ids import GraphExecutionId
 
 if TYPE_CHECKING:
@@ -25,7 +27,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
         GraphExecutionDefinitionProvider,
     )
-    from shell.domain.execution.events import TaskExecutionCreatedEvent
+    from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+        TaskExecutionCreatedEvent,
+    )
 
 
 GRAPH_DEFINITION_NAME = "base_planner"

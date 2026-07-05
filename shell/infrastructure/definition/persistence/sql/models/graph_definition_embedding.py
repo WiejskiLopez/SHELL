@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,3 +21,4 @@ class GraphDefinitionEmbeddingModel(Base, VersionedMixin):
     text: Mapped[str] = mapped_column(nullable=False)
     embedding: Mapped[bytes] = mapped_column(nullable=False)
     embedding_model: Mapped[str] = mapped_column(String(255), nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

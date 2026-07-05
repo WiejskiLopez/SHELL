@@ -179,7 +179,7 @@ Files where `from datetime import datetime` is imported under `TYPE_CHECKING` bu
 Also remove `httpx` from TYPE_CHECKING in:
 - `tests/execution/unit/infrastructure/test_graph_execution_definition_provider_http_adapter.py`
 - `tests/execution/unit/infrastructure/test_session_query_service_http_adapter.py`
-- `tests/projekt/unit/infrastructure/test_project_acl_http_adapter.py`
+- `tests/project/unit/infrastructure/test_project_acl_http_adapter.py`
 - `tests/user/unit/infrastructure/test_user_acl_http_adapter.py`
 
 Also remove unused `has_method` from:

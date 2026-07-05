@@ -29,4 +29,4 @@ class SessionCloseHandler:
             if session is None:
                 raise SessionNotFound(f"Session not found: {command.session_id}")
             session.close(UpdatedAt.from_datetime(self._clock.now()))
-            await unit_of_work.repository(SessionRepository).save(session)
+            await unit_of_work.save(SessionRepository, session)

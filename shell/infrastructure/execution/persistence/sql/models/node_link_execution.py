@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime  # noqa: TC003 — Mapped[datetime] requires datetime at runtime
 from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import ForeignKey
@@ -29,6 +30,7 @@ class NodeLinkExecutionModel(Base, VersionedMixin):
         ForeignKey("node_execution.id", ondelete="CASCADE"),
         nullable=False,
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:

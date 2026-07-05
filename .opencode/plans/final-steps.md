@@ -34,7 +34,7 @@ class SessionStatus(ValueObject, StrEnum):
 
 Dodać BC do `_BCS`:
 ```python
-_BCS = frozenset({"execution", "definition", "session", "user", "projekt", "scheduling"})
+_BCS = frozenset({"execution", "definition", "session", "user", "project", "scheduling"})
 ```
 
 Dodać znane naruszenia do `_CROSS_BC_KNOWN_VIOLATIONS`:

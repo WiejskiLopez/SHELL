@@ -1,5 +1,11 @@
 from shell.infrastructure.execution.persistence.sql.models._compat import JSON, JSONB, annotations
 from shell.infrastructure.execution.persistence.sql.models.base import Base, DeclarativeBase
+from shell.infrastructure.execution.persistence.sql.models.edge_execution import (
+    EdgeExecutionModel,
+)
+from shell.infrastructure.execution.persistence.sql.models.edge_link_execution import (
+    EdgeLinkExecutionModel,
+)
 from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
     GraphExecutionModel,
 )
@@ -20,9 +26,6 @@ from shell.infrastructure.execution.persistence.sql.models.node_execution_state_
 )
 from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
     NodeLinkExecutionModel,
-)
-from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
-    NodeTransitionExecutionModel,
 )
 from shell.infrastructure.execution.persistence.sql.models.saga_state import (
     GraphExecutionSagaStateModel,
@@ -50,6 +53,7 @@ from shell.infrastructure.session.persistence.sql.models.session import (
 __all__ = [
     "Base",
     "DeclarativeBase",
+    "EdgeLinkExecutionModel",
     "GraphExecutionModel",
     "GraphExecutionSagaStateModel",
     "GraphExecutionStateInputModel",
@@ -58,7 +62,7 @@ __all__ = [
     "NodeExecutionResultModel",
     "NodeExecutionStateModel",
     "NodeLinkExecutionModel",
-    "NodeTransitionExecutionModel",
+    "EdgeExecutionModel",
     "JSON",
     "JSONB",
     "SessionExecutionModel",

@@ -8,7 +8,9 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
     TaskExecutionImportHandler,
 )
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
-from shell.domain.execution.events import TaskExecutionCreatedEvent
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+    TaskExecutionCreatedEvent,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,

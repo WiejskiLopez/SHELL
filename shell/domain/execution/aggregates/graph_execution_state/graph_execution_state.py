@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Self
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
-from shell.domain.execution.value_objects.is_current import IsCurrent
 from shell.domain.execution.value_objects.state_key import StateKey
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.state_data import StateData
@@ -44,7 +43,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     _graph_execution_id: GraphExecutionId
     _direction: StateDirection
     _state_data: StateData
-    _is_current: IsCurrent
+    _is_current: bool
     _created_at: CreatedAt
 
     def __init__(
@@ -52,7 +51,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        is_current: IsCurrent,
+        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
@@ -70,7 +69,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        is_current: IsCurrent,
+        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
@@ -98,7 +97,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._state_data.to_dict().copy()
 
     @property
-    def is_current(self) -> IsCurrent:
+    def is_current(self) -> bool:
         return self._is_current
 
     @property
@@ -121,7 +120,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             graph_execution_id=graph_execution_id,
             direction=direction,
             state_data=StateData({}),
-            is_current=IsCurrent(True),
+            is_current=True,
             created_at=now,
         )
 
@@ -190,4 +189,4 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._state_data.to_dict().copy()
 
     def supersede(self) -> None:
-        self._is_current = IsCurrent(False)
+        self._is_current = False

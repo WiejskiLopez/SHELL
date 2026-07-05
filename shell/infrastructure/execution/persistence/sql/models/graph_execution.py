@@ -3,19 +3,14 @@ from __future__ import annotations
 from datetime import (
     datetime,  # noqa: TC003 — needed by SQLAlchemy ORM at runtime for Mapped[datetime | None]
 )
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
 from shell.infrastructure.platform.persistence.sql.models.base import Base
 from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
-
-if TYPE_CHECKING:
-    from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
-        NodeTransitionExecutionModel,
-    )
 
 
 class GraphExecutionModel(Base, VersionedMixin):
@@ -40,15 +35,8 @@ class GraphExecutionModel(Base, VersionedMixin):
     timeout_at: Mapped[datetime | None] = mapped_column(nullable=True)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     tags: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
-
-    node_transition_execution_models: Mapped[list[NodeTransitionExecutionModel]] = (
-        relationship(
-            "NodeTransitionExecutionModel",
-            back_populates="graph_execution_model",
-            cascade="all, delete-orphan",
-        )
-    )

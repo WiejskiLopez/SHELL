@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -40,10 +41,12 @@ class SqlUserExecutionRepository(UserExecutionRepository):
         else:
             user_execution_update_model(model, user_execution)
 
-    async def delete(self, id: UserExecutionId) -> None:
+    async def delete(self, id: UserExecutionId, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(UserExecutionModel, id.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id: UserExecutionId) -> ExistsResult:
         query = select(UserExecutionModel).where(UserExecutionModel.id == id.value)

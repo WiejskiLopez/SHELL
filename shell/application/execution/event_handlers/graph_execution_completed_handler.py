@@ -11,12 +11,11 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 
 if TYPE_CHECKING:
+    from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionCompletedEvent,
     )
-
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 

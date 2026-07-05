@@ -17,6 +17,8 @@ class WorkflowModel(Base, VersionedMixin):
     session_execution_id: Mapped[str | None] = mapped_column(nullable=True)
     session_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    updated_at: Mapped[datetime] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
     def __mapper_args__(cls) -> dict[str, Any]:

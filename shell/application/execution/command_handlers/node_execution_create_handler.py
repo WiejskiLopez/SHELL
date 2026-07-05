@@ -11,10 +11,12 @@ from shell.domain.execution.aggregates.node_execution.node_execution import (
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
+from shell.domain.execution.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType

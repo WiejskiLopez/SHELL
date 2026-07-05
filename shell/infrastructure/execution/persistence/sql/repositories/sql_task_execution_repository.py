@@ -7,6 +7,7 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
@@ -19,12 +20,12 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+    from shell.domain.execution.value_objects.task_execution_name import (
+        TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
+    )
     from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskExecutionId i WorkflowId używane w konstruktorach w repozytorium
         TaskExecutionId,
         WorkflowId,
-    )
-    from shell.domain.execution.value_objects.task_execution_name import (
-        TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
     )
 
 
@@ -66,3 +67,12 @@ class SqlTaskExecutionRepository(TaskExecutionRepository):
     async def list_current(self) -> list[TaskExecution]:
         rows = (await self._session.execute(select(TaskExecutionModel))).scalars().all()
         return [task_execution_model_to_entity(row) for row in rows]
+
+    async def delete(self, id: TaskExecutionId) -> None:
+        model = await self._session.get(TaskExecutionModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: TaskExecutionId) -> ExistsResult:
+        entity = await self.get_by_id(id)
+        return ExistsResult(entity is not None)

@@ -65,6 +65,62 @@ WorkflowStartedEvent(workflow_id=..., started_by=..., started_at=...)
 WorkflowStartedEvent(send_email_to=..., notify_admin=...)
 ```
 
+## ⚠️ Antypattern: Nadmiarowe dane w evencie (Event Data Bloat)
+
+Event domenowy ma identyfikować **co się stało i którego agregatu dotyczy** — nie transportować danych, które można dociągnąć serwisem/repozytorium po identyfikatorze agregatu.
+
+### Zasada
+
+- Event niesie TYLKO: `aggregate_id` (identyfikator agregatu którego zmiana dotyczy, odziedziczony z `DomainEvent` lub jawny) + identyfikatory powiązanych agregatów (referencje).
+- Wszystkie **pozostałe dane** (property, atrybuty, stany, listy, obiekty wartościowe które nie są identyfikatorem) są **nadmiarowe** — odbiorca eventu może dociągnąć je przez port/repozytorium używając ID agregatu.
+- Wyjątek: ID powiązanych agregatów (referencje) — np. `task_execution_id` w `WorkflowStartedEvent`, `user_id` w `SessionOpenedEvent`.
+
+### Przykład (ZŁO — nadmiarowe dane)
+
+```python
+@dataclass(frozen=True, slots=True)
+class TaskExecutionCreatedEvent(DomainEvent):
+    task_execution_id: TaskExecutionId
+    task_execution_name: TaskExecutionName   # NADMIAR — property agregatu
+    description: TaskDescription              # NADMIAR — property agregatu
+    skills: list[SkillData] | None = None     # NADMIAR — lista do dociągnięcia po ID
+```
+
+### Przykład (DOBRZE — tylko identyfikatory)
+
+```python
+@dataclass(frozen=True, slots=True)
+class TaskExecutionCreatedEvent(DomainEvent):
+    task_execution_id: TaskExecutionId        # ID agregatu — wystarczy
+```
+
+### Dlaczego?
+
+1. **Event to fakt, nie DTO** — im lżejszy, tym łatwiej go przechowywać, replikować, walidować.
+2. **Unikasz rozjechania się danych** — jeśli event niesie kopię stanu, a stan agregatu się zmieni, kopie w eventach są nieaktualne.
+3. **Mniejszy rozmiar w outboxie/kolejce** — embeddingi, plany, listy skilli to zbędny balast.
+4. **Czysta semantyka** — `TaskExecutionCreatedEvent(task_execution_id=...)` mówi wszystko: zadanie o tym ID zostało utworzone. Resztę dociągnie ten, kto potrzebuje.
+
+### Kwalifikator
+
+Jeśli pole eventu to ID **innego agregatu** (referencja): **ZOSTAW**.
+Jeśli pole eventu to property / atrybut / lista / obiekt wartościowy danego agregatu: **USUŃ** — odbiorca dociągnie przez port.
+
+```python
+# DOBRZE — ID powiązanego agregatu
+@dataclass
+class WorkflowStartedEvent(DomainEvent):
+    workflow_id: WorkflowId               # ID własnego agregatu
+    task_execution_id: TaskExecutionId    # ID powiązanego agregatu (OK — referencja)
+
+# ŹLE — property własnego agregatu
+@dataclass  
+class GraphExecutionCreatedEvent(DomainEvent):
+    graph_execution_id: GraphExecutionId  # ID własnego agregatu
+    goal: Goal                            # NADMIAR — property
+    depth: GraphDepth                     # NADMIAR — property
+```
+
 ## Emisja
 
 - Jeśli metoda domenowa realizuje przejście stanu agregatu, emituj event przejścia bezwarunkowo.

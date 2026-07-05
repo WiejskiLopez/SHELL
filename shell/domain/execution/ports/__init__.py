@@ -29,13 +29,11 @@ from shell.domain.execution.ports.sub_graph_security import (
 from shell.domain.execution.ports.sub_graph_versioning import (
     SubGraphVersioning,
 )
-from shell.domain.platform.ports.runner_config_provider import RunnerConfigProvider
 
 __all__ = [
     "CompensationDecision",
     "Decision",
     "GraphExecutionDefinitionProvider",
-    "RunnerConfigProvider",
     "Scope",
     "SubGraphCompensation",
     "SubGraphContext",

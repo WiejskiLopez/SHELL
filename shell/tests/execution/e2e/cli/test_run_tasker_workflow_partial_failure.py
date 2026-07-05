@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
-from shell.domain.execution.events import (
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
     NodeExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
 )
 from shell.infrastructure.platform.persistence.memory import (

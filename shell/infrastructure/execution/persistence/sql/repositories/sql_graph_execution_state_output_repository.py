@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select, update
@@ -46,7 +47,7 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
         return graph_execution_state_output_model_to_entity(row) if row else None
 
     async def save(self, state: GraphExecutionState) -> None:
-        if state.is_current.value:
+        if state.is_current:
             await self._session.execute(
                 update(GraphExecutionStateOutputModel)
                 .where(
@@ -59,10 +60,12 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
         model = graph_execution_state_output_entity_to_model(state)
         self._session.add(model)
 
-    async def delete(self, id: object) -> None:
+    async def delete(self, id: object, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(GraphExecutionStateOutputModel, getattr(id, "value", id))
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id: object) -> ExistsResult:
         query = select(GraphExecutionStateOutputModel).where(

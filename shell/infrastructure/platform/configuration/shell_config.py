@@ -58,7 +58,7 @@ class ShellConfig:
     definition_api_url: str = "http://localhost:8000/api/v1"
     session_api_url: str = "http://localhost:8000/api/v1"
     user_api_url: str = "http://localhost:8000/api/v1"
-    projekt_api_url: str = "http://localhost:8000/api/v1"
+    project_api_url: str = "http://localhost:8000/api/v1"
     events: EventsConfig = field(default_factory=EventsConfig)
 
     @classmethod
@@ -121,9 +121,9 @@ class ShellConfig:
         env_user_api_url = os.environ.get("SHELL_USER_API_URL")
         if env_user_api_url:
             merged["user_api_url"] = env_user_api_url
-        env_projekt_api_url = os.environ.get("SHELL_PROJEKT_API_URL")
-        if env_projekt_api_url:
-            merged["projekt_api_url"] = env_projekt_api_url
+        env_project_api_url = os.environ.get("SHELL_PROJECT_API_URL")
+        if env_project_api_url:
+            merged["project_api_url"] = env_project_api_url
 
         # Build config object
         return cls(
@@ -137,7 +137,7 @@ class ShellConfig:
             definition_api_url=merged.get("definition_api_url", "http://localhost:8000/api/v1"),
             session_api_url=merged.get("session_api_url", "http://localhost:8000/api/v1"),
             user_api_url=merged.get("user_api_url", "http://localhost:8000/api/v1"),
-            projekt_api_url=merged.get("projekt_api_url", "http://localhost:8000/api/v1"),
+            project_api_url=merged.get("project_api_url", "http://localhost:8000/api/v1"),
             events=EventsConfig(
                 outbox_batch_size=int(merged.get("events", {}).get("outbox_batch_size", 100)),
                 inbox_batch_size=int(merged.get("events", {}).get("inbox_batch_size", 50)),

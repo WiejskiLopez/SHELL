@@ -12,11 +12,15 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
+from shell.domain.platform.value_objects.error_description import (
+    ErrorDescription,
+)
+from shell.domain.execution.aggregates.workflow.exceptions.workflow_not_found import (
+    WorkflowNotFound,
+)
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.domain.execution.exceptions import WorkflowNotFound
-from shell.domain.execution.value_objects.error_description import ErrorDescription
 from shell.domain.execution.value_objects.ids import NodeExecutionId, WorkflowId
 
 if TYPE_CHECKING:

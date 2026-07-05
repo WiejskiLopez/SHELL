@@ -30,31 +30,43 @@ from shell.application.execution.event_handlers.node_execution_worker import (
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+    NodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
+    NodeExecutionFailedEvent,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.events import (
-    NodeExecutionCompletedEvent,
-    NodeExecutionFailedEvent,
-    NodeExecutionRequestedEvent,
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
+    NodeExecutionRequestedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -257,7 +269,7 @@ def _graph_execution(*node_executions: NodeExecution) -> GraphExecution:
 def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
-        task_execution_name=TaskExecutionName("t1"),
+        task_execution_name=TaskExecutionName("test-task"),
         now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 

@@ -39,7 +39,33 @@ Jeśli nazwa klasy używa słowa domenowego, które ma wiele znaczeń w projekci
 | Domain Service | `PascalCase + Service` | `EnvelopeLifecycleService`, `PricingService` |
 | Repository Port | `PascalCase + Repository` | `WorkflowRepository`, `TaskExecutionRepository` |
 | Child Entity | `PascalCase` | `EnvelopeEvent`, `NodeExecutionResult` |
-| Domain Exception | `PascalCase + domain context` | `WorkflowNotFoundException`, `OrderLimitExceeded` |
+| Domain Exception | `<AggregateName><ErrorKind>Error` | `GraphExecutionNotFoundError`, `NodeExecutionInvalidStateError`, `NodeExecutionMaxStepExceededError` |
+
+### Domain Exception — szczególne zasady
+
+```
+<AggregateName><ErrorKind>Error
+```
+
+- `AggregateName` — pełna nazwa agregatu (np. `GraphExecution`, `NodeExecution`, `Workflow`)
+- `ErrorKind` — rodzaj błędu w PascalCase (np. `NotFound`, `InvalidState`, `MaxStepExceeded`, `RoleNotResolvable`)
+- Sufiks `Error` — obowiązkowy
+
+Przykłady:
+| Klasa | Opis |
+|-------|------|
+| `GraphExecutionNotFoundError` | GraphExecution nie znaleziony |
+| `GraphExecutionGraphDefinitionNotFoundError` | GraphDefinition nie znaleziony przez graph_execution |
+| `NodeExecutionNotFoundError` | NodeExecution nie znaleziony |
+| `NodeExecutionInvalidStateError` | Nieprawidłowy stan NodeExecution |
+| `WorkflowInvalidTransitionError` | Nieprawidłowa tranzycja Workflow |
+| `NodeExecutionMaxStepExceededError` | Przekroczony max step w NodeExecution |
+| `NodeExecutionRoleNotResolvableError` | Rola nierozwiązywalna w NodeExecution |
+
+- NotFound zawsze z sufiksem `Error`
+- Invalid state/transition zawsze z sufiksem `Error`
+- Wyjątki definiuje się w agregacie którego dotyczą, w katalogu `aggregates/{agregat}/exceptions/`
+- Import bezpośrednio z definiującego modułu, nigdy przez re-export warstwę
 
 ### Eventy domenowe — szczególne zasady
 

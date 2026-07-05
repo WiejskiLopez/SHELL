@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.definition.value_objects.ids import RunnerConfigId
 from shell.domain.definition.value_objects.package_name import PackageName
 from shell.domain.definition.value_objects.runner_body import RunnerBody
 from shell.domain.definition.value_objects.runner_kind import RunnerKind
-from shell.domain.platform.base.entity import Entity
+from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.hash import Hash
 
 
-class RunnerConfig(Entity[RunnerConfigId]):
+class RunnerConfig(AggregateRoot[RunnerConfigId]):
     __slots__ = ("_package_name", "_kind", "_hash", "_body", "_created_at")
 
     def __init__(
@@ -76,4 +76,24 @@ class RunnerConfig(Entity[RunnerConfigId]):
             hash=config_hash,
             body=body,
             created_at=now,
+        )
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: RunnerConfigId,
+        package_name: PackageName,
+        kind: RunnerKind,
+        body: RunnerBody,
+        config_hash: Hash,
+        created_at: CreatedAt,
+    ) -> Self:
+        return cls(
+            id=id,
+            package_name=package_name,
+            kind=kind,
+            hash=config_hash,
+            body=body,
+            created_at=created_at,
         )

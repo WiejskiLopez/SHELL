@@ -11,7 +11,9 @@ from shell.application.execution.command_handlers.task_execution_import_handler 
     TaskExecutionImportHandler,
 )
 from shell.application.execution.commands.task_execution_commands import ImportTaskExecutionCommand
-from shell.domain.execution.events import WorkflowStartedEvent
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
+    WorkflowStartedEvent,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.persistence.memory import (

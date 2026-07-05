@@ -74,7 +74,7 @@ def task_execution_state_to_dto(
         task_execution_id=entity.task_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current.value,
+        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 

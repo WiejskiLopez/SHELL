@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -54,14 +55,16 @@ class SqlSessionExecutionStateRepository(SessionExecutionStateRepository):
             existing.supersede()
             old_model = await self._session.get(SessionExecutionStateModel, existing.id.value)
             if old_model is not None:
-                old_model.is_current = existing.is_current.value
+                old_model.is_current = existing.is_current
         model = session_execution_state_entity_to_model(payload)
         self._session.add(model)
 
-    async def delete(self, id_: object) -> None:
+    async def delete(self, id_: object, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(SessionExecutionStateModel, getattr(id_, "value", id_))
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id_: object) -> ExistsResult:
         query = select(SessionExecutionStateModel).where(

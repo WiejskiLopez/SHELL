@@ -18,7 +18,10 @@ if TYPE_CHECKING:
 class InMemoryGraphDefinitionRepository(
     InMemoryRepository[GraphDefinition, GraphDefinitionId], GraphDefinitionRepository
 ):
-    async def get(self, graph_execution_id: GraphDefinitionId) -> GraphDefinition | None:
+    async def get(self, id: GraphDefinitionId) -> GraphDefinition | None:
+        return await self.get_by_id(id)
+
+    async def get_by_id(self, graph_execution_id: GraphDefinitionId) -> GraphDefinition | None:
         return self._store.get(graph_execution_id.value)
 
     async def get_graph_definition_by_name(

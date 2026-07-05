@@ -10,11 +10,15 @@ import pytest
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
+from shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event import (
+    NodeExecutionInitializedEvent,
+)
+from shell.domain.execution.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.events import NodeExecutionInitializedEvent
-from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,

@@ -8,11 +8,11 @@ from shell.application.definition.command_handlers.document_index_handler import
     DocumentIndexHandler,
 )
 from shell.application.definition.commands.rag_commands import IndexDocumentCommand
-from shell.domain.definition.value_objects.ids import RagDocumentId
 from shell.application.definition.queries.rag_search_similar_query import RagSearchSimilarQuery
 from shell.application.definition.query_handlers.rag_search_similar_handler import (
     RagSearchSimilarHandler,
 )
+from shell.domain.definition.value_objects.ids import RagDocumentId
 from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )

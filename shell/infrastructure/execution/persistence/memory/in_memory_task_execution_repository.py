@@ -14,8 +14,10 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 if TYPE_CHECKING:
+    from shell.domain.execution.value_objects.task_execution_name import (
+        TaskExecutionName,
+    )
     from shell.domain.execution.value_objects.ids import WorkflowId
-    from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 
 
 class InMemoryTaskExecutionRepository(

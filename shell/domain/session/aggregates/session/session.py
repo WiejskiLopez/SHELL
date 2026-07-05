@@ -14,9 +14,6 @@ from shell.domain.session.aggregates.session.events.session_closed_event import 
 from shell.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
-from shell.domain.session.aggregates.session.exceptions.invalid_session_transition import (
-    InvalidSessionTransition,
-)
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
@@ -161,7 +158,7 @@ class Session(AggregateRoot[SessionId]):
 
     def close(self, now: UpdatedAt) -> None:
         if self._status != SessionStatus.OPEN:
-            raise InvalidSessionTransition(f"Cannot close session in status {self._status!r}")
+            raise ValueError(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
         self._closed_at = now
         self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))

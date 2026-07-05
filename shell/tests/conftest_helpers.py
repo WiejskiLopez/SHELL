@@ -1,7 +1,7 @@
 """Shared test helpers extracted from conftest.
 
-from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
-        InMemoryNodeTransitionExecutionRepository,
+from shell.infrastructure.execution.persistence.memory.in_memory_edge_execution_repository import (
+        InMemoryEdgeExecutionRepository,
     )
 from shell.domain.execution.services.node_execution_navigator import (
         LinearNodeExecutionNavigator,
@@ -39,40 +39,52 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
+    NodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
+    NodeExecutionFailedEvent,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
     NodeLinkExecution,
 )
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.events import (
-    NodeExecutionCompletedEvent,
-    NodeExecutionFailedEvent,
-    NodeExecutionRequestedEvent,
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
+    NodeExecutionRequestedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
     WorkflowStartedEvent,
 )
 from shell.domain.execution.services.node_execution_navigator import (
     LinearNodeExecutionNavigator,
 )
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -83,9 +95,6 @@ from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
-    InMemoryNodeTransitionExecutionRepository,
 )
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
@@ -196,7 +205,7 @@ def _graph_execution(*node_executions: NodeExecution) -> GraphExecution:
 def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
-        task_execution_name=TaskExecutionName("t1"),
+        task_execution_name=TaskExecutionName("test-task"),
         now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
@@ -421,9 +430,8 @@ async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=No
                     ge = await ge_repo.get_by_task_execution_id(task_id)
                     if ge is not None:
                         node_repo = unit_of_work.repository(InMemoryNodeExecutionRepository)
-                        tr_repo = unit_of_work.repository(InMemoryNodeTransitionExecutionRepository)
                         nav = LinearNodeExecutionNavigator()
-                        first_node = await nav.first_async(ge, node_repo, tr_repo)
+                        first_node = await nav.first_async(ge, node_repo)
                         if first_node is not None:
                             async with unit_of_work:
                                 request_event = NodeExecutionRequestedEvent.now(

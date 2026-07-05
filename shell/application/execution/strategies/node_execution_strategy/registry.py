@@ -20,7 +20,9 @@ from shell.application.execution.strategies.node_execution_strategy.tool_strateg
 from shell.application.execution.strategies.node_execution_strategy.worker_strategy import (
     WorkerStrategy,
 )
-from shell.domain.execution.exceptions import InvalidNodeMode
+from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_mode import (
+    InvalidNodeMode,
+)
 
 if TYPE_CHECKING:
     from shell.application.execution.strategies.node_execution_strategy.protocol import (

@@ -1,11 +1,21 @@
 from __future__ import annotations
 
-from shell.domain.execution.events import (
-    NodeExecutionAdvancedEvent,
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
     NodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
     NodeExecutionFailedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.node_execution_advanced_event import (
+    NodeExecutionAdvancedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
     NodeExecutionRequestedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_aborted_event import (
     WorkflowAbortedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
 )
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
@@ -35,7 +45,6 @@ class TestNodeExecutionResultHandlerHappyPath:
         await handler.handle(
             NodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
-                workflow_id=wf.id,
                 now=CreatedAt.from_datetime(_NOW),
             )
         )
@@ -60,7 +69,6 @@ class TestNodeExecutionResultHandlerHappyPath:
         await handler.handle(
             NodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
-                workflow_id=wf.id,
                 now=CreatedAt.from_datetime(_NOW),
             )
         )
@@ -86,8 +94,6 @@ class TestNodeExecutionResultHandlerFailure:
         await handler.handle(
             NodeExecutionFailedEvent.now(
                 node_id=_nodes[0].id,
-                workflow_id=wf.id,
-                reason="boom",
                 now=CreatedAt.from_datetime(_NOW),
             )
         )
@@ -120,7 +126,6 @@ class TestNodeExecutionResultHandlerIdempotency:
         await handler.handle(
             NodeExecutionCompletedEvent.now(
                 node_id=_nodes[0].id,
-                workflow_id=wf.id,
                 now=CreatedAt.from_datetime(_NOW),
             )
         )

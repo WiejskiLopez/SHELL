@@ -2,19 +2,21 @@ from __future__ import annotations
 
 import pytest
 
+from shell.domain.execution.aggregates.node_execution.exceptions.role_not_resolvable import (
+    RoleNotResolvable,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.exceptions import RoleNotResolvable
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.services.graph_execution_routing_service import (
     GraphExecutionRoutingService,
 )
 from shell.domain.execution.value_objects.ids import (
     NodeExecutionId,
 )
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 
 

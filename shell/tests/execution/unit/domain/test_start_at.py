@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from shell.domain.execution.events import WorkflowStartedEvent
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
+    WorkflowStartedEvent,
+)
 from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.tests.conftest_helpers import _NOW, _new_workflow

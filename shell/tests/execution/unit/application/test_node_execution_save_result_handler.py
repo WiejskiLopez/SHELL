@@ -11,11 +11,11 @@ from shell.application.execution.commands.node_execution_commands import (
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.value_objects.ids import NodeExecutionId, WorkflowId
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.value_objects.ids import NodeExecutionId, WorkflowId
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (

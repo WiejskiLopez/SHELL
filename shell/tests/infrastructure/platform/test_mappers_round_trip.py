@@ -19,12 +19,19 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
@@ -32,11 +39,6 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.mode import Mode

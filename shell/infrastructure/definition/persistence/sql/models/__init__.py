@@ -12,9 +12,6 @@ from shell.infrastructure.definition.persistence.sql.models.node_definition impo
 from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
     NodeLinkDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
-    NodeTransitionDefinitionModel,
-)
 from shell.infrastructure.definition.persistence.sql.models.rag_chunk import RagChunkModel
 from shell.infrastructure.definition.persistence.sql.models.rag_document import RagDocumentModel
 from shell.infrastructure.definition.persistence.sql.models.runner_config import RunnerConfigModel
@@ -26,8 +23,7 @@ __all__ = [
     "GraphDefinitionModel",
     "NodeDefinitionModel",
     "NodeLinkDefinitionModel",
-    "NodeTransitionDefinitionModel",
-    "JSON",
+        "JSON",
     "JSONB",
     "Mapped",
     "RagChunkModel",

@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
@@ -32,11 +31,9 @@ class SqlGraphDefinitionRepository(GraphDefinitionRepository):
         self._session = session
 
     def _base_query(self) -> Select[tuple[GraphDefinitionModel]]:
-        return select(GraphDefinitionModel).options(
-            selectinload(GraphDefinitionModel.node_transition_definition_models),
-        )
+        return select(GraphDefinitionModel)
 
-    async def get(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
+    async def get_by_id(self, graph_definition_id: GraphDefinitionId) -> GraphDefinition | None:
         query = self._base_query().where(GraphDefinitionModel.id == graph_definition_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return graph_definition_model_to_entity(row) if row else None

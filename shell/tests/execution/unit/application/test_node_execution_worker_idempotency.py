@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.execution.events import (
+from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
     NodeExecutionRequestedEvent,
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt

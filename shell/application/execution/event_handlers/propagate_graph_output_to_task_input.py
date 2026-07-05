@@ -20,12 +20,11 @@ from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
+    from shell.application.platform.ports.identity import IdGenerator
+    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionCompletedEvent,
     )
-
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.domain.platform.ports.log import Logger
     from shell.domain.platform.ports.time import Clock
 
@@ -71,7 +70,6 @@ class PropagateGraphOutputToTaskInput:
             now = self._clock.now()
             output_payload: dict[str, Any] = {
                 "graph_execution_id": event.graph_execution_id.value,
-                "verifier_result": event.verifier_result,
             }
             state = TaskExecutionState.create(
                 id_=self._id_generator.new_id(TaskExecutionStateId),

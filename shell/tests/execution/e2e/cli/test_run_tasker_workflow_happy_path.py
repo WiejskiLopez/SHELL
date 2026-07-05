@@ -5,9 +5,13 @@ from shell.application.execution.queries.workflow_get_by_id_query import Workflo
 from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
     WorkflowGetByIdHandler,
 )
-from shell.domain.execution.events import (
+from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
     NodeExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
     WorkflowCompletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
     WorkflowFailedEvent,
 )
 from shell.infrastructure.platform.persistence.memory import (

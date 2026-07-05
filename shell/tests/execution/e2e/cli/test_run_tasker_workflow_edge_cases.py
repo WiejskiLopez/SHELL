@@ -6,7 +6,9 @@ from shell.application.execution.command_handlers.workflow_run_tasker_handler im
     WorkflowRunTaskerHandler,
 )
 from shell.application.execution.commands.workflow_commands import RunTaskerWorkflowCommand
-from shell.domain.execution.events import WorkflowStartedEvent
+from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
+    WorkflowStartedEvent,
+)
 
 if TYPE_CHECKING:
     from shell.infrastructure.platform.persistence.memory import (

@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Self
-
-if TYPE_CHECKING:
-    from datetime import datetime
+from typing import TYPE_CHECKING
 
 from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.schema_version import SchemaVersion
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
+
+if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+    from shell.domain.session.value_objects.user_id_ref import UserIdRef
 
 
 @dataclass(frozen=True, slots=True)
@@ -33,16 +31,4 @@ class SessionOpenedEvent(DomainEvent):
             session_id=session_id,
             user_id=user_id,
             project_id=project_id,
-        )
-
-    @classmethod
-    def from_payload(
-        cls, occurred_at: datetime, payload: dict[str, Any], schema_version: int = 1
-    ) -> Self:
-        return cls(
-            occurred_at=CreatedAt.from_datetime(occurred_at),
-            schema_version=SchemaVersion(schema_version),
-            session_id=SessionId(payload["session_id"]),
-            user_id=UserIdRef(payload["user_id"]),
-            project_id=ProjectIdRef(payload["project_id"]),
         )

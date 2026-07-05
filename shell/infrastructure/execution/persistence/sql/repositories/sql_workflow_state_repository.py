@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -63,10 +64,12 @@ class SqlWorkflowStateRepository(WorkflowStateRepository):
             model.is_current = True
             model.created_at = workflow_state.created_at.value
 
-    async def delete(self, id_: WorkflowStateId) -> None:
+    async def delete(self, id_: WorkflowStateId, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
         model = await self._session.get(WorkflowStateModel, id_.value)
         if model is not None:
-            await self._session.delete(model)
+            model.deleted_at = now
 
     async def exists(self, id_: WorkflowStateId) -> ExistsResult:
         query = select(WorkflowStateModel).where(WorkflowStateModel.id == id_.value)

@@ -31,12 +31,6 @@ from shell.domain.definition.value_objects.script_type_name import ScriptTypeNam
 from shell.domain.definition.value_objects.source_uri import SourceUri
 from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.definition.value_objects.title import Title
-from shell.domain.definition.value_objects.transition_label import TransitionLabel
-from shell.domain.definition.value_objects.transition_priority import TransitionPriority
-from shell.domain.definition.value_objects.transition_retry_delay import TransitionRetryDelay
-from shell.domain.definition.value_objects.transition_timeout_seconds import (
-    TransitionTimeoutSeconds,
-)
 from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -72,8 +66,4 @@ __all__ = [
     "SourceUri",
     "SystemRole",
     "Title",
-    "TransitionLabel",
-    "TransitionPriority",
-    "TransitionRetryDelay",
-    "TransitionTimeoutSeconds",
-]
+                ]
