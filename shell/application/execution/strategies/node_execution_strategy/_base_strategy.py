@@ -20,6 +20,8 @@ class _BaseStrategy:
         workspace_path: str,
         runner: NodeExecutionProcessRunner,
     ) -> ExecutionResult:
+        from shell.domain.execution.value_objects.manifest import Manifest
+
         manifest = Manifest(
             name=node_execution_id,
             mode=Mode(self.mode),

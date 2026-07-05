@@ -29,17 +29,17 @@ class NodeExecutionInitializedHandler:
     async def handle(self, event: NodeExecutionInitializedEvent) -> None:
         async with self._unit_of_work as unit_of_work:
             parent = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
-                event.parent_graph_execution_id
+                event.graph_execution_id
             )
             if parent is None:
                 self._logger.warning(
                     "node_initialized.parent_not_found",
-                    parent_id=event.parent_graph_execution_id.value,
+                    parent_id=event.graph_execution_id.value,
                 )
                 return
 
             self._logger.info(
                 "node_initialized.confirmed",
                 node_id=event.node_id.value,
-                parent_id=event.parent_graph_execution_id.value,
+                parent_id=event.graph_execution_id.value,
             )

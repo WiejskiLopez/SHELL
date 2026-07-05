@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import struct
 from typing import TYPE_CHECKING
 
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
+from shell.domain.definition.services.rag_index_service import cosine_similarity
 from shell.domain.definition.value_objects.ids import (
     RagDocumentId,
 )

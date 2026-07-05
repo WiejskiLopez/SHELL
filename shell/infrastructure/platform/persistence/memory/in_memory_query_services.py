@@ -4,9 +4,13 @@ from typing import TYPE_CHECKING
 
 from shell.application.definition.dto.rag_chunk import RagChunkDto
 from shell.application.definition.dto.runner_config import RunnerConfigDto
+from shell.application.execution.dto.node_execution import NodeExecutionDto
 from shell.application.execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.dto.workflow import WorkflowDto
 from shell.application.session.dto.session import SessionDto
+from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+from shell.domain.definition.value_objects.domain_tag import DomainTag
+from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.package_name import PackageName
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,

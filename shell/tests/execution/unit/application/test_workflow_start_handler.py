@@ -12,6 +12,8 @@ from shell.application.execution.queries.workflow_get_by_id_query import Workflo
 from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
     WorkflowGetByIdHandler,
 )
+from shell.domain.execution.aggregates.graph_execution.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.node_execution.node_execution import NodeExecution
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
     NodeLinkExecution,
 )
@@ -19,6 +21,14 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
     NodeLinkExecutionId,
 )
 from shell.domain.execution.events import WorkflowStartedEvent
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
+from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
@@ -37,7 +47,6 @@ from shell.infrastructure.platform.persistence.memory import (
 )
 
 
-from shell.domain.execution.value_objects.ids import GraphExecutionId, NodeExecutionId
 class TestWorkflowStartHandler:
     async def _import_task_execution(
         self,

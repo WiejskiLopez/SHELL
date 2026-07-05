@@ -15,8 +15,12 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_defin
 from shell.domain.definition.aggregates.rag_document import RagChunk, RagDocument
 from shell.domain.definition.entities.runner_config import RunnerConfig
 from shell.domain.definition.value_objects.autopilot import Autopilot
+from shell.domain.definition.value_objects.chunk_index import ChunkIndex
+from shell.domain.definition.value_objects.chunk_text import ChunkText
 from shell.domain.definition.value_objects.command_text import CommandText
 from shell.domain.definition.value_objects.domain_tag import DomainTag
+from shell.domain.definition.value_objects.embedding import Embedding
+from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
 from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import (
     NodeTransitionDefinitionId,
@@ -48,6 +52,14 @@ from shell.domain.definition.value_objects.transition_timeout_seconds import (
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.hash import Hash
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.definition.persistence.sql.models import (
+    GraphDefinitionModel,
+    NodeDefinitionModel,
+    RagChunkModel,
+    RagDocumentModel,
+    RunnerConfigModel,
+)
+
 # ---------------------------------------------------------------------------
 # RunnerConfig
 # ---------------------------------------------------------------------------

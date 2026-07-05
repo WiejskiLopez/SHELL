@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import signal
 from argparse import (
     Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
 )

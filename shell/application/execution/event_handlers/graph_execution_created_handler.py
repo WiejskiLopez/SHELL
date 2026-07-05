@@ -14,7 +14,7 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.events.event import (
+    from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionCreatedEvent,
     )
 

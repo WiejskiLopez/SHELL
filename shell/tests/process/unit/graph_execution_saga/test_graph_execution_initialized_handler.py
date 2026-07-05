@@ -37,11 +37,21 @@ from shell.domain.execution.value_objects.graph_definition_id import (
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
+from shell.infrastructure.definition.persistence.memory.in_memory_node_definition_repository import (
+    InMemoryNodeDefinitionRepository,
+)
+from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
+    InMemoryNodeLinkDefinitionRepository,
+)
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
     GraphExecutionSaga,
 )
 from shell.process.execution.graph_execution_saga.handlers.graph_execution_initialized_handler import (
     GraphExecutionInitializedHandler,
+)
+from shell.process.execution.graph_execution_saga.ports.graph_definition_node_provider import (
+    GraphDefinitionNodeProvider,
+    NodeDefinitionData,
 )
 
 if TYPE_CHECKING:
@@ -52,12 +62,37 @@ if TYPE_CHECKING:
     )
 
 
-from shell.infrastructure.definition.persistence.memory.in_memory_node_definition_repository import (
-            InMemoryNodeDefinitionRepository,
+class _InMemoryGraphDefinitionNodeProvider:
+    """Test adapter — wraps InMemoryNodeDefinitionRepository + InMemoryNodeLinkDefinitionRepository."""
+
+    def __init__(
+        self,
+        node_def_repo: InMemoryNodeDefinitionRepository,
+        link_def_repo: InMemoryNodeLinkDefinitionRepository,
+    ) -> None:
+        self._node_def_repo = node_def_repo
+        self._link_def_repo = link_def_repo
+
+    async def get_node_definitions(self, graph_definition_id: str) -> list[NodeDefinitionData]:
+        links = await self._link_def_repo.list_by_graph_definition_id(
+            GraphDefinitionId(graph_definition_id)
         )
-from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
-            InMemoryNodeLinkDefinitionRepository,
-        )
+        result: list[NodeDefinitionData] = []
+        for link in links:
+            node = await self._node_def_repo.get_by_id(link.node_definition_id)
+            if node is not None:
+                result.append(
+                    NodeDefinitionData(
+                        node_id=node.id.value,
+                        position=node.position.value,
+                        role=node.role.value,
+                        mode=node.mode.value,
+                        node_type=node.node_type.value,
+                    )
+                )
+        return result
+
+
 class TestGraphExecutionInitializedHandler:
     NOW = datetime.now(tz=UTC)
 
@@ -76,20 +111,29 @@ class TestGraphExecutionInitializedHandler:
         return InMemoryNodeDefinitionRepository()
 
     @pytest.fixture()
+    def definition_node_provider(
+        self,
+        node_def_repo: InMemoryNodeDefinitionRepository,
+        link_def_repo: InMemoryNodeLinkDefinitionRepository,
+    ) -> GraphDefinitionNodeProvider:
+        return _InMemoryGraphDefinitionNodeProvider(
+            node_def_repo=node_def_repo,
+            link_def_repo=link_def_repo,
+        )
+
+    @pytest.fixture()
     def handler(
         self,
         saga_manager: GraphExecutionSaga,
         command_publisher: FakeCommandOutboxPublisher,
         logger: FakeLogger,
-        link_def_repo,
-        node_def_repo,
+        definition_node_provider: GraphDefinitionNodeProvider,
     ) -> GraphExecutionInitializedHandler:
         return GraphExecutionInitializedHandler(
             saga_manager=saga_manager,
             command_publisher=command_publisher,
+            definition_node_provider=definition_node_provider,
             logger=logger,
-            link_definition_repository=link_def_repo,
-            node_definition_repository=node_def_repo,
         )
 
     async def test_creates_saga_and_publishes_zero_commands_when_no_links(

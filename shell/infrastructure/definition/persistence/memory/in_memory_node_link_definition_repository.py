@@ -8,6 +8,7 @@ from shell.domain.definition.aggregates.node_link_definition.node_link_definitio
 from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class InMemoryNodeLinkDefinitionRepository(

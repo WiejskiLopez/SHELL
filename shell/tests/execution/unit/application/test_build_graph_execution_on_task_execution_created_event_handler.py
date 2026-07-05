@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -29,6 +30,11 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
     NodeLinkDefinitionId,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
+from shell.domain.definition.value_objects.node_position import NodePosition
+from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.definition.value_objects.purpose import Purpose
+from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
     GraphExecutionInitializedEvent,
 )
@@ -60,16 +66,14 @@ from shell.infrastructure.platform.persistence.memory import (
 )
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
         GraphDefinitionSemanticQuery,
     )
 
 
-from shell.infrastructure.definition.persistence.memory import (
-            InMemoryGraphDefinitionRepository,
-        )
+
+
+
 class _InMemoryGraphDefinitionQueryService:
     def __init__(self, unit_of_work: InMemoryUnitOfWork) -> None:
         self._repo = unit_of_work.repository(InMemoryGraphDefinitionRepository)

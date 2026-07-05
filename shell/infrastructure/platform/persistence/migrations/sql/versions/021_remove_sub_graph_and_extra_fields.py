@@ -1,6 +1,5 @@
 """Phase cleanup — remove sub-graph and extra fields that are no longer used.
 
-import sqlalchemy as sa
 Revision ID: 021
 Revises: 020
 Create Date: 2026-06-21
@@ -14,6 +13,7 @@ Create Date: 2026-06-21
 
 from __future__ import annotations
 
+import sqlalchemy as sa
 from alembic import op
 
 revision = "021"

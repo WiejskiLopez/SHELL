@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+from shell.framework.platform.cli.main import _import_task_execution
 from shell.tests.conftest_helpers import _db_url
 
 

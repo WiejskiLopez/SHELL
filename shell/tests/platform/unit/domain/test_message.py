@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+import pytest
+
 from shell.domain.platform.aggregates.message.message import Message
 from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import (
     MaterializedMetadata,

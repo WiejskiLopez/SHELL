@@ -31,7 +31,14 @@ from shell.application.execution.event_handlers.node_execution_completed_handler
 from shell.application.execution.event_handlers.node_execution_worker import (
     NodeExecutionWorker,
 )
+from shell.application.execution.event_handlers.workflow_started_attach_task_execution_handler import (
+    WorkflowStartedAttachTaskExecutionHandler,
+)
+from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
@@ -50,6 +57,9 @@ from shell.domain.execution.events import (
     TaskExecutionCreatedEvent,
     WorkflowStartedEvent,
 )
+from shell.domain.execution.services.node_execution_navigator import (
+    LinearNodeExecutionNavigator,
+)
 from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
@@ -67,18 +77,23 @@ from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
+from shell.framework.platform.api.app import create_app
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
 )
+from shell.infrastructure.execution.persistence.memory.in_memory_node_transition_execution_repository import (
+    InMemoryNodeTransitionExecutionRepository,
+)
+from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
-    FakeNodeExecutionProcessRunner,
     FakeIdGenerator,
     FakeLogger,
+    FakeNodeExecutionProcessRunner,
     InMemoryGraphExecutionRepository,
     InMemoryTaskExecutionRepository,
     InMemoryUnitOfWork,
@@ -248,10 +263,9 @@ def _build_graph_execution(
     link_repo = unit_of_work.repository(InMemoryNodeLinkExecutionRepository)
     for node in node_executions:
         unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
-        link_repo._store[
-            NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
-        ] = NodeLinkExecution(
-            id=NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}"),
+        link_id = NodeLinkExecutionId(f"{graph_execution.id.value}-{node.id.value}")
+        link_repo._store[link_id.value] = NodeLinkExecution(
+            id=link_id,
             graph_execution_id=graph_execution.id,
             node_execution_id=node.id,
         )

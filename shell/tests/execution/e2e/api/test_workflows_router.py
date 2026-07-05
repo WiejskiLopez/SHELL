@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from httpx import ASGITransport, AsyncClient
 
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
+from shell.framework.platform.api.app import create_app
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.tests.conftest_helpers import _make_app
 

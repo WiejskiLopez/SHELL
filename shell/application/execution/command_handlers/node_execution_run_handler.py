@@ -28,9 +28,9 @@ if TYPE_CHECKING:
     )
     from shell.application.platform.ports.ports import (
         Clock,
+        IdGenerator,
         NodeExecutionProcessRunner,
         NodeExecutionWorkspace,
-        IdGenerator,
         UnitOfWork,
     )
 

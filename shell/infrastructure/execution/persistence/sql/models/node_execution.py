@@ -28,6 +28,6 @@ class NodeExecutionModel(Base, VersionedMixin):
     status: Mapped[str] = mapped_column(nullable=False, default="pending")
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}

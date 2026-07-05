@@ -55,6 +55,11 @@ from shell.infrastructure.execution.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
+from shell.infrastructure.execution.persistence.sql.models import (
+    GraphExecutionModel,
+    NodeExecutionModel,
+    WorkflowModel,
+)
 from shell.infrastructure.execution.persistence.sql.repositories.sql_node_execution_repository import (
     _node_execution_entity_to_model,
     _node_execution_model_to_entity,

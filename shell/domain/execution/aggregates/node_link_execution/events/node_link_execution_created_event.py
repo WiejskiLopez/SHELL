@@ -3,6 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
+)
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
@@ -10,15 +19,6 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
-        NodeExecutionId,
-    )
-    from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
-        NodeLinkExecutionId,
-    )
 
 
 @dataclass(frozen=True, slots=True)

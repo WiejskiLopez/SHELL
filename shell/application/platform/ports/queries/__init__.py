@@ -1,7 +1,7 @@
+from shell.application.platform.ports.queries.message_query_service import MessageQueryService
 from shell.application.platform.ports.queries.node_execution_result_query_service import (
     NodeExecutionResultQueryService,
 )
-from shell.application.platform.ports.queries.message_query_service import MessageQueryService
 from shell.application.platform.ports.queries.rag_query_service import RagQueryService
 from shell.application.platform.ports.queries.runner_config_query_service import (
     RunnerConfigQueryService,

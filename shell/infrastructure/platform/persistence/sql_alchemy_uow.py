@@ -77,6 +77,9 @@ from shell.infrastructure.execution.persistence.sql.repositories import (
     SqlWorkflowStateRepository,
 )
 from shell.infrastructure.platform.context import get_causation_id, get_correlation_id
+from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
+    message_entity_to_model,
+)
 from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
 from shell.infrastructure.platform.persistence.sql.models.message.outbox_message import (
     OutboxMessageModel,
@@ -86,6 +89,12 @@ from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repo
     SqlMessageRepository,
 )
 from shell.infrastructure.platform.serialization import DomainEventSerializer
+from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
+    SqlSchedulerDefinitionRepository,
+)
+from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
+    SqlSchedulerExecutionRepository,
+)
 from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
@@ -118,13 +127,6 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
         return self._session
 
     def repository(self, repo_type: type[TRepository]) -> TRepository:
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_execution_repository import (
-            SqlSchedulerExecutionRepository,
-        )
-        from shell.infrastructure.scheduling.persistence.sql.repositories.sql_scheduler_definition_repository import (
-            SqlSchedulerDefinitionRepository,
-        )
-
         domain_to_sql: dict[type, type] = {
             TaskExecutionRepository: SqlTaskExecutionRepository,
             TaskExecutionStateRepository: SqlTaskExecutionStateRepository,
@@ -171,10 +173,6 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
             self._session = None
 
     async def commit(self) -> None:
-        from shell.infrastructure.platform.persistence.sql.mappers.message_mappers import (
-            message_entity_to_model,
-        )
-
         if self._session is None:
             return
         try:

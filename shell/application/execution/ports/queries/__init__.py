@@ -1,5 +1,3 @@
-from typing import Protocol
-
 from shell.application.execution.ports.queries.node_execution_result_query_service import (
     NodeExecutionResultQueryService,
 )
@@ -11,7 +9,6 @@ from shell.application.execution.ports.queries.workflow_query_service import Wor
 
 __all__ = [
     "NodeExecutionResultQueryService",
-    "Protocol",
     "SessionQueryService",
     "TaskExecutionQueryService",
     "WorkflowQueryService",

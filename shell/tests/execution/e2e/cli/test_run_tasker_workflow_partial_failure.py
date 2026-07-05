@@ -8,8 +8,8 @@ from shell.domain.execution.events import (
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
-    FakeNodeExecutionProcessRunner,
     FakeIdGenerator,
+    FakeNodeExecutionProcessRunner,
     InMemoryUnitOfWork,
     InMemoryWorkflowRepository,
 )

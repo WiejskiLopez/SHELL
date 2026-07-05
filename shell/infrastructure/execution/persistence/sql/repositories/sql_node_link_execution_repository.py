@@ -4,6 +4,15 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
+from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
+)
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
@@ -15,15 +24,6 @@ from shell.infrastructure.execution.persistence.sql.models import (
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
-        NodeExecutionId,
-    )
-    from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
-        NodeLinkExecution,
-    )
 
 
 class SqlNodeLinkExecutionRepository:

@@ -3,6 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
+from shell.domain.definition.value_objects.node_position import NodePosition
+from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
@@ -10,12 +16,6 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-        NodeDefinitionId,
-    )
-    from shell.domain.definition.value_objects.node_position import NodePosition
-    from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-    from shell.domain.definition.value_objects.node_type_name import NodeTypeName
 
 
 @dataclass(frozen=True, slots=True)

@@ -19,34 +19,43 @@ from shell.domain.platform.value_objects.state_data import StateData
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
+    )
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
     from shell.domain.execution.value_objects.goal import Goal
+    from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
     from shell.domain.execution.value_objects.reason import Reason
 
 
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
-            GraphExecutionFailedEvent,
-        )
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_completed_event import (
-            GraphExecutionCompletedEvent,
-        )
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
-            GraphExecutionSubGraphSpawnRequestedEvent,
-        )
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planned_event import (
-            GraphExecutionPlannedEvent,
-        )
-from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
-            GraphExecutionPlanningStartedEvent,
-        )
+    GraphExecutionCompletedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
-            GraphExecutionCreatedEvent,
-        )
+    GraphExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_failed_event import (
+    GraphExecutionFailedEvent,
+)
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
-            GraphExecutionInitializedEvent,
-        )
+    GraphExecutionInitializedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planned_event import (
+    GraphExecutionPlannedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_planning_started_event import (
+    GraphExecutionPlanningStartedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.graph_execution_sub_graph_spawn_requested_event import (
+    GraphExecutionSubGraphSpawnRequestedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution.events.node_execution_attached_event import (
+    NodeExecutionAttachedEvent,
+)
+
+
 class GraphExecution(AggregateRoot[GraphExecutionId]):
     __slots__ = (
         "_task_execution_id",
@@ -191,6 +200,25 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             )
         )
 
+    def attach_node_execution(
+        self,
+        node_definition_id: NodeDefinitionId,
+        node_execution_id: NodeExecutionId,
+        now: datetime,
+    ) -> None:
+        if self._execution_status != GraphExecutionStatus.EXECUTING:
+            raise InvalidGraphStateError(
+                f"Cannot attach node in status {self._execution_status}"
+            )
+        self.append_event(
+            NodeExecutionAttachedEvent.now(
+                graph_execution_id=self._id,
+                node_definition_id=node_definition_id,
+                node_execution_id=node_execution_id,
+                now=CreatedAt.from_datetime(now),
+            )
+        )
+
     def complete(self, verifier_result: StateData | dict[str, Any] | None, now: datetime) -> None:
         if self._execution_status != GraphExecutionStatus.VERIFYING:
             raise InvalidGraphStateError(
@@ -283,6 +311,11 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             max_subgraph_depth=max_subgraph_depth,
         )
         return instance
+
+    @staticmethod
+    def _check_all_children_settled(children_statuses: list[GraphExecutionStatus]) -> bool:
+        terminal = {GraphExecutionStatus.COMPLETED, GraphExecutionStatus.FAILED}
+        return all(s in terminal for s in children_statuses)
 
     # --- Properties ---
 

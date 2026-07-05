@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from shell.domain.platform.ports.log import Logger
-    from shell.domain.session.aggregates.session.events.event import (
+    from shell.domain.session.aggregates.session.events import (
         SessionOpenedEvent,
     )
     from shell.domain.session.ports.workflow_session_provider import (

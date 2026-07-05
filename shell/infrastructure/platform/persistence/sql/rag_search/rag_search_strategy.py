@@ -4,7 +4,7 @@ import logging
 import struct
 from typing import TYPE_CHECKING, Protocol
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.services.rag_index_service import cosine_similarity

@@ -19,17 +19,33 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
-    from shell.domain.definition.aggregates.node_definition.node_definition import (
-        NodeDefinition,
-    )
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-        NodeDefinitionId,
-    )
 
 
+from shell.domain.definition.aggregates.node_definition.node_definition import (
+    NodeDefinition,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
+from shell.domain.definition.value_objects.autopilot import Autopilot
+from shell.domain.definition.value_objects.command_text import CommandText
+from shell.domain.definition.value_objects.initial_status import InitialStatus
+from shell.domain.definition.value_objects.log_level import LogLevel
+from shell.domain.definition.value_objects.max_step import MaxStep
+from shell.domain.definition.value_objects.model_name import ModelName
+from shell.domain.definition.value_objects.no_ask_user import NoAskUser
+from shell.domain.definition.value_objects.node_position import NodePosition
+from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.definition.value_objects.retry_count import RetryCount
+from shell.domain.definition.value_objects.script_text import ScriptText
+from shell.domain.definition.value_objects.script_type_name import ScriptTypeName
 from shell.domain.definition.value_objects.transition_timeout_seconds import (
-            TransitionTimeoutSeconds,
-        )
+    TransitionTimeoutSeconds,
+)
+from shell.domain.platform.value_objects.mode import Mode
+
+
 class SqlNodeDefinitionRepository(NodeDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -132,7 +148,7 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
         model.node_type = entity.node_type.value
         model.model = entity.model.value if entity.model else None
         model.command = entity.command.value if entity.command else ""
-        model.timeout = entity.timeout.value if entity.timeout is not None else 0
+        model.timeout = entity.timeout.value if entity.timeout is not None else 0  # type: ignore[assignment]
         model.retries = entity.retries.value if entity.retries is not None else 0
         model.log_level = entity.log_level.value if entity.log_level else "INFO"
         model.max_step = entity.max_step.value if entity.max_step is not None else 0

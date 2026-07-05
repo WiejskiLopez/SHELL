@@ -4,6 +4,15 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
+from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+    NodeLinkDefinition,
+)
 from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
@@ -15,15 +24,6 @@ from shell.infrastructure.definition.persistence.sql.models import (
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-        NodeDefinitionId,
-    )
-    from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
-        NodeLinkDefinition,
-    )
 
 
 class SqlNodeLinkDefinitionRepository:

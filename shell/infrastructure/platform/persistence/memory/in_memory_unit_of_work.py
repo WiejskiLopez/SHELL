@@ -118,25 +118,34 @@ if TYPE_CHECKING:
     from shell.domain.platform.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
 
-from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
-            NodeLinkDefinitionId,
-        )
-from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
-            NodeLinkDefinition,
-        )
-from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-            NodeDefinitionId,
-        )
-from shell.domain.definition.aggregates.node_definition.node_definition import (
-            NodeDefinition,
-        )
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-            GraphDefinitionId,
-        )
-from shell.domain.definition.aggregates.graph_definition.graph_definition import (
-            GraphDefinition,
-        )
 from datetime import UTC, datetime
+
+from shell.domain.definition.aggregates.graph_definition.graph_definition import (
+    GraphDefinition,
+)
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.node_definition.node_definition import (
+    NodeDefinition,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
+from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+    NodeLinkDefinition,
+)
+from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
+    NodeLinkDefinitionId,
+)
+from shell.domain.definition.value_objects.graph_name import GraphName
+from shell.domain.definition.value_objects.node_position import NodePosition
+from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.definition.value_objects.purpose import Purpose
+from shell.domain.definition.value_objects.system_role import SystemRole
+from shell.domain.platform.value_objects.mode import Mode
+
 TRepository = TypeVar("TRepository")
 
 

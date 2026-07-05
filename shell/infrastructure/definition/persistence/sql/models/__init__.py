@@ -1,6 +1,3 @@
-from datetime import datetime
-from typing import Any
-
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,7 +20,6 @@ from shell.infrastructure.definition.persistence.sql.models.rag_document import 
 from shell.infrastructure.definition.persistence.sql.models.runner_config import RunnerConfigModel
 
 __all__ = [
-    "Any",
     "Base",
     "DeclarativeBase",
     "ForeignKey",
@@ -38,7 +34,6 @@ __all__ = [
     "RagDocumentModel",
     "RunnerConfigModel",
     "annotations",
-    "datetime",
     "mapped_column",
     "relationship",
 ]

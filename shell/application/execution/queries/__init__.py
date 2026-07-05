@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from shell.application.execution.queries.node_execution_get_result_query import (
     NodeExecutionGetResultQuery,
 )
@@ -10,5 +8,4 @@ __all__ = [
     "NodeExecutionGetResultQuery",
     "SessionGetHistoryQuery",
     "WorkflowGetByIdQuery",
-    "dataclass",
 ]

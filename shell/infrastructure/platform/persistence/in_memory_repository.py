@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import Generic, TypeVar
 
-if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 TAggregate = TypeVar("TAggregate")
 TId = TypeVar("TId")

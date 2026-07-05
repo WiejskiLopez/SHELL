@@ -20,7 +20,7 @@ from shell.domain.execution.aggregates.workflow_state.workflow_state import (
 from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution.events.event import (
+    from shell.domain.execution.aggregates.task_execution.events import (
         TaskExecutionCompletedEvent,
     )
 

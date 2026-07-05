@@ -4,6 +4,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from sqlalchemy import delete as sa_delete
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
@@ -12,6 +13,9 @@ from shell.infrastructure.definition.persistence.sql.mappers import (
     rag_document_entity_to_model,
     rag_document_model_to_entity,
     rag_document_update_model,
+)
+from shell.infrastructure.platform.persistence.sql.rag_search import (
+    InMemoryRagSearchStrategy,
 )
 
 from ..models import RagChunkModel, RagDocumentModel

@@ -18,20 +18,22 @@ if TYPE_CHECKING:
     )
 
 
-from shell.application.session.command_handlers.session_handlers import (
-            SessionCloseHandler,
-            SessionOpenHandler,
-        )
-from shell.application.execution.query_handlers.session_get_history_handler import (
-            SessionGetHistoryHandler,
-        )
-from shell.application.execution.queries.session_get_history_query import (
-            SessionGetHistoryQuery,
-        )
 from shell.application.execution.commands.session_commands import (
-            CloseSessionCommand,
-            OpenSessionCommand,
-        )
+    CloseSessionCommand,
+    OpenSessionCommand,
+)
+from shell.application.execution.queries.session_get_history_query import (
+    SessionGetHistoryQuery,
+)
+from shell.application.execution.query_handlers.session_get_history_handler import (
+    SessionGetHistoryHandler,
+)
+from shell.application.session.command_handlers.session_handlers import (
+    SessionCloseHandler,
+    SessionOpenHandler,
+)
+
+
 class TestSqlSessionRepository:
     async def test_open_close_and_history(
         self,

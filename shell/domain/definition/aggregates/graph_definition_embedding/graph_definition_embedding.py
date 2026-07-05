@@ -18,8 +18,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
-            GraphDefinitionEmbeddingCreatedEvent,
-        )
+    GraphDefinitionEmbeddingCreatedEvent,
+)
+
+
 class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     __slots__ = (
         "_graph_definition_id",

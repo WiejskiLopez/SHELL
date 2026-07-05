@@ -22,7 +22,7 @@ class GraphDefinitionModel(Base, VersionedMixin):
     purpose: Mapped[str] = mapped_column(nullable=False)
     system_role: Mapped[str | None] = mapped_column(String(50), nullable=True, unique=True)
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 

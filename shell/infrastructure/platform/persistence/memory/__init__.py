@@ -27,14 +27,14 @@ from shell.infrastructure.execution.persistence.memory.in_memory_workflow_reposi
 )
 from shell.infrastructure.platform.persistence.memory.fake_clock import FakeClock
 from shell.infrastructure.platform.persistence.memory.fake_event_publisher import FakeEventPublisher
+from shell.infrastructure.platform.persistence.memory.fake_id_generator import FakeIdGenerator
+from shell.infrastructure.platform.persistence.memory.fake_logger import FakeLogger
 from shell.infrastructure.platform.persistence.memory.fake_node_execution_process_runner import (
     FakeNodeExecutionProcessRunner,
 )
 from shell.infrastructure.platform.persistence.memory.fake_node_execution_workspace import (
     FakeNodeExecutionWorkspace,
 )
-from shell.infrastructure.platform.persistence.memory.fake_id_generator import FakeIdGenerator
-from shell.infrastructure.platform.persistence.memory.fake_logger import FakeLogger
 from shell.infrastructure.platform.persistence.memory.fake_task_loader import FakeTaskLoader
 from shell.infrastructure.platform.persistence.memory.in_memory_query_services import (
     InMemoryQueryServices,

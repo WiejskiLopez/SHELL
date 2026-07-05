@@ -30,7 +30,7 @@ class NodeLinkDefinitionModel(Base, VersionedMixin):
         nullable=False,
     )
 
-    @declared_attr
+    @declared_attr  # type: ignore[arg-type]
     def __mapper_args__(cls) -> dict[str, Any]:
         return {"version_id_col": cls.version}
 

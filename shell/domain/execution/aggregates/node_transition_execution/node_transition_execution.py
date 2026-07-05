@@ -32,21 +32,23 @@ if TYPE_CHECKING:
     from shell.domain.platform.value_objects.condition_expression import ConditionExpression
 
 
-from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_timeout_expired_event import (
-            NodeTransitionExecutionTimeoutExpiredEvent,
-        )
-from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_error_handled_event import (
-            NodeTransitionExecutionErrorHandledEvent,
-        )
 from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_condition_evaluated_event import (
-            NodeTransitionExecutionConditionEvaluatedEvent,
-        )
+    NodeTransitionExecutionConditionEvaluatedEvent,
+)
+from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_error_handled_event import (
+    NodeTransitionExecutionErrorHandledEvent,
+)
 from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_looped_event import (
-            NodeTransitionExecutionLoopedEvent,
-        )
+    NodeTransitionExecutionLoopedEvent,
+)
+from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_timeout_expired_event import (
+    NodeTransitionExecutionTimeoutExpiredEvent,
+)
 from shell.domain.execution.aggregates.node_transition_execution.events.node_transition_execution_transition_applied_event import (
-            NodeTransitionExecutionTransitionAppliedEvent,
-        )
+    NodeTransitionExecutionTransitionAppliedEvent,
+)
+
+
 class NodeTransitionExecution(AggregateRoot[NodeTransitionExecutionId]):
     __slots__ = (
         "_graph_execution_id",

@@ -17,8 +17,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
-            WorkflowStateChangedEvent,
-        )
+    WorkflowStateChangedEvent,
+)
+
+
 class WorkflowState(AggregateRoot["WorkflowStateId"]):
     __slots__ = ("_workflow_id", "_direction", "_state_data", "_created_at")
 

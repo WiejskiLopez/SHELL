@@ -4,8 +4,17 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
+    GraphDefinitionEmbedding,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories import (
     GraphDefinitionEmbeddingRepository,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
+    GraphDefinitionEmbeddingId,
 )
 from shell.domain.definition.value_objects.embedding import Embedding
 from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
@@ -17,15 +26,6 @@ from shell.infrastructure.definition.persistence.sql.models.graph_definition_emb
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
-    from shell.domain.definition.aggregates.graph_definition_embedding.graph_definition_embedding import (
-        GraphDefinitionEmbedding,
-    )
-    from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
-        GraphDefinitionEmbeddingId,
-    )
 
 
 class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):

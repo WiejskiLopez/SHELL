@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
 
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
@@ -31,14 +30,34 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.value_objects.transition_definition import (
     TransitionDefinition,
 )
+from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    GraphExecutionState,
+)
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
+from shell.domain.execution.aggregates.session_execution.session_execution import (
+    SessionExecution,
+)
+from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
+    SessionExecutionState,
+)
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
+)
+from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
+from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
+    UserExecutionState,
 )
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
     NodeExecutionResult,
 )
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
+from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
 from shell.domain.execution.value_objects.edge_type import EdgeType
 from shell.domain.execution.value_objects.execution_stderr import ExecutionStderr
@@ -92,33 +111,9 @@ from shell.infrastructure.execution.persistence.sql.models.graph_execution_state
 from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
     GraphExecutionStateOutputModel,
 )
-
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
-        GraphExecutionState,
-    )
-    from shell.domain.execution.aggregates.session_execution.session_execution import (
-        SessionExecution,
-    )
-    from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
-        SessionExecutionState,
-    )
-    from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
-    from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
-        UserExecutionState,
-    )
-    from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
+from shell.infrastructure.platform.context import get_correlation_id
 
 
-from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
-        WorkflowStateId,
-    )
-from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-        GraphExecutionStateId,
-    )
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
 def _ensure_utc(dt: datetime) -> datetime:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=UTC)

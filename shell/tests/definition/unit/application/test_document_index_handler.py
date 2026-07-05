@@ -8,6 +8,7 @@ from shell.application.definition.command_handlers.document_index_handler import
     DocumentIndexHandler,
 )
 from shell.application.definition.commands.rag_commands import IndexDocumentCommand
+from shell.domain.definition.value_objects.ids import RagDocumentId
 from shell.application.definition.queries.rag_search_similar_query import RagSearchSimilarQuery
 from shell.application.definition.query_handlers.rag_search_similar_handler import (
     RagSearchSimilarHandler,
@@ -19,10 +20,10 @@ from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 
 if TYPE_CHECKING:
     from shell.infrastructure.platform.persistence.memory import (
-        FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
-        FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
-        InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest
-        InMemoryUnitOfWork,  # noqa: TC002 — InMemoryUnitOfWork używany w sygnaturach fixture'ów pytest
+        FakeClock,
+        FakeIdGenerator,
+        InMemoryQueryServices,
+        InMemoryUnitOfWork,
     )
 
 
@@ -66,6 +67,6 @@ class TestDocumentIndexHandler:
             command
         )
         assert doc_id is not None
-        doc = await unit_of_work.repository(InMemoryRagDocumentRepository).get_by_id(doc_id)
+        doc = await unit_of_work.repository(InMemoryRagDocumentRepository).get_by_id(RagDocumentId(doc_id))
         assert doc is not None
         assert list(doc.chunks) == []

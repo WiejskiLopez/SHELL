@@ -59,6 +59,7 @@ from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
+from shell.framework.platform.api.app import create_app
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
@@ -71,9 +72,9 @@ from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
-    FakeNodeExecutionProcessRunner,
     FakeIdGenerator,
     FakeLogger,
+    FakeNodeExecutionProcessRunner,
     FakeTaskLoader,
     InMemoryGraphExecutionRepository,
     InMemoryQueryServices,
@@ -246,8 +247,6 @@ def _graph_execution(*node_executions: NodeExecution) -> GraphExecution:
         depth=GraphDepth(0),
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
-    for node in node_executions:
-        node._graph_execution_id = ge.id
     return ge
 
 
@@ -350,7 +349,6 @@ def _build_graph_execution(
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
     for node in node_executions:
-        node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
     object.__setattr__(graph_execution, "_cached_nodes", node_executions)
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
@@ -487,7 +485,6 @@ def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, no
         max_subgraph_depth=MaxSubgraphDepth(5),
     )
     for node in node_executions:
-        node._graph_execution_id = graph_execution.id
         unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
     unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
         graph_execution

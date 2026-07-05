@@ -8,6 +8,12 @@ from shell.domain.execution.events import TaskExecutionCreatedEvent, WorkflowSta
 from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.infrastructure.platform.context import (
+    reset_causation_id,
+    reset_correlation_id,
+    set_causation_id,
+    set_correlation_id,
+)
 from shell.infrastructure.platform.messaging.memory_outbox_store import InMemoryOutboxStore
 
 # ---------------------------------------------------------------------------

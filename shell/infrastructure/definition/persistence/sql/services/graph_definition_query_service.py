@@ -5,7 +5,7 @@ import math
 import struct
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.dto.node_definition import NodeDefinitionDto

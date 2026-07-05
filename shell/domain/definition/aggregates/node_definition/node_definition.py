@@ -31,8 +31,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.definition.aggregates.node_definition.events.node_definition_created_event import (
-            NodeDefinitionCreatedEvent,
-        )
+    NodeDefinitionCreatedEvent,
+)
+
+
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):
     __slots__ = (
         "_position",

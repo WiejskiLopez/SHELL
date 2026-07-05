@@ -23,12 +23,14 @@ if TYPE_CHECKING:
     )
 
 
-from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
-            NodeLinkExecutionId,
-        )
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
-            NodeLinkExecution,
-        )
+    NodeLinkExecution,
+)
+from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
+)
+
+
 class NodeExecutionInitializedHandler:
     def __init__(
         self,
@@ -68,7 +70,7 @@ class NodeExecutionInitializedHandler:
             payload={
                 "graph_execution_id": saga.graph_execution_id,
             },
-            occurred_at=now.isoformat(),
+            occurred_at=now,
         )
 
         self._logger.info(

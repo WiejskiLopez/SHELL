@@ -42,11 +42,7 @@ def _get_imports(path: pathlib.Path) -> list[str]:
     return imports
 
 
-_KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset(
-    {
-        "domain/execution/services/sub_graph_execution_service.py: imports 'shell.application.platform.ports.unit_of_work'",
-    }
-)
+_KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset({})
 
 _KNOWN_APP_VIOLATIONS: frozenset[str] = frozenset({})
 

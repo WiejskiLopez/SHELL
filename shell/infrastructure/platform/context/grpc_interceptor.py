@@ -6,6 +6,7 @@ The current stub provides the structural skeleton.
 
 from __future__ import annotations
 
+import dataclasses
 from typing import Any
 
 from shell.application.platform.context.correlation_id import get_correlation_id

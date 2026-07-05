@@ -20,8 +20,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
-            GraphDefinitionCreatedEvent,
-        )
+    GraphDefinitionCreatedEvent,
+)
+
+
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     __slots__ = (
         "_name",

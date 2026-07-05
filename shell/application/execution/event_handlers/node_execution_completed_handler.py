@@ -43,8 +43,8 @@ from shell.domain.execution.events import (
     NodeExecutionFailedEvent,
 )
 from shell.domain.execution.services.node_execution_navigator import (
-    NodeExecutionNavigator,
     LinearNodeExecutionNavigator,
+    NodeExecutionNavigator,
 )
 from shell.domain.execution.services.node_execution_policy import (
     AbortDecision,

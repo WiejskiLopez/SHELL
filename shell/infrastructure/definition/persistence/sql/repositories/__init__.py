@@ -7,8 +7,10 @@ from shell.infrastructure.definition.persistence.sql.repositories.sql_graph_defi
     select,
     selectinload,
 )
-from shell.infrastructure.definition.persistence.sql.repositories.sql_node_definition_repository import (
+from shell.infrastructure.definition.persistence.sql.models.node_definition import (
     NodeDefinitionModel,
+)
+from shell.infrastructure.definition.persistence.sql.repositories.sql_node_definition_repository import (
     SqlNodeDefinitionRepository,
 )
 from shell.infrastructure.definition.persistence.sql.repositories.sql_node_transition_definition_repository import (

@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.events.event import (
+    from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionCompletedEvent,
     )
 

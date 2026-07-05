@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.config.seed.dev_data import seed_dev_data
 from shell.infrastructure.platform.persistence.sql import (
     reset_database,
     run_migrations,

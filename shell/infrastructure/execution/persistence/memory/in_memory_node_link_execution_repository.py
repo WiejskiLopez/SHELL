@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.node_link_execution.node_link_execution i
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
+from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 
 class InMemoryNodeLinkExecutionRepository(

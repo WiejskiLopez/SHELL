@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import pathlib
 import sys
 from typing import TYPE_CHECKING, Any  # Dodano import Any
 
@@ -12,18 +13,21 @@ from shell.bootstrap.platform.config_logging.setup_logging import setup_logging
 from shell.framework.platform.cli.parser import build_parser
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-
-if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+
 # Map of mode-name → default runner root dir (relative to this file if available).
-from shell.application.execution.commands.task_execution_commands import (
-        ImportTaskExecutionCommand,
-    )
 from shell.application.execution.commands.node_execution_commands import (
-        RunNodeExecutionCommand,
-    )
+    RunNodeExecutionCommand,
+)
+from shell.application.execution.commands.task_execution_commands import (
+    ImportTaskExecutionCommand,
+)
+from shell.framework.execution.orchestration.sync_workflow_runner import (
+    SyncWorkflowRunner,
+)
+
 _MODE_RUNNER_ROOTS: dict[str, str] = {
     "agent": "agent",
     "planner": "planner",
@@ -35,6 +39,10 @@ _MODE_RUNNER_ROOTS: dict[str, str] = {
 
 
 def _get_config() -> ShellConfig:
+    from shell.infrastructure.platform.configuration.shell_config import (
+        ShellConfig,  # noqa: TC002 -- lazy, avoid circular/arch violation
+    )
+
     config = ShellConfig.from_environment()
     config.max_step = _get_max_step()
     return config

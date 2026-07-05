@@ -30,13 +30,20 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
     NodeLinkDefinitionId,
 )
 from shell.domain.definition.value_objects.graph_name import GraphName
+from shell.domain.definition.value_objects.node_position import NodePosition
+from shell.domain.definition.value_objects.node_role_name import NodeRoleName
+from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.definition.value_objects.purpose import Purpose
+from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_initialized_event import (
     GraphExecutionInitializedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
 from shell.domain.execution.events import TaskExecutionCreatedEvent
+from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     NodeExecutionDefinition,
@@ -50,6 +57,9 @@ from shell.infrastructure.definition.persistence.memory.in_memory_node_link_defi
 )
 from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
+)
+from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+    InMemoryNodeLinkExecutionRepository,
 )
 from shell.infrastructure.platform.persistence.memory import (
     FakeClock,
@@ -69,6 +79,9 @@ from shell.process.execution.graph_execution_saga.handlers.graph_execution_initi
 from shell.process.execution.graph_execution_saga.handlers.node_execution_initialized_handler import (
     NodeExecutionInitializedHandler,
 )
+from shell.process.execution.graph_execution_saga.ports.graph_definition_node_provider import (
+    NodeDefinitionData,
+)
 from shell.process.execution.graph_execution_saga.state import (
     GraphExecutionSagaStatus,
 )
@@ -80,10 +93,38 @@ from shell.tests.process.conftest import (
     FakeLogger as ProcessFakeLogger,
 )
 
-from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
-            InMemoryNodeLinkExecutionRepository,
-        )
 NOW = datetime.now(tz=UTC)
+
+
+class _InMemoryGraphDefinitionNodeProvider:
+    """Test adapter for GraphDefinitionNodeProvider — wraps InMemory repos."""
+
+    def __init__(
+        self,
+        node_def_repo: InMemoryNodeDefinitionRepository,
+        link_def_repo: InMemoryNodeLinkDefinitionRepository,
+    ) -> None:
+        self._node_def_repo = node_def_repo
+        self._link_def_repo = link_def_repo
+
+    async def get_node_definitions(self, graph_definition_id: str) -> list[NodeDefinitionData]:
+        links = await self._link_def_repo.list_by_graph_definition_id(
+            GraphDefinitionId(graph_definition_id)
+        )
+        result: list[NodeDefinitionData] = []
+        for link in links:
+            node = await self._node_def_repo.get_by_id(link.node_definition_id)
+            if node is not None:
+                result.append(
+                    NodeDefinitionData(
+                        node_id=node.id.value,
+                        position=node.position.value,
+                        role=node.role.value,
+                        mode=node.mode.value,
+                        node_type=node.node_type.value,
+                    )
+                )
+        return result
 
 
 class _InMemoryDefinitionProvider:
@@ -114,7 +155,7 @@ class _InMemoryDefinitionProvider:
             return None
         return await self._to_dto(entity)
 
-    async def _to_dto(self, entity: object) -> GraphExecutionDefinition:
+    async def _to_dto(self, entity: GraphDefinition) -> GraphExecutionDefinition:
         graph_definition: GraphDefinition = entity
         links = await self._link_repo.list_by_graph_definition_id(graph_definition.id)
         nodes: list[NodeDefinition] = []
@@ -133,7 +174,7 @@ class _InMemoryDefinitionProvider:
                     node_type=node.node_type.value,
                     model=node.model.value if node.model else "",
                     command=node.command.value if node.command else "",
-                    timeout=node.timeout.value if node.timeout else 0,
+                    timeout=node.timeout.value if node.timeout else 0,  # type: ignore[arg-type]
                     retries=node.retries.value if node.retries else 0,
                     log_level=node.log_level.value if node.log_level else "INFO",
                     max_step=node.max_step.value if node.max_step else None,
@@ -259,12 +300,15 @@ class TestSagaFlowBuildToReady:
         link_def_repo = unit_of_work.repository(InMemoryNodeLinkDefinitionRepository)
         node_def_repo = unit_of_work.repository(InMemoryNodeDefinitionRepository)
 
+        node_provider = _InMemoryGraphDefinitionNodeProvider(
+            node_def_repo=node_def_repo,
+            link_def_repo=link_def_repo,
+        )
         saga_handler = GraphExecutionInitializedHandler(
             saga_manager=saga,
             command_publisher=publisher,
+            definition_node_provider=node_provider,
             logger=process_logger,
-            link_definition_repository=link_def_repo,
-            node_definition_repository=node_def_repo,
         )
         await saga_handler.handle(initialized_event)
 
@@ -387,12 +431,15 @@ class TestSagaFlowBuildToReady:
         link_def_repo = unit_of_work.repository(InMemoryNodeLinkDefinitionRepository)
         node_def_repo = unit_of_work.repository(InMemoryNodeDefinitionRepository)
 
+        node_provider = _InMemoryGraphDefinitionNodeProvider(
+            node_def_repo=node_def_repo,
+            link_def_repo=link_def_repo,
+        )
         saga_handler = GraphExecutionInitializedHandler(
             saga_manager=saga,
             command_publisher=publisher,
+            definition_node_provider=node_provider,
             logger=FakeLogger(),
-            link_definition_repository=link_def_repo,
-            node_definition_repository=node_def_repo,
         )
         await saga_handler.handle(initialized_event)
 

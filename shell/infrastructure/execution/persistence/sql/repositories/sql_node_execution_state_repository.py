@@ -13,7 +13,9 @@ from shell.domain.execution.aggregates.node_execution_state.node_execution_state
 from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
     NodeExecutionStateRepository,
 )
+from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.exists_result import ExistsResult
+from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
     NodeExecutionStateModel,
@@ -24,8 +26,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
-            NodeExecutionStateId,
-        )
+    NodeExecutionStateId,
+)
+
+
 class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session

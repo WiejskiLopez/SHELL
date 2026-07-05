@@ -1,5 +1,3 @@
-from dataclasses import dataclass
-
 from shell.application.execution.commands.attach_node_executions_command import (
     AttachNodeExecutionsCommand,
 )
@@ -12,5 +10,4 @@ __all__ = [
     "AttachNodeExecutionsCommand",
     "CreateNodeExecutionCommand",
     "ImportTaskExecutionCommand",
-    "dataclass",
 ]

@@ -12,7 +12,9 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 )
 from shell.domain.execution.value_objects.ids import NodeExecutionId
 from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
 from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.persistence.sql.models.node_execution import (
     NodeExecutionModel,
 )
@@ -30,8 +32,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.execution.value_objects.node_execution_status import (
-        NodeExecutionStatus,
-    )
+    NodeExecutionStatus,
+)
+
+
 class SqlNodeExecutionRepository(NodeExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session

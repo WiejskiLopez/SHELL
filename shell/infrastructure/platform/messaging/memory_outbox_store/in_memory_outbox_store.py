@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import uuid
 from typing import TYPE_CHECKING
 
 from shell.infrastructure.platform.context import get_causation_id, get_correlation_id

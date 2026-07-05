@@ -16,6 +16,9 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.events import NodeExecutionInitializedEvent
 from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+    InMemoryNodeLinkExecutionRepository,
+)
 from shell.process.execution.graph_execution_saga.graph_execution_saga import (
     GraphExecutionSaga,
 )
@@ -29,11 +32,6 @@ if TYPE_CHECKING:
         FakeLogger,
         InMemoryGraphExecutionSagaRepository,
     )
-
-
-from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
-            InMemoryNodeLinkExecutionRepository,
-        )
 class FakeClock:
     def now(self) -> datetime:
         return datetime.now(tz=UTC)

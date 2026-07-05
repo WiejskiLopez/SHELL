@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
 
+from shell.domain.execution.value_objects.ids import (
+    NodeExecutionId,
+    TaskExecutionId,
+    WorkflowId,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
-from shell.domain.execution.value_objects.ids import (
-            NodeExecutionId,
-            TaskExecutionId,
-            WorkflowId,
-        )
 logger = logging.getLogger(__name__)
 
 

@@ -14,7 +14,7 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.workflow.events.event import (
+    from shell.domain.execution.aggregates.workflow.events import (
         WorkflowStartedEvent,
     )
 

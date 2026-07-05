@@ -18,15 +18,19 @@ if TYPE_CHECKING:
     )
 
 
-from shell.application.definition.query_handlers.rag_search_similar_handler import (
-            RagSearchSimilarHandler,
-        )
-from shell.application.definition.queries.rag_search_similar_query import (
-            RagSearchSimilarQuery,
-        )
 from shell.application.definition.command_handlers.document_index_handler import (
-            DocumentIndexHandler as IndexDocumentHandler,
-        )
+    DocumentIndexHandler as IndexDocumentHandler,
+)
+from shell.application.definition.commands.rag_commands import IndexDocumentCommand
+from shell.application.definition.queries.rag_search_similar_query import (
+    RagSearchSimilarQuery,
+)
+from shell.application.definition.query_handlers.rag_search_similar_handler import (
+    RagSearchSimilarHandler,
+)
+from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
+
+
 class TestSqlRagDocumentRepository:
     async def test_index_and_search_similar(
         self,

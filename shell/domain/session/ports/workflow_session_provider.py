@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 
 class WorkflowSessionProvider(Protocol):
@@ -14,5 +14,5 @@ class WorkflowSessionProvider(Protocol):
         session_id: str,
         user_id: str,
         project_id: str,
-        payload: dict,
+        payload: dict[str, Any],
     ) -> None: ...

@@ -3,6 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Self
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+    NodeDefinitionId,
+)
+from shell.domain.definition.aggregates.node_transition_definition.value_objects.node_transition_definition_id import (
+    NodeTransitionDefinitionId,
+)
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.edge_type import EdgeType
@@ -11,15 +20,6 @@ from shell.domain.platform.value_objects.schema_version import SchemaVersion
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-        NodeDefinitionId,
-    )
-    from shell.domain.definition.aggregates.node_transition_definition.value_objects.node_transition_definition_id import (
-        NodeTransitionDefinitionId,
-    )
 
 
 @dataclass(frozen=True, slots=True)

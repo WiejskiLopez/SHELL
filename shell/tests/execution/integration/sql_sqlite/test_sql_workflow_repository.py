@@ -95,6 +95,7 @@ class TestSqlWorkflowRepository:
             )
             await u.repository(GraphExecutionRepository).save(graph_execution)  # type: ignore[type-abstract]
             await u.repository(NodeExecutionRepository).save(node)  # type: ignore[type-abstract]
+            assert u._session is not None
             u._session.add(link_model)
             await u.commit()
 

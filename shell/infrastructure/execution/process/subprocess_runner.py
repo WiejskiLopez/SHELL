@@ -9,6 +9,10 @@ import sys
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.value_objects.execution_result import ExecutionResult
+from shell.infrastructure.execution.process.command_builder import (
+    build_agent_command,
+    build_sub_node_command,
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.value_objects.manifest import Manifest

@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from sqlalchemy import select
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import make_url, select, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
+
+from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 __all__ = [
     "build_session_factory",
@@ -118,6 +125,7 @@ def _seed_sync(sync_conn) -> None:
     from shell.infrastructure.definition.persistence.sql.models import (
         GraphDefinitionModel,
         NodeDefinitionModel,
+        NodeLinkDefinitionModel,
     )
 
     session = Session(sync_conn)
@@ -136,33 +144,39 @@ def _seed_sync(sync_conn) -> None:
         session.add(graph_definition_model)
         session.flush()
 
-    node_exists = session.execute(
-        select(NodeDefinitionModel).where(
-            NodeDefinitionModel.graph_definition_id == graph_definition_model.id
+    link = session.execute(
+        select(NodeLinkDefinitionModel).where(
+            NodeLinkDefinitionModel.graph_definition_id == graph_definition_model.id
         )
     ).scalar_one_or_none()
 
-    if node_exists is None:
-        session.add(
-            NodeDefinitionModel(
-                id="base-planner-node-1",
-                graph_definition_id=graph_definition_model.id,
-                position=0,
-                mode="agent",
-                role="agent",
-                node_type="agent",
-                model="",
-                command="",
-                timeout=0,
-                retries=0,
-                log_level="INFO",
-                max_step=None,
-                no_ask_user=False,
-                autopilot=False,
-                status_initial="",
-                script="",
-                script_type="",
-            )
+    if link is None:
+        node = NodeDefinitionModel(
+            id="base-planner-node-1",
+            position=0,
+            mode="agent",
+            role="agent",
+            node_type="agent",
+            model="",
+            command="",
+            timeout=0,
+            retries=0,
+            log_level="INFO",
+            max_step=None,
+            no_ask_user=False,
+            autopilot=False,
+            status_initial="",
+            script="",
+            script_type="",
         )
+        session.add(node)
+        session.flush()
+
+        link = NodeLinkDefinitionModel(
+            id="base-planner-link-1",
+            graph_definition_id=graph_definition_model.id,
+            node_definition_id=node.id,
+        )
+        session.add(link)
 
     session.commit()

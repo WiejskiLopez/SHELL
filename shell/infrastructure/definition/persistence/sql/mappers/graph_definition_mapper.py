@@ -2,17 +2,20 @@ from __future__ import annotations
 
 from shell.application.definition.dto.graph_definition import GraphDefinitionDto
 from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
+from shell.domain.definition.value_objects.graph_name import GraphName
 from shell.domain.definition.value_objects.ids import (
     NodeTransitionDefinitionId,
 )
+from shell.domain.definition.value_objects.purpose import Purpose
+from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.infrastructure.definition.persistence.sql.models import (
     GraphDefinitionModel,
 )
 
 
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-        GraphDefinitionId,
-    )
 def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitionDto:
     return GraphDefinitionDto(
         id=model.id,

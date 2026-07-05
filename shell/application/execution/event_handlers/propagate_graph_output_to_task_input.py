@@ -20,7 +20,7 @@ from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.events.event import (
+    from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionCompletedEvent,
     )
 

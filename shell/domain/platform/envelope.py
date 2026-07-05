@@ -7,6 +7,7 @@ po stronie odbiorcy. Nie posiada własnej tabeli, repozytorium, eventów.
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 

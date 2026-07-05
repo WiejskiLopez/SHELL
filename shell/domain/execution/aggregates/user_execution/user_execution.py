@@ -15,8 +15,10 @@ if TYPE_CHECKING:
 
 
 from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
-            UserExecutionCreatedEvent,
-        )
+    UserExecutionCreatedEvent,
+)
+
+
 class UserExecution(AggregateRoot[UserExecutionId]):
     __slots__ = (
         "_user_id",

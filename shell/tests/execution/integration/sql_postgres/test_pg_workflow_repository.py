@@ -13,6 +13,7 @@ from shell.application.execution.query_handlers.workflow_get_by_id_handler impor
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
+from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.infrastructure.execution.persistence.sql.services import WorkflowQueryService
 from shell.infrastructure.platform.persistence.memory import FakeLogger
 

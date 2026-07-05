@@ -25,24 +25,26 @@ if TYPE_CHECKING:
     from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
 
 
-from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-            TaskExecutionCreatedEvent,
-        )
-from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
-            TaskExecutionExhaustedEvent,
-        )
-from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
-            TaskExecutionTimeoutExpiredEvent,
-        )
-from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
-            TaskExecutionFailedEvent,
-        )
 from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
-            TaskExecutionCompletedEvent,
-        )
+    TaskExecutionCompletedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+    TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
+    TaskExecutionExhaustedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
+    TaskExecutionFailedEvent,
+)
 from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
-            TaskExecutionStartedEvent,
-        )
+    TaskExecutionStartedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
+    TaskExecutionTimeoutExpiredEvent,
+)
+
+
 class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
         "_workflow_id",

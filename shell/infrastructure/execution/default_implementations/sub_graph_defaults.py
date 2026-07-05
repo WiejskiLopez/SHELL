@@ -37,12 +37,14 @@ if TYPE_CHECKING:
 # ── Policy ───────────────────────────────────────────────────────────────────
 
 
+from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+    GraphDefinitionId,
+)
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-                GraphDefinitionRepository,
-            )
-from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-            GraphDefinitionRepository,
-        )
+    GraphDefinitionRepository,
+)
+
+
 class DefaultSubGraphExecutionPolicy(SubGraphExecutionPolicy):
     """Default policy: no retry, abort on timeout/failure, no depth limit."""
 

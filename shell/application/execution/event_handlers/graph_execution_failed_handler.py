@@ -25,7 +25,7 @@ from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.events.event import (
+    from shell.domain.execution.aggregates.graph_execution.events import (
         GraphExecutionFailedEvent,
     )
 
@@ -74,7 +74,7 @@ class GraphExecutionFailedHandler:
                 return
 
             now = self._clock.now()
-            if task_execution.current_cycle >= task_execution.max_planning_cycles:
+            if task_execution.current_cycle.value >= task_execution.max_planning_cycles.value:
                 task_execution.exhaust(now)
                 await unit_of_work.repository(TaskExecutionRepository).save(task_execution)
                 unit_of_work.stage_events(task_execution.pull_events())

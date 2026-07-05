@@ -14,8 +14,8 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
-    NodeExecutionRepository,
+from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
+    NodeLinkExecutionRepository,
 )
 from shell.domain.execution.value_objects.graph_definition_id import GraphDefinitionIdRef
 from shell.domain.execution.value_objects.node_role import NodeRole
@@ -55,23 +55,25 @@ class PlannerResultHandler:
             return
 
         async with self._unit_of_work as unit_of_work:
-            node = await unit_of_work.repository(NodeExecutionRepository).get_by_id(
+            links = await unit_of_work.repository(
+                NodeLinkExecutionRepository
+            ).list_by_node_execution_id(
                 node_execution_completed_event.node_id
             )
-            if node is None or node.graph_execution_id is None:
+            if not links:
                 self._logger.warning(
-                    "planner_result_handler.node_not_found",
+                    "planner_result_handler.node_link_not_found",
                     node_id=node_execution_completed_event.node_id.value,
                 )
                 return
 
             graph_execution = await unit_of_work.repository(GraphExecutionRepository).get_by_id(
-                node.graph_execution_id
+                links[0].graph_execution_id
             )
             if graph_execution is None:
                 self._logger.warning(
                     "planner_result_handler.graph_not_found",
-                    graph_execution_id=node.graph_execution_id.value,
+                    graph_execution_id=links[0].graph_execution_id.value,
                 )
                 return
 

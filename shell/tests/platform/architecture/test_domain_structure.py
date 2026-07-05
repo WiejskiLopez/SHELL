@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import ast
+import re
 
 from _arch_helpers import (
     BASE,
@@ -496,11 +497,7 @@ def _is_copy_pattern(node: ast.AST) -> bool:
 # ── 13. Domain Service is stateless ────────────────────────────────
 
 
-_KNOWN_SVC_STATEFUL: frozenset[str] = frozenset(
-    {
-        "domain/execution/services/sub_graph_execution_service.py: class SubGraphExecutionService has state: ['_clock', '_definition_provider', '_governance', '_id_generator', '_logger', '_observer', '_security', '_unit_of_work', '_versioning']",
-    }
-)
+_KNOWN_SVC_STATEFUL: frozenset[str] = frozenset({})
 
 
 def test_domain_services_are_stateless() -> None:

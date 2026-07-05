@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from shell.framework.platform.cli.parser import parse_args
+
 
 class TestCliParser:
     def test_parser_defaults(self) -> None:

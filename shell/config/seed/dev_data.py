@@ -1,56 +1,5 @@
 """Dev seed data — comprehensive test data for local development.
 
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
-        SchedulerExecutionModel,
-    )
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
-        SchedulerDefinitionModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
-        NodeTransitionExecutionModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
-        NodeLinkExecutionModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
-        NodeExecutionStateModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.node_execution_result import (
-        NodeExecutionResultModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.node_execution import (
-        NodeExecutionModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
-        GraphExecutionStateOutputModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
-        GraphExecutionStateInputModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
-        GraphExecutionModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.task_execution_state import (
-        TaskExecutionStateModel,
-    )
-from shell.infrastructure.execution.persistence.sql.models.task_execution import (
-        TaskExecutionModel,
-    )
-from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
-        NodeTransitionDefinitionModel,
-    )
-from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
-        NodeLinkDefinitionModel,
-    )
-from shell.infrastructure.definition.persistence.sql.models.node_definition import (
-        NodeDefinitionModel,
-    )
-from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
-        GraphDefinitionModel,
-    )
-from shell.infrastructure.definition.persistence.sql.models.runner_config import (
-        RunnerConfigModel,
-    )
 Creates realistic sample RunnerConfigs, GraphDefinitions (with nodes
 and transitions), TaskExecutions, Workflows, Envelopes, Results, and Schedulers.
 
@@ -64,10 +13,11 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
-    from sqlalchemy.orm import Session
+
 
 _DEV_ID_PREFIX = "dev"
 
@@ -85,7 +35,7 @@ async def seed_dev_data(url: str) -> None:
 
 
 def _seed_dev_sync(sync_conn: Connection) -> None:
-    session = Session(sync_conn)
+    session = Session(bind=sync_conn)
 
     _seed_runner_configs(session)
     _seed_graph_definitions(session)
@@ -102,6 +52,10 @@ def _seed_dev_sync(sync_conn: Connection) -> None:
 
 
 def _seed_runner_configs(session: Session) -> None:
+    from shell.infrastructure.definition.persistence.sql.models.runner_config import (
+        RunnerConfigModel,
+    )
+
     configs = [
         RunnerConfigModel(
             id=f"{_DEV_ID_PREFIX}-runner-python",
@@ -147,6 +101,19 @@ def _seed_runner_configs(session: Session) -> None:
 
 
 def _seed_graph_definitions(session: Session) -> None:
+    from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
+        GraphDefinitionModel,
+    )
+    from shell.infrastructure.definition.persistence.sql.models.node_definition import (
+        NodeDefinitionModel,
+    )
+    from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
+        NodeLinkDefinitionModel,
+    )
+    from shell.infrastructure.definition.persistence.sql.models.node_transition_definition import (
+        NodeTransitionDefinitionModel,
+    )
+
     # ── Graph 1: Simple Agent ────────────────────────────────────────────────
     g1 = GraphDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-graph-simple-agent",
@@ -401,6 +368,13 @@ def _seed_graph_definitions(session: Session) -> None:
 
 
 def _seed_task_executions(session: Session) -> None:
+    from shell.infrastructure.execution.persistence.sql.models.task_execution import (
+        TaskExecutionModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.task_execution_state import (
+        TaskExecutionStateModel,
+    )
+
     tasks: list[dict[str, Any]] = [
         {
             "model": TaskExecutionModel(
@@ -488,6 +462,32 @@ def _seed_task_executions(session: Session) -> None:
 
 
 def _seed_workflow_scenario(session: Session) -> None:
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
+        GraphExecutionModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+        GraphExecutionStateInputModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+        GraphExecutionStateOutputModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+        NodeExecutionModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.node_execution_result import (
+        NodeExecutionResultModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
+        NodeExecutionStateModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
+        NodeLinkExecutionModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.node_transition_execution import (
+        NodeTransitionExecutionModel,
+    )
+    from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
+
     WF_ID = f"{_DEV_ID_PREFIX}-workflow-1"
     existing = session.execute(
         select(WorkflowModel).where(WorkflowModel.id == WF_ID)
@@ -622,6 +622,13 @@ def _seed_workflow_scenario(session: Session) -> None:
 
 
 def _seed_scheduler(session: Session) -> None:
+    from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
+        SchedulerDefinitionModel,
+    )
+    from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
+        SchedulerExecutionModel,
+    )
+
     sched_def_id = f"{_DEV_ID_PREFIX}-scheduler-outbox-relay"
 
     # -- SchedulerDefinition --
