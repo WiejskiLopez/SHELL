@@ -26,16 +26,17 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
     ) -> GraphExecutionState | None:
         versions = self._store.get(graph_execution_id.value, [])
         for state in reversed(versions):
-            if state.is_current and state.direction == direction:
+            if state.direction == direction:
                 return state
         return None
 
     async def save(self, state: GraphExecutionState) -> None:
         if state.graph_execution_id.value not in self._store:
             self._store[state.graph_execution_id.value] = []
-        if state.is_current:
-            for existing in self._store[state.graph_execution_id.value]:
-                existing.supersede()
+        self._store[state.graph_execution_id.value] = [
+            s for s in self._store[state.graph_execution_id.value]
+            if s.direction != state.direction
+        ]
         self._store[state.graph_execution_id.value].append(state)
 
     async def delete(self, id: object) -> None:

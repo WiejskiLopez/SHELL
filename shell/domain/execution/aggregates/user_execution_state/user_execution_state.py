@@ -21,14 +21,12 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         "_user_execution_id",
         "_direction",
         "_state_data",
-        "_is_current",
         "_created_at",
     )
 
     _user_execution_id: UserExecutionId
     _direction: StateDirection
     _state_data: StateData
-    _is_current: bool
     _created_at: CreatedAt
 
     def __init__(
@@ -36,7 +34,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         id: UserExecutionStateId,
         user_execution_id: UserExecutionId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
@@ -44,7 +41,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         self._user_execution_id = user_execution_id
         self._direction = direction
         self._state_data = state_data or StateData({})
-        self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
 
@@ -54,7 +50,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         id: UserExecutionStateId,
         user_execution_id: UserExecutionId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
@@ -63,7 +58,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
             user_execution_id=user_execution_id,
             direction=direction,
             state_data=state_data,
-            is_current=is_current,
             created_at=created_at,
         )
 
@@ -78,10 +72,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     @property
     def state_data(self) -> StateData:
         return self._state_data
-
-    @property
-    def is_current(self) -> bool:
-        return self._is_current
 
     @property
     def created_at(self) -> CreatedAt:
@@ -102,9 +92,6 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
             user_execution_id=user_execution_id,
             direction=direction,
             state_data=state_data or StateData({}),
-            is_current=True,
             created_at=now,
         )
 
-    def supersede(self) -> None:
-        self._is_current = False

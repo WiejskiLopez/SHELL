@@ -12,7 +12,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.domain.execution.value_objects.goal import Goal
     from shell.domain.execution.value_objects.graph_depth import GraphDepth
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -21,8 +20,7 @@ if TYPE_CHECKING:
 class GraphExecutionCreatedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId
     task_execution_id: TaskExecutionId
-    goal: Goal
-    depth: GraphDepth
+    depth: GraphDepth | None = None
     parent_graph_execution_id: GraphExecutionId | None = None
 
     @classmethod
@@ -31,8 +29,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         now: CreatedAt,
-        goal: Goal,
-        depth: GraphDepth,
+        depth: GraphDepth | None = None,
         parent_graph_execution_id: GraphExecutionId | None = None,
     ) -> GraphExecutionCreatedEvent:
         return cls(
@@ -40,6 +37,5 @@ class GraphExecutionCreatedEvent(DomainEvent):
             graph_execution_id=graph_execution_id,
             task_execution_id=task_execution_id,
             parent_graph_execution_id=parent_graph_execution_id,
-            goal=goal,
             depth=depth,
         )

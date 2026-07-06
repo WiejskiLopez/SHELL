@@ -36,14 +36,12 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         "_graph_execution_id",
         "_direction",
         "_state_data",
-        "_is_current",
         "_created_at",
     )
 
     _graph_execution_id: GraphExecutionId
     _direction: StateDirection
     _state_data: StateData
-    _is_current: bool
     _created_at: CreatedAt
 
     def __init__(
@@ -51,7 +49,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> None:
@@ -59,7 +56,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self._graph_execution_id = graph_execution_id
         self._direction = direction
         self._state_data = state_data or StateData({})
-        self._is_current = is_current
         if created_at is not None:
             self._created_at = created_at
 
@@ -69,7 +65,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
     ) -> Self:
@@ -78,7 +73,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             graph_execution_id=graph_execution_id,
             direction=direction,
             state_data=state_data,
-            is_current=is_current,
             created_at=created_at,
         )
 
@@ -95,10 +89,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     @property
     def state_data(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
-
-    @property
-    def is_current(self) -> bool:
-        return self._is_current
 
     @property
     def created_at(self) -> CreatedAt:
@@ -120,7 +110,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             graph_execution_id=graph_execution_id,
             direction=direction,
             state_data=StateData({}),
-            is_current=True,
             created_at=now,
         )
 
@@ -188,5 +177,4 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def snapshot(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
 
-    def supersede(self) -> None:
-        self._is_current = False
+

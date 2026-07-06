@@ -48,11 +48,11 @@ _KNOWN_APP_VIOLATIONS: frozenset[str] = frozenset({})
 
 _KNOWN_FRAMEWORK_BOOTSTRAP: frozenset[str] = frozenset(
     {
-        "framework/definition/api/routers/definitions/router.py",
+        "framework/definition/graph_definition/api/router.py",
         "framework/platform/api/dependencies.py",
-        "framework/project/api/routers/projects/router.py",
-        "framework/session/api/routers/sessions/router.py",
-        "framework/user/api/routers/users/router.py",
+        "framework/project/project/api/router.py",
+        "framework/session/session/api/router.py",
+        "framework/user/user/api/router.py",
         "framework/platform/api/app.py",
         "framework/platform/cli/main.py",
         "framework/execution/api/routers/envelopes.py",

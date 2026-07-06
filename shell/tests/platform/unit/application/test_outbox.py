@@ -7,13 +7,10 @@ from datetime import UTC, datetime
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
-    WorkflowStartedEvent,
-)
-from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.context import (
     reset_causation_id,
@@ -31,15 +28,7 @@ from shell.infrastructure.platform.messaging.memory_outbox_store import InMemory
 def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
-        task_execution_name=TaskExecutionName('test'),
-        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-    )
-
-
-def _workflow_started() -> WorkflowStartedEvent:
-    return WorkflowStartedEvent.now(
-        workflow_id=WorkflowId.generate(),
-        task_execution_id=TaskExecutionId("task-id-t1"),
+        task_execution_name=TaskExecutionName("test"),
         now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
@@ -52,7 +41,7 @@ def _workflow_started() -> WorkflowStartedEvent:
 class TestInMemoryOutboxStore:
     async def test_publish_adds_records(self) -> None:
         store = InMemoryOutboxStore()
-        await store.publish([_task_imported(), _workflow_started()])
+        await store.publish([_task_imported(), _task_imported()])
         assert len(store.records) == 2
 
     async def test_pending_returns_unpublished(self) -> None:

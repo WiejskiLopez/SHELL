@@ -8,9 +8,6 @@ from shell.domain.definition.aggregates.graph_definition.events.graph_definition
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.purpose import Purpose
-from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -19,86 +16,35 @@ if TYPE_CHECKING:
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
-    __slots__ = (
-        "_name",
-        "_purpose",
-        "_system_role",
-    )
+    __slots__ = ()
 
     def __init__(
         self,
         id: GraphDefinitionId,
-        name: GraphName,
-        purpose: Purpose,
-        system_role: SystemRole | None = None,
     ) -> None:
         super().__init__(id)
-        self._name = name if isinstance(name, GraphName) else GraphName(name)
-        self._purpose = purpose if isinstance(purpose, Purpose) else Purpose(purpose)
-        self._system_role = (
-            system_role
-            if isinstance(system_role, SystemRole)
-            else SystemRole(system_role)
-            if system_role is not None
-            else None
-        )
 
     @classmethod
     def restore(
         cls,
         id: GraphDefinitionId,
-        name: GraphName,
-        purpose: Purpose,
-        system_role: SystemRole | None = None,
     ) -> GraphDefinition:
-        return cls(
-            id=id,
-            name=name,
-            purpose=purpose,
-            system_role=system_role,
-        )
+        return cls(id=id)
 
     @classmethod
     def create(
         cls,
         id: GraphDefinitionId,
-        name: GraphName,
-        purpose: Purpose,
-        system_role: SystemRole | None = None,
         now: datetime | None = None,
     ) -> GraphDefinition:
-        if not name.value.strip():
-            raise ValueError("GraphDefinition name cannot be empty")
-        if not purpose.value.strip():
-            raise ValueError("GraphDefinition purpose cannot be empty")
-
-        instance = cls(
-            id=id,
-            name=name,
-            purpose=purpose,
-            system_role=system_role,
-        )
+        instance = cls(id=id)
 
         if now is not None:
             instance.append_event(
                 GraphDefinitionCreatedEvent.now(
                     graph_definition_id=id,
-                    name=name,
-                    purpose=purpose,
                     now=CreatedAt.from_datetime(now),
                 )
             )
 
         return instance
-
-    @property
-    def name(self) -> GraphName:
-        return self._name
-
-    @property
-    def purpose(self) -> Purpose:
-        return self._purpose
-
-    @property
-    def system_role(self) -> SystemRole | None:
-        return self._system_role

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pathlib
 
-from shell.infrastructure.execution.filesystem.workspace import Workspace
+from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
 
 
 class TestWorkspace:

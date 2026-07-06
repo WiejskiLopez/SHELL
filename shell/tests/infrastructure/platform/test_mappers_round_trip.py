@@ -1,9 +1,9 @@
 """Round-trip tests for SQL ORM model <-> domain entity mappers.
 
-from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
             NodeExecutionModel,
         )
-from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
+from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
             GraphExecutionModel,
         )
 Verifies each bidirectional mapper by creating an entity, mapping to a
@@ -19,19 +19,12 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.max_subgraph_depth import (
-    MaxSubgraphDepth,
-)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
@@ -39,8 +32,14 @@ from shell.domain.execution.value_objects.ids import (
     TaskExecutionId,
     WorkflowId,
 )
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
+from shell.domain.execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.value_objects.node_role import NodeRole
+from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
@@ -49,6 +48,10 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
+    _node_execution_entity_to_model,
+    _node_execution_model_to_entity,
+)
 from shell.infrastructure.execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
@@ -61,10 +64,6 @@ from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     NodeExecutionModel,
     WorkflowModel,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_node_execution_repository import (
-    _node_execution_entity_to_model,
-    _node_execution_model_to_entity,
 )
 from shell.infrastructure.session.persistence.sql.mappers import (
     session_entity_to_model,
@@ -261,7 +260,6 @@ class TestSessionMapper:
             id=SessionId("sess-1"),
             user_id=UserIdRef("user-1"),
             project_id=ProjectIdRef("proj-1"),
-            environment=Environment(os="linux", runtime="3.12", cwd="/home"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
         )
@@ -275,7 +273,6 @@ class TestSessionMapper:
             id=SessionId("sess-2"),
             user_id=UserIdRef("user-2"),
             project_id=ProjectIdRef("proj-2"),
-            environment=Environment(os="mac", runtime="3.13", cwd="/Users"),
             status=SessionStatus.CLOSED,
             opened_at=CreatedAt.from_datetime(_NOW),
             closed_at=UpdatedAt.from_datetime(_NOW),
@@ -290,7 +287,6 @@ class TestSessionMapper:
             id=SessionId("sess-3"),
             user_id=UserIdRef("user-3"),
             project_id=ProjectIdRef("proj-3"),
-            environment=Environment(os="linux", runtime="3.12", cwd="/"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
         )

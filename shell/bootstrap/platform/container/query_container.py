@@ -6,25 +6,25 @@ from typing import TYPE_CHECKING, Protocol
 
 from dependency_injector import containers, providers
 
-from shell.application.definition.query_handlers.rag_search_similar_handler import (
+from shell.application.definition.rag_document.query_handlers.rag_search_similar_handler import (
     RagSearchSimilarHandler,
 )
-from shell.application.definition.query_handlers.runner_config_get_handler import (
+from shell.application.definition.runner_config.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler,
 )
-from shell.application.execution.query_handlers.node_execution_get_result_handler import (
+from shell.application.execution.node_execution.query_handlers.node_execution_get_result_handler import (
     NodeExecutionGetResultHandler,
 )
-from shell.application.execution.query_handlers.session_get_history_handler import (
+from shell.application.execution.session_execution.query_handlers.session_get_history_handler import (
     SessionGetHistoryHandler,
 )
-from shell.application.execution.query_handlers.task_execution_get_by_name_handler import (
+from shell.application.execution.task_execution.query_handlers.task_execution_get_by_name_handler import (
     TaskExecutionGetByNameHandler,
 )
-from shell.application.execution.query_handlers.task_execution_get_current_handler import (
+from shell.application.execution.task_execution.query_handlers.task_execution_get_current_handler import (
     TaskExecutionGetCurrentHandler,
 )
-from shell.application.execution.query_handlers.workflow_get_by_id_handler import (
+from shell.application.execution.workflow.query_handlers.workflow_get_by_id_handler import (
     WorkflowGetByIdHandler,
 )
 

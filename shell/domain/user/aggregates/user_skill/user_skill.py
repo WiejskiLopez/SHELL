@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
 )
@@ -13,6 +11,8 @@ from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.user.value_objects.user_id import UserId
 
 

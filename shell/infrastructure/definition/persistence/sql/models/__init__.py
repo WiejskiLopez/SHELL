@@ -1,20 +1,26 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from shell.infrastructure.definition.persistence.sql.models._compat import JSON, JSONB, annotations
-from shell.infrastructure.definition.persistence.sql.models.base import Base, DeclarativeBase
-from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
+from shell.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (
     GraphDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.node_definition import (
+from shell.infrastructure.definition.node_definition.persistence.sql.models.node_definition import (
     NodeDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
+from shell.infrastructure.definition.node_link_definition.persistence.sql.models.node_link_definition import (
     NodeLinkDefinitionModel,
 )
-from shell.infrastructure.definition.persistence.sql.models.rag_chunk import RagChunkModel
-from shell.infrastructure.definition.persistence.sql.models.rag_document import RagDocumentModel
-from shell.infrastructure.definition.persistence.sql.models.runner_config import RunnerConfigModel
+from shell.infrastructure.definition.persistence.sql.models._compat import JSON, JSONB, annotations
+from shell.infrastructure.definition.persistence.sql.models.base import Base, DeclarativeBase
+from shell.infrastructure.definition.rag_document.persistence.sql.models.rag_chunk import (
+    RagChunkModel,
+)
+from shell.infrastructure.definition.rag_document.persistence.sql.models.rag_document import (
+    RagDocumentModel,
+)
+from shell.infrastructure.definition.runner_config.persistence.sql.models.runner_config import (
+    RunnerConfigModel,
+)
 
 __all__ = [
     "Base",
@@ -23,7 +29,7 @@ __all__ = [
     "GraphDefinitionModel",
     "NodeDefinitionModel",
     "NodeLinkDefinitionModel",
-        "JSON",
+    "JSON",
     "JSONB",
     "Mapped",
     "RagChunkModel",

@@ -11,7 +11,7 @@ from shell.domain.definition.value_objects.ids.runner_config_id import RunnerCon
 __all__ = [
     "GraphDefinitionId",
     "NodeDefinitionId",
-        "RagChunkId",
+    "RagChunkId",
     "RagDocumentId",
     "RunnerConfigId",
 ]

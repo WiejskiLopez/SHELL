@@ -1,4 +1,4 @@
-from shell.infrastructure.session.persistence.sql.repositories.sql_session_repository import (
+from shell.infrastructure.session.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
 

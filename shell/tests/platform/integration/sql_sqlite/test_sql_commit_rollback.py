@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.definition.queries.runner_config_get_query import (
+from shell.application.definition.runner_config.queries.runner_config_get_query import (
     RunnerConfigGetQuery as GetRunnerConfigQuery,
 )
-from shell.application.definition.query_handlers.runner_config_get_handler import (
+from shell.application.definition.runner_config.query_handlers.runner_config_get_handler import (
     RunnerConfigGetHandler as GetRunnerConfigHandler,
 )
 from shell.domain.definition.entities.runner_config import RunnerConfig
@@ -18,7 +18,7 @@ from shell.domain.definition.value_objects.runner_body import RunnerBody
 from shell.domain.definition.value_objects.runner_kind import RunnerKind
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.hash import Hash
-from shell.infrastructure.definition.persistence.sql.services.runner_config_query_service import (
+from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
@@ -36,7 +36,7 @@ class TestSqlCommitRollback:
         clock: FakeClock,
         id_generator: FakeIdGenerator,
     ) -> None:
-        sql_uow = SqlAlchemyUnitOfWork(session_factory)  # type: ignore[abstract]
+        sql_uow = SqlAlchemyUnitOfWork(session_factory)
         try:
             async with sql_uow as u:
                 await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]

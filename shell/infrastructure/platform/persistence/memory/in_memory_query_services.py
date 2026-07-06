@@ -2,42 +2,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.definition.dto.rag_chunk import RagChunkDto
-from shell.application.definition.dto.runner_config import RunnerConfigDto
-from shell.application.execution.dto.node_execution import NodeExecutionDto
-from shell.application.execution.dto.task_execution import TaskExecutionDto
-from shell.application.execution.dto.workflow import WorkflowDto
-from shell.application.session.dto.session import SessionDto
-from shell.domain.definition.value_objects.chunk_index import ChunkIndex
-from shell.domain.definition.value_objects.domain_tag import DomainTag
-from shell.domain.definition.value_objects.embedding import Embedding
-from shell.domain.definition.value_objects.package_name import PackageName
-from shell.domain.execution.value_objects.task_execution_name import (
-    TaskExecutionName,
-)
+from shell.application.execution.node_execution.dto.node_execution import NodeExecutionDto
+from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
+from shell.application.execution.workflow.dto.workflow import WorkflowDto
+from shell.application.session.session.dto.session import SessionDto
 from shell.domain.execution.value_objects.ids import (
     WorkflowId,
 )
+from shell.domain.execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
-    InMemoryRagDocumentRepository,
-)
-from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
-    InMemoryRunnerConfigRepository,
-)
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+from shell.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+from shell.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+from shell.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
+from shell.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
+from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
 
@@ -101,21 +89,6 @@ class InMemoryQueryServices:
             created_at=workflow.created_at.value,
         )
 
-    async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None:
-        runner_config = await self._unit_of_work.repository(
-            InMemoryRunnerConfigRepository
-        ).get_by_package(PackageName(package_name))
-        if not runner_config:
-            return None
-        return RunnerConfigDto(
-            id=str(runner_config.id),
-            package_name=runner_config.package_name.value,
-            kind=runner_config.kind.value,
-            hash=str(runner_config.hash),
-            body=dict(runner_config.body.value),
-            created_at=runner_config.created_at.value,
-        )
-
     async def get_session_history(self, session_id: str) -> SessionDto | None:
         session = await self._unit_of_work.repository(InMemorySessionRepository).get_by_id(
             SessionId(session_id)
@@ -130,23 +103,3 @@ class InMemoryQueryServices:
             opened_at=session.opened_at.value,
             closed_at=session.closed_at.value if session.closed_at else None,
         )
-
-    async def search_similar(
-        self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
-    ) -> list[RagChunkDto]:
-        chunks = await self._unit_of_work.repository(InMemoryRagDocumentRepository).search_similar(
-            Embedding(query_embedding), ChunkIndex(top_k), DomainTag(domain) if domain else None
-        )
-        return [
-            RagChunkDto(
-                chunk_id=chunk.id.value,
-                document_id=chunk.document_id.value,
-                chunk_index=chunk.chunk_index.value,
-                chunk_text=chunk.chunk_text.value,
-                source_uri="",
-                title="",
-                domain=domain or "",
-                score=1.0,
-            )
-            for chunk in chunks
-        ]

@@ -8,20 +8,8 @@ if TYPE_CHECKING:
 
     from shell.domain.platform.events import DomainEvent
 
-from shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event import (
-    NodeExecutionTimeoutExpiredEvent,
-)
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_completed_event import (
-    WorkflowCompletedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_failed_event import (
-    WorkflowFailedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
-    WorkflowStartedEvent,
 )
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
@@ -32,10 +20,6 @@ class EventDeserializer:
     def __init__(self) -> None:
         self._registry: dict[str, type[DomainEvent]] = {
             "TaskExecutionCreated": TaskExecutionCreatedEvent,
-            "WorkflowStarted": WorkflowStartedEvent,
-            "WorkflowCompleted": WorkflowCompletedEvent,
-            "WorkflowFailed": WorkflowFailedEvent,
-            "NodeExecutionTimedOut": NodeExecutionTimeoutExpiredEvent,
         }
         self._serializer = DomainEventSerializer()
 

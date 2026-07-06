@@ -21,9 +21,7 @@ class NodeDefinitionExecutionSlot(ValueObject):
     def is_filled(self) -> bool:
         return self.node_execution_id is not None
 
-    def with_execution(
-        self, execution_id: NodeExecutionId
-    ) -> NodeDefinitionExecutionSlot:
+    def with_execution(self, execution_id: NodeExecutionId) -> NodeDefinitionExecutionSlot:
         return NodeDefinitionExecutionSlot(
             node_definition_id=self.node_definition_id,
             node_execution_id=execution_id,

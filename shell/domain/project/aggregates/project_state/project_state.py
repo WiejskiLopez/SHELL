@@ -23,13 +23,9 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
 )
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
+    from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.project.value_objects.project_id import ProjectId
-
-
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 
 class ProjectState(AggregateRoot[ProjectStateId]):
@@ -37,7 +33,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         "_project_id",
         "_direction",
         "_state_data",
-        "_is_current",
         "_created_at",
         "_updated_at",
         "_deleted_at",
@@ -46,7 +41,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
     _project_id: ProjectId
     _direction: StateDirection
     _state_data: StateData
-    _is_current: bool
 
     def __init__(
         self,
@@ -54,7 +48,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         id: ProjectStateId,
         project_id: ProjectId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: UpdatedAt | None = None,
@@ -64,7 +57,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self._project_id = project_id
         self._direction = direction
         self._state_data = state_data or StateData({})
-        self._is_current = is_current
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
@@ -76,7 +68,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         id: ProjectStateId,
         project_id: ProjectId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: UpdatedAt | None = None,
@@ -87,7 +78,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
             project_id=project_id,
             direction=direction,
             state_data=state_data,
-            is_current=is_current,
             created_at=created_at,
             updated_at=updated_at,
             deleted_at=deleted_at,
@@ -106,10 +96,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
     @property
     def state_data(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
-
-    @property
-    def is_current(self) -> bool:
-        return self._is_current
 
     @property
     def created_at(self) -> CreatedAt | None:
@@ -140,7 +126,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
             project_id=project_id,
             direction=direction,
             state_data=StateData({}),
-            is_current=True,
             created_at=actual_now,
         )
 
@@ -206,5 +191,3 @@ class ProjectState(AggregateRoot[ProjectStateId]):
     def snapshot(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
 
-    def supersede(self) -> None:
-        self._is_current = False

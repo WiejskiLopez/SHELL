@@ -11,11 +11,9 @@ from shell.domain.project.value_objects.project_skill_data import ProjectSkillDa
 from shell.domain.project.value_objects.project_skill_id import ProjectSkillId
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.project.value_objects.project_id import ProjectId
-
-
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 
 class ProjectSkill(AggregateRoot[ProjectSkillId]):

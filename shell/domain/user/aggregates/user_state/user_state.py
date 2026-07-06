@@ -21,13 +21,9 @@ from shell.domain.user.aggregates.user_state.events.user_state_changed_event imp
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
+    from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.user.value_objects.user_id import UserId
-
-
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 
 class UserState(AggregateRoot[UserStateId]):
@@ -35,7 +31,6 @@ class UserState(AggregateRoot[UserStateId]):
         "_user_id",
         "_direction",
         "_state_data",
-        "_is_current",
         "_created_at",
         "_updated_at",
         "_deleted_at",
@@ -44,7 +39,6 @@ class UserState(AggregateRoot[UserStateId]):
     _user_id: UserId
     _direction: StateDirection
     _state_data: StateData
-    _is_current: bool
 
     def __init__(
         self,
@@ -52,7 +46,6 @@ class UserState(AggregateRoot[UserStateId]):
         id: UserStateId,
         user_id: UserId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: UpdatedAt | None = None,
@@ -62,7 +55,6 @@ class UserState(AggregateRoot[UserStateId]):
         self._user_id = user_id
         self._direction = direction
         self._state_data = state_data or StateData({})
-        self._is_current = is_current
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
@@ -74,7 +66,6 @@ class UserState(AggregateRoot[UserStateId]):
         id: UserStateId,
         user_id: UserId,
         direction: StateDirection,
-        is_current: bool,
         state_data: StateData | None = None,
         created_at: CreatedAt | None = None,
         updated_at: UpdatedAt | None = None,
@@ -85,7 +76,6 @@ class UserState(AggregateRoot[UserStateId]):
             user_id=user_id,
             direction=direction,
             state_data=state_data,
-            is_current=is_current,
             created_at=created_at,
             updated_at=updated_at,
             deleted_at=deleted_at,
@@ -104,10 +94,6 @@ class UserState(AggregateRoot[UserStateId]):
     @property
     def state_data(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
-
-    @property
-    def is_current(self) -> bool:
-        return self._is_current
 
     @property
     def created_at(self) -> CreatedAt | None:
@@ -138,7 +124,6 @@ class UserState(AggregateRoot[UserStateId]):
             user_id=user_id,
             direction=direction,
             state_data=StateData({}),
-            is_current=True,
             created_at=actual_now,
         )
 
@@ -204,5 +189,3 @@ class UserState(AggregateRoot[UserStateId]):
     def snapshot(self) -> dict[str, Any]:
         return self._state_data.to_dict().copy()
 
-    def supersede(self) -> None:
-        self._is_current = False

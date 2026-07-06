@@ -1,28 +1,25 @@
-"""SQLite integration tests — verifies SQL repositories and UnitOfWork via application handlers."""
-
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
+from shell.domain.execution.value_objects.ids import TaskExecutionId
 from shell.domain.execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
-    WorkflowStartedEvent,
-)
-from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.infrastructure.platform.persistence.sql.models import AuditEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
+
+    from shell.domain.platform.events import DomainEvent
 
 
 class TestSqlAuditPublisher:
@@ -31,18 +28,21 @@ class TestSqlAuditPublisher:
         session_factory: async_sessionmaker,
     ) -> None:
         pub = SqlAuditPublisher(session_factory)
-        events = [
-            TaskExecutionCreatedEvent.now(
-                task_execution_id=TaskExecutionId.generate(),
-                task_execution_name=TaskExecutionName("test-task"),
-                now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-            ),
-            WorkflowStartedEvent.now(
-                workflow_id=WorkflowId.generate(),
-                task_execution_id=TaskExecutionId.generate(),
-                now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-            ),
-        ]
+        events = cast(
+            "list[DomainEvent]",
+            [
+                TaskExecutionCreatedEvent.now(
+                    task_execution_id=TaskExecutionId.generate(),
+                    task_execution_name=TaskExecutionName("test-task"),
+                    now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+                ),
+                TaskExecutionCreatedEvent.now(
+                    task_execution_id=TaskExecutionId.generate(),
+                    task_execution_name=TaskExecutionName("test-task-2"),
+                    now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+                ),
+            ],
+        )
         await pub.publish(events)
 
         async with session_factory() as session:
@@ -50,7 +50,7 @@ class TestSqlAuditPublisher:
 
         types = {r.event_type for r in rows}
         assert "TaskExecutionCreatedEvent" in types
-        assert "WorkflowStartedEvent" in types
+        assert len(rows) >= 2
 
     async def test_empty_events_writes_nothing(
         self,

@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.project.value_objects.project_id import ProjectId
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ProjectStateChangedEvent(DomainEvent):
     project_id: ProjectId

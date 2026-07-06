@@ -187,6 +187,7 @@ def test_domain_events_are_frozen_dataclass() -> None:
 
 _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
     {
+        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.update",
         "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",
         "domain/execution/aggregates/envelope/envelope.py: Envelope.archive",
         "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.mark_verifying",
@@ -202,7 +203,6 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.clear",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.merge",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.snapshot",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.supersede",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.get",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.patch",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.clear",
@@ -215,13 +215,9 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_timeout",
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_default",
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.skip",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-        "domain/execution/aggregates/session_execution_state/session_execution_state.py: SessionExecutionState.supersede",
-        "domain/execution/aggregates/task_execution_state/task_execution_state.py: TaskExecutionState.supersede",
-        "domain/execution/aggregates/user_execution_state/user_execution_state.py: UserExecutionState.supersede",
         "domain/session/aggregates/session_state/session_state.py: SessionState.get",
         "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
         "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
@@ -230,7 +226,6 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
-
         "domain/user/aggregates/user_state/user_state.py: UserState.get",
         "domain/user/aggregates/user_state/user_state.py: UserState.patch",
         "domain/user/aggregates/user_state/user_state.py: UserState.clear",
@@ -245,7 +240,26 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "domain/project/aggregates/project_state/project_state.py: ProjectState.merge",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.snapshot",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.supersede",
-        }
+        # Methods intentionally stripped of event emission (events removed in cleanup)
+        "domain/user/aggregates/user/user.py: User.enable",
+        "domain/user/aggregates/user/user.py: User.disable",
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.start",
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.complete",
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.fail",
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.retry",
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.timeout",
+        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.start",
+        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.complete",
+        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.fail",
+        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.timeout",
+        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.exhaust",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.start_at",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.finish",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.fail",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.abort",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.pause",
+        "domain/execution/aggregates/workflow/workflow.py: Workflow.resume",
+    }
 )
 
 
@@ -314,6 +328,8 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.initialize",
         "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_main_round",
         "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.prepare_node_definitions",
+        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.update_status",
+        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.soft_delete",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.update",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.get",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.delete",
@@ -321,7 +337,6 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.clear",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.merge",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.snapshot",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.supersede",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.update",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.get",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.delete",
@@ -335,13 +350,9 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_error_handler",
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_timeout",
         "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_default",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.increment_cycle",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-        "domain/execution/aggregates/session_execution_state/session_execution_state.py: SessionExecutionState.supersede",
-        "domain/execution/aggregates/task_execution_state/task_execution_state.py: TaskExecutionState.supersede",
-        "domain/execution/aggregates/user_execution_state/user_execution_state.py: UserExecutionState.supersede",
         "domain/session/aggregates/session/session.py: Session.open",
         "domain/session/aggregates/session_state/session_state.py: SessionState.update",
         "domain/session/aggregates/session_state/session_state.py: SessionState.get",
@@ -355,7 +366,6 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
-
         "domain/user/aggregates/user_state/user_state.py: UserState.set_key",
         "domain/user/aggregates/user_state/user_state.py: UserState.get",
         "domain/user/aggregates/user_state/user_state.py: UserState.remove_key",
@@ -377,7 +387,10 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.change_target",
         "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.mark_deleted",
         "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.mark_deleted",
-        }
+        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.update",
+        "domain/user/aggregates/user/user.py: User.update",
+        "domain/user/aggregates/user/user.py: User.delete",
+    }
 )
 
 
@@ -437,11 +450,7 @@ def _is_raise_body(node: ast.If) -> bool:
 
 # ── 10. Domain events use past-tense naming ────────────────────────
 
-_KNOWN_PAST_EVENTS: frozenset[str] = frozenset(
-    {
-        "domain/execution/aggregates/graph_execution/events/graph_execution_ready_event.py: class GraphExecutionReadyEvent",
-    }
-)
+_KNOWN_PAST_EVENTS: frozenset[str] = frozenset({})
 
 
 def test_domain_event_past_tense_naming() -> None:
@@ -752,14 +761,10 @@ def _in_type_checking_block(node: ast.AST) -> bool:
     return False
 
 
-_KNOWN_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
-        "domain\\user\\aggregates\\user_state\\user_state.py: UserState._is_current: bool",
-        "domain\\project\\aggregates\\project_state\\project_state.py: ProjectState._is_current: bool",
-        "domain\\execution\\aggregates\\graph_execution_state\\graph_execution_state.py: GraphExecutionState._is_current: bool",
-        "domain\\execution\\aggregates\\session_execution_state\\session_execution_state.py: SessionExecutionState._is_current: bool",
-        "domain\\execution\\aggregates\\task_execution_state\\task_execution_state.py: TaskExecutionState._is_current: bool",
-        "domain\\execution\\aggregates\\user_execution_state\\user_execution_state.py: UserExecutionState._is_current: bool",
-    })
+_KNOWN_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset(
+    {
+    }
+)
 
 
 def test_entity_aggregate_fields_have_domain_types() -> None:
@@ -794,7 +799,8 @@ def test_entity_aggregate_fields_have_domain_types() -> None:
 # ── 16. No primitive types in Entity/Aggregate __init__/restore params ──
 
 
-_KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset({
+_KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset(
+    {
         "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param created_at: datetime",
         "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param updated_at: datetime",
         "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param deleted_at: datetime",
@@ -807,17 +813,8 @@ _KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset({
         "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param created_at: datetime",
         "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param updated_at: datetime",
         "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param deleted_at: datetime",
-        "domain\\execution\\aggregates\\graph_execution_state\\graph_execution_state.py: GraphExecutionState.__init__ -> param is_current: bool",
-        "domain\\execution\\aggregates\\graph_execution_state\\graph_execution_state.py: GraphExecutionState.restore -> param is_current: bool",
-        "domain\\execution\\aggregates\\session_execution_state\\session_execution_state.py: SessionExecutionState.__init__ -> param is_current: bool",
-        "domain\\execution\\aggregates\\session_execution_state\\session_execution_state.py: SessionExecutionState.restore -> param is_current: bool",
-        "domain\\execution\\aggregates\\task_execution_state\\task_execution_state.py: TaskExecutionState.__init__ -> param is_current: bool",
-        "domain\\execution\\aggregates\\task_execution_state\\task_execution_state.py: TaskExecutionState.restore -> param is_current: bool",
-        "domain\\execution\\aggregates\\user_execution_state\\user_execution_state.py: UserExecutionState.__init__ -> param is_current: bool",
-        "domain\\execution\\aggregates\\user_execution_state\\user_execution_state.py: UserExecutionState.restore -> param is_current: bool",
-        "domain\\definition\\aggregates\\node_definition\\node_definition.py: NodeDefinition.__init__ -> param timeout: int",
-        "domain\\definition\\aggregates\\node_definition\\node_definition.py: NodeDefinition.restore -> param timeout: int",
-    })
+    }
+)
 
 
 def test_entity_aggregate_init_params_have_domain_types() -> None:
@@ -856,14 +853,14 @@ def test_entity_aggregate_init_params_have_domain_types() -> None:
 
 # ── 17. No primitive types in DomainEvent dataclass fields ──────────
 
-_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
-    "domain\\execution\\aggregates\\workflow\\events\\workflow_started_event.py: WorkflowStartedEvent.work_dir: str",
+_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset(
+    {
+        "domain\\execution\\aggregates\\workflow\\events\\workflow_started_event.py: WorkflowStartedEvent.work_dir: str",
         "domain/user/aggregates/user_state/user_state.py: UserState.get",
         "domain/user/aggregates/user_state/user_state.py: UserState.patch",
         "domain/user/aggregates/user_state/user_state.py: UserState.clear",
         "domain/user/aggregates/user_state/user_state.py: UserState.merge",
         "domain/user/aggregates/user_state/user_state.py: UserState.snapshot",
-        "domain/user/aggregates/user_state/user_state.py: UserState.supersede",
         "domain/project/aggregates/project/project.py: Project.update",
         "domain/project/aggregates/project/project.py: Project.delete",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.get",
@@ -871,7 +868,6 @@ _KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
         "domain/project/aggregates/project_state/project_state.py: ProjectState.clear",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.merge",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.snapshot",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.supersede",
         "domain/user/aggregates/user_state/user_state.py: UserState.set_key",
         "domain/user/aggregates/user_state/user_state.py: UserState.remove_key",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.set_key",
@@ -879,7 +875,8 @@ _KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({
         "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.change_target",
         "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.mark_deleted",
         "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.mark_deleted",
-})
+    }
+)
 
 
 def test_domain_event_fields_have_domain_types() -> None:

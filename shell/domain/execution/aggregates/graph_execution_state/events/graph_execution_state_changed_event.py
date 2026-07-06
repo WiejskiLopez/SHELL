@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.platform.value_objects.state_direction import StateDirection
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class GraphExecutionStateChangedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId

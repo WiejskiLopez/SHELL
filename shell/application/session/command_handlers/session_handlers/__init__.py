@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from shell.application.session.command_handlers.session_handlers.session_close_handler import (
+from shell.application.session.session.command_handlers.session_close_handler import (
     SessionCloseHandler,
 )
-from shell.application.session.command_handlers.session_handlers.session_not_found import (
-    SessionNotFound,
-)
-from shell.application.session.command_handlers.session_handlers.session_open_handler import (
+from shell.application.session.session.command_handlers.session_open_handler import (
     SessionOpenHandler,
+)
+from shell.application.session.session.exceptions.session_not_found import (
+    SessionNotFound,
 )
 
 __all__ = [

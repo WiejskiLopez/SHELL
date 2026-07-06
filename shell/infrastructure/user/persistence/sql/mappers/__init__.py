@@ -15,12 +15,12 @@ from shell.domain.user.aggregates.user_state.user_state import UserState
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
-from shell.domain.user.value_objects.user_code import UserCode
+from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
-from shell.infrastructure.user.persistence.sql.models.user import UserModel
-from shell.infrastructure.user.persistence.sql.models.user_skill import UserSkillModel
-from shell.infrastructure.user.persistence.sql.models.user_state import UserStateModel
+from shell.infrastructure.user.user.persistence.sql.models.user import UserModel
+from shell.infrastructure.user.user_skill.persistence.sql.models.user_skill import UserSkillModel
+from shell.infrastructure.user.user_state.persistence.sql.models.user_state import UserStateModel
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -35,7 +35,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 def user_model_to_entity(model: UserModel) -> User:
     return User.restore(
         id=UserId(model.id),
-        code=UserCode(model.code),
+        email=UserEmail(model.email),
         status=UserStatus(model.status),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
@@ -50,7 +50,7 @@ def user_model_to_entity(model: UserModel) -> User:
 def user_entity_to_model(entity: User) -> UserModel:
     return UserModel(
         id=entity.id.value,
-        code=entity.code.value,
+        email=entity.email.value,
         status=entity.status.value,
         created_at=entity.created_at.value if entity.created_at else None,
         updated_at=entity.updated_at.value if entity.updated_at else None,
@@ -59,7 +59,7 @@ def user_entity_to_model(entity: User) -> UserModel:
 
 
 def user_update_model(model: UserModel, entity: User) -> None:
-    model.code = entity.code.value
+    model.email = entity.email.value
     model.status = entity.status.value
     assert entity.created_at is not None
     model.created_at = entity.created_at.value
@@ -96,7 +96,6 @@ def user_state_model_to_entity(model: UserStateModel) -> UserState:
         id=UserStateId(model.id),
         user_id=UserId(model.user_id),
         direction=StateDirection(model.direction),
-        is_current=bool(model.is_current),
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
@@ -108,6 +107,5 @@ def user_state_entity_to_model(entity: UserState) -> UserStateModel:
         user_id=entity.user_id.value,
         direction=entity.direction.value,
         state_data=entity.snapshot(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )

@@ -4,12 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.definition.dto.runner_config import RunnerConfigDto
-from shell.application.execution.dto.node_execution_result import NodeExecutionResultDto
-from shell.application.execution.dto.task_execution import TaskExecutionDto
-from shell.application.execution.dto.task_execution_state import TaskExecutionStateDto
-from shell.application.execution.dto.workflow import WorkflowDto
-from shell.application.execution.dto.workflow_state import WorkflowStateDto
+from shell.application.definition.runner_config.dto.runner_config import RunnerConfigDto
+from shell.application.execution.node_execution.dto.node_execution_result import (
+    NodeExecutionResultDto,
+)
+from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
+from shell.application.execution.task_execution.dto.task_execution_state import (
+    TaskExecutionStateDto,
+)
+from shell.application.execution.workflow.dto.workflow import WorkflowDto
+from shell.application.execution.workflow.dto.workflow_state import WorkflowStateDto
 
 if TYPE_CHECKING:
     from shell.domain.definition.entities.runner_config import RunnerConfig
@@ -74,7 +78,6 @@ def task_execution_state_to_dto(
         task_execution_id=entity.task_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 
@@ -87,6 +90,5 @@ def workflow_state_to_dto(
         workflow_id=entity.workflow_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=True,
         created_at=entity.created_at.value,
     )

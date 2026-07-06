@@ -56,52 +56,52 @@ from shell.domain.platform.aggregates.message.repositories.message_repository im
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_embedding_repository import (
-    InMemoryGraphDefinitionEmbeddingRepository,
-)
-from shell.infrastructure.definition.persistence.memory.in_memory_graph_definition_repository import (
+from shell.infrastructure.definition.graph_definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_node_definition_repository import (
+from shell.infrastructure.definition.graph_definition_embedding.persistence.memory.in_memory_graph_definition_embedding_repository import (
+    InMemoryGraphDefinitionEmbeddingRepository,
+)
+from shell.infrastructure.definition.node_definition.persistence.memory.in_memory_node_definition_repository import (
     InMemoryNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_node_link_definition_repository import (
+from shell.infrastructure.definition.node_link_definition.persistence.memory.in_memory_node_link_definition_repository import (
     InMemoryNodeLinkDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_rag_document_repository import (
+from shell.infrastructure.definition.rag_document.persistence.memory.in_memory_rag_document_repository import (
     InMemoryRagDocumentRepository,
 )
-from shell.infrastructure.definition.persistence.memory.in_memory_runner_config_repository import (
+from shell.infrastructure.definition.runner_config.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_edge_execution_repository import (
+from shell.infrastructure.execution.edge_execution.persistence.memory.in_memory_edge_execution_repository import (
     InMemoryEdgeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_edge_link_execution_repository import (
+from shell.infrastructure.execution.edge_link_execution.persistence.memory.in_memory_edge_link_execution_repository import (
     InMemoryEdgeLinkExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_graph_execution_repository import (
+from shell.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
+from shell.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_state_repository import (
+from shell.infrastructure.execution.node_execution_state.persistence.memory.in_memory_node_execution_state_repository import (
     InMemoryNodeExecutionStateRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_node_link_execution_repository import (
+from shell.infrastructure.execution.node_link_execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_repository import (
+from shell.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_task_execution_state_repository import (
+from shell.infrastructure.execution.task_execution_state.persistence.memory.in_memory_task_execution_state_repository import (
     InMemoryTaskExecutionStateRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_workflow_repository import (
+from shell.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.execution.persistence.memory.in_memory_workflow_state_repository import (
+from shell.infrastructure.execution.workflow_state.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
 )
 from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_state_input_repository import (
@@ -110,7 +110,7 @@ from shell.infrastructure.platform.persistence.memory.in_memory_graph_execution_
 from shell.infrastructure.platform.persistence.memory.in_memory_message_repository import (
     InMemoryMessageRepository,
 )
-from shell.infrastructure.session.persistence.memory.in_memory_session_repository import (
+from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
 
@@ -138,12 +138,8 @@ from shell.domain.definition.aggregates.node_link_definition.node_link_definitio
 from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
-from shell.domain.definition.value_objects.graph_name import GraphName
-from shell.domain.definition.value_objects.node_position import NodePosition
 from shell.domain.definition.value_objects.node_role_name import NodeRoleName
 from shell.domain.definition.value_objects.node_type_name import NodeTypeName
-from shell.domain.definition.value_objects.purpose import Purpose
-from shell.domain.definition.value_objects.system_role import SystemRole
 from shell.domain.platform.value_objects.mode import Mode
 
 TRepository = TypeVar("TRepository")
@@ -154,12 +150,8 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._task_execution_repository = InMemoryTaskExecutionRepository()
         self._task_execution_state_repository = InMemoryTaskExecutionStateRepository()
         self._node_execution_repository = InMemoryNodeExecutionRepository()
-        self._node_link_execution_repository = (
-            InMemoryNodeLinkExecutionRepository()
-        )
-        self._node_execution_repository.set_link_repo(
-            self._node_link_execution_repository
-        )
+        self._node_link_execution_repository = InMemoryNodeLinkExecutionRepository()
+        self._node_execution_repository.set_link_repo(self._node_link_execution_repository)
         self._graph_execution_repository = InMemoryGraphExecutionRepository()
         self._graph_execution_repository.link_task_executions(self._task_execution_repository)
         self._workflow_repository = InMemoryWorkflowRepository()
@@ -167,19 +159,11 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._rag_document_repository = InMemoryRagDocumentRepository()
         self._graph_definition_repository = InMemoryGraphDefinitionRepository()
         self._node_definition_repository = InMemoryNodeDefinitionRepository()
-        self._node_link_definition_repository = (
-            InMemoryNodeLinkDefinitionRepository()
-        )
-        self._node_definition_repository.set_link_repo(
-            self._node_link_definition_repository
-        )
+        self._node_link_definition_repository = InMemoryNodeLinkDefinitionRepository()
+        self._node_definition_repository.set_link_repo(self._node_link_definition_repository)
         self._graph_definition_embedding_repository = InMemoryGraphDefinitionEmbeddingRepository()
-        self._edge_execution_repository = (
-            InMemoryEdgeExecutionRepository()
-        )
-        self._edge_link_execution_repository = (
-            InMemoryEdgeLinkExecutionRepository()
-        )
+        self._edge_execution_repository = InMemoryEdgeExecutionRepository()
+        self._edge_link_execution_repository = InMemoryEdgeLinkExecutionRepository()
         self._node_execution_state_repository = InMemoryNodeExecutionStateRepository()
         self._graph_execution_state_repository = InMemoryGraphExecutionStateRepository()
         self._workflow_state_repository = InMemoryWorkflowStateRepository()
@@ -198,7 +182,6 @@ class InMemoryUnitOfWork(UnitOfWork):
 
         node = NodeDefinition.create(
             id=node_id,
-            position=NodePosition(0),
             mode=Mode("agent"),
             role=NodeRoleName("agent"),
             node_type=NodeTypeName("agent"),
@@ -208,9 +191,6 @@ class InMemoryUnitOfWork(UnitOfWork):
 
         graph = GraphDefinition.create(
             id=graph_id,
-            name=GraphName("base_planner"),
-            purpose=Purpose("default_planning"),
-            system_role=SystemRole.PLANNER,
             now=now,
         )
         await self.repository(InMemoryGraphDefinitionRepository).save(graph)
@@ -242,7 +222,7 @@ class InMemoryUnitOfWork(UnitOfWork):
             NodeDefinitionRepository: self._node_definition_repository,
             InMemoryNodeLinkDefinitionRepository: self._node_link_definition_repository,
             NodeLinkDefinitionRepository: self._node_link_definition_repository,
-                    InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
+            InMemoryGraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
             GraphDefinitionEmbeddingRepository: self._graph_definition_embedding_repository,
             InMemoryGraphExecutionStateRepository: self._graph_execution_state_repository,
             GraphExecutionStateRepository: self._graph_execution_state_repository,

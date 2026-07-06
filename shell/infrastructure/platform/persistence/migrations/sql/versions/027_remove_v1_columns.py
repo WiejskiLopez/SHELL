@@ -53,10 +53,6 @@ def downgrade() -> None:
     with op.batch_alter_table("workflow") as batch:
         batch.add_column(sa.Column("task_execution_id", sa.String(36), nullable=True))
         batch.add_column(sa.Column("version", sa.Integer(), nullable=False, server_default="1"))
-        batch.add_column(
-            sa.Column("current_node_execution_id", sa.String(255), nullable=True)
-        )
+        batch.add_column(sa.Column("current_node_execution_id", sa.String(255), nullable=True))
         batch.create_index("ix_workflow_task_execution_id", ["task_execution_id"])
-        batch.create_index(
-            "ix_workflow_current_node_execution_id", ["current_node_execution_id"]
-        )
+        batch.create_index("ix_workflow_current_node_execution_id", ["current_node_execution_id"])

@@ -99,9 +99,7 @@ def downgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
-        sa.ForeignKeyConstraint(
-            ["graph_execution_id"], ["graph_execution.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["graph_execution_id"], ["graph_execution.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(
             ["source_node_execution_id"], ["node_execution.id"], ondelete="SET NULL"
         ),

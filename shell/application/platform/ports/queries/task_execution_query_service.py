@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.application.execution.dto.task_execution import TaskExecutionDto
+    from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
 
 
 class TaskExecutionQueryService(Protocol):

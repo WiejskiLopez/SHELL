@@ -27,10 +27,10 @@ from shell.domain.scheduling.value_objects.scheduler_description import (
 )
 from shell.domain.scheduling.value_objects.scheduler_name import SchedulerName
 from shell.domain.scheduling.value_objects.trigger_config import TriggerConfig
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
+from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
 )
 

@@ -5,13 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.value_objects.graph_definition_id_ref import (
-    GraphDefinitionIdRef,
-)
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.max_subgraph_depth import (
-    MaxSubgraphDepth,
-)
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
 )
@@ -25,16 +18,10 @@ from shell.domain.execution.aggregates.session_execution_state.session_execution
     SessionExecutionState,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
-)
-from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )
 from shell.domain.execution.aggregates.user_execution.user_execution import UserExecution
-from shell.domain.execution.value_objects.user_id_ref import UserIdRef
 from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
     UserExecutionState,
 )
@@ -42,6 +29,10 @@ from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
     NodeExecutionResult,
 )
+from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
+    WorkflowStateId,
+)
+from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
 from shell.domain.execution.value_objects.artifact_uri import ArtifactUri
 from shell.domain.execution.value_objects.execution_stderr import (
     ExecutionStderr,
@@ -49,10 +40,10 @@ from shell.domain.execution.value_objects.execution_stderr import (
 from shell.domain.execution.value_objects.execution_stdout import (
     ExecutionStdout,
 )
-from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
-    WorkflowStateId,
+from shell.domain.execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
 )
-from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
+from shell.domain.execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.value_objects.ids import (
     GraphExecutionId,
     NodeExecutionId,
@@ -66,12 +57,28 @@ from shell.domain.execution.value_objects.ids import (
     UserExecutionStateId,
     WorkflowId,
 )
+from shell.domain.execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
+from shell.domain.execution.value_objects.task_execution_body import (
+    TaskExecutionBody,
+)
+from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.value_objects.user_id_ref import UserIdRef
+from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.platform.value_objects.status import Status
+from shell.domain.platform.value_objects.updated_at import UpdatedAt
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_input import (
+    GraphExecutionStateInputModel,
+)
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_output import (
+    GraphExecutionStateOutputModel,
+)
 from shell.infrastructure.execution.persistence.sql.models import (
     GraphExecutionModel,
     NodeExecutionResultModel,
@@ -83,12 +90,6 @@ from shell.infrastructure.execution.persistence.sql.models import (
     UserExecutionStateModel,
     WorkflowModel,
     WorkflowStateModel,
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
-    GraphExecutionStateInputModel,
-)
-from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
-    GraphExecutionStateOutputModel,
 )
 from shell.infrastructure.platform.context import get_correlation_id
 
@@ -105,11 +106,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
-    body = (
-        TaskExecutionBody(task_execution_model.body)
-        if task_execution_model.body
-        else None
-    )
+    body = TaskExecutionBody(task_execution_model.body) if task_execution_model.body else None
     return TaskExecution(
         id=TaskExecutionId(task_execution_model.id),
         name=TaskName(task_execution_model.name),
@@ -170,7 +167,6 @@ def task_execution_state_model_to_entity(
         task_execution_id=TaskExecutionId(model.task_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)),
-        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -183,7 +179,6 @@ def task_execution_state_entity_to_model(
         task_execution_id=entity.task_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )
 
@@ -207,14 +202,18 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         graph_definition_id=GraphDefinitionIdRef(graph_execution_model.graph_definition_id)
         if graph_execution_model.graph_definition_id
         else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(graph_execution_model.created_at))
+        if graph_execution_model.created_at
+        else None,
+        updated_at=UpdatedAt.from_datetime(_ensure_utc(graph_execution_model.updated_at))
+        if graph_execution_model.updated_at
+        else None,
         deleted_at=(
             DeletedAt.from_datetime(graph_execution_model.deleted_at)
             if graph_execution_model.deleted_at
             else None
         ),
     )
-
-
 
 
 def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecution) -> None:
@@ -224,6 +223,7 @@ def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecut
     )
     model.depth = entity.depth.value
     model.graph_definition_id = entity.graph_definition_id.value
+    model.updated_at = entity.updated_at.value if entity.updated_at else None
     model.deleted_at = _created_at_value(entity.deleted_at)
 
 
@@ -248,6 +248,8 @@ def graph_execution_entity_to_model(
         timeout_at=None,
         correlation_id=get_correlation_id(),
         tags={},
+        created_at=graph_execution.created_at.value if graph_execution.created_at else None,
+        updated_at=graph_execution.updated_at.value if graph_execution.updated_at else None,
         deleted_at=_created_at_value(graph_execution.deleted_at),
     )
     return graph_execution_model
@@ -262,11 +264,6 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     return Workflow(
         id=WorkflowId(workflow_model.id),
         status=WorkflowStatus(workflow_model.status),
-        session_execution_id=(
-            SessionExecutionId(workflow_model.session_execution_id)
-            if workflow_model.session_execution_id
-            else None
-        ),
         session_id=SessionIdRef(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=CreatedAt.from_datetime(workflow_model.created_at),
         deleted_at=(
@@ -281,9 +278,6 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     return WorkflowModel(
         id=work_flow.id.value,
         status=work_flow.status.value,
-        session_execution_id=(
-            work_flow.session_execution_id.value if work_flow.session_execution_id else None
-        ),
         session_id=work_flow.session_id.value if work_flow.session_id else None,
         created_at=work_flow.created_at.value,
         deleted_at=_created_at_value(work_flow.deleted_at),
@@ -292,9 +286,6 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
 
 def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
     model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
-    model.session_execution_id = (
-        entity.session_execution_id.value if entity.session_execution_id else None
-    )
     model.session_id = entity.session_id.value if entity.session_id else None
     model.created_at = entity.created_at.value
 
@@ -345,7 +336,6 @@ def graph_execution_state_input_model_to_entity(
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.IN,
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -357,7 +347,6 @@ def graph_execution_state_input_entity_to_model(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
         state_data=entity.state_data,
-        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 
@@ -373,7 +362,6 @@ def graph_execution_state_output_model_to_entity(
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.OUT,
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -385,7 +373,6 @@ def graph_execution_state_output_entity_to_model(
         id=entity.id.value,
         graph_execution_id=entity.graph_execution_id.value,
         state_data=entity.state_data,
-        is_current=entity.is_current,
         created_at=entity.created_at.value,
     )
 
@@ -409,7 +396,6 @@ def workflow_state_entity_to_model(entity: WorkflowState) -> WorkflowStateModel:
         workflow_id=entity.workflow_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=True,
         created_at=entity.created_at.value if entity.created_at else None,
     )
 
@@ -448,7 +434,6 @@ def user_execution_state_model_to_entity(model: UserExecutionStateModel) -> User
         user_execution_id=UserExecutionId(model.user_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -459,7 +444,6 @@ def user_execution_state_entity_to_model(entity: UserExecutionState) -> UserExec
         user_execution_id=entity.user_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )
 
@@ -505,7 +489,6 @@ def session_execution_state_model_to_entity(
         session_execution_id=SessionExecutionId(model.session_execution_id),
         direction=StateDirection(model.direction),
         state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
-        is_current=bool(model.is_current),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -518,6 +501,5 @@ def session_execution_state_entity_to_model(
         session_execution_id=entity.session_execution_id.value,
         direction=entity.direction.value,
         state_data=entity.state_data.to_dict(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
     )

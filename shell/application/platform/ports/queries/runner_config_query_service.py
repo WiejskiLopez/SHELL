@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.application.definition.dto.runner_config import RunnerConfigDto
+    from shell.application.definition.runner_config.dto.runner_config import RunnerConfigDto
 
 
 class RunnerConfigQueryService(Protocol):

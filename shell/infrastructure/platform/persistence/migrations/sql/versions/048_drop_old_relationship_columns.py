@@ -38,9 +38,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     with op.batch_alter_table("graph_execution") as batch:
         batch.add_column(
-            sa.Column(
-                "node_definition_executions", sa.JSON(), nullable=False, server_default="{}"
-            )
+            sa.Column("node_definition_executions", sa.JSON(), nullable=False, server_default="{}")
         )
         batch.add_column(
             sa.Column(

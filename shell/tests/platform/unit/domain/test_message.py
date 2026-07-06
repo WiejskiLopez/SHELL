@@ -85,7 +85,6 @@ class TestMessage:
         events = message.pull_events()
         assert len(events) == 1
 
-
     def test_mark_as_received_from_received_raises(self) -> None:
         now = datetime.now(tz=UTC)
         message = Message.new(

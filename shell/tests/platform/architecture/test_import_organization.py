@@ -18,32 +18,34 @@ if TYPE_CHECKING:
 SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent  # shell/
 
 
-_STDLIB_NAMES: frozenset[str] = frozenset({
-    "TYPE_CHECKING",
-    "Any",
-    "Protocol",
-    "Callable",
-    "Optional",
-    "Union",
-    "List",
-    "Dict",
-    "Tuple",
-    "Set",
-    "Iterable",
-    "Iterator",
-    "Generator",
-    "Sequence",
-    "Mapping",
-    "dataclass",
-    "field",
-    "datetime",
-    "timedelta",
-    "date",
-    "uuid",
-    "UUID",
-    "ABC",
-    "abstractmethod",
-})
+_STDLIB_NAMES: frozenset[str] = frozenset(
+    {
+        "TYPE_CHECKING",
+        "Any",
+        "Protocol",
+        "Callable",
+        "Optional",
+        "Union",
+        "List",
+        "Dict",
+        "Tuple",
+        "Set",
+        "Iterable",
+        "Iterator",
+        "Generator",
+        "Sequence",
+        "Mapping",
+        "dataclass",
+        "field",
+        "datetime",
+        "timedelta",
+        "date",
+        "uuid",
+        "UUID",
+        "ABC",
+        "abstractmethod",
+    }
+)
 
 
 def _iter_init_py_files() -> Iterator[pathlib.Path]:
@@ -62,7 +64,11 @@ def _get_all_names(path: pathlib.Path) -> list[str]:
     for node in ast.walk(tree):
         if isinstance(node, ast.Assign):
             for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "__all__" and isinstance(node.value, ast.List):
+                if (
+                    isinstance(target, ast.Name)
+                    and target.id == "__all__"
+                    and isinstance(node.value, ast.List)
+                ):
                     return [str(el.value) for el in node.value.elts if isinstance(el, ast.Constant)]
     return []
 
@@ -85,10 +91,12 @@ def test_init_py_does_not_rexport_stdlib() -> None:
 # ── Value objects in platform/, not definition/ ──────────────────────
 
 
-_PLATFORM_VO_MOVED: frozenset[str] = frozenset({
-    "condition_expression",
-    "edge_type",
-})
+_PLATFORM_VO_MOVED: frozenset[str] = frozenset(
+    {
+        "condition_expression",
+        "edge_type",
+    }
+)
 
 
 def _iter_py_files() -> Iterator[pathlib.Path]:
@@ -122,5 +130,7 @@ def test_platform_value_objects_not_imported_from_definition() -> None:
                 wrong = f"shell.domain.definition.value_objects.{vo}"
                 if imp == wrong or imp.startswith(wrong + "."):
                     rel = path.relative_to(SHELL_SRC).as_posix()
-                    violations.append(f"{rel}: imports {vo!r} from {wrong!r} (should be from platform)")
+                    violations.append(
+                        f"{rel}: imports {vo!r} from {wrong!r} (should be from platform)"
+                    )
     assert not violations, "\n".join(violations)

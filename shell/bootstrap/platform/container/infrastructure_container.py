@@ -4,27 +4,17 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
+from shell.infrastructure.definition.graph_definition.persistence.sql.services.graph_definition_query_service import (
+    SqlGraphDefinitionQueryService,
+)
 from shell.infrastructure.definition.persistence.sql.services import (
     RagQueryService,
     RunnerConfigQueryService,
 )
-from shell.infrastructure.definition.persistence.sql.services.graph_definition_query_service import (
-    SqlGraphDefinitionQueryService,
-)
-from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
-from shell.infrastructure.execution.filesystem.workspace import Workspace
-from shell.infrastructure.execution.http.graph_definition_node_provider_http_adapter import (
-    GraphDefinitionNodeProviderHttpAdapter,
-)
-from shell.infrastructure.execution.http.graph_execution_definition_provider_http_adapter import (
+from shell.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
-from shell.infrastructure.execution.http.session_query_service_http_adapter import (
-    SessionQueryServiceHttpAdapter,
-)
-from shell.infrastructure.execution.persistence.sql.repositories.sql_graph_execution_saga_repository import (
-    SqlGraphExecutionSagaRepository,
-)
+from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
 from shell.infrastructure.execution.persistence.sql.services import (
     NodeResultQueryService,
     SessionQueryService,
@@ -33,6 +23,12 @@ from shell.infrastructure.execution.persistence.sql.services import (
 )
 from shell.infrastructure.execution.process.subprocess_runner import (
     SubprocessNodeExecutionProcessRunner,
+)
+from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
+    SessionQueryServiceHttpAdapter,
+)
+from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
+    FileSystemTaskLoader,
 )
 from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
@@ -46,7 +42,7 @@ from shell.infrastructure.platform.messaging.command.sql_command_outbox_publishe
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.platform.time.system_clock import SystemClock
-from shell.infrastructure.session.http.workflow_session_provider_http_adapter import (
+from shell.infrastructure.session.session.http.workflow_session_provider_http_adapter import (
     WorkflowSessionProviderHttpAdapter,
 )
 
@@ -126,21 +122,6 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     workflow_session_provider_factory = providers.Factory(
         WorkflowSessionProviderHttpAdapter,
         client=execution_http_client,
-    )
-    graph_definition_node_provider_factory = providers.Factory(
-        GraphDefinitionNodeProviderHttpAdapter,
-        client=definition_http_client,
-    )
-
-    # 6. Crown-Scheduler — stateless, query-based (parent-child sub-graph orchestration)
-
-    # 7. Repozytorium sagi (nie przechodzi przez UoW — osobna sesja)
-    graph_execution_saga_repository_factory = providers.Factory(
-        SqlGraphExecutionSagaRepository,
-        session=providers.Factory(
-            lambda sf: sf(),
-            sf=session_factory,
-        ),
     )
     sql_command_outbox_publisher_factory = providers.Singleton(
         SqlCommandOutboxPublisher,

@@ -39,7 +39,11 @@ class InMemoryRepository(Generic[TAggregate, TId]):
         key = id.value if hasattr(id, "value") else str(id)
         entity = self._store.get(key)
         if entity is not None:
-            dt = now if now is not None and now.tzinfo is not None else (now or datetime.now(tz=UTC)).replace(tzinfo=UTC)
+            dt = (
+                now
+                if now is not None and now.tzinfo is not None
+                else (now or datetime.now(tz=UTC)).replace(tzinfo=UTC)
+            )
             object.__setattr__(entity, "_deleted_at", DeletedAt.from_datetime(dt))
 
     async def exists(self, id: TId) -> ExistsResult:

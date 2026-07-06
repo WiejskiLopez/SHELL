@@ -85,9 +85,7 @@ def upgrade() -> None:
     op.drop_column("session", "closed_at")
 
     op.execute("UPDATE user SET deleted_at = created_at WHERE status = 'disabled'")
-    op.execute(
-        "UPDATE project SET deleted_at = created_at WHERE status = 'archived'"
-    )
+    op.execute("UPDATE project SET deleted_at = created_at WHERE status = 'archived'")
 
 
 def downgrade() -> None:
@@ -179,13 +177,9 @@ def _add_timestamp_columns(table: str) -> None:
 
     with op.batch_alter_table(table) as batch_op:
         if not _column_exists(table, "updated_at"):
-            batch_op.add_column(
-                sa.Column("updated_at", sa.DateTime(), nullable=True)
-            )
+            batch_op.add_column(sa.Column("updated_at", sa.DateTime(), nullable=True))
         if not _column_exists(table, "deleted_at"):
-            batch_op.add_column(
-                sa.Column("deleted_at", sa.DateTime(), nullable=True)
-            )
+            batch_op.add_column(sa.Column("deleted_at", sa.DateTime(), nullable=True))
 
 
 def _drop_timestamp_columns(table: str) -> None:

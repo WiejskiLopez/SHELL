@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.user.value_objects.skill_id import SkillId
     from shell.domain.user.value_objects.user_id import UserId
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class UserSkillCreatedEvent(DomainEvent):
     skill_id: SkillId

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.application.definition.dto.rag_chunk import RagChunkDto
+    from shell.application.definition.rag_document.dto.rag_chunk import RagChunkDto
 
 
 class RagQueryService(Protocol):

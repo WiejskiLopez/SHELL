@@ -22,6 +22,7 @@ _DEV_ID_PREFIX = "dev"
 
 _NOW = datetime.now(tz=UTC)
 
+
 async def seed_dev_data(url: str) -> None:
     """Seed comprehensive development data into the database."""
     engine = create_async_engine(url, echo=False, future=True)
@@ -30,6 +31,7 @@ async def seed_dev_data(url: str) -> None:
         await conn.run_sync(_seed_dev_sync)
 
     await engine.dispose()
+
 
 def _seed_dev_sync(sync_conn: Connection) -> None:
     session = Session(bind=sync_conn)
@@ -42,12 +44,14 @@ def _seed_dev_sync(sync_conn: Connection) -> None:
 
     session.commit()
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Runner Configs
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_runner_configs(session: Session) -> None:
-    from shell.infrastructure.definition.persistence.sql.models.runner_config import (
+    from shell.infrastructure.definition.runner_config.persistence.sql.models.runner_config import (
         RunnerConfigModel,
     )
 
@@ -89,45 +93,34 @@ def _seed_runner_configs(session: Session) -> None:
         if existing is None:
             session.add(c)
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Graph Definitions + Nodes + Transitions
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_graph_definitions(session: Session) -> None:
-    from shell.infrastructure.definition.persistence.sql.models.graph_definition import (
+    from shell.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (
         GraphDefinitionModel,
     )
-    from shell.infrastructure.definition.persistence.sql.models.node_definition import (
+    from shell.infrastructure.definition.node_definition.persistence.sql.models.node_definition import (
         NodeDefinitionModel,
     )
-    from shell.infrastructure.definition.persistence.sql.models.node_link_definition import (
+    from shell.infrastructure.definition.node_link_definition.persistence.sql.models.node_link_definition import (
         NodeLinkDefinitionModel,
     )
 
     # ── Graph 1: Simple Agent ────────────────────────────────────────────────
     g1 = GraphDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-graph-simple-agent",
-        name="simple-agent",
-        purpose="Single agent node that executes autonomously",
     )
 
     g1_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-agent-1",
-        position=0,
         mode="agent",
         role="agent",
         node_type="agent",
-        model="gpt-4",
-        command="",
-        timeout=120,
-        retries=1,
-        log_level="INFO",
         max_step=10,
-        no_ask_user=False,
-        autopilot=True,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
     g1_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-agent-1",
@@ -138,27 +131,14 @@ def _seed_graph_definitions(session: Session) -> None:
     # ── Graph 2: Planner → Worker ────────────────────────────────────────────
     g2 = GraphDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-graph-planner-worker",
-        name="planner-worker",
-        purpose="Two-node pipeline: planner creates a plan, worker executes it",
     )
 
     g2_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-planner-1",
-        position=0,
         mode="planner",
         role="planner",
         node_type="planner",
-        model="gpt-4",
-        command="",
-        timeout=180,
-        retries=1,
-        log_level="INFO",
         max_step=15,
-        no_ask_user=False,
-        autopilot=True,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
     g2_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-planner-1",
@@ -168,21 +148,10 @@ def _seed_graph_definitions(session: Session) -> None:
 
     g2_node_2 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-worker-1",
-        position=1,
         mode="worker",
         role="worker",
         node_type="worker",
-        model="",
-        command="",
-        timeout=300,
-        retries=2,
-        log_level="INFO",
         max_step=20,
-        no_ask_user=True,
-        autopilot=True,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
     g2_link_2 = NodeLinkDefinitionModel(
         id="${_DEV_ID_PREFIX}-glink-worker-1",
@@ -190,69 +159,33 @@ def _seed_graph_definitions(session: Session) -> None:
         node_definition_id=g2_node_2.id,
     )
 
-
     # ── Graph 3: Full Pipeline (Tasker → Router → Agent) ────────────────────
     g3 = GraphDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-graph-full-pipeline",
-        name="full-pipeline",
-        purpose="Three-node pipeline: tasker delegates, router directs, agent acts",
     )
 
     g3_node_1 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-tasker-1",
-        position=0,
         mode="tasker",
         role="tasker",
         node_type="tasker",
-        model="gpt-4",
-        command="",
-        timeout=180,
-        retries=1,
-        log_level="INFO",
         max_step=20,
-        no_ask_user=False,
-        autopilot=True,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
 
     g3_node_2 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-router-1",
-        position=1,
         mode="router",
         role="router",
         node_type="router",
-        model="gpt-4",
-        command="",
-        timeout=120,
-        retries=1,
-        log_level="INFO",
         max_step=10,
-        no_ask_user=False,
-        autopilot=False,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
 
     g3_node_3 = NodeDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-gnode-agent-2",
-        position=2,
         mode="agent",
         role="agent",
         node_type="agent",
-        model="gpt-4",
-        command="",
-        timeout=240,
-        retries=2,
-        log_level="INFO",
         max_step=15,
-        no_ask_user=False,
-        autopilot=True,
-        status_initial="idle",
-        script=None,
-        script_type=None,
     )
     g3_link_1 = NodeLinkDefinitionModel(
         id=f"{_DEV_ID_PREFIX}-glink-tasker-1",
@@ -288,16 +221,18 @@ def _seed_graph_definitions(session: Session) -> None:
             session.add(node)
         for link in links:
             session.add(link)
-        
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Task Executions + Input/Output Payloads
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_task_executions(session: Session) -> None:
-    from shell.infrastructure.execution.persistence.sql.models.task_execution import (
+    from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
         TaskExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.task_execution_state import (
+    from shell.infrastructure.execution.task_execution_state.persistence.sql.models.task_execution_state import (
         TaskExecutionStateModel,
     )
 
@@ -365,7 +300,6 @@ def _seed_task_executions(session: Session) -> None:
                 task_execution_id=t["model"].id,
                 direction="INPUT",
                 state_data=t["input_payload"],
-                is_current=True,
                 created_at=_NOW,
             )
         )
@@ -376,38 +310,41 @@ def _seed_task_executions(session: Session) -> None:
                     task_execution_id=t["model"].id,
                     direction="OUTPUT",
                     state_data=t["output_payload"],
-                    is_current=True,
                     created_at=_NOW,
                 )
             )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Workflow Scenario — full execution with envelopes and results
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_workflow_scenario(session: Session) -> None:
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution import (
+    from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
         GraphExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_input import (
+    from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_input import (
         GraphExecutionStateInputModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.graph_execution_state_output import (
+    from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_output import (
         GraphExecutionStateOutputModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.node_execution import (
+    from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
         NodeExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.node_execution_result import (
+    from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution_result import (
         NodeExecutionResultModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.node_execution_state_aggregate import (
+    from shell.infrastructure.execution.node_execution_state.persistence.sql.models.node_execution_state_aggregate import (
         NodeExecutionStateModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.node_link_execution import (
+    from shell.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
         NodeLinkExecutionModel,
     )
-    from shell.infrastructure.execution.persistence.sql.models.workflow import WorkflowModel
+    from shell.infrastructure.execution.workflow.persistence.sql.models.workflow import (
+        WorkflowModel,
+    )
 
     WF_ID = f"{_DEV_ID_PREFIX}-workflow-1"
     existing = session.execute(
@@ -450,7 +387,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         id=f"{ge_id}-state-input-1",
         graph_execution_id=ge_id,
         state_data={"context": "dev environment", "prompt": "Process sample scenario"},
-        is_current=True,
         created_at=_NOW,
     )
     session.add(ges_input)
@@ -460,7 +396,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         id=f"{ge_id}-state-output-1",
         graph_execution_id=ge_id,
         state_data={"status": "completed", "message": "Sample scenario completed"},
-        is_current=True,
         created_at=_NOW,
     )
     session.add(ges_output)
@@ -496,7 +431,6 @@ def _seed_workflow_scenario(session: Session) -> None:
         node_execution_id=gne_id,
         direction="OUTPUT",
         state_data={"status": "done", "step": 1},
-        is_current=True,
         created_at=_NOW,
     )
     session.add(ns)
@@ -514,15 +448,17 @@ def _seed_workflow_scenario(session: Session) -> None:
     )
     session.add(result)
 
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Scheduler
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def _seed_scheduler(session: Session) -> None:
-    from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (
+    from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
         SchedulerDefinitionModel,
     )
-    from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (
+    from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
         SchedulerExecutionModel,
     )
 

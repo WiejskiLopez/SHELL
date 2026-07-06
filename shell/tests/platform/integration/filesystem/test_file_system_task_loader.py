@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import pathlib
 
-from shell.infrastructure.execution.filesystem.task_execution_loader import FileSystemTaskLoader
+from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
+    FileSystemTaskLoader,
+)
 
 
 class TestFileSystemTaskLoader:

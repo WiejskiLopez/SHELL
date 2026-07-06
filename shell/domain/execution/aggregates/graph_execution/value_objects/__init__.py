@@ -4,4 +4,4 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 
 __all__ = [
     "GraphExecutionId",
-        ]
+]

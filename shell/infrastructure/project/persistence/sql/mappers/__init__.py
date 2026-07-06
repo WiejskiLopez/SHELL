@@ -21,11 +21,11 @@ from shell.domain.project.value_objects.project_skill_data import ProjectSkillDa
 from shell.domain.project.value_objects.project_skill_id import ProjectSkillId
 from shell.domain.project.value_objects.project_status import ProjectStatus
 from shell.domain.project.value_objects.repo_url import RepoUrl
-from shell.infrastructure.project.persistence.sql.models.project import ProjectModel
-from shell.infrastructure.project.persistence.sql.models.project_skill import (
+from shell.infrastructure.project.project.persistence.sql.models.project import ProjectModel
+from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
     ProjectSkillModel,
 )
-from shell.infrastructure.project.persistence.sql.models.project_state import (
+from shell.infrastructure.project.project_state.persistence.sql.models.project_state import (
     ProjectStateModel,
 )
 
@@ -119,10 +119,7 @@ def project_state_model_to_entity(model: ProjectStateModel) -> ProjectState:
         id=ProjectStateId(model.id),
         project_id=ProjectId(model.project_id),
         direction=StateDirection(model.direction),
-        is_current=bool(model.is_current),
-        state_data=StateData(dict(model.state_data))
-        if model.state_data
-        else StateData({}),
+        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at))
         if model.created_at
         else None,
@@ -141,7 +138,6 @@ def project_state_entity_to_model(entity: ProjectState) -> ProjectStateModel:
         project_id=entity.project_id.value,
         direction=entity.direction.value,
         state_data=entity.snapshot(),
-        is_current=entity.is_current,
         created_at=entity.created_at.value if entity.created_at else None,
         updated_at=entity.updated_at.value if entity.updated_at else None,
         deleted_at=entity.deleted_at.value if entity.deleted_at else None,

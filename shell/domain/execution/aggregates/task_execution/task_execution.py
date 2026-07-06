@@ -9,41 +9,24 @@ from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_st
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.value_objects.max_planning_cycles import MaxPlanningCycles
-from shell.domain.execution.value_objects.planning_cycle import PlanningCycle
 from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
 from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
 from shell.domain.execution.value_objects.task_name import TaskName
 from shell.domain.execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
+    from shell.domain.platform.value_objects.deleted_at import DeletedAt
     from shell.domain.platform.value_objects.reason import Reason
 
 
-from shell.domain.execution.aggregates.task_execution.events.task_execution_completed_event import (
-    TaskExecutionCompletedEvent,
-)
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
-)
-from shell.domain.execution.aggregates.task_execution.events.task_execution_exhausted_event import (
-    TaskExecutionExhaustedEvent,
-)
-from shell.domain.execution.aggregates.task_execution.events.task_execution_failed_event import (
-    TaskExecutionFailedEvent,
-)
-from shell.domain.execution.aggregates.task_execution.events.task_execution_started_event import (
-    TaskExecutionStartedEvent,
-)
-from shell.domain.execution.aggregates.task_execution.events.task_execution_timeout_expired_event import (
-    TaskExecutionTimeoutExpiredEvent,
 )
 
 
@@ -51,8 +34,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
         "_workflow_id",
         "_status",
-        "_max_planning_cycles",
-        "_current_cycle",
         "_name",
         "_body",
         "_work_dir",
@@ -66,7 +47,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         name: TaskName | None = None,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
-        max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
         created_at: CreatedAt | None = None,
         deleted_at: DeletedAt | None = None,
@@ -74,8 +54,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         super().__init__(id)
         self._workflow_id = workflow_id
         self._status = TaskExecutionStatus.CREATED
-        self._max_planning_cycles = max_planning_cycles or MaxPlanningCycles(5)
-        self._current_cycle = PlanningCycle(0)
         self._name = name if name is not None else TaskName("default")
         self._body = body
         self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
@@ -89,7 +67,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         name: TaskName | None = None,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
-        max_planning_cycles: MaxPlanningCycles | None = None,
         work_dir: WorkDir | None = None,
         created_at: CreatedAt | None = None,
         deleted_at: DeletedAt | None = None,
@@ -99,7 +76,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             name=name,
             body=body,
             workflow_id=workflow_id,
-            max_planning_cycles=max_planning_cycles,
             work_dir=work_dir,
             created_at=created_at,
             deleted_at=deleted_at,
@@ -111,67 +87,26 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if self._status != TaskExecutionStatus.CREATED:
             raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
-        self.append_event(
-            TaskExecutionStartedEvent.now(
-                task_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def complete(self, output: str = "", now: datetime | None = None) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot complete task in status {self._status}")
         self._status = TaskExecutionStatus.COMPLETED
-        self.append_event(
-            TaskExecutionCompletedEvent.now(
-                task_execution_id=self._id,
-                task_execution_name=TaskExecutionName(self._name.value),
-                output=output,
-                now=CreatedAt.from_datetime(now) if now is not None else None,
-            )
-        )
 
     def fail(self, reason: Reason, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot fail task in status {self._status}")
         self._status = TaskExecutionStatus.FAILED
-        self.append_event(
-            TaskExecutionFailedEvent.now(
-                task_execution_id=self._id,
-                reason=reason,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def timeout(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot timeout task in status {self._status}")
         self._status = TaskExecutionStatus.TIMED_OUT
-        self.append_event(
-            TaskExecutionTimeoutExpiredEvent.now(
-                task_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def exhaust(self, now: datetime) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot exhaust task in status {self._status}")
         self._status = TaskExecutionStatus.EXHAUSTED
-        self.append_event(
-            TaskExecutionExhaustedEvent.now(
-                task_execution_id=self._id,
-                current_cycle=self._current_cycle,
-                max_planning_cycles=self._max_planning_cycles,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
-
-    def increment_cycle(self) -> bool:
-        if self._current_cycle.value >= self._max_planning_cycles.value:
-            return False
-        self._current_cycle = PlanningCycle(self._current_cycle.value + 1)
-        return True
 
     # --- Properties ---
 
@@ -182,14 +117,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     @property
     def status(self) -> TaskExecutionStatus:
         return self._status
-
-    @property
-    def max_planning_cycles(self) -> MaxPlanningCycles:
-        return self._max_planning_cycles
-
-    @property
-    def current_cycle(self) -> PlanningCycle:
-        return self._current_cycle
 
     @property
     def body(self) -> TaskExecutionBody | None:
@@ -246,4 +173,3 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             )
         )
         return task_execution
-

@@ -13,18 +13,53 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[6]))
 
-# Register models so they are picked up by Alembic
-from shell.infrastructure.definition.persistence.sql.models.graph_definition_embedding import (  # noqa: F401 — rejestracja modelu dla Alembic
+# Wszystkie modele używają platform/Base (jeden wspólny metadata).
+# Per-BC base.py to Phase 2 stubs — gdy wyciągasz BC jako mikroserwis
+# z osobną bazą danych, migrunjesz modele do per-BC Base.
+from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (  # noqa: F401 — rejestracja modeli dla Alembic autogenerate
     GraphDefinitionEmbeddingModel,
 )
-from shell.infrastructure.platform.persistence.sql.models import Base
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_definition import (  # noqa: F401 — rejestracja modelu dla Alembic
+
+# Jawna rejestracja modeli per-BC — zapewnia wykrywanie przez Alembic
+from shell.infrastructure.definition.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+    GraphDefinitionModel,
+    NodeDefinitionModel,
+    NodeLinkDefinitionModel,
+    RagChunkModel,
+    RagDocumentModel,
+    RunnerConfigModel,
+)
+from shell.infrastructure.execution.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+    EdgeExecutionModel,
+    EdgeLinkExecutionModel,
+    GraphExecutionModel,
+    GraphExecutionStateInputModel,
+    GraphExecutionStateOutputModel,
+    NodeExecutionModel,
+    NodeExecutionResultModel,
+    NodeExecutionStateModel,
+    NodeLinkExecutionModel,
+    SessionExecutionModel,
+    SessionExecutionStateModel,
+    TaskExecutionModel,
+    TaskExecutionStateModel,
+)
+from shell.infrastructure.platform.persistence.sql.models import Base as PlatformBase
+from shell.infrastructure.project.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+    ProjectModel,
+    ProjectSkillModel,
+    ProjectStateModel,
+)
+from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (  # noqa: F401 — rejestracja modeli dla Alembic autogenerate
     SchedulerDefinitionModel,
 )
-from shell.infrastructure.scheduling.persistence.sql.models.scheduler_execution import (  # noqa: F401 — rejestracja modelu dla Alembic
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (  # noqa: F401 — rejestracja modeli dla Alembic autogenerate
     SchedulerExecutionModel,
 )
-from shell.infrastructure.user.persistence.sql.models import (  # noqa: F401 — rejestracja modelu dla Alembic
+from shell.infrastructure.session.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+    SessionModel,
+)
+from shell.infrastructure.user.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
     UserModel,
     UserSkillModel,
     UserStateModel,
@@ -36,7 +71,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+# Jeden metadata — wszystkie tabele są w platform/Base.metadata
+target_metadata = PlatformBase.metadata
 
 
 def _get_url() -> str:

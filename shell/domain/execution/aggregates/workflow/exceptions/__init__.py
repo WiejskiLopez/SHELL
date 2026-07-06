@@ -1,4 +1,3 @@
-
 from shell.domain.execution.aggregates.workflow.exceptions.workflow_has_no_nodes import (
     WorkflowHasNoNodes,
 )
@@ -7,6 +6,6 @@ from shell.domain.execution.aggregates.workflow.exceptions.workflow_not_found im
 )
 
 __all__ = [
-        "WorkflowHasNoNodes",
+    "WorkflowHasNoNodes",
     "WorkflowNotFound",
 ]

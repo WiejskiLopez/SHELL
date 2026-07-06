@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.project.value_objects.project_id import ProjectId
     from shell.domain.project.value_objects.project_skill_id import ProjectSkillId
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ProjectSkillCreatedEvent(DomainEvent):
     skill_id: ProjectSkillId

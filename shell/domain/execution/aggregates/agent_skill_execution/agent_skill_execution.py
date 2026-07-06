@@ -11,27 +11,29 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
+    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.skill_data import (
+        SkillData,
+    )
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
-    __slots__ = ("_agent_execution_id", "_payload", "_created_at")
+    __slots__ = ("_agent_execution_id", "_skill_data", "_created_at")
 
     _agent_execution_id: AgentExecutionId
-    _payload: SkillPayload
+    _skill_data: SkillData
     _created_at: CreatedAt
 
     def __init__(
         self,
         id_: AgentSkillExecutionId,
         agent_execution_id: AgentExecutionId,
-        payload: SkillPayload,
+        skill_data: SkillData,
         created_at: CreatedAt,
     ) -> None:
         super().__init__(id_)
         self._agent_execution_id = agent_execution_id
-        self._payload = payload
+        self._skill_data = skill_data
         self._created_at = created_at
 
     @classmethod
@@ -39,13 +41,13 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         cls,
         id_: AgentSkillExecutionId,
         agent_execution_id: AgentExecutionId,
-        payload: SkillPayload,
+        skill_data: SkillData,
         created_at: CreatedAt,
     ) -> Self:
         return cls(
             id_=id_,
             agent_execution_id=agent_execution_id,
-            payload=payload,
+            skill_data=skill_data,
             created_at=created_at,
         )
 
@@ -54,13 +56,13 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         cls,
         id_: AgentSkillExecutionId,
         agent_execution_id: AgentExecutionId,
-        payload: SkillPayload,
+        skill_data: SkillData,
         now: CreatedAt,
     ) -> AgentSkillExecution:
         return cls(
             id_=id_,
             agent_execution_id=agent_execution_id,
-            payload=payload,
+            skill_data=skill_data,
             created_at=now,
         )
 
@@ -69,8 +71,8 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         return self._agent_execution_id
 
     @property
-    def payload(self) -> SkillPayload:
-        return self._payload
+    def skill_data(self) -> SkillData:
+        return self._skill_data
 
     @property
     def created_at(self) -> CreatedAt:

@@ -1,47 +1,12 @@
-"""Kontener dla serwisów domenowych, strategii wykonania i polityk."""
+"""Container for domain services."""
 
 from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.execution.strategies.node_execution_strategy import get_strategy
-from shell.domain.execution.services.node_execution_navigator import (
-    LinearNodeExecutionNavigator,
-)
-from shell.domain.execution.services.node_execution_policy import (
-    FailFastNodeExecutionPolicy,
-)
-from shell.infrastructure.execution.default_implementations.sub_graph_defaults import (
-    DefaultSubGraphDiscovery,
-    DefaultSubGraphObserver,
-    FullAccessSubGraphSecurity,
-    LatestVersionStrategy,
-    PermissiveSubGraphGovernance,
-)
-
 
 class DomainContainer(containers.DeclarativeContainer):
-    """Kontener dla serwisów domenowych, strategii i polityk."""
+    """Container for domain services — cleaned up."""
 
     infra = providers.DependenciesContainer()
     buses = providers.DependenciesContainer()
-
-    node_navigator_factory = providers.Singleton(LinearNodeExecutionNavigator)
-    node_execution_policy_factory = providers.Singleton(FailFastNodeExecutionPolicy)
-
-    strategy = providers.Object(get_strategy("agent"))
-
-    # ── Sub-graph extension points (defaults, can be overridden) ──────────
-    sub_graph_governance_factory = providers.Singleton(PermissiveSubGraphGovernance)
-    sub_graph_security_factory = providers.Singleton(FullAccessSubGraphSecurity)
-    sub_graph_observer_factory = providers.Singleton(DefaultSubGraphObserver)
-    sub_graph_versioning_factory = providers.Singleton(
-        LatestVersionStrategy,
-        unit_of_work_factory=buses.unit_of_work_factory,
-    )
-    sub_graph_discovery_factory = providers.Singleton(
-        DefaultSubGraphDiscovery,
-        unit_of_work_factory=buses.unit_of_work_factory,
-    )
-
-    # ── Sub-graph extension points (kept for handler wiring) ──────────────

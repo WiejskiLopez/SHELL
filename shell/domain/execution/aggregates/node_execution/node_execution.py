@@ -8,15 +8,11 @@ from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_st
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
 from shell.domain.execution.value_objects.node_execution_status import (
     NodeExecutionStatus,
 )
 from shell.domain.execution.value_objects.node_order import NodeOrder
 from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.error_description import ErrorDescription
-from shell.domain.platform.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -24,29 +20,12 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
+    from shell.domain.execution.value_objects.node_definition_id import NodeDefinitionId
     from shell.domain.execution.value_objects.node_role import NodeRole
     from shell.domain.execution.value_objects.node_type import NodeType
+    from shell.domain.platform.value_objects.error_description import ErrorDescription
     from shell.domain.platform.value_objects.mode import Mode
-
-
-from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
-    NodeExecutionCompletedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
-    NodeExecutionFailedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_initialized_event import (
-    NodeExecutionInitializedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_retried_event import (
-    NodeExecutionRetriedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_started_event import (
-    NodeExecutionStartedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_timeout_expired_event import (
-    NodeExecutionTimeoutExpiredEvent,
-)
+    from shell.domain.platform.value_objects.state_data import StateData
 
 
 class NodeExecution(AggregateRoot[NodeExecutionId]):
@@ -128,15 +107,6 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             mode=mode,
             node_type=node_type,
         )
-        if graph_execution_id is not None:
-            instance.append_event(
-                NodeExecutionInitializedEvent.now(
-                    node_id=id,
-                    graph_execution_id=graph_execution_id,
-                    node_definition_id=node_definition_id or NodeDefinitionId(""),
-                    now=CreatedAt.from_datetime(now),
-                )
-            )
         return instance
 
     # --- V3 FSM ---
@@ -145,62 +115,26 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         if self._status != NodeExecutionStatus.PENDING:
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = NodeExecutionStatus.RUNNING
-        self.append_event(
-            NodeExecutionStartedEvent.now(
-                node_id=self._id,
-                role=self._role,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def complete(self, result: StateData | dict[str, object] | None, now: datetime) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED
-        self.append_event(
-            NodeExecutionCompletedEvent.now(
-                node_id=self._id,
-                role=self._role,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def fail(self, error: ErrorDescription | str, now: datetime) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
         self._status = NodeExecutionStatus.FAILED
 
-        self.append_event(
-            NodeExecutionFailedEvent.now(
-                node_id=self._id,
-                role=self._role,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
-
     def retry(self, now: datetime) -> None:
         if self._status != NodeExecutionStatus.FAILED:
             raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
         self._status = NodeExecutionStatus.PENDING
-        self.append_event(
-            NodeExecutionRetriedEvent.now(
-                node_id=self._id,
-                role=self._role,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     def timeout(self, now: datetime) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
         self._status = NodeExecutionStatus.TIMED_OUT
-        self.append_event(
-            NodeExecutionTimeoutExpiredEvent.now(
-                node_id=self._id,
-                role=self._role,
-                now=CreatedAt.from_datetime(now),
-            )
-        )
 
     # --- Properties ---
 
@@ -231,4 +165,3 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     @property
     def status(self) -> NodeExecutionStatus:
         return self._status
-

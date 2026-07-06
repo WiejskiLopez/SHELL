@@ -18,63 +18,19 @@ from typing import TYPE_CHECKING
 
 import pytest  # noqa: F401 — used in type annotations and fixtures
 
-from shell.application.execution.command_handlers.workflow_run_tasker_handler import (
-    WorkflowRunTaskerHandler,
-)
-from shell.application.execution.event_handlers.node_execution_completed_handler import (
-    NodeExecutionCompletedHandler,
-)
-from shell.application.execution.event_handlers.node_execution_worker import (
-    NodeExecutionWorker,
-)
-from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.max_subgraph_depth import (
-    MaxSubgraphDepth,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_completed_event import (
-    NodeExecutionCompletedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.events.node_execution_failed_event import (
-    NodeExecutionFailedEvent,
-)
-from shell.domain.execution.aggregates.node_execution.node_execution import (
-    NodeExecution,
-)
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.value_objects.ids import (
+    TaskExecutionId,
+)
 from shell.domain.execution.value_objects.task_execution_name import (
     TaskExecutionName,
-)
-from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.workflow.events.node_execution_requested_event import (
-    NodeExecutionRequestedEvent,
-)
-from shell.domain.execution.aggregates.workflow.events.workflow_started_event import (
-    WorkflowStartedEvent,
-)
-from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
-    NodeExecutionId,
-    TaskExecutionId,
-    WorkflowId,
 )
 from shell.domain.platform.base import AggregateRoot, Entity
 from shell.domain.platform.events import DomainEvent
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.mode import Mode
-from shell.framework.platform.api.app import create_app
-from shell.infrastructure.execution.persistence.memory.in_memory_node_execution_repository import (
-    InMemoryNodeExecutionRepository,
-)
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
 from shell.infrastructure.platform.logging.stdlib_logger import (
     StdlibLogger,
@@ -86,19 +42,13 @@ from shell.infrastructure.platform.persistence.memory import (
     FakeEventPublisher,
     FakeIdGenerator,
     FakeLogger,
-    FakeNodeExecutionProcessRunner,
     FakeTaskLoader,
-    InMemoryGraphExecutionRepository,
     InMemoryQueryServices,
-    InMemoryTaskExecutionRepository,
     InMemoryUnitOfWork,
-    InMemoryWorkflowRepository,
 )
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
-    import pathlib
-
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 # ---------------------------------------------------------------------------
@@ -220,48 +170,6 @@ class _SampleAggregate(AggregateRoot[_SampleId]):
 
 
 # ---------------------------------------------------------------------------
-# Workflow step machine test helpers
-# ---------------------------------------------------------------------------
-
-_NOW = datetime(2026, 6, 1, tzinfo=UTC)
-
-
-def _new_workflow() -> Workflow:
-    return Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-
-
-def _ctx() -> object | None:
-    return None
-
-
-# ---------------------------------------------------------------------------
-# Navigator test helpers
-# ---------------------------------------------------------------------------
-
-
-def _node_execution(
-    node_execution_id: str, position: int, mode: str = "agent"
-) -> NodeExecution:
-    return NodeExecution(
-        id=NodeExecutionId(node_execution_id),
-        position=NodeOrder(position),
-        mode=Mode(mode),
-        role=NodeRole(mode.upper()),
-        node_type=NodeType(mode),
-    )
-
-
-def _graph_execution(*node_executions: NodeExecution) -> GraphExecution:
-    ge = GraphExecution(
-        id=GraphExecutionId.generate(),
-        task_execution_id=TaskExecutionId.generate(),
-        depth=GraphDepth(0),
-        max_subgraph_depth=MaxSubgraphDepth(5),
-    )
-    return ge
-
-
-# ---------------------------------------------------------------------------
 # Application fixtures
 # ---------------------------------------------------------------------------
 
@@ -270,14 +178,6 @@ def _task_imported() -> TaskExecutionCreatedEvent:
     return TaskExecutionCreatedEvent.now(
         task_execution_id=TaskExecutionId.generate(),
         task_execution_name=TaskExecutionName("test-task"),
-        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-    )
-
-
-def _workflow_started() -> WorkflowStartedEvent:
-    return WorkflowStartedEvent.now(
-        workflow_id=WorkflowId.generate(),
-        task_execution_id=TaskExecutionId.generate(),
         now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
     )
 
@@ -326,89 +226,6 @@ def fake_logger() -> FakeLogger:
 
 
 # ---------------------------------------------------------------------------
-# NodeExecutionWorker test helpers
-# ---------------------------------------------------------------------------
-
-
-def _build_graph_execution(
-    unit_of_work: InMemoryUnitOfWork, task_execution_name: str, modes: list[str]
-) -> tuple[TaskExecution, GraphExecution]:
-    task_execution = TaskExecution(
-        id=TaskExecutionId.generate(),
-        name=TaskName(task_execution_name),
-        created_at=CreatedAt.from_datetime(_NOW),
-    )
-    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = (
-        task_execution
-    )
-
-    node_executions = [
-        NodeExecution(
-            id=NodeExecutionId(f"{task_execution.id.value}-n{i}"),
-            position=NodeOrder(i),
-            mode=Mode(m),
-            role=NodeRole(m.upper()),
-            node_type=NodeType(m),
-        )
-        for i, m in enumerate(modes)
-    ]
-    graph_execution = GraphExecution(
-        id=GraphExecutionId.generate(),
-        task_execution_id=task_execution.id,
-        depth=GraphDepth(0),
-        max_subgraph_depth=MaxSubgraphDepth(5),
-    )
-    for node in node_executions:
-        unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
-    object.__setattr__(graph_execution, "_cached_nodes", node_executions)
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
-        graph_execution
-    )
-    return task_execution, graph_execution
-
-
-async def _persist_running_workflow(
-    unit_of_work: InMemoryUnitOfWork,
-    task_execution_id: TaskExecutionId,
-    first_node: NodeExecutionId,
-) -> Workflow:
-    wf = Workflow.new(id_=WorkflowId.generate(), now=_NOW)
-    # Set workflow_id on graph_execution for get_by_workflow_id lookup
-    for ge in list(unit_of_work.repository(InMemoryGraphExecutionRepository)._store.values()):
-        if ge.task_execution_id == task_execution_id:
-            object.__setattr__(ge, "_workflow_id", wf.id)
-    wf.start_at(now=_NOW)
-    async with unit_of_work:
-        await unit_of_work.repository(InMemoryWorkflowRepository).save(wf)
-        await unit_of_work.commit()
-    return wf
-
-
-def _make_worker(
-    unit_of_work: InMemoryUnitOfWork,
-    runner: FakeNodeExecutionProcessRunner,
-) -> NodeExecutionWorker:
-    return NodeExecutionWorker(
-        unit_of_work=unit_of_work,
-        clock=FakeClock(_NOW),
-        id_generator=FakeIdGenerator(),
-        runner=runner,
-        logger=FakeLogger(),
-    )
-
-
-def _make_result_handler(
-    unit_of_work: InMemoryUnitOfWork,
-) -> NodeExecutionCompletedHandler:
-    return NodeExecutionCompletedHandler(
-        unit_of_work=unit_of_work,
-        clock=FakeClock(_NOW),
-        id_generator=FakeIdGenerator(),
-        logger=FakeLogger(),
-    )
-
-
-# ---------------------------------------------------------------------------
 # SQLite integration fixtures
 # ---------------------------------------------------------------------------
 
@@ -433,7 +250,7 @@ def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
 ) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory)  # type: ignore[abstract]
+    return SqlAlchemyUnitOfWork(session_factory)
 
 
 # ---------------------------------------------------------------------------
@@ -447,98 +264,3 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             if "sql_postgres" in str(item.fspath):
                 item.add_marker(skip_pg)
-
-
-# ---------------------------------------------------------------------------
-# E2E helpers
-# ---------------------------------------------------------------------------
-
-
-async def _make_app(tmp_path: pathlib.Path):
-    db_url = f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-    core_container = await ApplicationFactory(ShellConfig(database_url=db_url)).build()
-    return create_app(core_container)
-
-
-def _db_url(tmp_path: pathlib.Path) -> str:
-    return f"sqlite+aiosqlite:///{tmp_path / 'test.db'}"
-
-
-# ---------------------------------------------------------------------------
-# E2E CLI task helpers
-# ---------------------------------------------------------------------------
-
-
-def _make_task_with_graph_execution(unit_of_work, task_execution_name, modes, now):
-    task_execution = TaskExecution(
-        id=TaskExecutionId.generate(),
-        name=TaskName(task_execution_name),
-        created_at=CreatedAt.from_datetime(now),
-    )
-    unit_of_work.repository(InMemoryTaskExecutionRepository)._store[task_execution.id.value] = (
-        task_execution
-    )
-    node_executions = [
-        NodeExecution(
-            id=NodeExecutionId(f"{task_execution.id.value}-n{i}"),
-            position=NodeOrder(i),
-            mode=Mode(m),
-            role=NodeRole(m.upper()),
-            node_type=NodeType(m),
-        )
-        for i, m in enumerate(modes)
-    ]
-    graph_execution = GraphExecution(
-        id=GraphExecutionId.generate(),
-        task_execution_id=task_execution.id,
-        depth=GraphDepth(0),
-        max_subgraph_depth=MaxSubgraphDepth(5),
-    )
-    for node in node_executions:
-        unit_of_work.repository(InMemoryNodeExecutionRepository)._store[node.id.value] = node
-    unit_of_work.repository(InMemoryGraphExecutionRepository)._store[graph_execution.id.value] = (
-        graph_execution
-    )
-    return task_execution, graph_execution
-
-
-async def _run_tasker_full(unit_of_work, clock, id_generator, command, runner=None):
-    logger = FakeLogger()
-    if runner is None:
-        runner = FakeNodeExecutionProcessRunner(stdout="ok", returncode=0)
-    worker = NodeExecutionWorker(
-        unit_of_work=unit_of_work,
-        clock=clock,
-        id_generator=id_generator,
-        logger=logger,
-        runner=runner,
-    )
-    result_handler = NodeExecutionCompletedHandler(
-        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator, logger=logger
-    )
-    bootstrap_handler = WorkflowRunTaskerHandler(
-        unit_of_work=unit_of_work, clock=clock, id_generator=id_generator
-    )
-    all_events = []
-    await bootstrap_handler.handle(command)
-    all_events.extend(unit_of_work.committed_events)
-    max_iterations = 100
-    for _ in range(max_iterations):
-        batch = list(unit_of_work.committed_events)
-        if not batch:
-            break
-        has_work = False
-        for event in batch:
-            if isinstance(event, NodeExecutionRequestedEvent):
-                await worker.handle(event)
-                all_events.extend(unit_of_work.committed_events)
-                has_work = True
-            elif isinstance(
-                event, (NodeExecutionCompletedEvent, NodeExecutionFailedEvent)
-            ):
-                await result_handler.handle(event)
-                all_events.extend(unit_of_work.committed_events)
-                has_work = True
-        if not has_work:
-            break
-    return all_events

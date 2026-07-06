@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.environment import Environment
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -29,7 +28,6 @@ class Session(AggregateRoot[SessionId]):
     __slots__ = (
         "_user_id",
         "_project_id",
-        "_environment",
         "_status",
         "_opened_at",
         "_closed_at",
@@ -37,7 +35,6 @@ class Session(AggregateRoot[SessionId]):
 
     _user_id: UserIdRef
     _project_id: ProjectIdRef
-    _environment: Environment
     _status: SessionStatus
     _opened_at: CreatedAt
     _closed_at: UpdatedAt | None
@@ -48,7 +45,6 @@ class Session(AggregateRoot[SessionId]):
         id: SessionId,
         user_id: UserIdRef,
         project_id: ProjectIdRef,
-        environment: Environment,
         status: SessionStatus,
         opened_at: CreatedAt,
         closed_at: UpdatedAt | None = None,
@@ -56,7 +52,6 @@ class Session(AggregateRoot[SessionId]):
         super().__init__(id)
         self._user_id = user_id
         self._project_id = project_id
-        self._environment = environment
         self._status = status
         self._opened_at = opened_at
         self._closed_at = closed_at
@@ -68,7 +63,6 @@ class Session(AggregateRoot[SessionId]):
         id: SessionId,
         user_id: UserIdRef,
         project_id: ProjectIdRef,
-        environment: Environment,
         status: SessionStatus,
         opened_at: CreatedAt,
         closed_at: UpdatedAt | None = None,
@@ -77,7 +71,6 @@ class Session(AggregateRoot[SessionId]):
             id=id,
             user_id=user_id,
             project_id=project_id,
-            environment=environment,
             status=status,
             opened_at=opened_at,
             closed_at=closed_at,
@@ -92,10 +85,6 @@ class Session(AggregateRoot[SessionId]):
     @property
     def project_id(self) -> ProjectIdRef:
         return self._project_id
-
-    @property
-    def environment(self) -> Environment:
-        return self._environment
 
     @property
     def session_status(self) -> SessionStatus:
@@ -129,7 +118,6 @@ class Session(AggregateRoot[SessionId]):
         id_: SessionId,
         user_id: UserIdRef | None = None,
         project_id: ProjectIdRef | None = None,
-        environment: Environment | None = None,
         now: CreatedAt | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
@@ -137,8 +125,6 @@ class Session(AggregateRoot[SessionId]):
             user_id = UserIdRef.generate()
         if project_id is None:
             project_id = ProjectIdRef.generate()
-        if environment is None:
-            environment = Environment(os="unknown", runtime="unknown", cwd="/")
         if now is None:
             now = CreatedAt.now()
         elif isinstance(now, datetime):
@@ -147,7 +133,6 @@ class Session(AggregateRoot[SessionId]):
             id=id_,
             user_id=user_id,
             project_id=project_id,
-            environment=environment,
             status=SessionStatus.OPEN,
             opened_at=now,
         )

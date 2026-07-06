@@ -131,15 +131,12 @@ def _seed_sync(sync_conn) -> None:
     session = Session(sync_conn)
 
     graph_definition_model = session.execute(
-        select(GraphDefinitionModel).where(GraphDefinitionModel.name == "base_planner")
+        select(GraphDefinitionModel).where(GraphDefinitionModel.id == "base-planner-id")
     ).scalar_one_or_none()
 
     if graph_definition_model is None:
         graph_definition_model = GraphDefinitionModel(
             id="base-planner-id",
-            name="base_planner",
-            purpose="default_planning",
-            system_role="PLANNER",
         )
         session.add(graph_definition_model)
         session.flush()
@@ -153,21 +150,9 @@ def _seed_sync(sync_conn) -> None:
     if link is None:
         node = NodeDefinitionModel(
             id="base-planner-node-1",
-            position=0,
             mode="agent",
             role="agent",
             node_type="agent",
-            model="",
-            command="",
-            timeout=0,
-            retries=0,
-            log_level="INFO",
-            max_step=None,
-            no_ask_user=False,
-            autopilot=False,
-            status_initial="",
-            script="",
-            script_type="",
         )
         session.add(node)
         session.flush()
