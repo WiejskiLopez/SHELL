@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.definition.rag_document.dto.rag_chunk import RagChunkDto
+    from shell.application.definition.rag_document.ports.rag_query_service import RagQueryService
     from shell.application.definition.rag_document.queries.rag_search_similar_query import (
         RagSearchSimilarQuery,
     )
-    from shell.application.platform.ports.queries import RagQueryService
     from shell.domain.definition.services.rag_index_service import Embedder
 
 

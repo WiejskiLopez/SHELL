@@ -28,8 +28,10 @@ from shell.application.execution.session_execution.queries.session_get_history_q
 from shell.application.execution.session_execution.query_handlers.session_get_history_handler import (
     SessionGetHistoryHandler,
 )
-from shell.application.session.command_handlers.session_handlers import (
+from shell.application.session.session.command_handlers.session_close_handler import (
     SessionCloseHandler,
+)
+from shell.application.session.session.command_handlers.session_open_handler import (
     SessionOpenHandler,
 )
 

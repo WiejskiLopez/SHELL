@@ -7,7 +7,7 @@ from sqlalchemy import select
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
-from shell.infrastructure.session.persistence.sql.mappers import (
+from shell.infrastructure.session.session.persistence.sql.mappers import (
     session_entity_to_model,
     session_model_to_entity,
     session_update_model,

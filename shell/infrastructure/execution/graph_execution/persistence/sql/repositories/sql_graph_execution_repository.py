@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
     GraphExecutionRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.graph_execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
     graph_execution_update_model,

@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
     GraphExecutionStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.mappers import (
     graph_execution_state_output_entity_to_model,
     graph_execution_state_output_model_to_entity,
 )

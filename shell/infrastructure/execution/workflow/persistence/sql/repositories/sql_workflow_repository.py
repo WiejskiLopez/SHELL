@@ -7,7 +7,7 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
     WorkflowRepository,
 )
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.workflow.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
     workflow_update_model,

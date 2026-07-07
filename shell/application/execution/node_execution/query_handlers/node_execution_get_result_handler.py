@@ -6,10 +6,12 @@ if TYPE_CHECKING:
     from shell.application.execution.node_execution.dto.node_execution_result import (
         NodeExecutionResultDto,
     )
+    from shell.application.execution.node_execution.ports.node_execution_result_query_service import (
+        NodeExecutionResultQueryService,
+    )
     from shell.application.execution.node_execution.queries.node_execution_get_result_query import (
         NodeExecutionGetResultQuery,
     )
-    from shell.application.platform.ports.queries import NodeExecutionResultQueryService
 
 
 class NodeExecutionGetResultHandler:

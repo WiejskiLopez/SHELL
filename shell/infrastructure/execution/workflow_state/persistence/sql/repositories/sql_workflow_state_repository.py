@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
     WorkflowStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.workflow_state.persistence.sql.mappers import (
     workflow_state_entity_to_model,
     workflow_state_model_to_entity,
 )

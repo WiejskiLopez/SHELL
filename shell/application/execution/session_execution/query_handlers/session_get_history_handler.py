@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from shell.application.execution.session_execution.ports.session_query_service import (
+        SessionQueryService,
+    )
     from shell.application.execution.session_execution.queries.session_get_history_query import (
         SessionGetHistoryQuery,
     )
-    from shell.application.platform.ports.queries import SessionQueryService
     from shell.application.session.session.dto.session import SessionDto
 
 

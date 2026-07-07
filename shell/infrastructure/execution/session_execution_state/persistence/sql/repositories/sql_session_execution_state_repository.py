@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.session_execution_state.repositories.sess
     SessionExecutionStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.session_execution_state.persistence.sql.mappers import (
     session_execution_state_entity_to_model,
     session_execution_state_model_to_entity,
 )

@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.task_execution_state.repositories.task_ex
     TaskExecutionStateRepository,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.mappers import (
+from shell.infrastructure.execution.task_execution_state.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
     task_execution_state_model_to_entity,
 )

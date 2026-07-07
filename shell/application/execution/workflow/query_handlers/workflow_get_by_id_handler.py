@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.execution.workflow.dto.workflow import WorkflowDto
+    from shell.application.execution.workflow.ports.workflow_query_service import (
+        WorkflowQueryService,
+    )
     from shell.application.execution.workflow.queries.workflow_get_by_id_query import (
         WorkflowGetByIdQuery,
     )
-    from shell.application.platform.ports.queries import WorkflowQueryService
 
 
 class WorkflowGetByIdHandler:

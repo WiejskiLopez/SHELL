@@ -8,7 +8,7 @@ from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.project.aggregates.project_state.repositories.project_state_repository import (
     ProjectStateRepository,
 )
-from shell.infrastructure.project.persistence.sql.mappers import (
+from shell.infrastructure.project.project_state.persistence.sql.mappers import (
     project_state_entity_to_model,
     project_state_model_to_entity,
 )

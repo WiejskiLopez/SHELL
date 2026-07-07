@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.definition.runner_config.dto.runner_config import RunnerConfigDto
+    from shell.application.definition.runner_config.ports.runner_config_query_service import (
+        RunnerConfigQueryService,
+    )
     from shell.application.definition.runner_config.queries.runner_config_get_query import (
         RunnerConfigGetQuery,
     )
-    from shell.application.platform.ports.queries import RunnerConfigQueryService
 
 
 class RunnerConfigGetHandler:

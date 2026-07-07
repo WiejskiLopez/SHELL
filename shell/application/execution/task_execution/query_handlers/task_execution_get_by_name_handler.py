@@ -4,10 +4,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
+    from shell.application.execution.task_execution.ports.task_execution_query_service import (
+        TaskExecutionQueryService,
+    )
     from shell.application.execution.task_execution.queries import (
         TaskExecutionGetByNameQuery,
     )
-    from shell.application.platform.ports.queries import TaskExecutionQueryService
 
 
 class TaskExecutionGetByNameHandler:
