@@ -121,12 +121,12 @@ if workflow.status == WorkflowStatus.RUNNING:
 
 ## Porty serwisów w module agregatu
 
-- Wszystko czego agregat wymaga do podjęcia decyzji jest dostarczane przez serwisy domenowe (porty w `domain/<bc>/services/`).
+- Wszystko czego agregat wymaga do podjęcia decyzji jest dostarczane przez serwisy domenowe (porty w `domain/<bc>/aggregates/<agregat>/services/` lub `domain/<bc>/aggregates/<agregat>/ports/`).
 - Handler wstrzykuje implementacje portów, wywołuje je przed metodą agregatu i przekazuje wyniki jako parametry.
 - Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych**.
 
 ```python
-# Port zdefiniowany w domain/execution/services/eligibility_port.py
+# Port zdefiniowany w domain/execution/aggregates/<agregat>/ports/eligibility_port.py
 class EligibilityPort(Protocol):
     async def check(self, customer_id: CustomerId) -> Eligibility: ...
 ```

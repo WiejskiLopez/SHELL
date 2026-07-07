@@ -19,5 +19,5 @@ description: Wzorzec Factory w DDD — odpowiedzialność tworzenia złożonych 
 
 Projektując Factory:
 - [ ] Factory w domenie — brak importów infrastrukturalnych
-- [ ] Lokalizacja: `shell/domain/<bc>/factories/`
+- [ ] Lokalizacja: `shell/domain/<bc>/aggregates/<agregat>/factories/`
 - [ ] Testy jednostkowe dla każdej ścieżki tworzenia

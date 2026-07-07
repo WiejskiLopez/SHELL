@@ -87,7 +87,7 @@ NodeExecutionCompletedHandler (Cycle B):
 
 ### 4.1 Nowy port: `SubGraphDiscovery`
 
-**Path:** `shell/domain/execution/ports/sub_graph_discovery.py`
+**Path:** `shell/domain/execution/aggregates/node_execution/ports/sub_graph_discovery.py` (lub `shell/domain/execution/ports/`)
 
 ```python
 """SubGraphDiscovery Protocol — znajduje GraphDefinition na podstawie opisu."""
@@ -113,7 +113,7 @@ class SubGraphDiscovery(Protocol):
 
 ### 4.2 Nowy adapter: `VectorSubGraphDiscovery`
 
-**Path:** `shell/infrastructure/execution/discovery/vector_sub_graph_discovery.py`
+**Path:** `shell/infrastructure/execution/graph_execution/http/` (lub `shell/infrastructure/execution/discovery/vector_sub_graph_discovery.py` — do stworzenia)
 
 Implementacja:
 1. Embeduje `query` do wektora (np. OpenAI Ada, local embedding)
@@ -125,10 +125,10 @@ Implementacja:
 ```python
 @dataclass(frozen=True)
 class SubGraphSpawnRequestedEvent(DomainEvent):
-    query: str                       # zapytanie do bazy wektorowej
-    parent_graph_execution_id: str   # parent GraphExecution.id
-    parent_node_id: str        # planner NodeExecution.id
-    correlation_id: str
+    query: str                                            # zapytanie do bazy wektorowej
+    parent_graph_execution_id: GraphExecutionId           # parent GraphExecution.id
+    parent_node_id: NodeExecutionId                       # planner NodeExecution.id
+    correlation_id: CorrelationId
 ```
 
 ### 4.4 Nowy event: `PlannerSpawnsQueuedEvent`
@@ -136,15 +136,15 @@ class SubGraphSpawnRequestedEvent(DomainEvent):
 ```python
 @dataclass(frozen=True)
 class PlannerSpawnsQueuedEvent(DomainEvent):
-    parent_graph_execution_id: str
-    parent_node_id: str
-    spawn_count: int                 # ile childy zaplanowano
+    parent_graph_execution_id: GraphExecutionId
+    parent_node_id: NodeExecutionId
+    spawn_count: int                                       # ile childy zaplanowano
 ```
 
 ### 4.5 Refaktor: `PlannerResultHandler`
 
-**Z:** `shell/application/execution/event_handlers/spawn_sub_graphs_on_planner_completion_handler.py`
-**Na:** `shell/application/execution/event_handlers/planner_result_handler.py`
+**Z:** `shell/application/execution/event_handlers/spawn_sub_graphs_on_planner_completion_handler.py` (do stworzenia/usunięcia)
+**Na:** `shell/application/execution/event_handlers/planner_result_handler.py` (do stworzenia)
 
 Kluczowe zmiany:
 - Parsuje `{ stage, spawn[] }` zamiast `{ steps: [{ action, sub_graph_definition_id }] }`

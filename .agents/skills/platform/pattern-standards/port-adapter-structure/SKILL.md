@@ -123,5 +123,5 @@ Dzięki tej strukturze wydzielenie agregatu do osobnego mikroserwisu wymaga tylk
 
 ## Lokalizacja
 
-- Porty: `shell/domain/platform/ports/` (uniwersalne), `shell/domain/<bc>/repositories/` (repozytoria), `shell/domain/<bc>/services/` (serwisy)
-- Adaptery: `shell/infrastructure/platform/adapters/`, `shell/infrastructure/<bc>/repositories/`, `shell/infrastructure/<bc>/adapters/`, `shell/infrastructure/<bc>/acl/`, `shell/infrastructure/<bc>/services/<nazwa_agregatu>/`
+- Porty: `shell/domain/platform/ports/` (uniwersalne), `shell/domain/<bc>/aggregates/<agregat>/repositories/` (repozytoria), `shell/domain/<bc>/aggregates/<agregat>/services/` (serwisy)
+- Adaptery: `shell/infrastructure/platform/time/`, `shell/infrastructure/platform/identity/`, `shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`, `shell/infrastructure/<bc>/<aggregate>/persistence/memory/`, `shell/infrastructure/<bc>/http/`, `shell/infrastructure/<bc>/acl/`

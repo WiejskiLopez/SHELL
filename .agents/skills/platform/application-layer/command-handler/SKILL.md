@@ -20,21 +20,32 @@ Command Handler to komponent warstwy aplikacyjnej, który przyjmuje komendę (Co
 
 ## Lokalizacja
 
-Handlery komend znajdują się w katalogu `application/<bounded_context>/command_handlers/`.
+Handlery komend znajdują się w katalogu `application/<bounded_context>/<aggregate>/command_handlers/`.
 
 ```
 shell/application/
     execution/
-        command_handlers/
-            start_workflow_handler.py
-            import_task_execution_handler.py
-            session_handlers/
+        node_execution/
+            command_handlers/
+                start_node_execution_handler.py
+                complete_node_execution_handler.py
+        edge_execution/
+            command_handlers/
+                advance_edge_execution_handler.py
+    definition/
+        graph_definition/
+            command_handlers/
+                create_graph_definition_handler.py
+                update_graph_definition_handler.py
+    session/
+        session/
+            command_handlers/
                 open_session_handler.py
                 close_session_handler.py
-    definition/
-        command_handlers/
-            index_document_handler.py
-            bootstrap_runner_config_handler.py
+    user/
+        user/
+            command_handlers/
+                create_user_handler.py
 ```
 
 ## Rejestracja

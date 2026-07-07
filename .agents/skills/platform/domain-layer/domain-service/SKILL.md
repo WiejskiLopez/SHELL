@@ -138,5 +138,5 @@ class S3StorageService:
 
 Tworząc Domain Service:
 - [ ] Logika nie pasuje do pojedynczej Entity ani VO
-- [ ] Lokalizacja: `shell/domain/<bc>/services/`
+- [ ] Lokalizacja: `shell/domain/<bc>/aggregates/<agregat>/services/`
 - [ ] Testowany w isolation (unit testy, mock portów)

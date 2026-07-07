@@ -11,7 +11,7 @@ Definition Domain (źródło)                Execution Domain (docelowa)
 ┌────────────────────────┐                ┌──────────────────────────┐
 │ GraphDefinitionDto     │── TYPE_CHECKING│ GraphExecutionDefinitionProvider        │
 │ NodeDefinitionDto │  (tylko typy)  │ (port/Protocol)          │
-│ (application/dto/)     │                │ (domain/ports/)          │
+│ (application/<bc>/dto/)│                │ (domain/<bc>/ports/)     │
 └────────────────────────┘                └──────────────────────────┘
 ```
 
@@ -47,14 +47,14 @@ Domena docelowa definiuje **swoje własne DTO** (value objects) reprezentujące 
 Definition Domain (źródło)       Infrastructure                   Execution Domain (docelowa)
 ┌──────────────────────┐        ┌──────────────────────┐         ┌──────────────────────────┐
 │ GraphDefinitionDto   │───────→│ GraphExecutionDefinitionProviderAdapter   │────────→│ GraphExecutionDefinitionProvider       │
-│ (application/dto/)   │        │ Adapter              │         │ (port — zwraca własne)   │
+│ (application/<bc>/dto/)│        │ Adapter              │         │ (port — zwraca własne)   │
 └──────────────────────┘        │ mapuje:              │         └──────────────────────────┘
                                 │ source DTO → exec DTO   │                   │
                                 └──────────────────────┘                   ▼
                                                                  ┌──────────────────────────┐
                                                                  │ GraphExecutionDefinition  │
                                                                  │ NodeExecutionDef     │
-                                                                 │ (domain/value_objects/)   │
+                                                                 │ (domain/<bc>/value_objects/)│
                                                                  └──────────────────────────┘
 ```
 
@@ -167,4 +167,4 @@ class ExecutionWorkflowOutcomeAdapter:
 |----------------|--------|-----------|-------|
 | Odczyt danych (sync) | domena docelowa (domain/ports/) | infrastructure/<domena_docelowa>/ | Używa QueryService (read model), nie domain repo |
 | Event (async) | domena subskrybująca (domain/ports/) | infrastructure/<domena_subskrybująca>/ | Konwertuje event źródłowy na wywołanie portu |
-| DTO | domena źródłowa (application/dto/) | — | Źródło definiuje kontrakt, docelowa mapuje na własne VO |
+| DTO | domena źródłowa (application/<bc>/<aggregate>/dto/) | — | Źródło definiuje kontrakt, docelowa mapuje na własne VO |

@@ -63,7 +63,7 @@ GraphExecution (child, depth=D+1) ... → koniec
 
 ## SubGraphExecutionService.spawn()
 
-`SubGraphExecutionService` w `domain/execution/services/sub_graph_execution_service.py`.
+`SubGraphExecutionService` w `domain/execution/aggregates/graph_execution/services/sub_graph_execution_service.py`.
 Domain service — wszystkie operacje w jednej jednostce pracy.
 
 ```python

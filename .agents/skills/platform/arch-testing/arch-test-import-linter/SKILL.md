@@ -151,12 +151,12 @@ source_modules = ["shell.domain"]
 Testy import-linter nie są standardowymi testami pytest — to osobne narzędzie. Jednak warto dodać test pytest, który wywołuje `lint-imports` i assercjonuje exit code:
 
 ```
-tests/architecture/
+tests/platform/architecture/
 ├── test_import_linter.py        # wrapper wywołujący lint-imports
 └── test_layer_imports.py        # alternatywnie: ręczne AST (fallback)
 ```
 
-### 5.1 Wrapper pytest w `tests/architecture/test_import_linter.py`
+### 5.1 Wrapper pytest w `tests/platform/architecture/test_import_linter.py`
 
 ```python
 """Test, który uruchamia import-linter i assertuje brak naruszeń."""
@@ -184,7 +184,7 @@ class TestImportLinter:
 ### 5.2 Ręczne AST (fallback, gdy import-linter nie może być użyty)
 
 ```python
-# tests/architecture/test_layer_imports.py
+# tests/platform/architecture/test_layer_imports.py
 """Ręczna weryfikacja importów między warstwami przez AST."""
 
 import ast

@@ -58,35 +58,20 @@ REFRESH MATERIALIZED VIEW execution_summary;
 ### Command side
 
 ```
-shell/application/<bc>/commands/                   # Komendy (DTO)
-shell/application/<bc>/command_handlers/           # Handlery komend (1 handler = 1 agregat)
-shell/domain/<bc>/aggregates/                      # Agregaty (write model)
-shell/domain/<bc>/repositories/                    # Porty repozytoriów
+shell/application/<bc>/<aggregate>/commands/           # Komendy (DTO) per agregat
+shell/application/<bc>/<aggregate>/command_handlers/   # Handlery komend per agregat
+shell/domain/<bc>/aggregates/<aggregat>/               # Agregaty (write model)
+shell/domain/<bc>/aggregates/<aggregat>/repositories/  # Porty repozytoriów per agregat
 ```
 
 ### Query side
 
-Query serwisy grupuje się **per agregat**, a nie per BC, co ułatwia ekstrakcję do mikroserwisu:
+Query grupuje się **per agregat**, co ułatwia ekstrakcję do mikroserwisu:
 
 ```
-shell/application/<bc>/queries/                    # Query (DTO)
-shell/application/<bc>/query_handlers/             # Handlery query
-shell/application/<bc>/query_services/
-    <nazwa_agregatu>/                              # QueryService dla danego agregatu
-        <nazwa>_service.py                         # Grupa powiązanych zapytań
-shell/infrastructure/<bc>/projections/             # Projekcje read modelu
-```
-
-Przykład:
-
-```
-shell/application/execution/query_services/
-    workflow/
-        workflow_list_service.py
-        workflow_detail_service.py
-        workflow_summary_service.py
-    session/
-        session_history_service.py
+shell/application/<bc>/<aggregate>/queries/            # Query (DTO) per agregat
+shell/application/<bc>/<aggregate>/query_handlers/     # Handlery query per agregat
+shell/infrastructure/<bc>/<aggregate>/persistence/sql/ # SQL modele i repozytoria per agregat
 ```
 
 ## 10. Podsumowanie — Checklista

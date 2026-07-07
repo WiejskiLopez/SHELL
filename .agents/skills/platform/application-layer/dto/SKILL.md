@@ -54,15 +54,15 @@ class ExecutionInvoiceMapper:
 ## 4. Lokalizacja DTO
 
 ```
-# Kontrakty między BC (własność źródłowego BC)
-shell/domain/<bc>/contracts/<nazwa>_dto.py
+# DTO między BC (własność źródłowego BC) — definiowane w domain lub application
+shell/application/<bc>/<aggregate>/dto/<entity>_dto.py
 
-# Komendy i Query w aplikacji
-shell/application/<bc>/commands/<command>.py
-shell/application/<bc>/queries/<query>.py
+# Komendy i Query w aplikacji (per agregat)
+shell/application/<bc>/<aggregate>/commands/<command>.py
+shell/application/<bc>/<aggregate>/queries/<query>.py
 
-# DTO odpowiedzi
-shell/application/<bc>/dto/<entity>_dto.py
+# DTO odpowiedzi (per agregat)
+shell/application/<bc>/<aggregate>/dto/<entity>_dto.py
 ```
 
 ## 5. Podsumowanie — Checklista

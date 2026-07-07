@@ -28,12 +28,14 @@ repositories/
 | Domain | `aggregates/<nazwa_agregatu>/entities/` | Child entities |
 | Domain | `aggregates/<nazwa_agregatu>/events/` | Domain Events |
 | Domain | `aggregates/<nazwa_agregatu>/value_objects/` | Value Objects (w tym ID) |
-| Domain | `domain/value_objects/` | Universalne VO platformy |
-| Domain | `domain/entities/base/` | Entity/AggregateRoot base classes |
-| Domain | `domain/repositories/` | Porty repozytoriów |
-| Domain | `domain/services/` | Domain Services |
-| Domain | `domain/exceptions/` | Domain Exceptions |
-| Domain | `domain/ports/` | Porty (tylko platform) |
+| Domain | `domain/platform/base/` | Entity/AggregateRoot base classes |
+| Domain | `domain/platform/value_objects/` | Universalne VO platformy |
+| Domain | `domain/platform/ports/` | Porty platformy (Clock, IdGenerator) |
+| Domain | `domain/platform/events/` | DomainEvent base class |
+| Domain | `domain/platform/exceptions.py` | DomainError base |
+| Domain | `domain/<bc>/aggregates/<agregat>/repositories/` | Porty repozytoriów per agregat |
+| Domain | `domain/<bc>/aggregates/<agregat>/services/` | Domain Services per agregat |
+| Domain | `domain/<bc>/aggregates/<agregat>/exceptions/` | Domain Exceptions per agregat |
 | Application | `application/<bc>/commands/<aggregate>/` | Komendy per agregat |
 | Application | `application/<bc>/command_handlers/<aggregate>/` | Handlery komend per agregat |
 | Application | `application/<bc>/queries/<aggregate>/` | Query per agregat |
@@ -50,33 +52,32 @@ repositories/
 | Application | `application/strategies/<nazwa>/` | Strategie |
 | Domain | `domain/<bc>/aggregates/<aggregate>/services/` | Domain Services per agregat |
 | Domain | `domain/<bc>/descriptors/` | SemanticDescriptory |
-| Infrastructure | `infrastructure/<bc>/repositories/` | SQL repozytoria |
-| Infrastructure | `infrastructure/<bc>/adapters/` | Adaptery serwisów |
+| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/repositories/` | SQL repozytoria per agregat |
+| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/memory/` | InMemory repozytoria per agregat |
+| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/models/` | ORM modele per agregat |
+| Infrastructure | `infrastructure/<bc>/<aggregate>/persistence/sql/mappers/` | Mappery ORM per agregat |
 | Infrastructure | `infrastructure/<bc>/acl/` | Anti-Corruption Layer |
-| Infrastructure | `infrastructure/platform/adapters/` | Adaptery uniwersalne |
-| Infrastructure | `infrastructure/persistence/sql/models/` | ORM modele |
-| Infrastructure | `infrastructure/persistence/sql/mappers/` | Mappery ORM |
-| Infrastructure | `infrastructure/persistence/sql/repositories/` | SQL repozytoria |
-| Infrastructure | `infrastructure/persistence/memory/` | InMemory repozytoria |
-| Infrastructure | `infrastructure/persistence/migrations/sql/versions/` | Migracje Alembic |
-| Framework | `framework/api/routers/` | Routery FastAPI |
-| Framework | `framework/cli/commands/` | Komendy CLI |
+| Infrastructure | `infrastructure/platform/time/` | Adaptery uniwersalne (zegar) |
+| Infrastructure | `infrastructure/platform/identity/` | Adaptery uniwersalne (IdGenerator) |
+| Infrastructure | `infrastructure/platform/persistence/migrations/sql/versions/` | Migracje Alembic |
+| Framework | `framework/<bc>/<aggregate>/api/` | Routery FastAPI per agregat |
+| Framework | `framework/<bc>/entrypoints/` | Entrypointy (agent, planner, worker) |
 | Process | `process/<bc>/<nazwa_sagi>/` | Saga state machine (<nazwa>_saga.py, state.py) |
 | Process | `process/<bc>/<nazwa_sagi>/handlers/` | Event handlery delegujące do sagi |
 | Process | `process/<bc>/<nazwa_sagi>/commands/` | Komendy produkowane tylko przez tę sagę |
 | Process | `process/<bc>/<nazwa_sagi>/ports/` | Porty (Protocol) dla repozytorium i command publishera |
-| Bootstrap | `bootstrap/<bc>/` | DI per BC |
-| Bootstrap | `bootstrap/container/` | Containery |
-| Bootstrap | `bootstrap/factory/` | Factory |
-| Test | `tests/unit/domain/` | Testy jednostkowe domeny |
-| Test | `tests/unit/application/` | Testy jednostkowe aplikacji |
-| Test | `tests/process/unit/` | Testy jednostkowe process (saga state machine, process manager handlery) |
+| Bootstrap | `bootstrap/<bc>/container/` | DI per BC |
+| Bootstrap | `bootstrap/platform/container/` | Containery platformowe |
+| Bootstrap | `bootstrap/platform/factory/` | Factory (command_factory, event_factory) |
+| Test | `tests/<bc>/unit/domain/` | Testy jednostkowe domeny per BC |
+| Test | `tests/<bc>/unit/application/` | Testy jednostkowe aplikacji per BC |
+| Test | `tests/<bc>/integration/sql_sqlite/` | Testy integracyjne SQLite per BC |
+| Test | `tests/<bc>/integration/sql_postgres/` | Testy integracyjne Postgres per BC |
+| Test | `tests/<bc>/e2e/api/` | Testy E2E API per BC |
+| Test | `tests/<bc>/e2e/cli/` | Testy E2E CLI per BC |
+| Test | `tests/process/unit/` | Testy jednostkowe process (saga state machine) |
 | Test | `tests/process/integration/sql_sqlite/` | Testy integracyjne process z SQLite |
-| Test | `tests/integration/sql_sqlite/` | Testy integracyjne SQLite |
-| Test | `tests/integration/sql_postgres/` | Testy integracyjne Postgres |
-| Test | `tests/e2e/api/` | Testy E2E API |
-| Test | `tests/e2e/cli/` | Testy E2E CLI |
-| Test | `tests/architecture/` | Testy architektury |
+| Test | `tests/platform/architecture/` | Testy architektury |
 
 > **Szczegółowe reguły → [naming-convention-standard](../naming-convention-standard/SKILL.md)**
 

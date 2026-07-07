@@ -141,7 +141,7 @@ class TestSqlExecutionRepository:
 Weryfikują reguły architektoniczne — importy między warstwami, konwencje nazewnicze, obecność wymaganych elementów.
 
 ```python
-# tests/architecture/test_layer_imports.py
+# tests/platform/architecture/test_layer_imports.py
 class TestLayerImports:
     def test_domain_does_not_import_infrastructure(self) -> None:
         violations = []
@@ -258,10 +258,10 @@ class TestCreateAndCompleteExecution:
 
 ## 10. Fixture Strategy
 
-- **Domain fixtures**: `tests/domain/conftest.py` — factory methods dla agregatów
-- **Infrastructure fixtures**: `tests/infrastructure/conftest.py` — db_session, mapper
-- **Application fixtures**: `tests/application/conftest.py` — handler + InMemory repos
-- **E2E fixtures**: `tests/e2e/conftest.py` — async_client, baza testowa
+- **Domain fixtures**: `tests/<bc>/conftest.py` — factory methods dla agregatów
+- **Infrastructure fixtures**: `tests/<bc>/integration/sql_sqlite/conftest.py` — db_session, mapper
+- **Application fixtures**: `tests/<bc>/unit/application/conftest.py` — handler + InMemory repos
+- **E2E fixtures**: `tests/<bc>/e2e/conftest.py` — async_client, baza testowa
 
 ## 11. Podsumowanie — Checklista
 

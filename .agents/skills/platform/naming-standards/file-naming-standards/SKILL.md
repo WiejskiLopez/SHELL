@@ -77,14 +77,25 @@ Przykłady:
 - `test_sql_execution_repository.py`
 - `test_task_execution_name.py`
 
-Katalogi testów odzwierciedlają strukturę warstw:
+Katalogi testów odzwierciedlają strukturę warstw z per-BC podziałem:
 ```
 tests/
-├── architecture/           # Testy architektury
-├── domain/                 # Testy jednostkowe domeny
-├── application/            # Testy handlerów
-├── infrastructure/         # Testy integracyjne
-└── e2e/                    # Testy end-to-end
+├── platform/
+│   └── architecture/       # Testy architektury
+├── definition/             # Testy Definition BC
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── execution/              # Testy Execution BC
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── session/                # Testy Session BC
+├── user/                   # Testy User BC
+├── project/                # Testy Project BC
+└── process/                # Testy sagi/process
+    ├── unit/
+    └── integration/
 ```
 
 ## Pliki specjalne

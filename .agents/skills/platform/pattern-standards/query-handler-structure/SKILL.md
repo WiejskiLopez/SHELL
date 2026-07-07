@@ -24,8 +24,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.application.workflow.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
-    from shell.application.workflow.query_services import WorkflowQueryService
+    from shell.application.execution.workflow.queries.workflow_get_by_id_query import WorkflowGetByIdQuery
+    from shell.application.execution.workflow.queries.workflow_query_service import WorkflowQueryService
 ```
 
 ## Metoda handle

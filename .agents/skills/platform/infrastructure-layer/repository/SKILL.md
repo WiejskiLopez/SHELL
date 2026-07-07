@@ -8,27 +8,28 @@ description: Zasady projektowania repozytoriów w DDD — porty w domenie, imple
 ## 1. Lokalizacja
 
 ```
-shell/domain/<bc>/repositories/          # Porty (ABC/Protocol)
-├── execution_repository.py              # Port
-└── graph_repository.py                  # Port
+shell/domain/<bc>/aggregates/<agregat>/repositories/   # Porty (Protocol) per agregat
+├── execution_repository.py                             # Port
+└── graph_execution_repository.py                       # Port
 ```
 
 ```
-shell/infrastructure/<bc>/repositories/  # Adaptery (SQL)
+shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/  # Adaptery (SQL) per agregat
 ├── sql_execution_repository.py
-└── sql_graph_repository.py
+└── sql_graph_execution_repository.py
 ```
 
 ```
-shell/infrastructure/persistence/memory/ # InMemory (testy)
+shell/infrastructure/<bc>/<aggregate>/persistence/memory/            # InMemory (testy) per agregat
 ├── in_memory_execution_repository.py
-└── in_memory_graph_repository.py
+└── in_memory_graph_execution_repository.py
 ```
 
 ## 2. Podsumowanie — Checklista
 
 Projektując repozytorium:
-- [ ] Port (ABC) w `shell/domain/<bc>/repositories/`
-- [ ] Adapter SQL w `shell/infrastructure/<bc>/repositories/`
+- [ ] Port (Protocol) w `shell/domain/<bc>/aggregates/<agregat>/repositories/`
+- [ ] Adapter SQL w `shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
+- [ ] Adapter InMemory w `shell/infrastructure/<bc>/<aggregate>/persistence/memory/`
 - [ ] Testy jednostkowe na InMemory
 - [ ] Testy integracyjne na SQL implementacji

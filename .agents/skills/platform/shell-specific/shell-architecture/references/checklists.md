@@ -5,19 +5,19 @@ Checklisty do przejścia przed wysłaniem zmian. Każda odpowiada konkretnej kla
 ## Dodawanie nowej funkcjonalności (krok po kroku)
 
 1. **Model domenowy** (jeśli potrzeba):
-   - Value Object w `domain/value_objects/`
-   - Entity/Aggregate Root w `domain/entities/` lub `domain/aggregates/`
-   - Domain Event w `domain/events/events/`
-   - Domain Exception w `domain/exceptions/`
-   - Domain Service w `domain/services/`
-   - Repository Port w `domain/repositories/`
+   - Value Object w `domain/<bc>/aggregates/<agregat>/value_objects/`
+   - Entity/Aggregate Root w `domain/<bc>/aggregates/<agregat>/`
+   - Domain Event w `domain/<bc>/aggregates/<agregat>/events/`
+   - Domain Exception w `domain/<bc>/aggregates/<agregat>/exceptions/`
+   - Domain Service w `domain/<bc>/aggregates/<agregat>/services/`
+   - Repository Port w `domain/<bc>/aggregates/<agregat>/repositories/`
 
 2. **Operacja aplikacyjna** (atomowa, 1 agregat):
-   - Command lub Query w `application/commands/` lub `application/queries/`
-   - Handler w `application/command_handlers/` lub `application/query_handlers/`
-   - Event Handler w `application/event_handlers/`
-   - DTO w `application/dto/`
-   - Mapper w `application/mappers/`
+   - Command lub Query w `application/<bc>/<aggregate>/commands/` lub `application/<bc>/<aggregate>/queries/`
+   - Handler w `application/<bc>/<aggregate>/command_handlers/` lub `application/<bc>/<aggregate>/query_handlers/`
+   - Event Handler w `application/<bc>/event_handlers/`
+   - DTO w `application/<bc>/<aggregate>/dto/`
+   - Mapper w `application/<bc>/<aggregate>/mappers/`
 
 3. **Orkiestracja/Process** (jeśli potrzeba koordynacji wielu agregatów):
    - Saga/Process Manager w `process/<bc>/<nazwa_sagi>/manager.py`
@@ -27,28 +27,27 @@ Checklisty do przejścia przed wysłaniem zmian. Każda odpowiada konkretnej kla
    - Saga ports (Protocol) w `process/<bc>/<nazwa_sagi>/ports/`
 
 4. **Adapter infrastrukturalny**:
-   - ORM Model w `infrastructure/persistence/sql/models/`
-   - Migracja Alembic w `infrastructure/persistence/migrations/sql/versions/`
-   - Repository w `infrastructure/persistence/sql/repositories/`
-   - InMemory Repository w `infrastructure/persistence/memory/`
+   - ORM Model w `infrastructure/<bc>/<aggregate>/persistence/sql/models/`
+   - Migracja Alembic w `infrastructure/platform/persistence/migrations/sql/versions/`
+   - Repository w `infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
+   - InMemory Repository w `infrastructure/<bc>/<aggregate>/persistence/memory/`
 
 5. **Rejestracja w DI**:
-   - Application Container w `bootstrap/container/command_container.py`, `event_container.py`, `query_container.py`
-   - Process Container w `bootstrap/container/process_container.py`
-   - Factory w `bootstrap/factory/` (`command_factory.py`, `event_factory.py`)
-   - Core Container w `core_container.py` — dodaj `process: providers.Container[ProcessContainer]`
+   - Application Container w `bootstrap/<bc>/container/` lub `bootstrap/platform/container/`
+   - Factory w `bootstrap/<bc>/factory/` lub `bootstrap/platform/factory/`
+   - Core Container w `bootstrap/platform/container/` — dodaj nowy moduł
 
 6. **Endpoint frameworkowy**:
-   - Router FastAPI w `framework/api/routers/`
-   - Lub komenda CLI w `framework/cli/commands/`
+   - Router FastAPI w `framework/<bc>/<aggregate>/api/`
+   - Lub komenda CLI w `framework/<bc>/entrypoints/`
 
 7. **Testy**:
-   - Unit domain w `tests/unit/domain/`
-   - Unit application w `tests/unit/application/`
+   - Unit domain w `tests/<bc>/unit/domain/`
+   - Unit application w `tests/<bc>/unit/application/`
    - Unit process w `tests/process/unit/` (testy sagi/process managerów z InMemory adapterami)
    - Integration process w `tests/process/integration/sql_sqlite/` (testy repozytoriów sagi z SQLite)
-   - Integration w `tests/integration/sql_sqlite/`
-   - E2E w `tests/e2e/api/` lub `tests/e2e/cli/`
+   - Integration w `tests/<bc>/integration/sql_sqlite/`
+   - E2E w `tests/<bc>/e2e/api/` lub `tests/<bc>/e2e/cli/`
 
 ## Handler completeness
 
@@ -139,15 +138,15 @@ Dla każdego agregatu persystowanego:
 
 | Kategoria | Lokalizacja | Co testuje | Adaptery |
 |-----------|-------------|------------|----------|
-| Unit (domain) | `tests/unit/domain/` | Entity, VO, Domain Service, state machine, events | Czyste obiekty domenowe |
-| Unit (application) | `tests/unit/application/` | Atomowe handlery, bus, strategie | `InMemory*` repositories, `Fake*` porty |
+| Unit (domain) | `tests/<bc>/unit/domain/` | Entity, VO, Domain Service, state machine, events | Czyste obiekty domenowe |
+| Unit (application) | `tests/<bc>/unit/application/` | Atomowe handlery, bus, strategie | `InMemory*` repositories, `Fake*` porty |
 | Unit (process) | `tests/process/unit/` | Saga state machine, Process Manager handlery | `InMemory*` saga repo, `FakeCommandPublisher` |
 | Integration (process) | `tests/process/integration/sql_sqlite/` | Saga repository + manager na SQLite | SQLite |
-| Integration | `tests/integration/sql_sqlite/` | SQL Reposytoria, UoW, outbox | SQLite (prawdziwa baza) |
-| Integration | `tests/integration/sql_postgres/` | PostgreSQL-specific | PostgreSQL przez `PG_TEST_URL` |
-| E2E | `tests/e2e/api/` | FastAPI endpointy | httpx + prawdziwy DI container |
-| E2E | `tests/e2e/cli/` | CLI komendy | argparse + prawdziwy DI container |
-| Architecture | `tests/architecture/test_imports.py` | Zależności importowe | AST parser (nie importuje kodu) |
+| Integration | `tests/<bc>/integration/sql_sqlite/` | SQL Reposytoria, UoW, outbox | SQLite (prawdziwa baza) |
+| Integration | `tests/<bc>/integration/sql_postgres/` | PostgreSQL-specific | PostgreSQL przez `PG_TEST_URL` |
+| E2E | `tests/<bc>/e2e/api/` | FastAPI endpointy | httpx + prawdziwy DI container |
+| E2E | `tests/<bc>/e2e/cli/` | CLI komendy | argparse + prawdziwy DI container |
+| Architecture | `tests/platform/architecture/` | Zależności importowe, konwencje, typy | AST parser (nie importuje kodu) |
 
 Reguły:
 - Testy jednostkowe nigdy nie używają bazy, frameworka, sieci

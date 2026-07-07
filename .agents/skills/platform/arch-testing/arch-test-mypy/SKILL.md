@@ -64,13 +64,13 @@ disallow_untyped_defs = false
 ### 3.1 Port domenowy jako `Protocol`
 
 ```python
-# shell/domain/execution/repositories/execution_repository.py
+# shell/domain/execution/aggregates/<agregat>/repositories/execution_repository.py
 from __future__ import annotations
 
 from typing import Protocol
 
-from shell.domain.execution.entities.execution import Execution
-from shell.domain.execution.value_objects.execution_id import ExecutionId
+from shell.domain.execution.aggregates.<agregat> import Execution
+from shell.domain.execution.aggregates.<agregat>.value_objects.execution_id import ExecutionId
 
 
 class ExecutionRepository(Protocol):
@@ -88,14 +88,14 @@ class ExecutionRepository(Protocol):
 ### 3.2 Infrastruktura implementuje protokół
 
 ```python
-# shell/infrastructure/execution/repositories/sql_execution_repository.py
+# shell/infrastructure/execution/<aggregate>/persistence/sql/repositories/sql_execution_repository.py
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from shell.domain.execution.entities.execution import Execution
-from shell.domain.execution.repositories.execution_repository import ExecutionRepository
-from shell.domain.execution.value_objects.execution_id import ExecutionId
+from shell.domain.execution.aggregates.<agregat> import Execution
+from shell.domain.execution.aggregates.<agregat>.repositories.execution_repository import ExecutionRepository
+from shell.domain.execution.aggregates.<agregat>.value_objects.execution_id import ExecutionId
 
 
 class SqlExecutionRepository(ExecutionRepository):
@@ -124,7 +124,7 @@ class SqlExecutionRepository(ExecutionRepository):
 ### 4.1 Test pytest, który uruchamia mypy
 
 ```python
-# tests/architecture/test_mypy_strict.py
+# tests/platform/architecture/test_mypy_strict.py
 """Sprawdza, że mypy --strict przechodzi dla wybranych warstw."""
 
 import subprocess
@@ -144,7 +144,7 @@ class TestMypyStrict:
     def test_domain_passes_mypy_strict(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "--strict", "shell/domain"],
-            cwd=Path(__file__).resolve().parents[2],
+            cwd=Path(__file__).resolve().parents[3],
             capture_output=True,
             text=True,
         )
@@ -155,7 +155,7 @@ class TestMypyStrict:
     def test_application_passes_mypy_strict(self) -> None:
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "--strict", "shell/application"],
-            cwd=Path(__file__).resolve().parents[2],
+            cwd=Path(__file__).resolve().parents[3],
             capture_output=True,
             text=True,
         )
@@ -167,7 +167,7 @@ class TestMypyStrict:
         # infrastructure ma luźniejsze reguły (SQLAlchemy declarative)
         result = subprocess.run(
             [sys.executable, "-m", "mypy", "shell/infrastructure"],
-            cwd=Path(__file__).resolve().parents[2],
+            cwd=Path(__file__).resolve().parents[3],
             capture_output=True,
             text=True,
         )
@@ -235,12 +235,8 @@ Protokół w Pythonie (`typing.Protocol`) używa **strukturalnego subtypowania**
 Testy runtime dla protokołów ograniczają się więc do sprawdzeń konwencji nazewniczych i istnienia plików — zgodność typów jest zweryfikowana przez warstwę 3 (mypy).
 
 ```python
-# tests/architecture/infrastructure/test_repository_protocol_convention.py
-"""Sprawdza konwencje nazewnicze portów i implementacji.
-
-Zgodność typów między portem (Protocol) a implementacją weryfikuje mypy --strict
-— patrz test_mypy_strict w tej samej grupie.
-"""
+# tests/platform/architecture/infrastructure/test_repository_protocol_convention.py
+"""Sprawdza konwencje nazewnicze portów i implementacji."""
 
 from pathlib import Path
 
@@ -251,17 +247,16 @@ class TestRepositoryProtocolConvention:
 
     def test_port_files_end_with_repository(self) -> None:
         violations: list[str] = []
-        domain_repos = Path(__file__).resolve().parents[3] / "shell" / "domain"
-        for repo_file in domain_repos.rglob("*repository*.py"):
+        domain_root = Path(__file__).resolve().parents[3] / "shell" / "domain"
+        for repo_file in domain_root.rglob("*repository*.py"):
             if repo_file.name == "__init__.py":
                 continue
-            # Sprawdzamy tylko pliki definiujące port (nie __init__)
             if not repo_file.name.endswith("_repository.py"):
                 continue
             class_name = repo_file.stem.replace("_", " ").title().replace(" ", "")
             if not class_name.endswith("Repository"):
                 violations.append(
-                    f"{repo_file.relative_to(domain_repos)} — expected class name ending with Repository"
+                    f"{repo_file.relative_to(domain_root)} — expected class name ending with Repository"
                 )
         assert not violations, "\n".join(violations)
 
@@ -307,7 +302,7 @@ Jeśli wolisz testy w formacie pytest, użyj `pytest-mypy-plugins`:
 ## 6. Struktura testów
 
 ```
-tests/architecture/
+tests/platform/architecture/
 ├── application/
 │   └── test_handler_type_safety.py     # pytest + mypy subprocess
 ├── domain/
@@ -322,10 +317,10 @@ tests/architecture/
 
 ```bash
 # całość
-pytest tests/architecture/ -v
+pytest tests/platform/architecture/ -v
 
 # tylko mypy subprocess test
-pytest tests/architecture/test_mypy_strict.py -v
+pytest tests/platform/architecture/test_mypy_strict.py -v
 
 # mypy bezpośrednio
 mypy --strict shell/domain

@@ -28,14 +28,14 @@ Przykłady:
 
 ```
 # Rule Objects
-shell/domain/<bc>/rules/<nazwa_reguly>_rule.py
+shell/domain/<bc>/aggregates/<agregat>/rules/<nazwa_reguly>_rule.py
 
-# Wyjątki domenowe
-shell/domain/<bc>/exceptions.py
+# Wyjątki domenowe (per agregat)
+shell/domain/<bc>/aggregates/<agregat>/exceptions/
 shell/domain/platform/exceptions.py
 
 # Invarianty w agregatach
-shell/domain/<bc>/aggregates/<agregat>.py  # _assert_* methods
+shell/domain/<bc>/aggregates/<agregat>/<agregat>.py  # _assert_* methods
 ```
 
 ## 4. Podsumowanie — Checklista

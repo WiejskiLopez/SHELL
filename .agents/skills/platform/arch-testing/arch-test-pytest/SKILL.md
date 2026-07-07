@@ -54,7 +54,7 @@ tests/platform/architecture/
 └── conftest.py                   # helpery: walk_py_files, parse_py, extract_import_modules, find_decorators
 ```
 
-### 2.1 Helpery w `tests/architecture/conftest.py`
+### 2.1 Helpery w `tests/platform/architecture/conftest.py`
 
 ```python
 """Wspólne helpery do testów architektonicznych.
@@ -497,24 +497,24 @@ class TestInMemoryExistsForEachPort:
 
 ```bash
 # wszystkie testy architektury
-pytest tests/architecture/ -v
+pytest tests/platform/architecture/ -v
 
 # tylko domain
-pytest tests/architecture/domain/ -v
+pytest tests/platform/architecture/ -v -k "domain"
 
 # tylko application
-pytest tests/architecture/application/ -v
+pytest tests/platform/architecture/ -v -k "application"
 
 # tylko infrastructure
-pytest tests/architecture/infrastructure/ -v
+pytest tests/platform/architecture/ -v -k "infrastructure"
 
 # CI — wyłączone z normalnego runa, osobna matryca
-pytest tests/architecture/ -v --tb=short
+pytest tests/platform/architecture/ -v --tb=short
 ```
 
 ## 7. Zasady Dodawania Nowego Testu
 
-1. Plik w odpowiednim podfolderze `tests/architecture/{layer}/`
+1. Plik w odpowiednim podfolderze `tests/platform/architecture/`
 2. Każda klasa testowa w osobnym pliku
 3. Test sprawdza **jedną regułę architektoniczną**
 4. Komunikaty błędów zawierają nazwę pliku i linię
@@ -527,7 +527,7 @@ pytest tests/architecture/ -v --tb=short
 Chcesz sprawdzić, że każdy handler ma type hint dla zwracanego typu:
 
 ```python
-# tests/architecture/application/test_handlers_have_return_type.py
+# tests/platform/architecture/application/test_handlers_have_return_type.py
 """Sprawdza, że każdy handler deklaruje typ zwracany."""
 
 

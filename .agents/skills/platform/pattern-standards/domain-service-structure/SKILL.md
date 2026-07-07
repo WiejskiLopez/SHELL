@@ -59,20 +59,20 @@ class PricingService:
 
 Porty te służą do pobierania danych z innych agregatów (w obrębie tego samego BC, subdomeny lub zewnętrznego mikroserwisu) i są definiowane po stronie **konsumującego** BC.
 
-- Port (Protocol) definiowany jest w `shell/domain/<konsumujący_bc>/services/`.
+- Port (Protocol) definiowany jest w `shell/domain/<bc>/aggregates/<agregat>/services/` lub `shell/domain/<bc>/aggregates/<agregat>/ports/`.
 - Port zwraca tylko i wyłącznie Value Objecty domeny konsumującej — nigdy surowych DTO źródła.
 - Każda metoda portu jest asynchroniczna — dane z innego agregatu/mikroserwisu są zawsze pobierane async.
-- Port jest własnością potrzebującego: jeśli agregat A potrzebuje danych z agregatu B, port ląduje w `shell/domain/a/services/`, nie w `shell/domain/b/services/`.
+- Port jest własnością potrzebującego: jeśli agregat A potrzebuje danych z agregatu B, port ląduje w `shell/domain/<konsumujący_bc>/aggregates/<agregat_a>/ports/`, nie w `shell/domain/<źródłowy_bc>/aggregates/<agregat_b>/`.
 
 ```python
-# shell/domain/execution/services/workflow_data_port.py
+# shell/domain/execution/aggregates/graph_execution/services/workflow_data_port.py
 class WorkflowDataPort(Protocol):
     async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary: ...
     async def get_active_workflows(self, owner_id: UserId) -> list[WorkflowSummary]: ...
 ```
 
 ```python
-# shell/domain/execution/services/eligibility_port.py
+# shell/domain/execution/aggregates/graph_execution/ports/eligibility_port.py
 class EligibilityPort(Protocol):
     async def check(self, customer_id: CustomerId) -> Eligibility: ...
 ```

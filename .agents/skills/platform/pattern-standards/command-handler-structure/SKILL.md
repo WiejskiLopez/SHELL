@@ -147,12 +147,12 @@ async def handle(self, command: CompleteOrderCommand) -> str:
 ## Porty serwisów — definicja i implementacja
 
 - Wszystko czego agregat wymaga do podjęcia decyzji (kalkulacje, walidacje krzyżowe, dane z innych agregatów/subdomen/mikroserwisów) jest dostarczane przez **serwisy domenowe**.
-- Porty (Protocol) tych serwisów są definiowane w `shell/domain/<bc>/services/` — po stronie **konsumującego** agregatu.
+- Porty (Protocol) tych serwisów są definiowane w `shell/domain/<bc>/aggregates/<agregat>/services/` lub `shell/domain/<bc>/aggregates/<agregat>/ports/` — po stronie **konsumującego** agregatu.
 - Handler wstrzykuje implementacje tych portów, wywołuje je przed metodą agregatu i przekazuje wyniki (Value Objecty) jako parametry.
 - Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych** — dostaje wszystkie dane jako parametry wywołania.
 
 ```python
-# Port zdefiniowany w domain/execution/services/workflow_data_port.py
+# Port zdefiniowany w domain/execution/aggregates/<agregat>/services/workflow_data_port.py
 # (konsumujący definiuje kontrakt)
 class WorkflowDataPort(Protocol):
     async def get_workflow_summary(self, workflow_id: WorkflowId) -> WorkflowSummary: ...

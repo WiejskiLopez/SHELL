@@ -30,11 +30,11 @@ Jeśli metoda portu jest zbyt trudna do zaimplementowania w InMemory, to znaczy 
 
 ## SQL Repositories
 
-- Implementują porty z `domain/repositories/` przez jawne dziedziczenie
-- W `infrastructure/persistence/sql/repositories/`
+- Implementują porty z `domain/<bc>/aggregates/<agregat>/repositories/` przez jawne dziedziczenie
+- W `infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`
 - Używają SQLAlchemy 2.0 async ORM
 - Dialekt wybierany runtime'm przez `database_url` — jeden zestaw modeli i repozytoriów dla SQLite i PostgreSQL
-- Mapowanie ORM → Domain w `infrastructure/persistence/sql/mappers/` (nie w repozytorium)
+- Mapowanie ORM → Domain w `infrastructure/<bc>/<aggregate>/persistence/sql/mappers/` (nie w repozytorium)
 - Nigdy nie importują domain entity w runtime — zawsze pod `TYPE_CHECKING` + mapper
 - Każda operacja w kontekście `UnitOfWork` — nigdy samodzielnego zarządzania sesją
 
@@ -51,7 +51,7 @@ Brak ktoregokolwiek z trzech = pole tracone przy reloadzie z bazy. Bo contownoś
 
 ## InMemory Repositories
 
-- W `infrastructure/persistence/memory/`
+- W `infrastructure/<bc>/<aggregate>/persistence/memory/`
 - Używane wyłącznie w testach jednostkowych
 - Implementują te same porty co SQL odpowiedniki przez jawne dziedziczenie
 - Przechowują dane w słownikach w pamięci
@@ -60,7 +60,7 @@ Brak ktoregokolwiek z trzech = pole tracone przy reloadzie z bazy. Bo contownoś
 
 ## ORM Models (SQLAlchemy)
 
-- W `infrastructure/persistence/sql/models/`
+- W `infrastructure/<bc>/<aggregate>/persistence/sql/models/`
 - Anemiczne — wyłącznie mapa tabel, nigdy logiki biznesowej
 - Oddzielny model dla każdego agregatu/encji
 - Relacje tam gdzie potrzebne, ale bez kaskadowego ładowania przez `selectin` (chyba że wymagane przez kontrakt)
@@ -68,7 +68,7 @@ Brak ktoregokolwiek z trzech = pole tracone przy reloadzie z bazy. Bo contownoś
 
 ## Migracje (Alembic) — lockstep z modelem (KRYTYCZNE)
 
-- W `infrastructure/persistence/migrations/sql/versions/`
+- W `infrastructure/platform/persistence/migrations/sql/versions/`
 - Downgrade zawsze obsłużony
 - Dialekt-specific DDL przez `op.get_context().dialect.name`
 

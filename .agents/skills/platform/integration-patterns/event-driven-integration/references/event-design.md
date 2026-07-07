@@ -60,10 +60,10 @@ class DoProcessPaymentEvent(DomainEvent):
 
 ### Domain Event
 
-Emitowany przez agregat, konsumowany wewnątrz tego samego bounded context. Leży w `domain/events/events/`.
+Emitowany przez agregat, konsumowany wewnątrz tego samego bounded context. Leży w `domain/<bc>/aggregates/<agregat>/events/`.
 
 ```python
-# shell/domain/ordering/events/events/order_confirmed_event.py
+# shell/domain/ordering/aggregates/order/events/order_confirmed_event.py
 @dataclass(frozen=True)
 class OrderConfirmedEvent(DomainEvent):
     order_id: str
@@ -72,10 +72,10 @@ class OrderConfirmedEvent(DomainEvent):
 
 ### Integration Event
 
-Publikowany poza bounded context. Leży w `application/events/` lub w shared kernel. Różnica: integration event jest kontraktem między BC — nie zmieniasz go bez zgody konsumentów.
+Publikowany poza bounded context. Leży w `application/<bc>/event_handlers/` lub w shared kernel. Różnica: integration event jest kontraktem między BC — nie zmieniasz go bez zgody konsumentów.
 
 ```python
-# shell/shared/events/ordering/order_completed_integration_event.py
+# shell/application/ordering/event_handlers/order_completed_integration_event.py
 @dataclass(frozen=True)
 class OrderCompletedIntegrationEvent:
     """Publikowany do innych BC po zakończeniu zamówienia."""

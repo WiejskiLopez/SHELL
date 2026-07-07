@@ -110,7 +110,7 @@ Kluczowe: QueryService mapuje **z ORM Model bezpośrednio na DTO**, bez przechod
 DTO (Data Transfer Object) to kontrakt danych między BC. Jest własnością BC źródłowego.
 
 ```python
-# shell/application/invoicing/dto/invoice_dto.py
+# shell/application/invoicing/invoice/dto/invoice_dto.py
 from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
@@ -129,7 +129,7 @@ class InvoiceDto:
 ```
 
 Reguły DTO:
-- Własność BC źródłowego (`application/<bc>/dto/`)
+- Własność BC źródłowego (`application/<bc>/<aggregate>/dto/`)
 - Proste dataclasses — zero logiki biznesowej
 - Niemutowalne (`frozen=True`)
 - Każda zmiana to potencjalne złamanie konsumentów — wersjonuj
@@ -139,7 +139,7 @@ Reguły DTO:
 BC potrzebujący NIGDY nie używa DTO z innego BC bezpośrednio. Mapuje go na własny VO.
 
 ```python
-# shell/domain/ordering/value_objects/invoice_summary.py
+# shell/domain/ordering/aggregates/order/value_objects/invoice_summary.py
 from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
@@ -156,15 +156,15 @@ class InvoiceSummary:
 ```
 
 Różnica między DTO a VO:
-- **DTO** — kontrakt między BC, mieszka w `application/dto/`
-- **VO** — wewnętrzny obiekt domenowy, mieszka w `domain/value_objects/`, ma walidację, `__post_init__`, `__str__`
+- **DTO** — kontrakt między BC, mieszka w `application/<bc>/<aggregate>/dto/`
+- **VO** — wewnętrzny obiekt domenowy, mieszka w `domain/<bc>/aggregates/<agregat>/value_objects/`, ma walidację, `__post_init__`, `__str__`
 
 ## Komunikacja przez eventy — kontrakt
 
 Gdy BC A publikuje event który konsumuje BC B, event jest kontraktem między nimi.
 
 ```python
-# shell/domain/ordering/events/events/order_confirmed_event.py
+# shell/domain/ordering/aggregates/order/events/order_confirmed_event.py
 @dataclass(frozen=True)
 class OrderConfirmedEvent(DomainEvent):
     """Publikowany przez Ordering BC. Konsumowany przez Invoicing i Shipping BC."""
@@ -177,7 +177,7 @@ class OrderConfirmedEvent(DomainEvent):
 ```
 
 Zasady dla eventów między BC:
-- Event leży w BC źródłowym (`domain/<bc>/events/events/`)
+- Event leży w BC źródłowym (`domain/<bc>/aggregates/<agregat>/events/`)
 - Event jest gruby (event-carried state) — niesie wszystkie dane potrzebne konsumentom
 - Konsument nie może polegać na dostępności BC źródłowego
 - Zmiana eventu = zmiana kontraktu — BC źródłowe musi to koordynować z konsumentami

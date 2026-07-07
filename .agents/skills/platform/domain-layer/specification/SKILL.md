@@ -27,7 +27,7 @@ Specification to **komponowalny predykat biznesowy** — hermetyzuje pojedynczą
 ## 3. Podsumowanie — Checklista
 
 Tworząc Specification:
-- [ ] Lokalizacja: `shell/domain/<bc>/specifications/`
+- [ ] Lokalizacja: `shell/domain/<bc>/aggregates/<agregat>/specifications/`
 - [ ] Lokalizacja base: `shell/domain/platform/base/specification.py`
 - [ ] Nie ma zależności infrastrukturalnych
 - [ ] Testowana w isolation (unit test)

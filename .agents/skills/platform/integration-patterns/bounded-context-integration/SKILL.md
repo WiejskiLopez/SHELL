@@ -13,7 +13,7 @@ BC A nie importuje nic z BC B poza kontraktami (porty/DTO). Nigdy nie sięga bez
 
 ```
 ❌ application/ordering/handler → domain/invoicing/aggregates/Invoice
-❌ application/ordering/handler → infrastructure/invoicing/repositories/InvoiceRepository
+❌ application/ordering/handler → infrastructure/invoicing/<aggregate>/persistence/sql/repositories/InvoiceRepository
 ❌ domain/ordering/aggregates/Order → domain/invoicing/entities/Invoice
 
 ✅ application/ordering/handler → domain/ordering/ports/InvoicePort (Protocol)

@@ -8,8 +8,8 @@
 
 - **Commands** zmieniają stan, zwracają `None` lub ID utworzonego obiektu
 - **Queries** nie zmieniają stanu, zwracają DTO
-- Każda komenda/kwerenda w osobnej klasie w `application/commands/` lub `application/queries/`
-- Każdy handler w osobnej klasie w `application/command_handlers/` lub `application/query_handlers/`
+- Każda komenda/kwerenda w osobnej klasie w `application/<bc>/<aggregate>/commands/` lub `application/<bc>/<aggregate>/queries/`
+- Każdy handler w osobnej klasie w `application/<bc>/<aggregate>/command_handlers/` lub `application/<bc>/<aggregate>/query_handlers/`
 - Handler spełnia kontrakt: `handle(command: TCommand) -> Any`
 
 ### Command / Query / Event Bus
@@ -33,13 +33,13 @@ Handler nigdy nie przechowuje mutowalnego stanu między wywołaniami `handle()`.
 
 ## DTO (Data Transfer Object)
 
-- W `application/dto/` — proste dataclasses lub Pydantic modele
+- W `application/<bc>/<aggregate>/dto/` — proste dataclasses lub Pydantic modele
 - Służą wyłącznie do przenoszenia danych między warstwami
 - Nigdy nie zawierają logiki biznesowej
 
 ## Mapper
 
-- W `application/mappers/` — konwersja Entity ↔ DTO
+- W `application/<bc>/<aggregate>/mappers/` lub `infrastructure/<bc>/<aggregate>/persistence/sql/mappers/` — konwersja Entity ↔ DTO
 - Statyczne metody lub osobne klasy
 - Mapper jest własnością warstwy aplikacyjnej
 
@@ -47,14 +47,14 @@ Każde pole DTO musi mieć źródło. Hardcoded `[]` albo `""` zamiast mapowania
 
 ## Strategy — NodeExecutionStrategy
 
-- W `application/strategies/node_execution_strategy/`
+- W `framework/execution/entrypoints/strategies/`
 - `protocol.py` definiuje kontrakt (Protocol) z adnotacją `@runtime_checkable`
-- `_base_strategy.py` — wspólna logika dla wszystkich strategii (budowa Manifest + runner.run)
+- `_base_strategy.py` — wspólna logika dla wszystkich strategii
 - `registry.py` — rejestr dostępnych strategii z rzucaniem `InvalidNodeMode` dla nieznanych trybów
 
 ## Application Port (Protocol)
 
-- W `application/ports/` — interfejsy dla adapterów infrastrukturalnych
+- W `application/<bc>/ports/` — interfejsy dla adapterów infrastrukturalnych
 - Każdy w osobnym module (`unit_of_work.py`, `time.py`, `logging.py`)
 - Obowiązkowe porty: `UnitOfWork`, `Clock`, `IdGenerator`, `EventPublisher`, `Logger`, `NodeExecutionProcessRunner`, `NodeExecutionWorkspace`, `TaskExecutionLoader`
 - `ports.py` agreguje re-exporty dla wygody

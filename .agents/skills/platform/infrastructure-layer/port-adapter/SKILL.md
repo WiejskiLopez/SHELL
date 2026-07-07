@@ -20,7 +20,7 @@ class IdGenerator(Protocol):
     """Port — generuje unikalne identyfikatory."""
     def generate(self) -> str: ...
 
-# shell/domain/execution/repositories/execution_repository.py — Port repozytorium
+# shell/domain/execution/aggregates/<agregat>/repositories/execution_repository.py — Port repozytorium
 class ExecutionRepository(ABC):
     @abstractmethod
     async def get(self, id: ExecutionId) -> Execution: ...
@@ -33,22 +33,22 @@ class ExecutionRepository(ABC):
 **Adapter** implementuje port w warstwie infrastruktury.
 
 ```python
-# shell/infrastructure/platform/adapters/system_clock.py
-class SystemClock:
-    """Adapter — implementuje Clock przez systemowy zegar."""
-    def now(self) -> Timestamp:
-        return Timestamp.now()
+# shell/infrastructure/platform/time/system_clock.py
+    class SystemClock:
+        """Adapter — implementuje Clock przez systemowy zegar."""
+        def now(self) -> Timestamp:
+            return Timestamp.now()
 
-# shell/infrastructure/platform/adapters/uuid_id_generator.py
-class UuidIdGenerator:
-    """Adapter — implementuje IdGenerator przez UUID."""
-    def generate(self) -> str:
-        return str(uuid4())
+# shell/infrastructure/platform/identity/uuid_id_generator.py
+    class UuidIdGenerator:
+        """Adapter — implementuje IdGenerator przez UUID."""
+        def generate(self) -> str:
+            return str(uuid4())
 
-# shell/infrastructure/execution/repositories/sql_execution_repository.py
-class SqlExecutionRepository(ExecutionRepository):
-    """Adapter — implementuje ExecutionRepository przez SQLAlchemy."""
-    ...
+# shell/infrastructure/execution/<aggregate>/persistence/sql/repositories/sql_execution_repository.py
+    class SqlExecutionRepository(ExecutionRepository):
+        """Adapter — implementuje ExecutionRepository przez SQLAlchemy."""
+        ...
 ```
 
 ## 3. Port Należy do Potrzebującego (Domena/Aplikacja)
@@ -62,7 +62,7 @@ class Clock(Protocol):
     def now(self) -> Timestamp: ...
 
 # Adapter w infrastrukturze
-# shell/infrastructure/platform/adapters/system_clock.py
+# shell/infrastructure/platform/time/system_clock.py
 class SystemClock:
     def now(self) -> Timestamp:
         return Timestamp(datetime.now(tz=UTC))
@@ -147,16 +147,18 @@ class FileStorage(Protocol):
 
 ```
 # Porty
-shell/domain/platform/ports/          # Uniwersalne porty (Clock, IdGenerator)
-shell/domain/<bc>/repositories/       # Porty repozytoriów
-shell/domain/<bc>/services/ports.py   # Porty serwisów domenowych
-shell/application/<bc>/ports/         # Porty aplikacyjne
+shell/domain/platform/ports/                        # Uniwersalne porty (Clock, IdGenerator)
+shell/domain/<bc>/aggregates/<agregat>/repositories/ # Porty repozytoriów per agregat
+shell/domain/<bc>/aggregates/<agregat>/ports/         # Porty serwisów domenowych per agregat
+shell/application/<bc>/ports/                        # Porty aplikacyjne
 
 # Adaptery
-shell/infrastructure/platform/adapters/       # Adaptery uniwersalne
-shell/infrastructure/<bc>/repositories/        # Adaptery repozytoriów
-shell/infrastructure/<bc>/adapters/            # Adaptery serwisów
-shell/infrastructure/<bc>/acl/                 # Anti-Corruption Layer
+shell/infrastructure/platform/time/                 # Adaptery uniwersalne (zegar)
+shell/infrastructure/platform/identity/             # Adaptery uniwersalne (IdGenerator)
+shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/  # Adaptery repozytoriów SQL
+shell/infrastructure/<bc>/<aggregate>/persistence/memory/            # Adaptery InMemory
+shell/infrastructure/<bc>/http/                     # HTTP adaptery
+shell/infrastructure/<bc>/acl/                      # Anti-Corruption Layer
 ```
 
 ## 9. Podsumowanie — Checklista
