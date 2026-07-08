@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.tests.conftest_helpers import _SampleAggregate, _SampleEvent, _SampleId
+from shell.tests.shared.sample_aggregate import _SampleAggregate, _SampleEvent, _SampleId
 
 
 class TestAggregateEvents:

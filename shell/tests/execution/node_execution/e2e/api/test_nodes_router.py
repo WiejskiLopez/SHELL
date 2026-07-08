@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
 
-from shell.tests.conftest_helpers import _make_app
+from shell.tests.shared.e2e_helpers import _make_app
 
 if TYPE_CHECKING:
     import pathlib

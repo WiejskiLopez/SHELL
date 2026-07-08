@@ -62,7 +62,7 @@ python_version = "3.11"
 strict = true
 explicit_package_bases = true
 exclude = []
-mypy_path = ["shell/tests/platform/architecture"]
+mypy_path = ["shell/tests/architecture"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -70,6 +70,7 @@ module = [
     "shell.framework.*",
     "shell.bootstrap.*",
     "shell.tests.*",
+    "shell.tests.shared.*",
     "shell.config.*",
 ]
 disallow_untyped_defs = false

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
 from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
-from shell.tests.conftest_helpers import _task_imported
+from shell.tests.shared.sample_aggregate import make_sample_event
 
 if TYPE_CHECKING:
     from shell.application.platform.ports.ports import EventPublisher
@@ -19,7 +19,7 @@ class TestCompositeEventPublisher:
         p2 = AsyncMock()
         p3 = AsyncMock()
         composite = CompositeEventPublisher([p1, p2, p3])
-        events: list[DomainEvent] = [_task_imported()]
+        events: list[DomainEvent] = [make_sample_event()]
         await composite.publish(events)
         p1.publish.assert_awaited_once_with(events)
         p2.publish.assert_awaited_once_with(events)
@@ -38,9 +38,9 @@ class TestCompositeEventPublisher:
         p1 = await make_mock(1)
         p2 = await make_mock(2)
         composite = CompositeEventPublisher([p1, p2])
-        await composite.publish([_task_imported()])
+        await composite.publish([make_sample_event()])
         assert order == [1, 2]
 
     async def test_empty_publisher_list(self) -> None:
         composite = CompositeEventPublisher([])
-        await composite.publish([_task_imported()])
+        await composite.publish([make_sample_event()])

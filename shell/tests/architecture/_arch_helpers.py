@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent.parent
+SHELL_SRC = pathlib.Path(__file__).resolve().parent.parent.parent
 BASE = SHELL_SRC
 
 

@@ -5,6 +5,7 @@
 
 .DESCRIPTION
     Runs unit tests, integration tests (if Postgres available), and optionally lint/type checks.
+    Uses pytest markers for test selection instead of hardcoded paths.
 #>
 
 param(
@@ -27,6 +28,9 @@ Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 # in mypy 2.1.0 on Windows where stub packages (e.g. types-PyYAML) are
 # spuriously reported as "not installed" after the first incremental build.
 $env:MYPY_NO_INCREMENTAL = "1"
+
+$bcs = @("platform", "definition", "execution", "messaging", "project", "scheduling", "session", "user")
+$testRoot = "shell/tests"
 
 function Run-Command {
     param(
@@ -55,29 +59,46 @@ if ($hasPostgres) {
     Write-Host "PostgreSQL not configured (PG_TEST_URL not set) - integration tests will be skipped" -ForegroundColor Yellow
 }
 
-# Unit tests
+# Unit tests — run per BC for clear reporting
 if (-not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit -v" "Unit Tests"
+    foreach ($bc in $bcs) {
+        $path = "$testRoot/$bc"
+        if (Test-Path -LiteralPath "$path/unit") {
+            Run-Command "python -m pytest $path/unit -m unit -v" "$bc Unit Tests"
+        }
+    }
+    # Architecture tests (shared, not BC-specific)
+    Run-Command "python -m pytest $testRoot/architecture -v" "Architecture Tests"
 }
 
 # E2E tests
 if (-not $IntegrationOnly -and -not $UnitOnly) {
-    Run-Command "python -m pytest shell/tests/execution/e2e shell/tests/platform/e2e -v" "E2E Tests"
+    foreach ($bc in $bcs) {
+        $path = "$testRoot/$bc"
+        if (Test-Path -LiteralPath "$path/e2e") {
+            Run-Command "python -m pytest $path/e2e -m e2e -v" "$bc E2E Tests"
+        }
+    }
 }
 
 # Integration tests (only if Postgres available)
 if (-not $UnitOnly -and $hasPostgres) {
-    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration -v" "Integration Tests (PostgreSQL)"
+    foreach ($bc in $bcs) {
+        $path = "$testRoot/$bc"
+        if (Test-Path -LiteralPath "$path/integration") {
+            Run-Command "python -m pytest $path/integration -m integration -v" "$bc Integration Tests"
+        }
+    }
 }
 elseif (-not $UnitOnly -and -not $hasPostgres) {
-    Write-Host "`n--- Integration Tests (PostgreSQL) ---" -ForegroundColor Yellow
+    Write-Host "`n--- Integration Tests ---" -ForegroundColor Yellow
     Write-Host "Skipped: PG_TEST_URL not set" -ForegroundColor Yellow
 }
 
 # Lint (ruff) - only if not skipped
 if (-not $SkipLint) {
     Run-Command "python -m ruff check shell shell/tests" "Lint (ruff)" -AllowFailure
-    Run-Command "python -m ruff format --check  shell shell/tests" "Format Check (ruff)" -AllowFailure
+    Run-Command "python -m ruff format --check shell shell/tests" "Format Check (ruff)" -AllowFailure
 }
 
 # Type check (mypy) - only if not skipped
@@ -107,16 +128,10 @@ if (-not $SkipSecurity) {
     Run-Command "$projectRoot\venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)" -AllowFailure
 }
 
-if ($hasPostgres) {
-    Run-Command "python -m pytest shell/tests/definition/integration shell/tests/execution/integration shell/tests/platform/integration --cov shell --cov-fail-under 80 -v" "Integration Tests with Coverage" -AllowFailure
-}
-
-# Always run coverage on unit tests (quick summary)
+# Coverage — run unit tests with coverage
 if (-not $UnitOnly -and -not $IntegrationOnly) {
-    Run-Command "python -m pytest shell/tests/definition/unit shell/tests/execution/unit shell/tests/platform/unit --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
+    $coveragePaths = ($bcs | ForEach-Object { "$testRoot/$_/unit" }) -join " "
+    Run-Command "python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
 }
-
 
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green
-
-

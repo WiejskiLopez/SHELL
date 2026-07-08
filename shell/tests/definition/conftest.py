@@ -1,49 +1,17 @@
-"""Root conftest for shell tests.
-
-Provides fixtures for all three persistence backends:
-- InMemory (always available)
-- SQLite (always available)
-- PostgreSQL (skipped unless POSTGRES_TEST_URL env var set)
-- MongoDB (skipped unless MONGO_TEST_URL env var set)
-"""
+"""Definition BC test fixtures — only what definition tests need."""
 
 from __future__ import annotations
 
-import logging
 import os
-import uuid
-from dataclasses import dataclass
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-import pytest  # noqa: F401 — used in type annotations and fixtures
+import pytest
 
 from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-    TaskExecutionCreatedEvent,
-)
-from shell.domain.execution.value_objects.ids import (
-    TaskExecutionId,
-)
-from shell.domain.execution.value_objects.task_execution_name import (
-    TaskExecutionName,
-)
-from shell.domain.platform.base import AggregateRoot, Entity
-from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-from shell.infrastructure.platform.logging.stdlib_logger import (
-    StdlibLogger,
-    correlation_id_var,
-)
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 from shell.infrastructure.platform.persistence.memory import (
-    FakeClock,
     FakeEventPublisher,
-    FakeIdGenerator,
-    FakeLogger,
-    FakeTaskLoader,
-    InMemoryQueryServices,
     InMemoryUnitOfWork,
 )
 from shell.infrastructure.platform.persistence.sql import build_session_factory
@@ -51,47 +19,17 @@ from shell.infrastructure.platform.persistence.sql import build_session_factory
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-# ---------------------------------------------------------------------------
-# Markers
-# ---------------------------------------------------------------------------
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    config.addinivalue_line("markers", "integration: integration tests requiring external services")
-    config.addinivalue_line("markers", "e2e: end-to-end tests")
-
-
-# ---------------------------------------------------------------------------
-# Backend availability flags
-# ---------------------------------------------------------------------------
-
 POSTGRES_URL = os.environ.get(
     "POSTGRES_TEST_URL",
     "postgresql+asyncpg://shell_test:shell_test@localhost:5433/shell_test",
 )
-MONGO_URL = os.environ.get("MONGO_TEST_URL", "mongodb://localhost:27018/?replicaSet=rs0")
 
 _postgres_available = os.environ.get("POSTGRES_TEST_URL") is not None
-_mongo_available = os.environ.get("MONGO_TEST_URL") is not None
-
-# ---------------------------------------------------------------------------
-# Skip helpers
-# ---------------------------------------------------------------------------
 
 skip_no_postgres = pytest.mark.skipif(
     not _postgres_available,
     reason="POSTGRES_TEST_URL not set — start docker-compose.test.yml to enable",
 )
-
-skip_no_mongo = pytest.mark.skipif(
-    not _mongo_available,
-    reason="MONGO_TEST_URL not set — start docker-compose.test.yml to enable",
-)
-
-
-# ---------------------------------------------------------------------------
-# URL fixtures (for integration tests that need raw URLs)
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="session")
@@ -105,129 +43,9 @@ def postgres_test_url() -> str:
     return POSTGRES_URL
 
 
-@pytest.fixture(scope="session")
-def mongo_test_url() -> str:
-    return MONGO_URL
-
-
-@pytest.fixture(autouse=True)
-def auto_correlation_id():
-    """Automatycznie ustawia correlation_id dla każdego testu."""
-    token = correlation_id_var.set(f"test-{uuid.uuid4()}")
-    yield
-    correlation_id_var.reset(token)
-
-
-@pytest.fixture
-def queries(unit_of_work: InMemoryUnitOfWork) -> InMemoryQueryServices:
-    return InMemoryQueryServices(unit_of_work)
-
-
-# ---------------------------------------------------------------------------
-# Domain fixtures — Entity base test helpers
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True, slots=True)
-class _SampleId:
-    value: str
-
-
-@dataclass(frozen=True, slots=True)
-class _SampleEvent(DomainEvent):
-    payload: str = ""
-
-
-class _SampleEntity(Entity[_SampleId]):
-    __slots__ = ("_label",)
-
-    def __init__(self, id: _SampleId, label: str) -> None:
-        super().__init__(id)
-        self._label = label
-
-    @property
-    def label(self) -> str:
-        return self._label
-
-    def relabel(self, label: str) -> None:
-        self._label = label
-
-
-class _SampleAggregate(AggregateRoot[_SampleId]):
-    __slots__ = ("_label",)
-
-    def __init__(self, id: _SampleId, label: str) -> None:
-        super().__init__(id)
-        self._label = label
-
-    @property
-    def label(self) -> str:
-        return self._label
-
-    def do_something(self, payload: str) -> None:
-        now = datetime.now(tz=UTC)
-        self.append_event(_SampleEvent(occurred_at=CreatedAt.from_datetime(now), payload=payload))
-
-
-# ---------------------------------------------------------------------------
-# Application fixtures
-# ---------------------------------------------------------------------------
-
-
-def _task_imported() -> TaskExecutionCreatedEvent:
-    return TaskExecutionCreatedEvent.now(
-        task_execution_id=TaskExecutionId.generate(),
-        task_execution_name=TaskExecutionName("test-task"),
-        now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
-    )
-
-
-class _Spy(logging.Handler):
-    def __init__(self, records: list[logging.LogRecord]) -> None:
-        super().__init__()
-        self._records = records
-
-    def emit(self, record: logging.LogRecord) -> None:
-        self._records.append(record)
-
-
-def _spy_logger(
-    name: str, level: int = logging.INFO
-) -> tuple[StdlibLogger, list[logging.LogRecord]]:
-    records: list[logging.LogRecord] = []
-    logger = StdlibLogger(name, level=level)
-    logger._logger.addHandler(_Spy(records))
-    return logger, records
-
-
 @pytest.fixture()
 def unit_of_work() -> InMemoryUnitOfWork:
     return InMemoryUnitOfWork()
-
-
-@pytest.fixture()
-def clock() -> FakeClock:
-    return FakeClock()
-
-
-@pytest.fixture()
-def id_generator() -> FakeIdGenerator:
-    return FakeIdGenerator()
-
-
-@pytest.fixture()
-def task_execution_loader() -> FakeTaskLoader:
-    return FakeTaskLoader(md="# SQL Task")
-
-
-@pytest.fixture()
-def fake_logger() -> FakeLogger:
-    return FakeLogger()
-
-
-# ---------------------------------------------------------------------------
-# SQLite integration fixtures
-# ---------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -251,16 +69,3 @@ def sql_uow(
     events: FakeEventPublisher,
 ) -> SqlAlchemyUnitOfWork:
     return SqlAlchemyUnitOfWork(session_factory)
-
-
-# ---------------------------------------------------------------------------
-# PostgreSQL integration fixtures
-# ---------------------------------------------------------------------------
-
-
-def pytest_collection_modifyitems(config, items):
-    if os.environ.get("PG_TEST_URL") is None:
-        skip_pg = pytest.mark.skip(reason="PG_TEST_URL not set")
-        for item in items:
-            if "sql_postgres" in str(item.fspath):
-                item.add_marker(skip_pg)
