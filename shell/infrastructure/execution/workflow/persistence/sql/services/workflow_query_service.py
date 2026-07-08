@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.application.execution.workflow.dto.workflow import WorkflowDto
-from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
+from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -15,7 +15,7 @@ class WorkflowQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
+    async def get_by_id(self, workflow_id: str) -> WorkflowDto | None:
         async with self._session_factory() as session:
             stmt = select(WorkflowModel).where(WorkflowModel.id == workflow_id)
             res = await session.execute(stmt)

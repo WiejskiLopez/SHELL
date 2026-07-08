@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 class NodeExecutionResultQueryService(Protocol):
     """Port do sprawdzania wyników wykonania konkretnych węzłów."""
 
+    async def get_by_id(self, node_execution_id: str) -> NodeExecutionResultDto | None: ...
+
     async def get_node_execution_result(
         self, node_execution_id: str, workflow_id: str
     ) -> NodeExecutionResultDto | None: ...

@@ -17,8 +17,8 @@ class SessionController:
     def __init__(self, query_service: SessionQueryService) -> None:
         self._query_service = query_service
 
-    async def get_session_history(self, session_id: str) -> SessionDto:
-        result = await self._query_service.get_session_history(session_id)
+    async def get_by_id(self, session_id: str) -> SessionDto:
+        result = await self._query_service.get_by_id(session_id)
         if result is None:
             raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
         return result

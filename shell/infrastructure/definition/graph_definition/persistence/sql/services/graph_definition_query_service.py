@@ -9,12 +9,16 @@ from sqlalchemy import select, text
 
 from shell.application.definition.graph_definition.dto.graph_definition import GraphDefinitionDto
 from shell.application.definition.node_definition.dto.node_definition import NodeDefinitionDto
+from shell.infrastructure.definition.graph_definition.persistence.sql.models import (
+    GraphDefinitionModel,
+)
 from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
 )
-from shell.infrastructure.definition.persistence.sql.models import (
-    GraphDefinitionModel,
+from shell.infrastructure.definition.node_definition.persistence.sql.models import (
     NodeDefinitionModel,
+)
+from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
 
@@ -134,7 +138,7 @@ class SqlGraphDefinitionQueryService:
             return 0.0
         return dot / (norm_a * norm_b)
 
-    async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None:
+    async def get_by_id(self, definition_id: str) -> GraphDefinitionDto | None:
         async with self._session_factory() as session:
             stmt = select(GraphDefinitionModel).where(GraphDefinitionModel.id == definition_id)
             res = await session.execute(stmt)

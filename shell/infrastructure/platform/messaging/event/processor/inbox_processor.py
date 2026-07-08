@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.application.platform.ports.ports import EventPublisher
+    from shell.domain.platform.events import DomainEvent
 
 
 class InboxProcessor:
@@ -26,11 +27,12 @@ class InboxProcessor:
         session_factory: async_sessionmaker[AsyncSession],
         event_bus: EventPublisher,  # In-memory EventBus
         batch_size: int = 100,
+        registry: dict[str, type[DomainEvent]] | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
         self._batch_size = batch_size
-        self._deserializer = EventDeserializer()
+        self._deserializer = EventDeserializer(registry=registry)
 
         engine = getattr(session_factory, "bind", None)
         dialect_name: str = engine.dialect.name if engine is not None else "unknown"

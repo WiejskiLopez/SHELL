@@ -15,8 +15,8 @@ from shell.infrastructure.platform.persistence.sql.models.message.inbox_message 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.application.platform.bus.message_bus import MessageBus
-    from shell.domain.platform.aggregates.message.repositories.message_repository import (
+    from shell.application.messaging.bus.message_bus import MessageBus
+    from shell.domain.messaging.aggregates.message.repositories.message_repository import (
         MessageRepository,
     )
 

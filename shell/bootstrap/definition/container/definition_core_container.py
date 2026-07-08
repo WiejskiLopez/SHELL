@@ -9,12 +9,14 @@ from shell.application.platform.bus.query_bus import QueryBus
 from shell.infrastructure.definition.graph_definition.persistence.sql.services.graph_definition_query_service import (
     SqlGraphDefinitionQueryService,
 )
-from shell.infrastructure.definition.persistence.sql.services import (
+from shell.infrastructure.definition.rag_document.persistence.sql.services.rag_query_service import (
     RagQueryService,
-    RunnerConfigQueryService,
 )
-from shell.infrastructure.definition.persistence.sql_alchemy_definition_uow import (
-    SqlAlchemyDefinitionUnitOfWork,
+from shell.infrastructure.definition.rag_document.persistence.sql.unit_of_work import (
+    SqlAlchemyRagDocumentUnitOfWork,
+)
+from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
+    RunnerConfigQueryService,
 )
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
@@ -31,9 +33,9 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
-    # Per-BC Unit of Work — zna TYLKO repozytoria BC Definition
-    unit_of_work_factory = providers.Factory(
-        SqlAlchemyDefinitionUnitOfWork,
+    # Per-aggregate Unit of Work — każdy agregat ma własny UoW
+    rag_document_uow_factory = providers.Factory(
+        SqlAlchemyRagDocumentUnitOfWork,
         session_factory=session_factory,
     )
 

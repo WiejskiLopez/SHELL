@@ -4,21 +4,21 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.platform.aggregates.message.message import Message
-from shell.domain.platform.aggregates.message.value_objects.business_payload import (
+from shell.domain.messaging.aggregates.message.message import Message
+from shell.domain.messaging.aggregates.message.value_objects.business_payload import (
     BusinessPayload,
 )
-from shell.domain.platform.aggregates.message.value_objects.destination import Destination
-from shell.domain.platform.aggregates.message.value_objects.materialized_metadata import (
+from shell.domain.messaging.aggregates.message.value_objects.destination import Destination
+from shell.domain.messaging.aggregates.message.value_objects.materialized_metadata import (
     MaterializedMetadata,
 )
-from shell.domain.platform.aggregates.message.value_objects.message_id import MessageId
-from shell.domain.platform.aggregates.message.value_objects.message_metadata import (
+from shell.domain.messaging.aggregates.message.value_objects.message_id import MessageId
+from shell.domain.messaging.aggregates.message.value_objects.message_metadata import (
     MessageMetadata,
 )
-from shell.domain.platform.aggregates.message.value_objects.message_status import MessageStatus
-from shell.domain.platform.aggregates.message.value_objects.message_type import MessageType
-from shell.domain.platform.aggregates.message.value_objects.source import Source
+from shell.domain.messaging.aggregates.message.value_objects.message_status import MessageStatus
+from shell.domain.messaging.aggregates.message.value_objects.message_type import MessageType
+from shell.domain.messaging.aggregates.message.value_objects.source import Source
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.infrastructure.platform.persistence.sql.models.message.message import MessageModel

@@ -1,0 +1,44 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select
+
+from shell.application.scheduling.scheduler_execution.dto.scheduler_execution import (
+    SchedulerExecutionDto,
+)
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
+    SchedulerExecutionModel,
+)
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+
+class SchedulerExecutionQueryService:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        self._session_factory = session_factory
+
+    async def get_by_id(
+        self, scheduler_execution_id: str
+    ) -> SchedulerExecutionDto | None:
+        async with self._session_factory() as session:
+            stmt = select(SchedulerExecutionModel).where(
+                SchedulerExecutionModel.id == scheduler_execution_id
+            )
+            res = await session.execute(stmt)
+            model = res.scalar_one_or_none()
+            if not model:
+                return None
+            return SchedulerExecutionDto(
+                id=model.id,
+                scheduler_definition_id=model.scheduler_definition_id,
+                name=model.name,
+                job_type=model.job_type,
+                interval_seconds=model.interval_seconds,
+                batch_size=model.batch_size,
+                enabled=model.enabled,
+                config=model.config,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
+            )

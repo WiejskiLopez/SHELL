@@ -10,7 +10,7 @@ from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGener
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.platform.time.system_clock import SystemClock
-from shell.infrastructure.session.persistence.sql_alchemy_session_uow import (
+from shell.infrastructure.session.session.persistence.sql.unit_of_work import (
     SqlAlchemySessionUnitOfWork,
 )
 

@@ -25,11 +25,12 @@ class CommandInboxProcessor:
         session_factory: async_sessionmaker,
         command_bus: CommandBus,
         batch_size: int = 100,
+        registry: dict[str, type] | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._command_bus = command_bus
         self._batch_size = batch_size
-        self._deserializer = CommandDeserializer()
+        self._deserializer = CommandDeserializer(registry=registry)
 
     async def run_once(self) -> int:
         async with self._session_factory() as session:

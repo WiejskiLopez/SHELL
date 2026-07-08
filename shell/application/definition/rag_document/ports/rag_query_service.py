@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 class RagQueryService(Protocol):
     """Port do wyszukiwania semantycznego (RAG)."""
 
+    async def get_by_id(self, document_id: str) -> RagChunkDto | None: ...
+
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None
     ) -> list[RagChunkDto]: ...

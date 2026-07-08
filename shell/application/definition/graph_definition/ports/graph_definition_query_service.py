@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class GraphDefinitionQueryService(Protocol):
-    async def get_graph_definition(self, definition_id: str) -> GraphDefinitionDto | None: ...
+    async def get_by_id(self, definition_id: str) -> GraphDefinitionDto | None: ...
 
     async def get_graph_definition_by_semantic_name(
         self,

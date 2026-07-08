@@ -8,19 +8,14 @@ if TYPE_CHECKING:
 
     from shell.domain.platform.events import DomainEvent
 
-from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-    TaskExecutionCreatedEvent,
-)
 from shell.infrastructure.platform.serialization import DomainEventSerializer
 
 logger = logging.getLogger(__name__)
 
 
 class EventDeserializer:
-    def __init__(self) -> None:
-        self._registry: dict[str, type[DomainEvent]] = {
-            "TaskExecutionCreated": TaskExecutionCreatedEvent,
-        }
+    def __init__(self, registry: dict[str, type[DomainEvent]] | None = None) -> None:
+        self._registry: dict[str, type[DomainEvent]] = registry or {}
         self._serializer = DomainEventSerializer()
 
     def deserialize(

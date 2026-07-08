@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from sqlalchemy import select
 
 from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
-from shell.infrastructure.definition.persistence.sql.mappers import (
+from shell.infrastructure.definition.runner_config.persistence.sql.mappers import (
     runner_config_entity_to_model,
     runner_config_model_to_entity,
     runner_config_update_model,

@@ -5,7 +5,7 @@ from _arch_helpers import BASE, get_imports, iter_py_files
 # Bounded contexts in the project
 # Known violations are listed in _CROSS_BC_KNOWN_VIOLATIONS.
 # Fix them one by one — each should eventually be resolved via IdRef or platform VOs.
-_BCS = frozenset({"execution", "definition", "session", "user", "project", "scheduling"})
+_BCS = frozenset({"execution", "definition", "session", "user", "project", "scheduling", "messaging"})
 
 # Allowed cross-BC import targets (ports, contracts, DTOs)
 _ALLOWED_CROSS_BC = frozenset(

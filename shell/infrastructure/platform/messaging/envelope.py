@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.messaging.aggregates.message.message import Message
 
 
 @dataclass(frozen=True, slots=True)

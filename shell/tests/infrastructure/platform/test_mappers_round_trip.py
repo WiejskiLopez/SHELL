@@ -48,24 +48,30 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.infrastructure.execution.graph_execution.persistence.sql.mappers import (
+    graph_execution_entity_to_model,
+    graph_execution_model_to_entity,
+)
+from shell.infrastructure.execution.graph_execution.persistence.sql.models import (
+    GraphExecutionModel,
+)
+from shell.infrastructure.execution.node_execution.persistence.sql.models import (
+    NodeExecutionModel,
+)
 from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
     _node_execution_entity_to_model,
     _node_execution_model_to_entity,
 )
-from shell.infrastructure.execution.persistence.sql.mappers import (
-    graph_execution_entity_to_model,
-    graph_execution_model_to_entity,
+from shell.infrastructure.execution.task_execution.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
+)
+from shell.infrastructure.execution.workflow.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
-from shell.infrastructure.execution.persistence.sql.models import (
-    GraphExecutionModel,
-    NodeExecutionModel,
-    WorkflowModel,
-)
-from shell.infrastructure.session.persistence.sql.mappers import (
+from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
+from shell.infrastructure.session.session.persistence.sql.mappers import (
     session_entity_to_model,
     session_model_to_entity,
 )

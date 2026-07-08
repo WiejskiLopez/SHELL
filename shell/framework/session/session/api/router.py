@@ -29,4 +29,4 @@ async def get_session_history(
     session_id: str,
     controller: SessionController = Depends(get_session_controller),
 ) -> SessionDto:
-    return await controller.get_session_history(session_id)
+    return await controller.get_by_id(session_id)

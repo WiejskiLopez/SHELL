@@ -27,18 +27,30 @@ from shell.application.execution.node_execution.command_handlers.node_execution_
 )
 from shell.application.platform.bus.command_bus import CommandBus
 from shell.application.platform.bus.query_bus import QueryBus
-from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
-from shell.infrastructure.execution.persistence.sql.services import (
-    NodeResultQueryService,
-    SessionQueryService,
-    TaskExecutionQueryService,
-    WorkflowQueryService,
+from shell.infrastructure.execution.edge_execution.persistence.sql.unit_of_work import (
+    SqlAlchemyEdgeExecutionUnitOfWork,
 )
-from shell.infrastructure.execution.persistence.sql_alchemy_execution_uow import (
-    SqlAlchemyExecutionUnitOfWork,
+from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
+    SqlAlchemyEdgeLinkExecutionUnitOfWork,
+)
+from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
+from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
+    NodeResultQueryService,
+)
+from shell.infrastructure.execution.node_execution.persistence.sql.unit_of_work import (
+    SqlAlchemyNodeExecutionUnitOfWork,
 )
 from shell.infrastructure.execution.process.subprocess_runner import (
     SubprocessNodeExecutionProcessRunner,
+)
+from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
+from shell.infrastructure.execution.task_execution.persistence.sql.services.task_execution_query_service import (
+    TaskExecutionQueryService,
+)
+from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_query_service import (
+    WorkflowQueryService,
 )
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
@@ -54,9 +66,17 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
-    # Per-BC Unit of Work — zna TYLKO repozytoria BC Execution
-    unit_of_work_factory = providers.Factory(
-        SqlAlchemyExecutionUnitOfWork,
+    # Per-aggregate Unit of Work — każdy agregat ma własny UoW
+    edge_execution_uow_factory = providers.Factory(
+        SqlAlchemyEdgeExecutionUnitOfWork,
+        session_factory=session_factory,
+    )
+    edge_link_execution_uow_factory = providers.Factory(
+        SqlAlchemyEdgeLinkExecutionUnitOfWork,
+        session_factory=session_factory,
+    )
+    node_execution_uow_factory = providers.Factory(
+        SqlAlchemyNodeExecutionUnitOfWork,
         session_factory=session_factory,
     )
 
@@ -88,43 +108,43 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     # Command Handlers — tylko Execution BC
     create_node_execution_handler_factory = providers.Factory(
         NodeExecutionCreateHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=node_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
     edge_execution_create_handler_factory = providers.Factory(
         EdgeExecutionCreateHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
     edge_execution_update_handler_factory = providers.Factory(
         EdgeExecutionUpdateHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
     edge_execution_delete_handler_factory = providers.Factory(
         EdgeExecutionDeleteHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
     edge_link_execution_create_handler_factory = providers.Factory(
         EdgeLinkExecutionCreateHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_link_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
     edge_link_execution_delete_handler_factory = providers.Factory(
         EdgeLinkExecutionDeleteHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
     edge_link_execution_update_handler_factory = providers.Factory(
         EdgeLinkExecutionUpdateHandler,
-        unit_of_work=unit_of_work_factory,
+        unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )

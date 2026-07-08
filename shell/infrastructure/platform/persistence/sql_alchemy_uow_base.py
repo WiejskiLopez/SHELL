@@ -22,7 +22,7 @@ from shell.infrastructure.platform.serialization import DomainEventSerializer
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.messaging.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
 
 TRepository = TypeVar("TRepository")

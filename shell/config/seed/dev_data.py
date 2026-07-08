@@ -8,6 +8,7 @@ Only invoked when seed_dev_data is enabled (dev profile or SHELL_SEED_DEV_DATA=t
 
 from __future__ import annotations
 
+import tempfile
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Connection
 
 _DEV_ID_PREFIX = "dev"
+_DEV_ROOT = f"{tempfile.gettempdir()}/shell/dev"
 
 _NOW = datetime.now(tz=UTC)
 
@@ -242,7 +244,7 @@ def _seed_task_executions(session: Session) -> None:
                 id=f"{_DEV_ID_PREFIX}-task-simple-agent",
                 status="created",
                 name="dev-simple-agent-task",
-                work_dir="/tmp/shell/dev/simple-agent",
+                work_dir=f"{_DEV_ROOT}/simple-agent",
                 workflow_id=None,
                 created_at=_NOW,
             ),
@@ -258,7 +260,7 @@ def _seed_task_executions(session: Session) -> None:
                 id=f"{_DEV_ID_PREFIX}-task-planner-worker",
                 status="created",
                 name="dev-planner-worker-task",
-                work_dir="/tmp/shell/dev/planner-worker",
+                work_dir=f"{_DEV_ROOT}/planner-worker",
                 workflow_id=None,
                 created_at=_NOW,
             ),
@@ -274,13 +276,13 @@ def _seed_task_executions(session: Session) -> None:
                 id=f"{_DEV_ID_PREFIX}-task-full-pipeline",
                 status="created",
                 name="dev-full-pipeline-task",
-                work_dir="/tmp/shell/dev/full-pipeline",
+                work_dir=f"{_DEV_ROOT}/full-pipeline",
                 workflow_id=None,
                 created_at=_NOW,
             ),
             "input_payload": {
                 "description": "# Full Pipeline Task\nEnd-to-end orchestration.",
-                "project_path": "/tmp/shell/dev/project",
+                "project_path": f"{_DEV_ROOT}/project",
                 "pipeline_stage": "analysis",
             },
             "output_payload": {},
@@ -415,7 +417,7 @@ def _seed_workflow_scenario(session: Session) -> None:
         no_ask_user=False,
         autopilot=True,
         task_execution_id=task_id,
-        source_dir="/tmp/shell/dev/simple-agent",
+        source_dir=f"{_DEV_ROOT}/simple-agent",
     )
     session.add(gne)
     gne_link = NodeLinkExecutionModel(
@@ -443,7 +445,7 @@ def _seed_workflow_scenario(session: Session) -> None:
         status="completed",
         stdout="[dev] Sample agent output:\nTask analyzed successfully.\nNo issues found.",
         stderr="",
-        artifact_uri="file:///tmp/shell/dev/results/agent-1.json",
+        artifact_uri=f"file://{_DEV_ROOT}/results/agent-1.json",
         created_at=_NOW,
     )
     session.add(result)

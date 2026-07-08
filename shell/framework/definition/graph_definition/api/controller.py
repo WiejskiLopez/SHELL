@@ -20,7 +20,7 @@ class DefinitionController:
         self._query_service = query_service
 
     async def get_definition(self, definition_id: str) -> GraphDefinitionDto:
-        result = await self._query_service.get_graph_definition(definition_id)
+        result = await self._query_service.get_by_id(definition_id)
         if result is None:
             raise HTTPException(status_code=404, detail=f"Definition '{definition_id}' not found")
         return result

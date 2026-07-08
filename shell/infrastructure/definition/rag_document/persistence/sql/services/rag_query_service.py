@@ -6,7 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from shell.application.definition.rag_document.dto.rag_chunk import RagChunkDto
-from shell.infrastructure.definition.persistence.sql.models import RagChunkModel, RagDocumentModel
+from shell.infrastructure.definition.rag_document.persistence.sql.models import (
+    RagChunkModel,
+    RagDocumentModel,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -15,6 +18,28 @@ if TYPE_CHECKING:
 class RagQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
+
+    async def get_by_id(self, document_id: str) -> RagChunkDto | None:
+        async with self._session_factory() as session:
+            stmt = (
+                select(RagChunkModel)
+                .options(joinedload(RagChunkModel.document))
+                .where(RagChunkModel.id == document_id)
+            )
+            res = await session.execute(stmt)
+            model = res.scalar_one_or_none()
+            if not model:
+                return None
+            return RagChunkDto(
+                chunk_id=str(model.id),
+                document_id=str(model.document_id),
+                chunk_index=model.chunk_index,
+                chunk_text=model.chunk_text,
+                source_uri=model.document.source_uri,
+                title=model.document.title,
+                domain=model.document.domain,
+                score=0.0,
+            )
 
     async def search_similar(
         self, query_embedding: bytes, top_k: int = 5, domain: str | None = None

@@ -24,7 +24,7 @@ class TestRepoDebug:
         from shell.domain.platform.exceptions.concurrent_modification_error import (
             ConcurrentModificationError,
         )
-        from shell.infrastructure.execution.persistence.sql.models import WorkflowModel
+        from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
         from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 
         wf_id = str(uuid.uuid4())

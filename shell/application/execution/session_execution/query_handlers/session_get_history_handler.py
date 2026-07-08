@@ -17,4 +17,4 @@ class SessionGetHistoryHandler:
         self._queries = queries
 
     async def handle(self, query: SessionGetHistoryQuery) -> SessionDto | None:
-        return await self._queries.get_session_history(query.session_id)
+        return await self._queries.get_by_id(query.session_id)

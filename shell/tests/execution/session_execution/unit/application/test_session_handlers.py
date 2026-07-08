@@ -44,7 +44,7 @@ class TestSessionHandlers:
         session_id = await SessionOpenHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="do work")
         )
-        dto = await SessionGetHistoryHandler(queries).handle(
+        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
             SessionGetHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
@@ -63,7 +63,7 @@ class TestSessionHandlers:
         await SessionCloseHandler(unit_of_work, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
-        dto = await SessionGetHistoryHandler(queries).handle(
+        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
             SessionGetHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
@@ -80,7 +80,7 @@ class TestSessionHandlers:
             )
 
     async def test_get_history_not_found_returns_none(self, queries: InMemoryQueryServices) -> None:
-        dto = await SessionGetHistoryHandler(queries).handle(
+        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
             SessionGetHistoryQuery(session_id="ghost")
         )
         assert dto is None

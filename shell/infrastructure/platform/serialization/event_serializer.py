@@ -8,11 +8,6 @@ from typing import TYPE_CHECKING, Any, cast
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent
 
-from shell.domain.execution.value_objects.ids import (
-    NodeExecutionId,
-    TaskExecutionId,
-    WorkflowId,
-)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
 
@@ -116,14 +111,6 @@ class DomainEventSerializer:
                 or not target_type.__dataclass_params__.kw_only
             ):
                 return target_type(value)  # type: ignore[call-arg]
-        value_obj_map: dict[type, type] = {
-            WorkflowId: WorkflowId,
-            TaskExecutionId: TaskExecutionId,
-            NodeExecutionId: NodeExecutionId,
-        }
-        vo_cls = value_obj_map.get(target_type)
-        if vo_cls is not None:
-            return vo_cls(value) if not isinstance(value, vo_cls) else value
         if dataclasses.is_dataclass(target_type) and isinstance(value, dict):
             init_kwargs = {}
             for f in dataclasses.fields(target_type):

@@ -9,13 +9,12 @@ from typing import TYPE_CHECKING
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import make_url, select, text
+from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-from sqlalchemy.orm import Session
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -113,55 +112,4 @@ async def get_session(
 
 
 async def seed_base_data(url: str) -> None:
-    engine = create_async_engine(url, echo=False, future=True)
-
-    async with engine.begin() as conn:
-        await conn.run_sync(_seed_sync)
-
-    await engine.dispose()
-
-
-def _seed_sync(sync_conn) -> None:
-    from shell.infrastructure.definition.persistence.sql.models import (
-        GraphDefinitionModel,
-        NodeDefinitionModel,
-        NodeLinkDefinitionModel,
-    )
-
-    session = Session(sync_conn)
-
-    graph_definition_model = session.execute(
-        select(GraphDefinitionModel).where(GraphDefinitionModel.id == "base-planner-id")
-    ).scalar_one_or_none()
-
-    if graph_definition_model is None:
-        graph_definition_model = GraphDefinitionModel(
-            id="base-planner-id",
-        )
-        session.add(graph_definition_model)
-        session.flush()
-
-    link = session.execute(
-        select(NodeLinkDefinitionModel).where(
-            NodeLinkDefinitionModel.graph_definition_id == graph_definition_model.id
-        )
-    ).scalar_one_or_none()
-
-    if link is None:
-        node = NodeDefinitionModel(
-            id="base-planner-node-1",
-            mode="agent",
-            role="agent",
-            node_type="agent",
-        )
-        session.add(node)
-        session.flush()
-
-        link = NodeLinkDefinitionModel(
-            id="base-planner-link-1",
-            graph_definition_id=graph_definition_model.id,
-            node_definition_id=node.id,
-        )
-        session.add(link)
-
-    session.commit()
+    pass

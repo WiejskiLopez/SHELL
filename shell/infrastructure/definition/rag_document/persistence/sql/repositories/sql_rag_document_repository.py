@@ -9,13 +9,13 @@ from sqlalchemy.orm import selectinload
 
 from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.definition.persistence.sql.mappers import (
+from shell.infrastructure.definition.rag_document.persistence.sql.mappers import (
     rag_chunk_entity_to_model,
     rag_document_entity_to_model,
     rag_document_model_to_entity,
     rag_document_update_model,
 )
-from shell.infrastructure.platform.persistence.sql.rag_search import (
+from shell.infrastructure.definition.rag_document.persistence.sql.search import (
     InMemoryRagSearchStrategy,
 )
 
@@ -31,7 +31,9 @@ if TYPE_CHECKING:
     from shell.domain.definition.value_objects.ids import (
         RagDocumentId,  # noqa: TC002 — RagDocumentId używany w konstruktorach w repozytorium
     )
-    from shell.infrastructure.platform.persistence.sql.rag_search import RagSearchStrategy
+    from shell.infrastructure.definition.rag_document.persistence.sql.search import (
+        RagSearchStrategy,
+    )
 
 logger = logging.getLogger(__name__)
 

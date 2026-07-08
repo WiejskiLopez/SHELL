@@ -17,4 +17,4 @@ class WorkflowGetByIdHandler:
         self._queries = queries
 
     async def handle(self, query: WorkflowGetByIdQuery) -> WorkflowDto | None:
-        return await self._queries.get_workflow(query.workflow_id)
+        return await self._queries.get_by_id(query.workflow_id)

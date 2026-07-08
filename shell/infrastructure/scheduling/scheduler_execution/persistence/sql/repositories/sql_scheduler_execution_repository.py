@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.infrastructure.scheduling.persistence.sql.mappers import (
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.mappers import (
     scheduler_execution_entity_to_model,
     scheduler_execution_model_to_entity,
     scheduler_execution_update_model,

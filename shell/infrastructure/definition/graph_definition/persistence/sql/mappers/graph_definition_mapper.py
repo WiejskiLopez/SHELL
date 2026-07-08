@@ -5,7 +5,7 @@ from shell.domain.definition.aggregates.graph_definition.graph_definition import
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.infrastructure.definition.persistence.sql.models import (
+from shell.infrastructure.definition.graph_definition.persistence.sql.models import (
     GraphDefinitionModel,
 )
 

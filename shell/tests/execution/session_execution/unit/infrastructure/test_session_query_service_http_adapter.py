@@ -19,16 +19,16 @@ class TestSessionQueryServiceHttpAdapter:
     def adapter(self, mock_client: AsyncMock) -> SessionQueryServiceHttpAdapter:
         return SessionQueryServiceHttpAdapter(client=mock_client)
 
-    async def test_get_session_history_returns_none_on_404(
+    async def test_get_by_id_returns_none_on_404(
         self,
         adapter: SessionQueryServiceHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=404))
-        result = await adapter.get_session_history("nonexistent-session")
+        result = await adapter.get_by_id("nonexistent-session")
         assert result is None
 
-    async def test_get_session_history_maps_response(
+    async def test_get_by_id_maps_response(
         self,
         adapter: SessionQueryServiceHttpAdapter,
         mock_client: AsyncMock,
@@ -43,14 +43,14 @@ class TestSessionQueryServiceHttpAdapter:
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_session_history("session-1")
+        result = await adapter.get_by_id("session-1")
         assert isinstance(result, SessionDto)
         assert result.id == "session-1"
         assert result.goal == "test goal"
         assert result.status == "opened"
         assert result.closed_at is None
 
-    async def test_get_session_history_with_closed_at(
+    async def test_get_by_id_with_closed_at(
         self,
         adapter: SessionQueryServiceHttpAdapter,
         mock_client: AsyncMock,
@@ -65,7 +65,7 @@ class TestSessionQueryServiceHttpAdapter:
         mock_client.get = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_session_history("session-2")
+        result = await adapter.get_by_id("session-2")
         assert isinstance(result, SessionDto)
         assert result.closed_at is not None
 
@@ -80,4 +80,4 @@ class TestSessionQueryServiceHttpAdapter:
             )
         )
         with pytest.raises(Exception, match="Server error"):
-            await adapter.get_session_history("session-1")
+            await adapter.get_by_id("session-1")

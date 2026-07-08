@@ -17,7 +17,7 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
     NodeLinkDefinitionId,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.definition.persistence.sql.models import (
+from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
 

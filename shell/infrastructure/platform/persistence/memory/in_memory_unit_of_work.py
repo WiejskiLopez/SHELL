@@ -50,7 +50,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
-from shell.domain.platform.aggregates.message.repositories.message_repository import (
+from shell.domain.messaging.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
 from shell.domain.session.aggregates.session.repositories.session_repository import (
@@ -115,7 +115,7 @@ from shell.infrastructure.session.session.persistence.memory.in_memory_session_r
 )
 
 if TYPE_CHECKING:
-    from shell.domain.platform.aggregates.message.message import Message
+    from shell.domain.messaging.aggregates.message.message import Message
     from shell.domain.platform.events import DomainEvent
 
 from datetime import UTC, datetime

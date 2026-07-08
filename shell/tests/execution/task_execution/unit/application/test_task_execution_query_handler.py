@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class TestTaskExecutionQueryHandler:
     async def test_get_task_not_found(self, queries: InMemoryQueryServices) -> None:
-        dto = await TaskExecutionGetCurrentHandler(queries).handle(
+        dto = await TaskExecutionGetCurrentHandler(queries).handle(  # type: ignore[arg-type]
             TaskExecutionGetCurrentQuery("missing")
         )
         assert dto is None

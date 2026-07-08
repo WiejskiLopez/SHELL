@@ -21,10 +21,10 @@ from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.status import Status
-from shell.infrastructure.execution.persistence.sql.models import (
+from shell.infrastructure.execution.node_execution.persistence.sql.models import (
     NodeExecutionResultModel,
-    WorkflowModel,
 )
+from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
 
 
 def _ensure_utc(dt: datetime) -> datetime:

@@ -7,19 +7,18 @@ from dependency_injector import containers, providers
 from shell.infrastructure.definition.graph_definition.persistence.sql.services.graph_definition_query_service import (
     SqlGraphDefinitionQueryService,
 )
-from shell.infrastructure.definition.persistence.sql.services import (
+from shell.infrastructure.definition.rag_document.persistence.sql.services.rag_query_service import (
     RagQueryService,
+)
+from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService,
 )
 from shell.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
 from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
-from shell.infrastructure.execution.persistence.sql.services import (
+from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
-    SessionQueryService,
-    TaskExecutionQueryService,
-    WorkflowQueryService,
 )
 from shell.infrastructure.execution.process.subprocess_runner import (
     SubprocessNodeExecutionProcessRunner,
@@ -27,8 +26,17 @@ from shell.infrastructure.execution.process.subprocess_runner import (
 from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
     SessionQueryServiceHttpAdapter,
 )
+from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
 from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
     FileSystemTaskLoader,
+)
+from shell.infrastructure.execution.task_execution.persistence.sql.services.task_execution_query_service import (
+    TaskExecutionQueryService,
+)
+from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_query_service import (
+    WorkflowQueryService,
 )
 from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
 from shell.infrastructure.platform.external.hash_embedder import HashEmbedder

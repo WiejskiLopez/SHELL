@@ -17,7 +17,7 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
     NodeLinkExecutionId,
 )
 from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.execution.persistence.sql.models import (
+from shell.infrastructure.execution.node_link_execution.persistence.sql.models import (
     NodeLinkExecutionModel,
 )
 

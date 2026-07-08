@@ -77,7 +77,7 @@ class InMemoryQueryServices:
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:
         return await self.get_task_execution_by_name(name)
 
-    async def get_workflow(self, workflow_id: str) -> WorkflowDto | None:
+    async def get_by_id(self, workflow_id: str) -> WorkflowDto | None:
         workflow = await self._unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(
             WorkflowId(workflow_id)
         )
@@ -89,7 +89,7 @@ class InMemoryQueryServices:
             created_at=workflow.created_at.value,
         )
 
-    async def get_session_history(self, session_id: str) -> SessionDto | None:
+    async def get_by_id(self, session_id: str) -> SessionDto | None:  # type: ignore[no-redef]
         session = await self._unit_of_work.repository(InMemorySessionRepository).get_by_id(
             SessionId(session_id)
         )

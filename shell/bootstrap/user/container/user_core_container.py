@@ -13,7 +13,7 @@ from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGener
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.sql import build_session_factory
 from shell.infrastructure.platform.time.system_clock import SystemClock
-from shell.infrastructure.user.persistence.sql_alchemy_user_uow import SqlAlchemyUserUnitOfWork
+from shell.infrastructure.user.user.persistence.sql.unit_of_work import SqlAlchemyUserUnitOfWork
 
 
 class UserCoreContainer(containers.DeclarativeContainer):

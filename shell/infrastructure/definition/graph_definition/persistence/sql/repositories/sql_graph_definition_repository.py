@@ -7,7 +7,7 @@ from sqlalchemy import select
 from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
     GraphDefinitionRepository,
 )
-from shell.infrastructure.definition.persistence.sql.mappers import (
+from shell.infrastructure.definition.graph_definition.persistence.sql.mappers import (
     graph_definition_entity_to_model,
     graph_definition_model_to_entity,
     graph_definition_update_model,

@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from shell.application.platform.ports.execution import (
-    NodeExecutionProcessRunner,
-    NodeExecutionWorkspace,
-)
 from shell.application.platform.ports.filesystem import TaskExecutionLoader
 from shell.application.platform.ports.identity import IdGenerator
 from shell.application.platform.ports.messaging import EventPublisher
@@ -18,8 +14,6 @@ __all__ = [
     "EventPublisher",
     "IdGenerator",
     "Logger",
-    "NodeExecutionProcessRunner",
-    "NodeExecutionWorkspace",
     "TaskExecutionLoader",
     "UnitOfWork",
 ]

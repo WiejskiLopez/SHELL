@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.execution.persistence.sql.services import SessionQueryService
+from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

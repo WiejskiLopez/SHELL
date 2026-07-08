@@ -15,7 +15,7 @@ class SessionQueryServiceHttpAdapter(SessionQueryService):
     def __init__(self, client: httpx.AsyncClient) -> None:
         self._client = client
 
-    async def get_session_history(self, session_id: str) -> SessionDto | None:
+    async def get_by_id(self, session_id: str) -> SessionDto | None:
         response = await self._client.get(f"/api/v1/sessions/{session_id}/history")
         if response.status_code == 404:
             return None

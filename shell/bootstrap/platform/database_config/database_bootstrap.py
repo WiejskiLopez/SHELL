@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.config.seed.dev_data import seed_dev_data
+from shell.infrastructure.definition.seed import (
+    _seed_base_definition_data,
+)
 from shell.infrastructure.platform.persistence.sql import (
     reset_database,
     run_migrations,
-    seed_base_data,
 )
 
 if TYPE_CHECKING:
@@ -20,7 +22,7 @@ async def bootstrap_database(config: ShellConfig) -> None:
         await reset_database(url)
 
     await run_migrations(url)
-    await seed_base_data(url)
+    await _seed_base_definition_data(url)
 
     if config.seed_dev_data:
         await seed_dev_data(url)

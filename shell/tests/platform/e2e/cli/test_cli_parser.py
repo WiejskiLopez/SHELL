@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import tempfile
+
 from shell.framework.platform.cli.parser import parse_args
+
+_TEMP_NODE_DIR = f"{tempfile.gettempdir()}/node"
 
 
 class TestCliParser:
@@ -15,7 +19,7 @@ class TestCliParser:
         ns = parse_args(
             [
                 "--node-dir",
-                "/tmp/node",
+                _TEMP_NODE_DIR,
                 "--mode",
                 "agent",
                 "--model",
@@ -25,7 +29,7 @@ class TestCliParser:
                 "--dry-run",
             ]
         )
-        assert ns.node_dir == "/tmp/node"
+        assert ns.node_dir == _TEMP_NODE_DIR
         assert ns.mode == "agent"
         assert ns.model == "gpt-4o"
         assert ns.max_step == 10

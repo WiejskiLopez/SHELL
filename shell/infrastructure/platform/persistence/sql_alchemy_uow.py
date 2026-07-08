@@ -1,11 +1,12 @@
 """SqlAlchemyUnitOfWork — monolityczny UoW dla trybu monolit (backward compat).
 
-W trybie mikroserwisowym używaj dedykowanych per-BC UoW:
-  - SqlAlchemyExecutionUnitOfWork  (execution/)
-  - SqlAlchemyDefinitionUnitOfWork (definition/)
-  - SqlAlchemyUserUnitOfWork       (user/)
-  - SqlAlchemySessionUnitOfWork    (session/)
-  - SqlAlchemySchedulingUnitOfWork (scheduling/)
+W trybie mikroserwisowym używaj dedykowanych per-aggregate UoW:
+  - user/*/persistence/sql/unit_of_work.py
+  - session/session/persistence/sql/unit_of_work.py
+  - scheduling/*/persistence/sql/unit_of_work.py
+  - execution/*/persistence/sql/unit_of_work.py
+  - definition/*/persistence/sql/unit_of_work.py
+  - project/*/persistence/sql/unit_of_work.py
 """
 
 from __future__ import annotations
@@ -53,33 +54,61 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
-from shell.domain.platform.aggregates.message.repositories.message_repository import (
+from shell.domain.messaging.aggregates.message.repositories.message_repository import (
     MessageRepository,
 )
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
 from shell.domain.user.aggregates.user.repositories.user_repository import UserRepository
-from shell.infrastructure.definition.persistence.sql.repositories import (
-    SqlGraphDefinitionEmbeddingRepository,
+from shell.infrastructure.definition.graph_definition.persistence.sql.repositories.sql_graph_definition_repository import (
     SqlGraphDefinitionRepository,
+)
+from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.repositories.sql_graph_definition_embedding_repository import (
+    SqlGraphDefinitionEmbeddingRepository,
+)
+from shell.infrastructure.definition.node_definition.persistence.sql.repositories.sql_node_definition_repository import (
     SqlNodeDefinitionRepository,
+)
+from shell.infrastructure.definition.rag_document.persistence.sql.repositories.sql_rag_document_repository import (
     SqlRagDocumentRepository,
+)
+from shell.infrastructure.definition.rag_document.persistence.sql.search import (
+    create_rag_search_strategy,
+)
+from shell.infrastructure.definition.runner_config.persistence.sql.repositories.sql_runner_config_repository import (
     SqlRunnerConfigRepository,
 )
-from shell.infrastructure.execution.persistence.sql.repositories import (
+from shell.infrastructure.execution.edge_execution.persistence.sql.repositories.sql_edge_execution_repository import (
     SqlEdgeExecutionRepository,
+)
+from shell.infrastructure.execution.edge_link_execution.persistence.sql.repositories.sql_edge_link_execution_repository import (
     SqlEdgeLinkExecutionRepository,
+)
+from shell.infrastructure.execution.graph_execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
-    SqlGraphExecutionStateInputRepository,
+)
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.repositories.sql_graph_execution_state_input_repository import (
+    SqlGraphExecutionStateRepository as SqlGraphExecutionStateInputRepository,
+)
+from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
     SqlNodeExecutionRepository,
+)
+from shell.infrastructure.execution.node_execution_state.persistence.sql.repositories.sql_node_execution_state_repository import (
     SqlNodeExecutionStateRepository,
+)
+from shell.infrastructure.execution.task_execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
+)
+from shell.infrastructure.execution.task_execution_state.persistence.sql.repositories.sql_task_execution_state_repository import (
     SqlTaskExecutionStateRepository,
+)
+from shell.infrastructure.execution.workflow.persistence.sql.repositories.sql_workflow_repository import (
     SqlWorkflowRepository,
+)
+from shell.infrastructure.execution.workflow_state.persistence.sql.repositories.sql_workflow_state_repository import (
     SqlWorkflowStateRepository,
 )
-from shell.infrastructure.platform.persistence.sql.rag_search import create_rag_search_strategy
 from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
     SqlMessageRepository,
 )
@@ -95,9 +124,13 @@ from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.reposit
 from shell.infrastructure.session.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
-from shell.infrastructure.user.persistence.sql.repositories import (
+from shell.infrastructure.user.user.persistence.sql.repositories.sql_user_repository import (
     SqlUserRepository,
+)
+from shell.infrastructure.user.user_skill.persistence.sql.repositories.sql_user_skill_repository import (
     SqlUserSkillRepository,
+)
+from shell.infrastructure.user.user_state.persistence.sql.repositories.sql_user_state_repository import (
     SqlUserStateRepository,
 )
 
