@@ -1,15 +1,15 @@
-from shell.application.execution.task_execution.queries.task_execution_get_by_id_query import (
-    TaskExecutionGetByIdQuery,
+from shell.application.execution.task_execution.queries.get_task_execution_by_id_query import (
+    GetTaskExecutionByIdQuery,
 )
-from shell.application.execution.task_execution.queries.task_execution_get_by_name_query import (
-    TaskExecutionGetByNameQuery,
+from shell.application.execution.task_execution.queries.get_task_execution_by_name_query import (
+    GetTaskExecutionByNameQuery,
 )
-from shell.application.execution.task_execution.queries.task_execution_get_current_query import (
-    TaskExecutionGetCurrentQuery,
+from shell.application.execution.task_execution.queries.get_task_execution_current_query import (
+    GetTaskExecutionCurrentQuery,
 )
 
 __all__ = [
-    "TaskExecutionGetByIdQuery",
-    "TaskExecutionGetByNameQuery",
-    "TaskExecutionGetCurrentQuery",
+    "GetTaskExecutionByIdQuery",
+    "GetTaskExecutionByNameQuery",
+    "GetTaskExecutionCurrentQuery",
 ]

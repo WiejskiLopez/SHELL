@@ -21,8 +21,10 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.graph_execution import GraphExecution
-    from shell.domain.execution.value_objects.ids import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
+    )
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
 

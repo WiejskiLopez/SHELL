@@ -15,8 +15,8 @@ Pliki Python używają `snake_case`. Nazwa pliku odpowiada nazwie klasy/portu/in
 Klasa:  WorkflowStartHandler
 Plik:   workflow_start_handler.py
 
-Klasa:  InvoiceApproveHandler
-Plik:   invoice_approve_handler.py
+Klasa:  ApproveInvoiceHandler
+Plik:   approve_invoice_handler.py
 
 Klasa:  InvoiceApprovedEvent
 Plik:   invoice_approved_event.py
@@ -40,11 +40,11 @@ GraphDefinitionDto  →  graph_definition_dto.py
 | Typ | Wzorzec pliku | Przykład |
 |-----|---------------|----------|
 | Command | `<verb>_<object>_command.py` | `approve_invoice_command.py` |
-| Query | `<aggregate>_<read_op>_query.py` | `invoice_get_by_id_query.py` |
+| Query | `<verb>_<aggregate>_query.py` | `get_invoice_by_id_query.py` |
 | Message | `<aggregate>_<description>_message.py` | `invoice_summary_message.py` |
-| Command Handler | `<aggregate>_<verb>_handler.py` | `invoice_approve_handler.py` |
+| Command Handler | `<verb>_<object>_handler.py` | `approve_invoice_handler.py` |
 | Event Handler | `<aggregate>_<past_verb>_handler.py` | `invoice_approved_handler.py` |
-| Query Handler | `<aggregate>_<read_op>_handler.py` | `invoice_get_by_id_handler.py` |
+| Query Handler | `<verb>_<aggregate>_handler.py` | `get_invoice_by_id_handler.py` |
 | Message Handler | `<aggregate>_<description>_handler.py` | `invoice_summary_handler.py` |
 | DTO | `<aggregate>_<projection>_dto.py` | `invoice_summary_dto.py` |
 | Domain Event | `<aggregate>_<past_verb>_event.py` | `invoice_approved_event.py` |

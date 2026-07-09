@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.definition.graph_definition.queries.graph_definition_get_by_id_query import (
-    GraphDefinitionGetByIdQuery,
+from shell.application.definition.graph_definition.queries.get_graph_definition_by_id_query import (
+    GetGraphDefinitionByIdQuery,
 )
 
-__all__ = ["GraphDefinitionGetByIdQuery"]
+__all__ = ["GetGraphDefinitionByIdQuery"]

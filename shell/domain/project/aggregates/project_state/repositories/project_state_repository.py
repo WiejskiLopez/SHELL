@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_state.project_state import ProjectState
     from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
         ProjectStateId,
     )
-    from shell.domain.project.value_objects.project_id import ProjectId
 
 
 class ProjectStateRepository(Protocol):

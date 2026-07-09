@@ -6,9 +6,9 @@ from dependency_injector import containers, providers
 
 from shell.application.platform.bus.command_bus import CommandBus
 from shell.application.platform.bus.query_bus import QueryBus
-from shell.application.user.user.command_handlers.user_create_handler import UserCreateHandler
-from shell.application.user.user.command_handlers.user_delete_handler import UserDeleteHandler
-from shell.application.user.user.command_handlers.user_update_handler import UserUpdateHandler
+from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
+from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
+from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
 from shell.infrastructure.platform.persistence.sql import build_session_factory
@@ -41,18 +41,18 @@ class UserCoreContainer(containers.DeclarativeContainer):
 
     # Command Handlers — tylko User BC
     create_user_handler_factory = providers.Factory(
-        UserCreateHandler,
+        CreateUserHandler,
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
         id_generator=id_generator_factory,
     )
     update_user_handler_factory = providers.Factory(
-        UserUpdateHandler,
+        UpdateUserHandler,
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
     )
     delete_user_handler_factory = providers.Factory(
-        UserDeleteHandler,
+        DeleteUserHandler,
         unit_of_work=unit_of_work_factory,
         clock=clock_factory,
     )

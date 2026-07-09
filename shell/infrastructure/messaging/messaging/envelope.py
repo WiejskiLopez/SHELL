@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.domain.messaging.aggregates.message.message import Message
+    from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,14 +20,14 @@ class Envelope:
     @classmethod
     def from_message(
         cls,
-        message: Message,
+        message: MessageRouter,
         trace_id: str,
         sender_service: str,
         receiver_service: str,
-        transport_metadata: dict[str, object] | None = None,
+        transport_metadata: dict[str, object],
         correlation_id: str | None = None,
     ) -> Envelope:
-        metadata = dict(transport_metadata or {})
+        metadata = dict(transport_metadata)
         if correlation_id is not None:
             metadata["correlation_id"] = correlation_id
 
@@ -58,5 +58,5 @@ class Envelope:
             trace_id=str(data.get("trace_id", "")),
             sender_service=str(data.get("sender_service", "")),
             receiver_service=str(data.get("receiver_service", "")),
-            transport_metadata=dict(data.get("transport_metadata", {}) or {}),  # type: ignore[call-overload]
+            transport_metadata=dict(data["transport_metadata"]),  # type: ignore[call-overload]
         )

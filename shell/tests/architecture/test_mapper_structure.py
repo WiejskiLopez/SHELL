@@ -81,7 +81,7 @@ def test_mappers_have_no_business_logic() -> None:
         ast_lines = content.splitlines()
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                set(range(node.lineno or 0, (node.end_lineno or node.lineno) + 1))
+
                 for sub in ast.walk(node):
                     if isinstance(sub, ast.If):
                         test_src = ast.unparse(sub.test)

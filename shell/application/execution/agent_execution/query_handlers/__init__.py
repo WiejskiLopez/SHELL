@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.agent_execution.query_handlers.agent_execution_get_by_id_handler import (
-    AgentExecutionGetByIdHandler,
+from shell.application.execution.agent_execution.query_handlers.get_agent_execution_by_id_handler import (
+    GetAgentExecutionByIdHandler,
 )
 
-__all__ = ["AgentExecutionGetByIdHandler"]
+__all__ = ["GetAgentExecutionByIdHandler"]

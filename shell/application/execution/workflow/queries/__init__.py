@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from shell.application.execution.workflow.queries.workflow_get_by_id_query import (
-    WorkflowGetByIdQuery,
+from shell.application.execution.workflow.queries.get_workflow_by_id_query import (
+    GetWorkflowByIdQuery,
 )
-from shell.application.execution.workflow.queries.workflow_state_get_by_id_query import (
-    WorkflowStateGetByIdQuery,
+from shell.application.execution.workflow.queries.get_workflow_state_by_id_query import (
+    GetWorkflowStateByIdQuery,
 )
 
-__all__ = ["WorkflowGetByIdQuery", "WorkflowStateGetByIdQuery"]
+__all__ = ["GetWorkflowByIdQuery", "GetWorkflowStateByIdQuery"]

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from shell.infrastructure.platform.persistence.sql.services.message_query_service import (
-    MessageQueryService,
+from shell.infrastructure.platform.persistence.sql.services.message_router_query_service import (
+    MessageRouterQueryService,
 )
 
 __all__ = [
-    "MessageQueryService",
+    "MessageRouterQueryService",
 ]

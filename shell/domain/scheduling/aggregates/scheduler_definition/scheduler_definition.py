@@ -1,19 +1,31 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.enabled import Enabled
-from shell.domain.platform.value_objects.timestamp import Timestamp
-from shell.domain.scheduling.value_objects.action_config import ActionConfig
-from shell.domain.scheduling.value_objects.execution_policy import ExecutionPolicy
-from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
-from shell.domain.scheduling.value_objects.scheduler_description import (
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
+    SchedulerDefinitionId,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_description import (
     SchedulerDescription,
 )
-from shell.domain.scheduling.value_objects.scheduler_name import SchedulerName
-from shell.domain.scheduling.value_objects.trigger_config import TriggerConfig
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_name import (
+    SchedulerName,
+)
+
+if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.timestamp import Timestamp
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
+        ActionConfig,
+    )
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.execution_policy import (
+        ExecutionPolicy,
+    )
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
+        TriggerConfig,
+    )
 
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
@@ -33,26 +45,24 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         id: SchedulerDefinitionId,
         name: SchedulerName,
         enabled: Enabled,
+        trigger_config: TriggerConfig,
+        action_config: ActionConfig,
+        execution_policy: ExecutionPolicy,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
         description: SchedulerDescription | None = None,
-        trigger_config: TriggerConfig | None = None,
-        action_config: ActionConfig | None = None,
-        execution_policy: ExecutionPolicy | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
     ) -> None:
         super().__init__(id)
         self._name = SchedulerName(name) if isinstance(name, str) else name
         self._description = (
             SchedulerDescription(description) if isinstance(description, str) else description
         )
-        self._trigger_config = trigger_config or TriggerConfig(
-            source_context="", trigger_event_type=""
-        )
-        self._action_config = action_config or ActionConfig(action_type="")
-        self._execution_policy = execution_policy or ExecutionPolicy()
+        self._trigger_config = trigger_config
+        self._action_config = action_config
+        self._execution_policy = execution_policy
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
-        self._created_at = created_at or CreatedAt.now()
-        self._updated_at = updated_at or Timestamp.now()
+        self._created_at = created_at
+        self._updated_at = updated_at
 
     @classmethod
     def restore(
@@ -60,21 +70,21 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         id: SchedulerDefinitionId,
         name: SchedulerName,
         enabled: Enabled,
+        trigger_config: TriggerConfig,
+        action_config: ActionConfig,
+        execution_policy: ExecutionPolicy,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
         description: SchedulerDescription | None = None,
-        trigger_config: TriggerConfig | None = None,
-        action_config: ActionConfig | None = None,
-        execution_policy: ExecutionPolicy | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
     ) -> Self:
         return cls(
             id=id,
             name=name,
             description=description,
+            enabled=enabled,
             trigger_config=trigger_config,
             action_config=action_config,
             execution_policy=execution_policy,
-            enabled=enabled,
             created_at=created_at,
             updated_at=updated_at,
         )

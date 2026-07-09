@@ -112,7 +112,7 @@ Eventy i komendy opisują **fakty biznesowe** w języku domeny:
 |-----|---------|----------|
 | Command | `<Verb><Object>Command` | `ApproveInvoiceCommand`, `StartWorkflowCommand` |
 | Event | `<Aggregate><PastVerb>Event` | `InvoiceApprovedEvent`, `WorkflowStartedEvent` |
-| Query | `<Aggregate><ReadOp>[Projection]Query` | `InvoiceGetByIdQuery`, `WorkflowGetByIdQuery` |
+| Query | `<Verb><Aggregate>[Projection]Query` | `GetInvoiceByIdQuery`, `GetWorkflowByIdQuery` |
 | Message | `<Aggregate><Description>Message` | `InvoiceSummaryMessage` |
 | DTO | `<Aggregate><Projection>Dto` | `InvoiceSummaryDto`, `WorkflowDto` |
 | Mapper | `<Aggregate>Mapper` | `InvoiceMapper`, `WorkflowMapper` |

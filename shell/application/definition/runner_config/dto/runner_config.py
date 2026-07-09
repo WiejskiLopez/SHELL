@@ -10,8 +10,4 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class RunnerConfigDto:
     id: str
-    package_name: str
-    kind: str
-    hash: str
-    body: dict[str, object]
     created_at: datetime

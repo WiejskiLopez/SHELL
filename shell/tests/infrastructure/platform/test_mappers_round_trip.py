@@ -19,26 +19,36 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.ids import (
-    GraphExecutionId,
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+    NodeExecutionStatus,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
+from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
+)
+from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
-    WorkflowId,
 )
-from shell.domain.execution.value_objects.max_subgraph_depth import (
-    MaxSubgraphDepth,
-)
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
-from shell.domain.execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.workflow import Workflow
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.mode import Mode
 from shell.domain.platform.value_objects.timestamp import Timestamp
@@ -96,6 +106,7 @@ class TestWorkflowMapper:
         original = Workflow(
             id=WorkflowId("wf-1"),
             session_id=SessionIdRef("sess-1"),
+            status=WorkflowStatus.ACTIVE,
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = workflow_entity_to_model(original)
@@ -114,7 +125,7 @@ class TestWorkflowMapper:
         assert entity.session_id.value == "sess-2"
 
     def test_round_trip(self) -> None:
-        original = Workflow(id=WorkflowId("wf-3"), created_at=CreatedAt.from_datetime(_NOW))
+        original = Workflow(id=WorkflowId("wf-3"), status=WorkflowStatus.ACTIVE, created_at=CreatedAt.from_datetime(_NOW))
         model = workflow_entity_to_model(original)
         model.created_at = _raw(model.created_at)  # type: ignore[assignment]
 
@@ -315,9 +326,11 @@ class TestNodeExecutionMapper:
         original = NodeExecution(
             id=NodeExecutionId("gne-1"),
             position=NodeOrder(0),
+            order=NodeOrder(0),
             mode=Mode.WORKER,
             role=NodeRole.AGENT,
             node_type=NodeType("worker"),
+            status=NodeExecutionStatus.PENDING,
         )
         model = _node_execution_entity_to_model(original)
 
@@ -328,7 +341,7 @@ class TestNodeExecutionMapper:
         assert model.node_type == "worker"
 
     def test_model_to_entity_minimal(self) -> None:
-        model = NodeExecutionModel(id="gne-1", position=0, mode="worker")
+        model = NodeExecutionModel(id="gne-1", position=0, mode="worker", role="AGENT", node_type="llm", status="pending")
         entity = _node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"
@@ -340,9 +353,11 @@ class TestNodeExecutionMapper:
         original = NodeExecution(
             id=NodeExecutionId("gne-3"),
             position=NodeOrder(1),
+            order=NodeOrder(1),
             mode=Mode.AGENT,
             role=NodeRole.AGENT,
             node_type=NodeType("llm"),
+            status=NodeExecutionStatus.PENDING,
         )
         model = _node_execution_entity_to_model(original)
         restored = _node_execution_model_to_entity(model)
@@ -358,9 +373,11 @@ class TestNodeExecutionMapper:
         original = NodeExecution(
             id=NodeExecutionId("gne-4"),
             position=NodeOrder(3),
+            order=NodeOrder(3),
             mode=Mode.PLANNER,
             role=NodeRole.PLANNER,
             node_type=NodeType("llm"),
+            status=NodeExecutionStatus.PENDING,
         )
         model = _node_execution_entity_to_model(original)
         restored = _node_execution_model_to_entity(model)

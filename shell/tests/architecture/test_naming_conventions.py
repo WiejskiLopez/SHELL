@@ -104,8 +104,8 @@ _KNOWN_FILENAME_MISMATCH: frozenset[str] = frozenset(
         "domain/execution/ports/sub_graph_security.py: main class is Scope (expected scope.py)",
         "domain/execution/services/node_execution_output_interpreter.py: main class is OutputDecision (expected output_decision.py)",
         "domain/execution/value_objects/graph_execution_definition.py: main class is NodeExecutionDefinition (expected node_execution_definition.py)",
-        "domain/definition/repositories/rag_repository.py: main class is RagDocumentRepository (expected rag_document_repository.py)",
-        "domain/definition/services/rag_index_service.py: main class is Embedder (expected embedder.py)",
+
+
     }
 )
 

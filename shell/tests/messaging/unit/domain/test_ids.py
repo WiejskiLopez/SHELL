@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.value_objects.ids import TaskExecutionId, WorkflowId
-from shell.domain.messaging.aggregates.message.value_objects.message_id import MessageId
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 
 
 class TestIds:

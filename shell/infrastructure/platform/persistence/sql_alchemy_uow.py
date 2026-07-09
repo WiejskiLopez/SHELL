@@ -11,19 +11,20 @@ W trybie mikroserwisowym używaj dedykowanych per-aggregate UoW:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TypeVar
 
+from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
+    GraphDefinitionRepository,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
     GraphDefinitionEmbeddingRepository,
 )
-from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
-    GraphDefinitionRepository,
-)
-from shell.domain.definition.repositories.graph_definition_repository.node_definition_repository import (
+from shell.domain.definition.aggregates.node_definition.repositories.node_definition_repository import (
     NodeDefinitionRepository,
 )
-from shell.domain.definition.repositories.rag_repository import RagDocumentRepository
-from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.definition.aggregates.runner_config.repositories.runner_config_repository import (
+    RunnerConfigRepository,
+)
 from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
     EdgeExecutionRepository,
 )
@@ -54,8 +55,8 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
     WorkflowStateRepository,
 )
-from shell.domain.messaging.aggregates.message.repositories.message_repository import (
-    MessageRepository,
+from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
+    MessageRouterRepository,
 )
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
@@ -69,12 +70,6 @@ from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.
 )
 from shell.infrastructure.definition.node_definition.persistence.sql.repositories.sql_node_definition_repository import (
     SqlNodeDefinitionRepository,
-)
-from shell.infrastructure.definition.rag_document.persistence.sql.repositories.sql_rag_document_repository import (
-    SqlRagDocumentRepository,
-)
-from shell.infrastructure.definition.rag_document.persistence.sql.search import (
-    create_rag_search_strategy,
 )
 from shell.infrastructure.definition.runner_config.persistence.sql.repositories.sql_runner_config_repository import (
     SqlRunnerConfigRepository,
@@ -110,7 +105,7 @@ from shell.infrastructure.execution.workflow_state.persistence.sql.repositories.
     SqlWorkflowStateRepository,
 )
 from shell.infrastructure.platform.persistence.sql.repositories.sql_message_repository import (
-    SqlMessageRepository,
+    SqlMessageRouterRepository,
 )
 from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
@@ -134,9 +129,6 @@ from shell.infrastructure.user.user_state.persistence.sql.repositories.sql_user_
     SqlUserStateRepository,
 )
 
-if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 TRepository = TypeVar("TRepository")
 
 _ALL_REPOS: dict[type, type] = {
@@ -153,7 +145,6 @@ _ALL_REPOS: dict[type, type] = {
     EdgeLinkExecutionRepository: SqlEdgeLinkExecutionRepository,
     # definition BC
     RunnerConfigRepository: SqlRunnerConfigRepository,
-    RagDocumentRepository: SqlRagDocumentRepository,
     GraphDefinitionRepository: SqlGraphDefinitionRepository,
     NodeDefinitionRepository: SqlNodeDefinitionRepository,
     GraphDefinitionEmbeddingRepository: SqlGraphDefinitionEmbeddingRepository,
@@ -164,7 +155,7 @@ _ALL_REPOS: dict[type, type] = {
     SqlUserSkillRepository: SqlUserSkillRepository,
     SqlUserStateRepository: SqlUserStateRepository,
     # platform
-    MessageRepository: SqlMessageRepository,
+    MessageRouterRepository: SqlMessageRouterRepository,
 }
 
 
@@ -175,19 +166,11 @@ class SqlAlchemyUnitOfWork(SqlAlchemyUnitOfWorkBase):
     Przy ekstrakcji mikroserwisu zastąp dedykowanym per-BC UoW.
     """
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
-        super().__init__(session_factory)
-        self._rag_search_strategy = create_rag_search_strategy(session_factory)
-
     def _build_repo_map(self) -> dict[type, type]:
         return _ALL_REPOS
 
     def repository(self, repo_type: type[TRepository]) -> TRepository:
-        """Nadpisuje bazową metodę aby obsłużyć specjalny konstruktor RAG i schedulerów."""
-        if repo_type is RagDocumentRepository:
-            return SqlRagDocumentRepository(  # type: ignore[return-value]
-                self._active_session, search_strategy=self._rag_search_strategy
-            )
+        """Nadpisuje bazową metodę aby obsłużyć specjalny konstruktor schedulerów."""
         if repo_type is SqlSchedulerDefinitionRepository:
             return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
         if repo_type is SqlSchedulerExecutionRepository:

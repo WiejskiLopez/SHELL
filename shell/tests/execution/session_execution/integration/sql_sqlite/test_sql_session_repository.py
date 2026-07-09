@@ -24,17 +24,17 @@ from shell.application.execution.session_execution.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.execution.session_execution.queries.session_get_history_query import (
-    SessionGetHistoryQuery,
+from shell.application.execution.session_execution.queries.get_session_history_query import (
+    GetSessionHistoryQuery,
 )
-from shell.application.execution.session_execution.query_handlers.session_get_history_handler import (
-    SessionGetHistoryHandler,
+from shell.application.execution.session_execution.query_handlers.get_session_history_handler import (
+    GetSessionHistoryHandler,
 )
-from shell.application.session.session.command_handlers.session_close_handler import (
-    SessionCloseHandler,
+from shell.application.session.session.command_handlers.close_session_handler import (
+    CloseSessionHandler,
 )
-from shell.application.session.session.command_handlers.session_open_handler import (
-    SessionOpenHandler,
+from shell.application.session.session.command_handlers.open_session_handler import (
+    OpenSessionHandler,
 )
 
 
@@ -46,15 +46,15 @@ class TestSqlSessionRepository:
         id_generator: FakeIdGenerator,
         session_factory: async_sessionmaker,
     ) -> None:
-        session_id = await SessionOpenHandler(sql_uow, clock, id_generator).handle(
+        session_id = await OpenSessionHandler(sql_uow, clock, id_generator).handle(
             OpenSessionCommand(goal="integration test")
         )
-        await SessionCloseHandler(sql_uow, clock).handle(
+        await CloseSessionHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
 
-        dto = await SessionGetHistoryHandler(SessionQueryService(session_factory)).handle(
-            SessionGetHistoryQuery(session_id=session_id.value)
+        dto = await GetSessionHistoryHandler(SessionQueryService(session_factory)).handle(
+            GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "closed"

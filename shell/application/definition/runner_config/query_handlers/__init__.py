@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from shell.application.definition.runner_config.query_handlers.runner_config_get_by_id_handler import (
-    RunnerConfigGetByIdHandler,
-)
-from shell.application.definition.runner_config.query_handlers.runner_config_get_handler import (
-    RunnerConfigGetHandler,
+from shell.application.definition.runner_config.query_handlers.get_runner_config_by_id_handler import (
+    GetRunnerConfigByIdHandler,
 )
 
-__all__ = ["RunnerConfigGetByIdHandler", "RunnerConfigGetHandler"]
+__all__ = ["GetRunnerConfigByIdHandler"]

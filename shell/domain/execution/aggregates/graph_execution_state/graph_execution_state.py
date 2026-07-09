@@ -14,10 +14,9 @@ from typing import TYPE_CHECKING, Any, Self
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
-from shell.domain.execution.value_objects.state_key import StateKey
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.state_key import StateKey
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -27,6 +26,7 @@ if TYPE_CHECKING:
         GraphExecutionStateId,
     )
     from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
@@ -49,15 +49,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
-        if created_at is not None:
-            self._created_at = created_at
+        self._state_data = state_data
+        self._created_at = created_at
 
     @classmethod
     def restore(
@@ -65,8 +64,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         id: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -102,7 +101,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         *,
         id_: GraphExecutionStateId,
         graph_execution_id: GraphExecutionId,
-        direction: StateDirection = StateDirection.IN,
+        direction: StateDirection,
         now: CreatedAt,
     ) -> GraphExecutionState:
         return cls(

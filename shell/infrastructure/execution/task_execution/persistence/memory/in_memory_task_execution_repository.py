@@ -6,7 +6,7 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
     TaskExecutionRepository,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.value_objects.ids import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
 )
 from shell.infrastructure.platform.persistence.in_memory_repository import (
@@ -14,10 +14,10 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.value_objects.ids import WorkflowId
-    from shell.domain.execution.value_objects.task_execution_name import (
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
         TaskExecutionName,
     )
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 
 
 class InMemoryTaskExecutionRepository(

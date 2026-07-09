@@ -39,13 +39,13 @@ class InMemoryTaskExecutionStateRepository(  # type: ignore[misc]
                     latest = item
         return copy.deepcopy(latest) if latest is not None else None
 
-    async def save(self, payload: TaskExecutionState) -> None:
+    async def save(self, state: TaskExecutionState) -> None:
         existing = await self.get_latest_by_task_id(
-            payload.task_execution_id, direction=payload.direction
+            state.task_execution_id, direction=state.direction
         )
         if existing is not None:
             del self._store[existing.id.value]
-        self._store[payload.id.value] = copy.deepcopy(payload)
+        self._store[state.id.value] = copy.deepcopy(state)
 
     async def exists(self, id_: TaskExecutionStateId) -> ExistsResult:  # type: ignore[override]
         return ExistsResult(id_.value in self._store)

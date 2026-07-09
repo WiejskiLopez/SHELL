@@ -2,18 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_text import (
+    EmbeddingText,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
     GraphDefinitionEmbeddingId,
 )
-from shell.domain.definition.value_objects.embedding_text import EmbeddingText
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
-    from shell.domain.definition.value_objects.embedding import Embedding
-    from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
+    from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding import (
+        Embedding,
+    )
+    from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_model import (
+        EmbeddingModel,
+    )
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 

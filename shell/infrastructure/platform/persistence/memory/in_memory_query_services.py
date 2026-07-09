@@ -6,12 +6,10 @@ from shell.application.execution.node_execution.dto.node_execution import NodeEx
 from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
 from shell.application.execution.workflow.dto.workflow import WorkflowDto
 from shell.application.session.session.dto.session import SessionDto
-from shell.domain.execution.value_objects.ids import (
-    WorkflowId,
-)
-from shell.domain.execution.value_objects.task_execution_name import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
@@ -77,7 +75,7 @@ class InMemoryQueryServices:
     async def get_current_task(self, name: str) -> TaskExecutionDto | None:
         return await self.get_task_execution_by_name(name)
 
-    async def get_by_id(self, workflow_id: str) -> WorkflowDto | None:
+    async def get_workflow_by_id(self, workflow_id: str) -> WorkflowDto | None:
         workflow = await self._unit_of_work.repository(InMemoryWorkflowRepository).get_by_id(
             WorkflowId(workflow_id)
         )
@@ -89,7 +87,7 @@ class InMemoryQueryServices:
             created_at=workflow.created_at.value,
         )
 
-    async def get_by_id(self, session_id: str) -> SessionDto | None:  # type: ignore[no-redef]
+    async def get_session_by_id(self, session_id: str) -> SessionDto | None:
         session = await self._unit_of_work.repository(InMemorySessionRepository).get_by_id(
             SessionId(session_id)
         )

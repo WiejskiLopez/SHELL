@@ -3,9 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
 )
@@ -14,6 +12,8 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
 )
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 
 
@@ -29,24 +29,24 @@ class SessionState(AggregateRoot[SessionStateId]):
         self,
         id: SessionStateId,
         session_id: SessionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
-        self._created_at = created_at or CreatedAt.now()
+        self._state_data = state_data
+        self._created_at = created_at
 
     @classmethod
     def restore(
         cls,
         id: SessionStateId,
         session_id: SessionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> Self:
         return cls(
             id=id,
@@ -78,8 +78,8 @@ class SessionState(AggregateRoot[SessionStateId]):
         *,
         id_: SessionStateId,
         session_id: SessionId,
-        direction: StateDirection = StateDirection.IN,
-        now: CreatedAt | None = None,
+        direction: StateDirection,
+        now: CreatedAt,
     ) -> SessionState:
         instance = cls(
             id=id_,

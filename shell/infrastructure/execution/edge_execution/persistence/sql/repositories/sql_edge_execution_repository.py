@@ -12,6 +12,9 @@ from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definit
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
@@ -22,11 +25,6 @@ from shell.infrastructure.execution.edge_execution.persistence.sql.models.edge_e
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
-        NodeExecutionId,
-    )
-
-from shell.domain.execution.value_objects.ids import NodeExecutionId
 
 
 class SqlEdgeExecutionRepository:

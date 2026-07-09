@@ -1,5 +1,7 @@
-from shell.application.messaging.ports.queries.message_query_service import MessageQueryService
+from shell.application.messaging.ports.queries.message_router_query_service import (
+    MessageRouterQueryService,
+)
 
 __all__ = [
-    "MessageQueryService",
+    "MessageRouterQueryService",
 ]

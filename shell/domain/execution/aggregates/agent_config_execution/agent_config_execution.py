@@ -9,6 +9,7 @@ from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.agent_config_execution.value_objects.config import Config
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
     )
-    from shell.domain.execution.value_objects.config import Config
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 

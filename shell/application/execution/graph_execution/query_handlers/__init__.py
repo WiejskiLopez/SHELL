@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.graph_execution.query_handlers.graph_execution_get_by_id_handler import (
-    GraphExecutionGetByIdHandler,
+from shell.application.execution.graph_execution.query_handlers.get_graph_execution_by_id_handler import (
+    GetGraphExecutionByIdHandler,
 )
 
-__all__ = ["GraphExecutionGetByIdHandler"]
+__all__ = ["GetGraphExecutionByIdHandler"]

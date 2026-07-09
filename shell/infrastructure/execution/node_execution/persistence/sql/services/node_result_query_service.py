@@ -31,7 +31,7 @@ class NodeResultQueryService:
             model = res.scalar_one_or_none()
             if not model:
                 return None
-            payload = model.state_data or {}
+            payload = model.state_data
             return NodeExecutionResultDto(
                 id=model.id,
                 node_execution_id=model.node_execution_id,
@@ -57,7 +57,7 @@ class NodeResultQueryService:
             model = res.scalar_one_or_none()
             if not model:
                 return None
-            payload = model.state_data or {}
+            payload = model.state_data
             return NodeExecutionResultDto(
                 id=model.id,
                 node_execution_id=model.node_execution_id,

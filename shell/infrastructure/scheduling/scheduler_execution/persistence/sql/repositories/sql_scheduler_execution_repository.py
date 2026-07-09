@@ -16,11 +16,11 @@ from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
+        SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
+    )
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
-    )
-    from shell.domain.scheduling.value_objects.ids import (
-        SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
     )
 
 

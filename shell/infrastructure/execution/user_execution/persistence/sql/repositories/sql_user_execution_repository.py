@@ -21,7 +21,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.user_execution import UserExecution
-    from shell.domain.execution.value_objects.ids import UserExecutionId
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
 
 
 class SqlUserExecutionRepository(UserExecutionRepository):

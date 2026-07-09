@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.value_objects.task_execution_body import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
     TaskExecutionBody,
 )
 

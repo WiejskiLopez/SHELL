@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
@@ -14,17 +14,29 @@ from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionSkippedEvent,
     SchedulerExecutionStartedEvent,
 )
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.action_ref import (
+    ActionRef,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.action_ref_type import (
+    ActionRefType,
+)
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
     ExecutionStatus,
 )
-from shell.domain.scheduling.value_objects.action_ref import ActionRef
-from shell.domain.scheduling.value_objects.action_ref_type import ActionRefType
-from shell.domain.scheduling.value_objects.ids import (
-    SchedulerDefinitionId,
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
 )
-from shell.domain.scheduling.value_objects.trigger_event_id import TriggerEventId
-from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_id import (
+    TriggerEventId,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_type import (
+    TriggerEventType,
+)
+
+if TYPE_CHECKING:
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
+        SchedulerDefinitionId,
+    )
 
 
 class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
@@ -50,7 +62,9 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self,
         id: SchedulerExecutionId,
         scheduler_definition_id: SchedulerDefinitionId,
-        status: ExecutionStatus = ExecutionStatus.PENDING,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
+        status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,
         trigger_event_type: TriggerEventType | None = None,
         action_ref: ActionRef | None = None,
@@ -60,8 +74,6 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         error: ErrorDescription | None = None,
         started_at: Timestamp | None = None,
         completed_at: Timestamp | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
     ) -> None:
         super().__init__(id)
         self._scheduler_definition_id = scheduler_definition_id
@@ -85,15 +97,17 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._error = error
         self._started_at = started_at
         self._completed_at = completed_at
-        self._created_at = created_at or CreatedAt.now()
-        self._updated_at = updated_at or Timestamp.now()
+        self._created_at = created_at
+        self._updated_at = updated_at
 
     @classmethod
     def restore(
         cls,
         id: SchedulerExecutionId,
         scheduler_definition_id: SchedulerDefinitionId,
-        status: ExecutionStatus = ExecutionStatus.PENDING,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
+        status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,
         trigger_event_type: TriggerEventType | None = None,
         action_ref: ActionRef | None = None,
@@ -103,8 +117,6 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         error: ErrorDescription | None = None,
         started_at: Timestamp | None = None,
         completed_at: Timestamp | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -201,7 +213,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             now = Timestamp.now()
         self._status = ExecutionStatus.COMPLETED
         actual_state = StateData(output_state) if isinstance(output_state, dict) else output_state
-        self._output_state = actual_state or StateData({})
+        self._output_state = actual_state
         self._completed_at = now
         self._updated_at = now
         self.append_event(

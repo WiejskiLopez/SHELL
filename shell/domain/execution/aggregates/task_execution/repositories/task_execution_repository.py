@@ -7,8 +7,10 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
+        TaskExecutionName,
+    )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
     from shell.domain.platform.value_objects.exists_result import ExistsResult
 
 

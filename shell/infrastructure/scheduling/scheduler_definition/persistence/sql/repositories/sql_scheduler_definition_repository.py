@@ -20,11 +20,15 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
     )
-    from shell.domain.scheduling.value_objects.ids import (
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,  # noqa: TC002 — SchedulerDefinitionId używany w konstruktorach w repozytorium
     )
-    from shell.domain.scheduling.value_objects.source_context import SourceContext
-    from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.source_context import (
+        SourceContext,
+    )
+    from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_type import (
+        TriggerEventType,
+    )
 
 
 class SqlSchedulerDefinitionRepository:

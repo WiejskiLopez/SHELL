@@ -60,30 +60,10 @@ def _seed_runner_configs(session: Session) -> None:
     configs = [
         RunnerConfigModel(
             id=f"{_DEV_ID_PREFIX}-runner-python",
-            package_name="python-runner",
-            kind="subprocess",
-            hash="sha256:py-runner-v1",
-            body={
-                "runtime": "python3.11",
-                "entrypoint": "main.py",
-                "env": {"PYTHONUNBUFFERED": "1"},
-                "timeout_seconds": 300,
-                "max_retries": 2,
-            },
             created_at=_NOW,
         ),
         RunnerConfigModel(
             id=f"{_DEV_ID_PREFIX}-runner-shell",
-            package_name="shell-runner",
-            kind="subprocess",
-            hash="sha256:sh-runner-v1",
-            body={
-                "runtime": "bash",
-                "entrypoint": "run.sh",
-                "env": {"SHELL": "/bin/bash"},
-                "timeout_seconds": 120,
-                "max_retries": 0,
-            },
             created_at=_NOW,
         ),
     ]

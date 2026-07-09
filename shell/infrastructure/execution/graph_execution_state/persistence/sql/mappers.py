@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
 from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
     GraphExecutionState,
 )
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.execution.value_objects.ids import GraphExecutionId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection

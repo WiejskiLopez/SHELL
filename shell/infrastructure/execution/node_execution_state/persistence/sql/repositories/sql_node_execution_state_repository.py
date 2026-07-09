@@ -14,6 +14,9 @@ from shell.domain.execution.aggregates.node_execution_state.node_execution_state
 from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
     NodeExecutionStateRepository,
 )
+from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
+    NodeExecutionStateId,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.platform.value_objects.state_data import StateData
@@ -25,10 +28,6 @@ from shell.infrastructure.execution.node_execution_state.persistence.sql.models.
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
-    NodeExecutionStateId,
-)
 
 
 class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
@@ -94,6 +93,6 @@ class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
             id=NodeExecutionStateId(model.id),
             node_execution_id=NodeExecutionId(model.node_execution_id),
             direction=StateDirection(model.direction),
-            state_data=StateData(dict(model.state_data or {})),
+            state_data=StateData(dict(model.state_data)),
             created_at=CreatedAt.from_datetime(model.created_at),
         )

@@ -13,9 +13,6 @@ from __future__ import annotations
 import ast
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
 from _arch_helpers import (
     BASE,
     find_classes,
@@ -23,6 +20,10 @@ from _arch_helpers import (
     parse_file,
     public_method_names,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 # ── 1. Process handlers have exactly one public `handle` method ────
 

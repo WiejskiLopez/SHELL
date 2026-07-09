@@ -19,11 +19,11 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_state.project_state import ProjectState
     from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
         ProjectStateId,
     )
-    from shell.domain.project.value_objects.project_id import ProjectId
 
 
 class SqlProjectStateRepository(ProjectStateRepository):

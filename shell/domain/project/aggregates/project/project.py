@@ -5,15 +5,15 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
-from shell.domain.project.value_objects.project_id import ProjectId
-from shell.domain.project.value_objects.project_status import ProjectStatus
+from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
+from shell.domain.project.aggregates.project.value_objects.project_status import ProjectStatus
 
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.project.value_objects.project_name import ProjectName
-    from shell.domain.project.value_objects.repo_url import RepoUrl
+    from shell.domain.project.aggregates.project.value_objects.project_name import ProjectName
+    from shell.domain.project.aggregates.project.value_objects.repo_url import RepoUrl
 
 
 class Project(AggregateRoot[ProjectId]):

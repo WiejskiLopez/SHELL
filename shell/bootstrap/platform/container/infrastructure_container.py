@@ -7,21 +7,14 @@ from dependency_injector import containers, providers
 from shell.infrastructure.definition.graph_definition.persistence.sql.services.graph_definition_query_service import (
     SqlGraphDefinitionQueryService,
 )
-from shell.infrastructure.definition.rag_document.persistence.sql.services.rag_query_service import (
-    RagQueryService,
-)
 from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService,
 )
 from shell.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
-from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
-)
-from shell.infrastructure.execution.process.subprocess_runner import (
-    SubprocessNodeExecutionProcessRunner,
 )
 from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
     SessionQueryServiceHttpAdapter,
@@ -39,7 +32,6 @@ from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_q
     WorkflowQueryService,
 )
 from shell.infrastructure.platform.context.client import CorrelationIdAsyncClient
-from shell.infrastructure.platform.external.hash_embedder import HashEmbedder
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
 from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
@@ -77,23 +69,18 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     session_query_service = providers.Singleton(
         SessionQueryService, session_factory=session_factory
     )
-    rag_query_service = providers.Singleton(RagQueryService, session_factory=session_factory)
     unit_of_work_factory = providers.Factory(SqlAlchemyUnitOfWork, session_factory=session_factory)
 
     # 2. Narzędzia i adaptery portów
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell")
-    embedder = providers.Singleton(HashEmbedder)
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     task_execution_loader_factory = providers.Factory(FileSystemTaskLoader)
-    workspace_factory = providers.Factory(Workspace)
-    runner_factory = providers.Factory(SubprocessNodeExecutionProcessRunner)
 
     # 3. SQL query services (internal use by each BC's own REST API / handlers)
     graph_definition_query_service_factory = providers.Factory(
         SqlGraphDefinitionQueryService,
         session_factory=session_factory,
-        embedder=embedder,
     )
 
     # 4. HTTP clients for cross-BC communication

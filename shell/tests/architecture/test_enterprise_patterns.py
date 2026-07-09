@@ -29,6 +29,8 @@ def _iter_py_files(directory: pathlib.Path) -> Iterator[pathlib.Path]:
     for py_file in directory.rglob("*.py"):
         if py_file.name == "__init__.py":
             continue
+        if ".venv" in py_file.parts:
+            continue
         yield py_file
 
 
@@ -397,15 +399,26 @@ def test_repository_ports_are_protocols() -> None:
     assert not violations, "Repository ports must be Protocols or ABCs:\n" + "\n".join(violations)
 
 
+def _is_depends_call(node: ast.expr) -> bool:
+    """Check if node is Depends(...) — FastAPI sentinel, not a real function call."""
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "Depends"
+    )
+
+
 def test_no_function_calls_in_default_arguments() -> None:
-    """B008 — żadne default argumenty nie mogą zawierać wywołań funkcji/konstruktorów."""
+    """B008 — no function/constructor calls in default arguments.
+    Exception: Depends(...) — FastAPI DI sentinel, not a regular call.
+    """
     violations: list[str] = []
     for path in _iter_py_files(BASE / "shell"):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 for default in node.args.defaults + node.args.kw_defaults:
-                    if default is not None and isinstance(default, ast.Call):
+                    if default is not None and isinstance(default, ast.Call) and not _is_depends_call(default):
                         rel = path.relative_to(BASE)
                         violations.append(
                             f"{rel}:{node.lineno}: {node.name} — wywołanie w default arg"

@@ -3,8 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
@@ -14,6 +12,8 @@ if TYPE_CHECKING:
         SessionExecutionStateId,
     )
     from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.state_data import StateData
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
@@ -34,15 +34,14 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         id: SessionExecutionStateId,
         session_execution_id: SessionExecutionId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._session_execution_id = session_execution_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
-        if created_at is not None:
-            self._created_at = created_at
+        self._state_data = state_data
+        self._created_at = created_at
 
     @classmethod
     def restore(
@@ -50,8 +49,8 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         id: SessionExecutionStateId,
         session_execution_id: SessionExecutionId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -83,15 +82,15 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         *,
         id_: SessionExecutionStateId,
         session_execution_id: SessionExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
+        state_data: StateData,
         now: CreatedAt,
+        direction: StateDirection,
     ) -> SessionExecutionState:
         return cls(
             id=id_,
             session_execution_id=session_execution_id,
             direction=direction,
-            state_data=state_data or StateData({}),
+            state_data=state_data,
             created_at=now,
         )
 

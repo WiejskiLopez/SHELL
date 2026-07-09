@@ -120,7 +120,7 @@ class LegacyCrmMapper:
         return CustomerSummary(
             id=raw["customer_id"],
             name=raw["name"].strip() if raw.get("name") else "Unknown",
-            email=raw.get("email") or "",
+            email=raw["email"],
             credit_limit=self._parse_decimal(raw.get("credit_amount")),
             customer_type=self._map_type_code(raw.get("type_code", "")),
             is_active=raw.get("is_active", False),

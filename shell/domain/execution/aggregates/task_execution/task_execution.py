@@ -9,18 +9,24 @@ from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_st
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
-from shell.domain.execution.value_objects.task_execution_status import TaskExecutionStatus
-from shell.domain.execution.value_objects.task_name import TaskName
-from shell.domain.execution.value_objects.work_dir import WorkDir
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
+    TaskExecutionName,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_status import (
+    TaskExecutionStatus,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
+        TaskExecutionBody,
+    )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.value_objects.task_execution_body import TaskExecutionBody
     from shell.domain.platform.value_objects.deleted_at import DeletedAt
     from shell.domain.platform.value_objects.reason import Reason
 

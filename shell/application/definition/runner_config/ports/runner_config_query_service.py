@@ -7,8 +7,4 @@ if TYPE_CHECKING:
 
 
 class RunnerConfigQueryService(Protocol):
-    """Port do pobierania konfiguracji dla runnerów."""
-
     async def get_by_id(self, runner_config_id: str) -> RunnerConfigDto | None: ...
-
-    async def get_runner_config(self, package_name: str) -> RunnerConfigDto | None: ...

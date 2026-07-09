@@ -8,8 +8,7 @@ from shell.domain.execution.aggregates.node_execution.node_execution import (
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — NodeExecutionId używany w konstruktorach w repozytorium
-    GraphExecutionId,
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
 from shell.infrastructure.platform.persistence.in_memory_repository import (
@@ -17,6 +16,9 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+        GraphExecutionId,
+    )
     from shell.infrastructure.execution.node_link_execution.persistence.memory.in_memory_node_link_execution_repository import (
         InMemoryNodeLinkExecutionRepository,
     )

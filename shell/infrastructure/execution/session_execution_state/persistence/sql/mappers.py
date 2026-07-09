@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+    SessionExecutionId,
+)
 from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
     SessionExecutionState,
 )
-from shell.domain.execution.value_objects.ids import (
-    SessionExecutionId,
+from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
     SessionExecutionStateId,
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt

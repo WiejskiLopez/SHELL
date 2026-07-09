@@ -17,11 +17,11 @@ Business Capability: ApproveInvoice
     ├── invoice.approve()                  # Domain Method
     ├── ApproveInvoiceCommand              # Command
     ├── InvoiceApprovedEvent               # Event
-    ├── InvoiceGetByIdQuery                # Query
+    ├── GetInvoiceByIdQuery                # Query
     ├── InvoiceSummaryMessage              # Message
-    ├── InvoiceApproveHandler              # Command Handler
+    ├── ApproveInvoiceHandler              # Command Handler
     ├── InvoiceApprovedHandler             # Event Handler
-    ├── InvoiceGetByIdHandler              # Query Handler
+    ├── GetInvoiceByIdHandler              # Query Handler
     ├── InvoiceSummaryHandler              # Message Handler
     └── InvoiceApprovalSaga                # Saga
 ```
@@ -43,11 +43,11 @@ Wszystkie artefakty wywodzą się z tej samej Capability.
 | Domain Method | `snake_case` biznesowa | `invoice.approve()` | Capability |
 | Command | `<Verb><Object>Command` | `ApproveInvoiceCommand` | Capability |
 | Event | `<Aggregate><PastVerb>Event` | `InvoiceApprovedEvent` | Result |
-| Query | `<Aggregate><ReadOp>[Projection]Query` | `InvoiceGetByIdQuery` | Aggregate + ReadOp |
+| Query | `<Verb><Aggregate>[Projection]Query` | `GetInvoiceByIdQuery` | Verb + Aggregate |
 | Message | `<Aggregate><Description>Message` | `InvoiceSummaryMessage` | Aggregate + Opis |
-| Command Handler | `<Aggregate><Verb>Handler` | `InvoiceApproveHandler` | Aggregate + Verb |
+| Command Handler | `<Verb><Object>Handler` | `ApproveInvoiceHandler` | Capability |
 | Event Handler | `<Aggregate><PastVerb>Handler` | `InvoiceApprovedHandler` | Aggregate + Result |
-| Query Handler | `<Aggregate><ReadOp>[Projection]Handler` | `InvoiceGetByIdHandler` | Aggregate + ReadOp |
+| Query Handler | `<Verb><Aggregate>Handler` | `GetInvoiceByIdHandler` | Verb + Aggregate |
 | Message Handler | `<Aggregate><Description>Handler` | `InvoiceSummaryHandler` | Aggregate + Opis |
 | Saga | `<BusinessProcess>Saga` | `InvoiceApprovalSaga` | Business Process |
 | Domain Service | `<Aggregate><Process>Service` | `InvoicePricingService` | Aggregate + Process |
@@ -133,19 +133,19 @@ Zabronione:
 ## 6. Queries
 
 ```
-<Aggregate><ReadOperation><Projection>Query
+<Verb><Aggregate>[Projection]Query
 ```
 
 Dozwolone operacje: `GetById`, `FindBy*`, `Search`, `List`, `Count`, `Exists`.
 
 | Query | Opis |
 |-------|------|
-| `InvoiceGetByIdQuery` | Pobierz fakturę po ID |
-| `InvoiceFindByNumberQuery` | Znajdź fakturę po numerze |
-| `InvoiceCountByStatusQuery` | Policz faktury według statusu |
-| `UserFindByEmailQuery` | Znajdź użytkownika po emailu |
-| `ConversationGetHistoryQuery` | Pobierz historię rozmowy |
-| `ProjectListQuery` | Lista projektów |
+| `GetInvoiceByIdQuery` | Pobierz fakturę po ID |
+| `FindInvoiceByNumberQuery` | Znajdź fakturę po numerze |
+| `CountInvoicesByStatusQuery` | Policz faktury według statusu |
+| `FindUserByEmailQuery` | Znajdź użytkownika po emailu |
+| `GetConversationHistoryQuery` | Pobierz historię rozmowy |
+| `ListProjectsQuery` | Lista projektów |
 
 ## 7. Messages
 
@@ -164,22 +164,22 @@ Message opisuje **zawartość** — nigdy akcję.
 
 ## 8. Command Handlers
 
-Handler nazywa się od **Capability**, NIE od klasy wiadomości.
+Handler nazywa się identycznie jak Command — zamieniając sufiks `Command` na `Handler`.
 
 ```
-<Aggregate><Verb>Handler
+<Verb><Object>Handler
 ```
 
-**Reguła deduplikacji:** jeśli Capability zawiera nazwę agregatu, usuń ją z części verb.
+**Reguła:** `{Command}Command` → `{Command}Handler`. Proste podstawienie — żadnej deduplikacji.
 
-| Command | Capability Verb | Handler |
-|---------|----------------|---------|
-| `ApproveInvoiceCommand` | `Approve` (Invoice usunięte) | `InvoiceApproveHandler` |
-| `StartWorkflowCommand` | `Start` (Workflow usunięte) | `WorkflowStartHandler` |
-| `CreateAccountCommand` | `CreateAccount` (brak redundancji) | `AccountCreateHandler` |
-| `AssignOwnerCommand` | `AssignOwner` (brak redundancji) | `OwnerAssignHandler` |
-| `OpenSessionCommand` | `Open` (Session usunięte) | `SessionOpenHandler` |
-| `RejectInvoiceCommand` | `Reject` (Invoice usunięte) | `InvoiceRejectHandler` |
+| Command | Handler |
+|---------|---------|
+| `ApproveInvoiceCommand` | `ApproveInvoiceHandler` |
+| `StartWorkflowCommand` | `StartWorkflowHandler` |
+| `CreateAccountCommand` | `CreateAccountHandler` |
+| `AssignOwnerCommand` | `AssignOwnerHandler` |
+| `OpenSessionCommand` | `OpenSessionHandler` |
+| `RejectInvoiceCommand` | `RejectInvoiceHandler` |
 
 ## 9. Event Handlers
 
@@ -198,16 +198,20 @@ Handler nazywa się od **Capability**, NIE od klasy wiadomości.
 
 ## 10. Query Handlers
 
+Handler nazywa się identycznie jak Query — zamieniając sufiks `Query` na `Handler`.
+
 ```
-<Aggregate><ReadOperation>Handler
+<Verb><Aggregate>Handler
 ```
+
+**Reguła:** `{Query}Query` → `{Query}Handler`. Proste podstawienie.
 
 | Query | Handler |
 |-------|---------|
-| `InvoiceGetByIdQuery` | `InvoiceGetByIdHandler` |
-| `InvoiceFindByNumberQuery` | `InvoiceFindByNumberHandler` |
-| `UserFindByEmailQuery` | `UserFindByEmailHandler` |
-| `ConversationGetHistoryQuery` | `ConversationGetHistoryHandler` |
+| `GetInvoiceByIdQuery` | `GetInvoiceByIdHandler` |
+| `FindInvoiceByNumberQuery` | `FindInvoiceByNumberHandler` |
+| `FindUserByEmailQuery` | `FindUserByEmailHandler` |
+| `GetConversationHistoryQuery` | `GetConversationHistoryHandler` |
 
 ## 11. Message Handlers
 
@@ -268,36 +272,36 @@ Saga orkiestruje komendy. Nigdy nie implementuje logiki domenowej.
 ### Reguła #1: Command → Handler
 ```
 ApproveInvoiceCommand
-    → wyciągnij Object (Invoice) + Verb (Approve)
-    → InvoiceApproveHandler
+    → zamień sufiks Command → Handler
+    → ApproveInvoiceHandler
 ```
 
 ### Reguła #2: Event → Handler
 ```
 InvoiceApprovedEvent
-    → usuń Event, dodaj Handler
+    → zamień sufiks Event → Handler
     → InvoiceApprovedHandler
 ```
 
 ### Reguła #3: Query → Handler
 ```
-InvoiceGetByIdQuery
-    → usuń Query, dodaj Handler
-    → InvoiceGetByIdHandler
+GetInvoiceByIdQuery
+    → zamień sufiks Query → Handler
+    → GetInvoiceByIdHandler
 ```
 
 ### Reguła #4: Message → Handler
 ```
 InvoiceSummaryMessage
-    → usuń Message, dodaj Handler
+    → zamień sufiks Message → Handler
     → InvoiceSummaryHandler
 ```
 
 ### Reguła #5: PascalCase → snake_case (nazwa pliku)
 ```
-InvoiceApproveHandler  →  invoice_approve_handler.py
+ApproveInvoiceHandler  →  approve_invoice_handler.py
 InvoiceApprovedEvent   →  invoice_approved_event.py
-InvoiceGetByIdQuery    →  invoice_get_by_id_query.py
+GetInvoiceByIdQuery    →  get_invoice_by_id_query.py
 ```
 
 ## 16. SemanticDescriptor (koncept)
@@ -318,7 +322,8 @@ class SemanticDescriptor:
 
 Nazwa klasy determinuje 4 z 7 pól:
 ```
-InvoiceApproveHandler → aggregate=Invoice, capability=ApproveInvoice, artifact_type=Handler
+ApproveInvoiceHandler → aggregate=Invoice, capability=ApproveInvoice, artifact_type=Handler
+GetInvoiceByIdHandler → aggregate=Invoice, capability=GetInvoiceById, artifact_type=Handler
 ```
 
 ## 17. Struktura projektu
@@ -328,15 +333,15 @@ InvoiceApproveHandler → aggregate=Invoice, capability=ApproveInvoice, artifact
     commands/<aggregate>/
         <verb>_<object>_command.py
     command_handlers/<aggregate>/
-        <aggregate>_<verb>_handler.py
+        <verb>_<object>_handler.py
     events/<aggregate>/
         <aggregate>_<past_verb>_event.py
     event_handlers/<aggregate>/
         <aggregate>_<past_verb>_handler.py
     queries/<aggregate>/
-        <aggregate>_<read_op>_query.py
+        <verb>_<aggregate>_query.py
     query_handlers/<aggregate>/
-        <aggregate>_<read_op>_handler.py
+        <verb>_<aggregate>_handler.py
     messages/<aggregate>/
         <aggregate>_<description>_message.py
     message_handlers/<aggregate>/
@@ -357,15 +362,15 @@ application/billing/
     commands/invoice/
         approve_invoice_command.py
     command_handlers/invoice/
-        invoice_approve_handler.py
+        approve_invoice_handler.py
     events/invoice/
         invoice_approved_event.py
     event_handlers/invoice/
         invoice_approved_handler.py
     queries/invoice/
-        invoice_get_by_id_query.py
+        get_invoice_by_id_query.py
     query_handlers/invoice/
-        invoice_get_by_id_handler.py
+        get_invoice_by_id_handler.py
     messages/invoice/
         invoice_summary_message.py
     sagas/invoice/
@@ -398,7 +403,7 @@ invoice.approve()
     ├── Publishes: ApproveInvoiceCommand
     │       │
     │       ▼
-    ├── InvoiceApproveHandler.handle(approve_invoice_command)
+    ├── ApproveInvoiceHandler.handle(approve_invoice_command)
     │       │
     │       ▼
     ├── Invoice.approve()                     # guard → mutate → event
@@ -422,10 +427,11 @@ invoice.approve()
 
 | Wzorzec | Problem | Poprawny |
 |---------|---------|----------|
-| `InvoiceApproveInvoiceHandler` | Redundancja agregatu | `InvoiceApproveHandler` |
+| `InvoiceApproveInvoiceHandler` | Redundancja agregatu | `ApproveInvoiceHandler` |
 | `InvoiceInvoiceApprovedHandler` | Redundancja agregatu | `InvoiceApprovedHandler` |
-| `HandleInvoiceApprove` | Zły prefix | `InvoiceApproveHandler` |
+| `HandleInvoiceApprove` | Zły prefix | `ApproveInvoiceHandler` |
 | `ApproveInvoiceEventHandler` | Event w nazwie handlera | `InvoiceApprovedHandler` |
-| `StartWorkflowQuery` | Zły szyk (operation-first) | `WorkflowGetByIdQuery` |
-| `CommandHandler` (base) | Generyczna nazwa | Konkretna: `InvoiceApproveHandler` |
+| `InvoiceApproveHandler` | Aggregate-first (stara konwencja) | `ApproveInvoiceHandler` |
+| `InvoiceGetByIdHandler` | Aggregate-first (stara konwencja) | `GetInvoiceByIdHandler` |
+| `CommandHandler` (base) | Generyczna nazwa | Konkretna: `ApproveInvoiceHandler` |
 | `NodeStateUpdatedEvent` | Techniczne, nie biznesowe | `NodeStateChangedEvent` |

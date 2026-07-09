@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_created_event import (
     EdgeExecutionCreatedEvent,
 )

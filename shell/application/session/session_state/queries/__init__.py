@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.session.session_state.queries.session_state_get_by_id_query import (
-    SessionStateGetByIdQuery,
+from shell.application.session.session_state.queries.get_session_state_by_id_query import (
+    GetSessionStateByIdQuery,
 )
 
-__all__ = ["SessionStateGetByIdQuery"]
+__all__ = ["GetSessionStateByIdQuery"]

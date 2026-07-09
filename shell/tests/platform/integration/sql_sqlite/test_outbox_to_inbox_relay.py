@@ -10,8 +10,10 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.domain.execution.value_objects.ids import TaskExecutionId
-from shell.domain.execution.value_objects.task_execution_name import (
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
 from shell.domain.platform.value_objects.created_at import CreatedAt

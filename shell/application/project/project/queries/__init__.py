@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.project.project.queries.project_get_by_id_query import (
-    ProjectGetByIdQuery,
+from shell.application.project.project.queries.get_project_by_id_query import (
+    GetProjectByIdQuery,
 )
 
-__all__ = ["ProjectGetByIdQuery"]
+__all__ = ["GetProjectByIdQuery"]

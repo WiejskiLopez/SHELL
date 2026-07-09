@@ -1,7 +1,7 @@
 from shell.infrastructure.messaging.persistence.sql.repositories.sql_message_repository import (
-    SqlMessageRepository,
+    SqlMessageRouterRepository,
 )
 
 __all__ = [
-    "SqlMessageRepository",
+    "SqlMessageRouterRepository",
 ]

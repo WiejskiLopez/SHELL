@@ -10,10 +10,12 @@ from shell.domain.execution.aggregates.node_execution.node_execution import (
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import NodeExecutionId
-from shell.domain.execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.value_objects.node_role import NodeRole
-from shell.domain.execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
+from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
+from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
 from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
     NodeExecutionModel,
@@ -27,11 +29,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
-    )
-
-
-from shell.domain.execution.value_objects.node_execution_status import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
     NodeExecutionStatus,
 )
 
@@ -88,11 +88,12 @@ def _node_execution_model_to_entity(
 ) -> NodeExecution:
     return NodeExecution(
         id=NodeExecutionId(model.id),
-        role=NodeRole(model.role) if model.role else NodeRole.PLANNER,
+        role=NodeRole(model.role),
         position=NodeOrder(model.position),
+        order=NodeOrder(model.position),
         mode=Mode(model.mode),
         node_type=NodeType(model.node_type),
-        status=NodeExecutionStatus(model.status) if model.status else None,
+        status=NodeExecutionStatus(model.status),
     )
 
 

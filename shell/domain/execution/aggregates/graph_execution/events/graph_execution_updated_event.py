@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.value_objects.graph_execution_status import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_status import (
         GraphExecutionStatus,
     )
     from shell.domain.platform.value_objects.created_at import CreatedAt

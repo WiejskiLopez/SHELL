@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.scheduling.scheduler_execution.queries.scheduler_execution_get_by_id_query import (
-    SchedulerExecutionGetByIdQuery,
+from shell.application.scheduling.scheduler_execution.queries.get_scheduler_execution_by_id_query import (
+    GetSchedulerExecutionByIdQuery,
 )
 
-__all__ = ["SchedulerExecutionGetByIdQuery"]
+__all__ = ["GetSchedulerExecutionByIdQuery"]

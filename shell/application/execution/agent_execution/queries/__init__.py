@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.agent_execution.queries.agent_execution_get_by_id_query import (
-    AgentExecutionGetByIdQuery,
+from shell.application.execution.agent_execution.queries.get_agent_execution_by_id_query import (
+    GetAgentExecutionByIdQuery,
 )
 
-__all__ = ["AgentExecutionGetByIdQuery"]
+__all__ = ["GetAgentExecutionByIdQuery"]

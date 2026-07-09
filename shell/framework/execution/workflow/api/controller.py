@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException
 
-from shell.application.execution.workflow.queries.workflow_get_by_id_query import (
-    WorkflowGetByIdQuery,
+from shell.application.execution.workflow.queries.get_workflow_by_id_query import (
+    GetWorkflowByIdQuery,
 )
 
 if TYPE_CHECKING:
@@ -19,7 +19,7 @@ class WorkflowController:
         self._query_bus = query_bus
 
     async def get_workflow(self, workflow_id: str) -> dict:
-        result = await self._query_bus.dispatch(WorkflowGetByIdQuery(workflow_id=workflow_id))
+        result = await self._query_bus.dispatch(GetWorkflowByIdQuery(workflow_id=workflow_id))
         if result is None:
             raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found")
         return {"workflow_id": workflow_id, "workflow": str(result)}

@@ -50,7 +50,7 @@ _STDLIB_NAMES: frozenset[str] = frozenset(
 
 def _iter_init_py_files() -> Iterator[pathlib.Path]:
     for py_file in SHELL_SRC.rglob("__init__.py"):
-        if ".venv" in py_file.parts:
+        if ".venv" in py_file.parts or "venv" in py_file.parts:
             continue
         yield py_file
 
@@ -101,7 +101,7 @@ _PLATFORM_VO_MOVED: frozenset[str] = frozenset(
 
 def _iter_py_files() -> Iterator[pathlib.Path]:
     for py_file in SHELL_SRC.rglob("*.py"):
-        if ".venv" in py_file.parts:
+        if ".venv" in py_file.parts or "venv" in py_file.parts:
             continue
         if py_file.name == "__init__.py":
             continue

@@ -30,7 +30,7 @@ class CorrelationIdInterceptor:
         if not corr_id:
             return await continuation(client_call_details, request)
 
-        metadata = list(getattr(client_call_details, "metadata", None) or [])
+        metadata = list(client_call_details.metadata)
 
         # TODO: use open-telemetry propagation format (traceparent / W3C)
         #       when migrating to distributed tracing

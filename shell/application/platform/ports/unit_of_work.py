@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
 if TYPE_CHECKING:
-    from shell.domain.messaging.aggregates.message.message import Message
+    from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
     from shell.domain.platform.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
@@ -17,7 +17,7 @@ class UnitOfWork(Protocol):
     async def save(self, repo_type: type, aggregate: object) -> None:
         ...
 
-    def stage_messages(self, messages: list[Message]) -> None: ...
+    def stage_messages(self, messages: list[MessageRouter]) -> None: ...
 
     @property
     def events(self) -> list[DomainEvent]: ...

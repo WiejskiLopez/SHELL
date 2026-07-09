@@ -1,20 +1,26 @@
 from __future__ import annotations
 
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.enabled import Enabled
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.timestamp import Timestamp
-from shell.domain.scheduling.value_objects.batch_size import BatchSize
-from shell.domain.scheduling.value_objects.ids import (
-    SchedulerDefinitionId,
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
 )
-from shell.domain.scheduling.value_objects.interval_seconds import IntervalSeconds
-from shell.domain.scheduling.value_objects.job_name import JobName
-from shell.domain.scheduling.value_objects.job_type import JobType
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.batch_size import BatchSize
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_seconds import (
+    IntervalSeconds,
+)
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name import JobName
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
+
+if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.domain.platform.value_objects.state_data import StateData
+    from shell.domain.platform.value_objects.timestamp import Timestamp
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
+        SchedulerDefinitionId,
+    )
 
 
 class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
@@ -41,9 +47,9 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
         enabled: Enabled,
-        config: StateData | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
+        config: StateData,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
     ) -> None:
         super().__init__(id)
         self._scheduler_definition_id = scheduler_definition_id
@@ -56,9 +62,9 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         )
         self._batch_size = BatchSize(batch_size) if isinstance(batch_size, int) else batch_size
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
-        self._config = StateData(config) if isinstance(config, dict) else (config or StateData({}))
-        self._created_at = created_at or CreatedAt.now()
-        self._updated_at = updated_at or Timestamp.now()
+        self._config = config
+        self._created_at = created_at
+        self._updated_at = updated_at
 
     @classmethod
     def restore(
@@ -70,9 +76,9 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
         enabled: Enabled,
-        config: StateData | None = None,
-        created_at: CreatedAt | None = None,
-        updated_at: Timestamp | None = None,
+        config: StateData,
+        created_at: CreatedAt,
+        updated_at: Timestamp,
     ) -> Self:
         return cls(
             id=id,

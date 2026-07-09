@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 from shell.domain.execution.aggregates.graph_execution.ports.graph_execution_definition_provider import (
     GraphExecutionDefinitionProvider,
 )
-from shell.domain.execution.value_objects.graph_execution_definition import (
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
     NodeExecutionDefinition,
 )

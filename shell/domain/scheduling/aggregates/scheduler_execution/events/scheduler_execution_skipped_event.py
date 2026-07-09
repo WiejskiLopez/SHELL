@@ -7,7 +7,9 @@ from shell.domain.platform.events import DomainEvent
 
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.reason import Reason
-    from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
+    from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
+        SchedulerExecutionId,
+    )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

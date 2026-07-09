@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.definition.repositories.runner_config_repository import RunnerConfigRepository
+from shell.domain.definition.aggregates.runner_config.repositories.runner_config_repository import (
+    RunnerConfigRepository,
+)
 from shell.infrastructure.definition.runner_config.persistence.sql.mappers import (
     runner_config_entity_to_model,
     runner_config_model_to_entity,
@@ -16,11 +18,10 @@ from ..models import RunnerConfigModel
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.definition.entities.runner_config import RunnerConfig
-    from shell.domain.definition.value_objects.ids import (
-        RunnerConfigId,  # noqa: TC002 — RunnerConfigId używany w konstruktorach w repozytorium
+    from shell.domain.definition.aggregates.runner_config.runner_config import RunnerConfig
+    from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
+        RunnerConfigId,
     )
-    from shell.domain.definition.value_objects.package_name import PackageName
 
 
 class SqlRunnerConfigRepository(RunnerConfigRepository):
@@ -32,13 +33,6 @@ class SqlRunnerConfigRepository(RunnerConfigRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return runner_config_model_to_entity(row) if row else None
 
-    async def get_by_package(self, package_name: PackageName) -> RunnerConfig | None:
-        query = select(RunnerConfigModel).where(
-            RunnerConfigModel.package_name == package_name.value
-        )
-        row = (await self._session.execute(query)).scalar_one_or_none()
-        return runner_config_model_to_entity(row) if row else None
-
     async def save(self, config: RunnerConfig) -> None:
         model = await self._session.get(RunnerConfigModel, config.id.value)
         if model is None:
@@ -46,9 +40,3 @@ class SqlRunnerConfigRepository(RunnerConfigRepository):
             self._session.add(model)
         else:
             runner_config_update_model(model, config)
-
-
-__all__ = [
-    "RunnerConfigModel",
-    "SqlRunnerConfigRepository",
-]

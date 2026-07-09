@@ -20,13 +20,13 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-    from shell.domain.execution.value_objects.ids import (  # noqa: TC002 — TaskExecutionId i WorkflowId używane w konstruktorach w repozytorium
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
-        WorkflowId,
     )
-    from shell.domain.execution.value_objects.task_execution_name import (
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
         TaskExecutionName,  # noqa: TC002 — TaskExecutionName używany w konstruktorach w repozytorium
     )
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 
 
 class SqlTaskExecutionRepository(TaskExecutionRepository):

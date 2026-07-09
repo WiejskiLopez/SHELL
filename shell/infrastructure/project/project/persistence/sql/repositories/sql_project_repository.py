@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.project.aggregates.project.project import Project
-    from shell.domain.project.value_objects.project_id import ProjectId
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 
 
 class SqlProjectRepository(ProjectRepository):

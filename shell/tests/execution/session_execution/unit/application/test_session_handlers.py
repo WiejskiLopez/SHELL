@@ -10,17 +10,17 @@ from shell.application.execution.session_execution.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.execution.session_execution.queries.session_get_history_query import (
-    SessionGetHistoryQuery,
+from shell.application.execution.session_execution.queries.get_session_history_query import (
+    GetSessionHistoryQuery,
 )
-from shell.application.execution.session_execution.query_handlers.session_get_history_handler import (
-    SessionGetHistoryHandler,
+from shell.application.execution.session_execution.query_handlers.get_session_history_handler import (
+    GetSessionHistoryHandler,
 )
-from shell.application.session.session.command_handlers.session_close_handler import (
-    SessionCloseHandler,
+from shell.application.session.session.command_handlers.close_session_handler import (
+    CloseSessionHandler,
 )
-from shell.application.session.session.command_handlers.session_open_handler import (
-    SessionOpenHandler,
+from shell.application.session.session.command_handlers.open_session_handler import (
+    OpenSessionHandler,
 )
 from shell.application.session.session.exceptions.session_not_found import SessionNotFound
 
@@ -41,11 +41,11 @@ class TestSessionHandlers:
         id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await SessionOpenHandler(unit_of_work, clock, id_generator).handle(
+        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="do work")
         )
-        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
-            SessionGetHistoryQuery(session_id=session_id.value)
+        dto = await GetSessionHistoryHandler(queries).handle(  # type: ignore[arg-type]
+            GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "open"
@@ -57,14 +57,14 @@ class TestSessionHandlers:
         id_generator: FakeIdGenerator,
         queries: InMemoryQueryServices,
     ) -> None:
-        session_id = await SessionOpenHandler(unit_of_work, clock, id_generator).handle(
+        session_id = await OpenSessionHandler(unit_of_work, clock, id_generator).handle(
             OpenSessionCommand(goal="close test")
         )
-        await SessionCloseHandler(unit_of_work, clock).handle(
+        await CloseSessionHandler(unit_of_work, clock).handle(
             CloseSessionCommand(session_id=session_id.value)
         )
-        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
-            SessionGetHistoryQuery(session_id=session_id.value)
+        dto = await GetSessionHistoryHandler(queries).handle(  # type: ignore[arg-type]
+            GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
         assert dto.status == "closed"
@@ -75,12 +75,12 @@ class TestSessionHandlers:
         clock: FakeClock,
     ) -> None:
         with pytest.raises(SessionNotFound):
-            await SessionCloseHandler(unit_of_work, clock).handle(
+            await CloseSessionHandler(unit_of_work, clock).handle(
                 CloseSessionCommand(session_id="no-such-id")
             )
 
     async def test_get_history_not_found_returns_none(self, queries: InMemoryQueryServices) -> None:
-        dto = await SessionGetHistoryHandler(queries).handle(  # type: ignore[arg-type]
-            SessionGetHistoryQuery(session_id="ghost")
+        dto = await GetSessionHistoryHandler(queries).handle(  # type: ignore[arg-type]
+            GetSessionHistoryQuery(session_id="ghost")
         )
         assert dto is None

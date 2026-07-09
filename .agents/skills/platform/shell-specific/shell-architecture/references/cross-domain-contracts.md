@@ -158,7 +158,7 @@ class ExecutionWorkflowOutcomeAdapter:
         if isinstance(workflow_event, WorkflowCompletedEvent):
             await self._receiver.on_workflow_completed(workflow_event.workflow_id.value)
         elif isinstance(event, WorkflowFailedEvent):
-            await self._receiver.on_workflow_failed(event.workflow_id.value, event.error or "")
+            await self._receiver.on_workflow_failed(event.workflow_id.value, event.error)
 ```
 
 ## Podsumowanie — schemat komunikacji między domenowej

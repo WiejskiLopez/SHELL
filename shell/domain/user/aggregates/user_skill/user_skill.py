@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
 )
@@ -11,6 +10,7 @@ from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.platform.value_objects.deleted_at import DeletedAt
     from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.user.value_objects.user_id import UserId
@@ -67,20 +67,19 @@ class UserSkill(AggregateRoot[SkillId]):
 
     @classmethod
     def new(
-        cls, user_id: UserId, skill_data: dict[str, Any], now: CreatedAt | None = None
+        cls, user_id: UserId, skill_data: dict[str, Any], now: CreatedAt
     ) -> UserSkill:
-        actual_now = now or CreatedAt.now()
         instance = cls(
             id=SkillId.generate(),
             user_id=user_id,
             skill_data=SkillData(skill_data),
-            created_at=actual_now,
+            created_at=now,
         )
         instance.append_event(
             UserSkillCreatedEvent.now(
                 skill_id=instance.id,
                 user_id=user_id,
-                now=actual_now,
+                now=now,
             )
         )
         return instance

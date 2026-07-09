@@ -6,14 +6,24 @@ from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
 )
-from shell.domain.scheduling.value_objects.action_config import ActionConfig
-from shell.domain.scheduling.value_objects.execution_policy import ExecutionPolicy
-from shell.domain.scheduling.value_objects.ids import SchedulerDefinitionId
-from shell.domain.scheduling.value_objects.scheduler_description import (
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
+    ActionConfig,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.execution_policy import (
+    ExecutionPolicy,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
+    SchedulerDefinitionId,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_description import (
     SchedulerDescription,
 )
-from shell.domain.scheduling.value_objects.scheduler_name import SchedulerName
-from shell.domain.scheduling.value_objects.trigger_config import TriggerConfig
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_name import (
+    SchedulerName,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
+    TriggerConfig,
+)
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )
@@ -35,10 +45,10 @@ def scheduler_definition_model_to_entity(
     )
     action_config = ActionConfig(
         action_type=model.action_type,
-        **{k: v for k, v in (model.action_config or {}).items() if k != "action_type"},
+        **{k: v for k, v in model.action_config.items() if k != "action_type"},
     )
     policy = ExecutionPolicy(
-        **(model.execution_policy or {}),
+        **model.execution_policy,
     )
     return SchedulerDefinition(
         id=SchedulerDefinitionId(model.id),

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.messaging.bus.message_bus import MessageBus
-from shell.application.messaging.query_handlers.message_get_by_id_handler import (
-    MessageGetByIdHandler,
+from shell.application.messaging.query_handlers.get_message_by_id_handler import (
+    GetMessageByIdHandler,
 )
-from shell.infrastructure.messaging.persistence.sql.services.message_query_service import (
-    MessageQueryService,
+from shell.application.platform.bus.message_bus import MessageBus
+from shell.infrastructure.messaging.persistence.sql.services.message_router_query_service import (
+    MessageRouterQueryService,
 )
 from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
 from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
@@ -26,13 +26,13 @@ class MessagingCoreContainer(containers.DeclarativeContainer):
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
     # Query service
-    message_query_service = providers.Singleton(
-        MessageQueryService, session_factory=session_factory
+    message_router_query_service = providers.Singleton(
+        MessageRouterQueryService, session_factory=session_factory
     )
 
     # Query handler
     get_message_handler_factory = providers.Factory(
-        MessageGetByIdHandler, queries=message_query_service
+        GetMessageByIdHandler, queries=message_router_query_service
     )
 
     # Narzędzia wspólne

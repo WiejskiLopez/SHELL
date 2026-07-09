@@ -6,7 +6,7 @@ from shell.domain.execution.aggregates.graph_execution import GraphExecution
 from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
     GraphExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import (
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,  # noqa: TC002 — GraphExecutionId używany w konstruktorach w repozytorium
 )
 from shell.infrastructure.platform.persistence.in_memory_repository import (
@@ -14,7 +14,9 @@ from shell.infrastructure.platform.persistence.in_memory_repository import (
 )
 
 if TYPE_CHECKING:
-    from shell.domain.execution.value_objects.ids import TaskExecutionId
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
     from shell.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
         InMemoryTaskExecutionRepository,
     )

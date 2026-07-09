@@ -2,12 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.node_definition.events.node_definition_created_event import (
+    NodeDefinitionCreatedEvent,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.max_step import MaxStep
 from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
     NodeDefinitionId,
 )
-from shell.domain.definition.value_objects.max_step import MaxStep
-from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+from shell.domain.definition.aggregates.node_definition.value_objects.node_role_name import (
+    NodeRoleName,
+)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
+    NodeTypeName,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
@@ -15,11 +22,6 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.value_objects.mode import Mode
-
-
-from shell.domain.definition.aggregates.node_definition.events.node_definition_created_event import (
-    NodeDefinitionCreatedEvent,
-)
 
 
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):

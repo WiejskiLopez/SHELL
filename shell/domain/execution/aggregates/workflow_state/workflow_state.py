@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -14,6 +13,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (
@@ -34,16 +34,15 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id: WorkflowStateId,
         workflow_id: WorkflowId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
-        if created_at is not None:
-            self._created_at = created_at
+        self._state_data = state_data
+        self._created_at = created_at
 
     @classmethod
     def restore(
@@ -51,9 +50,9 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id: WorkflowStateId,
         workflow_id: WorkflowId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> Self:
         return cls(
             id=id,
@@ -85,15 +84,15 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         *,
         id_: WorkflowStateId,
         workflow_id: WorkflowId,
-        direction: StateDirection = StateDirection.IN,
-        payload: dict[str, object] | None = None,
+        direction: StateDirection,
+        state_data: StateData,
         now: datetime,
     ) -> WorkflowState:
         instance = cls(
             id=id_,
             workflow_id=workflow_id,
             direction=direction,
-            state_data=StateData(payload or {}),
+            state_data=state_data,
             created_at=CreatedAt.from_datetime(now),
         )
         return instance

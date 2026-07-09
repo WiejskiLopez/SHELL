@@ -12,9 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.project.aggregates.project_state.events.project_state_changed_event import (
     ProjectStateChangedEvent,
 )
@@ -23,9 +21,11 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
 )
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.platform.value_objects.updated_at import UpdatedAt
-    from shell.domain.project.value_objects.project_id import ProjectId
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 
 
 class ProjectState(AggregateRoot[ProjectStateId]):
@@ -48,15 +48,15 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         id: ProjectStateId,
         project_id: ProjectId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._project_id = project_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
+        self._state_data = state_data
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
@@ -68,8 +68,8 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         id: ProjectStateId,
         project_id: ProjectId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -117,16 +117,15 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         *,
         id_: ProjectStateId,
         project_id: ProjectId,
-        direction: StateDirection = StateDirection.IN,
-        now: CreatedAt | None = None,
+        direction: StateDirection,
+        now: CreatedAt,
     ) -> ProjectState:
-        actual_now = now or CreatedAt.now()
         return cls(
             id=id_,
             project_id=project_id,
             direction=direction,
             state_data=StateData({}),
-            created_at=actual_now,
+            created_at=now,
         )
 
     # ------------------------------------------------------------------ mutations
@@ -136,7 +135,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         new_data = dict(self._state_data.to_dict())
         new_data[key] = value
         self._state_data = StateData(new_data)
-        actual_now = self._created_at or CreatedAt.now()
         self.append_event(
             ProjectStateChangedEvent.now(
                 project_id=self._project_id,
@@ -145,7 +143,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
                 key=key,
                 old_value=old_value,
                 new_value=value,
-                now=actual_now,
+                now=self._created_at,
             )
         )
 
@@ -159,7 +157,6 @@ class ProjectState(AggregateRoot[ProjectStateId]):
             new_data = dict(self._state_data.to_dict())
             new_data.pop(key, None)
             self._state_data = StateData(new_data)
-            actual_now = self._created_at or CreatedAt.now()
             self.append_event(
                 ProjectStateChangedEvent.now(
                     project_id=self._project_id,
@@ -168,7 +165,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
                     key=key,
                     old_value=old_value,
                     new_value=None,
-                    now=actual_now,
+                    now=self._created_at,
                 )
             )
 

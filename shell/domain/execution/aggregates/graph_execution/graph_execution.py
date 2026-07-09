@@ -2,13 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_depth import GraphDepth
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.value_objects.graph_definition_id_ref import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.graph_execution_status import GraphExecutionStatus
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_status import (
+    GraphExecutionStatus,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from shell.bootstrap.platform.factory.command_factory import register_commands
 from shell.bootstrap.platform.factory.event_factory import register_events
+from shell.bootstrap.platform.factory.message_factory import register_messages
 from shell.bootstrap.platform.factory.query_factory import register_queries
 
 if TYPE_CHECKING:
@@ -13,7 +14,8 @@ if TYPE_CHECKING:
 
 
 def wire_buses(core_container: CoreContainer) -> None:
-    """Rejestruje wszystkich handlers na CommandBus, QueryBus i EventBus."""
+    """Rejestruje wszystkich handlers na CommandBus, QueryBus, EventBus i MessageBus."""
     register_commands(core_container)
     register_queries(core_container)
     register_events(core_container)
+    register_messages(core_container)

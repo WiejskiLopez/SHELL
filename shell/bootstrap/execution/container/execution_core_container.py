@@ -4,26 +4,26 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.execution.edge_execution.command_handlers.edge_execution_create_handler import (
-    EdgeExecutionCreateHandler,
+from shell.application.execution.edge_execution.command_handlers.create_edge_execution_handler import (
+    CreateEdgeExecutionHandler,
 )
-from shell.application.execution.edge_execution.command_handlers.edge_execution_delete_handler import (
-    EdgeExecutionDeleteHandler,
+from shell.application.execution.edge_execution.command_handlers.delete_edge_execution_handler import (
+    DeleteEdgeExecutionHandler,
 )
-from shell.application.execution.edge_execution.command_handlers.edge_execution_update_handler import (
-    EdgeExecutionUpdateHandler,
+from shell.application.execution.edge_execution.command_handlers.update_edge_execution_handler import (
+    UpdateEdgeExecutionHandler,
 )
-from shell.application.execution.edge_link_execution.command_handlers.edge_link_execution_create_handler import (
-    EdgeLinkExecutionCreateHandler,
+from shell.application.execution.edge_link_execution.command_handlers.create_edge_link_execution_handler import (
+    CreateEdgeLinkExecutionHandler,
 )
-from shell.application.execution.edge_link_execution.command_handlers.edge_link_execution_delete_handler import (
-    EdgeLinkExecutionDeleteHandler,
+from shell.application.execution.edge_link_execution.command_handlers.delete_edge_link_execution_handler import (
+    DeleteEdgeLinkExecutionHandler,
 )
-from shell.application.execution.edge_link_execution.command_handlers.edge_link_execution_update_handler import (
-    EdgeLinkExecutionUpdateHandler,
+from shell.application.execution.edge_link_execution.command_handlers.update_edge_link_execution_handler import (
+    UpdateEdgeLinkExecutionHandler,
 )
-from shell.application.execution.node_execution.command_handlers.node_execution_create_handler import (
-    NodeExecutionCreateHandler,
+from shell.application.execution.node_execution.command_handlers.create_node_execution_handler import (
+    CreateNodeExecutionHandler,
 )
 from shell.application.platform.bus.command_bus import CommandBus
 from shell.application.platform.bus.query_bus import QueryBus
@@ -33,15 +33,11 @@ from shell.infrastructure.execution.edge_execution.persistence.sql.unit_of_work 
 from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
     SqlAlchemyEdgeLinkExecutionUnitOfWork,
 )
-from shell.infrastructure.execution.node_execution.filesystem.workspace import Workspace
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
 from shell.infrastructure.execution.node_execution.persistence.sql.unit_of_work import (
     SqlAlchemyNodeExecutionUnitOfWork,
-)
-from shell.infrastructure.execution.process.subprocess_runner import (
-    SubprocessNodeExecutionProcessRunner,
 )
 from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
     SessionQueryService,
@@ -84,9 +80,6 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.execution")
-    workspace_factory = providers.Factory(Workspace)
-    runner_factory = providers.Factory(SubprocessNodeExecutionProcessRunner)
-
     # Query services (read-only, bez UoW)
     task_execution_query_service = providers.Singleton(
         TaskExecutionQueryService, session_factory=session_factory
@@ -107,43 +100,43 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
 
     # Command Handlers — tylko Execution BC
     create_node_execution_handler_factory = providers.Factory(
-        NodeExecutionCreateHandler,
+        CreateNodeExecutionHandler,
         unit_of_work=node_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
-    edge_execution_create_handler_factory = providers.Factory(
-        EdgeExecutionCreateHandler,
+    create_edge_execution_handler_factory = providers.Factory(
+        CreateEdgeExecutionHandler,
         unit_of_work=edge_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
-    edge_execution_update_handler_factory = providers.Factory(
-        EdgeExecutionUpdateHandler,
+    update_edge_execution_handler_factory = providers.Factory(
+        UpdateEdgeExecutionHandler,
         unit_of_work=edge_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
-    edge_execution_delete_handler_factory = providers.Factory(
-        EdgeExecutionDeleteHandler,
+    delete_edge_execution_handler_factory = providers.Factory(
+        DeleteEdgeExecutionHandler,
         unit_of_work=edge_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
-    edge_link_execution_create_handler_factory = providers.Factory(
-        EdgeLinkExecutionCreateHandler,
+    create_edge_link_execution_handler_factory = providers.Factory(
+        CreateEdgeLinkExecutionHandler,
         unit_of_work=edge_link_execution_uow_factory,
         identity=id_generator_factory,
         time=clock_factory,
     )
-    edge_link_execution_delete_handler_factory = providers.Factory(
-        EdgeLinkExecutionDeleteHandler,
+    delete_edge_link_execution_handler_factory = providers.Factory(
+        DeleteEdgeLinkExecutionHandler,
         unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,
     )
-    edge_link_execution_update_handler_factory = providers.Factory(
-        EdgeLinkExecutionUpdateHandler,
+    update_edge_link_execution_handler_factory = providers.Factory(
+        UpdateEdgeLinkExecutionHandler,
         unit_of_work=edge_link_execution_uow_factory,
         time=clock_factory,
         logger=stdlib_logger,

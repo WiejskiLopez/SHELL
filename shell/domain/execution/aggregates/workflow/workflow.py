@@ -4,18 +4,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.execution.value_objects.workflow_status import WorkflowStatus
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.domain.platform.base import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
+    from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
+        SessionIdRef,
+    )
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.execution.value_objects.session_id_ref import SessionIdRef
     from shell.domain.platform.value_objects.deleted_at import DeletedAt
     from shell.domain.platform.value_objects.reason import Reason
 
@@ -38,21 +40,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         id: WorkflowId,
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
-        self._session_id = session_id or None
-        self._status = status or WorkflowStatus.ACTIVE
-        self._created_at = (
-            (
-                created_at
-                if isinstance(created_at, CreatedAt)
-                else CreatedAt.from_datetime(created_at)
-            )
-            if created_at is not None
-            else CreatedAt.now()
-        )
+        self._session_id = session_id
+        self._status = status
+        self._created_at = created_at
         self._deleted_at = deleted_at
 
     @classmethod
@@ -61,8 +55,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id: WorkflowId,
         session_id: SessionIdRef | None = None,
-        status: WorkflowStatus | None = None,
-        created_at: CreatedAt | None = None,
+        status: WorkflowStatus,
+        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(

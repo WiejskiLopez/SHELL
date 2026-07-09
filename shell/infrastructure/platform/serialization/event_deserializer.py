@@ -3,19 +3,19 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from shell.infrastructure.platform.serialization import DomainEventSerializer
+
 if TYPE_CHECKING:
     from datetime import datetime
 
     from shell.domain.platform.events import DomainEvent
 
-from shell.infrastructure.platform.serialization import DomainEventSerializer
-
 logger = logging.getLogger(__name__)
 
 
 class EventDeserializer:
-    def __init__(self, registry: dict[str, type[DomainEvent]] | None = None) -> None:
-        self._registry: dict[str, type[DomainEvent]] = registry or {}
+    def __init__(self, registry: dict[str, type[DomainEvent]]) -> None:
+        self._registry = registry
         self._serializer = DomainEventSerializer()
 
     def deserialize(

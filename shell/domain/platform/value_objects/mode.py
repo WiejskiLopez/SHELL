@@ -1,7 +1,7 @@
 """Mode — execution mode of a node.
 
 .. deprecated::
-   Use NodeRole from shell.domain.execution.value_objects.node_role for new code.
+   Use NodeRole from shell.domain.execution.aggregates.node_execution.value_objects.node_role for new code.
 """
 
 from __future__ import annotations

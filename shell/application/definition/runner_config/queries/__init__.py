@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from shell.application.definition.runner_config.queries.runner_config_get_by_id_query import (
-    RunnerConfigGetByIdQuery,
-)
-from shell.application.definition.runner_config.queries.runner_config_get_query import (
-    RunnerConfigGetQuery,
+from shell.application.definition.runner_config.queries.get_runner_config_by_id_query import (
+    GetRunnerConfigByIdQuery,
 )
 
-__all__ = ["RunnerConfigGetByIdQuery", "RunnerConfigGetQuery"]
+__all__ = ["GetRunnerConfigByIdQuery"]

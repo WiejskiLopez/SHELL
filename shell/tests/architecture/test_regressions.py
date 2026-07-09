@@ -116,7 +116,9 @@ def test_handler_get_by_id_none_check() -> None:
                     isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
                     and stmt.name == "handle"
                 ):
-                    source = ast.get_source_segment(content, stmt) or ""
+                    source = ast.get_source_segment(content, stmt)
+                    if source is None:
+                        continue
                     if "get_by_id" in source:
                         lines = source.split("\n")
                         has_guard = any(

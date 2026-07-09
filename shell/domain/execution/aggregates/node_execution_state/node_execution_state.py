@@ -11,7 +11,6 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
 from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.domain.platform.value_objects.state_direction import StateDirection
 
 
 class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
@@ -33,25 +33,24 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         self,
         id: NodeExecutionStateId,
         node_execution_id: NodeExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> None:
         super().__init__(id)
         self._node_execution_id = node_execution_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
-        if created_at is not None:
-            self._created_at = created_at
+        self._state_data = state_data
+        self._created_at = created_at
 
     @classmethod
     def restore(
         cls,
         id: NodeExecutionStateId,
         node_execution_id: NodeExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
+        direction: StateDirection,
     ) -> Self:
         return cls(
             id=id,
@@ -83,15 +82,15 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         *,
         id_: NodeExecutionStateId,
         node_execution_id: NodeExecutionId,
-        direction: StateDirection = StateDirection.IN,
-        payload: dict[str, object] | None = None,
+        direction: StateDirection,
+        state_data: StateData,
         now: datetime,
     ) -> NodeExecutionState:
         instance = cls(
             id=id_,
             node_execution_id=node_execution_id,
             direction=direction,
-            state_data=StateData(payload or {}),
+            state_data=state_data,
             created_at=CreatedAt.from_datetime(now),
         )
         return instance

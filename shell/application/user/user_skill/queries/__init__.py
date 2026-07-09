@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.user.user_skill.queries.user_skill_get_by_id_query import (
-    UserSkillGetByIdQuery,
+from shell.application.user.user_skill.queries.get_user_skill_by_id_query import (
+    GetUserSkillByIdQuery,
 )
 
-__all__ = ["UserSkillGetByIdQuery"]
+__all__ = ["GetUserSkillByIdQuery"]

@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
         GraphDefinitionSemanticQuery,  # noqa: TC002 — używany w sygnaturze Protocol
     )
-    from shell.domain.execution.value_objects.graph_execution_definition import (
+    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_definition import (
         GraphExecutionDefinition,  # noqa: TC002 — GraphExecutionDefinition używany w sygnaturach Protocol
     )
 

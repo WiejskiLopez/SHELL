@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.project.project.query_handlers.project_get_by_id_handler import (
-    ProjectGetByIdHandler,
+from shell.application.project.project.query_handlers.get_project_by_id_handler import (
+    GetProjectByIdHandler,
 )
 
-__all__ = ["ProjectGetByIdHandler"]
+__all__ = ["GetProjectByIdHandler"]

@@ -12,11 +12,15 @@ from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution 
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.execution_status import (
     ExecutionStatus,
 )
-from shell.domain.scheduling.value_objects.ids import (
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
 )
-from shell.domain.scheduling.value_objects.trigger_event_id import TriggerEventId
-from shell.domain.scheduling.value_objects.trigger_event_type import TriggerEventType
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_id import (
+    TriggerEventId,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_type import (
+    TriggerEventType,
+)
 
 if TYPE_CHECKING:
     from shell.domain.platform.events import DomainEvent

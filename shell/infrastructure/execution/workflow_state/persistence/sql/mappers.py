@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
     WorkflowStateId,
 )
 from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-from shell.domain.execution.value_objects.ids import WorkflowId
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.platform.value_objects.state_direction import StateDirection

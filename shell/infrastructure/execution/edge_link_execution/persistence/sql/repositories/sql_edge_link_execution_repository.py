@@ -21,11 +21,12 @@ from shell.infrastructure.execution.edge_link_execution.persistence.sql.models.e
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
-from shell.domain.execution.value_objects.ids import NodeExecutionId
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
 
 
 class SqlEdgeLinkExecutionRepository:

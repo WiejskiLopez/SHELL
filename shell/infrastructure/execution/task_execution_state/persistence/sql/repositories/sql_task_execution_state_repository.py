@@ -46,15 +46,15 @@ class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
         row = (await self._session.execute(query)).scalar_one_or_none()
         return task_execution_state_model_to_entity(row) if row else None
 
-    async def save(self, payload: TaskExecutionState) -> None:
+    async def save(self, state: TaskExecutionState) -> None:
         existing = await self.get_latest_by_task_id(
-            payload.task_execution_id, direction=payload.direction
+            state.task_execution_id, direction=state.direction
         )
         if existing is not None:
             old_model = await self._session.get(TaskExecutionStateModel, existing.id.value)
             if old_model is not None:
                 await self._session.delete(old_model)
-        model = task_execution_state_entity_to_model(payload)
+        model = task_execution_state_entity_to_model(state)
         self._session.add(model)
 
     async def delete(self, id_: object, now: datetime | None = None) -> None:

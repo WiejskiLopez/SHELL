@@ -28,10 +28,6 @@ from shell.infrastructure.definition.node_definition.persistence.sql.models impo
 from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
     NodeLinkDefinitionModel,
 )
-from shell.infrastructure.definition.rag_document.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
-    RagChunkModel,
-    RagDocumentModel,
-)
 from shell.infrastructure.definition.runner_config.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
     RunnerConfigModel,
 )
@@ -122,7 +118,7 @@ def include_object(obj: object, name: str, type_: str, reflected: bool, compare_
 
 def _get_url() -> str:
     # Allow override via env var (used in CI/docker)
-    return os.environ.get("SHELL_DATABASE_URL") or config.get_main_option("sqlalchemy.url") or ""
+    return os.environ.get("SHELL_DATABASE_URL") or config.get_main_option("sqlalchemy.url")
 
 
 def run_migrations_offline() -> None:

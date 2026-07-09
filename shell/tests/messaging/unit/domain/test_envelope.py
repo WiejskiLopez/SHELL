@@ -2,17 +2,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.messaging.aggregates.message.message import Message
-from shell.domain.messaging.aggregates.message.value_objects.message_id import MessageId
+from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
+from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
+from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 from shell.infrastructure.messaging.messaging.envelope import Envelope
 
 
-def _sample_message() -> Message:
-    return Message.new(
+def _sample_message() -> MessageRouter:
+    return MessageRouter.new(
         id_=MessageId.generate(),
-        message_type="test.event",
-        source="src",
-        destination="dst",
+        message_data=MessageData({"type": "test.event"}),
         now=datetime.now(tz=UTC),
     )
 
@@ -25,6 +24,7 @@ class TestEnvelope:
             trace_id="trace-1",
             sender_service="svc-a",
             receiver_service="svc-b",
+            transport_metadata={},
         )
         assert envelope.message_id == msg.id.value
         assert envelope.trace_id == "trace-1"
@@ -36,6 +36,7 @@ class TestEnvelope:
             trace_id="trace-2",
             sender_service="svc-a",
             receiver_service="svc-b",
+            transport_metadata={},
             correlation_id="corr-789",
         )
         assert envelope.transport_metadata.get("correlation_id") == "corr-789"
@@ -47,6 +48,7 @@ class TestEnvelope:
             trace_id="trace-3",
             sender_service="svc-a",
             receiver_service="svc-b",
+            transport_metadata={},
         )
         assert "correlation_id" not in envelope.transport_metadata
 
@@ -57,6 +59,7 @@ class TestEnvelope:
             trace_id="trace-4",
             sender_service="svc-a",
             receiver_service="svc-b",
+            transport_metadata={},
             correlation_id="corr-roundtrip",
         )
         data = original.to_dict()

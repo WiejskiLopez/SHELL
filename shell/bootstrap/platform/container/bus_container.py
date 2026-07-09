@@ -11,16 +11,19 @@ if TYPE_CHECKING:
 
     from shell.application.platform.bus.command_bus import CommandBus
     from shell.application.platform.bus.event_bus import EventBus
+    from shell.application.platform.bus.message_bus import MessageBus
     from shell.application.platform.bus.query_bus import QueryBus
 
     class _BusContainerProtocol(Protocol):
         command_bus: Singleton[CommandBus]
         query_bus: Singleton[QueryBus]
         event_bus: Singleton[EventBus]
+        message_bus: Singleton[MessageBus]
 
 
 from shell.application.platform.bus.command_bus import CommandBus
 from shell.application.platform.bus.event_bus import EventBus
+from shell.application.platform.bus.message_bus import MessageBus
 from shell.application.platform.bus.query_bus import QueryBus
 from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
 
@@ -33,6 +36,7 @@ class BusContainer(containers.DeclarativeContainer):
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
     event_bus = providers.Singleton(EventBus)
+    message_bus = providers.Singleton(MessageBus)
 
     unit_of_work_factory = providers.Factory(
         SqlAlchemyUnitOfWork,

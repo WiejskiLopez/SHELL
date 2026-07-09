@@ -7,10 +7,14 @@ from datetime import UTC, datetime
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt
+from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 from shell.domain.project.aggregates.project_skill.project_skill import ProjectSkill
-from shell.domain.project.value_objects.project_id import ProjectId
-from shell.domain.project.value_objects.project_skill_data import ProjectSkillData
-from shell.domain.project.value_objects.project_skill_id import ProjectSkillId
+from shell.domain.project.aggregates.project_skill.value_objects.project_skill_data import (
+    ProjectSkillData,
+)
+from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
+    ProjectSkillId,
+)
 from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
     ProjectSkillModel,
 )

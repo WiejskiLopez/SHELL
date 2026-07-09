@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -58,7 +59,7 @@ def queries(unit_of_work: InMemoryUnitOfWork) -> InMemoryQueryServices:
 
 @pytest.fixture()
 def clock() -> FakeClock:
-    return FakeClock()
+    return FakeClock(datetime(2024, 1, 1, tzinfo=UTC))
 
 
 @pytest.fixture()

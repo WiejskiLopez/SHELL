@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from shell.application.execution.node_execution.queries.node_execution_get_by_id_query import (
-    NodeExecutionGetByIdQuery,
+from shell.application.execution.node_execution.queries.get_node_execution_by_id_query import (
+    GetNodeExecutionByIdQuery,
 )
-from shell.application.execution.node_execution.queries.node_execution_get_result_query import (
-    NodeExecutionGetResultQuery,
+from shell.application.execution.node_execution.queries.get_node_execution_result_query import (
+    GetNodeExecutionResultQuery,
 )
 
-__all__ = ["NodeExecutionGetByIdQuery", "NodeExecutionGetResultQuery"]
+__all__ = ["GetNodeExecutionByIdQuery", "GetNodeExecutionResultQuery"]

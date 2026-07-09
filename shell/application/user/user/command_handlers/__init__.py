@@ -1,19 +1,19 @@
 from __future__ import annotations
 
-from shell.application.user.user.command_handlers.user_create_handler import UserCreateHandler
-from shell.application.user.user.command_handlers.user_delete_handler import (
+from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
+from shell.application.user.user.command_handlers.delete_user_handler import (
+    DeleteUserHandler,
     UserAlreadyDeletedError,
-    UserDeleteHandler,
     UserNotFoundError,
 )
-from shell.application.user.user.command_handlers.user_update_handler import (
-    UserUpdateHandler,
+from shell.application.user.user.command_handlers.update_user_handler import (
+    UpdateUserHandler,
 )
 
 __all__ = [
-    "UserCreateHandler",
+    "CreateUserHandler",
     "UserNotFoundError",
     "UserAlreadyDeletedError",
-    "UserDeleteHandler",
-    "UserUpdateHandler",
+    "DeleteUserHandler",
+    "UpdateUserHandler",
 ]

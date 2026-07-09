@@ -1,14 +1,20 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.domain.execution.aggregates.session_execution import SessionExecution
 from shell.domain.execution.aggregates.session_execution.repositories.session_execution_repository import (
     SessionExecutionRepository,
 )
-from shell.domain.execution.value_objects.ids import (
+from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
-    UserExecutionId,
 )
 from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
+        UserExecutionId,
+    )
 
 
 class InMemorySessionExecutionRepository(

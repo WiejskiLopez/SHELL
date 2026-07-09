@@ -3,16 +3,22 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.task_execution.value_objects.task_description import (
+    TaskDescription,
+)
+from shell.domain.platform.events import DomainEvent
+
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.task_execution.value_objects.skill_data import (
+        SkillData,
+    )
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.domain.execution.value_objects.skill_payload import SkillPayload
-    from shell.domain.execution.value_objects.task_execution_name import TaskExecutionName
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
+        TaskExecutionName,
+    )
     from shell.domain.platform.value_objects.created_at import CreatedAt
-
-from shell.domain.execution.value_objects.task_description import TaskDescription
-from shell.domain.platform.events import DomainEvent
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +26,7 @@ class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName
     description: TaskDescription = field(default_factory=lambda: TaskDescription("default"))
-    skills: list[SkillPayload] | None = None
+    skills: list[SkillData] | None = None
 
     @classmethod
     def now(
@@ -29,7 +35,7 @@ class TaskExecutionCreatedEvent(DomainEvent):
         task_execution_name: TaskExecutionName,
         now: CreatedAt,
         description: str = "default",
-        skills: list[SkillPayload] | None = None,
+        skills: list[SkillData] | None = None,
     ) -> TaskExecutionCreatedEvent:
         return cls(
             occurred_at=now,

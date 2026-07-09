@@ -14,12 +14,18 @@ from shell.domain.definition.aggregates.graph_definition_embedding.graph_definit
 from shell.domain.definition.aggregates.graph_definition_embedding.repositories import (
     GraphDefinitionEmbeddingRepository,
 )
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding import (
+    Embedding,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_model import (
+    EmbeddingModel,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_text import (
+    EmbeddingText,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
     GraphDefinitionEmbeddingId,
 )
-from shell.domain.definition.value_objects.embedding import Embedding
-from shell.domain.definition.value_objects.embedding_model import EmbeddingModel
-from shell.domain.definition.value_objects.embedding_text import EmbeddingText
 from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
 )

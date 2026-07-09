@@ -5,10 +5,19 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.value_objects.graph_definition_id_ref import GraphDefinitionIdRef
-from shell.domain.execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.value_objects.ids import GraphExecutionId, TaskExecutionId
-from shell.domain.execution.value_objects.max_subgraph_depth import MaxSubgraphDepth
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_definition_id_ref import (
+    GraphDefinitionIdRef,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_depth import GraphDepth
+from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
+    MaxSubgraphDepth,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+    TaskExecutionId,
+)
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.deleted_at import DeletedAt
 from shell.domain.platform.value_objects.updated_at import UpdatedAt

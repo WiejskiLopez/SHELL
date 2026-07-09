@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.edge_execution.queries.edge_execution_get_by_id_query import (
-    EdgeExecutionGetByIdQuery,
+from shell.application.execution.edge_execution.queries.get_edge_execution_by_id_query import (
+    GetEdgeExecutionByIdQuery,
 )
 
-__all__ = ["EdgeExecutionGetByIdQuery"]
+__all__ = ["GetEdgeExecutionByIdQuery"]

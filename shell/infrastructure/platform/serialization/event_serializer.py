@@ -5,11 +5,11 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
 
-if TYPE_CHECKING:
-    from shell.domain.platform.events import DomainEvent
-
 from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.schema_version import SchemaVersion
+
+if TYPE_CHECKING:
+    from shell.domain.platform.events import DomainEvent
 
 logger = logging.getLogger(__name__)
 

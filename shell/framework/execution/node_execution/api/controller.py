@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException
 
-from shell.application.execution.node_execution.queries.node_execution_get_result_query import (
-    NodeExecutionGetResultQuery,
+from shell.application.execution.node_execution.queries.get_node_execution_result_query import (
+    GetNodeExecutionResultQuery,
 )
 
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ class NodeExecutionController:
 
     async def get_node_execution_result(self, node_execution_id: str, workflow_id: str) -> dict:
         result = await self._query_bus.dispatch(
-            NodeExecutionGetResultQuery(
+            GetNodeExecutionResultQuery(
                 node_execution_id=node_execution_id, workflow_id=workflow_id
             )
         )

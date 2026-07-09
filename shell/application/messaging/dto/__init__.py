@@ -1,5 +1,5 @@
-from shell.application.messaging.dto.message import MessageDto
+from shell.application.messaging.dto.message_router import MessageRouterDto
 
 __all__ = [
-    "MessageDto",
+    "MessageRouterDto",
 ]

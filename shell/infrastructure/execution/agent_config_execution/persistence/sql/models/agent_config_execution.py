@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy.orm import Mapped, mapped_column
 
+from shell.infrastructure.platform.persistence.sql.models.base import Base
+
 if TYPE_CHECKING:
     from datetime import datetime
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 
 class AgentConfigExecutionModel(Base):

@@ -32,7 +32,10 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}
+        result = yaml.safe_load(fh)
+        if result is None:
+            raise ValueError(f"Empty or invalid YAML file: {path}")
+        return result
 
 
 @dataclass

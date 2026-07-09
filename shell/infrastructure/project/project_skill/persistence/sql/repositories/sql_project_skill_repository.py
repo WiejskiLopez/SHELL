@@ -18,9 +18,11 @@ from ..models import ProjectSkillModel
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_skill.project_skill import ProjectSkill
-    from shell.domain.project.value_objects.project_id import ProjectId
-    from shell.domain.project.value_objects.project_skill_id import ProjectSkillId
+    from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
+        ProjectSkillId,
+    )
 
 
 class SqlProjectSkillRepository(ProjectSkillRepository):

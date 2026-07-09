@@ -20,13 +20,16 @@ class MessageModel(Base):
     )
 
     id: Mapped[str] = mapped_column(primary_key=True)
+    message_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
+
+    # Legacy columns — do not use in new code, kept for backward compat
     message_type: Mapped[str] = mapped_column(nullable=False)
     business_payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     message_metadata: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, default=dict)
     source: Mapped[str] = mapped_column(nullable=False)
     destination: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=False, default="created")
-
     workflow_id: Mapped[str | None] = mapped_column(nullable=True)
     step: Mapped[int | None] = mapped_column(nullable=True)
     sequence_id: Mapped[int | None] = mapped_column(nullable=True)
@@ -34,6 +37,4 @@ class MessageModel(Base):
     target_node_execution_id: Mapped[str | None] = mapped_column(nullable=True)
     source_role: Mapped[str | None] = mapped_column(nullable=True)
     target_role: Mapped[str | None] = mapped_column(nullable=True)
-
-    created_at: Mapped[datetime] = mapped_column(nullable=False)
     received_at: Mapped[datetime | None] = mapped_column(nullable=True)

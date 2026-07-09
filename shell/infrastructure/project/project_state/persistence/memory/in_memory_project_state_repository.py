@@ -13,7 +13,7 @@ from shell.infrastructure.platform.persistence.in_memory_repository import InMem
 
 if TYPE_CHECKING:
     from shell.domain.platform.value_objects.state_direction import StateDirection
-    from shell.domain.project.value_objects.project_id import ProjectId
+    from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 
 
 class InMemoryProjectStateRepository(

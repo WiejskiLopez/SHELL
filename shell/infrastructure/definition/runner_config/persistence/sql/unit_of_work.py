@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.repositories.runner_config_repository import (
+from shell.domain.definition.aggregates.runner_config.repositories.runner_config_repository import (
     RunnerConfigRepository,
 )
 from shell.infrastructure.definition.runner_config.persistence.sql.repositories.sql_runner_config_repository import (

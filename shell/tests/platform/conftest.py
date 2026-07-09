@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import uuid
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
@@ -81,7 +82,7 @@ def unit_of_work() -> InMemoryUnitOfWork:
 
 @pytest.fixture()
 def clock() -> FakeClock:
-    return FakeClock()
+    return FakeClock(datetime(2024, 1, 1, tzinfo=UTC))
 
 
 @pytest.fixture()

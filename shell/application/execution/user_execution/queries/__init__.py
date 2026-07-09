@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.user_execution.queries.user_execution_get_by_id_query import (
-    UserExecutionGetByIdQuery,
+from shell.application.execution.user_execution.queries.get_user_execution_by_id_query import (
+    GetUserExecutionByIdQuery,
 )
 
-__all__ = ["UserExecutionGetByIdQuery"]
+__all__ = ["GetUserExecutionByIdQuery"]

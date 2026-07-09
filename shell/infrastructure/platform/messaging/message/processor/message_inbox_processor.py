@@ -15,9 +15,9 @@ from shell.infrastructure.platform.persistence.sql.models.message.inbox_message 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.application.messaging.bus.message_bus import MessageBus
-    from shell.domain.messaging.aggregates.message.repositories.message_repository import (
-        MessageRepository,
+    from shell.application.platform.bus.message_bus import MessageBus
+    from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
+        MessageRouterRepository,
     )
 
 
@@ -25,7 +25,7 @@ class MessageInboxProcessor:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        message_repository: MessageRepository,
+        message_repository: MessageRouterRepository,
         message_bus: MessageBus,
         batch_size: int = 100,
     ) -> None:
@@ -56,7 +56,7 @@ class MessageInboxProcessor:
             messages_to_dispatch = []
 
             for row in rows:
-                envelope = Envelope.from_dict(dict(row.envelope or {}))
+                envelope = Envelope.from_dict(dict(row.envelope))
                 message = await self._message_repo.get_by_id(envelope.message_id)  # type: ignore[arg-type]
                 if message is not None:
                     messages_to_dispatch.append(message)

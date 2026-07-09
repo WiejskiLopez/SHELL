@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from shell.application.execution.agent_config_execution.queries.agent_config_execution_get_by_id_query import (
-    AgentConfigExecutionGetByIdQuery,
+from shell.application.execution.agent_config_execution.queries.get_agent_config_execution_by_id_query import (
+    GetAgentConfigExecutionByIdQuery,
 )
 
-__all__ = ["AgentConfigExecutionGetByIdQuery"]
+__all__ = ["GetAgentConfigExecutionByIdQuery"]

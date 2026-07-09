@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from shell.application.messaging.queries.message_get_by_id_query import MessageGetByIdQuery
+from shell.application.messaging.queries.get_message_by_id_query import GetMessageByIdQuery
 
-__all__ = ["MessageGetByIdQuery"]
+__all__ = ["GetMessageByIdQuery"]

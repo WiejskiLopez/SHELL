@@ -16,10 +16,11 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
+from shell.infrastructure.platform.persistence.sql.models.base import Base
+
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
 
 __all__ = [
     "build_session_factory",

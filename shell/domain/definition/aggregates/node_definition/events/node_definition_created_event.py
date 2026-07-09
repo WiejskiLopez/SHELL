@@ -9,8 +9,12 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
-    from shell.domain.definition.value_objects.node_role_name import NodeRoleName
-    from shell.domain.definition.value_objects.node_type_name import NodeTypeName
+    from shell.domain.definition.aggregates.node_definition.value_objects.node_role_name import (
+        NodeRoleName,
+    )
+    from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
+        NodeTypeName,
+    )
     from shell.domain.platform.value_objects.created_at import CreatedAt
 
 

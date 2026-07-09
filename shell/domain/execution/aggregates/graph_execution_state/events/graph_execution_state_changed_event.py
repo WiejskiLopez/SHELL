@@ -12,7 +12,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
     )
-    from shell.domain.execution.value_objects.state_key import StateKey
+    from shell.domain.execution.aggregates.graph_execution_state.value_objects.state_key import (
+        StateKey,
+    )
     from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.platform.value_objects.state_direction import StateDirection
 

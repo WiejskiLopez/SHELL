@@ -12,16 +12,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Self
 
 from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
 )
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 
 if TYPE_CHECKING:
+    from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.platform.value_objects.deleted_at import DeletedAt
+    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.user.value_objects.user_id import UserId
 
@@ -46,15 +46,15 @@ class UserState(AggregateRoot[UserStateId]):
         id: UserStateId,
         user_id: UserId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
         self._direction = direction
-        self._state_data = state_data or StateData({})
+        self._state_data = state_data
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
@@ -66,8 +66,8 @@ class UserState(AggregateRoot[UserStateId]):
         id: UserStateId,
         user_id: UserId,
         direction: StateDirection,
-        state_data: StateData | None = None,
-        created_at: CreatedAt | None = None,
+        state_data: StateData,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -115,16 +115,15 @@ class UserState(AggregateRoot[UserStateId]):
         *,
         id_: UserStateId,
         user_id: UserId,
-        direction: StateDirection = StateDirection.IN,
-        now: CreatedAt | None = None,
+        direction: StateDirection,
+        now: CreatedAt,
     ) -> UserState:
-        actual_now = now or CreatedAt.now()
         return cls(
             id=id_,
             user_id=user_id,
             direction=direction,
             state_data=StateData({}),
-            created_at=actual_now,
+            created_at=now,
         )
 
     # ------------------------------------------------------------------ mutations
@@ -134,7 +133,6 @@ class UserState(AggregateRoot[UserStateId]):
         new_data = dict(self._state_data.to_dict())
         new_data[key] = value
         self._state_data = StateData(new_data)
-        actual_now = self._created_at or CreatedAt.now()
         self.append_event(
             UserStateChangedEvent.now(
                 user_id=self._user_id,
@@ -143,7 +141,7 @@ class UserState(AggregateRoot[UserStateId]):
                 key=key,
                 old_value=old_value,
                 new_value=value,
-                now=actual_now,
+                now=self._created_at,
             )
         )
 
@@ -157,7 +155,6 @@ class UserState(AggregateRoot[UserStateId]):
             new_data = dict(self._state_data.to_dict())
             new_data.pop(key, None)
             self._state_data = StateData(new_data)
-            actual_now = self._created_at or CreatedAt.now()
             self.append_event(
                 UserStateChangedEvent.now(
                     user_id=self._user_id,
@@ -166,7 +163,7 @@ class UserState(AggregateRoot[UserStateId]):
                     key=key,
                     old_value=old_value,
                     new_value=None,
-                    now=actual_now,
+                    now=self._created_at,
                 )
             )
 

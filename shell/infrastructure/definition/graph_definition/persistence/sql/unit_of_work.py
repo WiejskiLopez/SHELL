@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.definition.repositories.graph_definition_repository.graph_definition_repository import (
+from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
     GraphDefinitionRepository,
 )
 from shell.infrastructure.definition.graph_definition.persistence.sql.repositories.sql_graph_definition_repository import (

@@ -23,10 +23,12 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
+        SchedulerExecutionId,
+    )
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
-    from shell.domain.scheduling.value_objects.ids import SchedulerExecutionId
     from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import (
         OutboxToInboxRelay,
     )
@@ -115,7 +117,7 @@ class SchedulerService:
             job_fn,
             trigger=IntervalTrigger(seconds=int(job.interval_seconds.value)),
             id=job_id,
-            name=job.name.value or job.id.value,
+            name=job.name.value,
             replace_existing=True,
         )
         logger.info(

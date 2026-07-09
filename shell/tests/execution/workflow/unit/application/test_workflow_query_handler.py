@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.workflow.queries.workflow_get_by_id_query import (
-    WorkflowGetByIdQuery,
+from shell.application.execution.workflow.queries.get_workflow_by_id_query import (
+    GetWorkflowByIdQuery,
 )
-from shell.application.execution.workflow.query_handlers.workflow_get_by_id_handler import (
-    WorkflowGetByIdHandler,
+from shell.application.execution.workflow.query_handlers.get_workflow_by_id_handler import (
+    GetWorkflowByIdHandler,
 )
 
 if TYPE_CHECKING:
@@ -19,5 +19,5 @@ if TYPE_CHECKING:
 
 class TestWorkflowQueryHandler:
     async def test_get_workflow_not_found(self, queries: InMemoryQueryServices) -> None:
-        dto = await WorkflowGetByIdHandler(queries).handle(WorkflowGetByIdQuery("no-id"))
+        dto = await GetWorkflowByIdHandler(queries).handle(GetWorkflowByIdQuery("no-id"))
         assert dto is None

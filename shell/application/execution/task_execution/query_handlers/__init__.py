@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from shell.application.execution.task_execution.query_handlers.task_execution_get_by_id_handler import (
-    TaskExecutionGetByIdHandler,
+from shell.application.execution.task_execution.query_handlers.get_task_execution_by_id_handler import (
+    GetTaskExecutionByIdHandler,
 )
-from shell.application.execution.task_execution.query_handlers.task_execution_get_by_name_handler import (
-    TaskExecutionGetByNameHandler,
+from shell.application.execution.task_execution.query_handlers.get_task_execution_by_name_handler import (
+    GetTaskExecutionByNameHandler,
 )
-from shell.application.execution.task_execution.query_handlers.task_execution_get_current_handler import (
-    TaskExecutionGetCurrentHandler,
+from shell.application.execution.task_execution.query_handlers.get_task_execution_current_handler import (
+    GetTaskExecutionCurrentHandler,
 )
 
 __all__ = [
-    "TaskExecutionGetByIdHandler",
-    "TaskExecutionGetByNameHandler",
-    "TaskExecutionGetCurrentHandler",
+    "GetTaskExecutionByIdHandler",
+    "GetTaskExecutionByNameHandler",
+    "GetTaskExecutionCurrentHandler",
 ]
