@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.platform.value_objects.hash import Hash
+from shell.platform.domain.value_objects.hash import Hash
 
 
 class TestHash:

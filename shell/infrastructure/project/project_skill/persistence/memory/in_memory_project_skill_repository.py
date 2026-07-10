@@ -9,7 +9,7 @@ from shell.domain.project.aggregates.project_skill.repositories.project_skill_re
 from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
     ProjectSkillId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId

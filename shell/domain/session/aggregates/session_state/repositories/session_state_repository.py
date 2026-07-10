@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.session.aggregates.session_state.session_state import SessionState
     from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
         SessionStateId,
     )
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SessionStateRepository(Protocol):

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.base import AggregateRoot
+from shell.platform.domain.base import AggregateRoot
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
@@ -17,9 +17,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
         TaskExecutionStateId,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.state_data import StateData
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.state_data import StateData
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):

@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from shell.domain.platform.value_objects.timestamp import Timestamp
+from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 class TestTimestamp:

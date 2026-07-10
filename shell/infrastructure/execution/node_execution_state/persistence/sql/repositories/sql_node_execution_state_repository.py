@@ -17,13 +17,13 @@ from shell.domain.execution.aggregates.node_execution_state.repositories.node_ex
 from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
     NodeExecutionStateId,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.node_execution_state.persistence.sql.models.node_execution_state_aggregate import (
     NodeExecutionStateModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.state_direction import StateDirection
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession

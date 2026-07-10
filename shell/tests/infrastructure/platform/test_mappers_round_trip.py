@@ -49,10 +49,6 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_name im
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.mode import Mode
-from shell.domain.platform.value_objects.timestamp import Timestamp
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
@@ -85,6 +81,10 @@ from shell.infrastructure.session.session.persistence.sql.mappers import (
     session_entity_to_model,
     session_model_to_entity,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.mode import Mode
+from shell.platform.domain.value_objects.timestamp import Timestamp
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 

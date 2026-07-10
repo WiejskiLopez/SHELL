@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from shell.application.platform.bus.query_bus import (
+from shell.framework.execution.workflow.api.controller import WorkflowController
+from shell.platform.application.bus.query_bus import (
     QueryBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
 )
-from shell.framework.execution.workflow.api.controller import WorkflowController
-from shell.framework.platform.api.dependencies import get_query_bus
+from shell.platform.framework.api.dependencies import get_query_bus
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 

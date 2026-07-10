@@ -9,9 +9,9 @@ from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_id import UserId
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
     from shell.application.user.user.commands.update_user_command import UpdateUserCommand
-    from shell.domain.platform.ports.time import Clock
+    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.time import Clock
 
 
 class UserNotFoundError(Exception):

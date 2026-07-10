@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
@@ -17,9 +15,11 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.updated_at import UpdatedAt
+    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class Session(AggregateRoot[SessionId]):

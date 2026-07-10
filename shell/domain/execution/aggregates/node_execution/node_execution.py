@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
     NodeExecutionStatus,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -25,9 +25,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
     from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
     from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
-    from shell.domain.platform.value_objects.error_description import ErrorDescription
-    from shell.domain.platform.value_objects.mode import Mode
-    from shell.domain.platform.value_objects.state_data import StateData
+    from shell.platform.domain.value_objects.error_description import ErrorDescription
+    from shell.platform.domain.value_objects.mode import Mode
+    from shell.platform.domain.value_objects.state_data import StateData
 
 
 class NodeExecution(AggregateRoot[NodeExecutionId]):

@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.edge_execution.repositories.edge_executio
 from shell.infrastructure.execution.edge_execution.persistence.sql.repositories.sql_edge_execution_repository import (
     SqlEdgeExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

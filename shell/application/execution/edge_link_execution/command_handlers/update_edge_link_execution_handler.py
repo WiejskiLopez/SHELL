@@ -13,9 +13,9 @@ if TYPE_CHECKING:
     from shell.application.execution.edge_link_execution.commands.update_edge_link_execution_command import (
         UpdateEdgeLinkExecutionCommand,
     )
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.platform.ports.log import Logger
-    from shell.domain.platform.ports.time import Clock
+    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.log import Logger
+    from shell.platform.domain.ports.time import Clock
 
 from shell.domain.execution.aggregates.edge_link_execution.exceptions.edge_link_execution_not_found_error import (
     EdgeLinkExecutionNotFoundError,

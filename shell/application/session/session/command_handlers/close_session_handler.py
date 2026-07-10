@@ -5,15 +5,16 @@ from typing import TYPE_CHECKING
 from shell.application.session.session.exceptions.session_not_found import (
     SessionNotFound,
 )
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.platform.application.ports.ports import Clock, UnitOfWork
+
     from shell.application.execution.session_execution.commands import CloseSessionCommand
-    from shell.application.platform.ports.ports import Clock, UnitOfWork
 
 
 class CloseSessionHandler:

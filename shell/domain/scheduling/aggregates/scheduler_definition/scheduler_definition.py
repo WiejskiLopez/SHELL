@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.enabled import Enabled
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
@@ -13,10 +11,10 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_name import (
     SchedulerName,
 )
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.enabled import Enabled
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.timestamp import Timestamp
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
         ActionConfig,
     )
@@ -26,6 +24,8 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
         TriggerConfig,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):

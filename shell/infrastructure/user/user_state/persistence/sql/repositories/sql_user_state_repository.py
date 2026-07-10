@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.user.aggregates.user_state.repositories.user_state_repository import (
     UserStateRepository,
 )
@@ -13,16 +12,17 @@ from shell.infrastructure.user.user_state.persistence.sql.mappers import (
     user_state_entity_to_model,
     user_state_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import UserStateModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.user.aggregates.user_state.user_state import UserState
     from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
     from shell.domain.user.value_objects.user_id import UserId
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlUserStateRepository(UserStateRepository):

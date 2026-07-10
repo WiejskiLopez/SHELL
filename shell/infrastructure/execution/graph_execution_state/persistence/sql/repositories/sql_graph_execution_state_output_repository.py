@@ -8,11 +8,11 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.graph_execution_state.persistence.sql.mappers import (
     graph_execution_state_output_entity_to_model,
     graph_execution_state_output_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models.graph_execution_state_output import GraphExecutionStateOutputModel
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):

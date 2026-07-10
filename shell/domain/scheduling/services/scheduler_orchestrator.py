@@ -2,10 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.error_description import ErrorDescription
-from shell.domain.platform.value_objects.reason import Reason
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
     SchedulerExecution,
 )
@@ -21,13 +17,17 @@ from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigge
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_type import (
     TriggerEventType,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.error_description import ErrorDescription
+from shell.platform.domain.value_objects.reason import Reason
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
-    from shell.domain.platform.events import DomainEvent
-    from shell.domain.platform.value_objects.timestamp import Timestamp
     from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
         SchedulerDefinition,
     )
+    from shell.platform.domain.events import DomainEvent
+    from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 class SchedulerOrchestrator:

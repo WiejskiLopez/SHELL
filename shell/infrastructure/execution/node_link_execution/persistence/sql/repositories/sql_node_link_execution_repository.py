@@ -13,13 +13,20 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.aggregates.node_link_execution.node_link_execution import (
     NodeLinkExecution,
 )
+from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
+    NodeLinkExecutionRepository,
+)
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
+from shell.infrastructure.execution.node_link_execution.persistence.sql.mappers import (
+    node_link_execution_entity_to_model,
+    node_link_execution_model_to_entity,
+)
 from shell.infrastructure.execution.node_link_execution.persistence.sql.models import (
     NodeLinkExecutionModel,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -27,7 +34,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class SqlNodeLinkExecutionRepository:
+class SqlNodeLinkExecutionRepository(NodeLinkExecutionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -38,7 +45,7 @@ class SqlNodeLinkExecutionRepository:
         model = await self._session.get(NodeLinkExecutionModel, node_link_execution_id.value)
         if model is None:
             return None
-        return self._model_to_entity(model)
+        return node_link_execution_model_to_entity(model)
 
     async def list_by_graph_execution_id(
         self,
@@ -49,7 +56,7 @@ class SqlNodeLinkExecutionRepository:
         )
         result = await self._session.execute(stmt)
         models = result.scalars().all()
-        return [self._model_to_entity(m) for m in models]
+        return [node_link_execution_model_to_entity(m) for m in models]
 
     async def list_by_node_execution_id(
         self,
@@ -60,7 +67,7 @@ class SqlNodeLinkExecutionRepository:
         )
         result = await self._session.execute(stmt)
         models = result.scalars().all()
-        return [self._model_to_entity(m) for m in models]
+        return [node_link_execution_model_to_entity(m) for m in models]
 
     async def save(self, link: NodeLinkExecution) -> None:
         model = await self._session.get(
@@ -68,10 +75,10 @@ class SqlNodeLinkExecutionRepository:
             link.id.value,
         )
         if model is None:
-            model = self._entity_to_model(link)
+            model = node_link_execution_entity_to_model(link)
             self._session.add(model)
 
-    async def delete(self, id: NodeLinkExecutionId, now: datetime) -> None:
+    async def delete(self, id: NodeLinkExecutionId, now: datetime | None = None) -> None:
         model = await self._session.get(NodeLinkExecutionModel, id.value)
         if model is not None:
             model.deleted_at = now
@@ -79,23 +86,3 @@ class SqlNodeLinkExecutionRepository:
     async def exists(self, id: NodeLinkExecutionId) -> ExistsResult:
         model = await self._session.get(NodeLinkExecutionModel, id.value)
         return ExistsResult(model is not None)
-
-    def _model_to_entity(
-        self,
-        model: NodeLinkExecutionModel,
-    ) -> NodeLinkExecution:
-        return NodeLinkExecution(
-            id=NodeLinkExecutionId(model.id),
-            graph_execution_id=GraphExecutionId(model.graph_execution_id),
-            node_execution_id=NodeExecutionId(model.node_execution_id),
-        )
-
-    def _entity_to_model(
-        self,
-        entity: NodeLinkExecution,
-    ) -> NodeLinkExecutionModel:
-        return NodeLinkExecutionModel(
-            id=entity.id.value,
-            graph_execution_id=entity.graph_execution_id.value,
-            node_execution_id=entity.node_execution_id.value,
-        )

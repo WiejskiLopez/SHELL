@@ -14,9 +14,9 @@ from shell.domain.execution.aggregates.graph_execution_state.graph_execution_sta
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.state_direction import StateDirection
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")

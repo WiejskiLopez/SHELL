@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

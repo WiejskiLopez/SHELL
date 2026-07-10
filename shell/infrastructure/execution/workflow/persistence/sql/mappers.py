@@ -26,13 +26,13 @@ from shell.domain.execution.aggregates.workflow.value_objects.node_execution_res
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.status import Status
 from shell.infrastructure.execution.node_execution.persistence.sql.models import (
     NodeExecutionResultModel,
 )
 from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.status import Status
 
 
 def _ensure_utc(dt: datetime) -> datetime:

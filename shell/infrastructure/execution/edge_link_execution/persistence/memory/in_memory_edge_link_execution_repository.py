@@ -12,7 +12,7 @@ from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_lin
 from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (

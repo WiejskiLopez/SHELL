@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.session_execution.repositories.session_ex
 from shell.infrastructure.execution.session_execution.persistence.sql.repositories.sql_session_execution_repository import (
     SqlSessionExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

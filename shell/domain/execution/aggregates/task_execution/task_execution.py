@@ -17,8 +17,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -27,8 +27,8 @@ if TYPE_CHECKING:
         TaskExecutionBody,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.platform.value_objects.deleted_at import DeletedAt
-    from shell.domain.platform.value_objects.reason import Reason
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.reason import Reason
 
 
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (

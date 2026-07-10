@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 
-from shell.infrastructure.platform.logging.stdlib_logger import JsonFormatter, set_correlation_id
+from shell.platform.infrastructure.logging.stdlib_logger import JsonFormatter, set_correlation_id
 
 
 class TestJsonFormatter:

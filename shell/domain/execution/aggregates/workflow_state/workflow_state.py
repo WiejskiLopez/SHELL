@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 from shell.domain.execution.aggregates.workflow_state.events.workflow_state_changed_event import (

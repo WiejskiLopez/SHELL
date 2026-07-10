@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from shell.application.platform.bus.command_bus import (
-    CommandBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
-)
 from shell.framework.execution.edge_link_execution.api.controller import (
     EdgeLinkExecutionController,
 )
@@ -16,7 +13,10 @@ from shell.framework.execution.edge_link_execution.api.create_edge_link_executio
 from shell.framework.execution.edge_link_execution.api.edge_link_execution_response import (
     EdgeLinkExecutionResponse,
 )
-from shell.framework.platform.api.dependencies import get_command_bus
+from shell.platform.application.bus.command_bus import (
+    CommandBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
+)
+from shell.platform.framework.api.dependencies import get_command_bus
 
 router = APIRouter(prefix="/edge-links", tags=["edge-links"])
 

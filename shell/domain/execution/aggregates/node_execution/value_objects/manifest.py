@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.base.value_object import ValueObject
+from shell.platform.domain.base.value_object import ValueObject
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.mode import Mode
+    from shell.platform.domain.value_objects.mode import Mode
 
 
 @dataclass(frozen=True, slots=True)

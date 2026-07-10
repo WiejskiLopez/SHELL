@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.platform.value_objects.version import Version
+from shell.platform.domain.value_objects.version import Version
 
 
 class TestVersion:

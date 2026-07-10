@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from shell.application.platform.exceptions.application_error import ApplicationError
+from shell.platform.application.exceptions.application_error import ApplicationError
 
 
 class GraphDefinitionNotFoundException(ApplicationError):

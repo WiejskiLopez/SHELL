@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id import (
     NodeExecutionResultId,
 )
-from shell.domain.platform.base.entity import Entity
+from shell.platform.domain.base.entity import Entity
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
         ExecutionStdout,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.status import Status
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.status import Status
 
 
 class NodeExecutionResult(Entity[NodeExecutionResultId]):

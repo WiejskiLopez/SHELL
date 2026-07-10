@@ -8,7 +8,7 @@ from shell.domain.definition.aggregates.runner_config.repositories.runner_config
 from shell.infrastructure.definition.runner_config.persistence.sql.repositories.sql_runner_config_repository import (
     SqlRunnerConfigRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

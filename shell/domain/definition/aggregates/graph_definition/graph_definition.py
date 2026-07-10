@@ -8,8 +8,8 @@ from shell.domain.definition.aggregates.graph_definition.events.graph_definition
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

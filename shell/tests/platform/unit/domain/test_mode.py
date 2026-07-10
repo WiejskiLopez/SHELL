@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.platform.value_objects.mode import Mode
+from shell.platform.domain.value_objects.mode import Mode
 
 
 class TestMode:

@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 _NOW_CREATED_AT = CreatedAt.from_datetime(_NOW)

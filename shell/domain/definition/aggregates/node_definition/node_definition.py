@@ -15,13 +15,13 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_role_
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
     NodeTypeName,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.domain.platform.value_objects.mode import Mode
+    from shell.platform.domain.value_objects.mode import Mode
 
 
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):

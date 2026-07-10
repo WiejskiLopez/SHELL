@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from shell.domain.platform.base.value_object import ValueObject
+from shell.platform.domain.base.value_object import ValueObject
 
 
 class SystemRole(ValueObject, StrEnum):

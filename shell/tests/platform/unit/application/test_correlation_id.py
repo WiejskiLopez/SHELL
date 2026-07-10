@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.infrastructure.platform.logging.stdlib_logger import (
+from shell.platform.infrastructure.logging.stdlib_logger import (
     get_correlation_id,
     set_correlation_id,
 )

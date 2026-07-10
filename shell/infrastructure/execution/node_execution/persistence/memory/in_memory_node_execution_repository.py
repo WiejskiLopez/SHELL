@@ -11,7 +11,7 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import (
+from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,
 )
 

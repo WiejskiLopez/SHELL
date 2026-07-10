@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
 from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 class TestMessageRouter:

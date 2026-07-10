@@ -14,14 +14,14 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.infrastructure.platform.logging.sql_audit_publisher import SqlAuditPublisher
-from shell.infrastructure.platform.persistence.sql.models import AuditEventModel
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
+from shell.platform.infrastructure.persistence.sql.models import AuditEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.domain.platform.events import DomainEvent
+    from shell.platform.domain.events import DomainEvent
 
 
 class TestSqlAuditPublisher:

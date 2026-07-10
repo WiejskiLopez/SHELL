@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.events import DomainEvent
+from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
         NodeTypeName,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)

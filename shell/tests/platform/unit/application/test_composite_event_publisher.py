@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import AsyncMock
 
-from shell.infrastructure.platform.logging.composite_event_publisher import CompositeEventPublisher
+from shell.platform.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.tests.shared.sample_aggregate import make_sample_event
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.ports import EventPublisher
-    from shell.domain.platform.events import (
+    from shell.platform.application.ports.ports import EventPublisher
+    from shell.platform.domain.events import (
         DomainEvent,  # noqa: TC002 — DomainEvent używany w typowaniu listy eventów
     )
 

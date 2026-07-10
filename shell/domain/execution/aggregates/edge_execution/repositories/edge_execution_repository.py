@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class EdgeExecutionRepository(Protocol):

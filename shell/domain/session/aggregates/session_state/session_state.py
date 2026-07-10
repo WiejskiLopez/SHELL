@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
 )
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SessionState(AggregateRoot[SessionStateId]):

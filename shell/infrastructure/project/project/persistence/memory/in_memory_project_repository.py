@@ -5,7 +5,7 @@ from shell.domain.project.aggregates.project.repositories.project_repository imp
     ProjectRepository,
 )
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 
 class InMemoryProjectRepository(InMemoryRepository[Project, ProjectId], ProjectRepository):

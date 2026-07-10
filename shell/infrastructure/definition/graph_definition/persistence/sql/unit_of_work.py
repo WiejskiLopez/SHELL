@@ -8,7 +8,7 @@ from shell.domain.definition.aggregates.graph_definition.repositories.graph_defi
 from shell.infrastructure.definition.graph_definition.persistence.sql.repositories.sql_graph_definition_repository import (
     SqlGraphDefinitionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

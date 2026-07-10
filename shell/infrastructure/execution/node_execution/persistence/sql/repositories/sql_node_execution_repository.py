@@ -16,13 +16,13 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
-from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
     NodeExecutionModel,
 )
 from shell.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
     NodeLinkExecutionModel,
 )
+from shell.platform.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from sqlalchemy import Select

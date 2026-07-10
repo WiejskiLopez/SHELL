@@ -8,11 +8,11 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
     TaskExecutionStateRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.task_execution_state.persistence.sql.mappers import (
     task_execution_state_entity_to_model,
     task_execution_state_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import TaskExecutionStateModel
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):

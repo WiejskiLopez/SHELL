@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.platform.bus.command_bus import CommandBus
-from shell.application.platform.bus.query_bus import QueryBus
-from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
-from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-from shell.infrastructure.platform.time.system_clock import SystemClock
 from shell.infrastructure.session.session.persistence.sql.unit_of_work import (
     SqlAlchemySessionUnitOfWork,
 )
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
+from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class SessionCoreContainer(containers.DeclarativeContainer):

@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_skill.project_skill import ProjectSkill
     from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
         ProjectSkillId,
     )
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class ProjectSkillRepository(Protocol):

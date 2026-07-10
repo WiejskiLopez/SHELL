@@ -7,11 +7,11 @@ from shell.domain.user.aggregates.user_state.repositories.user_state_repository 
 )
 from shell.domain.user.aggregates.user_state.user_state import UserState
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.user.value_objects.user_id import UserId
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemoryUserStateRepository(InMemoryRepository[UserState, UserStateId], UserStateRepository):

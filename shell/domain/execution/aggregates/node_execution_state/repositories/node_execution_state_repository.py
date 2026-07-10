@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
         NodeExecutionStateId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class NodeExecutionStateRepository(Protocol):

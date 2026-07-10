@@ -13,15 +13,15 @@ from shell.domain.execution.aggregates.graph_execution_state.graph_execution_sta
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
     GraphExecutionStateId,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_input import (
     GraphExecutionStateInputModel,
 )
 from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_output import (
     GraphExecutionStateOutputModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 def _ensure_utc(dt: datetime) -> datetime:

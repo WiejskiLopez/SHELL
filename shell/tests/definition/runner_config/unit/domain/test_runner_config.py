@@ -6,7 +6,7 @@ from shell.domain.definition.aggregates.runner_config.runner_config import Runne
 from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 6, 1, tzinfo=UTC)
 

@@ -1,0 +1,42 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.platform.domain.base.entity import Entity, TId
+
+if TYPE_CHECKING:
+    from shell.platform.domain.events import DomainEvent
+
+
+class AggregateRoot(Entity[TId]):
+    """Base class for aggregate roots.
+
+    Aggregates own a private buffer of domain events recorded by their
+    methods. The application layer calls ``pull_events`` after a successful
+    transaction to forward them to the event publisher / outbox.
+    """
+
+    __slots__ = ("_events",)
+
+    _events: list[DomainEvent]
+
+    def __init__(self, id: TId) -> None:
+        super().__init__(id)
+        self._events = []
+
+    def append_event(self, event: DomainEvent) -> None:
+        from shell.platform.domain.value_objects.aggregate_id import AggregateId
+        from shell.platform.domain.value_objects.aggregate_type import AggregateType
+
+        object.__setattr__(
+            event,
+            "aggregate_id",
+            AggregateId(self.id.value if hasattr(self.id, "value") else str(self.id)),
+        )
+        object.__setattr__(event, "aggregate_type", AggregateType(type(self).__name__))
+        self._events.append(event)
+
+    def pull_events(self) -> list[DomainEvent]:
+        events = self._events.copy()
+        self._events.clear()
+        return events

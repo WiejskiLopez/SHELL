@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapped_column
 
-from shell.infrastructure.platform.persistence.sql.models._compat import JSONB
-from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
+from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 if TYPE_CHECKING:
     from datetime import datetime

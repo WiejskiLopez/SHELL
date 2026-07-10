@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.bootstrap.platform.container.core_container import CoreContainer
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.bootstrap.platform.factory.bus_factory import wire_buses
+from shell.platform.bootstrap.container.core_container import CoreContainer
+from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.platform.bootstrap.factory.bus_factory import wire_buses
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+    from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 
 
 class ApplicationFactory:

@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-SHELL_PKG = Path(__file__).resolve().parent.parent.parent.parent
+SHELL_PKG = Path(__file__).resolve().parent.parent.parent  # shell/
 PROJECT_ROOT = SHELL_PKG.parent
 
 

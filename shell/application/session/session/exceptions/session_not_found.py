@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.platform.exceptions import DomainError
+from shell.platform.domain.exceptions import DomainError
 
 
 class SessionNotFound(DomainError):

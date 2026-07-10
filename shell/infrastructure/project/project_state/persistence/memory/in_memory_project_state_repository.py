@@ -9,11 +9,11 @@ from shell.domain.project.aggregates.project_state.repositories.project_state_re
 from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
     ProjectStateId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemoryProjectStateRepository(

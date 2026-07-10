@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.user.aggregates.user_skill.repositories.user_skill_repository import (
     UserSkillRepository,
 )
@@ -13,6 +12,7 @@ from shell.infrastructure.user.user_skill.persistence.sql.mappers import (
     user_skill_entity_to_model,
     user_skill_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import UserSkillModel
 

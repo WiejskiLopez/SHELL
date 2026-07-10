@@ -1,3 +1,10 @@
+"""Envelope — techniczna koperta transportowa dla Message.
+
+Envelope NIE jest agregatem. Jest transientną strukturą danych używaną
+do zapakowania Message przed wysłaniem do outbox_message i rozpakowania
+po stronie odbiorcy. Nie posiada własnej tabeli, repozytorium, eventów.
+"""
+
 from __future__ import annotations
 
 import uuid

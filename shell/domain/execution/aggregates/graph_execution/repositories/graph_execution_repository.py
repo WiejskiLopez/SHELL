@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class GraphExecutionRepository(Protocol):

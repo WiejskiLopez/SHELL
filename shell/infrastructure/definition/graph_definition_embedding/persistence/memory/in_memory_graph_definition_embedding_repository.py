@@ -11,7 +11,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.repositories 
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects import (
     GraphDefinitionEmbeddingId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (

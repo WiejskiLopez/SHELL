@@ -11,10 +11,10 @@ from shell.infrastructure.execution.session_execution.persistence.sql.services.s
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.infrastructure.platform.persistence import (
+    from shell.platform.infrastructure.persistence import (
         SqlAlchemyUnitOfWork,  # noqa: TC002 — SqlAlchemyUnitOfWork używany w sygnaturach fixture'ów pytest
     )
-    from shell.infrastructure.platform.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
+    from shell.platform.infrastructure.persistence.memory import (  # noqa: TC002 — FakeClock, FakeIdGenerator używane w sygnaturach fixture'ów pytest
         FakeClock,
         FakeIdGenerator,
     )

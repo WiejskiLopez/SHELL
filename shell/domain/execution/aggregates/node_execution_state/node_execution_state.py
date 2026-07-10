@@ -8,9 +8,9 @@ from shell.domain.execution.aggregates.node_execution_state.events.node_executio
 from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
     NodeExecutionStateId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):

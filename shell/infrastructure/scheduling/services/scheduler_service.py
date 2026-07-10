@@ -29,10 +29,10 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
-    from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import (
+    from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import (
         OutboxToInboxRelay,
     )
-    from shell.infrastructure.platform.messaging.event.processor.inbox_processor import (
+    from shell.platform.infrastructure.messaging.event.processor.inbox_processor import (
         InboxProcessor,
     )
 

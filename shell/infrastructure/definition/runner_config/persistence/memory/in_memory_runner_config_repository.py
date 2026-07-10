@@ -7,7 +7,7 @@ from shell.domain.definition.aggregates.runner_config.runner_config import Runne
 from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 
 class InMemoryRunnerConfigRepository(

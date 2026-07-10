@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
-from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 if TYPE_CHECKING:
     from shell.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (

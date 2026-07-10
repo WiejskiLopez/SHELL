@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
 from shell.domain.user.value_objects.user_id import UserId
 from shell.infrastructure.user.user_skill.persistence.sql.models.user_skill import UserSkillModel
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 def _ensure_utc(dt: datetime) -> datetime:

@@ -12,14 +12,14 @@ from shell.domain.execution.aggregates.task_execution_state.task_execution_state
 from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
     TaskExecutionStateId,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemoryTaskExecutionStateRepository(  # type: ignore[misc]

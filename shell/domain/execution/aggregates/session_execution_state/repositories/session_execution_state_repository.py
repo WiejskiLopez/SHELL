@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
         SessionExecutionState,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SessionExecutionStateRepository(Protocol):

@@ -9,7 +9,7 @@ from shell.application.execution.node_execution.queries.get_node_execution_resul
 )
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.query_bus import QueryBus
+    from shell.platform.application.bus.query_bus import QueryBus
 
 
 class NodeExecutionController:

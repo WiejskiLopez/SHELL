@@ -3,7 +3,6 @@ from __future__ import annotations
 import copy
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.session.aggregates.session_state.repositories.session_state_repository import (
     SessionStateRepository,
 )
@@ -11,11 +10,12 @@ from shell.domain.session.aggregates.session_state.session_state import SessionS
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemorySessionStateRepository(

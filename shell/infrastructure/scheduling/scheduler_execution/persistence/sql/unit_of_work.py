@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from shell.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
     SchedulerExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.repositories.sql_scheduler_execution_repository import (
     SqlSchedulerExecutionRepository,
 )
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

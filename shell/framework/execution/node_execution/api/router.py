@@ -9,10 +9,10 @@ from fastapi import APIRouter, Depends
 from shell.framework.execution.node_execution.api.controller import (
     NodeExecutionController,
 )
-from shell.framework.platform.api.dependencies import get_query_bus
+from shell.platform.framework.api.dependencies import get_query_bus
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.query_bus import QueryBus
+    from shell.platform.application.bus.query_bus import QueryBus
 
 router = APIRouter(prefix="/nodes", tags=["nodes"])
 

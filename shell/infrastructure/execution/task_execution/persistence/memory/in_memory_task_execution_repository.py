@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.task_execution.task_execution import Task
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,  # noqa: TC002 — TaskExecutionId używany w konstruktorach w repozytorium
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import (
+from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,
 )
 

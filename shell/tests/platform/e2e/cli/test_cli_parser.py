@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import tempfile
 
-from shell.framework.platform.cli.parser import parse_args
+from shell.platform.framework.cli.parser import parse_args
 
 _TEMP_NODE_DIR = f"{tempfile.gettempdir()}/node"
 

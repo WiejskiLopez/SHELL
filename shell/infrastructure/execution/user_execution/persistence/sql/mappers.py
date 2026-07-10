@@ -9,10 +9,10 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
     UserExecutionId,
 )
 from shell.domain.execution.aggregates.user_execution.value_objects.user_id_ref import UserIdRef
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.infrastructure.execution.user_execution.persistence.sql.models.user_execution import (
     UserExecutionModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 def _ensure_utc(dt: datetime) -> datetime:

@@ -3,15 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.events import DomainEvent
+from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
         SessionStateId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 @dataclass(frozen=True, slots=True)

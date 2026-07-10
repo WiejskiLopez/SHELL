@@ -5,8 +5,8 @@ from datetime import datetime  # noqa: TC003 — SQLAlchemy Mapped[datetime] nee
 from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
-from shell.infrastructure.platform.persistence.sql.models.mixins import VersionedMixin
+from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 
 class GraphDefinitionEmbeddingModel(Base, VersionedMixin):

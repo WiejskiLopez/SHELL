@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.memory import FakeClock, FakeEventPublisher
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.platform.infrastructure.persistence.memory import FakeClock, FakeEventPublisher
+from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

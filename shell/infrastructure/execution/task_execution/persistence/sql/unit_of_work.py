@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.task_execution.repositories.task_executio
 from shell.infrastructure.execution.task_execution.persistence.sql.repositories.sql_task_execution_repository import (
     SqlTaskExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

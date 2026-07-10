@@ -6,8 +6,8 @@ from shell.domain.messaging.aggregates.message_router.events.message_router_crea
     MessageRouterCreatedEvent,
 )
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

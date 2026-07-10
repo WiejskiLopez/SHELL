@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
         RunnerConfigId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class RunnerConfigRepository(Protocol):

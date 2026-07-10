@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.framework.platform.api.app import create_app
-from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+from shell.platform.framework.api.app import create_app
+from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 
 
 async def _make_app(tmp_path):

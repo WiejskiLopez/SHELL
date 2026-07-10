@@ -12,7 +12,7 @@ from shell.domain.execution.aggregates.agent_execution.repositories.agent_execut
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (

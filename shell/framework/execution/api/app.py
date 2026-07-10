@@ -6,15 +6,15 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from shell.domain.platform.exceptions import DomainError
 from shell.framework.execution.edge_execution.api.router import router as edge_executions_router
 from shell.framework.execution.edge_link_execution.api.router import (
     router as edge_link_executions_router,
 )
 from shell.framework.execution.node_execution.api.router import router as node_execution_router
 from shell.framework.execution.workflow.api.router import router as workflows_router
-from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
-from shell.framework.platform.api.middleware.error_handler import domain_error_handler
+from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
+from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 
 
 def create_execution_app(core_container: Any) -> FastAPI:

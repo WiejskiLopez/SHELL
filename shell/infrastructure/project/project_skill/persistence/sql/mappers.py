@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 from shell.domain.project.aggregates.project_skill.project_skill import ProjectSkill
 from shell.domain.project.aggregates.project_skill.value_objects.project_skill_data import (
@@ -18,6 +15,9 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
 from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
     ProjectSkillModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 def _ensure_utc(dt: datetime) -> datetime:

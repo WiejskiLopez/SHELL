@@ -8,11 +8,11 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.user_execution_state.repositories.user_execution_state_repository import (
     UserExecutionStateRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.user_execution_state.persistence.sql.mappers import (
     user_execution_state_entity_to_model,
     user_execution_state_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import UserExecutionStateModel
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution_state.user_execution_state import (
         UserExecutionState,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlUserExecutionStateRepository(UserExecutionStateRepository):

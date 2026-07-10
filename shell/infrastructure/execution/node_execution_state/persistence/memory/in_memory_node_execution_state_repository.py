@@ -11,8 +11,8 @@ from shell.domain.execution.aggregates.node_execution_state.repositories.node_ex
 from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
     NodeExecutionStateId,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemoryNodeExecutionStateRepository(

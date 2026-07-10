@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 from unittest.mock import MagicMock
 
-from shell.infrastructure.platform.logging.logging_event_publisher import LoggingEventPublisher
+from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.tests.shared.sample_aggregate import make_sample_event
 
 if TYPE_CHECKING:
-    from shell.domain.platform.events import DomainEvent
+    from shell.platform.domain.events import DomainEvent
 
 
 class TestLoggingEventPublisher:

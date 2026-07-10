@@ -17,8 +17,8 @@ from shell.domain.user.aggregates.user.user import User
 from shell.domain.user.value_objects.user_id import UserId
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.command_bus import CommandBus
     from shell.domain.user.ports.user_acl import UserACL
+    from shell.platform.application.bus.command_bus import CommandBus
 
 
 class UserController:

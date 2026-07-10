@@ -13,14 +13,14 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.infrastructure.platform.context import (
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.infrastructure.context import (
     reset_causation_id,
     reset_correlation_id,
     set_causation_id,
     set_correlation_id,
 )
-from shell.infrastructure.platform.messaging.memory_outbox_store import InMemoryOutboxStore
+from shell.platform.infrastructure.messaging.memory_outbox_store import InMemoryOutboxStore
 
 # ---------------------------------------------------------------------------
 # Helpers

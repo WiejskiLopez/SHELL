@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from dependency_injector import containers, providers
 
-from shell.application.messaging.query_handlers.get_message_by_id_handler import (
+from shell.application.messaging.message_router.query_handlers.get_message_by_id_handler import (
     GetMessageByIdHandler,
 )
-from shell.application.platform.bus.message_bus import MessageBus
 from shell.infrastructure.messaging.persistence.sql.services.message_router_query_service import (
     MessageRouterQueryService,
 )
-from shell.infrastructure.platform.identity.uuid_id_generator import UuidIdGenerator
-from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
-from shell.infrastructure.platform.persistence.sql import build_session_factory
-from shell.infrastructure.platform.time.system_clock import SystemClock
+from shell.platform.application.bus.message_bus import MessageBus
+from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
+from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class MessagingCoreContainer(containers.DeclarativeContainer):

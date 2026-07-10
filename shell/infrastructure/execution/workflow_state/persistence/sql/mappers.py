@@ -9,12 +9,12 @@ from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_sta
     WorkflowStateId,
 )
 from shell.domain.execution.aggregates.workflow_state.workflow_state import WorkflowState
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.state_direction import StateDirection
 from shell.infrastructure.execution.workflow_state.persistence.sql.models.workflow_state import (
     WorkflowStateModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 def _ensure_utc(dt: datetime) -> datetime:

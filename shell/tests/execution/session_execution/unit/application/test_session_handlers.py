@@ -25,7 +25,7 @@ from shell.application.session.session.command_handlers.open_session_handler imp
 from shell.application.session.session.exceptions.session_not_found import SessionNotFound
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.persistence.memory import (
+    from shell.platform.infrastructure.persistence.memory import (
         FakeClock,  # noqa: TC002 — FakeClock używany w sygnaturach fixture'ów pytest
         FakeIdGenerator,  # noqa: TC002 — FakeIdGenerator używany w sygnaturach fixture'ów pytest
         InMemoryQueryServices,  # noqa: TC002 — InMemoryQueryServices używany w sygnaturach fixture'ów pytest

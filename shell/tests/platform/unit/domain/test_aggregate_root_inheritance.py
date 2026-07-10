@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.platform.base import Entity
+from shell.platform.domain.base import Entity
 from shell.tests.shared.sample_aggregate import _SampleAggregate, _SampleId
 
 

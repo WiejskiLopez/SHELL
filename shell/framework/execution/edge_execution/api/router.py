@@ -4,9 +4,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from shell.application.platform.bus.command_bus import (
-    CommandBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
-)
 from shell.framework.execution.edge_execution.api.controller import (
     EdgeExecutionController,
 )
@@ -19,7 +16,10 @@ from shell.framework.execution.edge_execution.api.edge_execution_response import
 from shell.framework.execution.edge_execution.api.update_edge_execution_request import (
     UpdateEdgeExecutionRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
 )
-from shell.framework.platform.api.dependencies import get_command_bus
+from shell.platform.application.bus.command_bus import (
+    CommandBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
+)
+from shell.platform.framework.api.dependencies import get_command_bus
 
 router = APIRouter(prefix="/edges", tags=["edges"])
 

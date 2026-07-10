@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter, Depends
 
 from shell.application.session.session.dto.session import SessionDto
-from shell.framework.platform.api.dependencies import get_core_container
 from shell.framework.session.session.api.controller import SessionController
+from shell.platform.framework.api.dependencies import get_core_container
 
 if TYPE_CHECKING:
     from shell.application.execution.session_execution.ports.session_query_service import (
         SessionQueryService,
     )
-    from shell.bootstrap.platform.container.core_container import CoreContainer
+    from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 

@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.infrastructure.execution.workflow_state.persistence.sql.repositories.sql_workflow_state_repository import (
     SqlWorkflowStateRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

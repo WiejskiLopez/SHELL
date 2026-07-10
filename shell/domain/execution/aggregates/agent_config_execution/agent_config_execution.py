@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
     AgentConfigExecutionId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_config_execution.value_objects.config import Config
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):

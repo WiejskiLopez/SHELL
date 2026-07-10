@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.events import DomainEvent
+from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.action_ref import (

@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

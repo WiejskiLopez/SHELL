@@ -1,5 +1,0 @@
-from __future__ import annotations
-
-from shell.infrastructure.platform.serialization.event_serializer import DomainEventSerializer
-
-__all__ = ["DomainEventSerializer"]

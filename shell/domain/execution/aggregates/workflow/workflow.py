@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.platform.value_objects.deleted_at import DeletedAt
-    from shell.domain.platform.value_objects.reason import Reason
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.reason import Reason
 
 
 class Workflow(AggregateRoot["WorkflowId"]):

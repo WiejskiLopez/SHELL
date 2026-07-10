@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from shell.domain.user.aggregates.user_skill.repositories.user_skill_repository import (
     UserSkillRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 from shell.infrastructure.user.user_skill.persistence.sql.repositories.sql_user_skill_repository import (
     SqlUserSkillRepository,
 )
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

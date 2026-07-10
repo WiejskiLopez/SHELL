@@ -7,7 +7,7 @@ from shell.domain.definition.aggregates.graph_definition.repositories import (
 from shell.domain.definition.aggregates.graph_definition.value_objects import (
     GraphDefinitionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 
 class InMemoryGraphDefinitionRepository(

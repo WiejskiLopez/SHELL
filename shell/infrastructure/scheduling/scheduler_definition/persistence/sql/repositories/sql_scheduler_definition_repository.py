@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
+from shell.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
+    SchedulerDefinitionRepository,
+)
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.mappers import (
     scheduler_definition_entity_to_model,
     scheduler_definition_model_to_entity,
@@ -13,6 +15,7 @@ from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.mapper
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +34,7 @@ if TYPE_CHECKING:
     )
 
 
-class SqlSchedulerDefinitionRepository:
+class SqlSchedulerDefinitionRepository(SchedulerDefinitionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -55,6 +58,11 @@ class SqlSchedulerDefinitionRepository:
         )
         rows = (await self._session.execute(query)).scalars().all()
         return [scheduler_definition_model_to_entity(r) for r in rows if r is not None]
+
+    async def delete(self, id: SchedulerDefinitionId) -> None:
+        model = await self._session.get(SchedulerDefinitionModel, id.value)
+        if model:
+            await self._session.delete(model)
 
     async def save(self, definition: SchedulerDefinition) -> None:
         model = await self._session.get(SchedulerDefinitionModel, definition.id.value)

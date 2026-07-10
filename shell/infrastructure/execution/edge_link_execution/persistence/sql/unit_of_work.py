@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_lin
 from shell.infrastructure.execution.edge_link_execution.persistence.sql.repositories.sql_edge_link_execution_repository import (
     SqlEdgeLinkExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

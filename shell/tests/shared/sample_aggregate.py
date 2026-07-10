@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from shell.domain.platform.base import AggregateRoot, Entity
-from shell.domain.platform.events import DomainEvent
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base import AggregateRoot, Entity
+from shell.platform.domain.events import DomainEvent
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 def make_sample_event(payload: str = "") -> _SampleEvent:

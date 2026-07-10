@@ -6,13 +6,13 @@ from fastapi import APIRouter, Depends
 
 from shell.application.definition.graph_definition.dto.graph_definition import GraphDefinitionDto
 from shell.framework.definition.graph_definition.api.controller import DefinitionController
-from shell.framework.platform.api.dependencies import get_core_container
+from shell.platform.framework.api.dependencies import get_core_container
 
 if TYPE_CHECKING:
     from shell.application.definition.graph_definition.ports.graph_definition_query_service import (
         GraphDefinitionQueryService,
     )
-    from shell.bootstrap.platform.container.core_container import CoreContainer
+    from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/definitions", tags=["definitions"])
 

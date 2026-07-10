@@ -8,12 +8,12 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.session_execution.repositories.session_execution_repository import (
     SessionExecutionRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.session_execution.persistence.sql.mappers import (
     session_execution_entity_to_model,
     session_execution_model_to_entity,
     session_execution_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import SessionExecutionModel
 

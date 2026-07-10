@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
     from shell.domain.user.value_objects.skill_id import SkillId
     from shell.domain.user.value_objects.user_id import UserId
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class UserSkillRepository(Protocol):

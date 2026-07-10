@@ -10,8 +10,8 @@ _BCS = frozenset({"execution", "definition", "session", "user", "project", "sche
 # Allowed cross-BC import targets (ports, contracts, DTOs)
 _ALLOWED_CROSS_BC = frozenset(
     {
-        "shell.domain.platform",
-        "shell.application.platform",
+        "shell.platform.domain",
+        "shell.platform.application",
     }
 )
 

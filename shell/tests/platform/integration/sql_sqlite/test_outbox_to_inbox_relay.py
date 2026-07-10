@@ -16,11 +16,11 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.infrastructure.platform.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-from shell.infrastructure.platform.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
-from shell.infrastructure.platform.persistence.memory import FakeEventPublisher
-from shell.infrastructure.platform.persistence.sql.models import OutboxEventModel
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
+from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
+from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
+from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

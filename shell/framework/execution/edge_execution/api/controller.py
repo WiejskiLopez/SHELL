@@ -21,13 +21,13 @@ from shell.framework.execution.edge_execution.api.edge_execution_response import
 )
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.command_bus import CommandBus
     from shell.framework.execution.edge_execution.api.create_edge_execution_request import (
         CreateEdgeExecutionRequest,
     )
     from shell.framework.execution.edge_execution.api.update_edge_execution_request import (
         UpdateEdgeExecutionRequest,
     )
+    from shell.platform.application.bus.command_bus import CommandBus
 
 
 class EdgeExecutionController:

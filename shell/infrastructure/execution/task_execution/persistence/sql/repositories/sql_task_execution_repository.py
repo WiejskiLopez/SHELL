@@ -7,12 +7,12 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
     TaskExecutionRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.task_execution.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
     task_execution_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import TaskExecutionModel
 

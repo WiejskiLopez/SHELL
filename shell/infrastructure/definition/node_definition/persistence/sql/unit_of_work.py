@@ -8,7 +8,7 @@ from shell.domain.definition.aggregates.node_definition.repositories.node_defini
 from shell.infrastructure.definition.node_definition.persistence.sql.repositories.sql_node_definition_repository import (
     SqlNodeDefinitionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

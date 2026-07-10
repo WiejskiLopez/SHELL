@@ -11,7 +11,7 @@ from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.configuration.shell_config import ShellConfig
+    from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 
 
 class PipelineCommand(RunnableCommand):

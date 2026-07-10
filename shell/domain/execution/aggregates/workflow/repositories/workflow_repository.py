@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class WorkflowRepository(Protocol):

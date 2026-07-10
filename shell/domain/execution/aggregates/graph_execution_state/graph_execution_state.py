@@ -15,8 +15,8 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
     GraphExecutionStateChangedEvent,
 )
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.state_key import StateKey
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.state_data import StateData
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -25,8 +25,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):

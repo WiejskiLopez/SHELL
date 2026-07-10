@@ -8,11 +8,11 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.session_execution_state.repositories.session_execution_state_repository import (
     SessionExecutionStateRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.session_execution_state.persistence.sql.mappers import (
     session_execution_state_entity_to_model,
     session_execution_state_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import SessionExecutionStateModel
 
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution_state.session_execution_state import (
         SessionExecutionState,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlSessionExecutionStateRepository(SessionExecutionStateRepository):

@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.session.aggregates.session import Session
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class SessionRepository(Protocol):

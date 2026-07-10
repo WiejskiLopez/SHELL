@@ -8,7 +8,7 @@ from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definitio
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.source_context import (

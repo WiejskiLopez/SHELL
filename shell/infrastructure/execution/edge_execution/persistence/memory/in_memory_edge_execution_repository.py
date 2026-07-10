@@ -10,7 +10,7 @@ from shell.domain.execution.aggregates.edge_execution.repositories.edge_executio
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (

@@ -9,7 +9,7 @@ from shell.application.execution.workflow.queries.get_workflow_by_id_query impor
 )
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.query_bus import QueryBus
+    from shell.platform.application.bus.query_bus import QueryBus
 
 
 class WorkflowController:

@@ -4,7 +4,7 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.infrastructure.platform.persistence.sql.models.base import Base
+from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 
 class RunnerConfigModel(Base):

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
         TaskExecutionState,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class TaskExecutionStateRepository(Protocol):

@@ -8,8 +8,8 @@ from shell.domain.execution.aggregates.user_execution.events.user_execution_crea
 from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
     UserExecutionId,
 )
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

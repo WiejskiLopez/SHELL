@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (

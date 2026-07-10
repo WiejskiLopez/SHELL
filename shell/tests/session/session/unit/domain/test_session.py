@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 _NOW = CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
 _LATER_DT = UpdatedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))

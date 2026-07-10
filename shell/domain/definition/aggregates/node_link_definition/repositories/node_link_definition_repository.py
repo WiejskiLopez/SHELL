@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
         NodeLinkDefinitionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class NodeLinkDefinitionRepository(Protocol):

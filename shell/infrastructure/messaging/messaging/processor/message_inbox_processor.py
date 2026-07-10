@@ -13,10 +13,10 @@ from shell.infrastructure.messaging.persistence.sql.models.inbox_message import 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.application.platform.bus.message_bus import MessageBus
     from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
         MessageRouterRepository,
     )
+    from shell.platform.application.bus.message_bus import MessageBus
 
 
 class MessageInboxProcessor:

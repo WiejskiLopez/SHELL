@@ -2,19 +2,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
 from shell.domain.user.aggregates.user.repositories.user_repository import (
     UserRepository,
 )
 from shell.domain.user.aggregates.user.user import User
 from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_id import UserId
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.application.platform.ports.identity import IdGenerator
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
+    from shell.platform.application.ports.identity import IdGenerator
+
     from shell.application.user.user.commands.create_user_command import CreateUserCommand
-    from shell.domain.platform.ports.time import Clock
+    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.time import Clock
 
 
 class CreateUserHandler:

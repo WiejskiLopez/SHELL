@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.workflow.repositories.workflow_repository
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import (
     WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import (
+from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,
 )
 

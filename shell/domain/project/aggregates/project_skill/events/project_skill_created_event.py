@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from shell.domain.platform.events import DomainEvent
+from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
         ProjectSkillId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

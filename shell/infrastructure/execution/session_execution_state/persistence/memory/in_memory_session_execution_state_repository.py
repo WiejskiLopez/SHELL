@@ -10,14 +10,14 @@ from shell.domain.execution.aggregates.session_execution_state.repositories.sess
 from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
     SessionExecutionStateId,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
     )
-    from shell.domain.platform.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemorySessionExecutionStateRepository(  # type: ignore[misc]

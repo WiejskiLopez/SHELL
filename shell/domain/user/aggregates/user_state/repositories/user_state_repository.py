@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.user.aggregates.user_state.user_state import UserState
     from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
     from shell.domain.user.value_objects.user_id import UserId
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class UserStateRepository(Protocol):

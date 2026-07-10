@@ -18,10 +18,10 @@ from shell.framework.execution.edge_link_execution.api.edge_link_execution_respo
 )
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.command_bus import CommandBus
     from shell.framework.execution.edge_link_execution.api.create_edge_link_execution_request import (
         CreateEdgeLinkExecutionRequest,
     )
+    from shell.platform.application.bus.command_bus import CommandBus
 
 
 class EdgeLinkExecutionController:

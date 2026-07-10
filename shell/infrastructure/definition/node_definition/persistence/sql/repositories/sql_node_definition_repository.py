@@ -8,13 +8,13 @@ from sqlalchemy import select
 from shell.domain.definition.aggregates.node_definition.repositories import (
     NodeDefinitionRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.definition.node_definition.persistence.sql.models import (
     NodeDefinitionModel,
 )
 from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,7 +37,7 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_role_
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
     NodeTypeName,
 )
-from shell.domain.platform.value_objects.mode import Mode
+from shell.platform.domain.value_objects.mode import Mode
 
 
 class SqlNodeDefinitionRepository(NodeDefinitionRepository):

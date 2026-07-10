@@ -11,7 +11,7 @@ from shell.domain.definition.aggregates.node_definition.repositories import (
 from shell.domain.definition.aggregates.node_definition.value_objects import (
     NodeDefinitionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects import (

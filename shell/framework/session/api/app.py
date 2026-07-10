@@ -6,10 +6,10 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from shell.domain.platform.exceptions import DomainError
-from shell.framework.platform.api.middleware.correlation_id import CorrelationIdMiddleware
-from shell.framework.platform.api.middleware.error_handler import domain_error_handler
 from shell.framework.session.session.api.router import router as sessions_router
+from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
+from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 
 
 def create_session_app(core_container: Any) -> FastAPI:

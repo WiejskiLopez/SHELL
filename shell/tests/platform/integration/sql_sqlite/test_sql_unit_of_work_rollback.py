@@ -20,14 +20,14 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )
-from shell.infrastructure.platform.persistence import (
+from shell.platform.infrastructure.persistence import (
     SqlAlchemyUnitOfWork,  # noqa: TC001 -- used at runtime for instantiation
 )
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.infrastructure.platform.persistence.memory import FakeClock
+    from shell.platform.infrastructure.persistence.memory import FakeClock
 
 
 class TestSqlUnitOfWorkRollback:

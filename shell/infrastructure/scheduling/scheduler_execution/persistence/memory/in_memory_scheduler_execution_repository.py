@@ -11,7 +11,7 @@ from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.count_
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (

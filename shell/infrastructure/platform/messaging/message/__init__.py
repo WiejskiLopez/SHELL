@@ -1,1 +1,0 @@
-"""Message outbox/inbox infrastructure."""

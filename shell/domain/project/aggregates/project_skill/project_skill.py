@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
-from shell.domain.platform.base.aggregate_root import AggregateRoot
 from shell.domain.project.aggregates.project_skill.events.project_skill_created_event import (
     ProjectSkillCreatedEvent,
 )
@@ -12,12 +11,13 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_d
 from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
     ProjectSkillId,
 )
+from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.deleted_at import DeletedAt
-    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class ProjectSkill(AggregateRoot[ProjectSkillId]):

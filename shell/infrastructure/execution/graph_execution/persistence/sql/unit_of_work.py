@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.graph_execution.repositories.graph_execut
 from shell.infrastructure.execution.graph_execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

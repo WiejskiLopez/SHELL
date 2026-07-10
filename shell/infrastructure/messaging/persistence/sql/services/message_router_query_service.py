@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.messaging.dto.message_router import MessageRouterDto
+from shell.application.messaging.message_router.dto.message_router import MessageRouterDto
 from shell.infrastructure.messaging.persistence.sql.models.message import MessageModel
 
 if TYPE_CHECKING:

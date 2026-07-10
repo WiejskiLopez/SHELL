@@ -1,8 +1,5 @@
 from datetime import UTC, datetime
 
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.enabled import Enabled
-from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
 )
@@ -27,6 +24,9 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigg
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 def _ensure_utc(dt: datetime) -> datetime:

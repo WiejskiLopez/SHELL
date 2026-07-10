@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.framework.platform.cli.main import main
+from shell.platform.framework.cli.main import main
 
 
 class TestCliMain:

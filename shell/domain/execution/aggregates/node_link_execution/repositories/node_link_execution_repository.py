@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
         NodeLinkExecutionId,
     )
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class NodeLinkExecutionRepository(Protocol):

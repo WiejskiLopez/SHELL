@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.task_execution.value_objects.task_description import (
     TaskDescription,
 )
-from shell.domain.platform.events import DomainEvent
+from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.skill_data import (
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
         TaskExecutionName,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)

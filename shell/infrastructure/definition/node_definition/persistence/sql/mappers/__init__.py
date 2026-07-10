@@ -11,10 +11,10 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_role_
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
     NodeTypeName,
 )
-from shell.domain.platform.value_objects.mode import Mode
 from shell.infrastructure.definition.node_definition.persistence.sql.models import (
     NodeDefinitionModel,
 )
+from shell.platform.domain.value_objects.mode import Mode
 
 
 def node_definition_model_to_entity(

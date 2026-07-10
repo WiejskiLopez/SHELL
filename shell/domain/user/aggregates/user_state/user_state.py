@@ -11,19 +11,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.state_data import StateData
 from shell.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
 )
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.state_data import StateData
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.created_at import CreatedAt
-    from shell.domain.platform.value_objects.deleted_at import DeletedAt
-    from shell.domain.platform.value_objects.state_direction import StateDirection
-    from shell.domain.platform.value_objects.updated_at import UpdatedAt
     from shell.domain.user.value_objects.user_id import UserId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.state_direction import StateDirection
+    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class UserState(AggregateRoot[UserStateId]):

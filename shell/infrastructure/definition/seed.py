@@ -17,7 +17,7 @@ from shell.infrastructure.definition.node_definition.persistence.sql.models impo
 from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
-from shell.infrastructure.platform.persistence.sql import reset_database, run_migrations
+from shell.platform.infrastructure.persistence.sql import reset_database, run_migrations
 
 
 async def bootstrap_definition_database(url: str, reset_db: bool = False) -> None:

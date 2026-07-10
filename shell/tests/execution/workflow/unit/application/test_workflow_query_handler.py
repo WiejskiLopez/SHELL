@@ -12,7 +12,7 @@ from shell.application.execution.workflow.query_handlers.get_workflow_by_id_hand
 )
 
 if TYPE_CHECKING:
-    from shell.infrastructure.platform.persistence.memory import (
+    from shell.platform.infrastructure.persistence.memory import (
         InMemoryQueryServices,  # noqa: TC002 -- used in TYPE_CHECKING block only, needed for pytest fixture type annotation
     )
 

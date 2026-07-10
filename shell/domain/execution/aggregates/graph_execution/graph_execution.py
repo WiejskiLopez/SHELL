@@ -15,10 +15,10 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execu
 from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
     MaxSubgraphDepth,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from datetime import datetime

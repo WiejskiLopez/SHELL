@@ -9,7 +9,7 @@ from shell.domain.execution.aggregates.session_execution.repositories.session_ex
 from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
-from shell.infrastructure.platform.persistence.in_memory_repository import InMemoryRepository
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (

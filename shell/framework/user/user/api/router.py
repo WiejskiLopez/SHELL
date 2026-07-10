@@ -10,13 +10,13 @@ from shell.application.user.user.dto.user import (
     UpdateUserRequest,
     UserDto,
 )
-from shell.framework.platform.api.dependencies import get_core_container
 from shell.framework.user.user.api.controller import UserController
+from shell.platform.framework.api.dependencies import get_core_container
 
 if TYPE_CHECKING:
-    from shell.application.platform.bus.command_bus import CommandBus
-    from shell.bootstrap.platform.container.core_container import CoreContainer
     from shell.domain.user.ports.user_acl import UserACL
+    from shell.platform.application.bus.command_bus import CommandBus
+    from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/users", tags=["users"])
 

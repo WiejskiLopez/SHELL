@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.project.aggregates.project.repositories.project_repository import (
     ProjectRepository,
 )
@@ -13,6 +12,7 @@ from shell.infrastructure.project.project.persistence.sql.mappers import (
     project_model_to_entity,
     project_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import ProjectModel
 

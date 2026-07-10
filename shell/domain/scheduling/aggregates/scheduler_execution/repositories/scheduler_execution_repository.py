@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from shell.domain.platform.value_objects.exists_result import ExistsResult
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
@@ -22,6 +21,7 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
         SchedulerExecutionId,
     )
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class SchedulerExecutionRepository(Protocol):

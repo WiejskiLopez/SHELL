@@ -2,12 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Self
 
-from shell.domain.platform.base import AggregateRoot
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.error_description import ErrorDescription
-from shell.domain.platform.value_objects.reason import Reason
-from shell.domain.platform.value_objects.state_data import StateData
-from shell.domain.platform.value_objects.timestamp import Timestamp
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
     SchedulerExecutionFailedEvent,
@@ -32,6 +26,12 @@ from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigge
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigger_event_type import (
     TriggerEventType,
 )
+from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.error_description import ErrorDescription
+from shell.platform.domain.value_objects.reason import Reason
+from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (

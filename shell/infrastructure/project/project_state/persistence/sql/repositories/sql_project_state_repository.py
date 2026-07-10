@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.domain.project.aggregates.project_state.repositories.project_state_repository import (
     ProjectStateRepository,
 )
@@ -12,18 +11,19 @@ from shell.infrastructure.project.project_state.persistence.sql.mappers import (
     project_state_entity_to_model,
     project_state_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import ProjectStateModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    from shell.domain.platform.value_objects.state_direction import StateDirection
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
     from shell.domain.project.aggregates.project_state.project_state import ProjectState
     from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
         ProjectStateId,
     )
+    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class SqlProjectStateRepository(ProjectStateRepository):

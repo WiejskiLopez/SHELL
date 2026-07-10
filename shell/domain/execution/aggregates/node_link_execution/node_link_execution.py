@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (

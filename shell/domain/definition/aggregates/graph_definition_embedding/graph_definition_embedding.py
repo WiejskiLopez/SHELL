@@ -8,7 +8,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
     GraphDefinitionEmbeddingId,
 )
-from shell.domain.platform.base.aggregate_root import AggregateRoot
+from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_model import (
         EmbeddingModel,
     )
-    from shell.domain.platform.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (

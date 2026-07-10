@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from shell.infrastructure.platform.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 
 
 class _Spy(logging.Handler):

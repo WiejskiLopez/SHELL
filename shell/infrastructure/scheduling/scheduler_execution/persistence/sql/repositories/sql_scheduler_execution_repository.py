@@ -12,12 +12,13 @@ from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.mappers
 from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
-        SchedulerExecutionId,  # noqa: TC002 — SchedulerExecutionId używany w konstruktorach w repozytorium
+        SchedulerExecutionId,
     )
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
@@ -25,6 +26,14 @@ if TYPE_CHECKING:
 
 
 class SqlSchedulerExecutionRepository:
+    """SQL adapter for SchedulerJob aggregate.
+
+    NOTE: Does not inherit from SchedulerExecutionRepository protocol because
+    this adapter works with SchedulerJob (cyclic job config), not SchedulerExecution
+    (trigger-based execution record). These are distinct aggregates sharing the
+    same ID type (SchedulerExecutionId) but different table rows/semantics.
+    """
+
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
@@ -50,3 +59,13 @@ class SqlSchedulerExecutionRepository:
             self._session.add(model)
         else:
             scheduler_execution_update_model(model, execution)
+
+    async def delete(self, id: SchedulerExecutionId) -> None:
+        model = await self._session.get(SchedulerExecutionModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: SchedulerExecutionId) -> ExistsResult:
+        query = select(SchedulerExecutionModel.id).where(SchedulerExecutionModel.id == id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return ExistsResult(row is not None)

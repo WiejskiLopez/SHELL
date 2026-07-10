@@ -5,10 +5,10 @@ from typing import TYPE_CHECKING
 from shell.domain.project.aggregates.project_state.repositories.project_state_repository import (
     ProjectStateRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 from shell.infrastructure.project.project_state.persistence.sql.repositories.sql_project_state_repository import (
     SqlProjectStateRepository,
 )
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import SqlAlchemyUnitOfWorkBase
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

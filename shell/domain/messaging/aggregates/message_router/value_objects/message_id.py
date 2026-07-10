@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from shell.domain.platform.base.entity_id import EntityId
+from shell.platform.domain.base.entity_id import EntityId
 
 
 class MessageId(EntityId):

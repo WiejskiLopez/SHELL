@@ -8,12 +8,12 @@ from sqlalchemy import select
 from shell.domain.execution.aggregates.user_execution.repositories.user_execution_repository import (
     UserExecutionRepository,
 )
-from shell.domain.platform.value_objects.exists_result import ExistsResult
 from shell.infrastructure.execution.user_execution.persistence.sql.mappers import (
     user_execution_entity_to_model,
     user_execution_model_to_entity,
     user_execution_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import UserExecutionModel
 

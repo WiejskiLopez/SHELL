@@ -18,13 +18,13 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgrap
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.platform.value_objects.created_at import CreatedAt
-from shell.domain.platform.value_objects.deleted_at import DeletedAt
-from shell.domain.platform.value_objects.updated_at import UpdatedAt
 from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
     GraphExecutionModel,
 )
-from shell.infrastructure.platform.context import get_correlation_id
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.infrastructure.context import get_correlation_id
 
 
 def _ensure_utc(dt: datetime) -> datetime:

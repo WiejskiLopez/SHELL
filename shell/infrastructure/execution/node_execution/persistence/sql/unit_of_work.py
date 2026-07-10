@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
     SqlNodeExecutionRepository,
 )
-from shell.infrastructure.platform.persistence.sql_alchemy_uow_base import (
+from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,
 )
 

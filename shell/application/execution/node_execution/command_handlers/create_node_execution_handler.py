@@ -20,15 +20,15 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
-from shell.domain.platform.value_objects.mode import Mode
+from shell.platform.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.execution.node_execution.commands.create_node_execution_command import (
         CreateNodeExecutionCommand,
     )
-    from shell.application.platform.ports.unit_of_work import UnitOfWork
-    from shell.domain.platform.ports.identity import Identity  # type: ignore[attr-defined]
-    from shell.domain.platform.ports.time import Time  # type: ignore[attr-defined]
+    from shell.platform.application.ports.unit_of_work import UnitOfWork
+    from shell.platform.domain.ports.identity import Identity  # type: ignore[attr-defined]
+    from shell.platform.domain.ports.time import Time  # type: ignore[attr-defined]
 
 
 class CreateNodeExecutionHandler:
