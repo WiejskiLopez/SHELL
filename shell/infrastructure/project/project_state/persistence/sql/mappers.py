@@ -33,9 +33,7 @@ def project_state_model_to_entity(model: ProjectStateModel) -> ProjectState:
         project_id=ProjectId(model.project_id),
         direction=StateDirection(model.direction),
         state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))) if model.state_data else StateData(JsonStr("{}")),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at))
-        if model.created_at
-        else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
         if model.updated_at is not None
         else None,

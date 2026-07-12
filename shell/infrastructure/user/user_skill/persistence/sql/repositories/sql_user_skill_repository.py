@@ -45,7 +45,7 @@ class SqlUserSkillRepository(UserSkillRepository):
             model = user_skill_entity_to_model(user_skill)
             self._session.add(model)
         else:
-            model.skill_data = json.dumps(json.loads(user_skill.skill_data.value.value))
+            model.skill_data = json.dumps(json.loads(user_skill.skill_data.value.value))  # type: ignore[assignment]
 
     async def delete(self, id: SkillId, now: datetime | None = None) -> None:
         if now is None:

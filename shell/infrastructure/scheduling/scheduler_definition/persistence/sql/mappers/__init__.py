@@ -53,7 +53,7 @@ def scheduler_definition_model_to_entity(
         emit_event_payload=JsonStr(json.dumps(model.action_config.get("emit_event_payload"))) if model.action_config.get("emit_event_payload") else None,
     )
     policy = ExecutionPolicy(
-        **model.execution_policy,
+        **(model.execution_policy or {}),
     )
     return SchedulerDefinition(
         id=SchedulerDefinitionId(model.id),

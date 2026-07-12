@@ -14,4 +14,4 @@ class RepoUrl(ValueObject):
             raise ValueError("RepoUrl cannot be empty string — use None instead")
 
     def __str__(self) -> str:
-        return self.value
+        return self.value or ""

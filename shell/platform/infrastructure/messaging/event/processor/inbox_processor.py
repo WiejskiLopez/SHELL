@@ -15,9 +15,9 @@ from shell.platform.infrastructure.persistence.sql.models import InboxEventModel
 from shell.platform.infrastructure.serialization.event_deserializer import EventDeserializer
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.ports import EventPublisher
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.application.ports.ports import EventPublisher
     from shell.platform.domain.events import DomainEvent
 
 
@@ -32,7 +32,7 @@ class InboxProcessor:
         self._session_factory = session_factory
         self._event_bus = event_bus
         self._batch_size = batch_size
-        self._deserializer = EventDeserializer(registry=registry)
+        self._deserializer = EventDeserializer(registry=registry)  # type: ignore[arg-type]
 
         engine = getattr(session_factory, "bind", None)
         dialect_name: str = engine.dialect.name if engine is not None else "unknown"

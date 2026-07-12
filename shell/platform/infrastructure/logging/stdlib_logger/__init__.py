@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 
-def _make_handler() -> logging.StreamHandler:
+def _make_handler() -> logging.StreamHandler:  # type: ignore[type-arg]
     handler = logging.StreamHandler()
     handler.setFormatter(JsonFormatter())
     return handler

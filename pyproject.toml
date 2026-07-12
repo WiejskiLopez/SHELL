@@ -86,6 +86,7 @@ module = [
     "aiosqlite.*",
     "dependency_injector.*",
     "alembic.*",
+    "jwt",
 ]
 ignore_missing_imports = true
 

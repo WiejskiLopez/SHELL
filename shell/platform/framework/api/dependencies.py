@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def get_core_container(request: _Request) -> CoreContainer:
-    return request.app.state.core_container
+    return request.app.state.core_container  # type: ignore[no-any-return]
 
 
 def _get_buses(container: CoreContainer) -> Any:

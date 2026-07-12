@@ -51,6 +51,7 @@ class CreateNodeExecutionHandler:
             node_definition_id=NodeDefinitionId(command.node_definition_id),
             role=NodeRole(command.role),
             position=NodeOrder(command.position),
+            order=NodeOrder(command.position),
             mode=Mode(command.mode),
             node_type=NodeType(command.node_type),
             now=now,

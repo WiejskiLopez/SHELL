@@ -20,9 +20,7 @@ def message_entity_to_model(message: MessageRouter) -> MessageModel:
 
 
 def message_model_to_entity(model: MessageModel) -> MessageRouter:
-    def _utc(dt: datetime | None) -> datetime | None:
-        if dt is None:
-            return None
+    def _utc(dt: datetime) -> datetime:
         return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt
 
     return MessageRouter.restore(

@@ -14,7 +14,7 @@ from shell.platform.infrastructure.messaging.serialization.command_deserializer 
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.platform.application.bus.command_bus import CommandBus
 
@@ -22,15 +22,15 @@ if TYPE_CHECKING:
 class CommandInboxProcessor:
     def __init__(
         self,
-        session_factory: async_sessionmaker,
+        session_factory: async_sessionmaker[AsyncSession],
         command_bus: CommandBus,
         batch_size: int = 100,
-        registry: dict[str, type] | None = None,
+        registry: dict[str, type[object]] | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._command_bus = command_bus
         self._batch_size = batch_size
-        self._deserializer = CommandDeserializer(registry=registry)
+        self._deserializer = CommandDeserializer(registry=registry)  # type: ignore[arg-type]
 
     async def run_once(self) -> int:
         async with self._session_factory() as session:

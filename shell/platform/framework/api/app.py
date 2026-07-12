@@ -86,7 +86,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(projects_router, prefix="/api/v1")
 
     @app.get("/health", tags=["health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {"status": "ok"}
 
     return app

@@ -46,7 +46,7 @@ class SqlProjectSkillRepository(ProjectSkillRepository):
             model = project_skill_entity_to_model(project_skill)
             self._session.add(model)
         else:
-            model.skill_data = json.dumps(json.loads(project_skill.skill_data.value.value))
+            model.skill_data = json.dumps(json.loads(project_skill.skill_data.value.value))  # type: ignore[assignment]
             model.updated_at = project_skill.updated_at.value if project_skill.updated_at else None
 
     async def delete(self, id: ProjectSkillId) -> None:

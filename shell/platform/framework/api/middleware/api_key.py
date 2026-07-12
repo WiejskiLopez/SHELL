@@ -21,8 +21,8 @@ PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Callable, api_key: str = "", jwt_secret: str = "") -> None:
-        super().__init__(app)
+    def __init__(self, app: Callable[..., object], api_key: str = "", jwt_secret: str = "") -> None:
+        super().__init__(app)  # type: ignore[arg-type]
         self._api_key = api_key
         self._jwt_secret = jwt_secret
 
@@ -74,6 +74,6 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 algorithms=["HS256"],
                 options={"require": ["exp", "sub"]},
             )
-            return payload.get("sub")
+            return payload.get("sub")  # type: ignore[no-any-return]
         except jwt.PyJWTError:
             return None

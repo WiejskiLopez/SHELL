@@ -63,8 +63,11 @@ if ($hasPostgres) {
 if (-not $IntegrationOnly) {
     foreach ($bc in $bcs) {
         $path = "$testRoot/$bc"
-        if (Test-Path -LiteralPath "$path/unit") {
-            Run-Command "python -m pytest $path/unit -m unit -v" "$bc Unit Tests"
+        $tests = Get-ChildItem -LiteralPath "$path/unit" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
+        if ($tests) {
+            Run-Command "python -m pytest $path/unit -v" "$bc Unit Tests"
+        } else {
+            Write-Host "Skipping $bc (no unit tests)" -ForegroundColor Gray
         }
     }
     # Architecture tests (shared, not BC-specific)
@@ -75,8 +78,11 @@ if (-not $IntegrationOnly) {
 if (-not $IntegrationOnly -and -not $UnitOnly) {
     foreach ($bc in $bcs) {
         $path = "$testRoot/$bc"
-        if (Test-Path -LiteralPath "$path/e2e") {
-            Run-Command "python -m pytest $path/e2e -m e2e -v" "$bc E2E Tests"
+        $tests = Get-ChildItem -LiteralPath "$path/e2e" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
+        if ($tests) {
+            Run-Command "python -m pytest $path/e2e -v" "$bc E2E Tests"
+        } else {
+            Write-Host "Skipping $bc (no e2e tests)" -ForegroundColor Gray
         }
     }
 }
@@ -85,8 +91,11 @@ if (-not $IntegrationOnly -and -not $UnitOnly) {
 if (-not $UnitOnly -and $hasPostgres) {
     foreach ($bc in $bcs) {
         $path = "$testRoot/$bc"
-        if (Test-Path -LiteralPath "$path/integration") {
-            Run-Command "python -m pytest $path/integration -m integration -v" "$bc Integration Tests"
+        $tests = Get-ChildItem -LiteralPath "$path/integration" -Filter "test_*.py" -Recurse -ErrorAction SilentlyContinue
+        if ($tests) {
+            Run-Command "python -m pytest $path/integration -v" "$bc Integration Tests"
+        } else {
+            Write-Host "Skipping $bc (no integration tests)" -ForegroundColor Gray
         }
     }
 }
@@ -130,7 +139,7 @@ if (-not $SkipSecurity) {
 
 # Coverage — run unit tests with coverage
 if (-not $UnitOnly -and -not $IntegrationOnly) {
-    $coveragePaths = ($bcs | ForEach-Object { "$testRoot/$_/unit" }) -join " "
+    $coveragePaths = ($bcs | ForEach-Object { $p = "$testRoot/$_/unit"; if (Test-Path $p) { $p } }) -join " "
     Run-Command "python -m pytest $coveragePaths --cov=shell --cov-fail-under=80 -v" "Unit Tests with Coverage" -AllowFailure
 }
 

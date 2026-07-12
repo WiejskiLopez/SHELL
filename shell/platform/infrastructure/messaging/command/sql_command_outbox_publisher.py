@@ -9,17 +9,17 @@ from shell.platform.infrastructure.persistence.sql.models.command import OutboxC
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class SqlCommandOutboxPublisher:
-    def __init__(self, session_factory: async_sessionmaker) -> None:
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
     async def publish(
         self,
         command_type: str,
-        payload: dict,
+        payload: dict[str, object],
         occurred_at: datetime,
     ) -> None:
         async with self._session_factory() as session:

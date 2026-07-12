@@ -35,7 +35,7 @@ def resolve_api_key(container: object | None = None) -> str:
                 if key_provider is not None:
                     value = key_provider()
                     if value:
-                        return value
+                        return value  # type: ignore[no-any-return]
         except (ValueError, AttributeError):
             pass
     return os.environ.get("SHELL_API_KEY", "")
@@ -50,21 +50,21 @@ def resolve_jwt_secret(container: object | None = None) -> str:
                 if secret_provider is not None:
                     value = secret_provider()
                     if value:
-                        return value
+                        return value  # type: ignore[no-any-return]
         except (ValueError, AttributeError):
             pass
     return os.environ.get("SHELL_JWT_SECRET", "")
 
 
 def _register_error_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(RequestValidationError, validation_error_handler)
-    app.add_exception_handler(HTTPException, http_exception_handler)
-    app.add_exception_handler(DomainError, domain_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
 
 def _inject_common_schemas(app: FastAPI) -> None:
-    def custom_openapi() -> dict:
+    def custom_openapi() -> dict[str, object]:
         if app.openapi_schema:
             return app.openapi_schema
         openapi_schema = get_openapi(
@@ -82,7 +82,7 @@ def _inject_common_schemas(app: FastAPI) -> None:
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 
-    app.openapi = custom_openapi
+    app.openapi = custom_openapi  # type: ignore[method-assign]
 
 
 def setup_api_common(
@@ -111,7 +111,7 @@ def setup_api_common(
     _inject_common_schemas(app)
 
     @app.get("/health", tags=["health"])
-    async def health() -> dict:
+    async def health() -> dict[str, str]:
         return {
             "status": "ok",
             "api_version": registry.latest,
@@ -125,7 +125,7 @@ def create_api_discovery_router(
     router = APIRouter(tags=["api-discovery"])
 
     @router.get("/api")
-    async def api_discovery() -> dict:
+    async def api_discovery() -> dict[str, object]:
         return {
             "versions": registry.list_versions(),
             "latest": registry.latest,

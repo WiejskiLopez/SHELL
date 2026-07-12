@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
 from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.types import JsonStr
 
 
 class TestMessageRouter:
@@ -13,11 +15,11 @@ class TestMessageRouter:
         now = datetime.now(tz=UTC)
         message = MessageRouter.new(
             id_=MessageId.generate(),
-            message_data=MessageData({"key": "value", "type": "test"}),
+            message_data=MessageData(JsonStr(json.dumps({"key": "value", "type": "test"}))),
             now=now,
         )
 
-        assert message.message_data.value == {"key": "value", "type": "test"}
+        assert json.loads(message.message_data.value.value) == {"key": "value", "type": "test"}
         assert message.created_at.value == now
 
     def test_new_generates_created_event(self) -> None:
@@ -35,7 +37,7 @@ class TestMessageRouter:
     def test_restore_preserves_fields(self) -> None:
         now = datetime.now(tz=UTC)
         msg_id = MessageId.generate()
-        data = MessageData({"foo": "bar"})
+        data = MessageData(JsonStr(json.dumps({"foo": "bar"})))
 
         restored = MessageRouter.restore(
             id=msg_id,

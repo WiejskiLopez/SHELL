@@ -67,9 +67,14 @@ class MessageRouter(AggregateRoot[MessageId]):
         message_data: MessageData | None = None,
         now: datetime,
     ) -> MessageRouter:
+        from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
+            MessageData,
+        )
+        from shell.platform.types import JsonStr
+
         instance = cls(
             id=id_,
-            message_data=message_data,
+            message_data=message_data or MessageData(JsonStr("{}")),
             created_at=CreatedAt.from_datetime(now),
         )
         instance.append_event(

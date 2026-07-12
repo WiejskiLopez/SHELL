@@ -31,7 +31,7 @@ class SqlMessageRouterRepository(MessageRouterRepository):
             model = message_entity_to_model(message)
             self._session.add(model)
         else:
-            model.message_data = message.message_data.value
+            model.message_data = message.message_data.value  # type: ignore[assignment]
 
     async def get_by_id(self, message_id: MessageId) -> MessageRouter | None:
         query = select(MessageModel).where(MessageModel.id == message_id.value)

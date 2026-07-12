@@ -9,7 +9,7 @@ class OutboxRecord:
     id: str
     event_type: str
     occurred_at: datetime
-    payload: dict
+    payload: dict[str, object]
     correlation_id: str = ""
     causation_id: str = ""
     published_at: datetime | None = None

@@ -45,7 +45,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
-        self._status = status
+        self._status = status if status is not None else WorkflowStatus.ACTIVE
         self._created_at = created_at
         self._deleted_at = deleted_at
 

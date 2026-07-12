@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class ProjectNotFoundError(DomainError):
     def __init__(self, project_id: str) -> None:
-        super().__init__(f"Project not found: {project_id}", code="project_not_found")
+        super().__init__(f"Project not found: {project_id}")
 
 
 class UpdateProjectHandler:

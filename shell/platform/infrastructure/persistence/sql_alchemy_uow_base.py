@@ -71,7 +71,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         repo_map = self._build_repo_map()
         sql_type = repo_map.get(repo_type)
         if sql_type is not None:
-            return sql_type(self._active_session)
+            return sql_type(self._active_session)  # type: ignore[no-any-return]
         msg = f"Unknown repository type for this BC: {repo_type.__name__}"
         raise ValueError(msg)
 

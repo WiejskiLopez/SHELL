@@ -16,7 +16,7 @@ def _config_dir() -> Path:
     return Path(__file__).resolve().parents[3] / "config"
 
 
-def _deep_merge(base: dict, override: dict) -> dict:
+def _deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge override into base."""
     result = dict(base)
     for key, value in override.items():
@@ -32,9 +32,11 @@ def _load_yaml(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
     with open(path, encoding="utf-8") as fh:
-        result = yaml.safe_load(fh)
+        result: Any = yaml.safe_load(fh)
         if result is None:
             raise ValueError(f"Empty or invalid YAML file: {path}")
+        if not isinstance(result, dict):
+            raise ValueError(f"YAML file {path} does not contain a mapping")
         return result
 
 

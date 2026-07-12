@@ -14,7 +14,7 @@ class OutboxCommandModel(Base):
     id: Mapped[str] = mapped_column(primary_key=True)
     command_type: Mapped[str] = mapped_column(nullable=False)
     occurred_at: Mapped[datetime] = mapped_column(nullable=False)
-    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
     causation_id: Mapped[str] = mapped_column(nullable=False, default="")
     published_at: Mapped[datetime | None] = mapped_column(nullable=True)

@@ -22,7 +22,7 @@ class CorrelationIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        cid = request.headers.get("X-Correlation-ID")
+        cid = request.headers.get("X-Correlation-ID", "")
         token = set_correlation_id(cid)
         try:
             response: Response = await call_next(request)

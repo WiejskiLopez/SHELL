@@ -118,7 +118,10 @@ def include_object(obj: object, name: str, type_: str, reflected: bool, compare_
 
 def _get_url() -> str:
     # Allow override via env var (used in CI/docker)
-    return os.environ.get("SHELL_DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    url = os.environ.get("SHELL_DATABASE_URL") or config.get_main_option("sqlalchemy.url")
+    if url is None:
+        raise ValueError("SHELL_DATABASE_URL not set and sqlalchemy.url not configured")
+    return url
 
 
 def run_migrations_offline() -> None:

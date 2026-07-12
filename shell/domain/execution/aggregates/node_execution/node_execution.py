@@ -109,6 +109,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             position=position,
             mode=mode,
             node_type=node_type,
+            status=NodeExecutionStatus.PENDING,
         )
         return instance
 

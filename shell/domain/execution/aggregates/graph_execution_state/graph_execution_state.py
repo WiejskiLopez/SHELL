@@ -134,7 +134,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         )
 
     def get(self, key: str) -> object | None:
-        return json.loads(self._state_data.value.value).get(key)
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:

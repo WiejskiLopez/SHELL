@@ -10,3 +10,7 @@ class WorkflowQueryService(Protocol):
     """Port do pobierania stanu workflow."""
 
     async def get_by_id(self, workflow_id: str) -> WorkflowDto | None: ...
+
+    async def list_all(
+        self, *, page: int = 1, page_size: int = 100, status: str | None = None
+    ) -> tuple[list[WorkflowDto], int]: ...

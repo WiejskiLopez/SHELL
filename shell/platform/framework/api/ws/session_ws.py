@@ -26,7 +26,7 @@ class SessionWebSocketHandler:
             if not self._connections.get(session_id):
                 del self._connections[session_id]
 
-    async def broadcast(self, session_id: str, event: dict) -> None:
+    async def broadcast(self, session_id: str, event: dict[str, object]) -> None:
         for ws in list(self._connections.get(session_id, [])):
             try:
                 await ws.send_json(event)

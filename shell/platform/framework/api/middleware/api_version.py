@@ -30,8 +30,8 @@ API_PATH_PATTERN = re.compile(r"^/api/([^/]+)")
 
 
 class ApiVersionMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Callable, registry: ApiVersionRegistry) -> None:
-        super().__init__(app)
+    def __init__(self, app: Callable[..., object], registry: ApiVersionRegistry) -> None:
+        super().__init__(app)  # type: ignore[arg-type]
         self._registry = registry
 
     async def dispatch(

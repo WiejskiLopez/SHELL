@@ -11,13 +11,13 @@ from shell.platform.infrastructure.persistence.sql.models.command.inbox_command 
 )
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import async_sessionmaker
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class CommandOutboxToInboxRelay:
     def __init__(
         self,
-        session_factory: async_sessionmaker,
+        session_factory: async_sessionmaker[AsyncSession],
         batch_size: int = 100,
     ) -> None:
         self._session_factory = session_factory

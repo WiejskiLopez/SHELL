@@ -74,7 +74,7 @@ class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
             )
             self._session.add(model)
         else:
-            model.state_data = json.dumps(json.loads(state.state_data.value.value))
+            model.state_data = json.dumps(json.loads(state.state_data.value.value))  # type: ignore[assignment]
 
     async def delete(self, id_: object, now: datetime | None = None) -> None:
         if now is None:

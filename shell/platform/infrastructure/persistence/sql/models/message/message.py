@@ -20,13 +20,13 @@ class MessageModel(Base):
     )
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    message_data: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    message_data: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
 
     # Legacy columns — do not use in new code, kept for backward compat
     message_type: Mapped[str] = mapped_column(nullable=False)
-    business_payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    message_metadata: Mapped[dict] = mapped_column("metadata", JSONB, nullable=False, default=dict)
+    business_payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    message_metadata: Mapped[dict[str, object]] = mapped_column("metadata", JSONB, nullable=False, default=dict)
     source: Mapped[str] = mapped_column(nullable=False)
     destination: Mapped[str] = mapped_column(nullable=False)
     status: Mapped[str] = mapped_column(nullable=False, default="created")
