@@ -399,18 +399,21 @@ def test_repository_ports_are_protocols() -> None:
     assert not violations, "Repository ports must be Protocols or ABCs:\n" + "\n".join(violations)
 
 
-def _is_depends_call(node: ast.expr) -> bool:
-    """Check if node is Depends(...) — FastAPI sentinel, not a real function call."""
+_FASTAPI_DEFAULT_SENTINELS = frozenset({"Depends", "Query"})
+
+
+def _is_fastapi_sentinel(node: ast.expr) -> bool:
+    """Check if node is Depends(...) or Query(...) — FastAPI sentinels, not real function calls."""
     return (
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
-        and node.func.id == "Depends"
+        and node.func.id in _FASTAPI_DEFAULT_SENTINELS
     )
 
 
 def test_no_function_calls_in_default_arguments() -> None:
     """B008 — no function/constructor calls in default arguments.
-    Exception: Depends(...) — FastAPI DI sentinel, not a regular call.
+    Exception: Depends(...) and Query(...) — FastAPI sentinels, not regular calls.
     """
     violations: list[str] = []
     for path in _iter_py_files(BASE / "shell"):
@@ -418,7 +421,7 @@ def test_no_function_calls_in_default_arguments() -> None:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 for default in node.args.defaults + node.args.kw_defaults:
-                    if default is not None and isinstance(default, ast.Call) and not _is_depends_call(default):
+                    if default is not None and isinstance(default, ast.Call) and not _is_fastapi_sentinel(default):
                         rel = path.relative_to(BASE)
                         violations.append(
                             f"{rel}:{node.lineno}: {node.name} — wywołanie w default arg"

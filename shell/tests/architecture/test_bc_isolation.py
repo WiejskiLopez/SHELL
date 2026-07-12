@@ -41,8 +41,6 @@ _CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
     "application/session/event_handlers/session_opened_propagate_output_handler.py",
     "application/session/session/command_handlers/close_session_handler.py",
     "application/session/session/command_handlers/open_session_handler.py",
-    # Execution BC → Definition BC (exception reference)
-    "application/execution/event_handlers/build_graph_execution_on_task_execution_created_event_handler.py",
     # Execution BC → Session BC (DTO reference for queries)
     "application/execution/session_execution/query_handlers/get_session_history_handler.py",
     "application/execution/session_execution/ports/session_query_service.py",

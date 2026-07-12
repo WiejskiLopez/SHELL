@@ -195,9 +195,7 @@ Aktualizować `aggregates/graph_execution/ports/__init__.py` — dodać exporty 
 ### 4b. Konsumenci do aktualizacji (3):
 
 | Plik | Stary import | Nowy import |
-|---|---|---|
-| `event_handlers/sub_graph_spawn_requested_handler.py` | `from shell.domain.execution.ports.sub_graph_governance` etc. | `from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_governance` etc. |
-| `event_handlers/planner_result_handler.py` | `from shell.domain.execution.ports.sub_graph_discovery` | `from shell.domain.execution.aggregates.graph_execution.ports.sub_graph_discovery` |
+|---|---|---|---|
 | `infrastructure/execution/default_implementations/sub_graph_defaults.py` | wszystkie 6 portów | wszystkie z `aggregates.graph_execution.ports` |
 
 ### 4c. Update w `sub_graph_policy.py`:

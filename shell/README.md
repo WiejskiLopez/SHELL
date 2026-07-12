@@ -453,7 +453,6 @@ application/
 │   ├── tasker_strategy.py
 │   ├── tool_strategy.py
 │   └── worker_strategy.py
-├── event_handlers/          Subskrybenci eventów domenowych
 └── bus.py                   CommandBus, QueryBus, EventBus
 ```
 

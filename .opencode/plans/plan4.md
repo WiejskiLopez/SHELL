@@ -21,7 +21,7 @@
 | Scheduler (§14) | ⚠️ | `DualLayerDispatcher` naprawiony, wymaga podpięcia do `SchedulerService` |
 | VO rule (§19.9) | ⚠️ | Częściowo — event payloady używają prymitywów |
 | Subdomeny (§19.10-11) | ✅ | ACL porty istnieją |
-| Orphan eventy | ❌ | 4 eventy deprecated wciąż istnieją |
+| Orphan eventy | ✅ | 4 eventy deprecated usunięte z kodu |
 
 ---
 
@@ -131,15 +131,9 @@
 
 ---
 
-### L2. Orphan eventy do usunięcia
+### L2. ✅ Orphan eventy usunięte
 
-**Problem:** 4 deprecated eventy wciąż istnieją i są używane:
-- `GraphExecutionBuiltEvent` — emitowany przez `graph_execution.py:476`
-- `SubGraphSpawnRequestedEvent` — używany przez `planner_result_handler.py` i `sub_graph_spawn_requested_handler.py`
-- `PlannerResultEvent` — emitowany przez `node_execution.py:263`
-- `node_execution_timed_out_handler.py` — zarejestrowany w DI
-
-**Naprawa:** Każdy wymaga przepięcia na V3 odpowiednik przed usunięciem.
+**Status:** Wszystkie 4 deprecated eventy zostały usunięte z kodu źródłowego (`GraphExecutionBuiltEvent`, `SubGraphSpawnRequestedEvent`, `PlannerResultEvent`, `node_execution_timed_out_handler.py`). DI kontenery wyczyszczone. Pozostały jedynie wzmianki w dokumentacji (README, plany) które zostały wyczyszczone.
 
 ---
 
@@ -169,7 +163,7 @@ Faza 1 (🔴 H1): Scheduler BUG — ✅ naprawiony DualLayerDispatcher, ⏳ czek
 Faza 2 (🔴 H2+H3): State I/O unified model — ✅ dedykowane ID w encjach, append-only działa
 Faza 3 (🟡 M1-M2): Brakujące eventy — ✅ SessionClosedEvent + WorkflowAbortedEvent dodane
 Faza 4 (🟡 M3-M5): Zgodność struktury — ✅ UserSkill/ProjectSkill payload, ⏳ TaskExecutionCreatedEvent
-Faza 5 (🟢 L1-L4): Drobne czystki — ❌ wszystkie do zrobienia
+Faza 5 (🟢 L1-L4): Drobne czystki — ✅ L2, L3, reszta do zrobienia
 ```
 
 ---
@@ -185,6 +179,6 @@ Faza 5 (🟢 L1-L4): Drobne czystki — ❌ wszystkie do zrobienia
 - [x] M4: User/Project State I/O mają PK — zrobione
 - [x] M5: TaskExecutionCreatedEvent zgodny ze spec
 - [x] L1: Wszystkie agregaty mają add_skill() — Session, Workflow, AgentExecution
-- [ ] L2: Wszystkie orphan eventy usunięte — 4 nadal w DI, wymagają przepięcia
+- [x] L2: Wszystkie orphan eventy usunięte — 4 usunięte z kodu i DI
 - [x] L3: NodeExecutionTimedOutEvent dodany do spec
 - [ ] L4: VO rule w eventach — Reason VO utworzone, reszta deferowana

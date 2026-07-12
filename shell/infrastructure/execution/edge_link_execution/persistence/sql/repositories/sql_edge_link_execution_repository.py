@@ -5,20 +5,8 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
-    EdgeExecutionId,
-)
-from shell.domain.execution.aggregates.edge_link_execution.edge_link_execution import (
-    EdgeLinkExecution,
-)
 from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
     EdgeLinkExecutionRepository,
-)
-from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
-    EdgeLinkExecutionId,
-)
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
-    NodeExecutionId,
 )
 from shell.infrastructure.execution.edge_link_execution.persistence.sql.mappers import (
     edge_link_execution_entity_to_model,
@@ -32,6 +20,19 @@ from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
+        EdgeExecutionId,
+    )
+    from shell.domain.execution.aggregates.edge_link_execution.edge_link_execution import (
+        EdgeLinkExecution,
+    )
+    from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
+        EdgeLinkExecutionId,
+    )
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
+    )
 
 
 class SqlEdgeLinkExecutionRepository(EdgeLinkExecutionRepository):

@@ -98,22 +98,6 @@ self._active_session.add(OutboxMessageModel(...))
 
 ---
 
-### C5. `planner_result_handler.py:92` — Fix F841
-
-**Problem**: `expected_count = len(definition.node_execution_definitions)` assigned but never used.
-
-**Fix**: Remove the assignment:
-
-```python
-# Before:
-expected_count = len(definition.node_execution_definitions)
-
-# After:
-# (remove the line entirely)
-```
-
----
-
 ### C6. `node_execution_worker.py:230` — Fix F841
 
 **Problem**: `current_graph_execution = graph_executions[0] if graph_executions else None` assigned but never used.

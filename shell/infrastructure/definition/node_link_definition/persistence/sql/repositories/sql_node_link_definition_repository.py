@@ -4,20 +4,8 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-    GraphDefinitionId,
-)
-from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-    NodeDefinitionId,
-)
-from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
-    NodeLinkDefinition,
-)
 from shell.domain.definition.aggregates.node_link_definition.repositories.node_link_definition_repository import (
     NodeLinkDefinitionRepository,
-)
-from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
-    NodeLinkDefinitionId,
 )
 from shell.infrastructure.definition.node_link_definition.persistence.sql.mappers import (
     node_link_definition_entity_to_model,
@@ -32,6 +20,19 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+        GraphDefinitionId,
+    )
+    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+        NodeDefinitionId,
+    )
+    from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+        NodeLinkDefinition,
+    )
+    from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
+        NodeLinkDefinitionId,
+    )
 
 
 class SqlNodeLinkDefinitionRepository(NodeLinkDefinitionRepository):

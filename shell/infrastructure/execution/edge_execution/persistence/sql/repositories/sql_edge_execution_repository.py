@@ -5,15 +5,8 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.execution.aggregates.edge_execution.edge_execution import EdgeExecution
 from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
     EdgeExecutionRepository,
-)
-from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
-    EdgeExecutionId,
-)
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
-    NodeExecutionId,
 )
 from shell.infrastructure.execution.edge_execution.persistence.sql.mappers import (
     edge_execution_entity_to_model,
@@ -27,6 +20,14 @@ from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.domain.execution.aggregates.edge_execution.edge_execution import EdgeExecution
+    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
+        EdgeExecutionId,
+    )
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+        NodeExecutionId,
+    )
 
 
 class SqlEdgeExecutionRepository(EdgeExecutionRepository):
