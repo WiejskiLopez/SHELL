@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.error_description import ErrorDescription
     from shell.platform.domain.value_objects.mode import Mode
     from shell.platform.domain.value_objects.state_data import StateData
+    from shell.platform.types import JsonStr
 
 
 class NodeExecution(AggregateRoot[NodeExecutionId]):
@@ -118,7 +119,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = NodeExecutionStatus.RUNNING
 
-    def complete(self, result: StateData | dict[str, object] | None, now: datetime) -> None:
+    def complete(self, result: StateData | JsonStr | None, now: datetime) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED

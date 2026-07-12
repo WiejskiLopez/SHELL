@@ -9,7 +9,8 @@ OUTPUT state represents data produced by the graph's own nodes during execution.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+import json
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
@@ -17,6 +18,7 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 from shell.domain.execution.aggregates.graph_execution_state.value_objects.state_key import StateKey
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -86,8 +88,8 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         return self._direction
 
     @property
-    def state_data(self) -> dict[str, Any]:
-        return self._state_data.to_dict().copy()
+    def state_data(self) -> StateData:
+        return self._state_data
 
     @property
     def created_at(self) -> CreatedAt:
@@ -108,17 +110,17 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             id=id_,
             graph_execution_id=graph_execution_id,
             direction=direction,
-            state_data=StateData({}),
+            state_data=StateData(JsonStr("{}")),
             created_at=now,
         )
 
     # ------------------------------------------------------------------ mutations
 
     def update(self, key: str, value: object) -> None:
-        old_value = self._state_data.get(key)
-        new_data = dict(self._state_data.to_dict())
+        old_value = json.loads(self._state_data.value.value).get(key)
+        new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
-        self._state_data = StateData(new_data)
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
         self.append_event(
             GraphExecutionStateChangedEvent.now(
                 graph_execution_id=self._graph_execution_id,
@@ -132,14 +134,14 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)  # type: ignore[no-any-return]
+        return json.loads(self._state_data.value.value).get(key)
 
     def delete(self, key: str) -> None:
-        if self._state_data.get(key) is not None:
-            old_value = self._state_data.get(key)
-            new_data = dict(self._state_data.to_dict())
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            old_value = json.loads(self._state_data.value.value).get(key)
+            new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
-            self._state_data = StateData(new_data)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
             self.append_event(
                 GraphExecutionStateChangedEvent.now(
                     graph_execution_id=self._graph_execution_id,
@@ -152,12 +154,13 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
                 )
             )
 
-    def patch(self, data: dict[str, object]) -> None:
-        for key, value in data.items():
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
             self.update(key, value)
 
     def clear(self) -> None:
-        current = self._state_data.to_dict()
+        current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
             self.delete(key)
 
@@ -167,13 +170,13 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         Keys present in *other* but absent in *self* are copied.
         Keys already present in *self* are left unchanged (parent wins).
         """
-        other_data = other._state_data.to_dict()
-        current = self._state_data.to_dict()
+        other_data = json.loads(other._state_data.value.value)
+        current = json.loads(self._state_data.value.value)
         for key, value in other_data.items():
             if key not in current:
                 self.update(key, value)
 
-    def snapshot(self) -> dict[str, Any]:
-        return self._state_data.to_dict().copy()
+    def snapshot(self) -> StateData:
+        return self._state_data
 
 

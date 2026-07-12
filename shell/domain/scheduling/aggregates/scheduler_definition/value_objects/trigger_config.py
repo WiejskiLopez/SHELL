@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING
 
 from shell.platform.domain.base.value_object import ValueObject
+
+if TYPE_CHECKING:
+    from shell.platform.types import JsonStr
 
 
 @dataclass(frozen=True, slots=True)
 class TriggerConfig(ValueObject):
     source_context: str
     trigger_event_type: str
-    trigger_filter: dict[str, Any] | None = None
+    trigger_filter: JsonStr | None = None
 
     def __post_init__(self) -> None:
         if not self.source_context:

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -98,10 +100,10 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         return instance
 
     def update(self, key: str, value: object) -> None:
-        old_value = self._state_data.get(key)
-        new_data = dict(self._state_data.to_dict())
+        new_data = json.loads(self._state_data.value.value)
+        old_value = new_data.get(key)
         new_data[key] = value
-        self._state_data = StateData(new_data)
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
         self.append_event(
             WorkflowStateChangedEvent.now(
                 workflow_id=self._workflow_id,
@@ -115,14 +117,15 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)  # type: ignore[no-any-return]
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
-        if self._state_data.get(key) is not None:
-            old_value = self._state_data.get(key)
-            new_data = dict(self._state_data.to_dict())
+        current = json.loads(self._state_data.value.value)
+        if current.get(key) is not None:
+            old_value = current.get(key)
+            new_data = dict(current)
             new_data.pop(key, None)
-            self._state_data = StateData(new_data)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
             self.append_event(
                 WorkflowStateChangedEvent.now(
                     workflow_id=self._workflow_id,
@@ -135,12 +138,13 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
                 )
             )
 
-    def patch(self, data: dict[str, object]) -> None:
-        for key, value in data.items():
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
             self.update(key, value)
 
     def clear(self) -> None:
-        current = self._state_data.to_dict()
+        current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
             self.delete(key)
 

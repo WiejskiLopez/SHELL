@@ -18,8 +18,5 @@ class JsonStr:
         except json.JSONDecodeError as exc:
             raise ValueError(f"JsonStr.value is not valid JSON: {exc}") from exc
 
-    def parse(self) -> dict[str, object]:
-        return json.loads(self.value)
-
     def __str__(self) -> str:
         return self.value

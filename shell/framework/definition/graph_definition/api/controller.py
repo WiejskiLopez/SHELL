@@ -4,8 +4,6 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException
 
-from shell.platform.domain.types import JsonStr
-
 if TYPE_CHECKING:
     from shell.application.definition.graph_definition.dto.graph_definition import (
         GraphDefinitionDto,
@@ -13,6 +11,7 @@ if TYPE_CHECKING:
     from shell.application.definition.graph_definition.ports.graph_definition_query_service import (
         GraphDefinitionQueryService,
     )
+    from shell.platform.types import JsonStr
 
 
 class GraphDefinitionController:

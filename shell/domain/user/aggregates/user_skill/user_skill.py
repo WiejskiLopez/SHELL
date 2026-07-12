@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
@@ -8,6 +8,7 @@ from shell.domain.user.aggregates.user_skill.events.user_skill_created_event imp
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
@@ -67,7 +68,7 @@ class UserSkill(AggregateRoot[SkillId]):
 
     @classmethod
     def new(
-        cls, user_id: UserId, skill_data: dict[str, Any], now: CreatedAt
+        cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt
     ) -> UserSkill:
         instance = cls(
             id=SkillId.generate(),

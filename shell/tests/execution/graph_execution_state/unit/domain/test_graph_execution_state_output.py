@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -17,12 +18,13 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
+from shell.platform.types import JsonStr
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 _GE_ID = GraphExecutionId("ge-1")
 
 
-def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionState:
+def _make_state() -> GraphExecutionState:
     return GraphExecutionState.create(
         id_=GraphExecutionStateId.generate(),
         graph_execution_id=_GE_ID,
@@ -31,10 +33,14 @@ def _make_state(state_data: dict[str, object] | None = None) -> GraphExecutionSt
     )
 
 
+def _parse(sd: StateData) -> dict:
+    return json.loads(sd.value.value)
+
+
 class TestGraphExecutionStateOutputCreate:
     def test_create_has_empty_state(self) -> None:
         state = _make_state()
-        assert state.state_data == {}
+        assert _parse(state.state_data) == {}
         assert state.graph_execution_id == _GE_ID
 
     def test_create_with_initial_data(self) -> None:
@@ -42,7 +48,7 @@ class TestGraphExecutionStateOutputCreate:
             id=GraphExecutionStateId.generate(),
             graph_execution_id=_GE_ID,
             direction=StateDirection.OUT,
-            state_data=StateData({"k": "v"}),
+            state_data=StateData(JsonStr('{"k": "v"}')),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         assert state.get("k") == "v"
@@ -89,7 +95,7 @@ class TestGraphExecutionStateOutputDelete:
 class TestGraphExecutionStateOutputPatch:
     def test_patch_updates_multiple_keys(self) -> None:
         state = _make_state()
-        state.patch({"a": 1, "b": 2})
+        state.patch(JsonStr('{"a": 1, "b": 2}'))
         assert state.get("a") == 1
         assert state.get("b") == 2
         assert len(state.pull_events()) == 2
@@ -124,9 +130,7 @@ class TestGraphExecutionStateOutputSnapshot:
         state = _make_state()
         state.update("k", "v")
         snap = state.snapshot()
-        assert snap == {"k": "v"}
-        snap["k"] = "changed"
-        assert state.get("k") == "v"
+        assert _parse(snap) == {"k": "v"}
 
 
 class TestGraphExecutionStateOutputClear:
@@ -135,5 +139,5 @@ class TestGraphExecutionStateOutputClear:
         state.update("a", 1)
         state.update("b", 2)
         state.clear()
-        assert state.state_data == {}
+        assert _parse(state.state_data) == {}
         assert len(state.pull_events()) == 4

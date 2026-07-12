@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.project.aggregates.project_skill.events.project_skill_created_event import (
     ProjectSkillCreatedEvent,
@@ -12,6 +12,7 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
     ProjectSkillId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
@@ -71,7 +72,7 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
 
     @classmethod
     def new(
-        cls, project_id: ProjectId, skill_data: dict[str, Any], now: CreatedAt
+        cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt
     ) -> ProjectSkill:
         instance = cls(
             id=ProjectSkillId.generate(),

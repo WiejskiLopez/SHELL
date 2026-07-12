@@ -53,6 +53,7 @@ class ShellConfig:
 
     profile: str = "prod"
     database_url: str = "sqlite+aiosqlite:///shell.db"
+    api_key: str = ""
     max_step: int = 20
     max_parallel: int = 4
     log_level: str = "INFO"

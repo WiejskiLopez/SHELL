@@ -6,7 +6,9 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from shell.framework.definition.graph_definition.api.router import router as graph_definitions_router
+from shell.framework.definition.graph_definition.api.router import (
+    router as graph_definitions_router,
+)
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler

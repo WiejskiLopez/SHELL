@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
@@ -19,6 +20,7 @@ from shell.infrastructure.execution.task_execution_state.persistence.sql.models.
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -32,7 +34,7 @@ def task_execution_state_model_to_entity(model: TaskExecutionStateModel) -> Task
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         direction=StateDirection(model.direction),
-        state_data=StateData(dict(model.state_data)),
+        state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
 
@@ -42,6 +44,6 @@ def task_execution_state_entity_to_model(entity: TaskExecutionState) -> TaskExec
         id=entity.id.value,
         task_execution_id=entity.task_execution_id.value,
         direction=entity.direction.value,
-        state_data=entity.state_data.to_dict(),
+        state_data=json.dumps(json.loads(entity.state_data.value.value)),
         created_at=entity.created_at.value if entity.created_at else None,
     )

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any
 
 from shell.domain.scheduling.aggregates.scheduler_execution.scheduler_execution import (
@@ -21,6 +22,7 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.reason import Reason
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
@@ -47,7 +49,7 @@ class SchedulerOrchestrator:
             status=ExecutionStatus.PENDING,
             trigger_event_id=TriggerEventId(trigger_event_id) if trigger_event_id else None,
             trigger_event_type=TriggerEventType(trigger_event_type) if trigger_event_type else None,
-            input_state=StateData(input_state) if input_state else None,
+            input_state=StateData(JsonStr(json.dumps(input_state))) if input_state else None,
             created_at=CreatedAt.from_datetime(now.value),
             updated_at=now,
         )
@@ -96,6 +98,6 @@ class SchedulerOrchestrator:
             execution.fail(error=ErrorDescription(error), now=now)
         else:
             execution.complete(
-                output_state=StateData(output_state) if output_state else None, now=now
+                output_state=StateData(JsonStr(json.dumps(output_state))) if output_state else None, now=now
             )
         return execution.pull_events()

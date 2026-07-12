@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -24,6 +25,7 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,12 +69,12 @@ class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
                 id=state.id.value,
                 node_execution_id=state.node_execution_id.value,
                 direction=state.direction.value,
-                state_data=state.state_data.to_dict(),
+                state_data=json.dumps(json.loads(state.state_data.value.value)),
                 created_at=state.created_at.value,
             )
             self._session.add(model)
         else:
-            model.state_data = state.state_data.to_dict()
+            model.state_data = json.dumps(json.loads(state.state_data.value.value))
 
     async def delete(self, id_: object, now: datetime | None = None) -> None:
         if now is None:
@@ -93,6 +95,6 @@ class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
             id=NodeExecutionStateId(model.id),
             node_execution_id=NodeExecutionId(model.node_execution_id),
             direction=StateDirection(model.direction),
-            state_data=StateData(dict(model.state_data)),
+            state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))),
             created_at=CreatedAt.from_datetime(model.created_at),
         )

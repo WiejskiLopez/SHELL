@@ -5,9 +5,12 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
 
-from shell.framework.definition.graph_definition.api.router import router as graph_definitions_router
+from shell.framework.definition.graph_definition.api.router import (
+    router as graph_definitions_router,
+)
 from shell.framework.execution.edge_execution.api.router import router as edge_executions_router
 from shell.framework.execution.edge_link_execution.api.router import (
     router as edge_link_executions_router,
@@ -20,7 +23,12 @@ from shell.framework.user.user.api.router import router as users_router
 from shell.platform.bootstrap.config_logging.setup_logging import setup_logging
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
-from shell.platform.framework.api.middleware.error_handler import domain_error_handler
+from shell.platform.framework.api.middleware.error_handler import (
+    domain_error_handler,
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_error_handler,
+)
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -62,7 +70,10 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
 
     # Middleware
     app.add_middleware(CorrelationIdMiddleware)
+    app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(Exception, unhandled_exception_handler)
 
     # Routers
     app.include_router(edge_executions_router)

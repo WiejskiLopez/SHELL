@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from shell.domain.platform.base.value_object import ValueObject
+from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.types import (  # noqa: TC001 — potrzebny w default_factory
+    JsonStr,
+)
 
 
 @dataclass(frozen=True, slots=True)
 class BusinessPayload(ValueObject):
-    value: dict[str, object] = field(default_factory=dict)
-
-    def __post_init__(self) -> None:
-        if self.value is None:
-            object.__setattr__(self, "value", {})
-
-    def to_dict(self) -> dict[str, object]:
-        return dict(self.value)
+    value: JsonStr = field(default_factory=lambda: JsonStr("{}"))

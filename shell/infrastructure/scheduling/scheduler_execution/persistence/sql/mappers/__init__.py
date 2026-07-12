@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
@@ -22,6 +23,7 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.timestamp import Timestamp
+from shell.platform.types import JsonStr  # noqa: TC001
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -41,7 +43,7 @@ def scheduler_execution_model_to_entity(
         interval_seconds=IntervalSeconds(model.interval_seconds),
         batch_size=BatchSize(model.batch_size),
         enabled=Enabled(model.enabled),
-        config=StateData(dict(model.config)) if model.config else None,
+        config=StateData(JsonStr(json.dumps(dict(model.config)))) if model.config else None,
         created_at=CreatedAt.from_datetime(model.created_at),
         updated_at=Timestamp.from_datetime(model.updated_at),
     )
@@ -58,7 +60,7 @@ def scheduler_execution_entity_to_model(
         interval_seconds=entity.interval_seconds.value,
         batch_size=entity.batch_size.value,
         enabled=entity.enabled.value,
-        config=entity.config.to_dict(),
+        config=json.dumps(json.loads(entity.config.value.value)),
         created_at=entity.created_at.value,
         updated_at=entity.updated_at.value,
     )
@@ -71,5 +73,5 @@ def scheduler_execution_update_model(model: SchedulerExecutionModel, entity: Sch
     model.interval_seconds = entity.interval_seconds.value
     model.batch_size = entity.batch_size.value
     model.enabled = entity.enabled.value
-    model.config = entity.config.to_dict()
+    model.config = json.dumps(json.loads(entity.config.value.value))
     model.updated_at = entity.updated_at.value

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_changed_event import (
@@ -11,6 +12,7 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -96,10 +98,10 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         return instance
 
     def update(self, key: str, value: object) -> None:
-        old_value = self._state_data.get(key)
-        new_data = dict(self._state_data.to_dict())
+        old_value = json.loads(self._state_data.value.value).get(key)
+        new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
-        self._state_data = StateData(new_data)
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
         self.append_event(
             NodeExecutionStateChangedEvent.now(
                 node_execution_id=self._node_execution_id,
@@ -113,14 +115,14 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         )
 
     def get(self, key: str) -> object | None:
-        return self._state_data.get(key)  # type: ignore[no-any-return]
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
     def delete(self, key: str) -> None:
-        if self._state_data.get(key) is not None:
-            old_value = self._state_data.get(key)
-            new_data = dict(self._state_data.to_dict())
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            old_value = json.loads(self._state_data.value.value).get(key)
+            new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
-            self._state_data = StateData(new_data)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
             self.append_event(
                 NodeExecutionStateChangedEvent.now(
                     node_execution_id=self._node_execution_id,
@@ -133,12 +135,13 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
                 )
             )
 
-    def patch(self, data: dict[str, object]) -> None:
-        for key, value in data.items():
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
             self.update(key, value)
 
     def clear(self) -> None:
-        current = self._state_data.to_dict()
+        current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
             self.delete(key)
 

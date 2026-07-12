@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -44,7 +45,7 @@ class SqlUserSkillRepository(UserSkillRepository):
             model = user_skill_entity_to_model(user_skill)
             self._session.add(model)
         else:
-            model.skill_data = user_skill.skill_data.to_dict()
+            model.skill_data = json.dumps(json.loads(user_skill.skill_data.value.value))
 
     async def delete(self, id: SkillId, now: datetime | None = None) -> None:
         if now is None:

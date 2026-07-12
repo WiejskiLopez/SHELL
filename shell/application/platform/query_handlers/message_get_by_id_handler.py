@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from shell.application.platform.dto.message import MessageDto
     from shell.application.platform.ports.queries.message_query_service import MessageQueryService
+
     from shell.application.platform.queries.message_get_by_id_query import MessageGetByIdQuery
 
 

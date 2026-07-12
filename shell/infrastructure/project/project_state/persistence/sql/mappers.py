@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
@@ -17,6 +18,7 @@ from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -30,7 +32,7 @@ def project_state_model_to_entity(model: ProjectStateModel) -> ProjectState:
         id=ProjectStateId(model.id),
         project_id=ProjectId(model.project_id),
         direction=StateDirection(model.direction),
-        state_data=StateData(dict(model.state_data)) if model.state_data else StateData({}),
+        state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))) if model.state_data else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at))
         if model.created_at
         else None,

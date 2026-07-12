@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -45,7 +46,7 @@ class SqlProjectSkillRepository(ProjectSkillRepository):
             model = project_skill_entity_to_model(project_skill)
             self._session.add(model)
         else:
-            model.skill_data = project_skill.skill_data.to_dict()
+            model.skill_data = json.dumps(json.loads(project_skill.skill_data.value.value))
             model.updated_at = project_skill.updated_at.value if project_skill.updated_at else None
 
     async def delete(self, id: ProjectSkillId) -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
@@ -30,13 +30,13 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.reason import Reason
-from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
+    from shell.platform.domain.value_objects.state_data import StateData
 
 
 class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
@@ -207,13 +207,12 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         )
 
     def complete(
-        self, output_state: StateData | dict[str, Any] | None = None, now: Timestamp | None = None
+        self, output_state: StateData | None = None, now: Timestamp | None = None
     ) -> None:
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.COMPLETED
-        actual_state = StateData(output_state) if isinstance(output_state, dict) else output_state
-        self._output_state = actual_state
+        self._output_state = output_state
         self._completed_at = now
         self._updated_at = now
         self.append_event(

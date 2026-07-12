@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol
 
-from shell.platform.domain.types import JsonStr
-
 if TYPE_CHECKING:
     from shell.application.definition.graph_definition.dto.graph_definition import (
         GraphDefinitionDto,
     )
+    from shell.platform.types import JsonStr
 
 
 class GraphDefinitionQueryService(Protocol):

@@ -9,7 +9,8 @@ OUTPUT state represents data produced during user operations.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Self
+import json
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
@@ -17,6 +18,7 @@ from shell.domain.user.aggregates.user_state.events.user_state_changed_event imp
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
@@ -92,8 +94,8 @@ class UserState(AggregateRoot[UserStateId]):
         return self._direction
 
     @property
-    def state_data(self) -> dict[str, Any]:
-        return self._state_data.to_dict().copy()
+    def state_data(self) -> StateData:
+        return self._state_data
 
     @property
     def created_at(self) -> CreatedAt | None:
@@ -122,17 +124,17 @@ class UserState(AggregateRoot[UserStateId]):
             id=id_,
             user_id=user_id,
             direction=direction,
-            state_data=StateData({}),
+            state_data=StateData(JsonStr("{}")),
             created_at=now,
         )
 
     # ------------------------------------------------------------------ mutations
 
     def set_key(self, key: str, value: object) -> None:
-        old_value = self._state_data.get(key)
-        new_data = dict(self._state_data.to_dict())
+        old_value = json.loads(self._state_data.value.value).get(key)
+        new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
-        self._state_data = StateData(new_data)
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
         self.append_event(
             UserStateChangedEvent.now(
                 user_id=self._user_id,
@@ -146,15 +148,15 @@ class UserState(AggregateRoot[UserStateId]):
         )
 
     def get(self, key: str) -> object | None:
-        result: object | None = self._state_data.get(key)
+        result: object | None = json.loads(self._state_data.value.value).get(key)
         return result
 
     def remove_key(self, key: str) -> None:
-        if self._state_data.get(key) is not None:
-            old_value = self._state_data.get(key)
-            new_data = dict(self._state_data.to_dict())
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            old_value = json.loads(self._state_data.value.value).get(key)
+            new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
-            self._state_data = StateData(new_data)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
             self.append_event(
                 UserStateChangedEvent.now(
                     user_id=self._user_id,
@@ -167,22 +169,23 @@ class UserState(AggregateRoot[UserStateId]):
                 )
             )
 
-    def patch(self, data: dict[str, object]) -> None:
-        for key, value in data.items():
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
             self.set_key(key, value)
 
     def clear(self) -> None:
-        current = self._state_data.to_dict()
+        current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
             self.remove_key(key)
 
     def merge(self, other: UserState) -> None:
-        other_data = other._state_data.to_dict()
-        current = self._state_data.to_dict()
+        other_data = json.loads(other._state_data.value.value)
+        current = json.loads(self._state_data.value.value)
         for key, value in other_data.items():
             if key not in current:
                 self.set_key(key, value)
 
-    def snapshot(self) -> dict[str, Any]:
-        return self._state_data.to_dict().copy()
+    def snapshot(self) -> StateData:
+        return self._state_data
 

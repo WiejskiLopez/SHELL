@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, datetime
 
 from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
@@ -27,6 +28,7 @@ from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.timestamp import Timestamp
+from shell.platform.types import JsonStr
 
 
 def _ensure_utc(dt: datetime) -> datetime:
@@ -41,11 +43,14 @@ def scheduler_definition_model_to_entity(
     trigger_config = TriggerConfig(
         source_context=model.source_context,
         trigger_event_type=model.trigger_event_type,
-        trigger_filter=dict(model.trigger_filter) if model.trigger_filter else None,
+        trigger_filter=JsonStr(json.dumps(dict(model.trigger_filter))) if model.trigger_filter else None,
     )
     action_config = ActionConfig(
         action_type=model.action_type,
-        **{k: v for k, v in model.action_config.items() if k != "action_type"},
+        graph_definition_id=model.action_config.get("graph_definition_id"),
+        input_mapping=JsonStr(json.dumps(model.action_config.get("input_mapping"))) if model.action_config.get("input_mapping") else None,
+        emit_event_type=model.action_config.get("emit_event_type"),
+        emit_event_payload=JsonStr(json.dumps(model.action_config.get("emit_event_payload"))) if model.action_config.get("emit_event_payload") else None,
     )
     policy = ExecutionPolicy(
         **model.execution_policy,
@@ -72,13 +77,13 @@ def scheduler_definition_entity_to_model(
         description=entity.description.value if entity.description else None,
         source_context=entity.trigger_config.source_context,
         trigger_event_type=entity.trigger_config.trigger_event_type,
-        trigger_filter=entity.trigger_config.trigger_filter,
+        trigger_filter=json.loads(entity.trigger_config.trigger_filter.value) if entity.trigger_config.trigger_filter else None,
         action_type=entity.action_config.action_type,
         action_config={
             "graph_definition_id": entity.action_config.graph_definition_id,
-            "input_mapping": entity.action_config.input_mapping,
+            "input_mapping": json.loads(entity.action_config.input_mapping.value) if entity.action_config.input_mapping else None,
             "emit_event_type": entity.action_config.emit_event_type,
-            "emit_event_payload": entity.action_config.emit_event_payload,
+            "emit_event_payload": json.loads(entity.action_config.emit_event_payload.value) if entity.action_config.emit_event_payload else None,
         },
         execution_policy={
             "max_concurrent": entity.execution_policy.max_concurrent,
@@ -99,13 +104,13 @@ def scheduler_definition_update_model(
     model.description = entity.description.value if entity.description else None
     model.source_context = entity.trigger_config.source_context
     model.trigger_event_type = entity.trigger_config.trigger_event_type
-    model.trigger_filter = entity.trigger_config.trigger_filter
+    model.trigger_filter = json.loads(entity.trigger_config.trigger_filter.value) if entity.trigger_config.trigger_filter else None
     model.action_type = entity.action_config.action_type
     model.action_config = {
         "graph_definition_id": entity.action_config.graph_definition_id,
-        "input_mapping": entity.action_config.input_mapping,
+        "input_mapping": json.loads(entity.action_config.input_mapping.value) if entity.action_config.input_mapping else None,
         "emit_event_type": entity.action_config.emit_event_type,
-        "emit_event_payload": entity.action_config.emit_event_payload,
+        "emit_event_payload": json.loads(entity.action_config.emit_event_payload.value) if entity.action_config.emit_event_payload else None,
     }
     model.execution_policy = {
         "max_concurrent": entity.execution_policy.max_concurrent,

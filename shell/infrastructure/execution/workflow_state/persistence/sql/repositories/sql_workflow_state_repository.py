@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
@@ -60,7 +61,7 @@ class SqlWorkflowStateRepository(WorkflowStateRepository):
             self._session.add(model)
         else:
             model.direction = workflow_state.direction.value
-            model.state_data = workflow_state.state_data.to_dict()
+            model.state_data = json.dumps(json.loads(workflow_state.state_data.value.value))
             model.created_at = workflow_state.created_at.value
 
     async def delete(self, id_: WorkflowStateId, now: datetime | None = None) -> None:

@@ -10,8 +10,8 @@ from shell.framework.definition.graph_definition.api.controller import GraphDefi
 from shell.framework.definition.graph_definition.api.semantic_query_request import (
     SemanticQueryRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
 )
-from shell.platform.domain.types import JsonStr
 from shell.platform.framework.api.dependencies import get_core_container
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from shell.application.definition.graph_definition.ports.graph_definition_query_service import (

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
-from shell.platform.domain.types import JsonStr
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from shell.application.definition.graph_definition.dto.graph_definition import (
