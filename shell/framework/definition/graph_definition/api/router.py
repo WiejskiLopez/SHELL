@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
 from shell.application.definition.graph_definition.dto.graph_definition import GraphDefinitionDto
-from shell.framework.definition.graph_definition.api.controller import DefinitionController
+from shell.framework.definition.graph_definition.api.controller import GraphDefinitionController
+from shell.framework.definition.graph_definition.api.semantic_query_request import (
+    SemanticQueryRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
+)
+from shell.platform.domain.types import JsonStr
 from shell.platform.framework.api.dependencies import get_core_container
 
 if TYPE_CHECKING:
@@ -14,29 +19,29 @@ if TYPE_CHECKING:
     )
     from shell.platform.bootstrap.container.core_container import CoreContainer
 
-router = APIRouter(prefix="/definitions", tags=["definitions"])
+router = APIRouter(prefix="/graph-definitions", tags=["graph-definitions"])
 
 
-def get_definition_controller(
+def get_graph_definition_controller(
     container: CoreContainer = Depends(get_core_container),
-) -> DefinitionController:
+) -> GraphDefinitionController:
     query_service: GraphDefinitionQueryService = (
         container.infra.graph_definition_query_service_factory()
     )
-    return DefinitionController(query_service)
+    return GraphDefinitionController(query_service)
 
 
-@router.get("/{definition_id}", response_model=GraphDefinitionDto)
-async def get_definition(
-    definition_id: str,
-    controller: DefinitionController = Depends(get_definition_controller),
+@router.get("/{graph_definition_id}", response_model=GraphDefinitionDto)
+async def get_graph_definition(
+    graph_definition_id: str,
+    controller: GraphDefinitionController = Depends(get_graph_definition_controller),
 ) -> GraphDefinitionDto:
-    return await controller.get_definition(definition_id)
+    return await controller.get_graph_definition(graph_definition_id)
 
 
-@router.post("/by-semantic-name", response_model=GraphDefinitionDto)
-async def get_definition_by_semantic_name(
-    payload: dict[str, object],
-    controller: DefinitionController = Depends(get_definition_controller),
+@router.post("/by-semantic", response_model=GraphDefinitionDto)
+async def get_graph_definition_by_semantic(
+    body: SemanticQueryRequest,
+    controller: GraphDefinitionController = Depends(get_graph_definition_controller),
 ) -> GraphDefinitionDto:
-    return await controller.get_definition_by_semantic_name(payload)
+    return await controller.get_graph_definition_by_semantic(JsonStr(json.dumps(body.model_dump())))

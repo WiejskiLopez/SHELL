@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class GraphExecutionDefinitionProvider(Protocol):
     async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None: ...
 
-    async def get_graph_definition_by_semantic_name(
+    async def get_graph_definition_by_semantic(
         self,
         query: GraphDefinitionSemanticQuery,
     ) -> GraphExecutionDefinition | None: ...

@@ -33,7 +33,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         mock_client.get = AsyncMock(return_value=Mock(status_code=404))
         result = await adapter.get_graph_definition("nonexistent-id")
         assert result is None
-        mock_client.get.assert_awaited_once_with("/api/v1/definitions/nonexistent-id")
+        mock_client.get.assert_awaited_once_with("/api/v1/graph-definitions/nonexistent-id")
 
     async def test_get_definition_maps_response(
         self,
@@ -62,7 +62,7 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         assert node.mode == "agent"
         assert node.max_step == 20
 
-    async def test_get_definition_by_semantic_name(
+    async def test_get_definition_by_semantic(
         self,
         adapter: GraphExecutionDefinitionProviderHttpAdapter,
         mock_client: AsyncMock,
@@ -75,22 +75,22 @@ class TestGraphExecutionDefinitionProviderHttpAdapter:
         mock_client.post = AsyncMock(
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
-        result = await adapter.get_graph_definition_by_semantic_name(query)
+        result = await adapter.get_graph_definition_by_semantic(query)
         assert isinstance(result, GraphExecutionDefinition)
         assert result.id == "def-456"
         mock_client.post.assert_awaited_once_with(
-            "/api/v1/definitions/by-semantic-name",
+            "/api/v1/graph-definitions/by-semantic",
             json=query.to_payload(),
         )
 
-    async def test_get_definition_by_semantic_name_returns_none_on_404(
+    async def test_get_definition_by_semantic_returns_none_on_404(
         self,
         adapter: GraphExecutionDefinitionProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         query = GraphDefinitionSemanticQuery(text="nothing")
         mock_client.post = AsyncMock(return_value=Mock(status_code=404))
-        result = await adapter.get_graph_definition_by_semantic_name(query)
+        result = await adapter.get_graph_definition_by_semantic(query)
         assert result is None
 
     async def test_raises_on_5xx(

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 
-from shell.framework.definition.graph_definition.api.router import router as definitions_router
+from shell.framework.definition.graph_definition.api.router import router as graph_definitions_router
 from shell.framework.execution.edge_execution.api.router import router as edge_executions_router
 from shell.framework.execution.edge_link_execution.api.router import (
     router as edge_link_executions_router,
@@ -69,7 +69,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(edge_link_executions_router)
     app.include_router(workflows_router)
     app.include_router(node_execution_router)
-    app.include_router(definitions_router, prefix="/api/v1")
+    app.include_router(graph_definitions_router, prefix="/api/v1")
     app.include_router(sessions_router, prefix="/api/v1")
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")

@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from shell.framework.definition.graph_definition.api.controller import DefinitionController
+from shell.framework.definition.graph_definition.api.controller import GraphDefinitionController
 
-__all__ = ["DefinitionController"]
+__all__ = ["GraphDefinitionController"]

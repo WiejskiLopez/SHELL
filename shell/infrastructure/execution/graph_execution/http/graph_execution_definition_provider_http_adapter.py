@@ -23,19 +23,19 @@ class GraphExecutionDefinitionProviderHttpAdapter(GraphExecutionDefinitionProvid
         self._client = client
 
     async def get_graph_definition(self, definition_id: str) -> GraphExecutionDefinition | None:
-        response = await self._client.get(f"/api/v1/definitions/{definition_id}")
+        response = await self._client.get(f"/api/v1/graph-definitions/{definition_id}")
         if response.status_code == 404:
             return None
         response.raise_for_status()
         data = response.json()
         return self._map_to_execution(data)
 
-    async def get_graph_definition_by_semantic_name(
+    async def get_graph_definition_by_semantic(
         self,
         query: GraphDefinitionSemanticQuery,
     ) -> GraphExecutionDefinition | None:
         payload = query.to_payload()
-        response = await self._client.post("/api/v1/definitions/by-semantic-name", json=payload)
+        response = await self._client.post("/api/v1/graph-definitions/by-semantic", json=payload)
         if response.status_code == 404:
             return None
         response.raise_for_status()

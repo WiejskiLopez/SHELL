@@ -14,7 +14,7 @@ from shell.platform.framework.api.dependencies import get_query_bus
 if TYPE_CHECKING:
     from shell.platform.application.bus.query_bus import QueryBus
 
-router = APIRouter(prefix="/nodes", tags=["nodes"])
+router = APIRouter(prefix="/node-executions", tags=["node-executions"])
 
 
 def get_node_execution_controller(

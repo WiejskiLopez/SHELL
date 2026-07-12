@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from shell.framework.definition.graph_definition.api.router import router as definitions_router
+from shell.framework.definition.graph_definition.api.router import router as graph_definitions_router
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
@@ -20,7 +20,7 @@ def create_definition_app(core_container: Any) -> FastAPI:
     app.add_middleware(CorrelationIdMiddleware)
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
 
-    app.include_router(definitions_router, prefix="/api/v1")
+    app.include_router(graph_definitions_router, prefix="/api/v1")
 
     @app.get("/health", tags=["health"])
     async def health() -> dict:
