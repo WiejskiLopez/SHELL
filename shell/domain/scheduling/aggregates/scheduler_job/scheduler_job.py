@@ -13,6 +13,7 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name imp
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
@@ -20,7 +21,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.state_data import StateData
-    from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
@@ -91,6 +91,33 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
             config=config,
             created_at=created_at,
             updated_at=updated_at,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        name: JobName,
+        job_type: JobType,
+        interval_seconds: IntervalSeconds,
+        batch_size: BatchSize,
+        config: StateData,
+        now: CreatedAt,
+        enabled: bool = True,
+    ) -> SchedulerJob:
+        return cls(
+            id=id_,
+            scheduler_definition_id=scheduler_definition_id,
+            name=name,
+            job_type=job_type,
+            interval_seconds=interval_seconds,
+            batch_size=batch_size,
+            enabled=Enabled(enabled),
+            config=config,
+            created_at=now,
+            updated_at=Timestamp.from_datetime(now.value),
         )
 
     @property

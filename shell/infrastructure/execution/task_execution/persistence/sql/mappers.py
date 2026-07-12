@@ -35,7 +35,7 @@ def _created_at_value(dt: CreatedAt | DeletedAt | datetime | None) -> datetime |
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
     body = TaskExecutionBody(task_execution_model.body) if task_execution_model.body else None
-    return TaskExecution(
+    return TaskExecution.restore(
         id=TaskExecutionId(task_execution_model.id),
         name=TaskName(task_execution_model.name),
         body=body,

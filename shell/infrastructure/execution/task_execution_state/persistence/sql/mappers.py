@@ -30,7 +30,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 
 
 def task_execution_state_model_to_entity(model: TaskExecutionStateModel) -> TaskExecutionState:
-    return TaskExecutionState(
+    return TaskExecutionState.restore(
         id=TaskExecutionStateId(model.id),
         task_execution_id=TaskExecutionId(model.task_execution_id),
         direction=StateDirection(model.direction),

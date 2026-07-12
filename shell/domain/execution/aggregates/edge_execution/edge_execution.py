@@ -9,8 +9,6 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id import (
         EdgeDefinitionId,
     )
@@ -87,7 +85,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         edge_definition_id: EdgeDefinitionId,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
-        now: datetime,
+        now: CreatedAt,
     ) -> EdgeExecution:
         instance = cls(
             id_=id_,
@@ -109,8 +107,10 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     def change_target(
         self,
         target_node_execution_id: NodeExecutionId | None,
-        now: datetime,
+        now: UpdatedAt,
     ) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("Cannot change target on a deleted edge")
         self._target_node_execution_id = target_node_execution_id
         self._updated_at = UpdatedAt.from_datetime(now)
         self.append_event(
@@ -120,7 +120,9 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
             )
         )
 
-    def mark_deleted(self, now: datetime) -> None:
+    def mark_deleted(self, now: DeletedAt) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("Edge already deleted")
         self._deleted_at = DeletedAt.from_datetime(now)
         self._updated_at = UpdatedAt.from_datetime(now)
         self.append_event(

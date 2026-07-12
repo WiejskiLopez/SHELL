@@ -10,8 +10,6 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
         MessageData,
     )
@@ -64,18 +62,13 @@ class MessageRouter(AggregateRoot[MessageId]):
         cls,
         *,
         id_: MessageId,
-        message_data: MessageData | None = None,
-        now: datetime,
+        message: MessageData,
+        now: CreatedAt,
     ) -> MessageRouter:
-        from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
-            MessageData,
-        )
-        from shell.platform.types import JsonStr
-
         instance = cls(
             id=id_,
-            message_data=message_data or MessageData(JsonStr("{}")),
-            created_at=CreatedAt.from_datetime(now),
+            message_data=message,
+            created_at=now,
         )
         instance.append_event(
             MessageRouterCreatedEvent.now(

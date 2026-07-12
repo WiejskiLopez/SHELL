@@ -131,7 +131,6 @@ class UserState(AggregateRoot[UserStateId]):
     # ------------------------------------------------------------------ mutations
 
     def set_key(self, key: str, value: object) -> None:
-        old_value = json.loads(self._state_data.value.value).get(key)
         new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
         self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -139,10 +138,6 @@ class UserState(AggregateRoot[UserStateId]):
             UserStateChangedEvent.now(
                 user_id=self._user_id,
                 user_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=value,
                 now=self._created_at,
             )
         )
@@ -153,7 +148,6 @@ class UserState(AggregateRoot[UserStateId]):
 
     def remove_key(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
-            old_value = json.loads(self._state_data.value.value).get(key)
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
             self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -161,10 +155,6 @@ class UserState(AggregateRoot[UserStateId]):
                 UserStateChangedEvent.now(
                     user_id=self._user_id,
                     user_state_id=self.id,
-                    direction=self._direction,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
                     now=self._created_at,
                 )
             )

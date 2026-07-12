@@ -9,8 +9,6 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
         SessionIdRef,
     )
@@ -82,15 +80,13 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         cls,
         *,
         id_: SessionExecutionId,
-        user_execution_id: UserExecutionId | None = None,
-        session_id: SessionIdRef | None = None,
-        now: datetime,
+        session_id: SessionIdRef,
+        now: CreatedAt,
     ) -> SessionExecution:
         session_execution = cls(
             id=id_,
-            user_execution_id=user_execution_id,
             session_id=session_id,
-            created_at=CreatedAt.from_datetime(now),
+            created_at=now,
         )
         session_execution.append_event(
             SessionExecutionCreatedEvent.now(

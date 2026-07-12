@@ -27,6 +27,18 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self._node_execution_id = node_execution_id
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: AgentExecutionId,
+        node_execution_id: NodeExecutionId,
+    ) -> AgentExecution:
+        return cls(
+            id_=id_,
+            node_execution_id=node_execution_id,
+        )
+
+    @classmethod
     def restore(
         cls,
         id_: AgentExecutionId,

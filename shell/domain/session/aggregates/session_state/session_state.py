@@ -93,7 +93,6 @@ class SessionState(AggregateRoot[SessionStateId]):
         return instance
 
     def update(self, key: str, value: object) -> None:
-        old_value = json.loads(self._state_data.value.value).get(key)
         new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
         self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -101,10 +100,6 @@ class SessionState(AggregateRoot[SessionStateId]):
             SessionStateChangedEvent.now(
                 session_id=self._session_id,
                 session_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=value,
                 now=self._created_at,
             )
         )
@@ -114,7 +109,6 @@ class SessionState(AggregateRoot[SessionStateId]):
 
     def delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
-            old_value = json.loads(self._state_data.value.value).get(key)
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
             self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -122,10 +116,6 @@ class SessionState(AggregateRoot[SessionStateId]):
                 SessionStateChangedEvent.now(
                     session_id=self._session_id,
                     session_state_id=self.id,
-                    direction=self._direction,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
                     now=self._created_at,
                 )
             )

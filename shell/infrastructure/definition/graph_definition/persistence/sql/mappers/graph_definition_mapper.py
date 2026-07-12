@@ -18,7 +18,7 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
 
 
 def graph_definition_model_to_entity(model: GraphDefinitionModel) -> GraphDefinition:
-    return GraphDefinition(
+    return GraphDefinition.restore(
         id=GraphDefinitionId(model.id),
     )
 

@@ -6,23 +6,23 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-        GraphExecutionId,
+    from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
+        AgentConfigExecutionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)
-class GraphExecutionUpdatedEvent(DomainEvent):
-    graph_execution_id: GraphExecutionId
+class AgentConfigUpdatedEvent(DomainEvent):
+    agent_config_execution_id: AgentConfigExecutionId
 
     @classmethod
     def now(
         cls,
-        graph_execution_id: GraphExecutionId,
+        agent_config_execution_id: AgentConfigExecutionId,
         now: CreatedAt,
-    ) -> GraphExecutionUpdatedEvent:
+    ) -> AgentConfigUpdatedEvent:
         return cls(
             occurred_at=now,
-            graph_execution_id=graph_execution_id,
+            agent_config_execution_id=agent_config_execution_id,
         )

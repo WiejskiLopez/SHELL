@@ -103,7 +103,7 @@ def _raw(dt: datetime | Timestamp | None) -> datetime | None:
 
 class TestWorkflowMapper:
     def test_entity_to_model(self) -> None:
-        original = Workflow(
+        original = Workflow.restore(
             id=WorkflowId("wf-1"),
             session_id=SessionIdRef("sess-1"),
             status=WorkflowStatus.ACTIVE,
@@ -125,7 +125,7 @@ class TestWorkflowMapper:
         assert entity.session_id.value == "sess-2"
 
     def test_round_trip(self) -> None:
-        original = Workflow(id=WorkflowId("wf-3"), status=WorkflowStatus.ACTIVE, created_at=CreatedAt.from_datetime(_NOW))
+        original = Workflow.restore(id=WorkflowId("wf-3"), status=WorkflowStatus.ACTIVE, created_at=CreatedAt.from_datetime(_NOW))
         model = workflow_entity_to_model(original)
         model.created_at = _raw(model.created_at)  # type: ignore[assignment]
 
@@ -273,7 +273,7 @@ class TestGraphExecutionMapper:
 
 class TestSessionMapper:
     def test_entity_to_model(self) -> None:
-        original = Session(
+        original = Session.restore(
             id=SessionId("sess-1"),
             user_id=UserIdRef("user-1"),
             project_id=ProjectIdRef("proj-1"),
@@ -286,7 +286,7 @@ class TestSessionMapper:
         assert model.closed_at is None
 
     def test_entity_to_model_closed(self) -> None:
-        original = Session(
+        original = Session.restore(
             id=SessionId("sess-2"),
             user_id=UserIdRef("user-2"),
             project_id=ProjectIdRef("proj-2"),
@@ -300,7 +300,7 @@ class TestSessionMapper:
         assert model.closed_at is not None
 
     def test_round_trip(self) -> None:
-        original = Session(
+        original = Session.restore(
             id=SessionId("sess-3"),
             user_id=UserIdRef("user-3"),
             project_id=ProjectIdRef("proj-3"),

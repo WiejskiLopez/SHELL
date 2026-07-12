@@ -9,32 +9,20 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_role_name import (
-        NodeRoleName,
-    )
-    from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
-        NodeTypeName,
-    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)
 class NodeDefinitionCreatedEvent(DomainEvent):
     node_definition_id: NodeDefinitionId
-    role: NodeRoleName
-    node_type: NodeTypeName
 
     @classmethod
     def now(
         cls,
         node_definition_id: NodeDefinitionId,
-        role: NodeRoleName,
-        node_type: NodeTypeName,
         now: CreatedAt,
     ) -> NodeDefinitionCreatedEvent:
         return cls(
             occurred_at=now,
             node_definition_id=node_definition_id,
-            role=role,
-            node_type=node_type,
         )

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
         GraphDefinitionEmbeddingId,
     )
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class GraphDefinitionEmbeddingRepository(Protocol):
@@ -27,3 +28,5 @@ class GraphDefinitionEmbeddingRepository(Protocol):
     async def save(self, embedding: GraphDefinitionEmbedding) -> None: ...
 
     async def delete(self, id: GraphDefinitionEmbeddingId) -> None: ...
+
+    async def exists(self, id: GraphDefinitionEmbeddingId) -> ExistsResult: ...

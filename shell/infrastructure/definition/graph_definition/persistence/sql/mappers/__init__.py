@@ -10,7 +10,7 @@ from shell.infrastructure.definition.graph_definition.persistence.sql.models imp
 def graph_definition_model_to_entity(
     graph_definition_model: GraphDefinitionModel,
 ) -> GraphDefinition:
-    return GraphDefinition(
+    return GraphDefinition.restore(
         id=GraphDefinitionId(graph_definition_model.id),
     )
 

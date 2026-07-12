@@ -11,35 +11,22 @@ if TYPE_CHECKING:
         SessionStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 @dataclass(frozen=True, slots=True)
 class SessionStateChangedEvent(DomainEvent):
     session_id: SessionId
     session_state_id: SessionStateId
-    direction: StateDirection
-    key: str
-    old_value: object | None = None
-    new_value: object | None = None
 
     @classmethod
     def now(
         cls,
         session_id: SessionId,
         session_state_id: SessionStateId,
-        direction: StateDirection,
-        key: str,
         now: CreatedAt,
-        old_value: object | None = None,
-        new_value: object | None = None,
     ) -> SessionStateChangedEvent:
         return cls(
             occurred_at=now,
             session_id=session_id,
             session_state_id=session_state_id,
-            direction=direction,
-            key=key,
-            old_value=old_value,
-            new_value=new_value,
         )

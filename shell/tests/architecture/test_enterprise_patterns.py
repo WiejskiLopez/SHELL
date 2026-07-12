@@ -87,7 +87,17 @@ def _to_snake_case(pascal: str) -> str:
 
 
 _PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
+_AGGREGATE_BASES = frozenset({"AggregateRoot"})
 _COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date"})
+
+# Aggregate classes known to have factory methods other than create()
+_FACTORY_ALIASES: dict[str, str] = {
+    "Session": "open",
+    "GraphExecution": "initialize",
+}
+# Aggregates that have no factory method yet (known violations)
+_KNOWN_NO_FACTORY: frozenset[str] = frozenset({})
+_KNOWN_MAPPER_USES_INIT: frozenset[str] = frozenset({})
 _DATETIME_EXEMPT_DTOS: frozenset[str] = frozenset({})
 
 
@@ -157,6 +167,87 @@ def test_all_aggregates_have_restore() -> None:
     assert not missing, (
         "Unexpected aggregate(s) missing restore(). If this is intentional, add them to _KNOWN_MISSING_RESTORE:\n"
         + "\n".join(missing)
+    )
+
+
+# ── 2b. All aggregates have a factory (create/new/open/...) ──────────
+
+
+def test_all_aggregates_have_factory() -> None:
+    missing: list[str] = []
+    for path in _iter_py_files(BASE / "domain"):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            if not any(_is_aggregate_root_base(b) for b in node.bases):
+                continue
+
+            has_factory = any(
+                isinstance(m, ast.FunctionDef)
+                and m.name in ("create", "new", "open", "initialize")
+                for m in node.body
+            )
+            if has_factory:
+                continue
+
+            key = f"{path.relative_to(BASE).as_posix()}: class {node.name}"
+            if key not in _KNOWN_NO_FACTORY:
+                missing.append(key)
+    assert not missing, (
+        "AggregateRoots must have a factory classmethod (create/new/open/initialize). "
+        "Add known missing to _KNOWN_NO_FACTORY:\n"
+        + "\n".join(missing)
+    )
+
+
+# ── 2c. Infrastructure mappers should use restore() not __init__ ─────
+
+
+def test_infra_mappers_use_restore() -> None:
+    violations: list[str] = []
+    aggregate_names: set[str] = set()
+    for path in _iter_py_files(BASE / "domain"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and any(
+                _is_aggregate_root_base(b) for b in node.bases
+            ):
+                aggregate_names.add(node.name)
+
+    for path in _iter_py_files(BASE / "infrastructure"):
+        if "mappers" not in path.parts and path.name != "mappers.py":
+            continue
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            if node.name not in aggregate_names:
+                continue
+            has_restore_call = False
+            has_init_call = False
+            for stmt in ast.walk(node):
+                if isinstance(stmt, ast.Call):
+                    if isinstance(stmt.func, ast.Attribute) and stmt.func.attr == "restore":
+                        has_restore_call = True
+                    elif isinstance(stmt.func, ast.Name) and stmt.func.id == node.name:
+                        has_init_call = True
+            if has_init_call and not has_restore_call:
+                key = f"{path.relative_to(BASE).as_posix()}: {node.name}"
+                if key not in _KNOWN_MAPPER_USES_INIT:
+                    violations.append(key)
+    assert not violations, (
+        "Infrastructure mappers should call Aggregate.restore(), not Aggregate(...). "
+        "Add known violations to _KNOWN_MAPPER_USES_INIT:\n"
+        + "\n".join(violations)
     )
 
 
@@ -427,3 +518,104 @@ def test_no_function_calls_in_default_arguments() -> None:
                             f"{rel}:{node.lineno}: {node.name} — wywołanie w default arg"
                         )
     assert not violations, "\n".join(violations)
+
+
+# ── 11. Repository ports must define save/get_by_id/exists/delete ──────
+
+
+_REPO_METHODS = frozenset({"save", "get_by_id", "exists", "delete"})
+
+_KNOWN_MISSING_REPO_METHODS: frozenset[str] = frozenset({})
+
+
+def test_repository_ports_have_canonical_methods() -> None:
+    violations: list[str] = []
+    for repos_dir in (BASE / "domain").rglob("repositories"):
+        if not repos_dir.is_dir():
+            continue
+        for path in _iter_py_files(repos_dir):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ClassDef):
+                    continue
+                if not node.name.endswith("Repository"):
+                    continue
+                defined = {
+                    m.name
+                    for m in node.body
+                    if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
+                for method in _REPO_METHODS:
+                    if method not in defined:
+                        key = f"{node.name}: {method}"
+                        if key not in _KNOWN_MISSING_REPO_METHODS:
+                            violations.append(f"{path.relative_to(BASE)}: {key}")
+    assert not violations, (
+        "Repository ports should define save/get_by_id/exists/delete.\n"
+        "If a method is intentionally absent, add it to _KNOWN_MISSING_REPO_METHODS:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 12. DomainEvent fields must not use mutable collection types ───────
+
+
+_MUTABLE_COLLECTION_NAMES = frozenset({"list", "dict", "set"})
+_MUTABLE_COLLECTION_ALIASES = frozenset({"List", "Dict", "Set"})
+
+_KNOWN_EVENT_MUTABLE_FIELDS: frozenset[str] = frozenset({})
+
+
+def _annotation_uses_mutable_collection(annotation: ast.AST) -> str | None:
+    if isinstance(annotation, ast.Name) and annotation.id in _MUTABLE_COLLECTION_NAMES:
+        return annotation.id
+    if isinstance(annotation, ast.Attribute) and annotation.attr in _MUTABLE_COLLECTION_NAMES:
+        return annotation.attr
+    if isinstance(annotation, ast.Subscript):
+        return _annotation_uses_mutable_collection(annotation.value)
+    if isinstance(annotation, ast.BinOp) and isinstance(annotation.op, ast.BitOr):
+        left = _annotation_uses_mutable_collection(annotation.left)
+        right = _annotation_uses_mutable_collection(annotation.right)
+        return left or right
+    return None
+
+
+def _is_domain_event_base(base: ast.AST) -> bool:
+    return (
+        isinstance(base, ast.Name) and base.id == "DomainEvent"
+    ) or (
+        isinstance(base, ast.Attribute) and base.attr == "DomainEvent"
+    )
+
+
+def test_domain_event_fields_no_mutable_collections() -> None:
+    violations: list[str] = []
+    for path in _iter_py_files(BASE / "domain"):
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.ClassDef):
+                continue
+            if not any(_is_domain_event_base(b) for b in node.bases):
+                continue
+            if not _is_frozen_dataclass(node):
+                continue
+            for stmt in node.body:
+                if not isinstance(stmt, ast.AnnAssign):
+                    continue
+                if not isinstance(stmt.target, ast.Name):
+                    continue
+                field_name = stmt.target.id
+                if field_name in ("event_id", "aggregate_id", "aggregate_type", "occurred_at", "correlation_id", "causation_id", "schema_version", "kind"):
+                    continue
+                if stmt.annotation is None:
+                    continue
+                mutable = _annotation_uses_mutable_collection(stmt.annotation)
+                if mutable:
+                    key = f"{path.relative_to(BASE)}: {node.name}.{field_name}: {mutable}"
+                    if key not in _KNOWN_EVENT_MUTABLE_FIELDS:
+                        violations.append(key)
+    assert not violations, (
+        "DomainEvent fields should not use mutable collection types (list/dict/set). "
+        "Use tuple/frozenset/Sequence instead. Known violations in _KNOWN_EVENT_MUTABLE_FIELDS:\n"
+        + "\n".join(violations)
+    )

@@ -1,7 +1,6 @@
 # shell — Przewodnik po projekcie
 
-`shell` to reimplementacja platformy SHELL w architekturze DDD + Hexagonal + CQRS.  
-Stary katalog `shell/` pozostaje niezmieniony i służy jako referencja behawioralna.
+`shell` to platforma SHELL w architekturze DDD + Hexagonal + CQRS, podzielona na Bounded Contexty.
 
 ---
 
@@ -11,14 +10,15 @@ Stary katalog `shell/` pozostaje niezmieniony i służy jako referencja behawior
 2. [Zmienne środowiskowe](#2-zmienne-środowiskowe)
 3. [Uruchamianie — CLI](#3-uruchamianie--cli)
 4. [Uruchamianie — FastAPI](#4-uruchamianie--fastapi)
-5. [Narzędzia administracyjne (bootstrap/main.py)](#5-narzędzia-administracyjne-bootstrapMainpy)
+5. [Narzędzia administracyjne (bootstrap/main.py)](#5-narzędzia-administracyjne-bootstrapmainpy)
 6. [Testowanie](#6-testowanie)
 7. [Architektura warstwowa](#7-architektura-warstwowa)
-8. [Mapa plików — co gdzie jest](#8-mapa-plików--co-gdzie-jest)
-9. [Agregaty i ich relacje](#9-agregaty-i-ich-relacje)
-10. [Szyny (CommandBus / QueryBus / EventBus)](#10-szyny)
-11. [Persistence — adaptery bazodanowe](#11-persistence--adaptery-bazodanowe)
-12. [Observability](#12-observability)
+8. [Bounded Contexty](#8-bounded-contexty)
+9. [Mapa plików — co gdzie jest](#9-mapa-plików--co-gdzie-jest)
+10. [Agregaty i ich relacje](#10-agregaty-i-ich-relacje)
+11. [Szyny (CommandBus / QueryBus / EventBus)](#11-szyny-commandbus--querybus--eventbus)
+12. [Persistence — adaptery bazodanowe](#12-persistence--adaptery-bazodanowe)
+13. [Observability](#13-observability)
 
 ---
 
@@ -41,11 +41,13 @@ Zależności produkcyjne (z `shell/pyproject.toml`):
 | `asyncpg` | PostgreSQL async driver |
 | `alembic` | Migracje schematu SQL |
 | `pydantic>=2.7`, `pydantic-settings` | DTO, Settings, request/response modele |
+| `dependency-injector` | DI Containery per BC |
 | `motor` | MongoDB async driver (adapter zawieszony) |
 | `pyyaml` | Parsowanie task.yaml |
-| `httpx` | Klient HTTP w testach e2e |
+| `httpx` | Klient HTTP/testy e2e |
+| `apscheduler` | Scheduled job execution |
 
-Zależności dev (`[dev]`): `pytest`, `pytest-asyncio`, `pytest-cov`, `mypy`, `ruff`.
+Zależności dev (`[dev]`): `pytest`, `pytest-asyncio`, `pytest-cov`, `mypy`, `ruff`, `import-linter`.
 
 ---
 
@@ -175,20 +177,20 @@ Wszystkie tryby przyjmują ten sam zestaw flag (zdefiniowany w `framework/cli/pa
 ## 4. Uruchamianie — FastAPI
 
 FastAPI to **control plane** — zarządzanie taskami i workflow przez HTTP.  
-Nie zastępuje CLI dla wykonania node'ów; działa równolegle.
+Każdy Bounded Context wystawia własną aplikację FastAPI.
 
-### Uruchomienie serwera
+### Uruchomienie serwera dla konkretnego BC
 
 ```powershell
-# Najpierw zainicjuj kontener i podaj go do create_app
 python -c "
 import asyncio, uvicorn
-from shell.bootstrap.container import ApplicationFactory
-from shell.framework.api.app import create_app
+from shell.platform.bootstrap.container.core_container import CoreContainer
+from shell.framework.user.api.app import create_user_app
 
 async def main():
-    container = await ApplicationFactory(database_url='sqlite+aiosqlite:///shell.db').build()
-    app = create_app(container)
+    container = CoreContainer()
+    container.init_resources()
+    app = create_user_app(container)
     config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(config)
     await server.serve()
@@ -197,49 +199,24 @@ asyncio.run(main())
 "
 ```
 
-### Endpointy
+### Endpointy per BC
+
+| BC | App factory | Ścieżki |
+|---|---|---|
+| **user** | `create_user_app()` | `/users/**`, `/health` |
+| **session** | `create_session_app()` | `/sessions/**` |
+| **definition** | `create_definition_app()` | `/definitions/**` |
+| **execution** | `create_execution_app()` | `/workflows/**`, `/nodes/**` |
+| **project** | `create_project_app()` | `/projects/**` |
 
 Dokumentacja Swagger dostępna pod: `http://localhost:8000/docs`
-
-| Metoda | Ścieżka | Opis |
-|---|---|---|
-| `GET` | `/health` | Health check |
-| `POST` | `/tasks/import` | Import zadania |
-| `GET` | `/tasks/{name}` | Pobierz task po nazwie |
-| `POST` | `/workflows` | Utwórz nowy workflow |
-| `GET` | `/workflows/{id}` | Pobierz status workflow |
-| `POST` | `/workflows/{id}/route` | Uruchom routing |
-| `GET` | `/workflows/{id}/envelopes` | Lista kopert workflow |
-| `GET` | `/nodes/{id}/result` | Wynik wykonania node'a |
-
-### Przykłady curl
-
-```bash
-# Import zadania
-curl -X POST http://localhost:8000/tasks/import \
-  -H "Content-Type: application/json" \
-  -d '{"task_name":"my-task","md_path":"/path/to/my-task.md","yaml_path":"/path/to/my-task.yaml"}'
-
-# Utwórz workflow
-curl -X POST http://localhost:8000/workflows \
-  -H "Content-Type: application/json" \
-  -d '{"task_id":"task_id"}'
-
-# Sprawdź status
-curl http://localhost:8000/workflows/<workflow_id>
-
-# Uruchom routing
-curl -X POST http://localhost:8000/workflows/<workflow_id>/route
-```
-
-Każde żądanie dostaje nagłówek `X-Correlation-Id` (generowany automatycznie lub przekazany przez klienta).
 
 ---
 
 ## 5. Narzędzia administracyjne (bootstrap/main.py)
 
 ```powershell
-python -m shell.bootstrap.main <komenda> [--db-url URL]
+python -m shell.platform.bootstrap.main <komenda> [--db-url URL]
 ```
 
 | Komenda | Opis |
@@ -249,13 +226,13 @@ python -m shell.bootstrap.main <komenda> [--db-url URL]
 
 ```powershell
 # Smoke test na domyślnej bazie
-python -m shell.bootstrap.main smoke
+python -m shell.platform.bootstrap.main smoke
 
 # Smoke test na konkretnej bazie
-python -m shell.bootstrap.main smoke --db-url sqlite+aiosqlite:///moja_baza.db
+python -m shell.platform.bootstrap.main smoke --db-url sqlite+aiosqlite:///moja_baza.db
 
 # Przetworz outbox na bazie Postgres
-python -m shell.bootstrap.main relay --db-url "postgresql+asyncpg://user:pass@localhost/shell"
+python -m shell.platform.bootstrap.main relay --db-url "postgresql+asyncpg://user:pass@localhost/shell"
 ```
 
 ---
@@ -269,40 +246,21 @@ python -m shell.bootstrap.main relay --db-url "postgresql+asyncpg://user:pass@lo
 python -m pytest shell/tests -x
 
 # Tylko unit testy (szybkie, bez I/O)
-python -m pytest shell/tests/unit -x
+python -m pytest shell/tests -x -k "unit"
 
 # Tylko integracyjne SQLite
 python -m pytest shell/tests/integration/sql_sqlite -x
 
-# Integracyjne Postgres (wymaga uruchomionego kontenera)
-docker compose -f shell/docker-compose.test.yml up -d postgres
-$env:PG_TEST_URL = "postgresql+asyncpg://shell:shell@localhost:5432/shell_test"
-python -m pytest shell/tests/integration/sql_postgres -x
-docker compose -f shell/docker-compose.test.yml down -v
-
-# Testy e2e CLI
-python -m pytest shell/tests/e2e/cli -x
-
-# Testy e2e API (FastAPI TestClient)
-python -m pytest shell/tests/e2e/api -x
-
-# Architektura (sprawdza zakazy importów między warstwami)
+# Testy architektury (sprawdza konwencje warstw, nazewnictwo, strukture)
 python -m pytest shell/tests/architecture -x
+
+# Testy dla konkretnego BC
+python -m pytest shell/tests/user -x
+python -m pytest shell/tests/execution -x
 
 # Z pokryciem kodu
 python -m pytest shell/tests --cov=shell --cov-report=term-missing
 ```
-
-### Flagi pytest
-
-| Flaga | Opis |
-|---|---|
-| `-x` | Zatrzymaj po pierwszym błędzie |
-| `-v` | Tryb verbose (lista wszystkich testów) |
-| `-q` | Tryb cichy (tylko podsumowanie) |
-| `--tb=short` | Krótki traceback (domyślnie `short`) |
-| `-k "słowo"` | Uruchom tylko testy pasujące do wyrażenia, np. `-k "task"` |
-| `--no-header` | Bez nagłówka pytest |
 
 ### Lint i typy
 
@@ -320,52 +278,27 @@ python -m mypy --strict shell/domain shell/application
 python -m mypy shell/infrastructure shell/framework shell/bootstrap
 ```
 
-### Struktura testów i co gdzie pisać
+### Struktura testów
 
 ```
 shell/tests/
-├── architecture/
-│   └── test_imports.py          ← AST scanner: zakazy importów między warstwami
-├── unit/
-│   ├── domain/                  ← Testy encji, VO, serwisów domenowych — bez I/O, bez mocków portów
-│   └── application/             ← Handlery z InMemory* adapterami i Fake* portami
-│       ├── test_import_task.py
-│       ├── test_workflow.py
-│       ├── test_logging_publishers.py
-│       └── test_outbox.py
-├── integration/
-│   ├── sql_sqlite/
-│   │   └── __init__.py          ← Testy repozytoriów i UoW przez prawdziwe SQLite (aiosqlite)
-│   ├── sql_postgres/
-│   │   └── __init__.py          ← Jak wyżej, ale Postgres — pomijane gdy brak PG_TEST_URL
-│   └── filesystem/              ← Operacje FS z tmp_path
-├── e2e/
-│   ├── cli/
-│   │   └── test_tasker_full_graph.py   ← Pełne cykle orkiestracji przez CLI
-│   └── api/
-│       └── test_api.py          ← FastAPI TestClient: HTTP → CommandBus → DB
-```
-
-**Wzorzec unit testu handlera** (korzysta z InMemory adapterów):
-
-```python
-async def test_import_task_saves_to_repo() -> None:
-    from shell.application.command_handlers.import_task_handler import ImportTaskHandler
-    from shell.application.commands.commands import ImportTaskCommand
-    from shell.infrastructure.persistence.memory.memory import (
-        InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeEventPublisher, FakeTaskLoader,
-    )
-
-    uow = InMemoryUnitOfWork()
-    handler = ImportTaskHandler(
-        uow=uow,
-        clock=FakeClock(),
-        id_gen=FakeIdGenerator(),
-        task_loader=FakeTaskLoader(body="# Test"),
-        events=FakeEventPublisher(),
-    )
-    task_id = await handler.handle(ImportTaskCommand(md_path="t.md", yaml_path="t.yaml", task_name="t"))
-    assert task_id is not None
+├── architecture/               ← 19 testów: AST scanner, import-linter, nazewnictwo
+├── user/                       ← Testy BC user
+│   ├── unit/
+│   └── user/
+├── session/                    ← Testy BC session
+├── execution/                  ← Testy BC execution
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+├── definition/                 ← Testy BC definition
+├── messaging/                  ← Testy BC messaging
+├── project/                    ← Testy BC project
+├── scheduling/                 ← Testy BC scheduling
+├── platform/                   ← Testy warstwy platform (buses, middleware)
+├── process/                    ← Testy procesów/sag
+├── infrastructure/             ← Testy infrastruktury
+└── shared/                     ← Wspólne test doubles, helpery
 ```
 
 ---
@@ -373,226 +306,203 @@ async def test_import_task_saves_to_repo() -> None:
 ## 7. Architektura warstwowa
 
 ```
-domain ← application ← infrastructure ← framework ← bootstrap
+domain ← application ← infrastructure ← framework
+                                                    ↕
+                                              bootstrap
+                                              platform
+                                              process
 ```
 
-Importy idą **tylko w tym kierunku** — żadna niższa warstwa nie może importować z wyższej.
+Importy idą **tylko w tym kierunku** — żadna niższa warstwa nie może importować z wyższej. Egzekwowane przez `import-linter` i testy architektury.
 
 | Warstwa | Co zawiera | Dozwolone importy |
 |---|---|---|
-| `domain/` | Encje, VO, porty repozytoriów, eventy domenowe, wyjątki | Tylko stdlib |
-| `application/` | Komendy, zapytania, handlery, porty (Protocol), strategie | `domain/` + stdlib |
-| `infrastructure/` | Adaptery SQL/Memory/FS/Process, logging, messaging | `domain/` + `application/` + libs |
-| `framework/` | CLI (argparse) + FastAPI | `domain/` + `application/` + `infrastructure/` |
-| `bootstrap/` | `ApplicationFactory` — składa wszystko razem | Wszystkie warstwy |
-| `shared/` | `UuidIdGenerator` i inne pomocnicze | Tylko stdlib |
+| `domain/` | Agregaty, encje, VO, eventy domenowe, porty repozytoriów, wyjątki | Tylko stdlib |
+| `application/` | Komendy, zapytania, handlery (CQRS), DTO, porty aplikacyjne | `domain/` + stdlib |
+| `infrastructure/` | Adaptery SQL/Memory/HTTP, modele ORM, mappery, logging, messaging | `domain/` + `application/` + libs |
+| `framework/` | CLI (argparse), FastAPI per BC | `infrastructure/` (przez DI) |
+| `bootstrap/` | DI containery per BC, ApplicationFactory | Wszystkie warstwy |
+| `platform/` | Shared Kernel: klasy bazowe, busy, shared VOs, persistence base | Tylko stdlib + libs |
+| `process/` | Sagi / Process Managery (long-running workflows) | `domain/` + `application/` |
+
+**Każda warstwa dzieli się na Bounded Contexty** — nie ma płaskiej struktury.
 
 ---
 
-## 8. Mapa plików — co gdzie jest
+## 8. Bounded Contexty
 
-### domain/
+| BC | domain/aggregates | application/ | infrastructure/ | framework/ | bootstrap/ |
+|---|---|---|---|---|---|
+| **user** | user, user_state, user_skill | commands, queries, handlers | SQL repos, HTTP adapters | FastAPI router | UserCoreContainer |
+| **session** | session, session_state | commands, queries | SQL repos | FastAPI router | SessionCoreContainer |
+| **definition** | graph_definition, node_definition, runner_config, graph_definition_embedding | queries | SQL repos | FastAPI router | DefinitionCoreContainer |
+| **execution** | workflow, graph_execution, node_execution, edge_execution, task_execution, session_execution i in. (19 agregatów) | commands, queries per agregat | SQL repos per agregat | FastAPI router + orchestration | ExecutionCoreContainer |
+| **messaging** | message_router | queries | SQL repos | — | MessagingCoreContainer |
+| **project** | project, project_skill, project_state | commands, queries | SQL repos, HTTP | FastAPI router | (przez CoreContainer) |
+| **scheduling** | scheduler_definition, scheduler_execution, scheduler_job | queries | SQL repos, services | — | (przez CoreContainer) |
 
-```
-domain/
-├── entities/
-│   ├── task.py              Task, Graph, Node
-│   ├── workflow.py          Workflow, NodeState
-│   ├── envelope.py          Envelope, EnvelopeEvent
-│   ├── node_result.py       NodeResult
-│   ├── prompt.py            Prompt
-│   ├── runner_config.py     RunnerConfig
-│   ├── rag_document.py      RagDocument, RagChunk
-│   └── session.py           Session, Message
-├── value_objects/
-│   ├── ids.py               TaskId, WorkflowId, EnvelopeId, NodeId, ...
-│   ├── task_name.py         TaskName
-│   ├── status.py            Status (pending/running/done/failed)
-│   ├── envelope_status.py   EnvelopeStatus
-│   └── ...
-├── repositories/            Porty (Protocol) — czyste interfejsy bez implementacji
-│   ├── task_repository.py
-│   ├── workflow_repository.py
-│   └── ...
-├── events/
-│   └── events.py            TaskImported, WorkflowStarted, EnvelopeRouted, NodeCompleted, ...
-├── services/
-│   ├── graph_routing_service.py
-│   └── rag_index_service.py
-└── exceptions.py            DomainError i podklasy
-```
+---
 
-### application/
+## 9. Mapa plików — co gdzie jest
+
+### Struktura per-BC (wzorzec)
+
+Każdy Bounded Context powtarza tę samą strukturę we wszystkich warstwach:
 
 ```
-application/
-├── commands/
-│   └── commands.py          Wszystkie Command dataclassy (frozen=True)
-├── queries/
-│   └── queries.py           Wszystkie Query dataclassy (frozen=True)
-├── command_handlers/        Jeden handler per plik
-│   ├── import_task_handler.py
-│   ├── start_workflow_handler.py
-│   ├── route_envelopes_handler.py
-│   ├── run_node_handler.py
-│   ├── run_tasker_workflow_handler.py
-│   ├── save_node_result_handler.py
-│   ├── save_prompt_handler.py
-│   ├── archive_envelope_handler.py
-│   └── bootstrap_runner_config_handler.py
-├── query_handlers/
-│   └── query_handlers.py    GetWorkflowHandler, GetTaskByNameHandler, ...
-├── dto/                     DTO zwracane przez handlery zapytań
-├── mappers/                 Entity ↔ DTO
-├── ports/
-│   └── ports.py             UnitOfWork, Clock, IdGenerator, EventPublisher, Logger, NodeExecutionProcessRunner, TaskLoader
-├── strategies/
-│   ├── node_execution_strategy.py   (Protocol)
-│   ├── agent_strategy.py
-│   ├── router_strategy.py
-│   ├── tasker_strategy.py
-│   ├── tool_strategy.py
-│   └── worker_strategy.py
-└── bus.py                   CommandBus, QueryBus, EventBus
-```
+domain/<bc>/
+└── aggregates/
+    └── <aggregate>/
+        ├── <aggregate>.py          ← AggregateRoot
+        ├── entities/               ← Child encje (jeśli istnieją)
+        ├── events/                 ← Eventy domenowe
+        ├── exceptions/             ← Wyjątki domenowe
+        ├── ports/                  ← Porty (Protocol)
+        ├── repositories/           ← Interfejsy repozytoriów (Protocol)
+        └── value_objects/          ← Value Objecty
 
-### infrastructure/
+application/<bc>/
+├── commands/                       ← Commandy (frozen dataclass)
+├── command_handlers/               ← Handlery komend
+├── queries/                        ← Zapytania (frozen dataclass)
+├── query_handlers/                 ← Handlery zapytań
+├── dto/                            ← DTO (frozen dataclass, primitives only)
+├── ports/                          ← Porty aplikacyjne (Protocol)
+├── mappers/                        ← Entity ↔ DTO
+├── event_handlers/                 ← Handlery eventów domenowych
+└── exceptions/                     ← Wyjątki aplikacyjne
 
-```
-infrastructure/
-├── persistence/
-│   ├── sql/
-│   │   ├── __init__.py           build_session_factory(), create_all_tables()
-│   │   ├── models/               SQLAlchemy ORM modele (TaskModel, WorkflowModel, ...)
-│   │   ├── repositories/         SqlTaskExecutionRepository, SqlWorkflowRepository, ...
-│   │   └── unit_of_work.py       SqlAlchemyUnitOfWork
-│   ├── memory/
-│   │   └── memory.py             InMemoryUnitOfWork, FakeClock, FakeIdGenerator, FakeEventPublisher, FakeTaskLoader
-│   └── migrations/
-│       └── sql/versions/
-│           ├── 001_initial.py
-│           ├── 002_rag_session.py
-│           ├── 003_audit_event.py
-│           └── 004_outbox.py
-├── filesystem/
-│   ├── task_loader.py            Czyta .md + .yaml z dysku → TaskBody
-│   ├── node_workspace.py         Zarządza katalogiem roboczym node'a
-│   └── envelope_archive_fs.py    FS-based archiwum kopert
-├── process/
-│   └── subprocess_runner.py      NodeExecutionProcessRunner — uruchamia node'y przez subprocess
-├── logging/
-│   ├── stdlib_logger.py          StdlibLogger (JSON output, correlation_id)
-│   ├── logging_event_publisher.py
-│   ├── sql_audit_publisher.py    Zapis do tabeli audit_event
-│   └── composite_event_publisher.py
-├── messaging/
-│   ├── sql_outbox_publisher.py   Zapis do tabeli outbox_event
-│   ├── memory_outbox_store.py    InMemory outbox (testy)
-│   └── outbox_to_inbox_relay.py           Relay: czyta outbox → wysyla do inbox
-├── rag/                          RAG repozytoria
-└── configuration/                Settings (pydantic-settings)
-```
+infrastructure/<bc>/
+├── <aggregate>/
+│   └── persistence/
+│       ├── sql/
+│       │   ├── models/            ← SQLAlchemy ORM modele
+│       │   ├── repositories/      ← Implementacje SQL repozytoriów
+│       │   └── mappers.py         ← Entity ↔ Model
+│       └── memory/                ← InMemory (testy)
+├── http/                           ← Adaptery HTTP (cross-BC)
+└── services/                       ← Serwisy infrastrukturalne
 
-### framework/
-
-```
-framework/
-├── cli/
-│   ├── main.py       Dispatcher: argv → subkomenda → asyncio.run(handler)
-│   └── parser.py     build_parser() — wspólny argparse dla wszystkich trybów
+framework/<bc>/
 └── api/
-    ├── app.py                create_app(container) → FastAPI
-    ├── routers/
-    │   ├── tasks.py          POST /tasks/import, GET /tasks/{name}
-    │   ├── workflows.py      POST /workflows, GET /workflows/{id}, POST /{id}/route
-    │   ├── envelopes.py      GET /workflows/{id}/envelopes
-    │   └── nodes.py          GET /nodes/{id}/result
-    └── middleware/
-        ├── correlation_id.py CorrelationIdMiddleware (X-Correlation-Id header)
-        └── error_handler.py  DomainError → HTTP 4xx
+    ├── app.py                      ← FastAPI app factory
+    ├── router.py                   ← Router
+    └── middleware/                  ← Middleware (jeśli BC-specific)
+
+bootstrap/<bc>/
+└── container/
+    └── <bc>_container.py           ← DI Container per BC
 ```
 
-### bootstrap/
+### platform/ — Shared Kernel
 
 ```
-bootstrap/
-├── container.py   ApplicationFactory.build() → Container(command_bus, query_bus, event_bus)
-└── main.py        python -m shell.bootstrap.main smoke|relay
+platform/
+├── domain/base/                    ← AggregateRoot, Entity, EntityId, ValueObject
+├── domain/events/                  ← DomainEvent, AggregateDeletedEvent
+├── domain/exceptions/              ← DomainError
+├── domain/ports/                   ← RepositoryPort (generic Protocol)
+├── domain/value_objects/           ← Shared VOs (CreatedAt, UpdatedAt itp.)
+├── application/bus/                ← CommandBus, QueryBus, EventBus, MessageBus
+├── application/context/            ← CorrelationId, CausationId
+├── application/exceptions/         ← ApplicationError
+├── application/ports/              ← UnitOfWork, Clock, IdGenerator itp.
+├── infrastructure/persistence/     ← SQLAlchemy Base, session factory, UoW base, migracje
+├── infrastructure/identity/        ← UUID id generator
+├── infrastructure/logging/         ← StdlibLogger (JSON, correlation_id)
+├── infrastructure/messaging/       ← Outbox/Inbox relay
+├── infrastructure/time/            ← SystemClock
+├── infrastructure/serialization/   ← Domain event serializer
+├── infrastructure/configuration/   ← YAML config loader
+├── framework/api/                  ← Wspólne: middleware, OpenAPI, websocket
+├── framework/cli/                  ← Wspólny parser CLI
+├── bootstrap/container/            ← CoreContainer (składa per-BC containery)
+└── bootstrap/config_logging/       ← Konfiguracja logowania
 ```
 
 ---
 
-## 9. Agregaty i ich relacje
+## 10. Agregaty i ich relacje
 
 ```mermaid
 graph TD
+    User -->|ma| UserState
+    User -->|ma| UserSkill
+    Session -->|należy do| User
+    Session -->|zawiera| Message
     Task -->|ma| Graph
     Graph -->|zawiera| Node
     Workflow -->|śledzi| NodeState
     Workflow -->|powiązany z| Task
+    Workflow -->|ma| GraphExecution
+    GraphExecution -->|zawiera| NodeExecution
+    NodeExecution -->|ma| EdgeExecution
+    EdgeExecution -->|łączy| NodeExecution
     Envelope -->|należy do| Workflow
     Envelope -->|dotyczy| Node
     NodeResult -->|wynik| Envelope
-    Prompt -->|używany przez| Node
-    RunnerConfig -->|konfiguruje| Node
-    RagDocument -->|zawiera| RagChunk
-    Session -->|zawiera| Message
+    Project -->|zawiera| ProjectSkill
+    Project -->|ma| ProjectState
+    SchedulerDefinition -->|tworzy| SchedulerJob
+    SchedulerJob -->|uruchamia| SchedulerExecution
+    MessageRouter -->|przetwarza| Message
 ```
 
 ---
 
-## 10. Szyny
+## 11. Szyny (CommandBus / QueryBus / EventBus)
 
-### Rejestracja handlera
+Wszystkie busy zdefiniowane w `platform/application/bus/`, instantowane jako singlety w `BusContainer`.
 
-Wszystkie handlery są rejestrowane w `bootstrap/container.py`:
+### Rejestracja handlerów
+
+Handlery rejestrowane są w per-BC kontenerach DI:
 
 ```python
-command_bus.register(ImportTaskCommand, import_task_handler)
-query_bus.register(GetWorkflowQuery, get_workflow_handler)
-event_bus.subscribe(TaskImported, on_task_imported)
+# bootstrap/user/container/user_core_container.py
+command_bus.register(CreateUserCommand, CreateUserHandler)
+query_bus.register(GetUserQuery, GetUserHandler)
+event_bus.subscribe(UserCreatedEvent, OnUserCreatedHandler)
 ```
 
 ### Wywołanie z kodu
 
 ```python
 # Command (zapis stanu)
-task_id: TaskId = await container.command_bus.dispatch(
-    ImportTaskCommand(md_path="...", yaml_path="...", task_name="...")
+user_id: UserId = await container.command_bus.dispatch(
+    CreateUserCommand(email="user@example.com", name="John")
 )
 
 # Query (odczyt bez efektów ubocznych)
-dto: WorkflowDto | None = await container.query_bus.dispatch(
-    GetWorkflowQuery(workflow_id="<uuid>")
+dto: UserDto | None = await container.query_bus.dispatch(
+    GetUserQuery(user_id=user_id)
 )
 ```
 
 ---
 
-## 11. Persistence — adaptery bazodanowe
+## 12. Persistence — adaptery bazodanowe
 
-### Tabele SQL
+### Tabele SQL (per BC)
 
-| Tabela | Zawiera |
+| BC | Tabele |
 |---|---|
-| `task` | Zadania (md_body, yaml_body, graph JSON) |
-| `workflow` | Instancje workflow + status |
-| `node_state` | Stan każdego node'a w workflow |
-| `envelope` | Koperty routingu |
-| `node_result` | Wyniki wykonania node'ów |
-| `prompt` | Przechowywane prompty |
-| `runner_config` | Konfiguracje runnerów |
-| `rag_document` | Dokumenty RAG |
-| `rag_chunk` | Chunki dokumentów RAG |
-| `session` | Sesje konwersacji |
-| `message` | Wiadomości w sesjach |
-| `audit_event` | Logi eventów domenowych (append-only) |
-| `outbox_event` | Transactional outbox (at-least-once delivery) |
+| **user** | `user`, `user_state`, `user_skill` |
+| **session** | `session`, `message` |
+| **definition** | `graph_definition`, `node_definition`, `node_link_definition`, `runner_config`, `graph_definition_embedding` |
+| **execution** | `workflow`, `graph_execution`, `node_execution`, `edge_execution`, `session_execution`, `task_execution`, `envelope`, `node_result`, `prompt` |
+| **project** | `project`, `project_skill`, `project_state` |
+| **scheduling** | `scheduler_definition`, `scheduler_job`, `scheduler_execution` |
+| **messaging** | `message_router`, `inbox_message`, `outbox_message` |
+| **platform** | `audit_event`, `outbox_event` |
 
 ### Migracje
 
-Migracje są aplikowane automatycznie przy każdym `ApplicationFactory.build()` przez `create_all_tables()`.  
-Pliki migracji: `infrastructure/persistence/migrations/sql/versions/`.
+Migracje Alembic: `platform/infrastructure/persistence/migrations/sql/versions/` (56 migracji).
+
+### Unit of Work
+
+Każdy BC ma własną implementację UoW (np. `SqlAlchemyUserUnitOfWork`), która zarządza transakcjami i outboxem dla swojego BC. Wszystkie dziedziczą po `SqlAlchemyUnitOfWorkBase` z `platform/infrastructure/persistence/`.
 
 ### Zmiana backendu
 
@@ -606,7 +516,7 @@ $env:shell_DATABASE_URL = "postgresql+asyncpg://user:password@localhost:5432/she
 
 ---
 
-## 12. Observability
+## 13. Observability
 
 ### Logi (JSON)
 
@@ -635,5 +545,5 @@ Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 
 ```powershell
 # Uruchom relay ręcznie
-python -m shell.bootstrap.main relay --db-url sqlite+aiosqlite:///shell.db
+python -m shell.platform.bootstrap.main relay --db-url sqlite+aiosqlite:///shell.db
 ```

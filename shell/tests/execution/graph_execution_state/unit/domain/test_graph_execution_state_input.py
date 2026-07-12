@@ -73,9 +73,6 @@ class TestGraphExecutionStateInputUpdate:
         assert len(events) == 1
         event = events[0]
         assert isinstance(event, GraphExecutionStateChangedEvent)
-        assert event.key.value == "k"
-        assert event.old_value is None
-        assert event.new_value == "v"
 
 
 class TestGraphExecutionStateInputDelete:

@@ -48,7 +48,7 @@ def _created_at_value(dt: CreatedAt | DeletedAt | datetime | None) -> datetime |
 
 
 def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
-    return Workflow(
+    return Workflow.restore(
         id=WorkflowId(workflow_model.id),
         status=WorkflowStatus(workflow_model.status),
         session_id=SessionIdRef(workflow_model.session_id) if workflow_model.session_id else None,

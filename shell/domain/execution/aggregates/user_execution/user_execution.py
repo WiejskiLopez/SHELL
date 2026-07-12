@@ -12,8 +12,6 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.user_execution.value_objects.user_id_ref import UserIdRef
 
 
@@ -65,13 +63,13 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         cls,
         *,
         id_: UserExecutionId,
-        user_id: UserIdRef | None = None,
-        now: datetime,
+        user_id: UserIdRef,
+        now: CreatedAt,
     ) -> UserExecution:
         user_execution = cls(
             id=id_,
             user_id=user_id,
-            created_at=CreatedAt.from_datetime(now),
+            created_at=now,
         )
         user_execution.append_event(
             UserExecutionCreatedEvent.now(

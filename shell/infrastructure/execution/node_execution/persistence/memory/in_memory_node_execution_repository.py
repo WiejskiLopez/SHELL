@@ -31,7 +31,7 @@ class InMemoryNodeExecutionRepository(
         super().__init__()
         self._link_repo: object = None
 
-    def set_link_repo(self, link_repo: object) -> None:
+    def set_link_repository(self, link_repo: object) -> None:
         self._link_repo = link_repo
 
     async def list_by_ids(self, ids: list[NodeExecutionId]) -> list[NodeExecution]:

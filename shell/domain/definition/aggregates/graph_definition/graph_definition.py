@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
     GraphDefinitionCreatedEvent,
 )
@@ -10,9 +8,6 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
@@ -35,7 +30,7 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     def create(
         cls,
         id: GraphDefinitionId,
-        now: datetime | None = None,
+        now: CreatedAt | None = None,
     ) -> GraphDefinition:
         instance = cls(id=id)
 

@@ -11,9 +11,6 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_crea
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
-    TaskExecutionName,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.platform.infrastructure.persistence.sql.models import AuditEventModel
@@ -35,12 +32,10 @@ class TestSqlAuditPublisher:
             [
                 TaskExecutionCreatedEvent.now(
                     task_execution_id=TaskExecutionId.generate(),
-                    task_execution_name=TaskExecutionName("test-task"),
                     now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
                 ),
                 TaskExecutionCreatedEvent.now(
                     task_execution_id=TaskExecutionId.generate(),
-                    task_execution_name=TaskExecutionName("test-task-2"),
                     now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
                 ),
             ],

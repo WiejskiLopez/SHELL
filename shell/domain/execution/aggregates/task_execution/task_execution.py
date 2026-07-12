@@ -9,24 +9,19 @@ from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_st
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
-    TaskExecutionName,
-)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_status import (
     TaskExecutionStatus,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
         TaskExecutionBody,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -89,27 +84,27 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     # --- V3 FSM ---
 
-    def start(self, now: datetime) -> None:
+    def start(self) -> None:
         if self._status != TaskExecutionStatus.CREATED:
             raise InvalidTaskStateError(f"Cannot start task in status {self._status}")
         self._status = TaskExecutionStatus.IN_PROGRESS
 
-    def complete(self, output: str = "", now: datetime | None = None) -> None:
+    def complete(self, output: str = "") -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot complete task in status {self._status}")
         self._status = TaskExecutionStatus.COMPLETED
 
-    def fail(self, reason: Reason, now: datetime) -> None:
+    def fail(self, reason: Reason) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot fail task in status {self._status}")
         self._status = TaskExecutionStatus.FAILED
 
-    def timeout(self, now: datetime) -> None:
+    def timeout(self) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot timeout task in status {self._status}")
         self._status = TaskExecutionStatus.TIMED_OUT
 
-    def exhaust(self, now: datetime) -> None:
+    def exhaust(self) -> None:
         if self._status != TaskExecutionStatus.IN_PROGRESS:
             raise InvalidTaskStateError(f"Cannot exhaust task in status {self._status}")
         self._status = TaskExecutionStatus.EXHAUSTED
@@ -159,7 +154,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         *,
         id_: TaskExecutionId,
         name: Any,
-        now: datetime,
+        now: CreatedAt,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
@@ -169,13 +164,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             name=task_name,
             body=body,
             workflow_id=workflow_id,
-            created_at=CreatedAt.from_datetime(now),
+            created_at=now,
         )
         task_execution.append_event(
             TaskExecutionCreatedEvent.now(
                 task_execution_id=id_,
-                task_execution_name=TaskExecutionName(task_name.value),
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return task_execution

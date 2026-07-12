@@ -14,8 +14,6 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
@@ -99,7 +97,6 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: NodeDefinitionId | None = None,
         order: NodeOrder,
-        now: datetime,
     ) -> NodeExecution:
         instance = cls(
             id=id,
@@ -115,27 +112,27 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
 
     # --- V3 FSM ---
 
-    def start(self, now: datetime) -> None:
+    def start(self) -> None:
         if self._status != NodeExecutionStatus.PENDING:
             raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
         self._status = NodeExecutionStatus.RUNNING
 
-    def complete(self, result: StateData | JsonStr | None, now: datetime) -> None:
+    def complete(self, result: StateData | JsonStr | None) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
         self._status = NodeExecutionStatus.COMPLETED
 
-    def fail(self, error: ErrorDescription | str, now: datetime) -> None:
+    def fail(self, error: ErrorDescription | str) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
         self._status = NodeExecutionStatus.FAILED
 
-    def retry(self, now: datetime) -> None:
+    def retry(self) -> None:
         if self._status != NodeExecutionStatus.FAILED:
             raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
         self._status = NodeExecutionStatus.PENDING
 
-    def timeout(self, now: datetime) -> None:
+    def timeout(self) -> None:
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
         self._status = NodeExecutionStatus.TIMED_OUT

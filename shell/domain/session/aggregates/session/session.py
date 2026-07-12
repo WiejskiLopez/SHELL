@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.session.aggregates.session.events.session_closed_event import (
@@ -127,8 +126,6 @@ class Session(AggregateRoot[SessionId]):
             project_id = ProjectIdRef.generate()
         if now is None:
             now = CreatedAt.now()
-        elif isinstance(now, datetime):
-            now = CreatedAt.from_datetime(now)
         session = cls(
             id=id_,
             user_id=user_id,

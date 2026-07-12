@@ -20,7 +20,7 @@ from shell.platform.domain.value_objects.mode import Mode
 def node_definition_model_to_entity(
     node_definition_model: NodeDefinitionModel,
 ) -> NodeDefinition:
-    return NodeDefinition(
+    return NodeDefinition.restore(
         id=NodeDefinitionId(node_definition_model.id),
         mode=Mode(str(node_definition_model.mode)),
         role=NodeRoleName(node_definition_model.role),

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.workflow.events.workflow_created_event import (
+    WorkflowCreatedEvent,
+)
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.platform.domain.base import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
         SessionIdRef,
     )
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -88,26 +89,28 @@ class Workflow(AggregateRoot["WorkflowId"]):
     # --- Factory ---
 
     @classmethod
-    def new(
+    def create(
         cls,
         *,
         id_: WorkflowId,
-        now: datetime,
+        now: CreatedAt,
         session_id: SessionIdRef | None = None,
     ) -> Workflow:
-        return cls(
+        created_at = now
+        workflow = cls(
             id=id_,
             session_id=session_id,
             status=WorkflowStatus.ACTIVE,
-            created_at=CreatedAt.from_datetime(now),
+            created_at=created_at,
         )
+        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=created_at))
+        return workflow
 
     # --- Methods ---
 
     def start_at(
         self,
         *,
-        now: datetime,
         task_execution_id: TaskExecutionId | None = None,
         work_dir: str | None = None,
     ) -> None:
@@ -116,7 +119,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     def finish(
         self,
-        now: datetime | None = None,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
@@ -126,7 +128,6 @@ class Workflow(AggregateRoot["WorkflowId"]):
     def fail(
         self,
         *,
-        now: datetime,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
@@ -137,19 +138,18 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self,
         *,
         reason: str | Reason | None = None,
-        now: datetime,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
             raise ValueError(f"abort requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.ABORTED
 
-    def pause(self, *, now: datetime) -> None:
+    def pause(self) -> None:
         if self._status != WorkflowStatus.ACTIVE:
             raise ValueError(f"pause requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.PAUSED
 
-    def resume(self, *, now: datetime) -> None:
+    def resume(self) -> None:
         if self._status != WorkflowStatus.PAUSED:
             raise ValueError(f"resume requires status=PAUSED, got {self._status.value!r}")
         self._status = WorkflowStatus.ACTIVE

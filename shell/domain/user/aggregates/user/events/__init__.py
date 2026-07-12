@@ -1,3 +1,6 @@
+from shell.domain.user.aggregates.user.events.user_created_event import (
+    UserCreatedEvent,
+)
 from shell.domain.user.aggregates.user.events.user_deleted_event import (
     UserDeletedEvent,
 )
@@ -6,6 +9,7 @@ from shell.domain.user.aggregates.user.events.user_updated_event import (
 )
 
 __all__ = [
+    "UserCreatedEvent",
     "UserDeletedEvent",
     "UserUpdatedEvent",
 ]

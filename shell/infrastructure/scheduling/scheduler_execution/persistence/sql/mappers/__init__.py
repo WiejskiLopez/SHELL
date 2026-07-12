@@ -35,7 +35,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 def scheduler_execution_model_to_entity(
     model: SchedulerExecutionModel,
 ) -> SchedulerJob:
-    return SchedulerJob(
+    return SchedulerJob.restore(
         id=SchedulerExecutionId(model.id),
         scheduler_definition_id=SchedulerDefinitionId(model.scheduler_definition_id),
         name=JobName(model.name),

@@ -19,8 +19,6 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.platform.domain.value_objects.mode import Mode
 
 
@@ -75,7 +73,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         role: NodeRoleName,
         node_type: NodeTypeName,
         max_step: MaxStep | None = None,
-        now: datetime | None = None,
+        now: CreatedAt | None = None,
     ) -> NodeDefinition:
         instance = cls(
             id=id,
@@ -89,8 +87,6 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
             instance.append_event(
                 NodeDefinitionCreatedEvent.now(
                     node_definition_id=id,
-                    role=role,
-                    node_type=node_type,
                     now=CreatedAt.from_datetime(now),
                 )
             )

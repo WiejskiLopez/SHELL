@@ -55,7 +55,7 @@ def scheduler_definition_model_to_entity(
     policy = ExecutionPolicy(
         **(model.execution_policy or {}),
     )
-    return SchedulerDefinition(
+    return SchedulerDefinition.restore(
         id=SchedulerDefinitionId(model.id),
         name=SchedulerName(model.name),
         description=SchedulerDescription(model.description) if model.description else None,

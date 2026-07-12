@@ -33,6 +33,20 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         self._node_definition_id = node_definition_id
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: NodeLinkDefinitionId,
+        graph_definition_id: GraphDefinitionId,
+        node_definition_id: NodeDefinitionId,
+    ) -> NodeLinkDefinition:
+        return cls(
+            id=id_,
+            graph_definition_id=graph_definition_id,
+            node_definition_id=node_definition_id,
+        )
+
+    @classmethod
     def restore(
         cls,
         id: NodeLinkDefinitionId,

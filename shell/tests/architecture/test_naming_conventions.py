@@ -183,8 +183,6 @@ def test_constants_use_upper_case() -> None:
 _KNOWN_ABBREVIATION_VIOLATIONS: frozenset[str] = frozenset(
     {
         "domain/project/aggregates/project/project.py: function repo_url",
-        "infrastructure/execution/node_execution/persistence/memory/in_memory_node_execution_repository.py: function set_link_repo",
-        "infrastructure/definition/node_definition/persistence/memory/in_memory_node_definition_repository.py: function set_link_repo",
         "platform/framework/api/middleware/error_handler.py: function http_exception_handler",
     }
 )

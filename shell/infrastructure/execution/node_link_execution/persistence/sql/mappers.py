@@ -18,7 +18,7 @@ from shell.infrastructure.execution.node_link_execution.persistence.sql.models i
 
 
 def node_link_execution_model_to_entity(model: NodeLinkExecutionModel) -> NodeLinkExecution:
-    return NodeLinkExecution(
+    return NodeLinkExecution.restore(
         id=NodeLinkExecutionId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         node_execution_id=NodeExecutionId(model.node_execution_id),

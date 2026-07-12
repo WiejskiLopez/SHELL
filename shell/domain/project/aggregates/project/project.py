@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
+from shell.domain.project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 from shell.domain.project.aggregates.project.value_objects.project_status import ProjectStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.project.aggregates.project.value_objects.project_name import ProjectName
     from shell.domain.project.aggregates.project.value_objects.repo_url import RepoUrl
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class Project(AggregateRoot[ProjectId]):
@@ -71,6 +72,23 @@ class Project(AggregateRoot[ProjectId]):
             deleted_at=deleted_at,
         )
 
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: ProjectId,
+        name: ProjectName,
+        repo_url: RepoUrl,
+        now: CreatedAt,
+    ) -> Project:
+        return cls(
+            id=id_,
+            name=name,
+            repo_url=repo_url,
+            status=ProjectStatus.ACTIVE,
+            created_at=now,
+        )
+
     @property
     def name(self) -> ProjectName:
         return self._name
@@ -99,13 +117,29 @@ class Project(AggregateRoot[ProjectId]):
     def deleted_at(self) -> DeletedAt | None:
         return self._deleted_at
 
-    def update(self, *, name: ProjectName, repo_url: RepoUrl, now: datetime) -> None:
+    def update(self, *, name: ProjectName, repo_url: RepoUrl, now: UpdatedAt) -> None:
         """Update project fields and bump updated_at."""
+        if self._deleted_at is not None:
+            raise ValueError("Cannot update a deleted project")
         self._name = name
         self._repo_url = repo_url
-        self._updated_at = UpdatedAt.from_datetime(now)
+        self._updated_at = now
+        self.append_event(
+            ProjectUpdatedEvent.now(
+                project_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-    def delete(self, now: datetime) -> None:
+    def delete(self, now: DeletedAt) -> None:
         """Soft-delete this project."""
-        self._deleted_at = DeletedAt.from_datetime(now)
-        self._updated_at = UpdatedAt.from_datetime(now)
+        if self._deleted_at is not None:
+            raise ValueError("Project already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            ProjectDeletedEvent.now(
+                project_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )

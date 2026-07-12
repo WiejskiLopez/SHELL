@@ -9,11 +9,18 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
+    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+        GraphExecutionStateId,
+    )
     from shell.platform.domain.value_objects.exists_result import ExistsResult
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class GraphExecutionStateRepository(Protocol):
+    async def get_by_id(
+        self, id: GraphExecutionStateId
+    ) -> GraphExecutionState | None: ...
+
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection
     ) -> GraphExecutionState | None: ...

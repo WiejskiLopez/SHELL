@@ -5,9 +5,14 @@ from typing import TYPE_CHECKING, Protocol
 if TYPE_CHECKING:
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
     from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
+    from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 
 class MessageRouterRepository(Protocol):
     async def save(self, message: MessageRouter) -> None: ...
 
     async def get_by_id(self, message_id: MessageId) -> MessageRouter | None: ...
+
+    async def delete(self, id: MessageId) -> None: ...
+
+    async def exists(self, id: MessageId) -> ExistsResult: ...

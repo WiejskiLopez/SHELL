@@ -9,21 +9,22 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
         EdgeExecutionId,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_created_event import (
     EdgeLinkExecutionCreatedEvent,
 )
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_deleted_event import (
     EdgeLinkExecutionDeletedEvent,
 )
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_updated_event import (
+    EdgeLinkExecutionUpdatedEvent,
+)
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
@@ -78,7 +79,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         id_: EdgeLinkExecutionId,
         node_execution_id: NodeExecutionId,
         edge_execution_id: EdgeExecutionId,
-        now: datetime,
+        now: CreatedAt,
     ) -> EdgeLinkExecution:
         instance = cls(
             id_=id_,
@@ -95,18 +96,28 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         )
         return instance
 
-    def mark_deleted(self, now: datetime) -> None:
-        self._deleted_at = DeletedAt.from_datetime(now)
-        self._updated_at = UpdatedAt.from_datetime(now)
+    def mark_deleted(self, now: DeletedAt) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("Edge link already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             EdgeLinkExecutionDeletedEvent.now(
                 edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
-    def update(self, now: datetime) -> None:
-        self._updated_at = UpdatedAt.from_datetime(now)
+    def update(self, now: UpdatedAt) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("Cannot update a deleted edge link")
+        self._updated_at = now
+        self.append_event(
+            EdgeLinkExecutionUpdatedEvent.now(
+                edge_link_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
     @property
     def node_execution_id(self) -> NodeExecutionId:

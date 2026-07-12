@@ -29,7 +29,7 @@ class InMemoryNodeDefinitionRepository(
         super().__init__()
         self._link_repo: object = None
 
-    def set_link_repo(self, link_repo: object) -> None:
+    def set_link_repository(self, link_repo: object) -> None:
         self._link_repo = link_repo
 
     async def save(self, node: NodeDefinition) -> None:

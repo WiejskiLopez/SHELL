@@ -29,13 +29,13 @@ from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigge
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
-from shell.platform.domain.value_objects.reason import Reason
 from shell.platform.domain.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
+    from shell.platform.domain.value_objects.reason import Reason
     from shell.platform.domain.value_objects.state_data import StateData
 
 
@@ -135,6 +135,22 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             updated_at=updated_at,
         )
 
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        now: CreatedAt,
+    ) -> SchedulerExecution:
+        return cls(
+            id=id_,
+            scheduler_definition_id=scheduler_definition_id,
+            status=ExecutionStatus.PENDING,
+            created_at=now,
+            updated_at=Timestamp.from_datetime(now.value),
+        )
+
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:
         return self._scheduler_definition_id
@@ -190,6 +206,8 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
     def start(
         self, action_ref: ActionRef | str, action_ref_type: ActionRefType | str, now: Timestamp
     ) -> None:
+        if self._status != ExecutionStatus.PENDING:
+            raise ValueError(f"Cannot start execution in status {self._status!r}")
         self._status = ExecutionStatus.EXECUTING
         self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
         self._action_ref_type = (
@@ -201,14 +219,14 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             SchedulerExecutionStartedEvent(
                 occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
-                action_ref=self._action_ref,
-                action_ref_type=self._action_ref_type,
             )
         )
 
     def complete(
         self, output_state: StateData | None = None, now: Timestamp | None = None
     ) -> None:
+        if self._status != ExecutionStatus.EXECUTING:
+            raise ValueError(f"Cannot complete execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.COMPLETED
@@ -219,13 +237,14 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             SchedulerExecutionCompletedEvent(
                 occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
-                output_state=self._output_state,
             )
         )
 
     def fail(
         self, error: ErrorDescription | str | None = None, now: Timestamp | None = None
     ) -> None:
+        if self._status != ExecutionStatus.EXECUTING:
+            raise ValueError(f"Cannot fail execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.FAILED
@@ -236,21 +255,20 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             SchedulerExecutionFailedEvent(
                 occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
-                error=self._error,
             )
         )
 
     def skip(self, reason: Reason | str, now: Timestamp | None = None) -> None:
+        if self._status != ExecutionStatus.PENDING:
+            raise ValueError(f"Cannot skip execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.SKIPPED
         self._completed_at = now
         self._updated_at = now
-        actual_reason = Reason(reason) if isinstance(reason, str) else reason
         self.append_event(
             SchedulerExecutionSkippedEvent(
                 occurred_at=CreatedAt.from_datetime(now.value),
                 execution_id=self.id,
-                reason=actual_reason,
             )
         )

@@ -33,6 +33,20 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self._node_execution_id = node_execution_id
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: NodeLinkExecutionId,
+        graph_execution_id: GraphExecutionId,
+        node_execution_id: NodeExecutionId,
+    ) -> NodeLinkExecution:
+        return cls(
+            id=id_,
+            graph_execution_id=graph_execution_id,
+            node_execution_id=node_execution_id,
+        )
+
+    @classmethod
     def restore(
         cls,
         id: NodeLinkExecutionId,

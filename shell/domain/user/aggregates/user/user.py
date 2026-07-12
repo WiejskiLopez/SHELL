@@ -2,19 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.user.aggregates.user.events.user_created_event import UserCreatedEvent
 from shell.domain.user.aggregates.user.events.user_deleted_event import UserDeletedEvent
 from shell.domain.user.aggregates.user.events.user_updated_event import UserUpdatedEvent
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.user.value_objects.user_email import UserEmail
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class User(AggregateRoot[UserId]):
@@ -48,6 +47,23 @@ class User(AggregateRoot[UserId]):
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id: UserId,
+        email: UserEmail,
+        now: CreatedAt,
+    ) -> Self:
+        created_at = now
+        user = cls(
+            id=id,
+            email=email,
+            created_at=created_at,
+        )
+        user.append_event(UserCreatedEvent.now(user_id=id, now=created_at))
+        return user
 
     @classmethod
     def restore(
@@ -93,22 +109,26 @@ class User(AggregateRoot[UserId]):
     def is_deleted(self) -> bool:
         return self._deleted_at is not None
 
-    def update(self, email: UserEmail, now: datetime) -> None:
+    def update(self, email: UserEmail, now: UpdatedAt) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("Cannot update a deleted user")
         self._email = email
-        self._updated_at = UpdatedAt.from_datetime(now)
-        self.append_event(UserUpdatedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now)))
+        self._updated_at = now
+        self.append_event(UserUpdatedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value)))
 
-    def delete(self, now: datetime) -> None:
-        self._deleted_at = DeletedAt.from_datetime(now)
-        self._updated_at = UpdatedAt.from_datetime(now)
-        self.append_event(UserDeletedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now)))
+    def delete(self, now: DeletedAt) -> None:
+        if self._deleted_at is not None:
+            raise ValueError("User already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(UserDeletedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value)))
 
-    def enable(self, now: datetime) -> None:
+    def enable(self) -> None:
         if self._status != UserStatus.DISABLED:
             raise ValueError(f"Cannot enable user in status {self._status!r}")
         self._status = UserStatus.ACTIVE
 
-    def disable(self, now: datetime) -> None:
+    def disable(self) -> None:
         if self._status != UserStatus.ACTIVE:
             raise ValueError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED

@@ -10,16 +10,14 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
     NodeExecutionStateId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -85,20 +83,18 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         id_: NodeExecutionStateId,
         node_execution_id: NodeExecutionId,
         direction: StateDirection,
-        state_data: StateData,
-        now: datetime,
+        now: CreatedAt,
     ) -> NodeExecutionState:
         instance = cls(
             id=id_,
             node_execution_id=node_execution_id,
             direction=direction,
-            state_data=state_data,
-            created_at=CreatedAt.from_datetime(now),
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
         )
         return instance
 
     def update(self, key: str, value: object) -> None:
-        old_value = json.loads(self._state_data.value.value).get(key)
         new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
         self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -106,10 +102,6 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
             NodeExecutionStateChangedEvent.now(
                 node_execution_id=self._node_execution_id,
                 node_execution_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=value,
                 now=self._created_at,
             )
         )
@@ -119,7 +111,6 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
 
     def delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
-            old_value = json.loads(self._state_data.value.value).get(key)
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
             self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -127,10 +118,6 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
                 NodeExecutionStateChangedEvent.now(
                     node_execution_id=self._node_execution_id,
                     node_execution_state_id=self.id,
-                    direction=self._direction,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
                     now=self._created_at,
                 )
             )

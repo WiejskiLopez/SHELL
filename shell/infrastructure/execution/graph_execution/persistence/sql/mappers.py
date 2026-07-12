@@ -40,7 +40,7 @@ def _created_at_value(dt: CreatedAt | DeletedAt | datetime | None) -> datetime |
 
 
 def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) -> GraphExecution:
-    return GraphExecution(
+    return GraphExecution.restore(
         id=GraphExecutionId(graph_execution_model.id),
         task_execution_id=TaskExecutionId(graph_execution_model.task_execution_id),
         parent_graph_execution_id=(

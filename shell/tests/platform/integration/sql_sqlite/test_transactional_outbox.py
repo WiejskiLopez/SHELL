@@ -13,9 +13,6 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_crea
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
-    TaskExecutionName,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 
@@ -43,7 +40,6 @@ class TestTransactionalOutbox:
                     [
                         TaskExecutionCreatedEvent.now(
                             task_execution_id=TaskExecutionId("rollback-task"),
-                            task_execution_name=TaskExecutionName("rollback"),
                             now=CreatedAt.from_datetime(clock.now()),
                         )
                     ]

@@ -4,17 +4,15 @@ import json
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -87,31 +85,25 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         id_: WorkflowStateId,
         workflow_id: WorkflowId,
         direction: StateDirection,
-        state_data: StateData,
-        now: datetime,
+        now: CreatedAt,
     ) -> WorkflowState:
         instance = cls(
             id=id_,
             workflow_id=workflow_id,
             direction=direction,
-            state_data=state_data,
-            created_at=CreatedAt.from_datetime(now),
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
         )
         return instance
 
     def update(self, key: str, value: object) -> None:
         new_data = json.loads(self._state_data.value.value)
-        old_value = new_data.get(key)
         new_data[key] = value
         self._state_data = StateData(JsonStr(json.dumps(new_data)))
         self.append_event(
             WorkflowStateChangedEvent.now(
                 workflow_id=self._workflow_id,
                 workflow_state_id=self.id,
-                direction=self._direction,
-                key=key,
-                old_value=old_value,
-                new_value=value,
                 now=self._created_at,
             )
         )
@@ -122,7 +114,6 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
     def delete(self, key: str) -> None:
         current = json.loads(self._state_data.value.value)
         if current.get(key) is not None:
-            old_value = current.get(key)
             new_data = dict(current)
             new_data.pop(key, None)
             self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -130,10 +121,6 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
                 WorkflowStateChangedEvent.now(
                     workflow_id=self._workflow_id,
                     workflow_state_id=self.id,
-                    direction=self._direction,
-                    key=key,
-                    old_value=old_value,
-                    new_value=None,
                     now=self._created_at,
                 )
             )

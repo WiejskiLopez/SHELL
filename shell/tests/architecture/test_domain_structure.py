@@ -181,65 +181,53 @@ def test_domain_events_are_frozen_dataclass() -> None:
     assert not violations, "DomainEvents must be @dataclass(frozen=True):\n" + "\n".join(violations)
 
 
+# ── 6a. Domain Event fields carry only IDs (not aggregate properties) ─
+
+_EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset({
+    "occurred_at",
+})
+
+_KNOWN_EVENT_FIELD_VIOLATIONS: frozenset[str] = frozenset({})
+
+
+def test_domain_event_fields_are_ids_only() -> None:
+    violations: list[str] = []
+    for path in iter_py_files(BASE / "domain"):
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            if not _inherits_any(node, _EVENT_BASES):
+                continue
+            for stmt in node.body:
+                if not isinstance(stmt, ast.AnnAssign):
+                    continue
+                if not isinstance(stmt.target, ast.Name):
+                    continue
+                name = stmt.target.id
+                if name in _EVENT_FIELD_ALLOWLIST:
+                    continue
+                if name.endswith("_id"):
+                    continue
+                key = f"{path.relative_to(BASE)}: {node.name}.{name}"
+                if key not in _KNOWN_EVENT_FIELD_VIOLATIONS:
+                    violations.append(key)
+    assert not violations, (
+        "DomainEvent fields must be IDs only (suffix `_id`) or in ALLOWLIST "
+        "(occurred_at, direction, key, old_value, new_value):\n"
+        + "\n".join(violations)
+    )
+
+
 # ruff: noqa: B033
 
 # ── 7. Mutating methods in aggregates append_event() ──────────────
 
 _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
     {
-        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.update",
-        "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",
-        "domain/execution/aggregates/envelope/envelope.py: Envelope.archive",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.mark_verifying",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.hold_initialization",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.fail_initialization",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.suspend",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.resume",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_main_round",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_sub_graph",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.prepare_node_definitions",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.get",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.patch",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.clear",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.merge",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.snapshot",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.get",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.patch",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.clear",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.snapshot",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_sequence",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_conditional",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_loop",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_spawn_subgraph",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_error_handler",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_timeout",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_default",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.skip",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.get",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.snapshot",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.get",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
-        "domain/user/aggregates/user_state/user_state.py: UserState.get",
-        "domain/user/aggregates/user_state/user_state.py: UserState.patch",
-        "domain/user/aggregates/user_state/user_state.py: UserState.clear",
-        "domain/user/aggregates/user_state/user_state.py: UserState.merge",
-        "domain/user/aggregates/user_state/user_state.py: UserState.snapshot",
-        "domain/user/aggregates/user_state/user_state.py: UserState.supersede",
-        "domain/project/aggregates/project/project.py: Project.update",
-        "domain/project/aggregates/project/project.py: Project.delete",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.get",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.patch",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.clear",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.merge",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.snapshot",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.supersede",
         # Methods intentionally stripped of event emission (events removed in cleanup)
         "domain/user/aggregates/user/user.py: User.enable",
         "domain/user/aggregates/user/user.py: User.disable",
@@ -284,6 +272,19 @@ def test_mutating_methods_emit_events() -> None:
             "create",
             "generate",
             "matches_trigger",
+            # State aggregates: read-only accessors
+            "get",
+            "snapshot",
+            # State aggregates: delegate to update/delete/set_key/remove_key which emit events
+            "patch",
+            "clear",
+            "merge",
+            # Factory classmethods that create new instances (not mutations on existing aggregates)
+            "create_main_round",
+            "create_sub_graph",
+            "initialize",
+            # Factory classmethod that creates a new Session (not a mutation)
+            "open",
         }
     )
     for path in iter_py_files(BASE / "domain"):
@@ -316,80 +317,23 @@ def test_mutating_methods_emit_events() -> None:
 
 _KNOWN_NO_GUARD: frozenset[str] = frozenset(
     {
-        "domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py: SchedulerDefinition.matches_trigger",
-        "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.start",
-        "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.complete",
-        "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.fail",
-        "domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py: SchedulerExecution.skip",
-        "domain/execution/aggregates/agent_config_execution/agent_config_execution.py: AgentConfigExecution.update_config",
-        "domain/execution/aggregates/envelope/envelope.py: Envelope.transition_stage",
-        "domain/execution/aggregates/envelope/envelope.py: Envelope.deliver_to",
-        "domain/execution/aggregates/envelope/envelope.py: Envelope.archive",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.initialize",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.create_main_round",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.prepare_node_definitions",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.update_status",
-        "domain/execution/aggregates/graph_execution/graph_execution.py: GraphExecution.soft_delete",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.update",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.get",
         "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.delete",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.patch",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.clear",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.merge",
-        "domain/execution/aggregates/graph_execution_state/graph_execution_state.py: GraphExecutionState.snapshot",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.update",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.get",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.delete",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.patch",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.clear",
-        "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.snapshot",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_sequence",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_conditional",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_loop",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_spawn_subgraph",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_error_handler",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_timeout",
-        "domain/execution/aggregates/node_transition_execution/node_transition_execution.py: NodeTransitionExecution.create_default",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
-        "domain/session/aggregates/session/session.py: Session.open",
         "domain/session/aggregates/session_state/session_state.py: SessionState.update",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.get",
         "domain/session/aggregates/session_state/session_state.py: SessionState.delete",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.patch",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.clear",
-        "domain/session/aggregates/session_state/session_state.py: SessionState.snapshot",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.update",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.get",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.delete",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.patch",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.clear",
-        "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.snapshot",
         "domain/user/aggregates/user_state/user_state.py: UserState.set_key",
-        "domain/user/aggregates/user_state/user_state.py: UserState.get",
         "domain/user/aggregates/user_state/user_state.py: UserState.remove_key",
-        "domain/user/aggregates/user_state/user_state.py: UserState.patch",
-        "domain/user/aggregates/user_state/user_state.py: UserState.clear",
-        "domain/user/aggregates/user_state/user_state.py: UserState.merge",
-        "domain/user/aggregates/user_state/user_state.py: UserState.snapshot",
-        "domain/user/aggregates/user_state/user_state.py: UserState.supersede",
         "domain/project/aggregates/project/project.py: Project.update",
         "domain/project/aggregates/project/project.py: Project.delete",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.set_key",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.get",
         "domain/project/aggregates/project_state/project_state.py: ProjectState.remove_key",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.patch",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.clear",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.merge",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.snapshot",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.supersede",
-        "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.change_target",
-        "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.mark_deleted",
-        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.mark_deleted",
-        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.update",
-        "domain/user/aggregates/user/user.py: User.update",
-        "domain/user/aggregates/user/user.py: User.delete",
     }
 )
 
@@ -407,6 +351,19 @@ def test_mutating_methods_have_guard() -> None:
             "generate",
             "of",
             "matches_trigger",
+            # State aggregates: read-only accessors
+            "get",
+            "snapshot",
+            # State aggregates: delegate to update/delete/set_key/remove_key which have guards
+            "patch",
+            "clear",
+            "merge",
+            # Factory classmethods that create new instances (not mutations on existing aggregates)
+            "create_main_round",
+            "create_sub_graph",
+            "initialize",
+            # Factory classmethod that creates a new Session (not a mutation)
+            "open",
         }
     )
     for path in iter_py_files(BASE / "domain"):
@@ -799,22 +756,7 @@ def test_entity_aggregate_fields_have_domain_types() -> None:
 # ── 16. No primitive types in Entity/Aggregate __init__/restore params ──
 
 
-_KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset(
-    {
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param created_at: datetime",
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param updated_at: datetime",
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.__init__ -> param deleted_at: datetime",
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.restore -> param created_at: datetime",
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.restore -> param updated_at: datetime",
-        "domain\\execution\\aggregates\\edge_execution\\edge_execution.py: EdgeExecution.restore -> param deleted_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.__init__ -> param created_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.__init__ -> param updated_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.__init__ -> param deleted_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param created_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param updated_at: datetime",
-        "domain\\execution\\aggregates\\edge_link_execution\\edge_link_execution.py: EdgeLinkExecution.restore -> param deleted_at: datetime",
-    }
-)
+_KNOWN_INIT_PARAM_VIOLATIONS: frozenset[str] = frozenset({})
 
 
 def test_entity_aggregate_init_params_have_domain_types() -> None:
@@ -853,30 +795,7 @@ def test_entity_aggregate_init_params_have_domain_types() -> None:
 
 # ── 17. No primitive types in DomainEvent dataclass fields ──────────
 
-_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset(
-    {
-        "domain\\execution\\aggregates\\workflow\\events\\workflow_started_event.py: WorkflowStartedEvent.work_dir: str",
-        "domain/user/aggregates/user_state/user_state.py: UserState.get",
-        "domain/user/aggregates/user_state/user_state.py: UserState.patch",
-        "domain/user/aggregates/user_state/user_state.py: UserState.clear",
-        "domain/user/aggregates/user_state/user_state.py: UserState.merge",
-        "domain/user/aggregates/user_state/user_state.py: UserState.snapshot",
-        "domain/project/aggregates/project/project.py: Project.update",
-        "domain/project/aggregates/project/project.py: Project.delete",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.get",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.patch",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.clear",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.merge",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.snapshot",
-        "domain/user/aggregates/user_state/user_state.py: UserState.set_key",
-        "domain/user/aggregates/user_state/user_state.py: UserState.remove_key",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.set_key",
-        "domain/project/aggregates/project_state/project_state.py: ProjectState.remove_key",
-        "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.change_target",
-        "domain/execution/aggregates/edge_execution/edge_execution.py: EdgeExecution.mark_deleted",
-        "domain/execution/aggregates/edge_link_execution/edge_link_execution.py: EdgeLinkExecution.mark_deleted",
-    }
-)
+_KNOWN_EVENT_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
 
 
 def test_domain_event_fields_have_domain_types() -> None:

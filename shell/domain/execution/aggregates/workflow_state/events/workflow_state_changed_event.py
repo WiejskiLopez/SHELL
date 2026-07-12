@@ -11,35 +11,22 @@ if TYPE_CHECKING:
         WorkflowStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 @dataclass(frozen=True, slots=True)
 class WorkflowStateChangedEvent(DomainEvent):
     workflow_id: WorkflowId
     workflow_state_id: WorkflowStateId
-    direction: StateDirection
-    key: str
-    old_value: object | None = None
-    new_value: object | None = None
 
     @classmethod
     def now(
         cls,
         workflow_id: WorkflowId,
         workflow_state_id: WorkflowStateId,
-        direction: StateDirection,
-        key: str,
         now: CreatedAt,
-        old_value: object | None = None,
-        new_value: object | None = None,
     ) -> WorkflowStateChangedEvent:
         return cls(
             occurred_at=now,
             workflow_id=workflow_id,
             workflow_state_id=workflow_state_id,
-            direction=direction,
-            key=key,
-            old_value=old_value,
-            new_value=new_value,
         )

@@ -35,7 +35,7 @@ def _ensure_utc(dt: datetime) -> datetime:
 def graph_execution_state_input_model_to_entity(
     model: GraphExecutionStateInputModel,
 ) -> GraphExecutionState:
-    return GraphExecutionState(
+    return GraphExecutionState.restore(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.IN,
@@ -58,7 +58,7 @@ def graph_execution_state_input_entity_to_model(
 def graph_execution_state_output_model_to_entity(
     model: GraphExecutionStateOutputModel,
 ) -> GraphExecutionState:
-    return GraphExecutionState(
+    return GraphExecutionState.restore(
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection.OUT,

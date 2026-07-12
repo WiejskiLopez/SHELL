@@ -13,6 +13,7 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.timestamp import Timestamp
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
@@ -25,7 +26,6 @@ if TYPE_CHECKING:
         TriggerConfig,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.timestamp import Timestamp
 
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
@@ -87,6 +87,31 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
             execution_policy=execution_policy,
             created_at=created_at,
             updated_at=updated_at,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: SchedulerDefinitionId,
+        name: SchedulerName,
+        trigger_config: TriggerConfig,
+        action_config: ActionConfig,
+        execution_policy: ExecutionPolicy,
+        now: CreatedAt,
+        enabled: bool = True,
+        description: SchedulerDescription | None = None,
+    ) -> SchedulerDefinition:
+        return cls(
+            id=id_,
+            name=name,
+            enabled=Enabled(enabled),
+            trigger_config=trigger_config,
+            action_config=action_config,
+            execution_policy=execution_policy,
+            created_at=now,
+            updated_at=Timestamp.from_datetime(now.value),
+            description=description,
         )
 
     @property

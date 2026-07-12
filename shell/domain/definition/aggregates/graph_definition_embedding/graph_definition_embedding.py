@@ -100,9 +100,6 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             GraphDefinitionEmbeddingCreatedEvent.now(
                 graph_definition_embedding_id=id,
                 graph_definition_id=graph_definition_id,
-                text=EmbeddingText(str(text)),
-                embedding=embedding,
-                embedding_model=model,
                 now=now,
             )
         )

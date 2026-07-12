@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
-from shell.domain.execution.aggregates.graph_execution_state.value_objects.state_key import StateKey
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -117,7 +116,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     # ------------------------------------------------------------------ mutations
 
     def update(self, key: str, value: object) -> None:
-        old_value = json.loads(self._state_data.value.value).get(key)
         new_data = json.loads(self._state_data.value.value)
         new_data[key] = value
         self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -125,10 +123,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             GraphExecutionStateChangedEvent.now(
                 graph_execution_id=self._graph_execution_id,
                 graph_execution_state_id=self.id,
-                direction=self._direction,
-                key=StateKey(key),
-                old_value=old_value,
-                new_value=value,
                 now=self._created_at,
             )
         )
@@ -138,7 +132,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     def delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
-            old_value = json.loads(self._state_data.value.value).get(key)
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
             self._state_data = StateData(JsonStr(json.dumps(new_data)))
@@ -146,10 +139,6 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
                 GraphExecutionStateChangedEvent.now(
                     graph_execution_id=self._graph_execution_id,
                     graph_execution_state_id=self.id,
-                    direction=self._direction,
-                    key=StateKey(key),
-                    old_value=old_value,
-                    new_value=None,
                     now=self._created_at,
                 )
             )

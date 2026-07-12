@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-
-if TYPE_CHECKING:
-    from datetime import datetime
 
 
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
@@ -34,7 +31,7 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         cls,
         *,
         id_: RunnerConfigId,
-        now: datetime,
+        now: CreatedAt,
     ) -> RunnerConfig:
         return cls(
             id=id_,

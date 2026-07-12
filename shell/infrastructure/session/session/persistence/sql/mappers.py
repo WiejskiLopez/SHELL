@@ -13,7 +13,7 @@ from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 def session_model_to_entity(session_model: SessionModel) -> Session:
-    return Session(
+    return Session.restore(
         id=SessionId(session_model.id),
         user_id=UserIdRef(session_model.user_id),
         project_id=ProjectIdRef(session_model.project_id),

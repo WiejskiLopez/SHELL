@@ -13,35 +13,22 @@ if TYPE_CHECKING:
         NodeExecutionStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 @dataclass(frozen=True, slots=True)
 class NodeExecutionStateChangedEvent(DomainEvent):
     node_execution_id: NodeExecutionId
     node_execution_state_id: NodeExecutionStateId
-    direction: StateDirection
-    key: str
-    old_value: object | None = None
-    new_value: object | None = None
 
     @classmethod
     def now(
         cls,
         node_execution_id: NodeExecutionId,
         node_execution_state_id: NodeExecutionStateId,
-        direction: StateDirection,
-        key: str,
         now: CreatedAt,
-        old_value: object | None = None,
-        new_value: object | None = None,
     ) -> NodeExecutionStateChangedEvent:
         return cls(
             occurred_at=now,
             node_execution_id=node_execution_id,
             node_execution_state_id=node_execution_state_id,
-            direction=direction,
-            key=key,
-            old_value=old_value,
-            new_value=new_value,
         )
