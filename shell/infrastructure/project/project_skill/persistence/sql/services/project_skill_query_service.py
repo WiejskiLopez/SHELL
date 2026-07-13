@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -8,6 +9,7 @@ from shell.application.project.project_skill.dto.project_skill import ProjectSki
 from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
     ProjectSkillModel,
 )
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -27,7 +29,9 @@ class ProjectSkillQueryService:
             return ProjectSkillDto(
                 id=model.id,
                 project_id=model.project_id,
-                skill_data=model.skill_data,
+                skill_data=JsonStr(json.dumps(dict(model.skill_data))),
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
+
+

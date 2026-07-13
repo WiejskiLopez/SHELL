@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from shell.application.scheduling.scheduler_execution.dto.scheduler_execution im
 from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
     SchedulerExecutionModel,
 )
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -38,7 +40,9 @@ class SchedulerExecutionQueryService:
                 interval_seconds=model.interval_seconds,
                 batch_size=model.batch_size,
                 enabled=model.enabled,
-                config=model.config,
+                config=JsonStr(json.dumps(dict(model.config))),
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )
+
+

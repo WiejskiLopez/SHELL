@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from shell.application.execution.agent_skill_execution.dto.agent_skill_execution
 from shell.infrastructure.execution.agent_skill_execution.persistence.sql.models.agent_skill_execution import (
     AgentSkillExecutionModel,
 )
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -33,6 +35,8 @@ class AgentSkillExecutionQueryService:
             return AgentSkillExecutionDto(
                 id=model.id,
                 agent_execution_id=model.agent_execution_id,
-                skill_data=model.skill_data,
+                skill_data=JsonStr(json.dumps(dict(model.skill_data))),
                 created_at=model.created_at,
             )
+
+

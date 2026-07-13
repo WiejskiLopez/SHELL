@@ -5,9 +5,11 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.application.session.session_state.dto.session_state import SessionStateDto
-from shell.infrastructure.session.session_state.persistence.sql.models.session_state import (
-    SessionStateModel,
+from shell.application.execution.session_execution.dto.session_execution_state import (
+    SessionExecutionStateDto,
+)
+from shell.infrastructure.execution.session_execution_state.persistence.sql.models.session_execution_state import (
+    SessionExecutionStateModel,
 )
 from shell.platform.types import JsonStr
 
@@ -15,25 +17,23 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
-class SessionStateQueryService:
+class SessionExecutionStateQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def get_by_id(self, session_state_id: str) -> SessionStateDto | None:
+    async def get_by_id(self, session_execution_state_id: str) -> SessionExecutionStateDto | None:
         async with self._session_factory() as session:
-            stmt = select(SessionStateModel).where(
-                SessionStateModel.id == session_state_id
+            stmt = select(SessionExecutionStateModel).where(
+                SessionExecutionStateModel.id == session_execution_state_id
             )
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
                 return None
-            return SessionStateDto(
+            return SessionExecutionStateDto(
                 id=model.id,
-                session_id=model.session_id,
+                session_execution_id=model.session_execution_id,
                 direction=model.direction,
                 state_data=JsonStr(json.dumps(dict(model.state_data))),
                 created_at=model.created_at,
             )
-
-

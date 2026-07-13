@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
 from shell.application.messaging.message_router.dto.message_router import MessageRouterDto
 from shell.infrastructure.messaging.persistence.sql.models.message import MessageModel
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -24,7 +26,7 @@ class MessageRouterQueryService:
                 return None
             return MessageRouterDto(
                 id=model.id,
-                message_data=model.message_data,
+                message_data=JsonStr(json.dumps(dict(model.message_data))),
                 created_at=model.created_at,
             )
 
@@ -35,7 +37,7 @@ class MessageRouterQueryService:
             return [
                 MessageRouterDto(
                     id=model.id,
-                    message_data=model.message_data,
+                    message_data=JsonStr(json.dumps(dict(model.message_data))),
                     created_at=model.created_at,
                 )
                 for model in res.scalars()
@@ -48,7 +50,7 @@ class MessageRouterQueryService:
             return [
                 MessageRouterDto(
                     id=model.id,
-                    message_data=model.message_data,
+                    message_data=JsonStr(json.dumps(dict(model.message_data))),
                     created_at=model.created_at,
                 )
                 for model in res.scalars()
@@ -61,7 +63,7 @@ class MessageRouterQueryService:
             return [
                 MessageRouterDto(
                     id=model.id,
-                    message_data=model.message_data,
+                    message_data=JsonStr(json.dumps(dict(model.message_data))),
                     created_at=model.created_at,
                 )
                 for model in res.scalars()
@@ -71,3 +73,5 @@ class MessageRouterQueryService:
 __all__ = [
     "MessageRouterQueryService",
 ]
+
+

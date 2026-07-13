@@ -1,0 +1,76 @@
+Wybierz React lub Vue 3, poskładaj je za pomocą Webpack 5 Module Federation, a do komunikacji z FastAPI użyj TanStack Query w połączeniu z auto-generowanym klientem z Orval.
+
+
+
+Wyobraź sobie, że budujesz ogromny statek z klocków LEGO, ale zamiast składać go w całości w fabryce i wysyłać w jednym wielkim pudle, wysyłasz tylko szkielet (Gospodarza), a reszta klocków (Zdalne moduły) "dopina się" do niego automatycznie, gdy statek jest już na wodzie.
+
+Dokładnie na tym polega Webpack 5 Module Federation. Jest to mechanizm, który pozwala na łączenie wielu osobnych, niezależnych aplikacji frontendowych w jedną spójną całość w czasie rzeczywistym (w przeglądarce), a nie na etapie budowania (kompilacji) kodu.
+
+Jak to działa w praktyce?
+Aby zrozumieć Module Federation, musisz poznać trzy główne pojęcia:
+
+Host (Aplikacja główna / Shell): To pierwsza aplikacja, która ładuje się po wejściu na stronę. Jej zadaniem jest wyświetlenie głównego układu (np. paska nawigacji, stopki) oraz decydowanie, który mikrofrontend ma zostać załadowany w danej chwili.
+
+Remote (Aplikacja zdalna / Mikrofrontend): To niezależna aplikacja (np. moduł "Kosz" lub "Profil Użytkownika"), która wystawia na zewnątrz część swojego kodu (komponenty, funkcje, a nawet całe podstrony).
+
+Shared Dependencies (Współdzielone zależności): To prawdziwy "game changer". Jeśli Twój Host używa Reacta (lub Vue), a Twój Remote również go używa, Module Federation pilnuje, aby przeglądarka użytkownika pobrała bibliotekę tylko raz. Jeśli wersje się zgadzają, aplikacje wymieniają się tą samą instancją biblioteki.
+
+Dlaczego to była rewolucja? (Runtime vs. Build-time)
+Przed powstaniem Module Federation w Webpack 5, łączenie mikrofrontendów było bardzo uciążliwe:
+
+Stary sposób (NPM / Build-time): Jeśli zespół od "Koszyka" zrobił aktualizację, musiał opublikować nową paczkę NPM. Wtedy zespół od aplikacji głównej (Hosta) musiał zaktualizować wersję paczki w package.json, przebudować całą aplikację główną i wdrożyć ją na nowo na serwer. Trwało to długo i psuło ideę niezależnych mikroserwisów.
+
+Nowy sposób (Module Federation / Runtime): Zespół od "Koszyka" robi aktualizację i wdraża (deployuje) tylko swój mały mikrofrontend. Koniec pracy. Gdy użytkownik odświeży stronę główną (Hosta), przeglądarka automatycznie "dociągnie" najnowszą wersję Koszyka. Host nie musi być w ogóle przebudowywany ani wdrażany na nowo.
+
+Związek z Twoim FastAPI
+Każdy z Twoich mikroserwisów na backendzie (w FastAPI) może mieć swój odpowiednik (mikrofrontend) na frontendzie (Remote). Każdy taki duet (Mikroserwis + Mikrofrontend) może być rozwijany i wdrażany na produkcję przez inną osobę, całkowicie niezależnie, bez ryzyka zepsucia całej reszty systemu.
+
+Czy chciałbyś zobaczyć, jak wygląda przykładowy, uproszczony plik konfiguracyjny webpack.config.js (dla Hosta i dla Remote'a), żeby łatwiej było Ci to sobie wyobrazić od strony kodu?
+
+
+
+
+
+To doskonałe pytanie. Przykłady z localhost, które pokazałem wcześniej, są dobre do nauki, ale w dużej korporacji takie "na sztywno" wpisane adresy URL w kodzie to recepta na katastrofę. Środowiska enterprise (produkcyjne, testowe, deweloperskie) wymagają elastyczności, bezpieczeństwa i ścisłych reguł.
+
+W dużych aplikacjach korporacyjnych opartych na mikrofrontendach i mikroserwisach (takich jak Twoje FastAPI), architekturę buduje się z naciskiem na niezależność, automatyzację i spójność.
+
+Oto jak to wygląda w standardzie enterprise:
+
+1. Dynamiczne adresy (Dynamic Remotes / MFE Registry)
+W korporacji nie wpisuje się adresów remotes na stałe w webpack.config.js. Zamiast tego aplikacja główna (Host) w momencie uruchomienia (lub pobierania) odpytuje specjalny serwis – Rejestr Mikrofrontendów (MFE Registry).
+
+Jak to działa: Host pyta: "Pod jakim adresem URL znajduje się obecnie wersja produkcyjna Koszyka?". Rejestr zwraca prawidłowy adres.
+
+Korzyść: Jeśli zespół od Koszyka wypuszcza nową wersję lub musi natychmiast cofnąć się do starszej (rollback), po prostu zmienia wpis w rejestrze. Aplikacja Host dowiaduje się o tym ułamki sekund później, bez żadnego przestoju.
+
+2. Organizacja kodu: Monorepo z pomocą Nx
+Duże firmy (np. Google, Meta) i korporacje często trzymają kod wielu mikrofrontendów w jednym wielkim repozytorium (Monorepo). W świecie webowym standardem do zarządzania tym jest narzędzie Nx.
+
+Korzyść: Nx automatycznie wie, które aplikacje współdzielą kod. Jeśli zmienisz komponent przycisku, Nx przebuduje i przetestuje tylko te mikrofrontendy, które go używają, oszczędzając godziny pracy serwerów CI/CD.
+
+3. Komunikacja przez Event Bus (Pub/Sub)
+W małych aplikacjach React używa się Reduxa lub Context API do globalnego stanu. W mikrofrontendach enterprise to anty-wzorzec. Mikrofrontendy powinny wiedzieć o sobie jak najmniej.
+
+Jak to się robi: Używa się wzorca Event Bus (często opartego o wbudowane w przeglądarkę CustomEvent).
+
+Przykład: Zamiast przekazywać dane bezpośrednio, MFE "Katalog Produktów" emituje zdarzenie: "ITEM_ADDED_TO_CART". MFE "Koszyk" po prostu nasłuchuje na to zdarzenie i sam aktualizuje swój stan. To gwarantuje, że jeśli Koszyk ulegnie awarii, Katalog nadal będzie działał.
+
+4. Wzorzec BFF (Backend for Frontend) dla FastAPI
+Gdy masz 50 mikroserwisów w FastAPI, frontend odpytujący każdy z nich z osobna będzie działał potwornie wolno z powodu opóźnień sieciowych i logiki autoryzacji w każdym z nich.
+
+Rozwiązanie: Pomiędzy mikrofrontendami a mikroserwisami stawia się warstwę BFF (często zbudowaną jako Gateway w FastAPI, Nginx lub Kong).
+
+Mikrofrontend pyta BFF o dane, a BFF sam odpytuje w tle 3 różne mikroserwisy FastAPI, łączy dane w jeden idealnie skrojony plik JSON i odsyła do przeglądarki. Tutaj wspomniany wcześniej TanStack Query i Orval sprawdzają się wręcz perfekcyjnie.
+
+5. Design System i Współdzielona Biblioteka UI
+Aby aplikacja wyglądała jak jeden spójny produkt, a nie jak zlepek prac pięciu różnych zespołów, korporacje budują własny Design System (wewnętrzną bibliotekę komponentów, np. specjalnie ostylowane przyciski, formularze, tabele).
+
+Taka biblioteka jest publikowana jako prywatna paczka (np. w firmowym JFrog Artifactory lub prywatnym rejestrze NPM).
+
+Każdy zespół dodaje ją do shared w Module Federation, dzięki czemu interfejs całej firmy zajmuje w przeglądarce tylko ułamek megabajta.
+
+6. "Miękkie lądowanie" (Error Boundaries)
+W korporacji, jeśli padnie moduł rekomendacji, użytkownik musi móc nadal kupić produkt. Używa się tzw. Error Boundaries wokół każdego importowanego mikrofrontendu. Jeśli zdalny kod się zepsuje (lub sieć nie zadziała), Host po prostu wyświetli szare pole z napisem "Moduł chwilowo niedostępny", ale cała reszta strony pozostanie w pełni funkcjonalna.
+
+Czy masz już zarysowany podział na zespoły lub domeny biznesowe (np. oddzielny zespół od płatności, oddzielny od profilu), czy na razie budujesz architekturę jako dowód słuszności koncepcji (Proof of Concept) dla mniejszego grona programistów?

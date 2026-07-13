@@ -12,7 +12,7 @@ from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.memory import FakeClock, FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.persistence.sql.models.base import Base
-from shell.tests.shared.test_db import test_db_url
+from shell.tests.shared.test_db import build_db_url as test_db_url
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

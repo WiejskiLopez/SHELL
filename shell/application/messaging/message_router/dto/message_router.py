@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+
+from shell.platform.types import JsonStr
 
 
 @dataclass(frozen=True, slots=True)
 class MessageRouterDto:
     id: str
-    message_data: dict[str, Any]
+    message_data: JsonStr
     created_at: datetime | None = None
+

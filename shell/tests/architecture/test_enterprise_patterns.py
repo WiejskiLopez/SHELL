@@ -88,7 +88,7 @@ def _to_snake_case(pascal: str) -> str:
 
 _PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
 _AGGREGATE_BASES = frozenset({"AggregateRoot"})
-_COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date"})
+_COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date", "dict", "list", "set", "frozenset"})
 
 # Aggregate classes known to have factory methods other than create()
 _FACTORY_ALIASES: dict[str, str] = {
@@ -331,7 +331,7 @@ def test_dto_fields_use_only_primitives() -> None:
                         )
                         violations.append(f"{py_file.relative_to(BASE)}: {node.name}.{field_name}")
     assert not violations, (
-        "DTO fields must not use datetime/Decimal types (use str instead):\n"
+        "DTO fields must not use datetime/Decimal/dict/list/set types (use str instead):\n"
         + "\n".join(violations)
     )
 
@@ -619,3 +619,4 @@ def test_domain_event_fields_no_mutable_collections() -> None:
         "Use tuple/frozenset/Sequence instead. Known violations in _KNOWN_EVENT_MUTABLE_FIELDS:\n"
         + "\n".join(violations)
     )
+

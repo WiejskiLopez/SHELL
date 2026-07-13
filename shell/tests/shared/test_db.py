@@ -25,7 +25,7 @@ def _resolve_test_db_dir() -> str | None:
         return None
 
 
-def test_db_url(
+def build_db_url(
     tmp_path_factory: pytest.TempPathFactory,
     subdir: str = "test",
     db_name: str = "test.db",

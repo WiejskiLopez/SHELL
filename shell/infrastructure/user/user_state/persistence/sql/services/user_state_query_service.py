@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -8,6 +9,7 @@ from shell.application.user.user_state.dto.user_state import UserStateDto
 from shell.infrastructure.user.user_state.persistence.sql.models.user_state import (
     UserStateModel,
 )
+from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -28,6 +30,8 @@ class UserStateQueryService:
                 id=model.id,
                 user_id=model.user_id,
                 direction=model.direction,
-                state_data=model.state_data,
+                state_data=JsonStr(json.dumps(dict(model.state_data))),
                 created_at=model.created_at,
             )
+
+
