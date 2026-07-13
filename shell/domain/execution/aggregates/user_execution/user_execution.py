@@ -9,10 +9,10 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
     UserExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_id_ref import UserIdRef
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 class UserExecution(AggregateRoot[UserExecutionId]):
@@ -74,7 +74,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         user_execution.append_event(
             UserExecutionCreatedEvent.now(
                 user_execution_id=id_,
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return user_execution

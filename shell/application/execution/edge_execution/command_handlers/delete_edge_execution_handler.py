@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_execution.repositories.edge_executio
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.edge_execution.commands.delete_edge_execution_command import (
@@ -34,7 +35,7 @@ class DeleteEdgeExecutionHandler:
         self._logger = logger
 
     async def handle(self, command: DeleteEdgeExecutionCommand) -> None:
-        now = self._time.now()
+        now = DeletedAt.from_datetime(self._time.now())
         async with self._unit_of_work as unit_of_work:
             repo = unit_of_work.repository(EdgeExecutionRepository)
             edge = await repo.get_by_id(EdgeExecutionId(command.id))

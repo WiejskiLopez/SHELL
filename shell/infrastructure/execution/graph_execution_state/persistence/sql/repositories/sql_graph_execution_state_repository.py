@@ -9,12 +9,12 @@ from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_
     GraphExecutionStateRepository,
 )
 from shell.infrastructure.execution.graph_execution_state.persistence.sql.mappers import (
-    graph_execution_state_input_entity_to_model,
-    graph_execution_state_input_model_to_entity,
+    entity_to_model,
+    model_to_entity,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
-from ..models.graph_execution_state_input import GraphExecutionStateInputModel
+from ..models.graph_execution_state import GraphExecutionStateModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,46 +32,52 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def get_by_id(self, id: object) -> GraphExecutionState | None:
+        model = await self._session.get(GraphExecutionStateModel, getattr(id, "value", id))
+        return model_to_entity(model) if model else None
+
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection
     ) -> GraphExecutionState | None:
         query = (
-            select(GraphExecutionStateInputModel)
+            select(GraphExecutionStateModel)
             .where(
-                GraphExecutionStateInputModel.graph_execution_id == graph_execution_id.value,
+                GraphExecutionStateModel.graph_execution_id == graph_execution_id.value,
+                GraphExecutionStateModel.direction == direction.value,
             )
             .limit(1)
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
-        return graph_execution_state_input_model_to_entity(row) if row else None
+        return model_to_entity(row) if row else None
 
     async def save(self, state: GraphExecutionState) -> None:
         existing_row = (await self._session.execute(
-            select(GraphExecutionStateInputModel).where(
-                GraphExecutionStateInputModel.graph_execution_id == state.graph_execution_id.value
+            select(GraphExecutionStateModel).where(
+                GraphExecutionStateModel.graph_execution_id == state.graph_execution_id.value,
+                GraphExecutionStateModel.direction == state.direction.value,
             )
         )).scalar_one_or_none()
         if existing_row is not None:
             await self._session.delete(existing_row)
-        model = graph_execution_state_input_entity_to_model(state)
+        model = entity_to_model(state)
         self._session.add(model)
 
     async def delete(self, id: object, now: datetime | None = None) -> None:
         if now is None:
             now = datetime.now(tz=UTC)
-        model = await self._session.get(GraphExecutionStateInputModel, getattr(id, "value", id))
+        model = await self._session.get(GraphExecutionStateModel, getattr(id, "value", id))
         if model is not None:
             model.deleted_at = now
 
     async def exists(self, id: object) -> ExistsResult:
-        query = select(GraphExecutionStateInputModel).where(
-            GraphExecutionStateInputModel.id == getattr(id, "value", id)
+        query = select(GraphExecutionStateModel).where(
+            GraphExecutionStateModel.id == getattr(id, "value", id)
         )
         row = (await self._session.execute(query)).scalar_one_or_none()
         return ExistsResult(row is not None)
 
 
 __all__ = [
-    "GraphExecutionStateInputModel",
+    "GraphExecutionStateModel",
     "SqlGraphExecutionStateRepository",
 ]

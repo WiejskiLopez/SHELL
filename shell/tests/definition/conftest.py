@@ -15,6 +15,7 @@ from shell.platform.infrastructure.persistence.memory import (
     InMemoryUnitOfWork,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.tests.shared.test_db import test_db_url
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -34,8 +35,7 @@ skip_no_postgres = pytest.mark.skipif(
 
 @pytest.fixture(scope="session")
 def sqlite_test_url(tmp_path_factory: pytest.TempPathFactory) -> str:
-    db_path = tmp_path_factory.mktemp("db") / "test.db"
-    return f"sqlite+aiosqlite:///{db_path}"
+    return test_db_url(tmp_path_factory, subdir="db", db_name="test.db")
 
 
 @pytest.fixture(scope="session")
@@ -52,8 +52,7 @@ def unit_of_work() -> InMemoryUnitOfWork:
 async def session_factory(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:
-    db = tmp_path_factory.mktemp("sqlite") / "test.db"
-    url = f"sqlite+aiosqlite:///{db}"
+    url = test_db_url(tmp_path_factory, subdir="sqlite", db_name="test.db")
     await bootstrap_database(ShellConfig(database_url=url))
     return build_session_factory(url)
 

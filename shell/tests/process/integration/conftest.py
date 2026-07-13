@@ -12,6 +12,7 @@ from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.memory import FakeClock, FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.tests.shared.test_db import test_db_url
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -21,8 +22,7 @@ if TYPE_CHECKING:
 async def session_factory(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:
-    db_path = tmp_path_factory.mktemp("sqlite") / "test_saga.db"
-    url = f"sqlite+aiosqlite:///{db_path}"
+    url = test_db_url(tmp_path_factory, subdir="sqlite", db_name="test_saga.db")
     engine = create_async_engine(url)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

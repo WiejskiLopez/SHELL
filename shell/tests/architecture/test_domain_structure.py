@@ -214,7 +214,7 @@ def test_domain_event_fields_are_ids_only() -> None:
                     violations.append(key)
     assert not violations, (
         "DomainEvent fields must be IDs only (suffix `_id`) or in ALLOWLIST "
-        "(occurred_at, direction, key, old_value, new_value):\n"
+        "(occurred_at):\n"
         + "\n".join(violations)
     )
 

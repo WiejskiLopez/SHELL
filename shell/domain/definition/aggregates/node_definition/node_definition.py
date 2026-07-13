@@ -16,9 +16,9 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_type_
     NodeTypeName,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.mode import Mode
 
 
@@ -87,7 +87,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
             instance.append_event(
                 NodeDefinitionCreatedEvent.now(
                     node_definition_id=id,
-                    now=CreatedAt.from_datetime(now),
+                    now=now,
                 )
             )
 

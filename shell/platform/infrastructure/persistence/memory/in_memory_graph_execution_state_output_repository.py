@@ -14,12 +14,24 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
+    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+        GraphExecutionStateId,
+    )
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
     def __init__(self) -> None:
         self._store: dict[str, list[GraphExecutionState]] = {}
+
+    async def get_by_id(
+        self, id: GraphExecutionStateId
+    ) -> GraphExecutionState | None:
+        for items in self._store.values():
+            for state in items:
+                if state.id == id:
+                    return state
+        return None
 
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection

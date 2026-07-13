@@ -148,7 +148,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionDeletedEvent.now(
                 graph_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 

@@ -8,6 +8,7 @@ from shell.domain.user.aggregates.user.repositories.user_repository import (
 from shell.domain.user.aggregates.user.user import User
 from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_id import UserId
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.user.user.commands.create_user_command import CreateUserCommand
@@ -28,7 +29,7 @@ class CreateUserHandler:
         self._id_generator = id_generator
 
     async def handle(self, command: CreateUserCommand) -> str:
-        now = self._clock.now()
+        now = CreatedAt.from_datetime(self._clock.now())
         user_id = self._id_generator.new_id(UserId)
 
         user = User.create(

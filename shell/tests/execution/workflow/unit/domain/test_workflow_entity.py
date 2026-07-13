@@ -16,26 +16,26 @@ _NOW_CREATED_AT = CreatedAt.from_datetime(_NOW)
 
 class TestWorkflow:
     def test_new_workflow_is_active(self) -> None:
-        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW)
+        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW_CREATED_AT)
         assert wf.status == WorkflowStatus.ACTIVE
 
     def test_start_at_keeps_active(self) -> None:
-        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW)
-        wf.start_at(now=_NOW, task_execution_id=TaskExecutionId("t1"))
+        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW_CREATED_AT)
+        wf.start_at(task_execution_id=TaskExecutionId("t1"))
 
         assert wf.status == WorkflowStatus.ACTIVE
         assert wf.created_at == _NOW_CREATED_AT
 
     def test_finish_sets_completed(self) -> None:
-        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW)
-        wf.start_at(now=_NOW)
-        wf.finish(now=_NOW)
+        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW_CREATED_AT)
+        wf.start_at()
+        wf.finish()
 
         assert wf.status == WorkflowStatus.COMPLETED
 
     def test_abort_sets_aborted(self) -> None:
-        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW)
-        wf.start_at(now=_NOW)
-        wf.abort(reason="test", now=_NOW)
+        wf = Workflow.create(id_=WorkflowId.generate(), now=_NOW_CREATED_AT)
+        wf.start_at()
+        wf.abort(reason="test")
 
         assert wf.status == WorkflowStatus.ABORTED

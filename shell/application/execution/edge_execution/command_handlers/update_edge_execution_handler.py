@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_execution.repositories.edge_executio
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.edge_execution.commands.update_edge_execution_command import (
@@ -38,7 +39,7 @@ class UpdateEdgeExecutionHandler:
             NodeExecutionId,
         )
 
-        now = self._time.now()
+        now = UpdatedAt.from_datetime(self._time.now())
         async with self._unit_of_work as unit_of_work:
             repo = unit_of_work.repository(EdgeExecutionRepository)
             edge = await repo.get_by_id(EdgeExecutionId(command.id))

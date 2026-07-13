@@ -1,13 +1,17 @@
 """Dev seed data — comprehensive test data for local development.
 
-Creates realistic sample RunnerConfigs, GraphDefinitions (with nodes
-and transitions), TaskExecutions, Workflows, Envelopes, Results, and Schedulers.
+Creates 3-10 realistic, coherent sample records in every table
+across all bounded contexts.  Only invoked when seed_dev_data is
+enabled (dev profile or SHELL_SEED_DEV_DATA=true).
 
-Only invoked when seed_dev_data is enabled (dev profile or SHELL_SEED_DEV_DATA=true).
+Usage:
+    python -m shell.config.seed --url sqlite+aiosqlite:///shell_dev.db
 """
 
 from __future__ import annotations
 
+import argparse
+import os
 import tempfile
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
@@ -38,17 +42,142 @@ async def seed_dev_data(url: str) -> None:
 def _seed_dev_sync(sync_conn: Connection) -> None:
     session = Session(bind=sync_conn)
 
+    _seed_users(session)
     _seed_runner_configs(session)
     _seed_graph_definitions(session)
     _seed_task_executions(session)
     _seed_workflow_scenario(session)
     _seed_scheduler(session)
+    _seed_projects(session)
+    _seed_platform_events(session)
 
     session.commit()
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Runner Configs
+# User BC  — 3 users, each with 2 states + 2 skills, 4 sessions with states
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _seed_users(session: Session) -> None:
+    from shell.infrastructure.user.user.persistence.sql.models.user import UserModel
+    from shell.infrastructure.user.user_skill.persistence.sql.models.user_skill import (
+        UserSkillModel,
+    )
+    from shell.infrastructure.user.user_state.persistence.sql.models.user_state import (
+        UserStateModel,
+    )
+
+    users_data = [
+        {"id": f"{_DEV_ID_PREFIX}-user-alice", "email": "alice@example.com", "status": "active"},
+        {"id": f"{_DEV_ID_PREFIX}-user-bob", "email": "bob@example.com", "status": "active"},
+        {"id": f"{_DEV_ID_PREFIX}-user-charlie", "email": "charlie@example.com", "status": "inactive"},
+    ]
+
+    for ud in users_data:
+        existing = session.execute(
+            select(UserModel).where(UserModel.id == ud["id"])
+        ).scalar_one_or_none()
+        if existing is not None:
+            continue
+
+        user = UserModel(id=ud["id"], email=ud["email"], status=ud["status"], created_at=_NOW)
+        session.add(user)
+
+        for direction in ("INPUT", "OUTPUT"):
+            session.add(
+                UserStateModel(
+                    id=f"{ud['id']}-state-{direction.lower()}",
+                    user_id=ud["id"],
+                    direction=direction,
+                    state_data={"info": f"{direction.lower()} state for {ud['email']}"},
+                    created_at=_NOW,
+                )
+            )
+
+        for i in range(1, 3):
+            level = "advanced" if i == 1 else "intermediate"
+            session.add(
+                UserSkillModel(
+                    id=f"{ud['id']}-skill-{i}",
+                    user_id=ud["id"],
+                    skill_data={"name": f"skill-{i}", "level": level},
+                    created_at=_NOW,
+                )
+            )
+
+    _seed_sessions(session, users_data)
+
+
+def _seed_sessions(session: Session, users_data: list[dict[str, Any]]) -> None:
+    from shell.infrastructure.session.session.persistence.sql.models.session import (
+        SessionModel,
+    )
+    from shell.infrastructure.session.session_state.persistence.sql.models.session_state import (
+        SessionStateModel,
+    )
+
+    sessions_data = [
+        {
+            "id": f"{_DEV_ID_PREFIX}-session-alice-1",
+            "user_id": users_data[0]["id"],
+            "goal": "Refactor authentication module",
+            "status": "open",
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-session-alice-2",
+            "user_id": users_data[0]["id"],
+            "goal": "Write API documentation",
+            "status": "closed",
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-session-bob-1",
+            "user_id": users_data[1]["id"],
+            "goal": "Optimize database queries",
+            "status": "open",
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-session-charlie-1",
+            "user_id": users_data[2]["id"],
+            "goal": "Review pull requests",
+            "status": "open",
+        },
+    ]
+
+    for sd in sessions_data:
+        existing = session.execute(
+            select(SessionModel).where(SessionModel.id == sd["id"])
+        ).scalar_one_or_none()
+        if existing is not None:
+            continue
+
+        is_closed = sd["status"] == "closed"
+        sess = SessionModel(
+            id=sd["id"],
+            goal=sd["goal"],
+            status=sd["status"],
+            user_id=sd["user_id"],
+            project_id="",
+            created_at=_NOW,
+            opened_at=_NOW,
+            closed_at=_NOW if is_closed else None,
+        )
+        session.add(sess)
+
+        for direction in ("INPUT", "OUTPUT"):
+            session.add(
+                SessionStateModel(
+                    id=f"{sd['id']}-state-{direction.lower()}",
+                    session_id=sd["id"],
+                    direction=direction,
+                    state_data={"goal": sd["goal"], "step": direction.lower()},
+                    created_at=_NOW,
+                )
+            )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Runner Configs  —  3 configs
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -60,10 +189,26 @@ def _seed_runner_configs(session: Session) -> None:
     configs = [
         RunnerConfigModel(
             id=f"{_DEV_ID_PREFIX}-runner-python",
+            package_name="shell-runner-python",
+            kind="python",
+            hash="abc123def456",
+            body={"entrypoint": "main.py", "interpreter": "python3.11"},
             created_at=_NOW,
         ),
         RunnerConfigModel(
             id=f"{_DEV_ID_PREFIX}-runner-shell",
+            package_name="shell-runner-shell",
+            kind="shell",
+            hash="def789ghi012",
+            body={"entrypoint": "run.sh", "shell": "bash"},
+            created_at=_NOW,
+        ),
+        RunnerConfigModel(
+            id=f"{_DEV_ID_PREFIX}-runner-node",
+            package_name="shell-runner-node",
+            kind="node",
+            hash="jkl345mno678",
+            body={"entrypoint": "index.js", "runtime": "node18"},
             created_at=_NOW,
         ),
     ]
@@ -77,13 +222,16 @@ def _seed_runner_configs(session: Session) -> None:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Graph Definitions + Nodes + Transitions
+# Graph Definitions + Nodes + Transitions + Embeddings  —  3 graphs, 3-5 nodes
 # ──────────────────────────────────────────────────────────────────────────────
 
 
 def _seed_graph_definitions(session: Session) -> None:
     from shell.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (
         GraphDefinitionModel,
+    )
+    from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
+        GraphDefinitionEmbeddingModel,
     )
     from shell.infrastructure.definition.node_definition.persistence.sql.models.node_definition import (
         NodeDefinitionModel,
@@ -93,103 +241,105 @@ def _seed_graph_definitions(session: Session) -> None:
     )
 
     # ── Graph 1: Simple Agent ────────────────────────────────────────────────
-    g1 = GraphDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-graph-simple-agent",
-    )
+    g1 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-simple-agent")
 
-    g1_node_1 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-agent-1",
-        mode="agent",
-        role="agent",
-        node_type="agent",
-        max_step=10,
-    )
-    g1_link_1 = NodeLinkDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-glink-agent-1",
-        graph_definition_id=g1.id,
-        node_definition_id=g1_node_1.id,
-    )
+    g1_nodes = [
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-agent-1",
+            mode="agent",
+            role="agent",
+            node_type="agent",
+            max_step=10,
+        ),
+    ]
+    g1_links = [
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-agent-1",
+            graph_definition_id=g1.id,
+            node_definition_id=g1_nodes[0].id,
+        ),
+    ]
 
-    # ── Graph 2: Planner → Worker ────────────────────────────────────────────
-    g2 = GraphDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-graph-planner-worker",
-    )
+    # ── Graph 2: Planner + Worker ────────────────────────────────────────────
+    g2 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-planner-worker")
 
-    g2_node_1 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-planner-1",
-        mode="planner",
-        role="planner",
-        node_type="planner",
-        max_step=15,
-    )
-    g2_link_1 = NodeLinkDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-glink-planner-1",
-        graph_definition_id=g2.id,
-        node_definition_id=g2_node_1.id,
-    )
+    g2_nodes = [
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-planner-1",
+            mode="planner",
+            role="planner",
+            node_type="planner",
+            max_step=15,
+        ),
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-worker-1",
+            mode="worker",
+            role="worker",
+            node_type="worker",
+            max_step=20,
+        ),
+    ]
+    g2_links = [
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-planner-1",
+            graph_definition_id=g2.id,
+            node_definition_id=g2_nodes[0].id,
+        ),
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-worker-1",
+            graph_definition_id=g2.id,
+            node_definition_id=g2_nodes[1].id,
+        ),
+    ]
 
-    g2_node_2 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-worker-1",
-        mode="worker",
-        role="worker",
-        node_type="worker",
-        max_step=20,
-    )
-    g2_link_2 = NodeLinkDefinitionModel(
-        id="${_DEV_ID_PREFIX}-glink-worker-1",
-        graph_definition_id=g2.id,
-        node_definition_id=g2_node_2.id,
-    )
+    # ── Graph 3: Full Pipeline ───────────────────────────────────────────────
+    g3 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-full-pipeline")
 
-    # ── Graph 3: Full Pipeline (Tasker → Router → Agent) ────────────────────
-    g3 = GraphDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-graph-full-pipeline",
-    )
+    g3_nodes = [
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-tasker-1",
+            mode="tasker",
+            role="tasker",
+            node_type="tasker",
+            max_step=20,
+        ),
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-router-1",
+            mode="router",
+            role="router",
+            node_type="router",
+            max_step=10,
+        ),
+        NodeDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-gnode-agent-2",
+            mode="agent",
+            role="agent",
+            node_type="agent",
+            max_step=15,
+        ),
+    ]
+    g3_links = [
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-tasker-1",
+            graph_definition_id=g3.id,
+            node_definition_id=g3_nodes[0].id,
+        ),
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-router-1",
+            graph_definition_id=g3.id,
+            node_definition_id=g3_nodes[1].id,
+        ),
+        NodeLinkDefinitionModel(
+            id=f"{_DEV_ID_PREFIX}-glink-agent-2",
+            graph_definition_id=g3.id,
+            node_definition_id=g3_nodes[2].id,
+        ),
+    ]
 
-    g3_node_1 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-tasker-1",
-        mode="tasker",
-        role="tasker",
-        node_type="tasker",
-        max_step=20,
-    )
-
-    g3_node_2 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-router-1",
-        mode="router",
-        role="router",
-        node_type="router",
-        max_step=10,
-    )
-
-    g3_node_3 = NodeDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-gnode-agent-2",
-        mode="agent",
-        role="agent",
-        node_type="agent",
-        max_step=15,
-    )
-    g3_link_1 = NodeLinkDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-glink-tasker-1",
-        graph_definition_id=g3.id,
-        node_definition_id=g3_node_1.id,
-    )
-    g3_link_2 = NodeLinkDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-glink-router-1",
-        graph_definition_id=g3.id,
-        node_definition_id=g3_node_2.id,
-    )
-    g3_link_3 = NodeLinkDefinitionModel(
-        id=f"{_DEV_ID_PREFIX}-glink-agent-2",
-        graph_definition_id=g3.id,
-        node_definition_id=g3_node_3.id,
-    )
-
-    # ── Persist (check existence first) ──────────────────────────────────────
-    graphs_data = [
-        (g1, [g1_node_1], [g1_link_1]),
-        (g2, [g2_node_1, g2_node_2], [g2_link_1, g2_link_2]),
-        (g3, [g3_node_1, g3_node_2, g3_node_3], [g3_link_1, g3_link_2, g3_link_3]),
+    graphs_data: list[tuple[GraphDefinitionModel, list[NodeDefinitionModel], list[NodeLinkDefinitionModel]]] = [
+        (g1, g1_nodes, g1_links),
+        (g2, g2_nodes, g2_links),
+        (g3, g3_nodes, g3_links),
     ]
 
     for graph, nodes, links in graphs_data:
@@ -198,15 +348,27 @@ def _seed_graph_definitions(session: Session) -> None:
         ).scalar_one_or_none()
         if existing is not None:
             continue
+
         session.add(graph)
         for node in nodes:
             session.add(node)
         for link in links:
             session.add(link)
 
+        # Embedding for each graph
+        session.add(
+            GraphDefinitionEmbeddingModel(
+                id=f"{graph.id}-embedding",
+                graph_definition_id=graph.id,
+                text=f"Embedding for {graph.id}",
+                embedding=b"\x00\x01\x02",
+                embedding_model="text-embedding-ada-002",
+            )
+        )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Task Executions + Input/Output Payloads
+# Task Executions  —  6 tasks (2 per workflow), each with INPUT/OUTPUT state
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -221,51 +383,81 @@ def _seed_task_executions(session: Session) -> None:
     tasks: list[dict[str, Any]] = [
         {
             "model": TaskExecutionModel(
-                id=f"{_DEV_ID_PREFIX}-task-simple-agent",
-                status="created",
-                name="dev-simple-agent-task",
-                work_dir=f"{_DEV_ROOT}/simple-agent",
+                id=f"{_DEV_ID_PREFIX}-task-simple-1",
+                status="completed",
+                name="simple-analysis-task",
+                body="Analyze codebase for issues",
+                work_dir=f"{_DEV_ROOT}/simple/analysis",
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input_payload": {
-                "description": "# Simple Agent Task\nExecute autonomously.",
-                "repo_url": "https://github.com/example/repo",
-                "branch": "main",
-            },
-            "output_payload": {},  # not yet executed
+            "input": {"description": "# Simple Analysis\nAnalyze the codebase.", "repo_url": "https://github.com/example/repo", "branch": "main"},
+            "output": {"result": "success", "issues_found": 3},
         },
         {
             "model": TaskExecutionModel(
-                id=f"{_DEV_ID_PREFIX}-task-planner-worker",
-                status="created",
-                name="dev-planner-worker-task",
-                work_dir=f"{_DEV_ROOT}/planner-worker",
+                id=f"{_DEV_ID_PREFIX}-task-simple-2",
+                status="running",
+                name="simple-fix-task",
+                body="Fix identified issues",
+                work_dir=f"{_DEV_ROOT}/simple/fix",
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input_payload": {
-                "description": "# Planner Worker Task\nPlan and execute.",
-                "objective": "Refactor authentication module",
-                "language": "python",
-            },
-            "output_payload": {},
+            "input": {"issue_ids": ["ISS-1", "ISS-2", "ISS-3"]},
+            "output": {},
         },
         {
             "model": TaskExecutionModel(
-                id=f"{_DEV_ID_PREFIX}-task-full-pipeline",
-                status="created",
-                name="dev-full-pipeline-task",
-                work_dir=f"{_DEV_ROOT}/full-pipeline",
+                id=f"{_DEV_ID_PREFIX}-task-planner-1",
+                status="completed",
+                name="planner-design-task",
+                body="Design architecture for new feature",
+                work_dir=f"{_DEV_ROOT}/planner/design",
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input_payload": {
-                "description": "# Full Pipeline Task\nEnd-to-end orchestration.",
-                "project_path": f"{_DEV_ROOT}/project",
-                "pipeline_stage": "analysis",
-            },
-            "output_payload": {},
+            "input": {"objective": "Design authentication module", "language": "python"},
+            "output": {"design_doc": "/tmp/design.md", "approved": True},
+        },
+        {
+            "model": TaskExecutionModel(
+                id=f"{_DEV_ID_PREFIX}-task-planner-2",
+                status="created",
+                name="planner-implement-task",
+                body="Implement designed architecture",
+                work_dir=f"{_DEV_ROOT}/planner/implement",
+                workflow_id=None,
+                created_at=_NOW,
+            ),
+            "input": {"design_ref": "/tmp/design.md", "modules": ["auth", "session"]},
+            "output": {},
+        },
+        {
+            "model": TaskExecutionModel(
+                id=f"{_DEV_ID_PREFIX}-task-pipeline-1",
+                status="completed",
+                name="pipeline-analysis-task",
+                body="Analyse pipeline requirements",
+                work_dir=f"{_DEV_ROOT}/pipeline/analysis",
+                workflow_id=None,
+                created_at=_NOW,
+            ),
+            "input": {"project_path": f"{_DEV_ROOT}/project", "pipeline_stage": "analysis"},
+            "output": {"requirements": ["req-1", "req-2"], "priority": "high"},
+        },
+        {
+            "model": TaskExecutionModel(
+                id=f"{_DEV_ID_PREFIX}-task-pipeline-2",
+                status="running",
+                name="pipeline-execute-task",
+                body="Execute pipeline stage",
+                work_dir=f"{_DEV_ROOT}/pipeline/execute",
+                workflow_id=None,
+                created_at=_NOW,
+            ),
+            "input": {"stage": "build", "artifacts": ["src/", "tests/"]},
+            "output": {},
         },
     ]
 
@@ -275,42 +467,57 @@ def _seed_task_executions(session: Session) -> None:
         ).scalar_one_or_none()
         if existing is not None:
             continue
+
         session.add(t["model"])
+
         session.add(
             TaskExecutionStateModel(
                 id=f"{t['model'].id}-input",
                 task_execution_id=t["model"].id,
                 direction="INPUT",
-                state_data=t["input_payload"],
+                state_data=t["input"],
                 created_at=_NOW,
             )
         )
-        if t["output_payload"]:
+
+        if t["output"]:
             session.add(
                 TaskExecutionStateModel(
                     id=f"{t['model'].id}-output",
                     task_execution_id=t["model"].id,
                     direction="OUTPUT",
-                    state_data=t["output_payload"],
+                    state_data=t["output"],
                     created_at=_NOW,
                 )
             )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Workflow Scenario — full execution with envelopes and results
+# Workflow Scenario  —  3 workflows with full execution hierarchy (~2 tasks each)
 # ──────────────────────────────────────────────────────────────────────────────
 
 
 def _seed_workflow_scenario(session: Session) -> None:
+    from shell.infrastructure.execution.agent_config_execution.persistence.sql.models.agent_config_execution import (
+        AgentConfigExecutionModel,
+    )
+    from shell.infrastructure.execution.agent_execution.persistence.sql.models.agent_execution import (
+        AgentExecutionModel,
+    )
+    from shell.infrastructure.execution.agent_skill_execution.persistence.sql.models.agent_skill_execution import (
+        AgentSkillExecutionModel,
+    )
+    from shell.infrastructure.execution.edge_execution.persistence.sql.models.edge_execution import (
+        EdgeExecutionModel,
+    )
+    from shell.infrastructure.execution.edge_link_execution.persistence.sql.models.edge_link_execution import (
+        EdgeLinkExecutionModel,
+    )
     from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
         GraphExecutionModel,
     )
-    from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_input import (
-        GraphExecutionStateInputModel,
-    )
-    from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_output import (
-        GraphExecutionStateOutputModel,
+    from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state import (
+        GraphExecutionStateModel,
     )
     from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
         NodeExecutionModel,
@@ -324,115 +531,293 @@ def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
         NodeLinkExecutionModel,
     )
+    from shell.infrastructure.execution.session_execution.persistence.sql.models.session_execution import (
+        SessionExecutionModel,
+    )
+    from shell.infrastructure.execution.session_execution_state.persistence.sql.models.session_execution_state import (
+        SessionExecutionStateModel,
+    )
+    from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
+        TaskExecutionModel,
+    )
+    from shell.infrastructure.execution.user_execution.persistence.sql.models.user_execution import (
+        UserExecutionModel,
+    )
+    from shell.infrastructure.execution.user_execution_state.persistence.sql.models.user_execution_state import (
+        UserExecutionStateModel,
+    )
     from shell.infrastructure.execution.workflow.persistence.sql.models.workflow import (
         WorkflowModel,
     )
 
-    WF_ID = f"{_DEV_ID_PREFIX}-workflow-1"
-    existing = session.execute(
-        select(WorkflowModel).where(WorkflowModel.id == WF_ID)
-    ).scalar_one_or_none()
-    if existing is not None:
-        return
+    workflows_data: list[dict[str, Any]] = [
+        {
+            "id": f"{_DEV_ID_PREFIX}-workflow-simple",
+            "status": "done",
+            "session_id": f"{_DEV_ID_PREFIX}-session-alice-1",
+            "graph_def_id": f"{_DEV_ID_PREFIX}-graph-simple-agent",
+            "task_ids": [f"{_DEV_ID_PREFIX}-task-simple-1", f"{_DEV_ID_PREFIX}-task-simple-2"],
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-workflow-planner",
+            "status": "running",
+            "session_id": f"{_DEV_ID_PREFIX}-session-bob-1",
+            "graph_def_id": f"{_DEV_ID_PREFIX}-graph-planner-worker",
+            "task_ids": [f"{_DEV_ID_PREFIX}-task-planner-1", f"{_DEV_ID_PREFIX}-task-planner-2"],
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-workflow-pipeline",
+            "status": "idle",
+            "session_id": f"{_DEV_ID_PREFIX}-session-charlie-1",
+            "graph_def_id": f"{_DEV_ID_PREFIX}-graph-full-pipeline",
+            "task_ids": [f"{_DEV_ID_PREFIX}-task-pipeline-1", f"{_DEV_ID_PREFIX}-task-pipeline-2"],
+        },
+    ]
 
-    task_id = f"{_DEV_ID_PREFIX}-task-simple-agent"
-    graph_def_id = f"{_DEV_ID_PREFIX}-graph-simple-agent"
-    ge_id = f"{_DEV_ID_PREFIX}-graph-execution-1"
-    gne_id = f"{_DEV_ID_PREFIX}-gnode-execution-agent-1"
+    for wd in workflows_data:
+        existing = session.execute(
+            select(WorkflowModel).where(WorkflowModel.id == wd["id"])
+        ).scalar_one_or_none()
+        if existing is not None:
+            continue
 
-    # -- Workflow --
-    wf = WorkflowModel(
-        id=WF_ID,
-        status="done",
-        created_at=_NOW,
-    )
-    session.add(wf)
+        wf = WorkflowModel(
+            id=wd["id"],
+            status=wd["status"],
+            session_id=wd["session_id"],
+            created_at=_NOW,
+        )
+        session.add(wf)
 
-    # -- GraphExecution --
-    ge = GraphExecutionModel(
-        id=ge_id,
-        task_execution_id=task_id,
-        graph_definition_id=graph_def_id,
-        status="completed",
-        parent_graph_execution_id=None,
-        state_input={"mode": "autonomous"},
-        state_output={"result": "success"},
-        depth=0,
-        timeout_at=None,
-        correlation_id="dev-correlation-1",
-        tags={"env": "dev", "scenario": "sample"},
-    )
-    session.add(ge)
+        # Update task workflows
+        for task_id in wd["task_ids"]:
+            task = session.execute(
+                select(TaskExecutionModel).where(TaskExecutionModel.id == task_id)
+            ).scalar_one_or_none()
+            if task is not None and task.workflow_id is None:
+                task.workflow_id = wd["id"]
 
-    # -- GraphExecutionStateInput --
-    ges_input = GraphExecutionStateInputModel(
-        id=f"{ge_id}-state-input-1",
-        graph_execution_id=ge_id,
-        state_data={"context": "dev environment", "prompt": "Process sample scenario"},
-        created_at=_NOW,
-    )
-    session.add(ges_input)
+        # UserExecution + SessionExecution per workflow
+        wf_user_id = wd["session_id"].replace("-session-", "-user-")
+        user_exec_id = f"{wd['id']}-user-exec"
+        session_exec_id = f"{wd['id']}-session-exec"
 
-    # -- GraphExecutionStateOutput --
-    ges_output = GraphExecutionStateOutputModel(
-        id=f"{ge_id}-state-output-1",
-        graph_execution_id=ge_id,
-        state_data={"status": "completed", "message": "Sample scenario completed"},
-        created_at=_NOW,
-    )
-    session.add(ges_output)
+        existing_ue = session.execute(
+            select(UserExecutionModel).where(UserExecutionModel.id == user_exec_id)
+        ).scalar_one_or_none()
+        if existing_ue is None:
+            ue = UserExecutionModel(id=user_exec_id, user_id=wf_user_id, created_at=_NOW)
+            session.add(ue)
+            for direction in ("INPUT", "OUTPUT"):
+                session.add(
+                    UserExecutionStateModel(
+                        id=f"{user_exec_id}-state-{direction.lower()}",
+                        user_execution_id=user_exec_id,
+                        direction=direction,
+                        state_data={"workflow_id": wd["id"], "action": direction.lower()},
+                        created_at=_NOW,
+                    )
+                )
 
-    # -- NodeExecution --
-    gne = NodeExecutionModel(
-        id=gne_id,
-        position=0,
-        mode="agent",
-        role="agent",
-        node_type="agent",
-        model="gpt-4",
-        command="",
-        retries=1,
-        log_level="INFO",
-        max_step=10,
-        no_ask_user=False,
-        autopilot=True,
-        task_execution_id=task_id,
-        source_dir=f"{_DEV_ROOT}/simple-agent",
-    )
-    session.add(gne)
-    gne_link = NodeLinkExecutionModel(
-        id=f"{ge_id}-{gne_id}",
-        graph_execution_id=ge_id,
-        node_execution_id=gne_id,
-    )
-    session.add(gne_link)
+            se = SessionExecutionModel(
+                id=session_exec_id,
+                user_execution_id=user_exec_id,
+                session_id=wd["session_id"],
+                created_at=_NOW,
+            )
+            session.add(se)
+            for direction in ("INPUT", "OUTPUT"):
+                session.add(
+                    SessionExecutionStateModel(
+                        id=f"{session_exec_id}-state-{direction.lower()}",
+                        session_execution_id=session_exec_id,
+                        direction=direction,
+                        state_data={"workflow_id": wd["id"], "step": direction.lower()},
+                        created_at=_NOW,
+                    )
+                )
 
-    # -- NodeState --
-    ns = NodeExecutionStateModel(
-        id=f"{gne_id}-state-1",
-        node_execution_id=gne_id,
-        direction="OUTPUT",
-        state_data={"status": "done", "step": 1},
-        created_at=_NOW,
-    )
-    session.add(ns)
+        # ── Graph Execution per task ──────────────────────────────────────────
+        for task_idx, task_id in enumerate(wd["task_ids"]):
+            ge_id = f"{wd['id']}-ge-{task_idx}"
+            tags = {
+                "workflow": wd["id"],
+                "task": task_id,
+                "env": "dev",
+                "priority": "normal",
+            }
 
-    # -- NodeResult --
-    result = NodeExecutionResultModel(
-        id=f"{gne_id}-result-1",
-        node_execution_id=gne_id,
-        workflow_id=WF_ID,
-        status="completed",
-        stdout="[dev] Sample agent output:\nTask analyzed successfully.\nNo issues found.",
-        stderr="",
-        artifact_uri=f"file://{_DEV_ROOT}/results/agent-1.json",
-        created_at=_NOW,
-    )
-    session.add(result)
+            ge = GraphExecutionModel(
+                id=ge_id,
+                task_execution_id=task_id,
+                graph_definition_id=wd["graph_def_id"],
+                status="completed" if task_idx == 0 else "running",
+                parent_graph_execution_id=None,
+                state_input={"task": task_id},
+                state_output={"result": "ok"} if task_idx == 0 else {},
+                depth=0,
+                timeout_at=None,
+                correlation_id=f"corr-{wd['id']}-{task_idx}",
+                tags=tags,
+            )
+            session.add(ge)
+
+            session.add(
+                GraphExecutionStateModel(
+                    id=f"{ge_id}-state-input",
+                    graph_execution_id=ge_id,
+                    direction="INPUT",
+                    state_data={"task_id": task_id, "mode": "auto"},
+                    created_at=_NOW,
+                )
+            )
+            session.add(
+                GraphExecutionStateModel(
+                    id=f"{ge_id}-state-output",
+                    graph_execution_id=ge_id,
+                    direction="OUTPUT",
+                    state_data={"status": "completed", "message": "Done"},
+                    created_at=_NOW,
+                )
+            )
+
+            # ── Node Executions ──────────────────────────────────────────────
+            if wd["graph_def_id"] == f"{_DEV_ID_PREFIX}-graph-simple-agent":
+                node_defs = [
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-agent-1", "mode": "agent", "role": "agent", "node_type": "agent"},
+                ]
+            elif wd["graph_def_id"] == f"{_DEV_ID_PREFIX}-graph-planner-worker":
+                node_defs = [
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-planner-1", "mode": "planner", "role": "planner", "node_type": "planner"},
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-worker-1", "mode": "worker", "role": "worker", "node_type": "worker"},
+                ]
+            else:
+                node_defs = [
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-tasker-1", "mode": "tasker", "role": "tasker", "node_type": "tasker"},
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-router-1", "mode": "router", "role": "router", "node_type": "router"},
+                    {"id": f"{_DEV_ID_PREFIX}-gnode-agent-2", "mode": "agent", "role": "agent", "node_type": "agent"},
+                ]
+
+            for pos, nd in enumerate(node_defs):
+                gne_id = f"{ge_id}-node-{pos}"
+
+                gne = NodeExecutionModel(
+                    id=gne_id,
+                    position=pos,
+                    mode=nd["mode"],
+                    role=nd["role"],
+                    node_type=nd["node_type"],
+                    model="gpt-4",
+                    command="",
+                    retries=1,
+                    log_level="INFO",
+                    max_step=10,
+                    no_ask_user=False,
+                    autopilot=True,
+                    task_execution_id=task_id,
+                    source_dir=f"{_DEV_ROOT}/{nd['mode']}",
+                    status="completed" if task_idx == 0 else "pending",
+                    status_initial="",
+                )
+                session.add(gne)
+
+                # NodeLink
+                session.add(
+                    NodeLinkExecutionModel(
+                        id=f"{ge_id}-{gne_id}",
+                        graph_execution_id=ge_id,
+                        node_execution_id=gne_id,
+                    )
+                )
+
+                # NodeState
+                for direction in ("INPUT", "OUTPUT"):
+                    session.add(
+                        NodeExecutionStateModel(
+                            id=f"{gne_id}-state-{direction.lower()}",
+                            node_execution_id=gne_id,
+                            direction=direction,
+                            state_data={"mode": nd["mode"], "position": pos, "step": direction.lower()},
+                            created_at=_NOW,
+                        )
+                    )
+
+                # NodeResult (only for completed tasks)
+                if task_idx == 0:
+                    session.add(
+                        NodeExecutionResultModel(
+                            id=f"{gne_id}-result",
+                            node_execution_id=gne_id,
+                            workflow_id=wd["id"],
+                            status="completed",
+                            stdout=f"[{nd['mode']}] Task completed successfully.\nPosition: {pos}",
+                            stderr="",
+                            artifact_uri=f"file://{_DEV_ROOT}/results/{nd['mode']}-{pos}.json",
+                            created_at=_NOW,
+                        )
+                    )
+
+                # AgentExecution for agent-type nodes
+                if nd["node_type"] == "agent":
+                    agent_exec_id = f"{gne_id}-agent-exec"
+                    session.add(
+                        AgentExecutionModel(
+                            id=agent_exec_id,
+                            node_execution_id=gne_id,
+                            created_at=_NOW,
+                        )
+                    )
+                    session.add(
+                        AgentConfigExecutionModel(
+                            id=f"{agent_exec_id}-config",
+                            agent_execution_id=agent_exec_id,
+                            session_execution_id=None,
+                            user_execution_id=None,
+                            model="gpt-4",
+                            temperature=0.7,
+                            max_tokens=2048,
+                            top_p=0.9,
+                            created_at=_NOW,
+                        )
+                    )
+                    for skill_idx in range(1, 3):
+                        session.add(
+                            AgentSkillExecutionModel(
+                                id=f"{agent_exec_id}-skill-{skill_idx}",
+                                agent_execution_id=agent_exec_id,
+                                skill_data={
+                                    "name": f"agent-skill-{skill_idx}",
+                                    "category": "coding" if skill_idx == 1 else "analysis",
+                                },
+                                created_at=_NOW,
+                            )
+                        )
+
+            # Edge Execution (1 per graph execution)
+            edge_id = f"{ge_id}-edge-0"
+            session.add(
+                EdgeExecutionModel(
+                    id=edge_id,
+                    edge_definition_id=f"{wd['graph_def_id']}-edge-def-0",
+                    source_node_execution_id=f"{ge_id}-node-0",
+                    target_node_execution_id=f"{ge_id}-node-1" if len(node_defs) > 1 else None,
+                    created_at=_NOW,
+                    updated_at=_NOW,
+                )
+            )
+            session.add(
+                EdgeLinkExecutionModel(
+                    id=f"{edge_id}-link-0",
+                    node_execution_id=f"{ge_id}-node-0",
+                    edge_execution_id=edge_id,
+                    created_at=_NOW,
+                    updated_at=_NOW,
+                )
+            )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Scheduler
+# Scheduler  —  3 definitions, each with 1 execution
 # ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -444,59 +829,302 @@ def _seed_scheduler(session: Session) -> None:
         SchedulerExecutionModel,
     )
 
-    sched_def_id = f"{_DEV_ID_PREFIX}-scheduler-outbox-relay"
+    definitions_data: list[dict[str, Any]] = [
+        {
+            "id": f"{_DEV_ID_PREFIX}-scheduler-outbox-relay",
+            "name": "outbox-relay",
+            "description": "Processes pending outbox events and publishes them to inbox",
+            "source_context": "platform",
+            "trigger_event_type": "OutboxPollingEvent",
+            "trigger_filter": {"event_types": ["*"]},
+            "action_type": "relay",
+            "action_config": {"batch_size": 100, "max_retries": 3, "target": "outbox_to_inbox"},
+            "execution_policy": {"max_concurrent": 1, "timeout_seconds": 60, "retry_policy": {"max_attempts": 3, "backoff_seconds": 5}},
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-scheduler-cleanup",
+            "name": "cleanup-stale",
+            "description": "Cleans up stale executions and state records",
+            "source_context": "execution",
+            "trigger_event_type": "CleanupEvent",
+            "trigger_filter": {"age_hours": 72},
+            "action_type": "cleanup",
+            "action_config": {"batch_size": 500, "retention_hours": 168},
+            "execution_policy": {"max_concurrent": 1, "timeout_seconds": 300},
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-scheduler-health",
+            "name": "health-check",
+            "description": "Periodic health check for all active sessions",
+            "source_context": "session",
+            "trigger_event_type": "HealthCheckEvent",
+            "trigger_filter": {},
+            "action_type": "monitor",
+            "action_config": {"check_interval": 60, "timeout_threshold": 300},
+            "execution_policy": {"max_concurrent": 5, "timeout_seconds": 30},
+        },
+    ]
 
-    # -- SchedulerDefinition --
-    definition = SchedulerDefinitionModel(
-        id=sched_def_id,
-        name="outbox-relay",
-        description="Processes pending outbox events and publishes them to inbox",
-        source_context="platform",
-        trigger_event_type="OutboxPollingEvent",
-        trigger_filter={"event_types": ["*"]},
-        action_type="relay",
-        action_config={
-            "batch_size": 100,
-            "max_retries": 3,
-            "target": "outbox_to_inbox",
-        },
-        execution_policy={
-            "max_concurrent": 1,
-            "timeout_seconds": 60,
-            "retry_policy": {"max_attempts": 3, "backoff_seconds": 5},
-        },
-        enabled=True,
-        created_at=_NOW,
-        updated_at=_NOW,
+    for dd in definitions_data:
+        existing_def = session.execute(
+            select(SchedulerDefinitionModel).where(SchedulerDefinitionModel.id == dd["id"])
+        ).scalar_one_or_none()
+
+        if existing_def is None:
+            definition = SchedulerDefinitionModel(
+                id=dd["id"],
+                name=dd["name"],
+                description=dd["description"],
+                source_context=dd["source_context"],
+                trigger_event_type=dd["trigger_event_type"],
+                trigger_filter=dd["trigger_filter"],
+                action_type=dd["action_type"],
+                action_config=dd["action_config"],
+                execution_policy=dd["execution_policy"],
+                enabled=True,
+                created_at=_NOW,
+                updated_at=_NOW,
+            )
+            session.add(definition)
+
+        try:
+            exec_id = f"{dd['id']}-exec"
+            existing_exec = session.execute(
+                select(SchedulerExecutionModel).where(SchedulerExecutionModel.id == exec_id)
+            ).scalar_one_or_none()
+
+            if existing_exec is None:
+                execution = SchedulerExecutionModel(
+                    id=exec_id,
+                    scheduler_definition_id=dd["id"],
+                    name=f"{dd['name']}-executor",
+                    job_type=dd["source_context"],
+                    interval_seconds=10.0,
+                    batch_size=dd["action_config"].get("batch_size", 50),
+                    enabled=True,
+                    config={"poll_interval": 10, **dd["action_config"]},
+                    created_at=_NOW,
+                    updated_at=_NOW,
+                )
+                session.add(execution)
+        except Exception:
+            pass  # Schema mismatch — non-critical for dev seed data
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Projects  —  3 projects, each with 2 states + 1 skill
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _seed_projects(session: Session) -> None:
+    from shell.infrastructure.project.project.persistence.sql.models.project import (
+        ProjectModel,
+    )
+    from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
+        ProjectSkillModel,
+    )
+    from shell.infrastructure.project.project_state.persistence.sql.models.project_state import (
+        ProjectStateModel,
     )
 
-    existing_def = session.execute(
-        select(SchedulerDefinitionModel).where(SchedulerDefinitionModel.id == sched_def_id)
-    ).scalar_one_or_none()
-    if existing_def is None:
-        session.add(definition)
+    projects_data: list[dict[str, Any]] = [
+        {"id": f"{_DEV_ID_PREFIX}-project-alpha", "name": "Alpha", "repo_url": "https://github.com/example/alpha", "status": "active"},
+        {"id": f"{_DEV_ID_PREFIX}-project-beta", "name": "Beta", "repo_url": "https://github.com/example/beta", "status": "active"},
+        {"id": f"{_DEV_ID_PREFIX}-project-gamma", "name": "Gamma", "repo_url": None, "status": "archived"},
+    ]
 
-    # -- SchedulerExecution --
-    # Wrapped in try/except because the scheduler_execution table may be missing
-    # the 'name' column if migrations are out of sync with the model definition.
-    try:
-        execution = SchedulerExecutionModel(
-            id=f"{_DEV_ID_PREFIX}-scheduler-exec-outbox",
-            scheduler_definition_id=sched_def_id,
-            name="outbox-relay-executor",
-            job_type="messaging",
-            interval_seconds=10.0,
-            batch_size=100,
-            enabled=True,
-            config={"poll_interval": 10, "batch_limit": 100},
+    for pd in projects_data:
+        existing = session.execute(
+            select(ProjectModel).where(ProjectModel.id == pd["id"])
+        ).scalar_one_or_none()
+        if existing is not None:
+            continue
+
+        project = ProjectModel(
+            id=pd["id"],
+            name=pd["name"],
+            repo_url=pd["repo_url"],
+            status=pd["status"],
             created_at=_NOW,
-            updated_at=_NOW,
+        )
+        session.add(project)
+
+        for direction in ("INPUT", "OUTPUT"):
+            session.add(
+                ProjectStateModel(
+                    id=f"{pd['id']}-state-{direction.lower()}",
+                    project_id=pd["id"],
+                    direction=direction,
+                    state_data={"name": pd["name"], "phase": direction.lower()},
+                    created_at=_NOW,
+                )
+            )
+
+        skill_name = "python-dev" if pd["status"] == "active" else "legacy-maintenance"
+        skill_level = "expert" if pd["status"] == "active" else "intermediate"
+        session.add(
+            ProjectSkillModel(
+                id=f"{pd['id']}-skill-1",
+                project_id=pd["id"],
+                skill_data={"name": skill_name, "level": skill_level},
+                created_at=_NOW,
+            )
         )
 
-        existing_exec = session.execute(
-            select(SchedulerExecutionModel).where(SchedulerExecutionModel.id == execution.id)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Platform Events  —  audit (5) + outbox (3) + inbox (3)
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def _seed_platform_events(session: Session) -> None:
+    from shell.platform.infrastructure.persistence.sql.models.audit_event import (
+        AuditEventModel,
+    )
+    from shell.platform.infrastructure.persistence.sql.models.event.inbox_event import (
+        InboxEventModel,
+    )
+    from shell.platform.infrastructure.persistence.sql.models.event.outbox_event import (
+        OutboxEventModel,
+    )
+
+    # Audit events
+    audit_events = [
+        AuditEventModel(
+            id=f"{_DEV_ID_PREFIX}-audit-1",
+            event_type="user.login",
+            occurred_at=_NOW,
+            payload={"user_id": f"{_DEV_ID_PREFIX}-user-alice", "ip": "192.168.1.10"},
+        ),
+        AuditEventModel(
+            id=f"{_DEV_ID_PREFIX}-audit-2",
+            event_type="workflow.created",
+            occurred_at=_NOW,
+            payload={"workflow_id": f"{_DEV_ID_PREFIX}-workflow-simple", "session_id": f"{_DEV_ID_PREFIX}-session-alice-1"},
+        ),
+        AuditEventModel(
+            id=f"{_DEV_ID_PREFIX}-audit-3",
+            event_type="task.completed",
+            occurred_at=_NOW,
+            payload={"task_id": f"{_DEV_ID_PREFIX}-task-simple-1", "status": "completed"},
+        ),
+        AuditEventModel(
+            id=f"{_DEV_ID_PREFIX}-audit-4",
+            event_type="scheduler.triggered",
+            occurred_at=_NOW,
+            payload={"scheduler_id": f"{_DEV_ID_PREFIX}-scheduler-outbox-relay", "action": "relay"},
+        ),
+        AuditEventModel(
+            id=f"{_DEV_ID_PREFIX}-audit-5",
+            event_type="project.archived",
+            occurred_at=_NOW,
+            payload={"project_id": f"{_DEV_ID_PREFIX}-project-gamma", "reason": "completed"},
+        ),
+    ]
+    for evt in audit_events:
+        existing = session.execute(
+            select(AuditEventModel).where(AuditEventModel.id == evt.id)
         ).scalar_one_or_none()
-        if existing_exec is None:
-            session.add(execution)
-    except Exception:
-        pass  # Schema mismatch — non-critical for dev seed data
+        if existing is None:
+            session.add(evt)
+
+    # Outbox events
+    outbox_events = [
+        OutboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-outbox-1",
+            event_type="workflow.completed",
+            occurred_at=_NOW,
+            payload={"workflow_id": f"{_DEV_ID_PREFIX}-workflow-simple"},
+            correlation_id="corr-outbox-1",
+            causation_id="cause-outbox-1",
+            published_at=None,
+        ),
+        OutboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-outbox-2",
+            event_type="task.created",
+            occurred_at=_NOW,
+            payload={"task_id": f"{_DEV_ID_PREFIX}-task-planner-2"},
+            correlation_id="corr-outbox-2",
+            causation_id="cause-outbox-2",
+            published_at=None,
+        ),
+        OutboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-outbox-3",
+            event_type="workflow.started",
+            occurred_at=_NOW,
+            payload={"workflow_id": f"{_DEV_ID_PREFIX}-workflow-pipeline"},
+            correlation_id="corr-outbox-3",
+            causation_id="cause-outbox-3",
+            published_at=_NOW,
+        ),
+    ]
+    for outbox_evt in outbox_events:
+        outbox_existing = session.execute(
+            select(OutboxEventModel).where(OutboxEventModel.id == outbox_evt.id)
+        ).scalar_one_or_none()
+        if outbox_existing is None:
+            session.add(outbox_evt)
+
+    # Inbox events
+    inbox_events = [
+        InboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-inbox-1",
+            event_type="workflow.completed",
+            occurred_at=_NOW,
+            payload={"workflow_id": f"{_DEV_ID_PREFIX}-workflow-simple"},
+            correlation_id="corr-inbox-1",
+            causation_id="cause-inbox-1",
+            received_at=_NOW,
+            processed_at=None,
+        ),
+        InboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-inbox-2",
+            event_type="task.created",
+            occurred_at=_NOW,
+            payload={"task_id": f"{_DEV_ID_PREFIX}-task-planner-2"},
+            correlation_id="corr-inbox-2",
+            causation_id="cause-inbox-2",
+            received_at=_NOW,
+            processed_at=_NOW,
+        ),
+        InboxEventModel(
+            id=f"{_DEV_ID_PREFIX}-inbox-3",
+            event_type="scheduler.ready",
+            occurred_at=_NOW,
+            payload={"scheduler_id": f"{_DEV_ID_PREFIX}-scheduler-health"},
+            correlation_id="corr-inbox-3",
+            causation_id="cause-inbox-3",
+            received_at=_NOW,
+            processed_at=None,
+        ),
+    ]
+    for inbox_evt in inbox_events:
+        inbox_existing = session.execute(
+            select(InboxEventModel).where(InboxEventModel.id == inbox_evt.id)
+        ).scalar_one_or_none()
+        if inbox_existing is None:
+            session.add(inbox_evt)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CLI entry point
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Seed development data into database")
+    parser.add_argument(
+        "--url",
+        default=os.environ.get("SHELL_DATABASE_URL", "sqlite+aiosqlite:///shell_dev.db"),
+        help="Database URL (default: SHELL_DATABASE_URL env or sqlite+aiosqlite:///shell_dev.db)",
+    )
+    args = parser.parse_args()
+
+    import asyncio
+
+    asyncio.run(seed_dev_data(args.url))
+    print(f"Dev seed data loaded into {args.url}")
+
+
+if __name__ == "__main__":
+    main()

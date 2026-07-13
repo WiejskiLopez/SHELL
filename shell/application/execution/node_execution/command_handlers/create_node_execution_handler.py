@@ -20,6 +20,7 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
@@ -43,7 +44,7 @@ class CreateNodeExecutionHandler:
         self._time = time
 
     async def handle(self, command: CreateNodeExecutionCommand) -> str:
-        now = self._time.now()
+        now = CreatedAt.from_datetime(self._time.now())
         graph_execution_id = GraphExecutionId(command.graph_execution_id)
         node_execution = NodeExecution.new(
             id=NodeExecutionId.generate(),

@@ -23,8 +23,9 @@ from shell.platform.infrastructure.persistence.sql.models import InboxEventModel
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.platform.application.ports.ports import EventPublisher
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+    from shell.platform.application.ports.ports import EventPublisher
 
 logger = logging.getLogger(__name__)
 

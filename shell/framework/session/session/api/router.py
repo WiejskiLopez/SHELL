@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
-from shell.application.session.session.dto.session import SessionDto
 from shell.framework.session.session.api.controller import SessionController
+from shell.framework.session.session.api.session_response import SessionResponse
 from shell.platform.framework.api.dependencies import get_core_container
 
 if TYPE_CHECKING:
@@ -24,9 +24,9 @@ def get_session_controller(
     return SessionController(query_service)
 
 
-@router.get("/{session_id}/history", response_model=SessionDto)
+@router.get("/{session_id}/history", response_model=SessionResponse)
 async def get_session_history(
     session_id: str,
     controller: SessionController = Depends(get_session_controller),
-) -> SessionDto:
+) -> SessionResponse:
     return await controller.get_by_id(session_id)

@@ -65,6 +65,7 @@ class ShellConfig:
     session_api_url: str = "http://localhost:8000/api/v1"
     user_api_url: str = "http://localhost:8000/api/v1"
     project_api_url: str = "http://localhost:8000/api/v1"
+    test_db_dir: str | None = None
     events: EventsConfig = field(default_factory=EventsConfig)
 
     @classmethod
@@ -96,9 +97,9 @@ class ShellConfig:
         merged = _deep_merge(defaults, profile_data)
         merged["profile"] = active_profile
 
-        # 5. Environment variable overrides
+        # 5. Environment variable overrides (skipped for dev — YAML is the source of truth)
         env_db_url = os.environ.get("SHELL_DATABASE_URL")
-        if env_db_url:
+        if env_db_url and active_profile != "dev":
             merged["database_url"] = env_db_url
 
         env_max_step = os.environ.get("SHELL_MAX_STEP")
@@ -116,6 +117,10 @@ class ShellConfig:
         env_log_level = os.environ.get("SHELL_LOG_LEVEL")
         if env_log_level:
             merged["log_level"] = env_log_level
+
+        env_test_db_dir = os.environ.get("SHELL_TEST_DB_DIR")
+        if env_test_db_dir:
+            merged["test_db_dir"] = env_test_db_dir
 
         # Environment variable overrides for cross-BC API URLs
         env_definition_api_url = os.environ.get("SHELL_DEFINITION_API_URL")
@@ -144,6 +149,7 @@ class ShellConfig:
             session_api_url=merged.get("session_api_url", "http://localhost:8000/api/v1"),
             user_api_url=merged.get("user_api_url", "http://localhost:8000/api/v1"),
             project_api_url=merged.get("project_api_url", "http://localhost:8000/api/v1"),
+            test_db_dir=merged.get("test_db_dir"),
             events=EventsConfig(
                 outbox_batch_size=int(merged.get("events", {}).get("outbox_batch_size", 100)),
                 inbox_batch_size=int(merged.get("events", {}).get("inbox_batch_size", 50)),

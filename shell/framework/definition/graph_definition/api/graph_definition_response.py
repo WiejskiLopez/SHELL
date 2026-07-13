@@ -13,4 +13,4 @@ class NodeDefinitionResponse(BaseModel):
 
 class GraphDefinitionResponse(BaseModel):
     id: str
-    node_definitions: list[NodeDefinitionResponse] = []
+    node_definitions: list[NodeDefinitionResponse]

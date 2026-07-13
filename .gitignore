@@ -17,3 +17,4 @@ htmlcov/
 .venv
 *.log
 *.db
+shell_dev/

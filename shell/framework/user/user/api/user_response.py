@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -7,6 +9,6 @@ class UserResponse(BaseModel):
     id: str
     email: str
     status: str
-    created_at: str | None = None
-    updated_at: str | None = None
-    deleted_at: str | None = None
+    created_at: datetime
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None

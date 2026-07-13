@@ -35,7 +35,7 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
     ) -> RunnerConfig:
         return cls(
             id=id_,
-            created_at=CreatedAt.from_datetime(now),
+            created_at=now,
         )
 
     @classmethod

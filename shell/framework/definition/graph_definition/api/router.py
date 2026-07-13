@@ -5,8 +5,10 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, Depends
 
-from shell.application.definition.graph_definition.dto.graph_definition import GraphDefinitionDto
 from shell.framework.definition.graph_definition.api.controller import GraphDefinitionController
+from shell.framework.definition.graph_definition.api.graph_definition_response import (
+    GraphDefinitionResponse,
+)
 from shell.framework.definition.graph_definition.api.semantic_query_request import (
     SemanticQueryRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
 )
@@ -31,17 +33,17 @@ def get_graph_definition_controller(
     return GraphDefinitionController(query_service)
 
 
-@router.get("/{graph_definition_id}", response_model=GraphDefinitionDto)
+@router.get("/{graph_definition_id}", response_model=GraphDefinitionResponse)
 async def get_graph_definition(
     graph_definition_id: str,
     controller: GraphDefinitionController = Depends(get_graph_definition_controller),
-) -> GraphDefinitionDto:
+) -> GraphDefinitionResponse:
     return await controller.get_graph_definition(graph_definition_id)
 
 
-@router.post("/by-semantic", response_model=GraphDefinitionDto)
+@router.post("/by-semantic", response_model=GraphDefinitionResponse)
 async def get_graph_definition_by_semantic(
     body: SemanticQueryRequest,
     controller: GraphDefinitionController = Depends(get_graph_definition_controller),
-) -> GraphDefinitionDto:
+) -> GraphDefinitionResponse:
     return await controller.get_graph_definition_by_semantic(JsonStr(json.dumps(body.model_dump())))

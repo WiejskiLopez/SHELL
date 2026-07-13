@@ -14,17 +14,7 @@ Specification to **komponowalny predykat biznesowy** — hermetyzuje pojedynczą
 - **Filtrowanie** w repozytoriach (specification → SQL WHERE)
 - **Walidację** obiektów domenowych
 
-## 2. Specification vs Wyrażenia Warunkowe
-
-| Sytuacja | if/else w kodzie | Specification |
-|----------|-----------------|---------------|
-| Pojedyncze użycie | OK | Przesada |
-| 2+ miejsc użycia | Duplikacja | JEDNO miejsce |
-| Łączenie warunków | Zagnieżdżone if | Kompozycja |
-| Testowanie | Test przez użycie | Test w isolation |
-| Przekazanie do repozytorium | Niemożliwe | Naturalne |
-
-## 3. Podsumowanie — Checklista
+## 2. Podsumowanie — Checklista
 
 Tworząc Specification:
 - [ ] Lokalizacja: `shell/domain/<bc>/aggregates/<agregat>/specifications/`

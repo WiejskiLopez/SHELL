@@ -1,7 +1,9 @@
 # Shell DDD — development profile
 
-database_url: "sqlite+aiosqlite:///shell_dev.db"
+database_url: "sqlite+aiosqlite:///shell_dev/shell_dev.db"
 
 seed_dev_data: true
 
 log_level: "DEBUG"
+
+test_db_dir: shell_dev

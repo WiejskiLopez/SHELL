@@ -83,8 +83,8 @@ from shell.infrastructure.execution.edge_link_execution.persistence.sql.reposito
 from shell.infrastructure.execution.graph_execution.persistence.sql.repositories.sql_graph_execution_repository import (
     SqlGraphExecutionRepository,
 )
-from shell.infrastructure.execution.graph_execution_state.persistence.sql.repositories.sql_graph_execution_state_input_repository import (
-    SqlGraphExecutionStateRepository as SqlGraphExecutionStateInputRepository,
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.repositories.sql_graph_execution_state_repository import (
+    SqlGraphExecutionStateRepository,
 )
 from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
     SqlNodeExecutionRepository,
@@ -136,7 +136,7 @@ _ALL_REPOS: dict[type, type] = {
     TaskExecutionRepository: SqlTaskExecutionRepository,
     TaskExecutionStateRepository: SqlTaskExecutionStateRepository,
     GraphExecutionRepository: SqlGraphExecutionRepository,
-    GraphExecutionStateRepository: SqlGraphExecutionStateInputRepository,
+    GraphExecutionStateRepository: SqlGraphExecutionStateRepository,
     WorkflowRepository: SqlWorkflowRepository,
     WorkflowStateRepository: SqlWorkflowStateRepository,
     NodeExecutionRepository: SqlNodeExecutionRepository,

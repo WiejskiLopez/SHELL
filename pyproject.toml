@@ -22,6 +22,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=7"]
 
+[project.scripts]
+shell-seed-dev = "shell.config.seed.dev_data:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["shell*"]
@@ -56,6 +59,10 @@ runtime-evaluated-base-classes = [
     "pydantic.BaseModel",
     "pydantic_settings.BaseSettings",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"shell/application/**/dto/*.py" = ["TCH001", "TCH003"]
+"shell/framework/user/user/api/*.py" = ["TCH001"]
 
 [tool.mypy]
 python_version = "3.11"

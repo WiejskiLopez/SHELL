@@ -12,6 +12,7 @@ from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definit
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.edge_execution.commands.create_edge_execution_command import (
@@ -38,7 +39,7 @@ class CreateEdgeExecutionHandler:
             NodeExecutionId,
         )
 
-        now = self._time.now()
+        now = CreatedAt.from_datetime(self._time.now())
         edge_execution = EdgeExecution.new(
             id_=self._identity.new_id(EdgeExecutionId),
             edge_definition_id=EdgeDefinitionId(command.edge_definition_id),

@@ -91,7 +91,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
                 edge_link_execution_id=id_,
                 node_execution_id=node_execution_id,
                 edge_execution_id=edge_execution_id,
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return instance

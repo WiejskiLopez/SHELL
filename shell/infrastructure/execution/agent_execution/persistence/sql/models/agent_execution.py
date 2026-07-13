@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
 
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models.base import Base
-
-if TYPE_CHECKING:
-    from datetime import datetime
-
 
 
 class AgentExecutionModel(Base):

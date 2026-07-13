@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class CreateUserRequest(BaseModel):
-    email: EmailStr
+    email: str

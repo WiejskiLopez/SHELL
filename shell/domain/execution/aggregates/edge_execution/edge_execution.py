@@ -24,8 +24,10 @@ from shell.domain.execution.aggregates.edge_execution.events.edge_execution_dele
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_updated_event import (
     EdgeExecutionUpdatedEvent,
 )
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
+if TYPE_CHECKING:
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class EdgeExecution(AggregateRoot[EdgeExecutionId]):
@@ -99,7 +101,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
                 edge_definition_id=edge_definition_id,
                 source_node_execution_id=source_node_execution_id,
                 target_node_execution_id=target_node_execution_id,
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return instance
@@ -112,23 +114,23 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         if self._deleted_at is not None:
             raise ValueError("Cannot change target on a deleted edge")
         self._target_node_execution_id = target_node_execution_id
-        self._updated_at = UpdatedAt.from_datetime(now)
+        self._updated_at = now
         self.append_event(
             EdgeExecutionUpdatedEvent.now(
                 edge_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
     def mark_deleted(self, now: DeletedAt) -> None:
         if self._deleted_at is not None:
             raise ValueError("Edge already deleted")
-        self._deleted_at = DeletedAt.from_datetime(now)
-        self._updated_at = UpdatedAt.from_datetime(now)
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             EdgeExecutionDeletedEvent.now(
                 edge_execution_id=self._id,
-                now=CreatedAt.from_datetime(now),
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 

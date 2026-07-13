@@ -6,7 +6,6 @@ from shell.domain.execution.aggregates.session_execution.value_objects.session_e
     SessionExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
@@ -15,6 +14,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
@@ -91,7 +91,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         session_execution.append_event(
             SessionExecutionCreatedEvent.now(
                 session_execution_id=id_,
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return session_execution

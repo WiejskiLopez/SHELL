@@ -7,6 +7,7 @@ from shell.domain.messaging.aggregates.message_router.message_router import Mess
 from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 from shell.infrastructure.messaging.messaging.envelope import Envelope
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.types import JsonStr
 
 
@@ -14,7 +15,7 @@ def _sample_message() -> MessageRouter:
     return MessageRouter.new(
         id_=MessageId.generate(),
         message_data=MessageData(JsonStr(json.dumps({"type": "test.event"}))),
-        now=datetime.now(tz=UTC),
+        now=CreatedAt.from_datetime(datetime.now(tz=UTC)),
     )
 
 

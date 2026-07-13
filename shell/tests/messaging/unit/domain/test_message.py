@@ -12,7 +12,7 @@ from shell.platform.types import JsonStr
 
 class TestMessageRouter:
     def test_new_creates_message(self) -> None:
-        now = datetime.now(tz=UTC)
+        now = CreatedAt.from_datetime(datetime.now(tz=UTC))
         message = MessageRouter.new(
             id_=MessageId.generate(),
             message_data=MessageData(JsonStr(json.dumps({"key": "value", "type": "test"}))),
@@ -20,12 +20,13 @@ class TestMessageRouter:
         )
 
         assert json.loads(message.message_data.value.value) == {"key": "value", "type": "test"}
-        assert message.created_at.value == now
+        assert message.created_at.value == now.value
 
     def test_new_generates_created_event(self) -> None:
-        now = datetime.now(tz=UTC)
+        now = CreatedAt.from_datetime(datetime.now(tz=UTC))
         message = MessageRouter.new(
             id_=MessageId.generate(),
+            message_data=MessageData(JsonStr(json.dumps({"type": "test"}))),
             now=now,
         )
 

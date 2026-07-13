@@ -7,6 +7,7 @@ from shell.domain.user.aggregates.user.repositories.user_repository import (
 )
 from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_id import UserId
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.application.user.user.commands.update_user_command import UpdateUserCommand
@@ -35,6 +36,6 @@ class UpdateUserHandler:
             if user is None:
                 raise UserNotFoundError(f"User '{command.user_id}' not found")
 
-            now = self._clock.now()
+            now = UpdatedAt.from_datetime(self._clock.now())
             user.update(email=UserEmail(command.email), now=now)
             await unit_of_work.save(UserRepository, user)

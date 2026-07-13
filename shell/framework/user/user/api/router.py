@@ -1,22 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from fastapi import APIRouter, Depends, HTTPException
 
-from shell.application.user.user.dto.user import (
-    CreateUserRequest,
-    CreateUserResponse,
-    UpdateUserRequest,
-    UserDto,
-)
+from shell.domain.user.ports.user_acl import UserACL
 from shell.framework.user.user.api.controller import UserController
+from shell.framework.user.user.api.create_user_request import CreateUserRequest
+from shell.framework.user.user.api.create_user_response import CreateUserResponse
+from shell.framework.user.user.api.update_user_request import UpdateUserRequest
+from shell.framework.user.user.api.user_response import UserResponse
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
-
-if TYPE_CHECKING:
-    from shell.domain.user.ports.user_acl import UserACL
-    from shell.platform.application.bus.command_bus import CommandBus
-    from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -24,18 +18,19 @@ router = APIRouter(prefix="/users", tags=["users"])
 def get_user_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> UserController:
-    _user_acl: UserACL | None = getattr(container.infra, "user_acl_factory", None)
-    if _user_acl is None:
-        raise HTTPException(status_code=501, detail="User ACL not implemented")
+    try:
+        _user_acl: UserACL = container.infra.user_acl_factory()
+    except Exception:
+        raise HTTPException(status_code=501, detail="User ACL not implemented") from None
     command_bus: CommandBus = container.app.buses.command_bus()  # type: ignore[attr-defined]
     return UserController(command_bus, _user_acl)
 
 
-@router.get("/{user_id}", response_model=UserDto)
+@router.get("/{user_id}", response_model=UserResponse)
 async def get_user(
     user_id: str,
     controller: UserController = Depends(get_user_controller),
-) -> UserDto:
+) -> UserResponse:
     return await controller.get_user(user_id)
 
 

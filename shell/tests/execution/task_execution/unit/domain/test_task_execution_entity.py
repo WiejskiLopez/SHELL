@@ -11,8 +11,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
-_NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
+_NOW = CreatedAt.from_datetime(datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC))
 
 
 class TestTaskExecution:

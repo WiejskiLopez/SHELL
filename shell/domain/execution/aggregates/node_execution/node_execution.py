@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
+    NodeExecutionCreatedEvent,
+)
 from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_state_error import (
     InvalidNodeStateError,
 )
@@ -23,6 +26,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
     from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
     from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.error_description import ErrorDescription
     from shell.platform.domain.value_objects.mode import Mode
     from shell.platform.domain.value_objects.state_data import StateData
@@ -38,6 +42,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         "_node_type",
         "_role",
         "_status",
+        "_created_at",
     )
 
     def __init__(
@@ -50,6 +55,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         order: NodeOrder,
         status: NodeExecutionStatus,
         node_definition_id: NodeDefinitionId | None = None,
+        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._node_definition_id = node_definition_id
@@ -59,6 +65,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         self._node_type = node_type
         self._role = role
         self._status = status
+        self._created_at = created_at
 
     @classmethod
     def restore(
@@ -71,6 +78,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         order: NodeOrder,
         status: NodeExecutionStatus,
         node_definition_id: NodeDefinitionId | None = None,
+        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -81,6 +89,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             mode=mode,
             node_type=node_type,
             status=status,
+            created_at=created_at,
         )
 
     # --- Factory ---
@@ -97,6 +106,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: NodeDefinitionId | None = None,
         order: NodeOrder,
+        now: CreatedAt,
     ) -> NodeExecution:
         instance = cls(
             id=id,
@@ -107,6 +117,15 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             mode=mode,
             node_type=node_type,
             status=NodeExecutionStatus.PENDING,
+            created_at=now,
+        )
+        instance.append_event(
+            NodeExecutionCreatedEvent.now(
+                node_execution_id=id,
+                node_definition_id=node_definition_id,
+                graph_execution_id=graph_execution_id,
+                now=now,
+            )
         )
         return instance
 

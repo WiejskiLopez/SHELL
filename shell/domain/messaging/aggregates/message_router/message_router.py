@@ -7,7 +7,9 @@ from shell.domain.messaging.aggregates.message_router.events.message_router_crea
 )
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.created_at import (
+    CreatedAt,  # noqa: TC001 — używany w runtime w parametrze metody new()
+)
 
 if TYPE_CHECKING:
     from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
@@ -62,18 +64,18 @@ class MessageRouter(AggregateRoot[MessageId]):
         cls,
         *,
         id_: MessageId,
-        message: MessageData,
+        message_data: MessageData,
         now: CreatedAt,
     ) -> MessageRouter:
         instance = cls(
             id=id_,
-            message_data=message,
+            message_data=message_data,
             created_at=now,
         )
         instance.append_event(
             MessageRouterCreatedEvent.now(
                 message_id=instance.id,
-                now=CreatedAt.from_datetime(now),
+                now=now,
             )
         )
         return instance

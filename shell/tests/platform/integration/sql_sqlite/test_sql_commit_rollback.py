@@ -20,6 +20,7 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
     RunnerConfigQueryService as SqlRunnerConfigQueryService,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 
 if TYPE_CHECKING:
@@ -41,7 +42,7 @@ class TestSqlCommitRollback:
                 await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]
                     RunnerConfig.new(
                         id_=id_generator.new_id(RunnerConfigId),
-                        now=clock.now(),
+                        now=CreatedAt.from_datetime(clock.now()),
                     )
                 )
                 raise RuntimeError("forced rollback")

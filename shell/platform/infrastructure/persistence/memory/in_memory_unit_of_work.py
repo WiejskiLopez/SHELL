@@ -142,6 +142,7 @@ from shell.domain.definition.aggregates.node_link_definition.node_link_definitio
 from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.mode import Mode
 
 TRepository = TypeVar("TRepository")
@@ -177,7 +178,7 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._committed_events: list[DomainEvent] = []
 
     async def seed_base_planner(self) -> None:
-        now = datetime.now(UTC)
+        now = CreatedAt.from_datetime(datetime.now(UTC))
         node_id = NodeDefinitionId("base-planner-node-1")
         graph_id = GraphDefinitionId("base-planner-id")
 

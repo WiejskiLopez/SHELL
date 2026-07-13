@@ -12,9 +12,8 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.platform.application.ports.ports import Clock, UnitOfWork
-
     from shell.application.execution.session_execution.commands import CloseSessionCommand
+    from shell.platform.application.ports.ports import Clock, UnitOfWork
 
 
 class CloseSessionHandler:

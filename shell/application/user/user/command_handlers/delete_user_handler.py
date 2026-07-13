@@ -6,6 +6,7 @@ from shell.domain.user.aggregates.user.repositories.user_repository import (
     UserRepository,
 )
 from shell.domain.user.value_objects.user_id import UserId
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
     from shell.application.user.user.commands.delete_user_command import DeleteUserCommand
@@ -41,6 +42,6 @@ class DeleteUserHandler:
             if user.is_deleted:
                 raise UserAlreadyDeletedError(f"User '{command.user_id}' is already deleted")
 
-            now = self._clock.now()
+            now = DeletedAt.from_datetime(self._clock.now())
             user.delete(now)
             await unit_of_work.save(UserRepository, user)

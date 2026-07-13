@@ -183,6 +183,22 @@ def test_framework_does_not_import_bootstrap() -> None:
 _SHARED_KNOWN: frozenset[str] = frozenset({})
 
 
+def test_domain_does_not_import_datetime() -> None:
+    """Domain layer must use CreatedAt/UpdatedAt/DeletedAt, never raw datetime."""
+    violations: list[str] = []
+    for path in _iter_python_files("domain"):
+        if path.name == "__init__.py":
+            continue
+        content = path.read_text(encoding="utf-8")
+        if "from datetime import" in content:
+            violations.append(str(path.relative_to(BASE)))
+    assert not violations, (
+        "Domain layer must not import datetime. "
+        "Use CreatedAt/UpdatedAt/DeletedAt value objects instead.\n"
+        + "\n".join(violations)
+    )
+
+
 def test_shared_does_not_import_other_layers() -> None:
     violations: list[str] = []
     forbidden = [

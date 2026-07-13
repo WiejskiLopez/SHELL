@@ -43,8 +43,7 @@ from shell.infrastructure.execution.graph_execution.persistence.sql.models impor
     GraphExecutionModel,  # noqa: F401 — Alembic autogenerate
 )
 from shell.infrastructure.execution.graph_execution_state.persistence.sql.models import (  # noqa: F401 — Alembic autogenerate
-    GraphExecutionStateInputModel,
-    GraphExecutionStateOutputModel,
+    GraphExecutionStateModel,
 )
 from shell.infrastructure.execution.node_execution.persistence.sql.models import (  # noqa: F401 — Alembic autogenerate
     NodeExecutionModel,

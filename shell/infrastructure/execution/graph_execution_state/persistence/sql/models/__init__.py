@@ -1,11 +1,7 @@
-from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_input import (
-    GraphExecutionStateInputModel,
-)
-from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state_output import (
-    GraphExecutionStateOutputModel,
+from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state import (
+    GraphExecutionStateModel,
 )
 
 __all__ = [
-    "GraphExecutionStateInputModel",
-    "GraphExecutionStateOutputModel",
+    "GraphExecutionStateModel",
 ]

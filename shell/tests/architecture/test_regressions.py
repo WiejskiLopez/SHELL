@@ -164,3 +164,44 @@ def test_repository_methods_import_exists_result() -> None:
     assert not violations, (
         "Repository files that define exists() must import ExistsResult:\n" + "\n".join(violations)
     )
+
+
+# ── 4. Framework routers must not leak application DTOs into the API layer ──
+
+_API_MODULE_PREFIX = "shell.framework."
+
+
+def test_framework_routers_use_api_models_not_app_dtos() -> None:
+    """Every ``router.py`` under ``framework/*/api/`` must import response/request
+    models from its own ``api/`` module, not from ``shell.application.*.dto.*``.
+
+    This enforces the **Pattern A** rule — the framework layer defines its own
+    Pydantic models so it can be cleanly extracted into a separate microservice.
+    """
+    violations: list[str] = []
+    for py_file in iter_py_files(BASE / "shell" / "framework"):
+        if py_file.name != "router.py":
+            continue
+        rel = py_file.relative_to(BASE)
+        tree = parse_file(py_file)
+        if tree is None:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.Import, ast.ImportFrom)):
+                continue
+            # Skip TYPE_CHECKING-only imports
+            if _in_type_checking(tree, node):
+                continue
+            modules: list[str] = []
+            if isinstance(node, ast.Import):
+                modules = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                modules = [node.module]
+            for mod in modules:
+                if mod.startswith("shell.application.") and ".dto." in mod:
+                    violations.append(f"{rel}: runtime import of {mod!r}")
+    assert not violations, (
+        "Framework router.py files must not import application DTOs at runtime.\n"
+        "Use API models from the framework layer instead (Pattern A).\n"
+        + "\n".join(violations)
+    )

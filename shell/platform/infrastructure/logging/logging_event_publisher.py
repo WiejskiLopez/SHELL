@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from shell.platform.application.ports.ports import Logger
-
     from shell.platform.domain.events import DomainEvent
 
 

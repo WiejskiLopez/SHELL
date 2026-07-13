@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_lin
 from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.edge_link_execution.commands.delete_edge_link_execution_command import (
@@ -34,7 +35,7 @@ class DeleteEdgeLinkExecutionHandler:
         self._logger = logger
 
     async def handle(self, command: DeleteEdgeLinkExecutionCommand) -> None:
-        now = self._time.now()
+        now = DeletedAt.from_datetime(self._time.now())
         async with self._unit_of_work as unit_of_work:
             repo = unit_of_work.repository(EdgeLinkExecutionRepository)
             link = await repo.get_by_id(EdgeLinkExecutionId(command.id))

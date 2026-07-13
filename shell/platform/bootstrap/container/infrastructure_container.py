@@ -34,6 +34,9 @@ from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_q
 from shell.infrastructure.session.session.http.workflow_session_provider_http_adapter import (
     WorkflowSessionProviderHttpAdapter,
 )
+from shell.infrastructure.user.user.sql.user_acl_monolith_adapter import (
+    UserAclMonolithAdapter,
+)
 from shell.platform.infrastructure.context.client import CorrelationIdAsyncClient
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
@@ -120,6 +123,12 @@ class InfrastructureContainer(containers.DeclarativeContainer):
     )
     sql_command_outbox_publisher_factory = providers.Singleton(
         SqlCommandOutboxPublisher,
+        session_factory=session_factory,
+    )
+
+    # 7. User ACL (monolith mode — reads from the same SQL database)
+    user_acl_factory = providers.Factory(
+        UserAclMonolithAdapter,
         session_factory=session_factory,
     )
 

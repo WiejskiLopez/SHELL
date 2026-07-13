@@ -75,11 +75,11 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
-    # Routers
-    app.include_router(edge_executions_router)
-    app.include_router(edge_link_executions_router)
-    app.include_router(workflows_router)
-    app.include_router(node_execution_router)
+    # Routers — wszystkie agregaty pod /api/v1/ dla spójnego versionowania
+    app.include_router(edge_executions_router, prefix="/api/v1")
+    app.include_router(edge_link_executions_router, prefix="/api/v1")
+    app.include_router(workflows_router, prefix="/api/v1")
+    app.include_router(node_execution_router, prefix="/api/v1")
     app.include_router(graph_definitions_router, prefix="/api/v1")
     app.include_router(sessions_router, prefix="/api/v1")
     app.include_router(users_router, prefix="/api/v1")

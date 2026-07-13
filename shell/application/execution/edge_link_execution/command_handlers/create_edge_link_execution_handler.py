@@ -11,6 +11,7 @@ from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_lin
 from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_link_execution_id import (
     EdgeLinkExecutionId,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.application.execution.edge_link_execution.commands.create_edge_link_execution_command import (
@@ -40,7 +41,7 @@ class CreateEdgeLinkExecutionHandler:
             NodeExecutionId,
         )
 
-        now = self._time.now()
+        now = CreatedAt.from_datetime(self._time.now())
         link = EdgeLinkExecution.new(
             id_=self._identity.new_id(EdgeLinkExecutionId),
             node_execution_id=NodeExecutionId(command.node_execution_id),
