@@ -19,9 +19,7 @@ class NodeDefinitionQueryService:
 
     async def get_by_id(self, node_definition_id: str) -> NodeDefinitionDto | None:
         async with self._session_factory() as session:
-            stmt = select(NodeDefinitionModel).where(
-                NodeDefinitionModel.id == node_definition_id
-            )
+            stmt = select(NodeDefinitionModel).where(NodeDefinitionModel.id == node_definition_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:

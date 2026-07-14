@@ -22,7 +22,7 @@ def get_user_controller(
         _user_acl: UserACL = container.infra.user_acl_factory()
     except Exception:
         raise HTTPException(status_code=501, detail="User ACL not implemented") from None
-    command_bus: CommandBus = container.app.buses.command_bus()  # type: ignore[attr-defined]
+    command_bus: CommandBus = container.app.buses.command_bus
     return UserController(command_bus, _user_acl)
 
 

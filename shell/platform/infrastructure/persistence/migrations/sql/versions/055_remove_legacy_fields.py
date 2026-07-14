@@ -126,10 +126,14 @@ def downgrade() -> None:
     with op.batch_alter_table("node_definition") as batch_op:
         batch_op.add_column(sa.Column("script_type", sa.String(), nullable=True))
         batch_op.add_column(sa.Column("script", sa.String(), nullable=True))
-        batch_op.add_column(sa.Column("status_initial", sa.String(), nullable=False, server_default=""))
+        batch_op.add_column(
+            sa.Column("status_initial", sa.String(), nullable=False, server_default="")
+        )
         batch_op.add_column(sa.Column("autopilot", sa.Boolean(), nullable=True))
         batch_op.add_column(sa.Column("no_ask_user", sa.Boolean(), nullable=True))
-        batch_op.add_column(sa.Column("log_level", sa.String(), nullable=False, server_default="INFO"))
+        batch_op.add_column(
+            sa.Column("log_level", sa.String(), nullable=False, server_default="INFO")
+        )
         batch_op.add_column(sa.Column("retries", sa.Integer(), nullable=False, server_default="0"))
         batch_op.add_column(sa.Column("timeout", sa.Integer(), nullable=False, server_default="0"))
         batch_op.add_column(sa.Column("command", sa.String(), nullable=False, server_default=""))
@@ -159,39 +163,57 @@ def downgrade() -> None:
 
     # ── node_execution_state ──────────────────────────────────────────────────
     with op.batch_alter_table("node_execution_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── workflow_state ────────────────────────────────────────────────────────
     with op.batch_alter_table("workflow_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── user_execution_state ──────────────────────────────────────────────────
     with op.batch_alter_table("user_execution_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── session_execution_state ───────────────────────────────────────────────
     with op.batch_alter_table("session_execution_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── graph_execution_state_output ──────────────────────────────────────────
     with op.batch_alter_table("graph_execution_state_output") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── graph_execution_state_input ───────────────────────────────────────────
     with op.batch_alter_table("graph_execution_state_input") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── task_execution_state ──────────────────────────────────────────────────
     with op.batch_alter_table("task_execution_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── project_state ─────────────────────────────────────────────────────────
     with op.batch_alter_table("project_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # ── user_state ────────────────────────────────────────────────────────────
     with op.batch_alter_table("user_state") as batch_op:
-        batch_op.add_column(sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0"))
+        batch_op.add_column(
+            sa.Column("is_current", sa.Boolean(), nullable=False, server_default="0")
+        )
 
     # Recreate partial indexes that were dropped in upgrade()
     op.create_index(

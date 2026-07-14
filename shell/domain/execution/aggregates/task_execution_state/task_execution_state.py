@@ -101,4 +101,3 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
             state_data=state_data,
             created_at=now,
         )
-

@@ -20,4 +20,3 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
         created_at=work_flow.created_at.value,
         deleted_at=_created_at_value(work_flow.deleted_at),
     )
-

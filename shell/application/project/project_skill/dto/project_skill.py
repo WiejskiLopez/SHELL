@@ -13,4 +13,3 @@ class ProjectSkillDto:
     skill_data: JsonStr
     created_at: datetime | None = None
     updated_at: datetime | None = None
-

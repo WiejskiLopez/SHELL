@@ -77,6 +77,6 @@ class AuthMiddleware:
                 algorithms=["HS256"],
                 options={"require": ["exp", "sub"]},
             )
-            return payload.get("sub")  # type: ignore[no-any-return]
+            return payload.get("sub")
         except jwt.PyJWTError:
             return None

@@ -9,6 +9,4 @@ if TYPE_CHECKING:
 
 
 class SchedulerExecutionQueryService(Protocol):
-    async def get_by_id(
-        self, scheduler_execution_id: str
-    ) -> SchedulerExecutionDto | None: ...
+    async def get_by_id(self, scheduler_execution_id: str) -> SchedulerExecutionDto | None: ...

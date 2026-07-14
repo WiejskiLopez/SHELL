@@ -21,4 +21,3 @@ def session_entity_to_model(session: Session) -> SessionModel:
         opened_at=session.opened_at.value,
         closed_at=session.closed_at.value if session.closed_at is not None else None,
     )
-

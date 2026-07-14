@@ -20,4 +20,3 @@ def project_entity_to_model(entity: Project) -> ProjectModel:
         updated_at=entity.updated_at.value if entity.updated_at else None,
         deleted_at=entity.deleted_at.value if entity.deleted_at else None,
     )
-

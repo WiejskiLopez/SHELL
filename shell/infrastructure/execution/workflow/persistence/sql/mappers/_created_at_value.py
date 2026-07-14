@@ -15,4 +15,3 @@ def _created_at_value(dt: CreatedAt | DeletedAt | datetime | None) -> datetime |
     if dt is None:
         return None
     return dt.value if hasattr(dt, "value") else dt
-

@@ -20,7 +20,7 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 def get_session_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> SessionController:
-    query_service: SessionQueryService = container.infra.session_query_service()
+    query_service: SessionQueryService = container.infra.session_query_service
     return SessionController(query_service)
 
 

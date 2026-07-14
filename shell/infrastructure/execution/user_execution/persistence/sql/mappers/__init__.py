@@ -1,7 +1,17 @@
 """Mapper functions - each in its own module."""
+
 from __future__ import annotations
 
-from ._ensure_utc import _ensure_utc
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
+
 from .user_execution_entity_to_model import user_execution_entity_to_model
 from .user_execution_model_to_entity import user_execution_model_to_entity
 from .user_execution_update_model import user_execution_update_model
+
+__all__ = [
+    "user_execution_entity_to_model",
+    "user_execution_model_to_entity",
+    "user_execution_update_model",
+]

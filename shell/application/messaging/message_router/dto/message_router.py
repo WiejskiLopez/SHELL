@@ -11,4 +11,3 @@ class MessageRouterDto:
     id: str
     message_data: JsonStr
     created_at: datetime | None = None
-

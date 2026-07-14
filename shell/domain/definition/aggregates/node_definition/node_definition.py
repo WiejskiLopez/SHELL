@@ -29,9 +29,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         max_step: MaxStep | None = None,
     ) -> None:
         super().__init__(id)
-        self._node_type = (
-            node_type if isinstance(node_type, NodeType) else NodeType(node_type)
-        )
+        self._node_type = node_type if isinstance(node_type, NodeType) else NodeType(node_type)
         self._max_step = (
             max_step if max_step is None or isinstance(max_step, MaxStep) else MaxStep(max_step)
         )

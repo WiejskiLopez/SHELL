@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
 )
 
 

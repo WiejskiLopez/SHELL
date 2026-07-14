@@ -98,6 +98,7 @@ class SchedulerOrchestrator:
             execution.fail(error=ErrorDescription(error), now=now)
         else:
             execution.complete(
-                output_state=StateData(JsonStr(json.dumps(output_state))) if output_state else None, now=now
+                output_state=StateData(JsonStr(json.dumps(output_state))) if output_state else None,
+                now=now,
             )
         return execution.pull_events()

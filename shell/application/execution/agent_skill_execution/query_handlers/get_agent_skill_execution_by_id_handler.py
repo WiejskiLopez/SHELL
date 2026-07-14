@@ -18,7 +18,5 @@ class GetAgentSkillExecutionByIdHandler:
     def __init__(self, queries: AgentSkillExecutionQueryService) -> None:
         self._queries = queries
 
-    async def handle(
-        self, query: GetAgentSkillExecutionByIdQuery
-    ) -> AgentSkillExecutionDto | None:
+    async def handle(self, query: GetAgentSkillExecutionByIdQuery) -> AgentSkillExecutionDto | None:
         return await self._queries.get_by_id(query.agent_skill_execution_id)

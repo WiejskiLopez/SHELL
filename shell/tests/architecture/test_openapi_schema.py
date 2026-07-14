@@ -70,7 +70,6 @@ def test_no_pydantic_user_error_in_openapi() -> None:
                 TypeAdapter(cls).json_schema()
             except Exception as exc:
                 errors.append(f"  {modname}.{cls.__name__}: {exc}")
-    assert not errors, (
-        "The following DTO classes failed JSON schema generation:\n"
-        + "\n".join(errors)
+    assert not errors, "The following DTO classes failed JSON schema generation:\n" + "\n".join(
+        errors
     )

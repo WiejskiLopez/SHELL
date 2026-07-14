@@ -40,6 +40,7 @@ class TestTaskExecution:
 
     def test_create_validates_body_not_empty(self) -> None:
         import pytest
+
         with pytest.raises(ValueError, match="cannot be empty"):
             TaskExecution.create(
                 id_=TaskExecutionId.generate(),

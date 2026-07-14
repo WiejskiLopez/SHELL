@@ -5,6 +5,9 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from shell.framework.execution.workflow.api.controller import WorkflowController
+from shell.framework.execution.workflow.api.workflow_response import (
+    WorkflowResponse,  # noqa: TC001 — FastAPI needs it at runtime for response_model
+)
 from shell.platform.application.bus.query_bus import (
     QueryBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
 )
@@ -23,5 +26,5 @@ def get_workflow_controller(
 async def get_workflow(
     workflow_id: str,
     controller: WorkflowController = Depends(get_workflow_controller),
-) -> dict:
+) -> WorkflowResponse:
     return await controller.get_workflow(workflow_id)

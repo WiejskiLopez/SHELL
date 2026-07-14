@@ -41,8 +41,9 @@ def scheduler_execution_model_to_entity(
         interval_seconds=IntervalSeconds(model.interval_seconds),
         batch_size=BatchSize(model.batch_size),
         enabled=Enabled(model.enabled),
-        config=StateData(JsonStr(json.dumps(dict(model.config)))) if model.config else StateData(JsonStr("{}")),
+        config=StateData(JsonStr(json.dumps(dict(model.config))))
+        if model.config
+        else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(model.created_at),
         updated_at=Timestamp.from_datetime(model.updated_at),
     )
-

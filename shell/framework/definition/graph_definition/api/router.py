@@ -16,9 +16,6 @@ from shell.platform.framework.api.dependencies import get_core_container
 from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
-    from shell.application.definition.graph_definition.ports.graph_definition_query_service import (
-        GraphDefinitionQueryService,
-    )
     from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/graph-definitions", tags=["graph-definitions"])
@@ -27,10 +24,8 @@ router = APIRouter(prefix="/graph-definitions", tags=["graph-definitions"])
 def get_graph_definition_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> GraphDefinitionController:
-    query_service: GraphDefinitionQueryService = (
-        container.infra.graph_definition_query_service_factory()
-    )
-    return GraphDefinitionController(query_service)
+    query_service = container.infra.graph_definition_query_service_factory()
+    return GraphDefinitionController(query_service)  # type: ignore[arg-type]
 
 
 @router.get("/{graph_definition_id}", response_model=GraphDefinitionResponse)

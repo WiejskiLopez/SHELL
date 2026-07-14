@@ -53,7 +53,8 @@ class InboxProcessor:
             if not rows:
                 return 0
 
-            events_to_publish = []
+            # Pair succesfully deserialized events with their rows
+            pairs: list[tuple[DomainEvent, InboxEventModel]] = []
 
             for row in rows:
                 # Reconstruct full domain object from raw data
@@ -61,7 +62,7 @@ class InboxProcessor:
                     row.event_type, row.occurred_at, row.payload
                 )
                 if domain_event:
-                    events_to_publish.append(domain_event)
+                    pairs.append((domain_event, row))
 
                 # Mark in Inbox as processed (our ACK!)
                 row.processed_at = datetime.now(tz=UTC)
@@ -71,9 +72,9 @@ class InboxProcessor:
             # Publish AFTER commit so Inbox events are marked processed
             # before any handler runs.  If a handler throws, the event won't
             # be lost — the commit already durable-marked it.
-            if events_to_publish:
+            if pairs:
                 # Restore tracing context from inbox metadata before dispatching
-                for domain_event, row in zip(events_to_publish, rows, strict=False):
+                for domain_event, row in pairs:
                     corr_token = correlation_id_var.set(row.correlation_id)
                     caus_token = causation_id_var.set(domain_event.event_id.value)
                     try:

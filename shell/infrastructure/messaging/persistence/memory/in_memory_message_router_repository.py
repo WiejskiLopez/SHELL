@@ -8,5 +8,7 @@ from shell.domain.messaging.aggregates.message_router.value_objects.message_id i
 from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 
-class InMemoryMessageRouterRepository(InMemoryRepository[MessageRouter, MessageId], MessageRouterRepository):
+class InMemoryMessageRouterRepository(
+    InMemoryRepository[MessageRouter, MessageId], MessageRouterRepository
+):
     pass

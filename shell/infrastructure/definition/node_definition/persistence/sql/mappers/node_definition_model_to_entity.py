@@ -25,4 +25,3 @@ def node_definition_model_to_entity(
         if node_definition_model.max_step is not None
         else None,
     )
-

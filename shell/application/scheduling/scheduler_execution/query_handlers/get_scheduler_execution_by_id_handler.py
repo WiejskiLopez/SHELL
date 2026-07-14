@@ -18,7 +18,5 @@ class GetSchedulerExecutionByIdHandler:
     def __init__(self, queries: SchedulerExecutionQueryService) -> None:
         self._queries = queries
 
-    async def handle(
-        self, query: GetSchedulerExecutionByIdQuery
-    ) -> SchedulerExecutionDto | None:
+    async def handle(self, query: GetSchedulerExecutionByIdQuery) -> SchedulerExecutionDto | None:
         return await self._queries.get_by_id(query.scheduler_execution_id)

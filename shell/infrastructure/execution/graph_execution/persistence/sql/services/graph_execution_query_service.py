@@ -21,9 +21,7 @@ class GraphExecutionQueryService:
 
     async def get_by_id(self, graph_execution_id: str) -> GraphExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(GraphExecutionModel).where(
-                GraphExecutionModel.id == graph_execution_id
-            )
+            stmt = select(GraphExecutionModel).where(GraphExecutionModel.id == graph_execution_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -33,7 +31,9 @@ class GraphExecutionQueryService:
                 graph_definition_id=model.graph_definition_id,
                 task_execution_id=model.task_execution_id,
                 parent_graph_execution_id=model.parent_graph_execution_id,
-                state_data=JsonStr(json.dumps({"input": model.state_input, "output": model.state_output})),
+                state_data=JsonStr(
+                    json.dumps({"input": model.state_input, "output": model.state_output})
+                ),
                 depth=model.depth,
                 timeout_at=model.timeout_at,
             )

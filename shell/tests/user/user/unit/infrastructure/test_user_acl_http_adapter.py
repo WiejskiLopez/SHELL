@@ -17,13 +17,15 @@ class TestUserAclHttpAdapter:
     def adapter(self, mock_client: AsyncMock) -> UserAclHttpAdapter:
         return UserAclHttpAdapter(client=mock_client)
 
-    async def test_get_user_raises_not_implemented_on_501(
+    async def test_get_user_raises_on_http_error(
         self,
         adapter: UserAclHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
-        mock_client.get = AsyncMock(return_value=Mock(status_code=501))
-        with pytest.raises(NotImplementedError, match="User BC REST API not fully implemented yet"):
+        mock_response = Mock(status_code=404)
+        mock_response.raise_for_status.side_effect = Exception("HTTP 404")
+        mock_client.get = AsyncMock(return_value=mock_response)
+        with pytest.raises(Exception, match="HTTP 404"):
             await adapter.get_user(UserId("user-1"))
 
     async def test_get_user_calls_correct_endpoint(
@@ -31,11 +33,22 @@ class TestUserAclHttpAdapter:
         adapter: UserAclHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
-        mock_client.get = AsyncMock(
-            return_value=Mock(status_code=200, json=Mock(return_value={"id": "user-1"}))
+        mock_response = Mock(
+            status_code=200,
+            raise_for_status=Mock(),
+            json=Mock(
+                return_value={
+                    "id": "user-1",
+                    "email": "user@test.com",
+                    "status": "active",
+                    "created_at": None,
+                    "updated_at": None,
+                    "deleted_at": None,
+                }
+            ),
         )
-        with pytest.raises(
-            NotImplementedError, match="User deserialization from JSON not implemented yet"
-        ):
-            await adapter.get_user(UserId("user-1"))
+        mock_client.get = AsyncMock(return_value=mock_response)
+        user = await adapter.get_user(UserId("user-1"))
+        assert user.id.value == "user-1"
+        assert user._email.value == "user@test.com"
         mock_client.get.assert_awaited_once_with("/api/v1/users/user-1")

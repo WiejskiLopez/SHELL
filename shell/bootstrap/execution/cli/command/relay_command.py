@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
 from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
 )
 from typing import TYPE_CHECKING
 
@@ -16,15 +17,17 @@ from shell.platform.infrastructure.persistence.sql import build_session_factory
 if TYPE_CHECKING:
     from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 
+logger = logging.getLogger(__name__)
+
 
 class RelayCommand(RunnableCommand):
     async def run(self, args: Namespace) -> None:
         config: ShellConfig = args.shell_config
         await bootstrap_database(config)
         sf = build_session_factory(config.database_url)
-        logger = StdlibLogger("shell.relay")
-        downstream = CompositeEventPublisher([LoggingEventPublisher(logger)])
+        relay_logger = StdlibLogger("shell.relay")
+        downstream = CompositeEventPublisher([LoggingEventPublisher(relay_logger)])
 
         relay = OutboxToInboxRelay(sf, downstream)
         count = await relay.run_once()
-        print(f"[relay] processed {count} outbox event(s)")
+        logger.info("processed %s outbox event(s)", count)

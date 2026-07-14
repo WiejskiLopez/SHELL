@@ -27,4 +27,3 @@ def node_link_definition_model_to_entity(model: NodeLinkDefinitionModel) -> Node
         graph_definition_id=GraphDefinitionId(model.graph_definition_id),
         node_definition_id=NodeDefinitionId(model.node_definition_id),
     )
-

@@ -16,8 +16,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.work_dir imp
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-
-from ._ensure_utc import _ensure_utc
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
@@ -44,4 +45,3 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
             else None
         ),
     )
-

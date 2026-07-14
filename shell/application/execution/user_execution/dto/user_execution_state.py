@@ -13,4 +13,3 @@ class UserExecutionStateDto:
     direction: str
     state_data: JsonStr
     created_at: datetime
-

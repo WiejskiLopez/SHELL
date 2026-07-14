@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
     GraphDefinitionRepository,
@@ -113,9 +113,7 @@ from shell.platform.infrastructure.persistence.memory.in_memory_graph_execution_
 )
 
 if TYPE_CHECKING:
-
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
-    from shell.platform.domain.base.aggregate_root import AggregateRoot
     from shell.platform.domain.events import DomainEvent
 from datetime import UTC, datetime
 
@@ -245,10 +243,10 @@ class InMemoryUnitOfWork(UnitOfWork):
     def stage_events(self, events: list[DomainEvent]) -> None:
         self._staged_events.extend(events)
 
-    async def save(self, repo_type: type, aggregate: AggregateRoot) -> None:
-        repo = self.repository(repo_type)
+    async def save(self, repo_type: type, aggregate: object) -> None:
+        repo: Any = self.repository(repo_type)
         await repo.save(aggregate)
-        self.stage_events(aggregate.pull_events())
+        self.stage_events(aggregate.pull_events())  # type: ignore[attr-defined]
 
     def stage_messages(self, messages: list[MessageRouter]) -> None:
         self._staged_messages.extend(messages)

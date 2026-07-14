@@ -38,8 +38,8 @@ class SqlAuditPublisher:
                         )
                     )
                 except Exception:
-                    logging.getLogger(__name__).exception(
-                        "Failed to serialize audit event %s", type(event).__name__
+                    logging.getLogger(__name__).critical(
+                        "Failed to serialize audit event %s — event LOST", type(event).__name__
                     )
-                    continue
+                    raise
             await session.commit()

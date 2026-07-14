@@ -19,4 +19,3 @@ def runner_config_model_to_entity(runner_config_model: RunnerConfigModel) -> Run
         id=RunnerConfigId(runner_config_model.id),
         created_at=CreatedAt.from_datetime(runner_config_model.created_at),
     )
-

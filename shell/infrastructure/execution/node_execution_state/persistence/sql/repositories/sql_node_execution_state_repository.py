@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
 
-
 class SqlNodeExecutionStateRepository(NodeExecutionStateRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session

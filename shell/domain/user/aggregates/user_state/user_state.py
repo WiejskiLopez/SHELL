@@ -178,4 +178,3 @@ class UserState(AggregateRoot[UserStateId]):
 
     def snapshot(self) -> StateData:
         return self._state_data
-

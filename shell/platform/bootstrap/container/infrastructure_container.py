@@ -1,4 +1,4 @@
-"""Kontener zarządzający adapterami wejścia/wyjścia, bazą danych i portami."""
+"""Container managing I/O adapters, database and ports."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class InfrastructureContainer(containers.DeclarativeContainer):
-    """Kontener zarządzający adapterami wejścia/wyjścia, bazą i portami."""
+    """Container managing I/O adapters, database and ports."""
 
     config = providers.Configuration()
 

@@ -38,7 +38,9 @@ class UpdateProjectHandler:
             now = UpdatedAt.from_datetime(self._clock.now())
             project.update(
                 name=ProjectName(command.name) if command.name else project.name,
-                repo_url=RepoUrl(command.repo_url) if command.repo_url is not None else project.repo_url,
+                repo_url=RepoUrl(command.repo_url)
+                if command.repo_url is not None
+                else project.repo_url,
                 now=now,
             )
             await unit_of_work.save(ProjectRepository, project)

@@ -116,13 +116,13 @@ if (-not $SkipTypeCheck) {
 }
 
 if (-not $SkipArchCheck) {
-    Run-Command "$projectRoot\venv\Scripts\import-linter.exe lint" "Architecture Boundary Check"
+    Run-Command "$projectRoot\.venv\Scripts\import-linter.exe lint" "Architecture Boundary Check"
 }
 
 if (-not $SkipSecurity) {
     Write-Host "`n--- Dependency Vulnerability Audit ---" -ForegroundColor Yellow
-    Write-Host "Running: $projectRoot\venv\Scripts\pip-audit.exe" -ForegroundColor Gray
-    $pipJob = Start-Job -ScriptBlock { param($path) & $path } -ArgumentList "$projectRoot\venv\Scripts\pip-audit.exe"
+    Write-Host "Running: $projectRoot\.venv\Scripts\pip-audit.exe" -ForegroundColor Gray
+    $pipJob = Start-Job -ScriptBlock { param($path) & $path } -ArgumentList "$projectRoot\.venv\Scripts\pip-audit.exe"
     $pipResult = $pipJob | Wait-Job -Timeout 30
     if ($pipResult -eq $null) {
         $pipJob | Stop-Job -PassThru | Remove-Job
@@ -134,7 +134,7 @@ if (-not $SkipSecurity) {
 }
 
 if (-not $SkipSecurity) {
-    Run-Command "$projectRoot\venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)" -AllowFailure
+    Run-Command "$projectRoot\.venv\Scripts\bandit.exe -r shell --exclude shell/.venv -ll" "Security Code Scanning (Bandit)" -AllowFailure
 }
 
 # Coverage — run unit tests with coverage

@@ -49,13 +49,16 @@ class TestEdgeLinkExecutionEndpoints:
         }
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
-                "/api/v1/edge-links", json=payload, headers=headers,
+                "/api/v1/edge-links",
+                json=payload,
+                headers=headers,
             )
         assert create_resp.status_code == 201
         link_id = create_resp.json()["id"]
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             delete_resp = await client.delete(
-                f"/api/v1/edge-links/{link_id}", headers=headers,
+                f"/api/v1/edge-links/{link_id}",
+                headers=headers,
             )
         assert delete_resp.status_code == 204

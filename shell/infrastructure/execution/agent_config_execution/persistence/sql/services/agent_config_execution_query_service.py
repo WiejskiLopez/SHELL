@@ -19,9 +19,7 @@ class AgentConfigExecutionQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def get_by_id(
-        self, agent_config_execution_id: str
-    ) -> AgentConfigExecutionDto | None:
+    async def get_by_id(self, agent_config_execution_id: str) -> AgentConfigExecutionDto | None:
         async with self._session_factory() as session:
             stmt = select(AgentConfigExecutionModel).where(
                 AgentConfigExecutionModel.id == agent_config_execution_id

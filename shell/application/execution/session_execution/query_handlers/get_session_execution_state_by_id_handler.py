@@ -18,5 +18,7 @@ class GetSessionExecutionStateByIdHandler:
     def __init__(self, queries: SessionExecutionStateQueryService) -> None:
         self._queries = queries
 
-    async def handle(self, query: GetSessionExecutionStateByIdQuery) -> SessionExecutionStateDto | None:
+    async def handle(
+        self, query: GetSessionExecutionStateByIdQuery
+    ) -> SessionExecutionStateDto | None:
         return await self._queries.get_by_id(query.session_execution_state_id)

@@ -33,6 +33,7 @@ include = ["shell*"]
 dev = [
     "pytest>=9.1.1",
     "ruff>=0.15.20",
+    "mypy>=1.15",
 ]
 
 [tool.ruff]
@@ -78,6 +79,8 @@ module = [
     "shell.infrastructure.*",
     "shell.framework.*",
     "shell.bootstrap.*",
+    "shell.platform.bootstrap.*",
+    "shell.platform.framework.*",
     "shell.tests.*",
     "shell.tests.shared.*",
     "shell.config.*",

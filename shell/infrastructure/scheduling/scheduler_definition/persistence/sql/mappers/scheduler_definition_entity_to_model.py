@@ -22,13 +22,19 @@ def scheduler_definition_entity_to_model(
         description=entity.description.value if entity.description else None,
         source_context=entity.trigger_config.source_context,
         trigger_event_type=entity.trigger_config.trigger_event_type,
-        trigger_filter=json.loads(entity.trigger_config.trigger_filter.value) if entity.trigger_config.trigger_filter else None,
+        trigger_filter=json.loads(entity.trigger_config.trigger_filter.value)
+        if entity.trigger_config.trigger_filter
+        else None,
         action_type=entity.action_config.action_type,
         action_config={
             "graph_definition_id": entity.action_config.graph_definition_id,
-            "input_mapping": json.loads(entity.action_config.input_mapping.value) if entity.action_config.input_mapping else None,
+            "input_mapping": json.loads(entity.action_config.input_mapping.value)
+            if entity.action_config.input_mapping
+            else None,
             "emit_event_type": entity.action_config.emit_event_type,
-            "emit_event_payload": json.loads(entity.action_config.emit_event_payload.value) if entity.action_config.emit_event_payload else None,
+            "emit_event_payload": json.loads(entity.action_config.emit_event_payload.value)
+            if entity.action_config.emit_event_payload
+            else None,
         },
         execution_policy={
             "max_concurrent": entity.execution_policy.max_concurrent,
@@ -40,4 +46,3 @@ def scheduler_definition_entity_to_model(
         created_at=entity.created_at.value,
         updated_at=entity.updated_at.value,
     )
-

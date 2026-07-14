@@ -15,8 +15,9 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
     UserExecutionId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
-
-from ._ensure_utc import _ensure_utc
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.session_execution.persistence.sql.models.session_execution import (
@@ -33,4 +34,3 @@ def session_execution_model_to_entity(model: SessionExecutionModel) -> SessionEx
         session_id=SessionIdRef(model.session_id) if model.session_id else None,
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
-

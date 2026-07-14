@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 
 
 class GraphExecutionStateRepository(Protocol):
-    async def get_by_id(
-        self, id: GraphExecutionStateId
-    ) -> GraphExecutionState | None: ...
+    async def get_by_id(self, id: GraphExecutionStateId) -> GraphExecutionState | None: ...
 
     async def get_current_by_graph_execution_id_and_direction(
         self, graph_execution_id: GraphExecutionId, direction: StateDirection

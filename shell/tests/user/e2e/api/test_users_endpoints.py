@@ -19,7 +19,9 @@ class TestUserEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
-                "/api/v1/users/", json={"email": "test@example.com"}, headers=headers,
+                "/api/v1/users/",
+                json={"email": "test@example.com"},
+                headers=headers,
             )
         assert resp.status_code == 201
         data = resp.json()
@@ -37,7 +39,9 @@ class TestUserEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
-                "/api/v1/users/", json={"email": "found@example.com"}, headers=headers,
+                "/api/v1/users/",
+                json={"email": "found@example.com"},
+                headers=headers,
             )
         assert create_resp.status_code == 201
         user_id = create_resp.json()["id"]
@@ -53,7 +57,9 @@ class TestUserEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
-                "/api/v1/users/", json={"email": "delete_me@example.com"}, headers=headers,
+                "/api/v1/users/",
+                json={"email": "delete_me@example.com"},
+                headers=headers,
             )
         assert create_resp.status_code == 201
         user_id = create_resp.json()["id"]
@@ -66,7 +72,9 @@ class TestUserEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
-                "/api/v1/users/", json={"email": "update_me@example.com"}, headers=headers,
+                "/api/v1/users/",
+                json={"email": "update_me@example.com"},
+                headers=headers,
             )
         assert create_resp.status_code == 201
         user_id = create_resp.json()["id"]

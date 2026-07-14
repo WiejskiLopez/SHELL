@@ -194,8 +194,7 @@ def test_domain_does_not_import_datetime() -> None:
             violations.append(str(path.relative_to(BASE)))
     assert not violations, (
         "Domain layer must not import datetime. "
-        "Use CreatedAt/UpdatedAt/DeletedAt value objects instead.\n"
-        + "\n".join(violations)
+        "Use CreatedAt/UpdatedAt/DeletedAt value objects instead.\n" + "\n".join(violations)
     )
 
 

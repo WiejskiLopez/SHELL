@@ -21,8 +21,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-from ._ensure_utc import _ensure_utc
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
@@ -56,4 +57,3 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
             else None
         ),
     )
-

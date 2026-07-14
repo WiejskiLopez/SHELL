@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.schema_version import SchemaVersion
@@ -39,7 +39,7 @@ class DomainEventSerializer:
         payload: dict[str, object],
         schema_version: int = 1,
     ) -> DomainEvent:
-        kwargs: dict[str, object] = {
+        kwargs: dict[str, Any] = {
             "occurred_at": CreatedAt.from_datetime(occurred_at),
             "schema_version": SchemaVersion(schema_version),
         }

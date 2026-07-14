@@ -23,5 +23,3 @@ class SchedulerDefinitionDto:
     enabled: bool = True
     created_at: datetime | None = None
     updated_at: datetime | None = None
-
-

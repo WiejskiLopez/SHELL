@@ -18,4 +18,3 @@ def user_execution_entity_to_model(entity: UserExecution) -> UserExecutionModel:
         user_id=entity.user_id.value if entity.user_id else None,
         created_at=entity.created_at.value if entity.created_at else None,
     )
-

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any  # Dodano import Any
+from typing import TYPE_CHECKING
 
 from shell.application.execution.edge_execution.commands.create_edge_execution_command import (
     CreateEdgeExecutionCommand,
@@ -30,16 +30,14 @@ from shell.application.user.user.commands.delete_user_command import DeleteUserC
 from shell.application.user.user.commands.update_user_command import UpdateUserCommand
 
 if TYPE_CHECKING:
-    from shell.platform.bootstrap.container.core_container import CoreContainer
+    from shell.platform.bootstrap.container.core_container import Container
 
 
-def register_commands(core_container: CoreContainer) -> None:
+def register_commands(container: Container) -> None:
     """Rejestruje wszystkie Command Handlers na CommandBus kontenera."""
 
-    app_ctx: Any = core_container.app
-
-    cmd_bus = app_ctx.buses.command_bus()
-    commands = app_ctx.commands
+    cmd_bus = container.app.buses.command_bus
+    commands = container.app.commands
 
     cmd_bus.register(
         CreateNodeExecutionCommand,

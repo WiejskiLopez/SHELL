@@ -202,6 +202,5 @@ def test_framework_routers_use_api_models_not_app_dtos() -> None:
                     violations.append(f"{rel}: runtime import of {mod!r}")
     assert not violations, (
         "Framework router.py files must not import application DTOs at runtime.\n"
-        "Use API models from the framework layer instead (Pattern A).\n"
-        + "\n".join(violations)
+        "Use API models from the framework layer instead (Pattern A).\n" + "\n".join(violations)
     )

@@ -39,7 +39,9 @@ class TestEdgeExecutionEndpoints:
         payload = {"target_node_execution_id": "node-2"}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.put(
-                "/api/v1/edge-executions/nonexistent", json=payload, headers=headers,
+                "/api/v1/edge-executions/nonexistent",
+                json=payload,
+                headers=headers,
             )
         assert resp.status_code == 404
 
@@ -51,7 +53,8 @@ class TestEdgeExecutionEndpoints:
         assert resp.status_code == 404
 
     async def test_create_update_delete_edge_execution_flow(
-        self, tmp_path: pathlib.Path,
+        self,
+        tmp_path: pathlib.Path,
     ) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
@@ -61,7 +64,9 @@ class TestEdgeExecutionEndpoints:
         }
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
-                "/api/v1/edge-executions", json=payload, headers=headers,
+                "/api/v1/edge-executions",
+                json=payload,
+                headers=headers,
             )
         assert create_resp.status_code == 201
         edge_id = create_resp.json()["id"]
@@ -69,12 +74,15 @@ class TestEdgeExecutionEndpoints:
         update_payload = {"target_node_execution_id": "node-20"}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             update_resp = await client.put(
-                f"/api/v1/edge-executions/{edge_id}", json=update_payload, headers=headers,
+                f"/api/v1/edge-executions/{edge_id}",
+                json=update_payload,
+                headers=headers,
             )
         assert update_resp.status_code == 200
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             delete_resp = await client.delete(
-                f"/api/v1/edge-executions/{edge_id}", headers=headers,
+                f"/api/v1/edge-executions/{edge_id}",
+                headers=headers,
             )
         assert delete_resp.status_code == 204

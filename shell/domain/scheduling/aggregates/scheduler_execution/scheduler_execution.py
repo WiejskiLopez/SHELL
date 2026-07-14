@@ -222,9 +222,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             )
         )
 
-    def complete(
-        self, output_state: StateData | None = None, now: Timestamp | None = None
-    ) -> None:
+    def complete(self, output_state: StateData | None = None, now: Timestamp | None = None) -> None:
         if self._status != ExecutionStatus.EXECUTING:
             raise ValueError(f"Cannot complete execution in status {self._status!r}")
         if now is None:

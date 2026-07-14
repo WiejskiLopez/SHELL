@@ -25,8 +25,9 @@ from shell.domain.execution.aggregates.workflow.value_objects.node_execution_res
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.value_objects.created_at import CreatedAt
-
-from ._ensure_utc import _ensure_utc
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.node_execution.persistence.sql.models import (
@@ -47,4 +48,3 @@ def node_execution_result_model_to_entity(
         artifact_uri=ArtifactUri(result_model.artifact_uri),
         created_at=CreatedAt.from_datetime(_ensure_utc(result_model.created_at)),
     )
-

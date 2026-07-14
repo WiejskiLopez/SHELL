@@ -114,14 +114,18 @@ class User(AggregateRoot[UserId]):
             raise ValueError("Cannot update a deleted user")
         self._email = email
         self._updated_at = now
-        self.append_event(UserUpdatedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value)))
+        self.append_event(
+            UserUpdatedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value))
+        )
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at is not None:
             raise ValueError("User already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(UserDeletedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value)))
+        self.append_event(
+            UserDeletedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value))
+        )
 
     def enable(self) -> None:
         if self._status != UserStatus.DISABLED:
@@ -132,4 +136,3 @@ class User(AggregateRoot[UserId]):
         if self._status != UserStatus.ACTIVE:
             raise ValueError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED
-

@@ -183,9 +183,11 @@ def test_domain_events_are_frozen_dataclass() -> None:
 
 # ── 6a. Domain Event fields carry only IDs (not aggregate properties) ─
 
-_EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset({
-    "occurred_at",
-})
+_EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset(
+    {
+        "occurred_at",
+    }
+)
 
 _KNOWN_EVENT_FIELD_VIOLATIONS: frozenset[str] = frozenset({})
 
@@ -214,8 +216,7 @@ def test_domain_event_fields_are_ids_only() -> None:
                     violations.append(key)
     assert not violations, (
         "DomainEvent fields must be IDs only (suffix `_id`) or in ALLOWLIST "
-        "(occurred_at):\n"
-        + "\n".join(violations)
+        "(occurred_at):\n" + "\n".join(violations)
     )
 
 
@@ -718,10 +719,7 @@ def _in_type_checking_block(node: ast.AST) -> bool:
     return False
 
 
-_KNOWN_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset(
-    {
-    }
-)
+_KNOWN_FIELD_PRIMITIVE_VIOLATIONS: frozenset[str] = frozenset({})
 
 
 def test_entity_aggregate_fields_have_domain_types() -> None:

@@ -15,4 +15,3 @@ def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitio
         id=model.id,
         node_definitions=[],
     )
-

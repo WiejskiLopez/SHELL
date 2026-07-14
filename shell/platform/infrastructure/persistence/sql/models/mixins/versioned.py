@@ -4,12 +4,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class VersionedMixin:
-    """Dodaje kolumnę ``version`` z auto-inkrementacją przez ``version_id_col``.
+    """Adds a ``version`` column with auto-increment via ``version_id_col``.
 
-    Każda klasa modelu która dziedziczy ten mixin MUSI ustawić
-    ``__mapper_args__`` z referencją do w pełni skonfigurowanej kolumny
-    (przez ``@declared_attr``) — SQLAlchemy nie dziedziczy
-    ``__mapper_args__`` po mixinach.
+    Every model class inheriting this mixin MUST set ``__mapper_args__``
+    with a reference to the fully configured column (via ``@declared_attr``).
+    SQLAlchemy does not inherit ``__mapper_args__`` from mixins.
     """
 
     version: Mapped[int] = mapped_column(

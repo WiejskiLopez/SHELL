@@ -14,10 +14,10 @@ Response headers:
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    from starlette.types import ASGIApp, Receive, Scope, Send
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
     from shell.platform.framework.api.version import ApiVersionRegistry
 
@@ -37,7 +37,7 @@ class ApiVersionMiddleware:
         version = self._resolve_version(scope)
         scope.setdefault("state", {})["api_version"] = version
 
-        async def send_wrapper(message: dict) -> None:
+        async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
                 headers.append((b"X-API-Version", version.encode()))
@@ -45,13 +45,9 @@ class ApiVersionMiddleware:
                 info = self._registry.get_info(version)
                 if info is not None:
                     if info.status == "deprecated" and info.deprecation_date:
-                        headers.append(
-                            (b"Deprecation", info.deprecation_date.isoformat().encode())
-                        )
+                        headers.append((b"Deprecation", info.deprecation_date.isoformat().encode()))
                     if info.status == "sunset" and info.sunset_date:
-                        headers.append(
-                            (b"Sunset", info.sunset_date.isoformat().encode())
-                        )
+                        headers.append((b"Sunset", info.sunset_date.isoformat().encode()))
 
                 message["headers"] = headers
             await send(message)
@@ -66,7 +62,7 @@ class ApiVersionMiddleware:
             if self._registry.get_info(candidate) is not None:
                 return candidate
 
-        headers = dict(scope.get("headers", []))
+        headers = dict(cast("list[tuple[bytes, bytes]]", scope.get("headers", [])))
         header_version = headers.get(b"x-api-version", b"").decode()
         if header_version and self._registry.get_info(header_version) is not None:
             return header_version

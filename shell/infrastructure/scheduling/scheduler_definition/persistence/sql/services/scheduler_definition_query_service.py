@@ -26,9 +26,7 @@ class SchedulerDefinitionQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def get_by_id(
-        self, scheduler_definition_id: str
-    ) -> SchedulerDefinitionDto | None:
+    async def get_by_id(self, scheduler_definition_id: str) -> SchedulerDefinitionDto | None:
         async with self._session_factory() as session:
             stmt = select(SchedulerDefinitionModel).where(
                 SchedulerDefinitionModel.id == scheduler_definition_id
@@ -37,32 +35,38 @@ class SchedulerDefinitionQueryService:
             model = res.scalar_one_or_none()
             if not model:
                 return None
-            action_config = ActionConfigDto(
-                graph_definition_id=model.action_config.get("graph_definition_id"),
-                input_mapping=(
-                    json.dumps(model.action_config["input_mapping"])
-                    if model.action_config.get("input_mapping")
-                    else None
-                ),
-                emit_event_type=model.action_config.get("emit_event_type"),
-                emit_event_payload=(
-                    json.dumps(model.action_config["emit_event_payload"])
-                    if model.action_config.get("emit_event_payload")
-                    else None
-                ),
-            ) if model.action_config else None
-            execution_policy = ExecutionPolicyDto(
-                **(model.execution_policy or {}),
-            ) if model.execution_policy else None
+            action_config = (
+                ActionConfigDto(
+                    graph_definition_id=model.action_config.get("graph_definition_id"),
+                    input_mapping=(
+                        json.dumps(model.action_config["input_mapping"])
+                        if model.action_config.get("input_mapping")
+                        else None
+                    ),
+                    emit_event_type=model.action_config.get("emit_event_type"),
+                    emit_event_payload=(
+                        json.dumps(model.action_config["emit_event_payload"])
+                        if model.action_config.get("emit_event_payload")
+                        else None
+                    ),
+                )
+                if model.action_config
+                else None
+            )
+            execution_policy = (
+                ExecutionPolicyDto(
+                    **(model.execution_policy or {}),
+                )
+                if model.execution_policy
+                else None
+            )
             return SchedulerDefinitionDto(
                 id=model.id,
                 name=model.name,
                 description=model.description,
                 source_context=model.source_context,
                 trigger_event_type=model.trigger_event_type,
-                trigger_filter=(
-                    json.dumps(model.trigger_filter) if model.trigger_filter else None
-                ),
+                trigger_filter=(json.dumps(model.trigger_filter) if model.trigger_filter else None),
                 action_type=model.action_type,
                 action_config=action_config,
                 execution_policy=execution_policy,

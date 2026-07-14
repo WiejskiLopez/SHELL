@@ -1,4 +1,4 @@
-"""UserCoreContainer — minimalny kontener DI dla samodzielnego mikroserwisu User BC."""
+"""UserCoreContainer — minimal DI container for the standalone User BC microservice."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class UserCoreContainer(containers.DeclarativeContainer):
-    """Minimalny kontener dla BC User — używany przy starcie mikroserwisu user."""
+    """Minimal container for BC User — used when starting the user microservice."""
 
     config = providers.Configuration()
 
@@ -30,12 +30,12 @@ class UserCoreContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
 
-    # Narzędzia wspólne
+    # Shared tools
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.user")
 
-    # Szyny aplikacyjne
+    # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
 

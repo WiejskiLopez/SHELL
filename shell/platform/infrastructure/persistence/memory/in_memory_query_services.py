@@ -56,9 +56,6 @@ class InMemoryQueryServices:
             node_executions = [
                 NodeExecutionDto(
                     id=node_execution.id.value,
-                    position=node_execution.position.value,
-                    mode=node_execution.mode.value,
-                    role=node_execution.role,
                     node_type=node_execution.node_type.value,
                     model=None,
                     command=None,

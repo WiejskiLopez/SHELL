@@ -1,4 +1,4 @@
-"""Kontener obsługujący wyłącznie operacje odczytu (Query Handlers)."""
+"""Container handling read operations only (Query Handlers)."""
 
 from __future__ import annotations
 
@@ -118,7 +118,7 @@ if TYPE_CHECKING:
 
 
 class QueryContainer(containers.DeclarativeContainer):
-    """Kontener obsługujący wyłącznie operacje odczytu (Query Handlers)."""
+    """Container handling read operations only (Query Handlers)."""
 
     infra = providers.DependenciesContainer()
 

@@ -1,4 +1,4 @@
-"""Kontener aplikacyjny — orkiestruje szyny, komendy, zapytania i eventy."""
+"""Application container — orchestrates buses, commands, queries and events."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ from .query_container import QueryContainer
 
 
 class ApplicationContainer(containers.DeclarativeContainer):
-    """Główny kontener aplikacyjny — składa szyny, komendy, zapytania i eventy."""
+    """Main application container — composes buses, commands, queries and events."""
 
     config = providers.Configuration()
     infra = providers.DependenciesContainer()

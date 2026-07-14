@@ -19,9 +19,7 @@ class EdgeExecutionQueryService:
 
     async def get_by_id(self, edge_execution_id: str) -> EdgeExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(EdgeExecutionModel).where(
-                EdgeExecutionModel.id == edge_execution_id
-            )
+            stmt = select(EdgeExecutionModel).where(EdgeExecutionModel.id == edge_execution_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:

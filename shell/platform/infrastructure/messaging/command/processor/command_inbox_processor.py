@@ -59,7 +59,7 @@ class CommandInboxProcessor:
                 )
                 if command is not None:
                     corr_token = correlation_id_var.set(row.correlation_id)
-                    caus_token = causation_id_var.set("")
+                    caus_token = causation_id_var.set(row.causation_id)
                     try:
                         await self._command_bus.dispatch(command)
                     finally:

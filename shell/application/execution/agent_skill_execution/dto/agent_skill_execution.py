@@ -12,4 +12,3 @@ class AgentSkillExecutionDto:
     agent_execution_id: str
     skill_data: JsonStr
     created_at: datetime | None = None
-
