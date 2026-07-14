@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
@@ -22,7 +22,7 @@ class EventDeserializer:
         self,
         event_type: str,
         occurred_at: datetime,
-        payload: dict[str, Any],
+        payload: dict[str, object],
         schema_version: int = 1,
     ) -> DomainEvent | None:
         event_cls = self._registry.get(event_type)

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
-from typing import Any
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
@@ -29,5 +28,5 @@ class NodeExecutionModel(Base, VersionedMixin):
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
 
     @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, object]:
         return {"version_id_col": cls.version}

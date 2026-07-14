@@ -11,6 +11,9 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+        NodeExecutionStatus,
+    )
     from shell.domain.execution.aggregates.workflow.value_objects.artifact_uri import ArtifactUri
     from shell.domain.execution.aggregates.workflow.value_objects.execution_stderr import (
         ExecutionStderr,
@@ -20,7 +23,6 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.status import Status
 
 
 class NodeExecutionResult(Entity[NodeExecutionResultId]):
@@ -39,7 +41,7 @@ class NodeExecutionResult(Entity[NodeExecutionResultId]):
         id: NodeExecutionResultId,
         node_execution_id: NodeExecutionId,
         workflow_id: WorkflowId,
-        status: Status,
+        status: NodeExecutionStatus,
         created_at: CreatedAt,
         stdout: ExecutionStdout | None = None,
         stderr: ExecutionStderr | None = None,
@@ -63,7 +65,7 @@ class NodeExecutionResult(Entity[NodeExecutionResultId]):
         return self._workflow_id
 
     @property
-    def status(self) -> Status:
+    def status(self) -> NodeExecutionStatus:
         return self._status
 
     @property
@@ -89,7 +91,7 @@ class NodeExecutionResult(Entity[NodeExecutionResultId]):
         id_: NodeExecutionResultId,
         node_execution_id: NodeExecutionId,
         workflow_id: WorkflowId,
-        status: Status,
+        status: NodeExecutionStatus,
         stdout: ExecutionStdout | None = None,
         stderr: ExecutionStderr | None = None,
         artifact_uri: ArtifactUri | None = None,

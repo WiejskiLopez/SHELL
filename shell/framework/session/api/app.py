@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI
 
@@ -11,8 +11,11 @@ from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import domain_error_handler
 
+if TYPE_CHECKING:
+    from shell.platform.bootstrap.container.core_container import CoreContainer
 
-def create_session_app(core_container: Any) -> FastAPI:
+
+def create_session_app(core_container: CoreContainer) -> FastAPI:
     """Tworzy aplikację FastAPI dla BC Session."""
     app = FastAPI(title="shell — session", version="0.1.0")
     app.state.core_container = core_container

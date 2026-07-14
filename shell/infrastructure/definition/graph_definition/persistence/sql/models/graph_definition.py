@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models.base import Base
@@ -14,5 +12,5 @@ class GraphDefinitionModel(Base, VersionedMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
 
     @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, object]:
         return {"version_id_col": cls.version}

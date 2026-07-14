@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 -- SQLAlchemy model uses datetime for column definition
-from typing import Any
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
@@ -26,5 +25,5 @@ class EdgeExecutionModel(Base, VersionedMixin):
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, object]:
         return {"version_id_col": cls.version}

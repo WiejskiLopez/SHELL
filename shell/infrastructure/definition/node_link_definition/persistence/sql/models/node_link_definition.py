@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — SQLAlchemy Mapped[datetime] needs runtime type
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
@@ -33,7 +33,7 @@ class NodeLinkDefinitionModel(Base, VersionedMixin):
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, object]:
         return {"version_id_col": cls.version}
 
     graph_definition_model: Mapped[GraphDefinitionModel] = relationship(

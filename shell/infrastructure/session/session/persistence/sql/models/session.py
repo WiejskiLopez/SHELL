@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
-from typing import Any
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
@@ -22,7 +21,7 @@ class SessionModel(Base, VersionedMixin):
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
-    def __mapper_args__(cls) -> dict[str, Any]:
+    def __mapper_args__(cls) -> dict[str, object]:
         return {"version_id_col": cls.version}
 
 

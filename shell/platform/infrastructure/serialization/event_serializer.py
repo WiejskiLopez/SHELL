@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.schema_version import SchemaVersion
@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class DomainEventSerializer:
-    def to_payload(self, event: DomainEvent) -> dict[str, Any]:
-        payload: dict[str, Any] = {}
+    def to_payload(self, event: DomainEvent) -> dict[str, object]:
+        payload: dict[str, object] = {}
         for f in dataclasses.fields(event):
             if f.name in ("occurred_at", "schema_version"):
                 continue
@@ -24,7 +24,7 @@ class DomainEventSerializer:
             payload[f.name] = self._serialize_value(raw)
         return payload
 
-    def to_outbox_payload(self, event: DomainEvent) -> dict[str, Any]:
+    def to_outbox_payload(self, event: DomainEvent) -> dict[str, object]:
         return {
             "id": None,
             "event_type": type(event).__name__,
@@ -36,10 +36,10 @@ class DomainEventSerializer:
         self,
         event_cls: type[DomainEvent],
         occurred_at: datetime,
-        payload: dict[str, Any],
+        payload: dict[str, object],
         schema_version: int = 1,
     ) -> DomainEvent:
-        kwargs: dict[str, Any] = {
+        kwargs: dict[str, object] = {
             "occurred_at": CreatedAt.from_datetime(occurred_at),
             "schema_version": SchemaVersion(schema_version),
         }

@@ -4,61 +4,64 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import jwt
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
 
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.framework.api.models.problem_detail import ProblemDetail
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from starlette.requests import Request
-    from starlette.responses import Response
+    from starlette.types import ASGIApp, Receive, Scope, Send
 
 PUBLIC_EXACT = frozenset({"/health", "/api"})
 PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
-class AuthMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Callable[..., object], api_key: str = "", jwt_secret: str = "") -> None:
-        super().__init__(app)  # type: ignore[arg-type]
+class AuthMiddleware:
+    def __init__(self, app: ASGIApp, api_key: str = "", jwt_secret: str = "") -> None:
+        self.app = app
         self._api_key = api_key
         self._jwt_secret = jwt_secret
 
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-        if self._is_public_path(request.url.path):
-            return await call_next(request)
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        user_id = await self._resolve_user(request)
+        path = scope.get("path", "")
+        if self._is_public_path(path):
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers", []))
+        user_id = await self._resolve_user(headers)
         if user_id is None:
             problem = ProblemDetail(
                 title="Unauthorized",
                 status=401,
                 detail="Missing or invalid authentication",
-                instance=str(request.url.path),
+                instance=path,
                 correlation_id=get_correlation_id(),
                 timestamp=datetime.now(UTC).isoformat(),
             )
-            return JSONResponse(status_code=401, content=problem.model_dump(mode="json"))
+            response = JSONResponse(status_code=401, content=problem.model_dump(mode="json"))
+            await response(scope, receive, send)
+            return
 
-        request.state.current_user_id = user_id
-        return await call_next(request)
+        scope.setdefault("state", {})["current_user_id"] = user_id
+        await self.app(scope, receive, send)
 
     def _is_public_path(self, path: str) -> bool:
         if path in PUBLIC_EXACT:
             return True
         return any(path.startswith(prefix) for prefix in PUBLIC_PREFIX)
 
-    async def _resolve_user(self, request: Request) -> str | None:
-        auth = request.headers.get("Authorization", "")
+    async def _resolve_user(self, headers: dict[bytes, bytes]) -> str | None:
+        auth = headers.get(b"authorization", b"").decode()
         if auth.startswith("Bearer "):
             token = auth[7:]
             return await self._validate_jwt(token)
 
-        api_key = request.headers.get("X-API-Key", "")
+        api_key = headers.get(b"x-api-key", b"").decode()
         if api_key and api_key == self._api_key:
             return "system"
 

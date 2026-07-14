@@ -7,6 +7,9 @@ from typing import TYPE_CHECKING
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+    NodeExecutionStatus,
+)
 from shell.domain.execution.aggregates.workflow.entities.node_execution_result import (
     NodeExecutionResult,
 )
@@ -22,7 +25,6 @@ from shell.domain.execution.aggregates.workflow.value_objects.node_execution_res
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.status import Status
 
 from ._ensure_utc import _ensure_utc
 
@@ -39,7 +41,7 @@ def node_execution_result_model_to_entity(
         id=NodeExecutionResultId(result_model.id),
         node_execution_id=NodeExecutionId(result_model.node_execution_id),
         workflow_id=WorkflowId(result_model.workflow_id),
-        status=Status(result_model.status),
+        status=NodeExecutionStatus(result_model.status),
         stdout=ExecutionStdout(result_model.stdout),
         stderr=ExecutionStderr(result_model.stderr),
         artifact_uri=ArtifactUri(result_model.artifact_uri),

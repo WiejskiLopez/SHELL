@@ -7,7 +7,7 @@ zwracając słownik {DomainPort -> SqlAdapter} dla własnych agregatów.
 from __future__ import annotations
 
 import uuid
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from sqlalchemy.orm.exc import StaleDataError
 
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
+    from shell.platform.domain.base.aggregate_root import AggregateRoot
     from shell.platform.domain.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
@@ -81,8 +82,8 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     def stage_messages(self, messages: list[MessageRouter]) -> None:
         self._staged_messages.extend(messages)
 
-    async def save(self, repo_type: type, aggregate: Any) -> None:
-        repo: Any = self.repository(repo_type)
+    async def save(self, repo_type: type, aggregate: AggregateRoot) -> None:
+        repo = self.repository(repo_type)
         await repo.save(aggregate)
         self.stage_events(aggregate.pull_events())
 

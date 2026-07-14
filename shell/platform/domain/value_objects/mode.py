@@ -1,7 +1,8 @@
 """Mode — execution mode of a node.
 
-.. deprecated::
-   Use NodeRole from shell.domain.execution.aggregates.node_execution.value_objects.node_role for new code.
+Mode and NodeRole are different concepts with different semantics.
+Mode represents the execution mode (agent, router, tasker, etc.)
+while NodeRole represents the role in a workflow graph.
 """
 
 from __future__ import annotations

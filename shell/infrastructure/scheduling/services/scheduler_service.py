@@ -1,15 +1,19 @@
-"""APScheduler-based cyclic job runner.
+"""APScheduler-based cyclic job runner (future: mozna zastapic asyncio.Task).
 
 Replaces the old MessagingWorker loop.
 Jobs are defined by SchedulerExecution rows in the DB.
 On start, loads all enabled SchedulerExecution rows and registers
 them as APScheduler interval jobs.
+
+Future consideration: jesli funkcjonalnosc scheduler_a nie wzrosnie
+(outbox relay + inbox processor), mozna zastapic apscheduler prostym
+``asyncio.Task`` + ``asyncio.sleep(interval)`` i usunac zaleznosc.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler  # type: ignore[import-untyped]
 from apscheduler.triggers.interval import IntervalTrigger  # type: ignore[import-untyped]
@@ -19,7 +23,7 @@ from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.reposit
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Coroutine
+    from collections.abc import Awaitable, Callable
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -135,7 +139,7 @@ def _build_job_fn(
     job_type: str,
     outbox_relay: OutboxToInboxRelay,
     inbox_processor: InboxProcessor,
-) -> Callable[[], Coroutine[Any, Any, None]]:
+) -> Callable[[], Awaitable[None]]:
     if job_type == "messaging":
 
         async def _run() -> None:

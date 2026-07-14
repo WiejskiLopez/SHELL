@@ -16,50 +16,58 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING
 
-from starlette.middleware.base import BaseHTTPMiddleware
-
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from starlette.requests import Request
-    from starlette.responses import Response
+    from starlette.types import ASGIApp, Receive, Scope, Send
 
     from shell.platform.framework.api.version import ApiVersionRegistry
 
 API_PATH_PATTERN = re.compile(r"^/api/([^/]+)")
 
 
-class ApiVersionMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: Callable[..., object], registry: ApiVersionRegistry) -> None:
-        super().__init__(app)  # type: ignore[arg-type]
+class ApiVersionMiddleware:
+    def __init__(self, app: ASGIApp, registry: ApiVersionRegistry) -> None:
+        self.app = app
         self._registry = registry
 
-    async def dispatch(
-        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
-    ) -> Response:
-        version = self._resolve_version(request)
-        request.state.api_version = version
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-        response: Response = await call_next(request)
-        response.headers["X-API-Version"] = version
+        version = self._resolve_version(scope)
+        scope.setdefault("state", {})["api_version"] = version
 
-        info = self._registry.get_info(version)
-        if info is not None:
-            if info.status == "deprecated" and info.deprecation_date:
-                response.headers["Deprecation"] = info.deprecation_date.isoformat()
-            if info.status == "sunset" and info.sunset_date:
-                response.headers["Sunset"] = info.sunset_date.isoformat()
+        async def send_wrapper(message: dict) -> None:
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"X-API-Version", version.encode()))
 
-        return response
+                info = self._registry.get_info(version)
+                if info is not None:
+                    if info.status == "deprecated" and info.deprecation_date:
+                        headers.append(
+                            (b"Deprecation", info.deprecation_date.isoformat().encode())
+                        )
+                    if info.status == "sunset" and info.sunset_date:
+                        headers.append(
+                            (b"Sunset", info.sunset_date.isoformat().encode())
+                        )
 
-    def _resolve_version(self, request: Request) -> str:
-        match = API_PATH_PATTERN.match(request.url.path)
+                message["headers"] = headers
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+    def _resolve_version(self, scope: Scope) -> str:
+        path = scope.get("path", "")
+        match = API_PATH_PATTERN.match(path)
         if match:
             candidate = match.group(1)
             if self._registry.get_info(candidate) is not None:
                 return candidate
 
-        header_version = request.headers.get("X-API-Version")
+        headers = dict(scope.get("headers", []))
+        header_version = headers.get(b"x-api-version", b"").decode()
         if header_version and self._registry.get_info(header_version) is not None:
             return header_version
 

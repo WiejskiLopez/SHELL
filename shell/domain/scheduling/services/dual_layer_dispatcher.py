@@ -2,21 +2,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
 class Inbox(Protocol):
-    async def get_communication_events(self, limit: int = 10) -> list[dict[str, Any]]: ...
-    async def get_decision_events(self, limit: int = 10) -> list[dict[str, Any]]: ...
+    async def get_communication_events(self, limit: int = 10) -> list[dict[str, object]]: ...
+    async def get_decision_events(self, limit: int = 10) -> list[dict[str, object]]: ...
     async def mark_processed(self, event_id: str) -> None: ...
     async def is_empty(self) -> bool: ...
 
 
 class Outbox(Protocol):
-    async def publish(self, event: dict[str, Any]) -> None: ...
+    async def publish(self, event: dict[str, object]) -> None: ...
 
 
 class DualLayerDispatcher:
@@ -24,7 +24,7 @@ class DualLayerDispatcher:
         self,
         inbox: Inbox,
         outbox: Outbox,
-        handlers: dict[str, Callable[..., Any]],
+        handlers: dict[str, Callable[..., object]],
     ) -> None:
         while True:
             comm_events = await inbox.get_communication_events()
