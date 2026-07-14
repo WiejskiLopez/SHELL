@@ -13,9 +13,10 @@ from shell.domain.execution.aggregates.workflow_state.workflow_state import Work
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
-from ._ensure_utc import _ensure_utc
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.workflow_state.persistence.sql.models.workflow_state import (
@@ -28,7 +29,8 @@ def workflow_state_model_to_entity(model: WorkflowStateModel) -> WorkflowState:
         id=WorkflowStateId(model.id),
         workflow_id=WorkflowId(model.workflow_id),
         direction=StateDirection(model.direction),
-        state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))) if model.state_data else StateData(JsonStr("{}")),
+        state_data=StateData(JsonStr(json.dumps(dict(model.state_data))))
+        if model.state_data
+        else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
-

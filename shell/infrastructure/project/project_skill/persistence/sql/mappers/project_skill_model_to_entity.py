@@ -16,9 +16,10 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
-from ._ensure_utc import _ensure_utc
 
 if TYPE_CHECKING:
     from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
@@ -43,4 +44,3 @@ def project_skill_model_to_entity(model: ProjectSkillModel) -> ProjectSkill:
         if model.deleted_at is not None
         else None,
     )
-

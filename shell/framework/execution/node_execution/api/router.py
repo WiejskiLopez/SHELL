@@ -9,6 +9,9 @@ from fastapi import APIRouter, Depends
 from shell.framework.execution.node_execution.api.controller import (
     NodeExecutionController,
 )
+from shell.framework.execution.node_execution.api.node_execution_result_response import (
+    NodeExecutionResultResponse,  # noqa: TC001 — FastAPI needs it at runtime for response_model
+)
 from shell.platform.framework.api.dependencies import get_query_bus
 
 if TYPE_CHECKING:
@@ -28,7 +31,7 @@ async def get_node_execution_result(
     node_execution_id: str,
     workflow_id: str,
     controller: NodeExecutionController = Depends(get_node_execution_controller),
-) -> dict:
+) -> NodeExecutionResultResponse:
     return await controller.get_node_execution_result(
         node_execution_id=node_execution_id, workflow_id=workflow_id
     )

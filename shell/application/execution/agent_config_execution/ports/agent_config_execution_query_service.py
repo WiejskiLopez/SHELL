@@ -9,6 +9,4 @@ if TYPE_CHECKING:
 
 
 class AgentConfigExecutionQueryService(Protocol):
-    async def get_by_id(
-        self, agent_config_execution_id: str
-    ) -> AgentConfigExecutionDto | None: ...
+    async def get_by_id(self, agent_config_execution_id: str) -> AgentConfigExecutionDto | None: ...

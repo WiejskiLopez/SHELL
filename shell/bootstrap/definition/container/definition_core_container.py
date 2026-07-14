@@ -1,4 +1,4 @@
-"""DefinitionCoreContainer — minimalny kontener DI dla mikroserwisu Definition BC."""
+"""DefinitionCoreContainer — minimal DI container for the Definition BC microservice."""
 
 from __future__ import annotations
 
@@ -19,14 +19,14 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class DefinitionCoreContainer(containers.DeclarativeContainer):
-    """Minimalny kontener dla BC Definition — używany przy starcie mikroserwisu definition."""
+    """Minimal container for BC Definition — used when starting the definition microservice."""
 
     config = providers.Configuration()
 
     # Infrastruktura bazodanowa
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
-    # Narzędzia wspólne
+    # Shared tools
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.definition")
@@ -40,6 +40,6 @@ class DefinitionCoreContainer(containers.DeclarativeContainer):
         RunnerConfigQueryService, session_factory=session_factory
     )
 
-    # Szyny aplikacyjne
+    # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)

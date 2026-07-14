@@ -71,7 +71,11 @@ def _seed_users(session: Session) -> None:
     users_data = [
         {"id": f"{_DEV_ID_PREFIX}-user-alice", "email": "alice@example.com", "status": "active"},
         {"id": f"{_DEV_ID_PREFIX}-user-bob", "email": "bob@example.com", "status": "active"},
-        {"id": f"{_DEV_ID_PREFIX}-user-charlie", "email": "charlie@example.com", "status": "inactive"},
+        {
+            "id": f"{_DEV_ID_PREFIX}-user-charlie",
+            "email": "charlie@example.com",
+            "status": "inactive",
+        },
     ]
 
     for ud in users_data:
@@ -324,7 +328,9 @@ def _seed_graph_definitions(session: Session) -> None:
         ),
     ]
 
-    graphs_data: list[tuple[GraphDefinitionModel, list[NodeDefinitionModel], list[NodeLinkDefinitionModel]]] = [
+    graphs_data: list[
+        tuple[GraphDefinitionModel, list[NodeDefinitionModel], list[NodeLinkDefinitionModel]]
+    ] = [
         (g1, g1_nodes, g1_links),
         (g2, g2_nodes, g2_links),
         (g3, g3_nodes, g3_links),
@@ -379,7 +385,11 @@ def _seed_task_executions(session: Session) -> None:
                 workflow_id=None,
                 created_at=_NOW,
             ),
-            "input": {"description": "# Simple Analysis\nAnalyze the codebase.", "repo_url": "https://github.com/example/repo", "branch": "main"},
+            "input": {
+                "description": "# Simple Analysis\nAnalyze the codebase.",
+                "repo_url": "https://github.com/example/repo",
+                "branch": "main",
+            },
             "output": {"result": "success", "issues_found": 3},
         },
         {
@@ -672,18 +682,48 @@ def _seed_workflow_scenario(session: Session) -> None:
             # ── Node Executions ──────────────────────────────────────────────
             if wd["graph_def_id"] == f"{_DEV_ID_PREFIX}-graph-simple-agent":
                 node_defs = [
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-agent-1", "mode": "agent", "role": "agent", "node_type": "agent"},
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-agent-1",
+                        "mode": "agent",
+                        "role": "agent",
+                        "node_type": "agent",
+                    },
                 ]
             elif wd["graph_def_id"] == f"{_DEV_ID_PREFIX}-graph-planner-worker":
                 node_defs = [
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-planner-1", "mode": "planner", "role": "planner", "node_type": "planner"},
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-worker-1", "mode": "worker", "role": "worker", "node_type": "worker"},
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-planner-1",
+                        "mode": "planner",
+                        "role": "planner",
+                        "node_type": "planner",
+                    },
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-worker-1",
+                        "mode": "worker",
+                        "role": "worker",
+                        "node_type": "worker",
+                    },
                 ]
             else:
                 node_defs = [
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-tasker-1", "mode": "tasker", "role": "tasker", "node_type": "tasker"},
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-router-1", "mode": "router", "role": "router", "node_type": "router"},
-                    {"id": f"{_DEV_ID_PREFIX}-gnode-agent-2", "mode": "agent", "role": "agent", "node_type": "agent"},
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-tasker-1",
+                        "mode": "tasker",
+                        "role": "tasker",
+                        "node_type": "tasker",
+                    },
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-router-1",
+                        "mode": "router",
+                        "role": "router",
+                        "node_type": "router",
+                    },
+                    {
+                        "id": f"{_DEV_ID_PREFIX}-gnode-agent-2",
+                        "mode": "agent",
+                        "role": "agent",
+                        "node_type": "agent",
+                    },
                 ]
 
             for pos, nd in enumerate(node_defs):
@@ -725,7 +765,11 @@ def _seed_workflow_scenario(session: Session) -> None:
                             id=f"{gne_id}-state-{direction.lower()}",
                             node_execution_id=gne_id,
                             direction=direction,
-                            state_data={"mode": nd["mode"], "position": pos, "step": direction.lower()},
+                            state_data={
+                                "mode": nd["mode"],
+                                "position": pos,
+                                "step": direction.lower(),
+                            },
                             created_at=_NOW,
                         )
                     )
@@ -823,7 +867,11 @@ def _seed_scheduler(session: Session) -> None:
             "trigger_filter": {"event_types": ["*"]},
             "action_type": "relay",
             "action_config": {"batch_size": 100, "max_retries": 3, "target": "outbox_to_inbox"},
-            "execution_policy": {"max_concurrent": 1, "timeout_seconds": 60, "retry_policy": {"max_attempts": 3, "backoff_seconds": 5}},
+            "execution_policy": {
+                "max_concurrent": 1,
+                "timeout_seconds": 60,
+                "retry_policy": {"max_attempts": 3, "backoff_seconds": 5},
+            },
         },
         {
             "id": f"{_DEV_ID_PREFIX}-scheduler-cleanup",
@@ -912,9 +960,24 @@ def _seed_projects(session: Session) -> None:
     )
 
     projects_data: list[dict[str, Any]] = [
-        {"id": f"{_DEV_ID_PREFIX}-project-alpha", "name": "Alpha", "repo_url": "https://github.com/example/alpha", "status": "active"},
-        {"id": f"{_DEV_ID_PREFIX}-project-beta", "name": "Beta", "repo_url": "https://github.com/example/beta", "status": "active"},
-        {"id": f"{_DEV_ID_PREFIX}-project-gamma", "name": "Gamma", "repo_url": None, "status": "archived"},
+        {
+            "id": f"{_DEV_ID_PREFIX}-project-alpha",
+            "name": "Alpha",
+            "repo_url": "https://github.com/example/alpha",
+            "status": "active",
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-project-beta",
+            "name": "Beta",
+            "repo_url": "https://github.com/example/beta",
+            "status": "active",
+        },
+        {
+            "id": f"{_DEV_ID_PREFIX}-project-gamma",
+            "name": "Gamma",
+            "repo_url": None,
+            "status": "archived",
+        },
     ]
 
     for pd in projects_data:
@@ -984,7 +1047,10 @@ def _seed_platform_events(session: Session) -> None:
             id=f"{_DEV_ID_PREFIX}-audit-2",
             event_type="workflow.created",
             occurred_at=_NOW,
-            payload={"workflow_id": f"{_DEV_ID_PREFIX}-workflow-simple", "session_id": f"{_DEV_ID_PREFIX}-session-alice-1"},
+            payload={
+                "workflow_id": f"{_DEV_ID_PREFIX}-workflow-simple",
+                "session_id": f"{_DEV_ID_PREFIX}-session-alice-1",
+            },
         ),
         AuditEventModel(
             id=f"{_DEV_ID_PREFIX}-audit-3",

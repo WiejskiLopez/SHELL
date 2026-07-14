@@ -51,12 +51,14 @@ class SqlGraphExecutionStateRepository(GraphExecutionStateRepository):
         return model_to_entity(row) if row else None
 
     async def save(self, state: GraphExecutionState) -> None:
-        existing_row = (await self._session.execute(
-            select(GraphExecutionStateModel).where(
-                GraphExecutionStateModel.graph_execution_id == state.graph_execution_id.value,
-                GraphExecutionStateModel.direction == state.direction.value,
+        existing_row = (
+            await self._session.execute(
+                select(GraphExecutionStateModel).where(
+                    GraphExecutionStateModel.graph_execution_id == state.graph_execution_id.value,
+                    GraphExecutionStateModel.direction == state.direction.value,
+                )
             )
-        )).scalar_one_or_none()
+        ).scalar_one_or_none()
         if existing_row is not None:
             await self._session.delete(existing_row)
         model = entity_to_model(state)

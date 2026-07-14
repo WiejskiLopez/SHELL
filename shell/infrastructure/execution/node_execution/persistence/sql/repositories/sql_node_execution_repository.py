@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
-    GraphExecutionId,
+        GraphExecutionId,
     )
 
 
@@ -90,7 +90,9 @@ def _node_execution_model_to_entity(
         order=NodeOrder(model.position),
         node_type=NodeType(model.node_type),
         status=NodeExecutionStatus(model.status),
-        created_at=CreatedAt.from_datetime(model.created_at) if model.created_at else CreatedAt.from_datetime(datetime.now(UTC)),
+        created_at=CreatedAt.from_datetime(model.created_at)
+        if model.created_at
+        else CreatedAt.from_datetime(datetime.now(UTC)),
     )
 
 

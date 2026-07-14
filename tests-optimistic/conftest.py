@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.bootstrap.platform.database_config.database_bootstrap import bootstrap_database
-from shell.infrastructure.platform.configuration.shell_config import ShellConfig
-from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
-from shell.infrastructure.platform.persistence.sql import build_session_factory
+from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
+from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker

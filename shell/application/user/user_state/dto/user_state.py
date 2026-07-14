@@ -13,4 +13,3 @@ class UserStateDto:
     direction: str
     state_data: JsonStr
     created_at: datetime | None = None
-

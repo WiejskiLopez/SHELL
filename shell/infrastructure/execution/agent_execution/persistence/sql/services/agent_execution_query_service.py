@@ -19,9 +19,7 @@ class AgentExecutionQueryService:
 
     async def get_by_id(self, agent_execution_id: str) -> AgentExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(AgentExecutionModel).where(
-                AgentExecutionModel.id == agent_execution_id
-            )
+            stmt = select(AgentExecutionModel).where(AgentExecutionModel.id == agent_execution_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:

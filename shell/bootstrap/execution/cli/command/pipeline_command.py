@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
 )
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,8 @@ from shell.bootstrap.execution.factory.application_factory import ApplicationFac
 
 if TYPE_CHECKING:
     from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineCommand(RunnableCommand):
@@ -27,5 +30,5 @@ class PipelineCommand(RunnableCommand):
         outbox_count = await relay.run_once()
         inbox_count = await processor.run_once()
 
-        print(f"[pipeline] outbox relay: {outbox_count} events")
-        print(f"[pipeline] inbox processor: {inbox_count} events")
+        logger.info("outbox relay: %s events", outbox_count)
+        logger.info("inbox processor: %s events", inbox_count)

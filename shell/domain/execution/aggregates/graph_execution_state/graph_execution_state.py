@@ -167,5 +167,3 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
 
     def snapshot(self) -> StateData:
         return self._state_data
-
-

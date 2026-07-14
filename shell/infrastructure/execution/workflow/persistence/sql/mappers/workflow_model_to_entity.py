@@ -29,4 +29,3 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
             else None
         ),
     )
-

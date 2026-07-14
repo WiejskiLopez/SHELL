@@ -51,8 +51,8 @@ class SqlOutboxPublisher:
                         )
                     )
                 except Exception:
-                    logging.getLogger(__name__).exception(
-                        "Failed to serialize event %s", type(event).__name__
+                    logging.getLogger(__name__).critical(
+                        "Failed to serialize event %s — event LOST", type(event).__name__
                     )
-                    continue
+                    raise
             await session.commit()

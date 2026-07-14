@@ -29,4 +29,6 @@ class GetGraphDefinitionBySemanticHandler:
         }
         if query.default_graph_definition_id is not None:
             semantic_query["default_graph_definition_id"] = query.default_graph_definition_id
-        return await self._queries.get_graph_definition_by_semantic(JsonStr(json.dumps(semantic_query)))
+        return await self._queries.get_graph_definition_by_semantic(
+            JsonStr(json.dumps(semantic_query))
+        )

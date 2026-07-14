@@ -42,7 +42,9 @@ class GraphDefinitionController:
     async def get_graph_definition(self, graph_definition_id: str) -> GraphDefinitionResponse:
         result = await self._query_service.get_by_id(graph_definition_id)
         if result is None:
-            raise HTTPException(status_code=404, detail=f"Graph definition '{graph_definition_id}' not found")
+            raise HTTPException(
+                status_code=404, detail=f"Graph definition '{graph_definition_id}' not found"
+            )
         return _to_response(result)
 
     async def get_graph_definition_by_semantic(

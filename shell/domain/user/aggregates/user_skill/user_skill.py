@@ -67,9 +67,7 @@ class UserSkill(AggregateRoot[SkillId]):
         )
 
     @classmethod
-    def new(
-        cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt
-    ) -> UserSkill:
+    def new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
         instance = cls(
             id=SkillId.generate(),
             user_id=user_id,

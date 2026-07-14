@@ -9,4 +9,3 @@ class ActionConfigDto:
     input_mapping: str | None = None
     emit_event_type: str | None = None
     emit_event_payload: str | None = None
-

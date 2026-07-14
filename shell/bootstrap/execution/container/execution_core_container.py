@@ -1,4 +1,4 @@
-"""ExecutionCoreContainer — minimalny kontener DI dla mikroserwisu Execution BC."""
+"""ExecutionCoreContainer — minimal DI container for the Execution BC microservice."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class ExecutionCoreContainer(containers.DeclarativeContainer):
-    """Minimalny kontener dla BC Execution — używany przy starcie mikroserwisu execution."""
+    """Minimal container for BC Execution — used when starting the execution microservice."""
 
     config = providers.Configuration()
 
@@ -76,7 +76,7 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
 
-    # Narzędzia wspólne
+    # Shared tools
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.execution")
@@ -94,7 +94,7 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
         SessionQueryService, session_factory=session_factory
     )
 
-    # Szyny aplikacyjne
+    # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
 

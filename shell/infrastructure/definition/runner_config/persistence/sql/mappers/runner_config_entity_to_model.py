@@ -15,4 +15,3 @@ def runner_config_entity_to_model(runner_config: RunnerConfig) -> RunnerConfigMo
         id=runner_config.id.value,
         created_at=runner_config.created_at.value,
     )
-

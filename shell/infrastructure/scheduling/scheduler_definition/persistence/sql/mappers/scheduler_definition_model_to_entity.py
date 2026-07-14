@@ -41,14 +41,20 @@ def scheduler_definition_model_to_entity(
     trigger_config = TriggerConfig(
         source_context=model.source_context,
         trigger_event_type=model.trigger_event_type,
-        trigger_filter=JsonStr(json.dumps(dict(model.trigger_filter))) if model.trigger_filter else None,
+        trigger_filter=JsonStr(json.dumps(dict(model.trigger_filter)))
+        if model.trigger_filter
+        else None,
     )
     action_config = ActionConfig(
         action_type=model.action_type,
         graph_definition_id=model.action_config.get("graph_definition_id"),
-        input_mapping=JsonStr(json.dumps(model.action_config.get("input_mapping"))) if model.action_config.get("input_mapping") else None,
+        input_mapping=JsonStr(json.dumps(model.action_config.get("input_mapping")))
+        if model.action_config.get("input_mapping")
+        else None,
         emit_event_type=model.action_config.get("emit_event_type"),
-        emit_event_payload=JsonStr(json.dumps(model.action_config.get("emit_event_payload"))) if model.action_config.get("emit_event_payload") else None,
+        emit_event_payload=JsonStr(json.dumps(model.action_config.get("emit_event_payload")))
+        if model.action_config.get("emit_event_payload")
+        else None,
     )
     policy = ExecutionPolicy(
         **(model.execution_policy or {}),
@@ -64,4 +70,3 @@ def scheduler_definition_model_to_entity(
         created_at=CreatedAt.from_datetime(model.created_at),
         updated_at=Timestamp.from_datetime(model.updated_at),
     )
-

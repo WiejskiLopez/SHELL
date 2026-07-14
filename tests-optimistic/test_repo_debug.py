@@ -1,15 +1,24 @@
 """Debug repository path optimistic locking."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import pytest
 
+from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+from shell.domain.execution.aggregates.workflow.workflow import Workflow
+from shell.platform.domain.exceptions.concurrent_modification_error import (
+    ConcurrentModificationError,
+)
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
-
-_NOW = datetime(2024, 1, 1)
 
 
 class TestRepoDebug:
@@ -19,45 +28,31 @@ class TestRepoDebug:
     ) -> None:
         import uuid
 
-        from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-        from shell.domain.execution.aggregates.workflow.workflow import Workflow
-        from shell.domain.platform.exceptions.concurrent_modification_error import (
-            ConcurrentModificationError,
-        )
-        from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
-        from shell.infrastructure.platform.persistence import SqlAlchemyUnitOfWork
+        wf_id = WorkflowId(str(uuid.uuid4()))
+        now = CreatedAt.from_datetime(datetime(2024, 1, 1, tzinfo=UTC))
 
-        wf_id = str(uuid.uuid4())
-
-        async with SqlAlchemyUnitOfWork(session_factory) as uow:
-            model = WorkflowModel(id=wf_id, status="active", created_at=_NOW)
-            uow._active_session.add(model)
-            await uow.commit()
+        wf = Workflow.create(id_=wf_id, now=now)
 
         uow_a = SqlAlchemyUnitOfWork(session_factory)
         uow_b = SqlAlchemyUnitOfWork(session_factory)
 
         async with uow_a as ua:
-            ea = Workflow(
-                id=WorkflowId(wf_id),
-                status="active",
-                created_at=_NOW,
-            )
-            await ua.workflow_repository.save(ea)
+            await ua.repository(WorkflowRepository).save(wf)
+            await ua.commit()
+
+        async with uow_a as ua:
+            loaded = await ua.repository(WorkflowRepository).get_by_id(wf_id)
+            assert loaded is not None
+            loaded.finish()
+            await ua.repository(WorkflowRepository).save(loaded)
 
             async with uow_b as ub:
-                eb = Workflow(
-                    id=WorkflowId(wf_id),
-                    status="active",
-                    created_at=_NOW,
-                )
-                await ub.workflow_repository.save(eb)
+                loaded2 = await ub.repository(WorkflowRepository).get_by_id(wf_id)
+                assert loaded2 is not None
+                loaded2.abort(reason="concurrent")
+                await ub.repository(WorkflowRepository).save(loaded2)
 
-                ea.finish(now=_NOW)
-                await ua.workflow_repository.save(ea)
                 await ua.commit()
 
-                eb.abort(reason="concurrent", now=_NOW)
-                await ub.workflow_repository.save(eb)
                 with pytest.raises(ConcurrentModificationError):
                     await ub.commit()

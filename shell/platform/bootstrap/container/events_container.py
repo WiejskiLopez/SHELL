@@ -1,4 +1,4 @@
-"""Kontener infrastruktury eventów/komend (Event/Command Publishers, Outbox Relay, Inbox Processor)."""
+"""Event/command infrastructure container (Event/Command Publishers, Outbox Relay, Inbox Processor)."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import S
 
 
 class EventsContainer(containers.DeclarativeContainer):
-    """Infrastruktura wzorca Outbox/Inbox - atomowe odpowiedzialności."""
+    """Outbox/Inbox pattern infrastructure — atomic responsibilities."""
 
     config = providers.Configuration()
     infra = providers.DependenciesContainer()

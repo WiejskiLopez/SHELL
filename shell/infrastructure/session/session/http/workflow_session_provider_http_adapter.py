@@ -28,6 +28,4 @@ class WorkflowSessionProviderHttpAdapter(WorkflowSessionProvider):
                 "payload": payload,
             },
         )
-        if response.status_code == 501:
-            raise NotImplementedError("Execution BC REST API not fully implemented yet")
         response.raise_for_status()

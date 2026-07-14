@@ -16,8 +16,5 @@ def node_definition_entity_to_model(
     return NodeDefinitionModel(
         id=node_definition.id.value,
         node_type=node_definition.node_type.value,
-        max_step=(
-            node_definition.max_step.value if node_definition.max_step is not None else None
-        ),
+        max_step=(node_definition.max_step.value if node_definition.max_step is not None else None),
     )
-

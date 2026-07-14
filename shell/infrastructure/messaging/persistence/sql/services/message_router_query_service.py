@@ -34,5 +34,3 @@ class MessageRouterQueryService:
 __all__ = [
     "MessageRouterQueryService",
 ]
-
-

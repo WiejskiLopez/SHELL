@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
 
 class Inbox(Protocol):
@@ -24,25 +24,27 @@ class DualLayerDispatcher:
         self,
         inbox: Inbox,
         outbox: Outbox,
-        handlers: dict[str, Callable[..., object]],
+        handlers: dict[str, Callable[..., Awaitable[object]]],
     ) -> None:
         while True:
             comm_events = await inbox.get_communication_events()
             if comm_events:
                 for event in comm_events:
-                    handler = handlers.get(event.get("type", ""))
+                    event_type = cast("str", event.get("type", ""))
+                    handler = handlers.get(event_type)
                     if handler:
                         await handler(event, outbox)
-                    await inbox.mark_processed(event["id"])
+                    await inbox.mark_processed(cast("str", event["id"]))
                 continue
 
             decision_events = await inbox.get_decision_events()
             if decision_events:
                 for event in decision_events:
-                    handler = handlers.get(event.get("type", ""))
+                    event_type = cast("str", event.get("type", ""))
+                    handler = handlers.get(event_type)
                     if handler:
                         await handler(event, outbox)
-                    await inbox.mark_processed(event["id"])
+                    await inbox.mark_processed(cast("str", event["id"]))
                 continue
 
             break

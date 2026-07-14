@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 
 
 class SessionExecutionStateRepository(Protocol):
-    async def get_by_id(
-        self, id: SessionExecutionStateId
-    ) -> SessionExecutionState | None: ...
+    async def get_by_id(self, id: SessionExecutionStateId) -> SessionExecutionState | None: ...
 
     async def get_latest_by_session_execution_id(
         self, session_execution_id: SessionExecutionId, direction: StateDirection | None = None

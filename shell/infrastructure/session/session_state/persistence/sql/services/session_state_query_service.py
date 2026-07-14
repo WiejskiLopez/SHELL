@@ -21,9 +21,7 @@ class SessionStateQueryService:
 
     async def get_by_id(self, session_state_id: str) -> SessionStateDto | None:
         async with self._session_factory() as session:
-            stmt = select(SessionStateModel).where(
-                SessionStateModel.id == session_state_id
-            )
+            stmt = select(SessionStateModel).where(SessionStateModel.id == session_state_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:
@@ -35,5 +33,3 @@ class SessionStateQueryService:
                 state_data=JsonStr(json.dumps(dict(model.state_data))),
                 created_at=model.created_at,
             )
-
-

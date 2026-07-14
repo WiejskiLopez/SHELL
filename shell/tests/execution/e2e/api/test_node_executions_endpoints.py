@@ -24,7 +24,8 @@ class TestNodeExecutionEndpoints:
         assert resp.status_code == 404
 
     async def test_get_node_execution_result_missing_workflow_id(
-        self, tmp_path: pathlib.Path,
+        self,
+        tmp_path: pathlib.Path,
     ) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}

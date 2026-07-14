@@ -18,7 +18,8 @@ class TestGraphDefinitionEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get(
-                "/api/v1/graph-definitions/base-planner-id", headers=headers,
+                "/api/v1/graph-definitions/base-planner-id",
+                headers=headers,
             )
         assert resp.status_code == 200
         data = resp.json()
@@ -30,28 +31,35 @@ class TestGraphDefinitionEndpoints:
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get(
-                "/api/v1/graph-definitions/nonexistent", headers=headers,
+                "/api/v1/graph-definitions/nonexistent",
+                headers=headers,
             )
         assert resp.status_code == 404
 
     async def test_graph_definition_by_semantic_request_validation(
-        self, tmp_path: pathlib.Path,
+        self,
+        tmp_path: pathlib.Path,
     ) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
-                "/api/v1/graph-definitions/by-semantic", json={}, headers=headers,
+                "/api/v1/graph-definitions/by-semantic",
+                json={},
+                headers=headers,
             )
         assert resp.status_code == 422
 
     async def test_graph_definition_by_semantic_empty_body(
-        self, tmp_path: pathlib.Path,
+        self,
+        tmp_path: pathlib.Path,
     ) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
-                "/api/v1/graph-definitions/by-semantic", json={}, headers=headers,
+                "/api/v1/graph-definitions/by-semantic",
+                json={},
+                headers=headers,
             )
         assert resp.status_code == 422

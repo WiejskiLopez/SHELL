@@ -21,4 +21,3 @@ def session_execution_entity_to_model(entity: SessionExecution) -> SessionExecut
         session_id=entity.session_id.value if entity.session_id else None,
         created_at=entity.created_at.value if entity.created_at else None,
     )
-

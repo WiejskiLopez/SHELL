@@ -9,4 +9,6 @@ if TYPE_CHECKING:
 
 
 class SessionExecutionStateQueryService(Protocol):
-    async def get_by_id(self, session_execution_state_id: str) -> SessionExecutionStateDto | None: ...
+    async def get_by_id(
+        self, session_execution_state_id: str
+    ) -> SessionExecutionStateDto | None: ...

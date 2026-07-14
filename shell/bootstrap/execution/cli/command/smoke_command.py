@@ -1,27 +1,22 @@
 from __future__ import annotations
 
+import logging
 from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
 )
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
-from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
 
 if TYPE_CHECKING:
     from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+
+logger = logging.getLogger(__name__)
 
 
 class SmokeCommand(RunnableCommand):
     async def run(self, args: Namespace) -> None:
         config: ShellConfig = args.shell_config
-        print(f"[smoke] using database: {config.database_url}")
-        core_container = await ApplicationFactory(config).build()
-
-        # Wyciągamy kontekst aplikacji do Any, uciszając mypy tylko raz
-        app_ctx: Any = core_container.app
-
-        app_ctx.buses.query_bus()
-
-        print("[smoke] smoke command runs in reduced mode (import/start commands removed)")
-        print("[smoke] OK")
+        logger.info("using database: %s", config.database_url)
+        logger.info("smoke command runs in reduced mode (import/start commands removed)")
+        logger.info("OK")

@@ -24,4 +24,3 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
         deleted_at=_created_at_value(task_execution.deleted_at),
     )
-

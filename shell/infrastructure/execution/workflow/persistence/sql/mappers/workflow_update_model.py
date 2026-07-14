@@ -13,4 +13,3 @@ def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
     model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
     model.session_id = entity.session_id.value if entity.session_id else None
     model.created_at = entity.created_at.value
-

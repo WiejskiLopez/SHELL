@@ -88,7 +88,9 @@ def _to_snake_case(pascal: str) -> str:
 
 _PRIMITIVE_NAMES = frozenset({"str", "int", "float", "bool", "bytes", "Any"})
 _AGGREGATE_BASES = frozenset({"AggregateRoot"})
-_COMPLEX_NAMES = frozenset({"Decimal", "Timestamp", "timedelta", "date", "dict", "list", "set", "frozenset"})
+_COMPLEX_NAMES = frozenset(
+    {"Decimal", "Timestamp", "timedelta", "date", "dict", "list", "set", "frozenset"}
+)
 
 # Aggregate classes known to have factory methods other than create()
 _FACTORY_ALIASES: dict[str, str] = {
@@ -188,8 +190,7 @@ def test_all_aggregates_have_factory() -> None:
                 continue
 
             has_factory = any(
-                isinstance(m, ast.FunctionDef)
-                and m.name in ("create", "new", "open", "initialize")
+                isinstance(m, ast.FunctionDef) and m.name in ("create", "new", "open", "initialize")
                 for m in node.body
             )
             if has_factory:
@@ -200,8 +201,7 @@ def test_all_aggregates_have_factory() -> None:
                 missing.append(key)
     assert not missing, (
         "AggregateRoots must have a factory classmethod (create/new/open/initialize). "
-        "Add known missing to _KNOWN_NO_FACTORY:\n"
-        + "\n".join(missing)
+        "Add known missing to _KNOWN_NO_FACTORY:\n" + "\n".join(missing)
     )
 
 
@@ -246,8 +246,7 @@ def test_infra_mappers_use_restore() -> None:
                     violations.append(key)
     assert not violations, (
         "Infrastructure mappers should call Aggregate.restore(), not Aggregate(...). "
-        "Add known violations to _KNOWN_MAPPER_USES_INIT:\n"
-        + "\n".join(violations)
+        "Add known violations to _KNOWN_MAPPER_USES_INIT:\n" + "\n".join(violations)
     )
 
 
@@ -512,7 +511,11 @@ def test_no_function_calls_in_default_arguments() -> None:
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 for default in node.args.defaults + node.args.kw_defaults:
-                    if default is not None and isinstance(default, ast.Call) and not _is_fastapi_sentinel(default):
+                    if (
+                        default is not None
+                        and isinstance(default, ast.Call)
+                        and not _is_fastapi_sentinel(default)
+                    ):
                         rel = path.relative_to(BASE)
                         violations.append(
                             f"{rel}:{node.lineno}: {node.name} — wywołanie w default arg"
@@ -581,9 +584,7 @@ def _annotation_uses_mutable_collection(annotation: ast.AST) -> str | None:
 
 
 def _is_domain_event_base(base: ast.AST) -> bool:
-    return (
-        isinstance(base, ast.Name) and base.id == "DomainEvent"
-    ) or (
+    return (isinstance(base, ast.Name) and base.id == "DomainEvent") or (
         isinstance(base, ast.Attribute) and base.attr == "DomainEvent"
     )
 
@@ -605,7 +606,16 @@ def test_domain_event_fields_no_mutable_collections() -> None:
                 if not isinstance(stmt.target, ast.Name):
                     continue
                 field_name = stmt.target.id
-                if field_name in ("event_id", "aggregate_id", "aggregate_type", "occurred_at", "correlation_id", "causation_id", "schema_version", "kind"):
+                if field_name in (
+                    "event_id",
+                    "aggregate_id",
+                    "aggregate_type",
+                    "occurred_at",
+                    "correlation_id",
+                    "causation_id",
+                    "schema_version",
+                    "kind",
+                ):
                     continue
                 if stmt.annotation is None:
                     continue
@@ -619,4 +629,3 @@ def test_domain_event_fields_no_mutable_collections() -> None:
         "Use tuple/frozenset/Sequence instead. Known violations in _KNOWN_EVENT_MUTABLE_FIELDS:\n"
         + "\n".join(violations)
     )
-

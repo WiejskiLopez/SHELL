@@ -1,60 +1,643 @@
-"""Główny kontener DI — składa infrastrukturę, domenę i warstwę aplikacyjną."""
+"""Root DI container — Pure DI, manually wires infrastructure, domain and application layers."""
 
 from __future__ import annotations
 
-from dependency_injector import containers, providers
+import logging
+from typing import TYPE_CHECKING, Any
 
+from shell.application.definition.runner_config.query_handlers.get_runner_config_by_id_handler import (
+    GetRunnerConfigByIdHandler,
+)
+from shell.application.execution.agent_config_execution.query_handlers.get_agent_config_execution_by_id_handler import (
+    GetAgentConfigExecutionByIdHandler,
+)
+from shell.application.execution.agent_execution.query_handlers.get_agent_execution_by_id_handler import (
+    GetAgentExecutionByIdHandler,
+)
+from shell.application.execution.agent_skill_execution.query_handlers.get_agent_skill_execution_by_id_handler import (
+    GetAgentSkillExecutionByIdHandler,
+)
+from shell.application.execution.edge_execution.query_handlers.get_edge_execution_by_id_handler import (
+    GetEdgeExecutionByIdHandler,
+)
+from shell.application.execution.graph_execution.query_handlers.get_graph_execution_by_id_handler import (
+    GetGraphExecutionByIdHandler,
+)
+from shell.application.execution.node_execution.query_handlers.get_node_execution_result_handler import (
+    GetNodeExecutionResultHandler,
+)
+from shell.application.execution.session_execution.query_handlers.get_session_history_handler import (
+    GetSessionHistoryHandler,
+)
+from shell.application.execution.task_execution.query_handlers.get_task_execution_by_name_handler import (
+    GetTaskExecutionByNameHandler,
+)
+from shell.application.execution.task_execution.query_handlers.get_task_execution_current_handler import (
+    GetTaskExecutionCurrentHandler,
+)
+from shell.application.execution.user_execution.query_handlers.get_user_execution_by_id_handler import (
+    GetUserExecutionByIdHandler,
+)
+from shell.application.execution.workflow.query_handlers.get_workflow_by_id_handler import (
+    GetWorkflowByIdHandler,
+)
+from shell.application.execution.workflow.query_handlers.get_workflow_state_by_id_handler import (
+    GetWorkflowStateByIdHandler,
+)
+from shell.application.project.project.query_handlers.get_project_by_id_handler import (
+    GetProjectByIdHandler,
+)
+from shell.application.project.project_skill.query_handlers.get_project_skill_by_id_handler import (
+    GetProjectSkillByIdHandler,
+)
+from shell.application.scheduling.scheduler_definition.query_handlers.get_scheduler_definition_by_id_handler import (
+    GetSchedulerDefinitionByIdHandler,
+)
+from shell.application.scheduling.scheduler_execution.query_handlers.get_scheduler_execution_by_id_handler import (
+    GetSchedulerExecutionByIdHandler,
+)
+from shell.application.session.session_state.query_handlers.get_session_state_by_id_handler import (
+    GetSessionStateByIdHandler,
+)
+from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
+from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
+from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
+from shell.application.user.user.query_handlers.get_user_by_id_handler import GetUserByIdHandler
+from shell.application.user.user_skill.query_handlers.get_user_skill_by_id_handler import (
+    GetUserSkillByIdHandler,
+)
+from shell.infrastructure.definition.graph_definition.persistence.sql.services.graph_definition_query_service import (
+    SqlGraphDefinitionQueryService,
+)
+from shell.infrastructure.definition.node_definition.persistence.sql.services.node_definition_query_service import (
+    NodeDefinitionQueryService,
+)
+from shell.infrastructure.definition.runner_config.persistence.sql.services.runner_config_query_service import (
+    RunnerConfigQueryService,
+)
+from shell.infrastructure.execution.agent_config_execution.persistence.sql.services.agent_config_execution_query_service import (
+    AgentConfigExecutionQueryService,
+)
+from shell.infrastructure.execution.agent_execution.persistence.sql.services.agent_execution_query_service import (
+    AgentExecutionQueryService,
+)
+from shell.infrastructure.execution.agent_skill_execution.persistence.sql.services.agent_skill_execution_query_service import (
+    AgentSkillExecutionQueryService,
+)
+from shell.infrastructure.execution.edge_execution.persistence.sql.services.edge_execution_query_service import (
+    EdgeExecutionQueryService,
+)
+from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
+    NodeResultQueryService,
+)
+from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
+from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
+    FileSystemTaskLoader,
+)
+from shell.infrastructure.execution.task_execution.persistence.sql.services.task_execution_query_service import (
+    TaskExecutionQueryService,
+)
+from shell.infrastructure.execution.user_execution.persistence.sql.services.user_execution_query_service import (
+    UserExecutionQueryService,
+)
+from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_query_service import (
+    WorkflowQueryService,
+)
+from shell.infrastructure.execution.workflow_state.persistence.sql.services.workflow_state_query_service import (
+    WorkflowStateQueryService,
+)
+from shell.infrastructure.messaging.persistence.sql.services.message_router_query_service import (
+    MessageRouterQueryService,
+)
+from shell.infrastructure.project.project.persistence.sql.services.project_query_service import (
+    ProjectQueryService,
+)
+from shell.infrastructure.project.project_skill.persistence.sql.services.project_skill_query_service import (
+    ProjectSkillQueryService,
+)
+from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.services.scheduler_definition_query_service import (
+    SchedulerDefinitionQueryService,
+)
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.services.scheduler_execution_query_service import (
+    SchedulerExecutionQueryService,
+)
 from shell.infrastructure.scheduling.services.scheduler_service import SchedulerService
+from shell.infrastructure.session.session_state.persistence.sql.services.session_state_query_service import (
+    SessionStateQueryService,
+)
+from shell.infrastructure.user.user.persistence.sql.services.user_query_service import (
+    UserQueryService,
+)
+from shell.infrastructure.user.user.persistence.sql.user_acl_monolith_adapter import (
+    UserAclMonolithAdapter,
+)
+from shell.infrastructure.user.user_skill.persistence.sql.services.user_skill_query_service import (
+    UserSkillQueryService,
+)
+from shell.infrastructure.user.user_state.persistence.sql.services.user_state_query_service import (
+    UserStateQueryService,
+)
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.event_bus import EventBus
+from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
+from shell.platform.application.bus.message_bus import MessageBus
+from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
+from shell.platform.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
+from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
+from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
+from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
+    SqlCommandOutboxPublisher,
+)
+from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
+from shell.platform.infrastructure.messaging.event.processor.inbox_processor import InboxProcessor
+from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
+from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.time.system_clock import SystemClock
 
-from .application_container import ApplicationContainer
-from .domain_container import DomainContainer
-from .events_container import EventsContainer
-from .infrastructure_container import InfrastructureContainer
-from .process_container import ProcessContainer
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-
-class CoreContainer(containers.DeclarativeContainer):
-    """Kompozytor wszystkich sub-kontenerów DI."""
-
-    config = providers.Configuration()
-    config.override(
-        {
-            "events": {
-                "outbox_batch_size": 100,
-                "inbox_batch_size": 50,
-                "worker_poll_interval": 1.0,
-                "worker_backoff_factor": 2.0,
-                "worker_max_backoff": 30.0,
-            }
-        }
+    from shell.application.definition.graph_definition.query_handlers.get_graph_definition_by_id_handler import (
+        GetGraphDefinitionByIdHandler,
+    )
+    from shell.application.definition.node_definition.query_handlers.get_node_definition_by_id_handler import (
+        GetNodeDefinitionByIdHandler,
+    )
+    from shell.application.execution.edge_execution.command_handlers.create_edge_execution_handler import (
+        CreateEdgeExecutionHandler,
+    )
+    from shell.application.execution.edge_execution.command_handlers.delete_edge_execution_handler import (
+        DeleteEdgeExecutionHandler,
+    )
+    from shell.application.execution.edge_execution.command_handlers.update_edge_execution_handler import (
+        UpdateEdgeExecutionHandler,
+    )
+    from shell.application.execution.edge_link_execution.command_handlers.create_edge_link_execution_handler import (
+        CreateEdgeLinkExecutionHandler,
+    )
+    from shell.application.execution.edge_link_execution.command_handlers.delete_edge_link_execution_handler import (
+        DeleteEdgeLinkExecutionHandler,
+    )
+    from shell.application.execution.edge_link_execution.command_handlers.update_edge_link_execution_handler import (
+        UpdateEdgeLinkExecutionHandler,
+    )
+    from shell.application.execution.node_execution.command_handlers.create_node_execution_handler import (
+        CreateNodeExecutionHandler,
+    )
+    from shell.application.execution.node_execution.query_handlers.get_node_execution_by_id_handler import (
+        GetNodeExecutionByIdHandler,
+    )
+    from shell.application.execution.task_execution.query_handlers.get_task_execution_by_id_handler import (
+        GetTaskExecutionByIdHandler,
+    )
+    from shell.application.messaging.message_router.query_handlers.get_message_by_id_handler import (
+        GetMessageByIdHandler,
+    )
+    from shell.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
+        GetUserStateByIdHandler,
     )
 
-    infra = providers.Container(InfrastructureContainer, config=config)
-    domain = providers.Container(DomainContainer)
+logger = logging.getLogger(__name__)
 
-    app: providers.Container[ApplicationContainer] = providers.Container(
-        ApplicationContainer,
-        config=config,
-        infra=infra,
-        domain=domain,
-    )
 
-    events = providers.Container(
-        EventsContainer,
-        config=config.events,
-        infra=infra,
-        buses=app.buses,
-    )
+class Buses:
+    """Container for application buses — singletons shared across the system."""
 
-    process: providers.Container[ProcessContainer] = providers.Container(
-        ProcessContainer,
-        infra=infra,
-        buses=app.buses,
-    )
+    def __init__(self) -> None:
+        self.command_bus = CommandBus()
+        self.query_bus = QueryBus()
+        self.event_bus = EventBus()
+        self.message_bus = MessageBus()
 
-    scheduler_service = providers.Singleton(
-        SchedulerService,
-        session_factory=infra.session_factory,
-        outbox_to_inbox_relay=events.outbox_to_inbox_relay,
-        inbox_processor=events.inbox_processor,
-    )
+
+class Infrastructure:
+    """Container for infrastructure adapters and shared services."""
+
+    def __init__(self, db_url: str) -> None:
+        self._db_url = db_url
+
+        # Database
+        self.session_factory: async_sessionmaker[AsyncSession] = build_session_factory(db_url)
+
+        # Unit of Work factory — new UoW per request
+        self.unit_of_work_factory = lambda: SqlAlchemyUnitOfWork(
+            session_factory=self.session_factory
+        )
+
+        # Query services (stateless, safe to share)
+        self.task_execution_query_service = TaskExecutionQueryService(self.session_factory)
+        self.workflow_query_service = WorkflowQueryService(self.session_factory)
+        self.workflow_state_query_service = WorkflowStateQueryService(self.session_factory)
+        self.node_result_query_service = NodeResultQueryService(self.session_factory)
+        self.runner_config_query_service = RunnerConfigQueryService(self.session_factory)
+        self.session_query_service = SessionQueryService(self.session_factory)
+        self.session_state_query_service = SessionStateQueryService(self.session_factory)
+        self.graph_definition_query_service_factory = lambda: SqlGraphDefinitionQueryService(
+            self.session_factory
+        )
+        self.node_definition_query_service = NodeDefinitionQueryService(self.session_factory)
+        self.user_query_service = UserQueryService(self.session_factory)
+        self.user_skill_query_service = UserSkillQueryService(self.session_factory)
+        self.user_state_query_service = UserStateQueryService(self.session_factory)
+        self.user_execution_query_service = UserExecutionQueryService(self.session_factory)
+        self.agent_execution_query_service = AgentExecutionQueryService(self.session_factory)
+        self.agent_config_execution_query_service = AgentConfigExecutionQueryService(
+            self.session_factory
+        )
+        self.agent_skill_execution_query_service = AgentSkillExecutionQueryService(
+            self.session_factory
+        )
+        self.edge_execution_query_service = EdgeExecutionQueryService(self.session_factory)
+        self.message_router_query_service = MessageRouterQueryService(self.session_factory)
+        self.project_query_service = ProjectQueryService(self.session_factory)
+        self.project_skill_query_service = ProjectSkillQueryService(self.session_factory)
+        self.scheduler_definition_query_service = SchedulerDefinitionQueryService(
+            self.session_factory
+        )
+        self.scheduler_execution_query_service = SchedulerExecutionQueryService(
+            self.session_factory
+        )
+
+        # Shared tools
+        self.stdlib_logger = StdlibLogger("shell")
+        self.clock_factory = lambda: SystemClock()
+        self.id_generator_factory = lambda: UuidIdGenerator()
+        self.task_execution_loader_factory = lambda: FileSystemTaskLoader()
+
+        # HTTP clients for cross-BC communication
+        self._create_http_clients()
+
+        # Outbox/inbox publishers
+        self.sql_command_outbox_publisher = SqlCommandOutboxPublisher(self.session_factory)
+
+        # Event publishers
+        self.logging_publisher = LoggingEventPublisher(self.stdlib_logger)
+        self.sql_audit_publisher = SqlAuditPublisher(self.session_factory)
+
+        # Monolith adapter
+        self.user_acl_factory = lambda: UserAclMonolithAdapter(self.session_factory)
+
+    def _create_http_clients(self) -> None:
+        pass
+
+
+class Commands:
+    """Container for command handler factories."""
+
+    def __init__(self, buses: Buses, infra: Infrastructure) -> None:
+        self._buses = buses
+        self._infra = infra
+
+    def create_node_execution_handler_factory(self) -> CreateNodeExecutionHandler:
+        from shell.application.execution.node_execution.command_handlers.create_node_execution_handler import (
+            CreateNodeExecutionHandler,
+        )
+        from shell.infrastructure.execution.node_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyNodeExecutionUnitOfWork,
+        )
+
+        return CreateNodeExecutionHandler(
+            unit_of_work=SqlAlchemyNodeExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            identity=self._infra.id_generator_factory(),
+            time=self._infra.clock_factory(),
+        )
+
+    def create_edge_execution_handler_factory(self) -> CreateEdgeExecutionHandler:
+        from shell.application.execution.edge_execution.command_handlers.create_edge_execution_handler import (
+            CreateEdgeExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeExecutionUnitOfWork,
+        )
+
+        return CreateEdgeExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            identity=self._infra.id_generator_factory(),
+            time=self._infra.clock_factory(),
+        )
+
+    def update_edge_execution_handler_factory(self) -> UpdateEdgeExecutionHandler:
+        from shell.application.execution.edge_execution.command_handlers.update_edge_execution_handler import (
+            UpdateEdgeExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeExecutionUnitOfWork,
+        )
+
+        return UpdateEdgeExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            time=self._infra.clock_factory(),
+            logger=self._infra.stdlib_logger,
+        )
+
+    def delete_edge_execution_handler_factory(self) -> DeleteEdgeExecutionHandler:
+        from shell.application.execution.edge_execution.command_handlers.delete_edge_execution_handler import (
+            DeleteEdgeExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeExecutionUnitOfWork,
+        )
+
+        return DeleteEdgeExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            time=self._infra.clock_factory(),
+            logger=self._infra.stdlib_logger,
+        )
+
+    def create_edge_link_execution_handler_factory(self) -> CreateEdgeLinkExecutionHandler:
+        from shell.application.execution.edge_link_execution.command_handlers.create_edge_link_execution_handler import (
+            CreateEdgeLinkExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeLinkExecutionUnitOfWork,
+        )
+
+        return CreateEdgeLinkExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            identity=self._infra.id_generator_factory(),
+            time=self._infra.clock_factory(),
+        )
+
+    def delete_edge_link_execution_handler_factory(self) -> DeleteEdgeLinkExecutionHandler:
+        from shell.application.execution.edge_link_execution.command_handlers.delete_edge_link_execution_handler import (
+            DeleteEdgeLinkExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeLinkExecutionUnitOfWork,
+        )
+
+        return DeleteEdgeLinkExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            time=self._infra.clock_factory(),
+            logger=self._infra.stdlib_logger,
+        )
+
+    def update_edge_link_execution_handler_factory(self) -> UpdateEdgeLinkExecutionHandler:
+        from shell.application.execution.edge_link_execution.command_handlers.update_edge_link_execution_handler import (
+            UpdateEdgeLinkExecutionHandler,
+        )
+        from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
+            SqlAlchemyEdgeLinkExecutionUnitOfWork,
+        )
+
+        return UpdateEdgeLinkExecutionHandler(
+            unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            time=self._infra.clock_factory(),
+            logger=self._infra.stdlib_logger,
+        )
+
+    def create_user_handler_factory(self) -> CreateUserHandler:
+        return CreateUserHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_user_handler_factory(self) -> UpdateUserHandler:
+        return UpdateUserHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_user_handler_factory(self) -> DeleteUserHandler:
+        return DeleteUserHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+
+class Queries:
+    """Container for query handler factories."""
+
+    def __init__(self, infra: Infrastructure) -> None:
+        self._infra = infra
+
+    def get_graph_definition_handler_factory(self) -> GetGraphDefinitionByIdHandler:
+        from shell.application.definition.graph_definition.query_handlers.get_graph_definition_by_id_handler import (
+            GetGraphDefinitionByIdHandler,
+        )
+
+        return GetGraphDefinitionByIdHandler(
+            queries=self._infra.graph_definition_query_service_factory()  # type: ignore[arg-type]
+        )
+
+    def get_task_execution_handler_factory(self) -> GetTaskExecutionByIdHandler:
+        from shell.application.execution.task_execution.query_handlers.get_task_execution_by_id_handler import (
+            GetTaskExecutionByIdHandler,
+        )
+
+        return GetTaskExecutionByIdHandler(queries=self._infra.task_execution_query_service)
+
+    def get_node_execution_handler_factory(self) -> GetNodeExecutionByIdHandler:
+        from shell.application.execution.node_execution.query_handlers.get_node_execution_by_id_handler import (
+            GetNodeExecutionByIdHandler,
+        )
+
+        return GetNodeExecutionByIdHandler(queries=self._infra.node_result_query_service)
+
+    def get_node_execution_result_handler_factory(self) -> GetNodeExecutionResultHandler:
+        return GetNodeExecutionResultHandler(queries=self._infra.node_result_query_service)
+
+    def get_runner_config_handler_factory(self) -> GetRunnerConfigByIdHandler:
+        return GetRunnerConfigByIdHandler(queries=self._infra.runner_config_query_service)
+
+    def get_task_execution_by_name_handler_factory(self) -> GetTaskExecutionByNameHandler:
+        return GetTaskExecutionByNameHandler(queries=self._infra.task_execution_query_service)
+
+    def get_task_execution_current_handler_factory(self) -> GetTaskExecutionCurrentHandler:
+        return GetTaskExecutionCurrentHandler(queries=self._infra.task_execution_query_service)
+
+    def get_workflow_handler_factory(self) -> GetWorkflowByIdHandler:
+        return GetWorkflowByIdHandler(queries=self._infra.workflow_query_service)  # type: ignore[arg-type]
+
+    def get_workflow_state_handler_factory(self) -> GetWorkflowStateByIdHandler:
+        return GetWorkflowStateByIdHandler(queries=self._infra.workflow_query_service)  # type: ignore[arg-type]
+
+    def get_session_history_handler_factory(self) -> GetSessionHistoryHandler:
+        return GetSessionHistoryHandler(queries=self._infra.session_query_service)
+
+    def get_graph_execution_handler_factory(self) -> GetGraphExecutionByIdHandler:
+        return GetGraphExecutionByIdHandler(
+            queries=self._infra.graph_definition_query_service_factory()  # type: ignore[arg-type]
+        )
+
+    def get_user_handler_factory(self) -> GetUserByIdHandler:
+        return GetUserByIdHandler(queries=self._infra.user_query_service)
+
+    def get_user_skill_handler_factory(self) -> GetUserSkillByIdHandler:
+        return GetUserSkillByIdHandler(queries=self._infra.user_skill_query_service)
+
+    def get_user_state_handler_factory(self) -> GetUserStateByIdHandler:
+        from shell.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
+            GetUserStateByIdHandler,
+        )
+
+        return GetUserStateByIdHandler(queries=self._infra.user_state_query_service)
+
+    def get_user_execution_handler_factory(self) -> GetUserExecutionByIdHandler:
+        return GetUserExecutionByIdHandler(queries=self._infra.user_execution_query_service)
+
+    def get_node_definition_handler_factory(self) -> GetNodeDefinitionByIdHandler:
+        from shell.application.definition.node_definition.query_handlers.get_node_definition_by_id_handler import (
+            GetNodeDefinitionByIdHandler,
+        )
+
+        return GetNodeDefinitionByIdHandler(queries=self._infra.node_definition_query_service)
+
+    def get_message_handler_factory(self) -> GetMessageByIdHandler:
+        from shell.application.messaging.message_router.query_handlers.get_message_by_id_handler import (
+            GetMessageByIdHandler,
+        )
+
+        return GetMessageByIdHandler(queries=self._infra.message_router_query_service)  # type: ignore[arg-type]
+
+    def get_project_handler_factory(self) -> GetProjectByIdHandler:
+        return GetProjectByIdHandler(queries=self._infra.project_query_service)
+
+    def get_project_skill_handler_factory(self) -> GetProjectSkillByIdHandler:
+        return GetProjectSkillByIdHandler(queries=self._infra.project_skill_query_service)
+
+    def get_scheduler_definition_handler_factory(self) -> GetSchedulerDefinitionByIdHandler:
+        return GetSchedulerDefinitionByIdHandler(
+            queries=self._infra.scheduler_definition_query_service
+        )
+
+    def get_scheduler_execution_handler_factory(self) -> GetSchedulerExecutionByIdHandler:
+        return GetSchedulerExecutionByIdHandler(
+            queries=self._infra.scheduler_execution_query_service
+        )
+
+    def get_edge_execution_handler_factory(self) -> GetEdgeExecutionByIdHandler:
+        return GetEdgeExecutionByIdHandler(queries=self._infra.edge_execution_query_service)
+
+    def get_agent_execution_handler_factory(self) -> GetAgentExecutionByIdHandler:
+        return GetAgentExecutionByIdHandler(queries=self._infra.agent_execution_query_service)
+
+    def get_agent_config_execution_handler_factory(self) -> GetAgentConfigExecutionByIdHandler:
+        return GetAgentConfigExecutionByIdHandler(
+            queries=self._infra.agent_config_execution_query_service
+        )
+
+    def get_agent_skill_execution_handler_factory(self) -> GetAgentSkillExecutionByIdHandler:
+        return GetAgentSkillExecutionByIdHandler(
+            queries=self._infra.agent_skill_execution_query_service
+        )
+
+    def get_session_state_handler_factory(self) -> GetSessionStateByIdHandler:
+        return GetSessionStateByIdHandler(queries=self._infra.session_state_query_service)
+
+
+class Application:
+    """Container for application layer — buses, commands, queries, events."""
+
+    def __init__(self, infra: Infrastructure) -> None:
+        self.buses = Buses()
+        self.commands = Commands(buses=self.buses, infra=infra)
+        self.queries = Queries(infra=infra)
+
+
+class Events:
+    """Container for event/command outbox/inbox infrastructure."""
+
+    def __init__(
+        self,
+        infra: Infrastructure,
+        buses: Buses,
+        events_config: dict[str, Any] | None = None,
+    ) -> None:
+        ec = events_config or {}
+        self._infra = infra
+        self._buses = buses
+
+        # Event publishers
+        sql_outbox_publisher = SqlOutboxPublisher(session_factory=infra.session_factory)
+        event_bus_publisher = EventBusPublisher(event_bus=buses.event_bus)
+        self._event_publisher = CompositeEventPublisher(
+            publishers=[
+                infra.logging_publisher,
+                infra.sql_audit_publisher,
+                sql_outbox_publisher,
+                event_bus_publisher,
+            ]
+        )
+
+        self._outbox_batch_size = ec.get("outbox_batch_size", 100)
+        self._inbox_batch_size = ec.get("inbox_batch_size", 50)
+        self._command_outbox_batch_size = ec.get("command_outbox_batch_size", 100)
+        self._command_inbox_batch_size = ec.get("command_inbox_batch_size", 50)
+
+    def outbox_to_inbox_relay(self) -> OutboxToInboxRelay:
+        return OutboxToInboxRelay(
+            session_factory=self._infra.session_factory,
+            downstream=self._event_publisher,
+            batch_size=self._outbox_batch_size,
+        )
+
+    def inbox_processor(self) -> InboxProcessor:
+        return InboxProcessor(
+            session_factory=self._infra.session_factory,
+            event_bus=self._event_publisher,
+            batch_size=self._inbox_batch_size,
+        )
+
+
+class Container:
+    """Root Pure DI container — composes all layers of the system.
+
+    Usage:
+        container = Container(db_url="sqlite+aiosqlite:///shell.db")
+        await container.buses.command_bus.dispatch(command)
+        container.application.buses.query_bus.dispatch(query)
+        relay = container.events.outbox_to_inbox_relay()
+    """
+
+    def __init__(
+        self,
+        db_url: str = "",
+        events_config: dict[str, Any] | None = None,
+    ) -> None:
+        self._db_url = db_url
+        self._events_config = events_config
+
+        # Infrastructure
+        self.infra = Infrastructure(db_url=db_url)
+
+        # Application
+        self.app = Application(infra=self.infra)
+
+        # Events
+        self.events = Events(
+            infra=self.infra,
+            buses=self.app.buses,
+            events_config=events_config,
+        )
+
+        # Scheduler service
+        self.scheduler_service = SchedulerService(
+            session_factory=self.infra.session_factory,
+            outbox_to_inbox_relay=self.events.outbox_to_inbox_relay,  # type: ignore[arg-type]
+            inbox_processor=self.events.inbox_processor,  # type: ignore[arg-type]
+        )
+
+
+# Alias for backward compat
+CoreContainer = Container

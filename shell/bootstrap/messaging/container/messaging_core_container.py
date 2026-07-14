@@ -1,4 +1,4 @@
-"""MessagingCoreContainer - minimalny kontener DI dla samodzielnego mikroserwisu Messaging BC."""
+"""MessagingCoreContainer - minimal DI container for the standalone Messaging BC microservice."""
 
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class MessagingCoreContainer(containers.DeclarativeContainer):
-    """Minimalny kontener dla BC Messaging — używany przy starcie mikroserwisu messaging."""
+    """Minimal container for BC Messaging — used when starting the messaging microservice."""
 
     config = providers.Configuration()
 
-    # Baza danych
+    # Database
     session_factory = providers.Singleton(build_session_factory, url=config.db_url)
 
     # Query service
@@ -35,10 +35,10 @@ class MessagingCoreContainer(containers.DeclarativeContainer):
         GetMessageByIdHandler, queries=message_router_query_service
     )
 
-    # Narzędzia wspólne
+    # Shared tools
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.messaging")
 
-    # Szyny aplikacyjne
+    # Application buses
     message_bus = providers.Singleton(MessageBus)

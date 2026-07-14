@@ -15,9 +15,10 @@ from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
-from ._ensure_utc import _ensure_utc
 
 if TYPE_CHECKING:
     from shell.infrastructure.project.project_state.persistence.sql.models.project_state import (
@@ -30,7 +31,9 @@ def project_state_model_to_entity(model: ProjectStateModel) -> ProjectState:
         id=ProjectStateId(model.id),
         project_id=ProjectId(model.project_id),
         direction=StateDirection(model.direction),
-        state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))) if model.state_data else StateData(JsonStr("{}")),
+        state_data=StateData(JsonStr(json.dumps(dict(model.state_data))))
+        if model.state_data
+        else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
         if model.updated_at is not None
@@ -39,4 +42,3 @@ def project_state_model_to_entity(model: ProjectStateModel) -> ProjectState:
         if model.deleted_at is not None
         else None,
     )
-

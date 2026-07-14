@@ -13,26 +13,26 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[6]))
 
-# Wszystkie modele używają platform/Base (jeden wspólny metadata).
-# Każdy agregat rejestruje swój model samodzielnie — brak centralnego re-eksportu.
-# Jawna rejestracja modeli per-BC — zapewnia wykrywanie przez Alembic
-from shell.infrastructure.definition.graph_definition.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+# All models use platform/Base (single shared metadata).
+# Each aggregate registers its own model — no central re-export.
+# Explicit per-BC model registration — ensures Alembic detects them
+from shell.infrastructure.definition.graph_definition.persistence.sql.models import (  # noqa: F401 — model registration
     GraphDefinitionModel,
 )
-from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (  # noqa: F401 — model registration
     GraphDefinitionEmbeddingModel,
 )
-from shell.infrastructure.definition.node_definition.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.definition.node_definition.persistence.sql.models import (  # noqa: F401 — model registration
     NodeDefinitionModel,
 )
-from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (  # noqa: F401 — model registration
     NodeLinkDefinitionModel,
 )
-from shell.infrastructure.definition.runner_config.persistence.sql.models import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.definition.runner_config.persistence.sql.models import (  # noqa: F401 — model registration
     RunnerConfigModel,
 )
 
-# --- Execution BC (każdy agregat osobno) ---
+# --- Execution BC (each aggregate separately) ---
 from shell.infrastructure.execution.edge_execution.persistence.sql.models import (
     EdgeExecutionModel,  # noqa: F401 — Alembic autogenerate
 )
@@ -67,31 +67,31 @@ from shell.infrastructure.execution.task_execution.persistence.sql.models import
 from shell.infrastructure.execution.task_execution_state.persistence.sql.models import (
     TaskExecutionStateModel,  # noqa: F401 — Alembic autogenerate
 )
-from shell.infrastructure.project.project.persistence.sql.models.project import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.project.project.persistence.sql.models.project import (  # noqa: F401 — model registration
     ProjectModel,
 )
-from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (  # noqa: F401 — model registration
     ProjectSkillModel,
 )
-from shell.infrastructure.project.project_state.persistence.sql.models.project_state import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.project.project_state.persistence.sql.models.project_state import (  # noqa: F401 — model registration
     ProjectStateModel,
 )
-from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (  # noqa: F401 — rejestracja modeli dla Alembic autogenerate
+from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (  # noqa: F401 — model registration for Alembic autogenerate
     SchedulerDefinitionModel,
 )
-from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (  # noqa: F401 — rejestracja modeli dla Alembic autogenerate
+from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (  # noqa: F401 — model registration for Alembic autogenerate
     SchedulerExecutionModel,
 )
-from shell.infrastructure.session.session.persistence.sql.models.session import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.session.session.persistence.sql.models.session import (  # noqa: F401 — model registration
     SessionModel,
 )
-from shell.infrastructure.user.user.persistence.sql.models.user import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.user.user.persistence.sql.models.user import (  # noqa: F401 — model registration
     UserModel,
 )
-from shell.infrastructure.user.user_skill.persistence.sql.models.user_skill import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.user.user_skill.persistence.sql.models.user_skill import (  # noqa: F401 — model registration
     UserSkillModel,
 )
-from shell.infrastructure.user.user_state.persistence.sql.models.user_state import (  # noqa: F401 — rejestracja modeli
+from shell.infrastructure.user.user_state.persistence.sql.models.user_state import (  # noqa: F401 — model registration
     UserStateModel,
 )
 from shell.platform.infrastructure.persistence.sql.models import Base as PlatformBase
@@ -102,15 +102,15 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Jeden metadata — wszystkie tabele są w platform/Base.metadata
+# Single metadata — all tables are in platform/Base.metadata
 target_metadata = PlatformBase.metadata
 
 
 def include_object(obj: object, name: str, type_: str, reflected: bool, compare_to: object) -> bool:
-    """Nie generuj DROP TABLE dla tabel nieobecnych w metadata.
+    """Do not generate DROP TABLE for tables absent from metadata.
 
-    Daje pełną kontrolę nad zmianami schematu — tylko jawne migracje
-    mogą usuwać tabele.
+    Provides full control over schema changes — only explicit
+    migrations may drop tables.
     """
     return not (type_ == "table" and reflected and not compare_to)
 

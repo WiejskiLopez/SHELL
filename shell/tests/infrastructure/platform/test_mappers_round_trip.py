@@ -126,7 +126,11 @@ class TestWorkflowMapper:
         assert entity.session_id.value == "sess-2"
 
     def test_round_trip(self) -> None:
-        original = Workflow.restore(id=WorkflowId("wf-3"), status=WorkflowStatus.ACTIVE, created_at=CreatedAt.from_datetime(_NOW))
+        original = Workflow.restore(
+            id=WorkflowId("wf-3"),
+            status=WorkflowStatus.ACTIVE,
+            created_at=CreatedAt.from_datetime(_NOW),
+        )
         model = workflow_entity_to_model(original)
         model.created_at = _raw(model.created_at)  # type: ignore[assignment]
 

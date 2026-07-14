@@ -27,4 +27,3 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         if session_model.closed_at
         else None,
     )
-

@@ -10,7 +10,7 @@ from shell.platform.application.context import (
 )
 
 if TYPE_CHECKING:
-    from starlette.types import ASGIApp, Receive, Scope, Send
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 
 class CorrelationIdMiddleware:
@@ -22,11 +22,11 @@ class CorrelationIdMiddleware:
             await self.app(scope, receive, send)
             return
 
-        headers = dict(scope.get("headers", []))
+        headers: dict[bytes, bytes] = dict(scope.get("headers", []))
         cid = headers.get(b"x-correlation-id", b"").decode()
         token = set_correlation_id(cid)
 
-        async def send_wrapper(message: dict) -> None:
+        async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start" and cid:
                 message["headers"] = list(message.get("headers", [])) + [
                     (b"X-Correlation-ID", cid.encode())

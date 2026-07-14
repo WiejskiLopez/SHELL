@@ -1,4 +1,4 @@
-"""SessionCoreContainer — minimalny kontener DI dla samodzielnego mikroserwisu Session BC."""
+"""SessionCoreContainer — minimal DI container for the standalone Session BC microservice."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from shell.platform.infrastructure.time.system_clock import SystemClock
 
 
 class SessionCoreContainer(containers.DeclarativeContainer):
-    """Minimalny kontener dla BC Session — używany przy starcie mikroserwisu session."""
+    """Minimal container for BC Session — used when starting the session microservice."""
 
     config = providers.Configuration()
 
@@ -29,12 +29,12 @@ class SessionCoreContainer(containers.DeclarativeContainer):
         session_factory=session_factory,
     )
 
-    # Narzędzia wspólne
+    # Shared tools
     clock_factory = providers.Factory(SystemClock)
     id_generator_factory = providers.Factory(UuidIdGenerator)
     stdlib_logger = providers.Singleton(StdlibLogger, name="shell.session")
 
-    # Szyny aplikacyjne
+    # Application buses
     command_bus = providers.Singleton(CommandBus)
     query_bus = providers.Singleton(QueryBus)
 

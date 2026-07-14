@@ -1,4 +1,4 @@
-"""Rejestracja handlerów na MessageBus — wywoływana przez bus_factory.wire_buses()."""
+"""MessageBus handler registration — invoked by bus_factory.wire_buses()()."""
 
 from __future__ import annotations
 

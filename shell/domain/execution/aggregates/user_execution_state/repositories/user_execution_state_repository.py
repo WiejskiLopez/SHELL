@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 
 
 class UserExecutionStateRepository(Protocol):
-    async def get_by_id(
-        self, id: UserExecutionStateId
-    ) -> UserExecutionState | None: ...
+    async def get_by_id(self, id: UserExecutionStateId) -> UserExecutionState | None: ...
 
     async def get_latest_by_user_execution_id(
         self, user_execution_id: UserExecutionId, direction: StateDirection | None = None

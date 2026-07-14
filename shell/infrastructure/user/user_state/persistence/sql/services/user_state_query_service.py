@@ -33,5 +33,3 @@ class UserStateQueryService:
                 state_data=JsonStr(json.dumps(dict(model.state_data))),
                 created_at=model.created_at,
             )
-
-

@@ -31,7 +31,7 @@ from shell.application.user.user.command_handlers.update_user_handler import Upd
 
 
 class CommandContainer(containers.DeclarativeContainer):
-    """Kontener obsługujący wyłącznie operacje zapisu (Command Handlers)."""
+    """Container handling write operations only (Command Handlers)."""
 
     config = providers.Configuration()
     infra = providers.DependenciesContainer()

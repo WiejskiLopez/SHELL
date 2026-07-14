@@ -19,9 +19,7 @@ class UserExecutionQueryService:
 
     async def get_by_id(self, user_execution_id: str) -> UserExecutionDto | None:
         async with self._session_factory() as session:
-            stmt = select(UserExecutionModel).where(
-                UserExecutionModel.id == user_execution_id
-            )
+            stmt = select(UserExecutionModel).where(UserExecutionModel.id == user_execution_id)
             res = await session.execute(stmt)
             model = res.scalar_one_or_none()
             if not model:

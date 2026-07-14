@@ -18,7 +18,5 @@ class GetSchedulerDefinitionByIdHandler:
     def __init__(self, queries: SchedulerDefinitionQueryService) -> None:
         self._queries = queries
 
-    async def handle(
-        self, query: GetSchedulerDefinitionByIdQuery
-    ) -> SchedulerDefinitionDto | None:
+    async def handle(self, query: GetSchedulerDefinitionByIdQuery) -> SchedulerDefinitionDto | None:
         return await self._queries.get_by_id(query.scheduler_definition_id)

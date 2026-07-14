@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import signal
 from argparse import (
-    Namespace,  # noqa: TC003 — argparse.Namespace używany w sygnaturze run() w runtime
+    Namespace,  # noqa: TC003 — argparse.Namespace used in run() signature at runtime
 )
 from typing import TYPE_CHECKING
 
@@ -15,17 +16,19 @@ from shell.bootstrap.execution.factory.application_factory import ApplicationFac
 if TYPE_CHECKING:
     from shell.platform.infrastructure.configuration.shell_config import ShellConfig
 
+logger = logging.getLogger(__name__)
+
 
 class WorkerCommand(RunnableCommand):
     """Long-running APScheduler job runner."""
 
     async def run(self, args: Namespace) -> None:
         config: ShellConfig = args.shell_config
-        print(f"[scheduler] starting with database: {config.database_url}")
+        logger.info("starting with database: %s", config.database_url)
 
         core_container = await ApplicationFactory(config).build()
 
-        scheduler = core_container.scheduler_service()
+        scheduler = core_container.scheduler_service
 
         loop = asyncio.get_running_loop()
         loop.add_signal_handler(signal.SIGTERM, scheduler.stop)
@@ -33,10 +36,10 @@ class WorkerCommand(RunnableCommand):
 
         await scheduler.start()
 
-        print("[scheduler] running... (Ctrl+C to stop)")
+        logger.info("running... (Ctrl+C to stop)")
         try:
             while scheduler.running:
                 await asyncio.sleep(1)
         except asyncio.CancelledError:
             scheduler.stop()
-        print("[scheduler] stopped")
+        logger.info("stopped")

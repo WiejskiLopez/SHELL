@@ -1,4 +1,4 @@
-"""Kontener szyn aplikacyjnych (CommandBus, QueryBus, EventBus)."""
+"""Application bus container (CommandBus, QueryBus, EventBus)."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 
 
 class BusContainer(containers.DeclarativeContainer):
-    """Szyny komunikatów oraz fabryka UoW."""
+    """Message buses and UoW factory."""
 
     infra = providers.DependenciesContainer()
 

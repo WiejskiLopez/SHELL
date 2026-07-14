@@ -35,7 +35,7 @@ def resolve_api_key(container: object | None = None) -> str:
                 if key_provider is not None:
                     value = key_provider()
                     if value:
-                        return value  # type: ignore[no-any-return]
+                        return value
         except (ValueError, AttributeError):
             pass
     return os.environ.get("SHELL_API_KEY", "")
@@ -50,7 +50,7 @@ def resolve_jwt_secret(container: object | None = None) -> str:
                 if secret_provider is not None:
                     value = secret_provider()
                     if value:
-                        return value  # type: ignore[no-any-return]
+                        return value
         except (ValueError, AttributeError):
             pass
     return os.environ.get("SHELL_JWT_SECRET", "")

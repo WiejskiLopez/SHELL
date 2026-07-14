@@ -22,4 +22,3 @@ def graph_execution_update_model(model: GraphExecutionModel, entity: GraphExecut
     model.graph_definition_id = entity.graph_definition_id.value
     model.updated_at = entity.updated_at.value if entity.updated_at else None
     model.deleted_at = _created_at_value(entity.deleted_at)
-

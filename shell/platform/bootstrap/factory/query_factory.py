@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from shell.application.definition.graph_definition.queries.get_graph_definition_by_id_query import (
     GetGraphDefinitionByIdQuery,
@@ -80,16 +80,14 @@ from shell.application.user.user_state.queries.get_user_state_by_id_query import
 )
 
 if TYPE_CHECKING:
-    from shell.platform.bootstrap.container.core_container import CoreContainer
+    from shell.platform.bootstrap.container.core_container import Container
 
 
-def register_queries(core_container: CoreContainer) -> None:
+def register_queries(container: Container) -> None:
     """Rejestruje wszystkie Query Handlers na QueryBus kontenera."""
 
-    app_ctx: Any = core_container.app
-
-    q_bus = app_ctx.buses.query_bus()
-    queries = app_ctx.queries
+    q_bus = container.app.buses.query_bus
+    queries = container.app.queries
 
     q_bus.register(GetGraphDefinitionByIdQuery, queries.get_graph_definition_handler_factory)
     q_bus.register(GetTaskExecutionByIdQuery, queries.get_task_execution_handler_factory)
@@ -98,7 +96,7 @@ def register_queries(core_container: CoreContainer) -> None:
     q_bus.register(GetRunnerConfigByIdQuery, queries.get_runner_config_handler_factory)
     q_bus.register(GetMessageByIdQuery, queries.get_message_handler_factory)
     q_bus.register(GetTaskExecutionByNameQuery, queries.get_task_execution_by_name_handler_factory)
-    q_bus.register(GetTaskExecutionCurrentQuery, queries.get_current_task_execution_handler_factory)
+    q_bus.register(GetTaskExecutionCurrentQuery, queries.get_task_execution_current_handler_factory)
     q_bus.register(GetWorkflowByIdQuery, queries.get_workflow_handler_factory)
     q_bus.register(GetWorkflowStateByIdQuery, queries.get_workflow_state_handler_factory)
     q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)
@@ -110,10 +108,16 @@ def register_queries(core_container: CoreContainer) -> None:
     q_bus.register(GetNodeDefinitionByIdQuery, queries.get_node_definition_handler_factory)
     q_bus.register(GetProjectByIdQuery, queries.get_project_handler_factory)
     q_bus.register(GetProjectSkillByIdQuery, queries.get_project_skill_handler_factory)
-    q_bus.register(GetSchedulerDefinitionByIdQuery, queries.get_scheduler_definition_handler_factory)
+    q_bus.register(
+        GetSchedulerDefinitionByIdQuery, queries.get_scheduler_definition_handler_factory
+    )
     q_bus.register(GetSchedulerExecutionByIdQuery, queries.get_scheduler_execution_handler_factory)
     q_bus.register(GetEdgeExecutionByIdQuery, queries.get_edge_execution_handler_factory)
     q_bus.register(GetAgentExecutionByIdQuery, queries.get_agent_execution_handler_factory)
-    q_bus.register(GetAgentConfigExecutionByIdQuery, queries.get_agent_config_execution_handler_factory)
-    q_bus.register(GetAgentSkillExecutionByIdQuery, queries.get_agent_skill_execution_handler_factory)
+    q_bus.register(
+        GetAgentConfigExecutionByIdQuery, queries.get_agent_config_execution_handler_factory
+    )
+    q_bus.register(
+        GetAgentSkillExecutionByIdQuery, queries.get_agent_skill_execution_handler_factory
+    )
     q_bus.register(GetSessionStateByIdQuery, queries.get_session_state_handler_factory)

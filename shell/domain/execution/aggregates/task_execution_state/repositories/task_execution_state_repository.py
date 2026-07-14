@@ -16,9 +16,7 @@ if TYPE_CHECKING:
 
 
 class TaskExecutionStateRepository(Protocol):
-    async def get_by_id(
-        self, id: TaskExecutionStateId
-    ) -> TaskExecutionState | None: ...
+    async def get_by_id(self, id: TaskExecutionStateId) -> TaskExecutionState | None: ...
 
     async def get_latest_by_task_id(
         self, task_execution_id: TaskExecutionId

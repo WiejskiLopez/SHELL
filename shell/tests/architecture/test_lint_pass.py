@@ -1,4 +1,4 @@
-"""Architecture test — verify the codebase passes ruff linting with zero errors."""
+"""Architecture test — verify the codebase passes ruff + mypy checks."""
 
 from __future__ import annotations
 
@@ -28,4 +28,25 @@ def test_ruff_zero_errors() -> None:
         print(result.stdout)
         print(result.stderr, file=sys.stderr)
         msg = f"ruff check found {result.returncode} error(s) — run `ruff check shell/` locally"
+        raise AssertionError(msg)
+
+
+def test_mypy_domain_and_application_zero_errors() -> None:
+    """Fail if mypy strict finds any errors in domain/ and application/ layers."""
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "mypy",
+            str(SHELL_PKG / "domain"),
+            str(SHELL_PKG / "application"),
+        ],
+        capture_output=True,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+    )
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr, file=sys.stderr)
+        msg = "mypy strict found errors in domain/application — run `mypy shell/domain shell/application`"
         raise AssertionError(msg)

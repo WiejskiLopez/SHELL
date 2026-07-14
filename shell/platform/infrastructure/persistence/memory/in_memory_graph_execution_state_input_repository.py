@@ -24,9 +24,7 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
     def __init__(self) -> None:
         self._store: dict[str, list[GraphExecutionState]] = {}
 
-    async def get_by_id(
-        self, id: GraphExecutionStateId
-    ) -> GraphExecutionState | None:
+    async def get_by_id(self, id: GraphExecutionStateId) -> GraphExecutionState | None:
         for items in self._store.values():
             for state in items:
                 if state.id == id:
@@ -46,8 +44,7 @@ class InMemoryGraphExecutionStateRepository(GraphExecutionStateRepository):
         if state.graph_execution_id.value not in self._store:
             self._store[state.graph_execution_id.value] = []
         self._store[state.graph_execution_id.value] = [
-            s for s in self._store[state.graph_execution_id.value]
-            if s.direction != state.direction
+            s for s in self._store[state.graph_execution_id.value] if s.direction != state.direction
         ]
         self._store[state.graph_execution_id.value].append(state)
 

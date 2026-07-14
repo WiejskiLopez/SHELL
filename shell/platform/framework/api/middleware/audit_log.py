@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from shell.platform.application.context.correlation_id import get_correlation_id
 
 if TYPE_CHECKING:
-    from starlette.types import ASGIApp, Receive, Scope, Send
+    from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger("shell.api.audit")
 
@@ -24,7 +24,7 @@ class AuditLogMiddleware:
         start = time.perf_counter()
         status_code = 500
 
-        async def send_wrapper(message: dict) -> None:
+        async def send_wrapper(message: Message) -> None:
             nonlocal status_code
             if message["type"] == "http.response.start":
                 status_code = message.get("status", 500)
@@ -48,5 +48,5 @@ class AuditLogMiddleware:
 
 
 def _get_header(scope: Scope, name: str) -> str:
-    headers = dict(scope.get("headers", []))
+    headers: dict[bytes, bytes] = dict(scope.get("headers", []))
     return headers.get(name.encode(), b"").decode()

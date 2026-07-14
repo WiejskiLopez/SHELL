@@ -17,9 +17,10 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
+from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
+    ensure_utc as _ensure_utc,
+)
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
-from ._ensure_utc import _ensure_utc
 
 if TYPE_CHECKING:
     from shell.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state import (
@@ -32,7 +33,8 @@ def model_to_entity(model: GraphExecutionStateModel) -> GraphExecutionState:
         id=GraphExecutionStateId(model.id),
         graph_execution_id=GraphExecutionId(model.graph_execution_id),
         direction=StateDirection(model.direction),
-        state_data=StateData(JsonStr(json.dumps(dict(model.state_data)))) if model.state_data else StateData(JsonStr("{}")),
+        state_data=StateData(JsonStr(json.dumps(dict(model.state_data))))
+        if model.state_data
+        else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
     )
-

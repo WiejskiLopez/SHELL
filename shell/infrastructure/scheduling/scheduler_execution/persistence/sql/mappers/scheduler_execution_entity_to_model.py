@@ -28,4 +28,3 @@ def scheduler_execution_entity_to_model(
         created_at=entity.created_at.value,
         updated_at=entity.updated_at.value,
     )
-

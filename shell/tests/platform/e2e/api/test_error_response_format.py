@@ -31,5 +31,9 @@ class TestErrorResponseFormat:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.put("/api/v1/edge-executions/some-id", json={"target_node_execution_id": "x"}, headers=headers)
+            resp = await client.put(
+                "/api/v1/edge-executions/some-id",
+                json={"target_node_execution_id": "x"},
+                headers=headers,
+            )
         assert resp.status_code in (404, 409)

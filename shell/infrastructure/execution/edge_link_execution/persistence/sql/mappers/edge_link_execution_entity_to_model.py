@@ -25,4 +25,3 @@ def edge_link_execution_entity_to_model(
         created_at=now,
         updated_at=now,
     )
-
