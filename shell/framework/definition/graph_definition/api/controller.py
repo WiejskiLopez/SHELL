@@ -25,8 +25,6 @@ def _to_response(dto: GraphDefinitionDto) -> GraphDefinitionResponse:
         node_definitions=[
             NodeDefinitionResponse(
                 id=nd.id,
-                mode=nd.mode,
-                role=nd.role,
                 node_type=nd.node_type,
                 max_step=nd.max_step,
             )

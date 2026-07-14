@@ -28,8 +28,6 @@ class NodeDefinitionQueryService:
                 return None
             return NodeDefinitionDto(
                 id=model.id,
-                mode=model.mode,
-                role=model.role,
                 node_type=model.node_type,
                 max_step=model.max_step,
             )

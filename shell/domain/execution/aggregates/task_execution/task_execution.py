@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import tempfile
-from typing import TYPE_CHECKING, Any, Self
+from typing import Self
 
+from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+    TaskExecutionCreatedEvent,
+)
 from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_state_error import (
     InvalidTaskStateError,
+)
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
+    TaskExecutionBody,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
@@ -14,21 +20,11 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-        TaskExecutionBody,
-    )
-    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.reason import Reason
-
-
-from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
-    TaskExecutionCreatedEvent,
-)
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.reason import Reason
 
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
@@ -45,7 +41,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     def __init__(
         self,
         id: TaskExecutionId,
-        name: TaskName | None = None,
+        name: TaskName,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
@@ -55,17 +51,19 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         super().__init__(id)
         self._workflow_id = workflow_id
         self._status = TaskExecutionStatus.CREATED
-        self._name = name if name is not None else TaskName("default")
+        self._name = name
         self._body = body
         self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
         self._created_at = created_at
         self._deleted_at = deleted_at
+        if body is not None and not body.value.strip():
+            raise ValueError("TaskExecutionBody cannot be empty")
 
     @classmethod
     def restore(
         cls,
         id: TaskExecutionId,
-        name: TaskName | None = None,
+        name: TaskName,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
@@ -153,12 +151,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         cls,
         *,
         id_: TaskExecutionId,
-        name: Any,
+        name: TaskName | None = None,
         now: CreatedAt,
-        body: TaskExecutionBody | None = None,
+        body: TaskExecutionBody,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
-        task_name = name if isinstance(name, TaskName) else TaskName(str(name))
+        task_name = name if name is not None else TaskName(str(id_.value))
         task_execution = cls(
             id=id_,
             name=task_name,

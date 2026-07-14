@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
 from typing import Any
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
@@ -13,9 +14,8 @@ class NodeExecutionModel(Base, VersionedMixin):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     position: Mapped[int] = mapped_column(nullable=False, default=0)
-    mode: Mapped[str] = mapped_column(nullable=False)
-    role: Mapped[str] = mapped_column(nullable=False, default="")
     node_type: Mapped[str] = mapped_column(nullable=False, default="")
+    created_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     model: Mapped[str] = mapped_column(nullable=False, default="")
     command: Mapped[str] = mapped_column(nullable=False, default="")
     retries: Mapped[int] = mapped_column(nullable=False, default=0)

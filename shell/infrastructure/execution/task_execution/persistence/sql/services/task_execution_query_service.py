@@ -71,9 +71,6 @@ class TaskExecutionQueryService:
                 node_executions = [
                     NodeExecutionDto(
                         id=node_model.id,
-                        position=node_model.position,
-                        mode=node_model.mode,
-                        role=node_model.role,
                         node_type=node_model.node_type,
                         model=node_model.model,
                         command=node_model.command,

@@ -36,12 +36,14 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
     NodeExecutionStatus,
 )
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
 from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
+    TaskExecutionBody,
+)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
@@ -82,7 +84,6 @@ from shell.infrastructure.session.session.persistence.sql.mappers import (
     session_model_to_entity,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.mode import Mode
 from shell.platform.domain.value_objects.timestamp import Timestamp
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -147,6 +148,7 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-1"),
             name=TaskName("test-task"),
+            body=TaskExecutionBody("test body"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -159,6 +161,7 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-2"),
             name=TaskName("nested"),
+            body=TaskExecutionBody("nested body"),
             workflow_id=WorkflowId("wf-1"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
@@ -171,6 +174,7 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-3"),
             name=TaskName("test"),
+            body=TaskExecutionBody("test body"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -325,66 +329,53 @@ class TestNodeExecutionMapper:
     def test_entity_to_model_minimal(self) -> None:
         original = NodeExecution(
             id=NodeExecutionId("gne-1"),
-            position=NodeOrder(0),
             order=NodeOrder(0),
-            mode=Mode.WORKER,
-            role=NodeRole.AGENT,
             node_type=NodeType("worker"),
             status=NodeExecutionStatus.PENDING,
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = _node_execution_entity_to_model(original)
 
         assert model.id == "gne-1"
         assert model.position == 0
-        assert model.mode == "worker"
-        assert model.role == "AGENT"
         assert model.node_type == "worker"
 
     def test_model_to_entity_minimal(self) -> None:
-        model = NodeExecutionModel(id="gne-1", position=0, mode="worker", role="AGENT", node_type="llm", status="pending")
+        model = NodeExecutionModel(id="gne-1", position=0, node_type="llm", status="pending")
         entity = _node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"
-        assert entity.position.value == 0
-        assert entity.mode == Mode.WORKER
+        assert entity.order.value == 0
         assert entity.pull_events() == []
 
     def test_round_trip_minimal(self) -> None:
         original = NodeExecution(
             id=NodeExecutionId("gne-3"),
-            position=NodeOrder(1),
             order=NodeOrder(1),
-            mode=Mode.AGENT,
-            role=NodeRole.AGENT,
             node_type=NodeType("llm"),
             status=NodeExecutionStatus.PENDING,
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = _node_execution_entity_to_model(original)
         restored = _node_execution_model_to_entity(model)
 
         assert restored.id.value == original.id.value
-        assert restored.position == original.position
-        assert restored.mode == original.mode
-        assert restored.role == original.role
+        assert restored.order == original.order
         assert restored.node_type == original.node_type
         assert restored.pull_events() == []
 
     def test_round_trip_full(self) -> None:
         original = NodeExecution(
             id=NodeExecutionId("gne-4"),
-            position=NodeOrder(3),
             order=NodeOrder(3),
-            mode=Mode.PLANNER,
-            role=NodeRole.PLANNER,
             node_type=NodeType("llm"),
             status=NodeExecutionStatus.PENDING,
+            created_at=CreatedAt.from_datetime(_NOW),
         )
         model = _node_execution_entity_to_model(original)
         restored = _node_execution_model_to_entity(model)
 
         assert restored.id.value == "gne-4"
-        assert restored.position.value == 3
-        assert restored.mode == Mode.PLANNER
-        assert restored.role == "PLANNER"
+        assert restored.order.value == 3
         assert restored.node_type.value == "llm"
         assert restored.pull_events() == []

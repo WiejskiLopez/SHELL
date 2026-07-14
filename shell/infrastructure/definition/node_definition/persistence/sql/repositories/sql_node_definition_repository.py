@@ -31,13 +31,7 @@ from shell.domain.definition.aggregates.node_definition.value_objects.max_step i
 from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
     NodeDefinitionId,
 )
-from shell.domain.definition.aggregates.node_definition.value_objects.node_role_name import (
-    NodeRoleName,
-)
-from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
-    NodeTypeName,
-)
-from shell.platform.domain.value_objects.mode import Mode
+from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
 
 
 class SqlNodeDefinitionRepository(NodeDefinitionRepository):
@@ -99,23 +93,17 @@ class SqlNodeDefinitionRepository(NodeDefinitionRepository):
     ) -> NodeDefinition:
         return NodeDefinition(
             id=NodeDefinitionId(model.id),
-            mode=Mode(model.mode),
-            role=NodeRoleName(model.role),
-            node_type=NodeTypeName(model.node_type),
+            node_type=NodeType(model.node_type),
             max_step=MaxStep(model.max_step) if model.max_step is not None else None,
         )
 
     def _entity_to_model(self, entity: NodeDefinition) -> NodeDefinitionModel:
         return NodeDefinitionModel(
             id=entity.id.value,
-            mode=entity.mode.value,
-            role=entity.role.value,
             node_type=entity.node_type.value,
             max_step=entity.max_step.value if entity.max_step is not None else None,
         )
 
     def _update_model(self, model: NodeDefinitionModel, entity: NodeDefinition) -> None:
-        model.mode = entity.mode.value
-        model.role = entity.role.value
         model.node_type = entity.node_type.value
         model.max_step = entity.max_step.value if entity.max_step is not None else None

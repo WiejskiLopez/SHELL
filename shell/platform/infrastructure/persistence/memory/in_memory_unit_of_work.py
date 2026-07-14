@@ -130,12 +130,7 @@ from shell.domain.definition.aggregates.node_definition.node_definition import (
 from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
     NodeDefinitionId,
 )
-from shell.domain.definition.aggregates.node_definition.value_objects.node_role_name import (
-    NodeRoleName,
-)
-from shell.domain.definition.aggregates.node_definition.value_objects.node_type_name import (
-    NodeTypeName,
-)
+from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
 from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
     NodeLinkDefinition,
 )
@@ -143,7 +138,6 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
     NodeLinkDefinitionId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.mode import Mode
 
 TRepository = TypeVar("TRepository")
 
@@ -184,9 +178,7 @@ class InMemoryUnitOfWork(UnitOfWork):
 
         node = NodeDefinition.create(
             id=node_id,
-            mode=Mode("agent"),
-            role=NodeRoleName("agent"),
-            node_type=NodeTypeName("agent"),
+            node_type=NodeType("agent"),
             now=now,
         )
         await self.repository(InMemoryNodeDefinitionRepository).save(node)

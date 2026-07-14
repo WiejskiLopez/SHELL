@@ -33,12 +33,7 @@ class AgentConfigExecutionQueryService:
             return AgentConfigExecutionDto(
                 id=model.id,
                 agent_execution_id=model.agent_execution_id,
-                session_execution_id=model.session_execution_id,
-                user_execution_id=model.user_execution_id,
-                model=model.model,
-                temperature=model.temperature,
-                max_tokens=model.max_tokens,
-                top_p=model.top_p,
+                config_data=model.config_data,
                 created_at=model.created_at,
                 updated_at=model.updated_at,
             )

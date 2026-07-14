@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.execution.aggregates.agent_config_execution import (
     AgentConfigExecution,
 )
@@ -15,19 +13,8 @@ from shell.platform.infrastructure.persistence.in_memory_repository import (
     InMemoryRepository,
 )
 
-if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
-        SessionExecutionId,  # noqa: TC002 -- TYPE_CHECKING import
-    )
-
 
 class InMemoryAgentConfigExecutionRepository(  # type: ignore[misc]
     InMemoryRepository[AgentConfigExecution, AgentConfigExecutionId], AgentConfigExecutionRepository
 ):
-    async def get_by_session_execution_id(
-        self, session_execution_id: SessionExecutionId
-    ) -> AgentConfigExecution | None:
-        for item in self._store.values():
-            if item.session_execution_id == session_execution_id:
-                return item
-        return None
+    pass

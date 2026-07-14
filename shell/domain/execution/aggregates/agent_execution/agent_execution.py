@@ -6,6 +6,8 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
     AgentExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
@@ -14,17 +16,27 @@ if TYPE_CHECKING:
 
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):
-    __slots__ = ("_node_execution_id",)
+    __slots__ = (
+        "_node_execution_id",
+        "_created_at",
+        "_updated_at",
+    )
 
     _node_execution_id: NodeExecutionId
+    _created_at: CreatedAt | None
+    _updated_at: UpdatedAt | None
 
     def __init__(
         self,
         id_: AgentExecutionId,
         node_execution_id: NodeExecutionId,
+        created_at: CreatedAt | None = None,
+        updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id_)
         self._node_execution_id = node_execution_id
+        self._created_at = created_at
+        self._updated_at = updated_at
 
     @classmethod
     def create(
@@ -32,10 +44,13 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         *,
         id_: AgentExecutionId,
         node_execution_id: NodeExecutionId,
+        now: CreatedAt,
     ) -> AgentExecution:
         return cls(
             id_=id_,
             node_execution_id=node_execution_id,
+            created_at=now,
+            updated_at=UpdatedAt(now.value),
         )
 
     @classmethod
@@ -43,12 +58,24 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         cls,
         id_: AgentExecutionId,
         node_execution_id: NodeExecutionId,
+        created_at: CreatedAt | None = None,
+        updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(
             id_=id_,
             node_execution_id=node_execution_id,
+            created_at=created_at,
+            updated_at=updated_at,
         )
 
     @property
     def node_execution_id(self) -> NodeExecutionId:
         return self._node_execution_id
+
+    @property
+    def created_at(self) -> CreatedAt | None:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> UpdatedAt | None:
+        return self._updated_at

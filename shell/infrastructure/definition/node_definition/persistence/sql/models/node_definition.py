@@ -13,8 +13,6 @@ class NodeDefinitionModel(Base, VersionedMixin):
     __tablename__ = "node_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    mode: Mapped[str] = mapped_column(nullable=False)
-    role: Mapped[str] = mapped_column(nullable=False)
     node_type: Mapped[str] = mapped_column(nullable=False)
     max_step: Mapped[int | None] = mapped_column(nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

@@ -7,8 +7,10 @@ from sqlalchemy import select
 from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
     MessageRouterRepository,
 )
-from shell.platform.infrastructure.persistence.sql.mappers.message_mappers import (
+from shell.platform.infrastructure.persistence.sql.mappers.message_entity_to_model import (
     message_entity_to_model,
+)
+from shell.platform.infrastructure.persistence.sql.mappers.message_model_to_entity import (
     message_model_to_entity,
 )
 

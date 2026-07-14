@@ -30,4 +30,5 @@ class AgentExecutionQueryService:
                 id=model.id,
                 node_execution_id=model.node_execution_id,
                 created_at=model.created_at,
+                updated_at=model.updated_at,
             )

@@ -12,12 +12,7 @@ class AgentConfigExecutionModel(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     agent_execution_id: Mapped[str] = mapped_column(nullable=False)
-    session_execution_id: Mapped[str | None] = mapped_column(nullable=True)
-    user_execution_id: Mapped[str | None] = mapped_column(nullable=True)
-    model: Mapped[str] = mapped_column(nullable=False, default="")
-    temperature: Mapped[float] = mapped_column(nullable=False, default=0.0)
-    max_tokens: Mapped[int] = mapped_column(nullable=False, default=0)
-    top_p: Mapped[float] = mapped_column(nullable=False, default=0.0)
+    config_data: Mapped[str] = mapped_column(nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

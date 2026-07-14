@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -13,8 +14,10 @@ from shell.domain.execution.aggregates.node_execution.repositories.node_executio
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
+from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+    NodeExecutionStatus,
+)
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
 from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
     NodeExecutionModel,
@@ -22,7 +25,7 @@ from shell.infrastructure.execution.node_execution.persistence.sql.models.node_e
 from shell.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
     NodeLinkExecutionModel,
 )
-from shell.platform.domain.value_objects.mode import Mode
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from sqlalchemy import Select
@@ -30,10 +33,7 @@ if TYPE_CHECKING:
 
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
-)
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
-    NodeExecutionStatus,
-)
+    )
 
 
 class SqlNodeExecutionRepository(NodeExecutionRepository):
@@ -54,10 +54,9 @@ class SqlNodeExecutionRepository(NodeExecutionRepository):
             model = _node_execution_entity_to_model(node)
             self._session.add(model)
         else:
-            model.position = node.position.value
-            model.mode = node.mode.value
-            model.role = node.role.value
+            model.position = node.order.value
             model.node_type = node.node_type.value
+            model.created_at = node.created_at.value
             model.status = node.status.value
 
     async def list_by_ids(self, ids: list[NodeExecutionId]) -> list[NodeExecution]:
@@ -88,22 +87,19 @@ def _node_execution_model_to_entity(
 ) -> NodeExecution:
     return NodeExecution(
         id=NodeExecutionId(model.id),
-        role=NodeRole(model.role),
-        position=NodeOrder(model.position),
         order=NodeOrder(model.position),
-        mode=Mode(model.mode),
         node_type=NodeType(model.node_type),
         status=NodeExecutionStatus(model.status),
+        created_at=CreatedAt.from_datetime(model.created_at) if model.created_at else CreatedAt.from_datetime(datetime.now(UTC)),
     )
 
 
 def _node_execution_entity_to_model(node: NodeExecution) -> NodeExecutionModel:
     model = NodeExecutionModel(
         id=node.id.value,
-        position=node.position.value,
-        mode=node.mode.value,
-        role=node.role.value,
+        position=node.order.value,
         node_type=node.node_type.value,
+        created_at=node.created_at.value,
         model="",
         command="",
         retries=0,

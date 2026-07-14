@@ -24,11 +24,9 @@ if TYPE_CHECKING:
         NodeDefinitionId,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
     from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
     from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.error_description import ErrorDescription
-    from shell.platform.domain.value_objects.mode import Mode
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.types import JsonStr
 
@@ -37,10 +35,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     __slots__ = (
         "_node_definition_id",
         "_order",
-        "_position",
-        "_mode",
         "_node_type",
-        "_role",
         "_status",
         "_created_at",
     )
@@ -48,22 +43,16 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     def __init__(
         self,
         id: NodeExecutionId,
-        role: NodeRole,
-        position: NodeOrder,
-        mode: Mode,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
+        created_at: CreatedAt,
         node_definition_id: NodeDefinitionId | None = None,
-        created_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._node_definition_id = node_definition_id
         self._order = order
-        self._position = position
-        self._mode = mode
         self._node_type = node_type
-        self._role = role
         self._status = status
         self._created_at = created_at
 
@@ -71,25 +60,19 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     def restore(
         cls,
         id: NodeExecutionId,
-        role: NodeRole,
-        position: NodeOrder,
-        mode: Mode,
         node_type: NodeType,
         order: NodeOrder,
         status: NodeExecutionStatus,
+        created_at: CreatedAt,
         node_definition_id: NodeDefinitionId | None = None,
-        created_at: CreatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
-            node_definition_id=node_definition_id,
-            role=role,
-            order=order,
-            position=position,
-            mode=mode,
             node_type=node_type,
+            order=order,
             status=status,
             created_at=created_at,
+            node_definition_id=node_definition_id,
         )
 
     # --- Factory ---
@@ -99,9 +82,6 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         cls,
         *,
         id: NodeExecutionId,
-        role: NodeRole,
-        position: NodeOrder,
-        mode: Mode,
         node_type: NodeType,
         graph_execution_id: GraphExecutionId | None = None,
         node_definition_id: NodeDefinitionId | None = None,
@@ -110,13 +90,10 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     ) -> NodeExecution:
         instance = cls(
             id=id,
-            node_definition_id=node_definition_id,
-            role=role,
-            order=order,
-            position=position,
-            mode=mode,
             node_type=node_type,
+            order=order,
             status=NodeExecutionStatus.PENDING,
+            node_definition_id=node_definition_id,
             created_at=now,
         )
         instance.append_event(
@@ -163,20 +140,8 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         return self._node_definition_id
 
     @property
-    def role(self) -> NodeRole:
-        return self._role
-
-    @property
     def order(self) -> NodeOrder:
         return self._order
-
-    @property
-    def position(self) -> NodeOrder:
-        return self._position
-
-    @property
-    def mode(self) -> Mode:
-        return self._mode
 
     @property
     def node_type(self) -> NodeType:
@@ -185,3 +150,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     @property
     def status(self) -> NodeExecutionStatus:
         return self._status
+
+    @property
+    def created_at(self) -> CreatedAt:
+        return self._created_at

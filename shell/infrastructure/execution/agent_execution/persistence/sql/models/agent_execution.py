@@ -13,4 +13,5 @@ class AgentExecutionModel(Base):
     id: Mapped[str] = mapped_column(primary_key=True)
     node_execution_id: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
+    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)

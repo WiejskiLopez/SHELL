@@ -50,8 +50,6 @@ def _seed_sync(sync_conn: Connection) -> None:
     if link is None:
         node = NodeDefinitionModel(
             id="base-planner-node-1",
-            mode="agent",
-            role="agent",
             node_type="agent",
         )
         session.add(node)

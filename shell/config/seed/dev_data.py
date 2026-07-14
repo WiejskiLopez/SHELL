@@ -246,8 +246,6 @@ def _seed_graph_definitions(session: Session) -> None:
     g1_nodes = [
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-agent-1",
-            mode="agent",
-            role="agent",
             node_type="agent",
             max_step=10,
         ),
@@ -266,15 +264,11 @@ def _seed_graph_definitions(session: Session) -> None:
     g2_nodes = [
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-planner-1",
-            mode="planner",
-            role="planner",
             node_type="planner",
             max_step=15,
         ),
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-worker-1",
-            mode="worker",
-            role="worker",
             node_type="worker",
             max_step=20,
         ),
@@ -298,22 +292,16 @@ def _seed_graph_definitions(session: Session) -> None:
     g3_nodes = [
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-tasker-1",
-            mode="tasker",
-            role="tasker",
             node_type="tasker",
             max_step=20,
         ),
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-router-1",
-            mode="router",
-            role="router",
             node_type="router",
             max_step=10,
         ),
         NodeDefinitionModel(
             id=f"{_DEV_ID_PREFIX}-gnode-agent-2",
-            mode="agent",
-            role="agent",
             node_type="agent",
             max_step=15,
         ),
@@ -765,18 +753,14 @@ def _seed_workflow_scenario(session: Session) -> None:
                             id=agent_exec_id,
                             node_execution_id=gne_id,
                             created_at=_NOW,
+                            updated_at=_NOW,
                         )
                     )
                     session.add(
                         AgentConfigExecutionModel(
                             id=f"{agent_exec_id}-config",
                             agent_execution_id=agent_exec_id,
-                            session_execution_id=None,
-                            user_execution_id=None,
-                            model="gpt-4",
-                            temperature=0.7,
-                            max_tokens=2048,
-                            top_p=0.9,
+                            config_data='{"model": "gpt-4", "temperature": 0.7, "max_tokens": 2048, "top_p": 0.9}',
                             created_at=_NOW,
                         )
                     )

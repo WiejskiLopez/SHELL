@@ -13,32 +13,22 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.agent_config_execution.value_objects.config import Config
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
-    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
-        SessionExecutionId,
-    )
-    from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
-        UserExecutionId,
-    )
+    from shell.platform.domain.value_objects.config_data import ConfigData
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     __slots__ = (
         "_agent_execution_id",
-        "_session_execution_id",
-        "_user_execution_id",
-        "_config",
+        "_config_data",
         "_created_at",
         "_updated_at",
     )
 
     _agent_execution_id: AgentExecutionId
-    _session_execution_id: SessionExecutionId
-    _user_execution_id: UserExecutionId
-    _config: Config
+    _config_data: ConfigData
     _created_at: CreatedAt
     _updated_at: UpdatedAt
 
@@ -46,17 +36,13 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self,
         id: AgentConfigExecutionId,
         agent_execution_id: AgentExecutionId,
-        session_execution_id: SessionExecutionId,
-        user_execution_id: UserExecutionId,
-        config: Config,
+        config_data: ConfigData,
         created_at: CreatedAt,
         updated_at: UpdatedAt,
     ) -> None:
         super().__init__(id)
         self._agent_execution_id = agent_execution_id
-        self._session_execution_id = session_execution_id
-        self._user_execution_id = user_execution_id
-        self._config = config
+        self._config_data = config_data
         self._created_at = created_at
         self._updated_at = updated_at
 
@@ -65,18 +51,14 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         cls,
         id: AgentConfigExecutionId,
         agent_execution_id: AgentExecutionId,
-        session_execution_id: SessionExecutionId,
-        user_execution_id: UserExecutionId,
-        config: Config,
+        config_data: ConfigData,
         created_at: CreatedAt,
         updated_at: UpdatedAt,
     ) -> Self:
         return cls(
             id=id,
             agent_execution_id=agent_execution_id,
-            session_execution_id=session_execution_id,
-            user_execution_id=user_execution_id,
-            config=config,
+            config_data=config_data,
             created_at=created_at,
             updated_at=updated_at,
         )
@@ -86,25 +68,21 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         cls,
         id: AgentConfigExecutionId,
         agent_execution_id: AgentExecutionId,
-        session_execution_id: SessionExecutionId,
-        user_execution_id: UserExecutionId,
-        config: Config,
+        config_data: ConfigData,
         now: CreatedAt,
     ) -> AgentConfigExecution:
         return cls(
             id=id,
             agent_execution_id=agent_execution_id,
-            session_execution_id=session_execution_id,
-            user_execution_id=user_execution_id,
-            config=config,
+            config_data=config_data,
             created_at=now,
             updated_at=UpdatedAt(now.value),
         )
 
-    def update_config(self, config: Config, now: UpdatedAt) -> None:
-        if config is None:
-            raise ValueError("Config cannot be None")
-        self._config = config
+    def update_config(self, config_data: ConfigData, now: UpdatedAt) -> None:
+        if config_data is None:
+            raise ValueError("ConfigData cannot be None")
+        self._config_data = config_data
         self._updated_at = now
         self.append_event(
             AgentConfigUpdatedEvent.now(
@@ -118,16 +96,8 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         return self._agent_execution_id
 
     @property
-    def session_execution_id(self) -> SessionExecutionId:
-        return self._session_execution_id
-
-    @property
-    def user_execution_id(self) -> UserExecutionId:
-        return self._user_execution_id
-
-    @property
-    def config(self) -> Config:
-        return self._config
+    def config_data(self) -> ConfigData:
+        return self._config_data
 
     @property
     def created_at(self) -> CreatedAt:

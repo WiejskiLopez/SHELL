@@ -34,7 +34,7 @@ from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_q
 from shell.infrastructure.session.session.http.workflow_session_provider_http_adapter import (
     WorkflowSessionProviderHttpAdapter,
 )
-from shell.infrastructure.user.user.sql.user_acl_monolith_adapter import (
+from shell.infrastructure.user.user.persistence.sql.user_acl_monolith_adapter import (
     UserAclMonolithAdapter,
 )
 from shell.platform.infrastructure.context.client import CorrelationIdAsyncClient

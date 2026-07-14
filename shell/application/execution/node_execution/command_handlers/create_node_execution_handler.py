@@ -18,10 +18,8 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
     NodeExecutionId,
 )
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.aggregates.node_execution.value_objects.node_role import NodeRole
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.mode import Mode
 
 if TYPE_CHECKING:
     from shell.application.execution.node_execution.commands.create_node_execution_command import (
@@ -50,10 +48,7 @@ class CreateNodeExecutionHandler:
             id=NodeExecutionId.generate(),
             graph_execution_id=graph_execution_id,
             node_definition_id=NodeDefinitionId(command.node_definition_id),
-            role=NodeRole(command.role),
-            position=NodeOrder(command.position),
-            order=NodeOrder(command.position),
-            mode=Mode(command.mode),
+            order=NodeOrder(0),
             node_type=NodeType(command.node_type),
             now=now,
         )

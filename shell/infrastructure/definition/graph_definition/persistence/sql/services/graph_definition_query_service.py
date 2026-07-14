@@ -54,8 +54,6 @@ class SqlGraphDefinitionQueryService:
             node_definitions=[
                 NodeDefinitionDto(
                     id=node.id,
-                    mode=node.mode,
-                    role=node.role,
                     node_type=node.node_type,
                     max_step=node.max_step,
                 )
