@@ -63,6 +63,8 @@ runtime-evaluated-base-classes = [
 [tool.ruff.lint.per-file-ignores]
 "shell/application/**/dto/*.py" = ["TCH001", "TCH003"]
 "shell/framework/user/user/api/*.py" = ["TCH001"]
+"**/mappers/__init__.py" = ["F401"]
+"**/repositories/__init__.py" = ["F401"]
 
 [tool.mypy]
 python_version = "3.11"

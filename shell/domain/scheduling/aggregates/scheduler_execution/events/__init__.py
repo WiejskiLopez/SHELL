@@ -1,4 +1,5 @@
 """SchedulerExecution domain events."""
+from __future__ import annotations
 
 from shell.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_completed_event import (
     SchedulerExecutionCompletedEvent,

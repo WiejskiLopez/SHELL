@@ -6,13 +6,13 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
     AgentExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):

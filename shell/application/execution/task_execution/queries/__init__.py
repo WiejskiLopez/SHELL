@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.application.execution.task_execution.queries.get_task_execution_by_id_query import (
     GetTaskExecutionByIdQuery,
 )

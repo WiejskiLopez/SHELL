@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
@@ -16,14 +18,16 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_sec
 )
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name import JobName
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
-from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
-    SchedulerExecutionModel,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.timestamp import Timestamp
-from shell.platform.types import JsonStr  # noqa: TC001
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime dla konstrukcji VO
+
+if TYPE_CHECKING:
+    from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
+        SchedulerExecutionModel,
+    )
 
 
 def scheduler_execution_model_to_entity(

@@ -11,8 +11,12 @@ def test_import_linter_contracts() -> None:
     project_root = BASE.parent
     import_linter_path = shutil.which("import-linter")
     if import_linter_path is None:
-        import_linter_path = str(BASE.parent / "venv" / "Scripts" / "import-linter.exe")
-        if not os.path.exists(import_linter_path):
+        for venv_dir in ("venv", ".venv"):
+            candidate = str(BASE.parent / venv_dir / "Scripts" / "import-linter.exe")
+            if os.path.exists(candidate):
+                import_linter_path = candidate
+                break
+        else:
             import_linter_path = "import-linter"
     old_cwd = os.getcwd()
     try:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.project.aggregates.project.project import Project
 from shell.domain.project.aggregates.project.repositories.project_repository import (
     ProjectRepository,

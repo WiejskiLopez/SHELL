@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
     GraphExecutionCreatedEvent,
 )

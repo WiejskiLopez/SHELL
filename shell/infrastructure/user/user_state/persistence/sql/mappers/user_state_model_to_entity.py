@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from shell.domain.user.aggregates.user_state.user_state import UserState
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.domain.user.value_objects.user_id import UserId
-from shell.infrastructure.user.user_state.persistence.sql.models.user_state import UserStateModel
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.state_direction import StateDirection
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+
+from ._ensure_utc import _ensure_utc
+
+if TYPE_CHECKING:
+    from shell.infrastructure.user.user_state.persistence.sql.models.user_state import (
+        UserStateModel,
+    )
 
 
 def user_state_model_to_entity(model: UserStateModel) -> UserState:

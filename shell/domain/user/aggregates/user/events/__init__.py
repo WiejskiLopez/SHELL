@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.user.aggregates.user.events.user_created_event import (
     UserCreatedEvent,
 )

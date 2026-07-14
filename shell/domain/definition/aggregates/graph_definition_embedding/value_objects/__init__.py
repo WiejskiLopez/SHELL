@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding import (
     Embedding,
 )

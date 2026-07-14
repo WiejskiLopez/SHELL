@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
 

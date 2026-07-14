@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.definition.aggregates.node_definition.node_definition import (
     NodeDefinition,
 )

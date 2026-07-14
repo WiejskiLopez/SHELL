@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.definition.aggregates.graph_definition.value_objects.autopilot import Autopilot
 from shell.domain.definition.aggregates.graph_definition.value_objects.command_text import (
     CommandText,

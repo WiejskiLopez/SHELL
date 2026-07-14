@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from shell.domain.scheduling.aggregates.scheduler_definition.scheduler_definition import (
     SchedulerDefinition,
@@ -22,13 +24,15 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
     TriggerConfig,
 )
-from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
-    SchedulerDefinitionModel,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.timestamp import Timestamp
 from shell.platform.types import JsonStr
+
+if TYPE_CHECKING:
+    from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
+        SchedulerDefinitionModel,
+    )
 
 
 def scheduler_definition_model_to_entity(

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.session_execution.repositories.session_execution_repository import (
     SessionExecutionRepository,
 )

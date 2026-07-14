@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.agent_config_execution.exceptions.agent_config_execution_not_found import (
     AgentConfigExecutionNotFound,
 )

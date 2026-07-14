@@ -1,20 +1,15 @@
 from __future__ import annotations
 
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
-    GraphDefinitionId,
-)
-from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
-    NodeDefinitionId,
-)
-from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
-    NodeLinkDefinition,
-)
-from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
-    NodeLinkDefinitionId,
-)
+from typing import TYPE_CHECKING
+
 from shell.infrastructure.definition.node_link_definition.persistence.sql.models import (
     NodeLinkDefinitionModel,
 )
+
+if TYPE_CHECKING:
+    from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+        NodeLinkDefinition,
+    )
 
 
 def node_link_definition_entity_to_model(entity: NodeLinkDefinition) -> NodeLinkDefinitionModel:

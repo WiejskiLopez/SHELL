@@ -101,15 +101,15 @@ from shell.infrastructure.execution.workflow.persistence.memory.in_memory_workfl
 from shell.infrastructure.execution.workflow_state.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
 )
+from shell.infrastructure.messaging.persistence.memory.in_memory_message_router_repository import (
+    InMemoryMessageRouterRepository,
+)
 from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
 from shell.platform.application.ports.unit_of_work import UnitOfWork
 from shell.platform.infrastructure.persistence.memory.in_memory_graph_execution_state_input_repository import (
     InMemoryGraphExecutionStateRepository,
-)
-from shell.platform.infrastructure.persistence.memory.in_memory_message_repository import (
-    InMemoryMessageRouterRepository,
 )
 
 if TYPE_CHECKING:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.task_execution_state.task_execution_state import (
     TaskExecutionState,
 )

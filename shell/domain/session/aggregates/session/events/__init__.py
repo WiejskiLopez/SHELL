@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )

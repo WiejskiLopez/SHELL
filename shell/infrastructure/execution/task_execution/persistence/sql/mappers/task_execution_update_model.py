@@ -2,23 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
-)
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
-    TaskExecutionId,
-)
-from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
-from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
-    TaskExecutionModel,
-)
-from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from ._created_at_value import _created_at_value
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+    from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
+        TaskExecutionModel,
+    )
 
 
 def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution) -> None:

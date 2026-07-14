@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_created_event import (
     EdgeExecutionCreatedEvent,
 )

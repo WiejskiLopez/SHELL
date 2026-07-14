@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.workflow.exceptions.workflow_has_no_nodes import (
     WorkflowHasNoNodes,
 )

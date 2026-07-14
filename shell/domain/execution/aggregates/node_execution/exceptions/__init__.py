@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_mode import (
     InvalidNodeMode,
 )

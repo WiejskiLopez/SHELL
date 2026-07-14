@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.platform.application.context.causation_id import (
     causation_id_var,
     get_causation_id,

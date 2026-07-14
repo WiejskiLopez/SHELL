@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_created_event import (
     EdgeLinkExecutionCreatedEvent,
 )

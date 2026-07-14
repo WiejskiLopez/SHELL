@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.infrastructure.execution.node_execution_state.persistence.sql.models.node_execution_state_aggregate import (
     NodeExecutionStateModel,
 )

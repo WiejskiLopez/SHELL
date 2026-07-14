@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from shell.infrastructure.messaging.persistence.sql.models.inbox_message import (
     InboxMessageModel,
 )
-from shell.infrastructure.messaging.persistence.sql.models.message import MessageModel
+from shell.infrastructure.messaging.persistence.sql.models.message_router import MessageRouterModel
 from shell.infrastructure.messaging.persistence.sql.models.outbox_message import (
     OutboxMessageModel,
 )
@@ -9,5 +11,5 @@ from shell.infrastructure.messaging.persistence.sql.models.outbox_message import
 __all__ = [
     "OutboxMessageModel",
     "InboxMessageModel",
-    "MessageModel",
+    "MessageRouterModel",
 ]

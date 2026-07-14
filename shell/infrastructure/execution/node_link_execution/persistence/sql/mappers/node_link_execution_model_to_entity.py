@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
@@ -12,9 +14,11 @@ from shell.domain.execution.aggregates.node_link_execution.node_link_execution i
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,
 )
-from shell.infrastructure.execution.node_link_execution.persistence.sql.models import (
-    NodeLinkExecutionModel,
-)
+
+if TYPE_CHECKING:
+    from shell.infrastructure.execution.node_link_execution.persistence.sql.models import (
+        NodeLinkExecutionModel,
+    )
 
 
 def node_link_execution_model_to_entity(model: NodeLinkExecutionModel) -> NodeLinkExecution:

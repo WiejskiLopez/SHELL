@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
-from shell.infrastructure.session.session.persistence.sql.models.session import SessionModel
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
+if TYPE_CHECKING:
+    from shell.infrastructure.session.session.persistence.sql.models.session import SessionModel
 
 
 def session_model_to_entity(session_model: SessionModel) -> Session:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
     SchedulerDefinitionModel,
 )

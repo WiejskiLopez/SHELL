@@ -1,11 +1,13 @@
-from shell.domain.definition.aggregates.runner_config.runner_config import RunnerConfig
-from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
-    RunnerConfigId,
-)
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from shell.infrastructure.definition.runner_config.persistence.sql.models import (
     RunnerConfigModel,
 )
-from shell.platform.domain.value_objects.created_at import CreatedAt
+
+if TYPE_CHECKING:
+    from shell.domain.definition.aggregates.runner_config.runner_config import RunnerConfig
 
 
 def runner_config_entity_to_model(runner_config: RunnerConfig) -> RunnerConfigModel:

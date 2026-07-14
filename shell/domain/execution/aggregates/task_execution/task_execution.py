@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 import tempfile
-from typing import Self
+from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_state_error import (
     InvalidTaskStateError,
-)
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
@@ -20,11 +17,16 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.reason import Reason
+
+if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
+        TaskExecutionBody,
+    )
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.reason import Reason
 
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):

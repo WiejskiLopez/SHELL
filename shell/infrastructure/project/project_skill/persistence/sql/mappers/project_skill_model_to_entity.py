@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from typing import TYPE_CHECKING
 
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 from shell.domain.project.aggregates.project_skill.project_skill import ProjectSkill
@@ -13,13 +13,17 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_d
 from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
     ProjectSkillId,
 )
-from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
-    ProjectSkillModel,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+
+from ._ensure_utc import _ensure_utc
+
+if TYPE_CHECKING:
+    from shell.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
+        ProjectSkillModel,
+    )
 
 
 def project_skill_model_to_entity(model: ProjectSkillModel) -> ProjectSkill:

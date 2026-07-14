@@ -104,6 +104,9 @@ from shell.infrastructure.execution.workflow.persistence.sql.repositories.sql_wo
 from shell.infrastructure.execution.workflow_state.persistence.sql.repositories.sql_workflow_state_repository import (
     SqlWorkflowStateRepository,
 )
+from shell.infrastructure.messaging.persistence.sql.repositories.sql_message_router_repository import (
+    SqlMessageRouterRepository,
+)
 from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.repositories.sql_scheduler_definition_repository import (
     SqlSchedulerDefinitionRepository,
 )
@@ -121,9 +124,6 @@ from shell.infrastructure.user.user_skill.persistence.sql.repositories.sql_user_
 )
 from shell.infrastructure.user.user_state.persistence.sql.repositories.sql_user_state_repository import (
     SqlUserStateRepository,
-)
-from shell.platform.infrastructure.persistence.sql.repositories.sql_message_repository import (
-    SqlMessageRouterRepository,
 )
 from shell.platform.infrastructure.persistence.sql_alchemy_uow_base import (
     SqlAlchemyUnitOfWorkBase,

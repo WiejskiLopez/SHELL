@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from shell.domain.execution.aggregates.workflow.value_objects.node_execution_result_id import (
     NodeExecutionResultId,
 )
