@@ -18,3 +18,4 @@ htmlcov/
 *.log
 *.db
 shell_dev/
+frontend/
