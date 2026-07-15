@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.edge_execution.edge_execution import EdgeExecution
-from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id import (
-    EdgeDefinitionId,
+from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id_ref import (
+    EdgeDefinitionIdRef,
 )
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 def edge_execution_model_to_entity(model: EdgeExecutionModel) -> EdgeExecution:
     return EdgeExecution.restore(
         id_=EdgeExecutionId(model.id),
-        edge_definition_id=EdgeDefinitionId(model.edge_definition_id),
+        edge_definition_id=EdgeDefinitionIdRef(model.edge_definition_id),
         source_node_execution_id=NodeExecutionId(model.source_node_execution_id),
         target_node_execution_id=(
             NodeExecutionId(model.target_node_execution_id)

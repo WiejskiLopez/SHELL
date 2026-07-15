@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import ast
 import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pathlib
 
 from _arch_helpers import (
     BASE,
@@ -933,3 +937,86 @@ def test_domain_port_signatures_have_domain_types() -> None:
                                 violations.append(key)
     # Ports są boundary do innych BC/systems — str/dict są akceptowalne jako anti-corruption layer.
     # Nie blokujemy, tylko rejestrujemy — docelowo warto rozwijać ACL z dedykowanymi VO.
+
+
+# ── 19. ID classes inherit EntityId ──────────────────────────────────
+
+_ENTITY_ID_BASES = {"EntityId"}
+
+_VO_BASES_SET = {"ValueObject"}
+
+_KNOWN_ID_NOT_ENTITY_ID: frozenset[str] = frozenset({})
+
+
+def test_id_classes_inherit_entity_id() -> None:
+    violations: list[str] = []
+    for path in iter_py_files(BASE / "domain"):
+        rel = path.relative_to(BASE).as_posix()
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            name = node.name
+            if not name.endswith("Id") and not name.endswith("IdRef"):
+                continue
+            if name == "EntityId":
+                continue
+            if _inherits_any(node, _ENTITY_ID_BASES):
+                continue
+            key = f"{rel}: class {name}"
+            if key in _KNOWN_ID_NOT_ENTITY_ID:
+                continue
+            violations.append(key)
+    assert not violations, (
+        "All ID classes (suffix Id/IdRef) must inherit from EntityId, not ValueObject:\n"
+        + "\n".join(violations)
+    )
+
+
+# ── 20. Cross-BC ID references use IdRef suffix ─────────────────────
+
+_KNOWN_IDREF_DUPLICATES: frozenset[str] = frozenset({})
+
+
+def _extract_bc(path: pathlib.Path) -> str | None:
+    rel = path.relative_to(BASE).as_posix()
+    parts = rel.split("/")
+    if len(parts) >= 2 and parts[0] == "domain":
+        return parts[1]
+    return None
+
+
+def test_cross_bc_id_refs_use_idref_suffix() -> None:
+    violations: list[str] = []
+    id_classes_by_stem: dict[str, list[tuple[str, str]]] = {}
+    for path in iter_py_files(BASE / "domain"):
+        bc = _extract_bc(path)
+        if bc is None or bc == "platform":
+            continue
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            name = node.name
+            if not name.endswith("Id") or name.endswith("IdRef"):
+                continue
+            if name == "EntityId":
+                continue
+            stem = name[:-2]
+            id_classes_by_stem.setdefault(stem, []).append((bc, f"{path.relative_to(BASE)}: class {name}"))
+    for stem, entries in id_classes_by_stem.items():
+        if len(entries) <= 1:
+            continue
+        bcs = [e[0] for e in entries]
+        key = f"stem={stem} in BCs={bcs}"
+        if key in _KNOWN_IDREF_DUPLICATES:
+            continue
+        for _, loc in entries:
+            violations.append(
+                f"{loc} — duplicate ID stem '{stem}' found in BCs {bcs}. "
+                f"Only one BC may own {{stem}}Id; others must use {{stem}}IdRef."
+            )
+    assert not violations, (
+        "Duplicate *Id class names across Bounded Contexts — use IdRef suffix for cross-BC references:\n"
+        + "\n".join(violations)
+    )

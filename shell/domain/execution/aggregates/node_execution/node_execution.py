@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id import (
-        NodeDefinitionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id_ref import (
+        NodeDefinitionIdRef,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
     from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
@@ -47,7 +47,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         order: NodeOrder,
         status: NodeExecutionStatus,
         created_at: CreatedAt,
-        node_definition_id: NodeDefinitionId | None = None,
+        node_definition_id: NodeDefinitionIdRef | None = None,
     ) -> None:
         super().__init__(id)
         self._node_definition_id = node_definition_id
@@ -64,7 +64,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         order: NodeOrder,
         status: NodeExecutionStatus,
         created_at: CreatedAt,
-        node_definition_id: NodeDefinitionId | None = None,
+        node_definition_id: NodeDefinitionIdRef | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -84,7 +84,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         id: NodeExecutionId,
         node_type: NodeType,
         graph_execution_id: GraphExecutionId | None = None,
-        node_definition_id: NodeDefinitionId | None = None,
+        node_definition_id: NodeDefinitionIdRef | None = None,
         order: NodeOrder,
         now: CreatedAt,
     ) -> NodeExecution:
@@ -136,7 +136,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
     # --- Properties ---
 
     @property
-    def node_definition_id(self) -> NodeDefinitionId | None:
+    def node_definition_id(self) -> NodeDefinitionIdRef | None:
         return self._node_definition_id
 
     @property

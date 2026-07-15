@@ -11,8 +11,8 @@ from shell.domain.execution.aggregates.node_execution.node_execution import (
 from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
     NodeExecutionRepository,
 )
-from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id import (
-    NodeDefinitionId,
+from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id_ref import (
+    NodeDefinitionIdRef,
 )
 from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
@@ -47,7 +47,7 @@ class CreateNodeExecutionHandler:
         node_execution = NodeExecution.new(
             id=NodeExecutionId.generate(),
             graph_execution_id=graph_execution_id,
-            node_definition_id=NodeDefinitionId(command.node_definition_id),
+            node_definition_id=NodeDefinitionIdRef(command.node_definition_id),
             order=NodeOrder(0),
             node_type=NodeType(command.node_type),
             now=now,

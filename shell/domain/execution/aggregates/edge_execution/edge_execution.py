@@ -9,8 +9,8 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id import (
-        EdgeDefinitionId,
+    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id_ref import (
+        EdgeDefinitionIdRef,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
@@ -43,7 +43,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     def __init__(
         self,
         id_: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionId,
+        edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
         created_at: CreatedAt | None = None,
@@ -62,7 +62,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     def restore(
         cls,
         id_: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionId,
+        edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
         created_at: CreatedAt | None = None,
@@ -84,7 +84,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         cls,
         *,
         id_: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionId,
+        edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
         now: CreatedAt,
@@ -135,7 +135,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         )
 
     @property
-    def edge_definition_id(self) -> EdgeDefinitionId:
+    def edge_definition_id(self) -> EdgeDefinitionIdRef:
         return self._edge_definition_id
 
     @property

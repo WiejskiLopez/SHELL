@@ -1,19 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from uuid import uuid4
-
-from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.base.entity_id import EntityId
 
 
-@dataclass(frozen=True, slots=True)
-class NodeLinkDefinitionId(ValueObject):
-    value: str
-
-    def __post_init__(self) -> None:
-        if not self.value:
-            raise ValueError("NodeLinkDefinitionId cannot be empty")
-
-    @classmethod
-    def generate(cls) -> NodeLinkDefinitionId:
-        return cls(str(uuid4()))
+class NodeLinkDefinitionId(EntityId):
+    pass

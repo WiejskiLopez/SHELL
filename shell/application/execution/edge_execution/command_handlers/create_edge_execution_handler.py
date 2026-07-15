@@ -6,8 +6,8 @@ from shell.domain.execution.aggregates.edge_execution.edge_execution import Edge
 from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
     EdgeExecutionRepository,
 )
-from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id import (
-    EdgeDefinitionId,
+from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id_ref import (
+    EdgeDefinitionIdRef,
 )
 from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
     EdgeExecutionId,
@@ -42,7 +42,7 @@ class CreateEdgeExecutionHandler:
         now = CreatedAt.from_datetime(self._time.now())
         edge_execution = EdgeExecution.new(
             id_=self._identity.new_id(EdgeExecutionId),
-            edge_definition_id=EdgeDefinitionId(command.edge_definition_id),
+            edge_definition_id=EdgeDefinitionIdRef(command.edge_definition_id),
             source_node_execution_id=NodeExecutionId(command.source_node_execution_id),
             target_node_execution_id=(
                 NodeExecutionId(command.target_node_execution_id)

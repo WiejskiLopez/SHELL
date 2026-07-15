@@ -32,7 +32,7 @@ class WorkflowMapper:
 
     def to_domain(self, model: WorkflowModel) -> Workflow:
         return Workflow.restore(
-            workflow_id=WorkflowId(model.id),
+            id=WorkflowId(model.id),
             name=WorkflowName(model.name),
             status=Status(model.status),
             version=model.version,
@@ -59,7 +59,7 @@ def to_model(self, domain: Workflow) -> WorkflowModel:
 
 def to_domain(self, model: WorkflowModel) -> Workflow:
     nodes = [Node.restore(NodeId(n.id), NodeName(n.name)) for n in model.nodes]
-    return Workflow.restore(WorkflowId(model.id), WorkflowName(model.name), nodes)
+    return Workflow.restore(id=WorkflowId(model.id), name=WorkflowName(model.name), nodes=nodes)
 ```
 
 ## restore()

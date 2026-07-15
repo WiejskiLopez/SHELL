@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.base.value_object import ValueObject
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id import (
-        NodeDefinitionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id_ref import (
+        NodeDefinitionIdRef,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class NodeDefinitionExecutionSlot(ValueObject):
-    node_definition_id: NodeDefinitionId
+    node_definition_id: NodeDefinitionIdRef
     node_execution_id: NodeExecutionId | None = None
 
     @property

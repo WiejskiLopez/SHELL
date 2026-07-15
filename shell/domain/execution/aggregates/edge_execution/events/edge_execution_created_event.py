@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id import (
-        EdgeDefinitionId,
+    from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id_ref import (
+        EdgeDefinitionIdRef,
     )
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
         EdgeExecutionId,
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class EdgeExecutionCreatedEvent(DomainEvent):
     edge_execution_id: EdgeExecutionId
-    edge_definition_id: EdgeDefinitionId
+    edge_definition_id: EdgeDefinitionIdRef
     source_node_execution_id: NodeExecutionId
     target_node_execution_id: NodeExecutionId | None
 
@@ -29,7 +29,7 @@ class EdgeExecutionCreatedEvent(DomainEvent):
     def now(
         cls,
         edge_execution_id: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionId,
+        edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None,
         now: CreatedAt,

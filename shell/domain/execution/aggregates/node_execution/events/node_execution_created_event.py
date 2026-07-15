@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id import (
-        NodeDefinitionId,
+    from shell.domain.execution.aggregates.node_execution.value_objects.node_definition_id_ref import (
+        NodeDefinitionIdRef,
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True, slots=True)
 class NodeExecutionCreatedEvent(DomainEvent):
     node_execution_id: NodeExecutionId
-    node_definition_id: NodeDefinitionId | None
+    node_definition_id: NodeDefinitionIdRef | None
     graph_execution_id: GraphExecutionId | None
 
     @classmethod
@@ -29,7 +29,7 @@ class NodeExecutionCreatedEvent(DomainEvent):
         cls,
         *,
         node_execution_id: NodeExecutionId,
-        node_definition_id: NodeDefinitionId | None,
+        node_definition_id: NodeDefinitionIdRef | None,
         graph_execution_id: GraphExecutionId | None,
         now: CreatedAt,
     ) -> NodeExecutionCreatedEvent:
