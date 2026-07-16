@@ -1003,7 +1003,9 @@ def test_cross_bc_id_refs_use_idref_suffix() -> None:
             if name == "EntityId":
                 continue
             stem = name[:-2]
-            id_classes_by_stem.setdefault(stem, []).append((bc, f"{path.relative_to(BASE)}: class {name}"))
+            id_classes_by_stem.setdefault(stem, []).append(
+                (bc, f"{path.relative_to(BASE)}: class {name}")
+            )
     for stem, entries in id_classes_by_stem.items():
         if len(entries) <= 1:
             continue
