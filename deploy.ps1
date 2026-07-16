@@ -24,4 +24,12 @@ if ($LASTEXITCODE -ne 0) {
     exit 1
 }
 
+Write-Host "`n=== Krok 4: Restart kontenera ===" -ForegroundColor Cyan
+docker compose -f docker/dev/docker-compose.yml down --remove-orphans
+docker compose -f docker/dev/docker-compose.yml up -d
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Restart kontenera nie powiodl sie" -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "`n=== Deploy zakonczony ===" -ForegroundColor Green
