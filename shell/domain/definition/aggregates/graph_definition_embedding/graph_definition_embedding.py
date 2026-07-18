@@ -10,6 +10,9 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
@@ -24,7 +27,7 @@ if TYPE_CHECKING:
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
-    GraphDefinitionEmbeddingCreatedEvent,
+GraphDefinitionEmbeddingCreatedEvent,
 )
 
 
@@ -110,12 +113,25 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     def _new(cls) -> GraphDefinitionEmbedding:
         raise NotImplementedError("_new() not yet implemented")
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            GraphDefinitionEmbeddingDeletedEvent.now(
+                graphdefinitionembedding_id=self._id,
+                now=now,
+            )
+        )
 
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphDefinitionEmbeddingUpdatedEvent.now(
+                graphdefinitionembedding_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def graph_definition_id(self) -> GraphDefinitionId:

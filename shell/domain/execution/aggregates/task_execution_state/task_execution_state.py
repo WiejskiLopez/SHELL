@@ -13,6 +13,10 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.task_execution_state.events.task_execution_state_created_event import TaskExecutionStateCreatedEvent
 
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
@@ -83,11 +87,24 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
             created_at=created_at,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            TaskExecutionStateDeletedEvent.now(
+                taskexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            TaskExecutionStateUpdatedEvent.now(
+                taskexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def task_execution_id(self) -> TaskExecutionId:

@@ -13,6 +13,8 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+from project.aggregates.project_skill.events.projectskill_updated_event import ProjectSkillUpdatedEvent
+from project.aggregates.project_skill.events.projectskill_deleted_event import ProjectSkillDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
@@ -93,13 +95,24 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            ProjectSkillDeletedEvent.now(
+                projectskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            ProjectSkillUpdatedEvent.now(
+                projectskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def project_id(self) -> ProjectId:
         return self._project_id

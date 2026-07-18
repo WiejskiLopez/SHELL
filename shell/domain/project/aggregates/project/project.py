@@ -11,6 +11,8 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
+from project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_name import ProjectName
@@ -107,13 +109,24 @@ class Project(AggregateRoot[ProjectId]):
         return cls._new(id_=id_, name=name, repo_url=repo_url, now=now)
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            ProjectDeletedEvent.now(
+                project_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            ProjectUpdatedEvent.now(
+                project_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def name(self) -> ProjectName:
         return self._name

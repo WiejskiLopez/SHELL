@@ -7,8 +7,11 @@ from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_created_event import (
-    AgentSkillExecutionCreatedEvent,
+AgentSkillExecutionCreatedEvent,
 )
+
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
@@ -91,11 +94,24 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
             now=now,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            AgentSkillExecutionDeletedEvent.now(
+                agentskillexecution_id=self._id,
+                now=now,
+            )
+        )
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            AgentSkillExecutionUpdatedEvent.now(
+                agentskillexecution_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def agent_execution_id(self) -> AgentExecutionId:

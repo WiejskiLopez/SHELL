@@ -11,6 +11,9 @@ from shell.domain.execution.aggregates.agent_config_execution.value_objects.agen
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from execution.aggregates.agent_config_execution.events.agentconfigexecution_updated_event import AgentConfigExecutionUpdatedEvent
+from execution.aggregates.agent_config_execution.events.agentconfigexecution_deleted_event import AgentConfigExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
@@ -96,13 +99,24 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def _new(cls) -> AgentConfigExecution:
         raise NotImplementedError("_new() not yet implemented")
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            AgentConfigExecutionDeletedEvent.now(
+                agentconfigexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            AgentConfigExecutionUpdatedEvent.now(
+                agentconfigexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def agent_execution_id(self) -> AgentExecutionId:
         return self._agent_execution_id

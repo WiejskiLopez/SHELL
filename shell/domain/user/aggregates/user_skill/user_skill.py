@@ -11,6 +11,8 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from user.aggregates.user_skill.events.userskill_updated_event import UserSkillUpdatedEvent
+from user.aggregates.user_skill.events.userskill_deleted_event import UserSkillDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
@@ -90,13 +92,24 @@ class UserSkill(AggregateRoot[SkillId]):
         return cls._new(user_id=user_id, skill_data=skill_data, now=now)
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            UserSkillDeletedEvent.now(
+                userskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            UserSkillUpdatedEvent.now(
+                userskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def user_id(self) -> UserId:
         return self._user_id

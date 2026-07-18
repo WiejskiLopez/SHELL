@@ -17,6 +17,10 @@ from shell.platform.domain.value_objects.timestamp import Timestamp
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.domain.scheduling.aggregates.scheduler_job.events.scheduler_job_created_event import SchedulerJobCreatedEvent
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from scheduling.aggregates.scheduler_job.events.schedulerjob_updated_event import SchedulerJobUpdatedEvent
+from scheduling.aggregates.scheduler_job.events.schedulerjob_deleted_event import SchedulerJobDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
@@ -145,12 +149,23 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         )
         return instance
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SchedulerJobDeletedEvent.now(
+                schedulerjob_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            SchedulerJobUpdatedEvent.now(
+                schedulerjob_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:
         return self._scheduler_definition_id

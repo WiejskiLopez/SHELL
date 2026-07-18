@@ -17,6 +17,10 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_updated_event import SchedulerDefinitionUpdatedEvent
+from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_deleted_event import SchedulerDefinitionDeletedEvent
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
         ActionConfig,
@@ -145,12 +149,23 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
             description=description,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SchedulerDefinitionDeletedEvent.now(
+                schedulerdefinition_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            SchedulerDefinitionUpdatedEvent.now(
+                schedulerdefinition_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def name(self) -> SchedulerName:
         return self._name

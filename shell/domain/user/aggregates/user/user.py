@@ -10,6 +10,8 @@ from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from user.aggregates.user.events.user_updated_event import UserUpdatedEvent
+from user.aggregates.user.events.user_deleted_event import UserDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_email import UserEmail
@@ -91,13 +93,24 @@ class User(AggregateRoot[UserId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            UserDeletedEvent.now(
+                user_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            UserUpdatedEvent.now(
+                user_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def email(self) -> UserEmail:
         return self._email

@@ -196,12 +196,25 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            GraphExecutionDeletedEvent.now(
+                graphexecution_id=self._id,
+                now=now,
+            )
+        )
 
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphExecutionUpdatedEvent.now(
+                graphexecution_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def task_execution_id(self) -> TaskExecutionId:

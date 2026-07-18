@@ -16,6 +16,13 @@ from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from session.aggregates.session.events.session_updated_event import SessionUpdatedEvent
+from session.aggregates.session.events.session_deleted_event import SessionDeletedEvent
+
+from shell.platform.domain.value_objects.deletedat import DeletedAt
+
+from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -81,17 +88,29 @@ class Session(AggregateRoot[SessionId]):
 
 
     @classmethod
-    def _update(cls) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            SessionUpdatedEvent.now(
+                session_id=self._id,
+                now=now,
+            )
+        )
 
 
     @classmethod
     def _new(cls) -> Session:
         raise NotImplementedError("_new() not yet implemented")
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SessionDeletedEvent.now(
+                session_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def user_id(self) -> UserIdRef:
         return self._user_id

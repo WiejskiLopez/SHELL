@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+from shell.platform.domain.events import DomainEvent
+
+if TYPE_CHECKING:
+    from shell.domain.session.aggregates.session_state.value_objects.SessionStateId import SessionStateId
+    from shell.platform.domain.value_objects.created_at import CreatedAt
+
+
+@dataclass(frozen=True, slots=True)
+class SessionStateDeletedEvent(DomainEvent):
+    sessionstate_id: SessionStateId
+
+    @classmethod
+    def now(cls, sessionstate_id: SessionStateId, now: CreatedAt) -> "SessionStateDeletedEvent":
+        return cls(occurred_at=now, sessionstate_id=sessionstate_id)

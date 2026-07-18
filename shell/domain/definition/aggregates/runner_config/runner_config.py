@@ -7,6 +7,10 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from definition.aggregates.runner_config.events.runnerconfig_updated_event import RunnerConfigUpdatedEvent
+from definition.aggregates.runner_config.events.runnerconfig_deleted_event import RunnerConfigDeletedEvent
 
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
     __slots__ = (
@@ -22,12 +26,23 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
             created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            RunnerConfigDeletedEvent.now(
+                runnerconfig_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            RunnerConfigUpdatedEvent.now(
+                runnerconfig_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at

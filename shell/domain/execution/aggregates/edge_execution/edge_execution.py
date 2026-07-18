@@ -25,6 +25,8 @@ from shell.domain.execution.aggregates.edge_execution.events.edge_execution_upda
     EdgeExecutionUpdatedEvent,
 )
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from execution.aggregates.edge_execution.events.edgeexecution_updated_event import EdgeExecutionUpdatedEvent
+from execution.aggregates.edge_execution.events.edgeexecution_deleted_event import EdgeExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -140,13 +142,24 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            EdgeExecutionDeletedEvent.now(
+                edgeexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            EdgeExecutionUpdatedEvent.now(
+                edgeexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def edge_definition_id(self) -> EdgeDefinitionIdRef:
         return self._edge_definition_id

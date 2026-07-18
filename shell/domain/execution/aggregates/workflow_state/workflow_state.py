@@ -7,6 +7,14 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
+from shell.platform.domain.value_objects.deletedat import DeletedAt
+
+from shell.platform.domain.value_objects.updatedat import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
@@ -72,6 +80,25 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
     @classmethod
     def _new(cls) -> WorkflowState:
         raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            WorkflowStateDeletedEvent.now(
+                workflowstate_id=self._id,
+                now=now,
+            )
+        )
+
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            WorkflowStateUpdatedEvent.now(
+                workflowstate_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def workflow_id(self) -> WorkflowId:

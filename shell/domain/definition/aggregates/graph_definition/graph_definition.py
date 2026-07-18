@@ -9,6 +9,14 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
     GraphDefinitionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from definition.aggregates.graph_definition.events.graphdefinition_updated_event import GraphDefinitionUpdatedEvent
+from definition.aggregates.graph_definition.events.graphdefinition_deleted_event import GraphDefinitionDeletedEvent
+
+from shell.platform.domain.value_objects.deletedat import DeletedAt
+
+from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -51,8 +59,14 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         return instance
 
     @classmethod
-    def _update(cls) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphDefinitionUpdatedEvent.now(
+                graphdefinition_id=self._id,
+                now=now,
+            )
+        )
 
 
     @classmethod
@@ -60,6 +74,12 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            GraphDefinitionDeletedEvent.now(
+                graphdefinition_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )

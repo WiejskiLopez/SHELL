@@ -18,6 +18,13 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from execution.aggregates.task_execution.events.taskexecution_updated_event import TaskExecutionUpdatedEvent
+from execution.aggregates.task_execution.events.taskexecution_deleted_event import TaskExecutionDeletedEvent
+
+from shell.platform.domain.value_objects.deletedat import DeletedAt
+
+from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
@@ -114,8 +121,14 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
 
     @classmethod
-    def _update(cls) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            TaskExecutionUpdatedEvent.now(
+                taskexecution_id=self._id,
+                now=now,
+            )
+        )
 
 
     @classmethod
@@ -123,9 +136,15 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            TaskExecutionDeletedEvent.now(
+                taskexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def name(self) -> TaskName:
         return self._name

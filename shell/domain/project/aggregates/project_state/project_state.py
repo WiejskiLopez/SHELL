@@ -21,6 +21,8 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
+from project.aggregates.project_state.events.projectstate_updated_event import ProjectStateUpdatedEvent
+from project.aggregates.project_state.events.projectstate_deleted_event import ProjectStateDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
@@ -93,13 +95,24 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            ProjectStateDeletedEvent.now(
+                projectstate_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            ProjectStateUpdatedEvent.now(
+                projectstate_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def project_id(self) -> ProjectId:
         return self._project_id

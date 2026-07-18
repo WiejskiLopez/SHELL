@@ -19,6 +19,8 @@ from shell.domain.user.aggregates.user_state.value_objects.user_state_id import 
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.types import JsonStr
+from user.aggregates.user_state.events.userstate_updated_event import UserStateUpdatedEvent
+from user.aggregates.user_state.events.userstate_deleted_event import UserStateDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
@@ -91,13 +93,24 @@ class UserState(AggregateRoot[UserStateId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            UserStateDeletedEvent.now(
+                userstate_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            UserStateUpdatedEvent.now(
+                userstate_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def user_id(self) -> UserId:
         return self._user_id

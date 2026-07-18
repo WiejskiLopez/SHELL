@@ -7,6 +7,10 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.session_execution_state.events.session_execution_state_created_event import SessionExecutionStateCreatedEvent
 
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
@@ -75,11 +79,24 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
             created_at=created_at,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SessionExecutionStateDeletedEvent.now(
+                sessionexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            SessionExecutionStateUpdatedEvent.now(
+                sessionexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def session_execution_id(self) -> SessionExecutionId:

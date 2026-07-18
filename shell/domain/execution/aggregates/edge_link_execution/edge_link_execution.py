@@ -26,6 +26,8 @@ from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_exec
     EdgeLinkExecutionUpdatedEvent,
 )
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from execution.aggregates.edge_link_execution.events.edgelinkexecution_updated_event import EdgeLinkExecutionUpdatedEvent
+from execution.aggregates.edge_link_execution.events.edgelinkexecution_deleted_event import EdgeLinkExecutionDeletedEvent
 
 
 class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
@@ -125,13 +127,24 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         raise NotImplementedError("_new() not yet implemented")
 
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            EdgeLinkExecutionDeletedEvent.now(
+                edgelinkexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            EdgeLinkExecutionUpdatedEvent.now(
+                edgelinkexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def node_execution_id(self) -> NodeExecutionId:
         return self._node_execution_id

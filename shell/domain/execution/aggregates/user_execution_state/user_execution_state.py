@@ -7,6 +7,10 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.domain.execution.aggregates.user_execution_state.events.user_execution_state_created_event import UserExecutionStateCreatedEvent
 
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
@@ -75,11 +79,24 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
             created_at=created_at,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            UserExecutionStateDeletedEvent.now(
+                userexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            UserExecutionStateUpdatedEvent.now(
+                userexecutionstate_id=self._id,
+                now=now,
+            )
+        )
 
     @property
     def user_execution_id(self) -> UserExecutionId:

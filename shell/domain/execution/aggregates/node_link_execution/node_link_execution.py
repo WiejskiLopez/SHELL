@@ -11,6 +11,9 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from execution.aggregates.node_link_execution.events.nodelinkexecution_updated_event import NodeLinkExecutionUpdatedEvent
+from execution.aggregates.node_link_execution.events.nodelinkexecution_deleted_event import NodeLinkExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -99,12 +102,23 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
             updated_at=updated_at,
         )
 
-    def _delete(self) -> None:
-        raise NotImplementedError("_delete() not yet implemented")
-
-    def _update(self) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            NodeLinkExecutionDeletedEvent.now(
+                nodelinkexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            NodeLinkExecutionUpdatedEvent.now(
+                nodelinkexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
     @property
     def graph_execution_id(self) -> GraphExecutionId:
         return self._graph_execution_id
