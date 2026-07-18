@@ -18,7 +18,7 @@ from shell.platform.types import JsonStr
 if TYPE_CHECKING:
     from shell.platform.bootstrap.container.core_container import CoreContainer
 
-router = APIRouter(prefix="/graph-definitions", tags=["graph-definitions"])
+router = APIRouter(prefix="/graph-definitions", tags=["GraphDefinitions"])
 
 
 def get_graph_definition_controller(

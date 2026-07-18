@@ -12,7 +12,7 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 def get_user_controller(

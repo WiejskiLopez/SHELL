@@ -27,7 +27,7 @@ def create_definition_app(core_container: CoreContainer) -> FastAPI:
 
     app.include_router(graph_definitions_router, prefix="/api/v1")
 
-    @app.get("/health", tags=["health"])
+    @app.get("/health", tags=["Health"])
     async def health() -> dict:
         return {"status": "ok"}
 

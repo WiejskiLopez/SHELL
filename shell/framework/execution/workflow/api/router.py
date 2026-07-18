@@ -13,7 +13,7 @@ from shell.platform.application.bus.query_bus import (
 )
 from shell.platform.framework.api.dependencies import get_query_bus
 
-router = APIRouter(prefix="/workflows", tags=["workflows"])
+router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 def get_workflow_controller(

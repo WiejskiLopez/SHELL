@@ -28,7 +28,7 @@ def create_project_app(container: CoreContainer) -> FastAPI:
 
     app.include_router(router)
 
-    @app.get("/health", tags=["health"])
+    @app.get("/health", tags=["Health"])
     async def health() -> dict:
         return {"status": "ok"}
 

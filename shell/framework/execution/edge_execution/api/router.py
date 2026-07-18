@@ -21,7 +21,7 @@ from shell.platform.application.bus.command_bus import (
 )
 from shell.platform.framework.api.dependencies import get_command_bus
 
-router = APIRouter(prefix="/edge-executions", tags=["edge-executions"])
+router = APIRouter(prefix="/edge-executions", tags=["EdgeExecutions"])
 
 
 def get_edge_execution_controller(

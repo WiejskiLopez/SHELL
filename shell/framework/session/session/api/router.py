@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     )
     from shell.platform.bootstrap.container.core_container import CoreContainer
 
-router = APIRouter(prefix="/sessions", tags=["sessions"])
+router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
 
 def get_session_controller(

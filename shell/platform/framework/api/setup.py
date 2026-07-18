@@ -110,7 +110,7 @@ def setup_api_common(
     _register_error_handlers(app)
     _inject_common_schemas(app)
 
-    @app.get("/health", tags=["health"])
+    @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:
         return {
             "status": "ok",
@@ -122,7 +122,7 @@ def setup_api_common(
 def create_api_discovery_router(
     registry: ApiVersionRegistry = API_VERSION_REGISTRY,
 ) -> APIRouter:
-    router = APIRouter(tags=["api-discovery"])
+    router = APIRouter(tags=["ApiDiscovery"])
 
     @router.get("/api")
     async def api_discovery() -> dict[str, object]:

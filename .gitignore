@@ -19,3 +19,4 @@ htmlcov/
 *.db
 shell_dev/
 frontend/
+openapi.json

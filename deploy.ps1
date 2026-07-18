@@ -17,14 +17,21 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Commit anulowany (brak zmian lub blad)" -ForegroundColor Yellow
 }
 
-Write-Host "`n=== Krok 3: Build obrazu ===" -ForegroundColor Cyan
+Write-Host "`n=== Krok 3: OpenAPI spec ===" -ForegroundColor Cyan
+python scripts/generate-openapi.py
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Generowanie openapi nie powiodlo sie" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "`n=== Krok 4: Build obrazu ===" -ForegroundColor Cyan
 docker compose -f docker/dev/docker-compose.yml build
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Build obrazu nie powiodl sie" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "`n=== Krok 4: Restart kontenera ===" -ForegroundColor Cyan
+Write-Host "`n=== Krok 5: Restart kontenera ===" -ForegroundColor Cyan
 docker compose -f docker/dev/docker-compose.yml down --remove-orphans
 docker compose -f docker/dev/docker-compose.yml up -d
 if ($LASTEXITCODE -ne 0) {

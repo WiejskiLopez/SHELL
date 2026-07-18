@@ -33,7 +33,7 @@ def create_execution_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(workflows_router)
     app.include_router(node_execution_router)
 
-    @app.get("/health", tags=["health"])
+    @app.get("/health", tags=["Health"])
     async def health() -> dict:
         return {"status": "ok"}
 

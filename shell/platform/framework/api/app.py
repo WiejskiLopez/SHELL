@@ -29,6 +29,7 @@ from shell.platform.framework.api.middleware.error_handler import (
     unhandled_exception_handler,
     validation_error_handler,
 )
+from shell.platform.framework.api.openapi import configure_openapi
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -67,6 +68,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.core_container = core_container
+    configure_openapi(app)
 
     # Middleware
     app.add_middleware(CorrelationIdMiddleware)
@@ -85,7 +87,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(users_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
 
-    @app.get("/health", tags=["health"])
+    @app.get("/health", tags=["Health"])
     async def health() -> dict[str, str]:
         return {"status": "ok"}
 

@@ -7,7 +7,7 @@ from shell.framework.project.project.api.project_response import (
     ProjectResponse,  # noqa: TC001 — FastAPI needs it at runtime for response_model
 )
 
-router = APIRouter(prefix="/projects", tags=["projects"])
+router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
 def get_project_controller() -> ProjectController:
