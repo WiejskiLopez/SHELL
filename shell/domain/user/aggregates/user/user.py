@@ -1,7 +1,9 @@
 from __future__ import annotations
-from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
+
+from user.aggregates.user.events.user_deleted_event import UserDeletedEvent
+from user.aggregates.user.events.user_updated_event import UserUpdatedEvent
 
 from shell.domain.user.aggregates.user.events.user_created_event import UserCreatedEvent
 from shell.domain.user.aggregates.user.events.user_deleted_event import UserDeletedEvent
@@ -9,10 +11,9 @@ from shell.domain.user.aggregates.user.events.user_updated_event import UserUpda
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from user.aggregates.user.events.user_updated_event import UserUpdatedEvent
-from user.aggregates.user.events.user_deleted_event import UserDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_email import UserEmail
@@ -30,7 +31,8 @@ class User(AggregateRoot[UserId]):
 
     _email: UserEmail
     _status: UserStatus
-    _created_at: CreatedAt_updated_at: UpdatedAt | None
+    _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
     _deleted_at: DeletedAt | None
 
     def __init__(

@@ -12,6 +12,13 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
+from project.aggregates.project_state.events.projectstate_deleted_event import (
+    ProjectStateDeletedEvent,
+)
+from project.aggregates.project_state.events.projectstate_updated_event import (
+    ProjectStateUpdatedEvent,
+)
+
 from shell.domain.project.aggregates.project_state.events.project_state_changed_event import (
     ProjectStateChangedEvent,
 )
@@ -19,17 +26,15 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
     ProjectStateId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-from project.aggregates.project_state.events.projectstate_updated_event import ProjectStateUpdatedEvent
-from project.aggregates.project_state.events.projectstate_deleted_event import ProjectStateDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class ProjectState(AggregateRoot[ProjectStateId]):

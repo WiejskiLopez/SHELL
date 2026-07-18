@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.node_link_execution.events.nodelinkexecution_deleted_event import (
+    NodeLinkExecutionDeletedEvent,
+)
+from execution.aggregates.node_link_execution.events.nodelinkexecution_updated_event import (
+    NodeLinkExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.node_link_execution.events.node_link_execution_created_event import (
     NodeLinkExecutionCreatedEvent,
 )
@@ -11,9 +18,6 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from execution.aggregates.node_link_execution.events.nodelinkexecution_updated_event import NodeLinkExecutionUpdatedEvent
-from execution.aggregates.node_link_execution.events.nodelinkexecution_deleted_event import NodeLinkExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -22,6 +26,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):

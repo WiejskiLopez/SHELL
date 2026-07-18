@@ -15,5 +15,5 @@ class UserSkillUpdatedEvent(DomainEvent):
     userskill_id: SkillId
 
     @classmethod
-    def now(cls, userskill_id: SkillId, now: CreatedAt) -> "UserSkillUpdatedEvent":
+    def now(cls, userskill_id: SkillId, now: CreatedAt) -> UserSkillUpdatedEvent:
         return cls(occurred_at=now, userskill_id=userskill_id)

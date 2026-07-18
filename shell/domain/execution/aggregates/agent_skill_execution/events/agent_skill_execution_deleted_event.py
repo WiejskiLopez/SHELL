@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.AgentSkillExecutionId import AgentSkillExecutionId
+    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.AgentSkillExecutionId import (
+        AgentSkillExecutionId,
+    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +17,5 @@ class AgentSkillExecutionDeletedEvent(DomainEvent):
     agentskillexecution_id: AgentSkillExecutionId
 
     @classmethod
-    def now(cls, agentskillexecution_id: AgentSkillExecutionId, now: CreatedAt) -> "AgentSkillExecutionDeletedEvent":
+    def now(cls, agentskillexecution_id: AgentSkillExecutionId, now: CreatedAt) -> AgentSkillExecutionDeletedEvent:
         return cls(occurred_at=now, agentskillexecution_id=agentskillexecution_id)

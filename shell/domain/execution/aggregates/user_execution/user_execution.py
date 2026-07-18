@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.user_execution.events.userexecution_deleted_event import (
+    UserExecutionDeletedEvent,
+)
+from execution.aggregates.user_execution.events.userexecution_updated_event import (
+    UserExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
     UserExecutionCreatedEvent,
 )
@@ -9,18 +16,13 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
     UserExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from execution.aggregates.user_execution.events.userexecution_updated_event import UserExecutionUpdatedEvent
-from execution.aggregates.user_execution.events.userexecution_deleted_event import UserExecutionDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_id_ref import UserIdRef
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class UserExecution(AggregateRoot[UserExecutionId]):
@@ -31,7 +33,8 @@ class UserExecution(AggregateRoot[UserExecutionId]):
     )
 
     _user_id: UserIdRef | None
-    _created_at: CreatedAtdef __init__(
+    _created_at: CreatedAt
+    def __init__(
         self,
         *,
         id: UserExecutionId,

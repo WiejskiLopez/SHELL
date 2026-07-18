@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.node_link_execution.value_objects.NodeLinkExecutionId import NodeLinkExecutionId
+    from shell.domain.execution.aggregates.node_link_execution.value_objects.NodeLinkExecutionId import (
+        NodeLinkExecutionId,
+    )
+
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +18,5 @@ class NodeLinkExecutionDeletedEvent(DomainEvent):
     nodelinkexecution_id: NodeLinkExecutionId
 
     @classmethod
-    def now(cls, nodelinkexecution_id: NodeLinkExecutionId, now: CreatedAt) -> "NodeLinkExecutionDeletedEvent":
+    def now(cls, nodelinkexecution_id: NodeLinkExecutionId, now: CreatedAt) -> NodeLinkExecutionDeletedEvent:
         return cls(occurred_at=now, nodelinkexecution_id=nodelinkexecution_id)

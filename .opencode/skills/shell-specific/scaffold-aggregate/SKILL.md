@@ -140,6 +140,65 @@ Kluczowe:
 - `restore()` — odtwarza z DB (pomija walidację, nie emituje eventu)
 - `_new()` jest prywatna = nikt spoza agregatu nie może jej ominąć
 
+## Uniwersalna kolejność parametrów
+
+Każdy agregat MUSI przestrzegać tej samej kolejności parametrów w `__init__`, `restore()` i `_new()`.
+
+### __init__ — kolejność parametrów
+
+```
+1. id: {Entity}Id                          ← zawsze pierwszy, wymagany
+2. created_at: CreatedAt                    ← zawsze drugi, wymagany
+3. {business_fields}                        ← dowolne pole biznesowe, wymagane przed optionalnymi
+4. updated_at: UpdatedAt | None = None      ← opcjonalny z defaultem None
+5. deleted_at: DeletedAt | None = None      ← opcjonalny z defaultem None
+```
+
+**Zasada:** wszystkie wymagane parametry (`id`, `created_at`, business) PRZED optionalnymi (`updated_at`, `deleted_at`). Żaden wymagany parametr nie może być po optionalnym.
+
+### restore() — kolejność parametrów
+
+Identyczna jak `__init__`:
+```
+id → created_at → business → updated_at → deleted_at
+```
+
+### _new() — kolejność parametrów
+
+```
+1. business params                         ← dane biznesowe (wymagane)
+2. now: CreatedAt                          ← zawsze ostatni parametr
+```
+
+`id` jest generowane wewnątrz `_new()`, nie przekazywane z zewnątrz.
+
+### Przykład z business fields
+
+```python
+def __init__(
+    self,
+    id: FooId,              # 1. always — identity
+    created_at: CreatedAt,   # 2. always — creation timestamp
+    name: FooName,           # 3. business — required
+    value: FooValue,         # 4. business — required
+    updated_at: UpdatedAt | None = None,    # optional
+    deleted_at: DeletedAt | None = None,    # optional
+) -> None:
+```
+
+### Nowhere not allowed
+
+```python
+# ZABRONIONE — required param after optional one:
+def __init__(self, id: FooId, name: FooName | None = None, created_at: CreatedAt, ...)
+
+# ZABRONIONE — created_at after optional:
+def __init__(self, id: FooId, name: FooName | None = None, created_at: CreatedAt, ...)
+
+# POPRAWNIE — required before optional:
+def __init__(self, id: FooId, created_at: CreatedAt, name: FooName, updated_at: UpdatedAt | None = None, ...)
+```
+
 ---
 
 ### Krok 4: Infrastructure — ORM Model

@@ -12,22 +12,23 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
+from user.aggregates.user_state.events.userstate_deleted_event import UserStateDeletedEvent
+from user.aggregates.user_state.events.userstate_updated_event import UserStateUpdatedEvent
+
 from shell.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
 )
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.state_data import StateData
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr
-from user.aggregates.user_state.events.userstate_updated_event import UserStateUpdatedEvent
-from user.aggregates.user_state.events.userstate_deleted_event import UserStateDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class UserState(AggregateRoot[UserStateId]):

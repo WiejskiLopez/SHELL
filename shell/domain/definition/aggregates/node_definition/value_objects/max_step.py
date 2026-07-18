@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Self
 
 from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 @dataclass(frozen=True, slots=True)

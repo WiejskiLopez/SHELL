@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.node_definition.value_objects.NodeDefinitionId import NodeDefinitionId
+    from shell.domain.definition.aggregates.node_definition.value_objects.NodeDefinitionId import (
+        NodeDefinitionId,
+    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +17,5 @@ class NodeDefinitionDeletedEvent(DomainEvent):
     nodedefinition_id: NodeDefinitionId
 
     @classmethod
-    def now(cls, nodedefinition_id: NodeDefinitionId, now: CreatedAt) -> "NodeDefinitionDeletedEvent":
+    def now(cls, nodedefinition_id: NodeDefinitionId, now: CreatedAt) -> NodeDefinitionDeletedEvent:
         return cls(occurred_at=now, nodedefinition_id=nodedefinition_id)

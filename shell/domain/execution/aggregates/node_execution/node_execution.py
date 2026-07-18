@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.node_execution.events.nodeexecution_deleted_event import (
+    NodeExecutionDeletedEvent,
+)
+from execution.aggregates.node_execution.events.nodeexecution_updated_event import (
+    NodeExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
     NodeExecutionCreatedEvent,
 )
@@ -15,14 +22,9 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
     NodeExecutionStatus,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from execution.aggregates.node_execution.events.nodeexecution_updated_event import NodeExecutionUpdatedEvent
-from execution.aggregates.node_execution.events.nodeexecution_deleted_event import NodeExecutionDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -33,7 +35,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
     from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.error_description import ErrorDescription
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.types import JsonStr

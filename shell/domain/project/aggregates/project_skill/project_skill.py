@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from project.aggregates.project_skill.events.projectskill_deleted_event import (
+    ProjectSkillDeletedEvent,
+)
+from project.aggregates.project_skill.events.projectskill_updated_event import (
+    ProjectSkillUpdatedEvent,
+)
+
 from shell.domain.project.aggregates.project_skill.events.project_skill_created_event import (
     ProjectSkillCreatedEvent,
 )
@@ -12,15 +19,13 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
     ProjectSkillId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-from project.aggregates.project_skill.events.projectskill_updated_event import ProjectSkillUpdatedEvent
-from project.aggregates.project_skill.events.projectskill_deleted_event import ProjectSkillDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class ProjectSkill(AggregateRoot[ProjectSkillId]):

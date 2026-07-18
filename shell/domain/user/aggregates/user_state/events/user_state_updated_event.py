@@ -15,5 +15,5 @@ class UserStateUpdatedEvent(DomainEvent):
     userstate_id: UserStateId
 
     @classmethod
-    def now(cls, userstate_id: UserStateId, now: CreatedAt) -> "UserStateUpdatedEvent":
+    def now(cls, userstate_id: UserStateId, now: CreatedAt) -> UserStateUpdatedEvent:
         return cls(occurred_at=now, userstate_id=userstate_id)

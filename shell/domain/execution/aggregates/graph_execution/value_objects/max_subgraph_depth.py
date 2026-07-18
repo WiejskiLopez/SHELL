@@ -1,9 +1,9 @@
 from __future__ import annotations
-from shell.platform.domain.exceptions.domain_error import DomainError
 
 from dataclasses import dataclass
 
 from shell.platform.domain.base.value_object import ValueObject
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 @dataclass(frozen=True, slots=True)

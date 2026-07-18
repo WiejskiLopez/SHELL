@@ -1,7 +1,13 @@
 from __future__ import annotations
-from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
+
+from scheduling.aggregates.scheduler_execution.events.schedulerexecution_deleted_event import (
+    SchedulerExecutionDeletedEvent,
+)
+from scheduling.aggregates.scheduler_execution.events.schedulerexecution_updated_event import (
+    SchedulerExecutionUpdatedEvent,
+)
 
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
@@ -28,18 +34,17 @@ from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.trigge
     TriggerEventType,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.timestamp import Timestamp
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from scheduling.aggregates.scheduler_execution.events.schedulerexecution_updated_event import SchedulerExecutionUpdatedEvent
-from scheduling.aggregates.scheduler_execution.events.schedulerexecution_deleted_event import SchedulerExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
     from shell.platform.domain.value_objects.state_data import StateData
 

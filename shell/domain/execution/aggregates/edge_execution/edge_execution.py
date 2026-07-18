@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.edge_execution.value_objects.edge_executi
     EdgeExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -15,6 +16,13 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
+from execution.aggregates.edge_execution.events.edgeexecution_deleted_event import (
+    EdgeExecutionDeletedEvent,
+)
+from execution.aggregates.edge_execution.events.edgeexecution_updated_event import (
+    EdgeExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_created_event import (
     EdgeExecutionCreatedEvent,
 )
@@ -25,8 +33,6 @@ from shell.domain.execution.aggregates.edge_execution.events.edge_execution_upda
     EdgeExecutionUpdatedEvent,
 )
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from execution.aggregates.edge_execution.events.edgeexecution_updated_event import EdgeExecutionUpdatedEvent
-from execution.aggregates.edge_execution.events.edgeexecution_deleted_event import EdgeExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -47,8 +53,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         id_: EdgeExecutionId,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
-        target_node_execution_id: NodeExecutionId | None = None,
         created_at: CreatedAt,
+        target_node_execution_id: NodeExecutionId | None = None,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -79,8 +85,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         id_: EdgeExecutionId,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
-        target_node_execution_id: NodeExecutionId | None = None,
         created_at: CreatedAt,
+        target_node_execution_id: NodeExecutionId | None = None,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:

@@ -6,13 +6,8 @@ from shell.domain.execution.aggregates.session_execution.value_objects.session_e
     SessionExecutionId,
 )
 from shell.platform.domain.base import AggregateRoot
-
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
@@ -22,6 +17,7 @@ if TYPE_CHECKING:
         UserExecutionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
@@ -39,7 +35,8 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
 
     _user_execution_id: UserExecutionId | None
     _session_id: SessionIdRef | None
-    _created_at: CreatedAtdef __init__(
+    _created_at: CreatedAt
+    def __init__(
         self,
         *,
         id: SessionExecutionId,

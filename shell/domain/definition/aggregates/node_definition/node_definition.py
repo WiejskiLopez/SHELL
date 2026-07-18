@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from definition.aggregates.node_definition.events.nodedefinition_deleted_event import (
+    NodeDefinitionDeletedEvent,
+)
+from definition.aggregates.node_definition.events.nodedefinition_updated_event import (
+    NodeDefinitionUpdatedEvent,
+)
+
 from shell.domain.definition.aggregates.node_definition.events.node_definition_created_event import (
     NodeDefinitionCreatedEvent,
 )
@@ -11,17 +18,12 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_defin
 )
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from definition.aggregates.node_definition.events.nodedefinition_updated_event import NodeDefinitionUpdatedEvent
-from definition.aggregates.node_definition.events.nodedefinition_deleted_event import NodeDefinitionDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):

@@ -3,6 +3,13 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
+from session.aggregates.session_state.events.sessionstate_deleted_event import (
+    SessionStateDeletedEvent,
+)
+from session.aggregates.session_state.events.sessionstate_updated_event import (
+    SessionStateUpdatedEvent,
+)
+
 from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
 )
@@ -10,20 +17,15 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
     SessionStateId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from session.aggregates.session_state.events.sessionstate_updated_event import SessionStateUpdatedEvent
-from session.aggregates.session_state.events.sessionstate_deleted_event import SessionStateDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 

@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from definition.aggregates.graph_definition.events.graphdefinition_deleted_event import (
+    GraphDefinitionDeletedEvent,
+)
+from definition.aggregates.graph_definition.events.graphdefinition_updated_event import (
+    GraphDefinitionUpdatedEvent,
+)
+
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
     GraphDefinitionCreatedEvent,
 )
@@ -9,17 +16,11 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
     GraphDefinitionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from definition.aggregates.graph_definition.events.graphdefinition_updated_event import GraphDefinitionUpdatedEvent
-from definition.aggregates.graph_definition.events.graphdefinition_deleted_event import GraphDefinitionDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):

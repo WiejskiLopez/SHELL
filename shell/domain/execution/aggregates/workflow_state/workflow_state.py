@@ -4,16 +4,10 @@ import json
 from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
-
+from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
@@ -21,6 +15,7 @@ if TYPE_CHECKING:
         WorkflowStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 

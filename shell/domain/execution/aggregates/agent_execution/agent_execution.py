@@ -2,21 +2,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.agent_execution.events.agentexecution_deleted_event import (
+    AgentExecutionDeletedEvent,
+)
+from execution.aggregates.agent_execution.events.agentexecution_updated_event import (
+    AgentExecutionUpdatedEvent,
+)
+
+from shell.domain.execution.aggregates.agent_execution.events.agentexecution_created_event import (
+    AgentExecutionCreatedEvent,
+)
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from shell.domain.execution.aggregates.agent_execution.events.agentexecution_created_event import AgentExecutionCreatedEvent
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from execution.aggregates.agent_execution.events.agentexecution_updated_event import AgentExecutionUpdatedEvent
-from execution.aggregates.agent_execution.events.agentexecution_deleted_event import AgentExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = (
@@ -26,7 +33,8 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
     )
 
     _node_execution_id: NodeExecutionId
-    _created_at: CreatedAt_updated_at: UpdatedAt | None
+    _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
 
     def __init__(
         self,

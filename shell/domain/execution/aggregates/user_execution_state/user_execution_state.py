@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.user_execution_state.events.user_execution_state_created_event import (
+    UserExecutionStateCreatedEvent,
+)
 from shell.platform.domain.base import AggregateRoot
-
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.domain.execution.aggregates.user_execution_state.events.user_execution_state_created_event import UserExecutionStateCreatedEvent
-
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -19,6 +17,7 @@ if TYPE_CHECKING:
         UserExecutionStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
 

@@ -2,21 +2,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from user.aggregates.user_skill.events.userskill_deleted_event import UserSkillDeletedEvent
+from user.aggregates.user_skill.events.userskill_updated_event import UserSkillUpdatedEvent
+
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
 )
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
-
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from user.aggregates.user_skill.events.userskill_updated_event import UserSkillUpdatedEvent
-from user.aggregates.user_skill.events.userskill_deleted_event import UserSkillDeletedEvent
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 

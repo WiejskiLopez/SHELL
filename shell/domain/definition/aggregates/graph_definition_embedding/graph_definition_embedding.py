@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_deleted_event import (
+    GraphDefinitionEmbeddingDeletedEvent,
+)
+from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_updated_event import (
+    GraphDefinitionEmbeddingUpdatedEvent,
+)
 from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_text import (
     EmbeddingText,
 )
@@ -9,8 +15,6 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
     GraphDefinitionEmbeddingId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -24,6 +28,7 @@ if TYPE_CHECKING:
         EmbeddingModel,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
@@ -205,27 +210,3 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
                 now=now,
             )
         )
-
-    @property
-    def graph_definition_id(self) -> GraphDefinitionId:
-        return self._graph_definition_id
-
-    @property
-    def text(self) -> EmbeddingText:
-        return self._text
-
-    @property
-    def embedding(self) -> Embedding:
-        return self._embedding
-
-    @property
-    def model(self) -> EmbeddingModel:
-        return self._model
-
-    @property
-    def created_at(self) -> CreatedAt | None:
-        return self._created_at
-
-    @property
-    def updated_at(self) -> CreatedAt | None:
-        return self._updated_at

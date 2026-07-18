@@ -2,8 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from scheduling.aggregates.scheduler_job.events.schedulerjob_deleted_event import (
+    SchedulerJobDeletedEvent,
+)
+from scheduling.aggregates.scheduler_job.events.schedulerjob_updated_event import (
+    SchedulerJobUpdatedEvent,
+)
+
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
+)
+from shell.domain.scheduling.aggregates.scheduler_job.events.scheduler_job_created_event import (
+    SchedulerJobCreatedEvent,
 )
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.batch_size import BatchSize
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_seconds import (
@@ -12,22 +22,17 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_sec
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name import JobName
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
 from shell.platform.domain.base import AggregateRoot
-from shell.platform.domain.value_objects.enabled import Enabled
-from shell.platform.domain.value_objects.timestamp import Timestamp
-
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.domain.scheduling.aggregates.scheduler_job.events.scheduler_job_created_event import SchedulerJobCreatedEvent
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from scheduling.aggregates.scheduler_job.events.schedulerjob_updated_event import SchedulerJobUpdatedEvent
-from scheduling.aggregates.scheduler_job.events.schedulerjob_deleted_event import SchedulerJobDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_data import StateData
+    from shell.platform.domain.value_objects.timestamp import Timestamp
 
 class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
     """Represents a cyclic job configuration run on an interval by APScheduler."""

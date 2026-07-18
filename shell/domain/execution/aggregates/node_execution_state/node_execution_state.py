@@ -3,6 +3,13 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.node_execution_state.events.nodeexecutionstate_deleted_event import (
+    NodeExecutionStateDeletedEvent,
+)
+from execution.aggregates.node_execution_state.events.nodeexecutionstate_updated_event import (
+    NodeExecutionStateUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_changed_event import (
     NodeExecutionStateChangedEvent,
 )
@@ -10,22 +17,17 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
     NodeExecutionStateId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from execution.aggregates.node_execution_state.events.nodeexecutionstate_updated_event import NodeExecutionStateUpdatedEvent
-from execution.aggregates.node_execution_state.events.nodeexecutionstate_deleted_event import NodeExecutionStateDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
+from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 

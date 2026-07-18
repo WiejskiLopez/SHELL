@@ -15,5 +15,5 @@ class MessageRouterDeletedEvent(DomainEvent):
     messagerouter_id: MessageId
 
     @classmethod
-    def now(cls, messagerouter_id: MessageId, now: CreatedAt) -> "MessageRouterDeletedEvent":
+    def now(cls, messagerouter_id: MessageId, now: CreatedAt) -> MessageRouterDeletedEvent:
         return cls(occurred_at=now, messagerouter_id=messagerouter_id)

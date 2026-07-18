@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session_execution.value_objects.SessionExecutionId import SessionExecutionId
+    from shell.domain.execution.aggregates.session_execution.value_objects.SessionExecutionId import (
+        SessionExecutionId,
+    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +17,5 @@ class SessionExecutionUpdatedEvent(DomainEvent):
     sessionexecution_id: SessionExecutionId
 
     @classmethod
-    def now(cls, sessionexecution_id: SessionExecutionId, now: CreatedAt) -> "SessionExecutionUpdatedEvent":
+    def now(cls, sessionexecution_id: SessionExecutionId, now: CreatedAt) -> SessionExecutionUpdatedEvent:
         return cls(occurred_at=now, sessionexecution_id=sessionexecution_id)

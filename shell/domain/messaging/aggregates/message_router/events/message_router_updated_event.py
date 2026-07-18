@@ -15,5 +15,5 @@ class MessageRouterUpdatedEvent(DomainEvent):
     messagerouter_id: MessageId
 
     @classmethod
-    def now(cls, messagerouter_id: MessageId, now: CreatedAt) -> "MessageRouterUpdatedEvent":
+    def now(cls, messagerouter_id: MessageId, now: CreatedAt) -> MessageRouterUpdatedEvent:
         return cls(occurred_at=now, messagerouter_id=messagerouter_id)

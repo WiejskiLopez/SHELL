@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 class EdgeLinkExecutionNotFoundError(DomainError):

@@ -15,5 +15,5 @@ class UserStateDeletedEvent(DomainEvent):
     userstate_id: UserStateId
 
     @classmethod
-    def now(cls, userstate_id: UserStateId, now: CreatedAt) -> "UserStateDeletedEvent":
+    def now(cls, userstate_id: UserStateId, now: CreatedAt) -> UserStateDeletedEvent:
         return cls(occurred_at=now, userstate_id=userstate_id)

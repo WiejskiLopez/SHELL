@@ -1,5 +1,4 @@
 from __future__ import annotations
-from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -17,6 +16,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgrap
     MaxSubgraphDepth,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -24,7 +24,6 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
@@ -36,6 +35,7 @@ from shell.domain.execution.aggregates.graph_execution.events.graph_execution_de
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_updated_event import (
     GraphExecutionUpdatedEvent,
 )
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class GraphExecution(AggregateRoot[GraphExecutionId]):
@@ -57,9 +57,9 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
+        created_at: CreatedAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -85,9 +85,9 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
+        created_at: CreatedAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -103,6 +103,10 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             deleted_at=deleted_at,
         )
         return instance
+
+    @classmethod
+    def _new(cls, *args: object, **kwargs: object) -> GraphExecution:
+        return cls.initialize(*args, **kwargs)
 
     @classmethod
     def initialize(

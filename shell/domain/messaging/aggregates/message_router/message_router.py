@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from messaging.aggregates.message_router.events.messagerouter_deleted_event import (
+    MessageRouterDeletedEvent,
+)
+from messaging.aggregates.message_router.events.messagerouter_updated_event import (
+    MessageRouterUpdatedEvent,
+)
+
 from shell.domain.messaging.aggregates.message_router.events.message_router_created_event import (
     MessageRouterCreatedEvent,
 )
@@ -9,14 +16,12 @@ from shell.domain.messaging.aggregates.message_router.value_objects.message_id i
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from messaging.aggregates.message_router.events.messagerouter_updated_event import MessageRouterUpdatedEvent
-from messaging.aggregates.message_router.events.messagerouter_deleted_event import MessageRouterDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
         MessageData,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class MessageRouter(AggregateRoot[MessageId]):

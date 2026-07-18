@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import UserExecutionStateId
+    from shell.domain.execution.aggregates.user_execution_state.value_objects.user_execution_state_id import (
+        UserExecutionStateId,
+    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +17,5 @@ class UserExecutionStateCreatedEvent(DomainEvent):
     userexecutionstate_id: UserExecutionStateId
 
     @classmethod
-    def now(cls, userexecutionstate_id: UserExecutionStateId, now: CreatedAt) -> "UserExecutionStateCreatedEvent":
+    def now(cls, userexecutionstate_id: UserExecutionStateId, now: CreatedAt) -> UserExecutionStateCreatedEvent:
         return cls(occurred_at=now, userexecutionstate_id=userexecutionstate_id)

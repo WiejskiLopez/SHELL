@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_deleted_event import (
+    SchedulerDefinitionDeletedEvent,
+)
+from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_updated_event import (
+    SchedulerDefinitionUpdatedEvent,
+)
+
 from shell.domain.scheduling.aggregates.scheduler_definition.events.scheduler_definition_created_event import (
     SchedulerDefinitionCreatedEvent,
 )
@@ -17,10 +24,8 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_updated_event import SchedulerDefinitionUpdatedEvent
-from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_deleted_event import SchedulerDefinitionDeletedEvent
+
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
         ActionConfig,
@@ -31,6 +36,7 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
         TriggerConfig,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
     __slots__ = (

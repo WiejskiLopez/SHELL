@@ -2,15 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_created_event import (
+    AgentSkillExecutionCreatedEvent,
+)
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_created_event import (
-AgentSkillExecutionCreatedEvent,
-)
-
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -21,6 +19,7 @@ if TYPE_CHECKING:
         SkillData,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
     __slots__ = (

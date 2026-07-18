@@ -2,17 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from definition.aggregates.node_link_definition.events.nodelinkdefinition_deleted_event import (
+    NodeLinkDefinitionDeletedEvent,
+)
+from definition.aggregates.node_link_definition.events.nodelinkdefinition_updated_event import (
+    NodeLinkDefinitionUpdatedEvent,
+)
+
+from shell.domain.definition.aggregates.node_link_definition.events.node_link_definition_created_event import (
+    NodeLinkDefinitionCreatedEvent,
+)
 from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.domain.definition.aggregates.node_link_definition.events.node_link_definition_created_event import NodeLinkDefinitionCreatedEvent
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from definition.aggregates.node_link_definition.events.nodelinkdefinition_updated_event import NodeLinkDefinitionUpdatedEvent
-from definition.aggregates.node_link_definition.events.nodelinkdefinition_deleted_event import NodeLinkDefinitionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
@@ -21,6 +26,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
     __slots__ = (

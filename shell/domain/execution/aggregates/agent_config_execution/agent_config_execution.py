@@ -2,6 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.agent_config_execution.events.agentconfigexecution_deleted_event import (
+    AgentConfigExecutionDeletedEvent,
+)
+from execution.aggregates.agent_config_execution.events.agentconfigexecution_updated_event import (
+    AgentConfigExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.agent_config_execution.events.agent_config_updated_event import (
     AgentConfigUpdatedEvent,
 )
@@ -9,17 +16,16 @@ from shell.domain.execution.aggregates.agent_config_execution.value_objects.agen
     AgentConfigExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from execution.aggregates.agent_config_execution.events.agentconfigexecution_updated_event import AgentConfigExecutionUpdatedEvent
-from execution.aggregates.agent_config_execution.events.agentconfigexecution_deleted_event import AgentConfigExecutionDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
         AgentExecutionId,
     )
     from shell.platform.domain.value_objects.config_data import ConfigData
+    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):

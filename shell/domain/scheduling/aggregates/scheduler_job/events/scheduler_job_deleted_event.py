@@ -6,7 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.scheduling.aggregates.scheduler_job.value_objects.SchedulerExecutionId import SchedulerExecutionId
+    from shell.domain.scheduling.aggregates.scheduler_job.value_objects.SchedulerExecutionId import (
+        SchedulerExecutionId,
+    )
+
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
@@ -15,5 +18,5 @@ class SchedulerJobDeletedEvent(DomainEvent):
     schedulerjob_id: SchedulerExecutionId
 
     @classmethod
-    def now(cls, schedulerjob_id: SchedulerExecutionId, now: CreatedAt) -> "SchedulerJobDeletedEvent":
+    def now(cls, schedulerjob_id: SchedulerExecutionId, now: CreatedAt) -> SchedulerJobDeletedEvent:
         return cls(occurred_at=now, schedulerjob_id=schedulerjob_id)

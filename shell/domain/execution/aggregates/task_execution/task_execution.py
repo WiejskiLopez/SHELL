@@ -3,6 +3,13 @@ from __future__ import annotations
 import tempfile
 from typing import TYPE_CHECKING, Self
 
+from execution.aggregates.task_execution.events.taskexecution_deleted_event import (
+    TaskExecutionDeletedEvent,
+)
+from execution.aggregates.task_execution.events.taskexecution_updated_event import (
+    TaskExecutionUpdatedEvent,
+)
+
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
@@ -18,20 +25,16 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from execution.aggregates.task_execution.events.taskexecution_updated_event import TaskExecutionUpdatedEvent
-from execution.aggregates.task_execution.events.taskexecution_deleted_event import TaskExecutionDeletedEvent
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
         TaskExecutionBody,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -52,10 +55,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self,
         id: TaskExecutionId,
         name: TaskName,
+        created_at: CreatedAt,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -87,10 +90,10 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         cls,
         id: TaskExecutionId,
         name: TaskName,
+        created_at: CreatedAt,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(

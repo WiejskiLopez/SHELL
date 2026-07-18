@@ -2,17 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
+from project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
+
 from shell.domain.project.aggregates.project.events.project_created_event import ProjectCreatedEvent
 from shell.domain.project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
 from shell.domain.project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
 from shell.domain.project.aggregates.project.value_objects.project_status import ProjectStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-from project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
-from project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_name import ProjectName

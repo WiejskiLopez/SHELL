@@ -1,7 +1,6 @@
 """Workflow aggregate root — V3 with FSM (ACTIVE -> COMPLETED | FAILED | ABORTED | PAUSED)."""
 
 from __future__ import annotations
-from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -10,12 +9,9 @@ from shell.domain.execution.aggregates.workflow.events.workflow_created_event im
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.platform.domain.base import AggregateRoot
-
+from shell.platform.domain.exceptions.domain_error import DomainError
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-from shell.platform.domain.value_objects.deletedat import DeletedAt
-
-from shell.platform.domain.value_objects.updatedat import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
