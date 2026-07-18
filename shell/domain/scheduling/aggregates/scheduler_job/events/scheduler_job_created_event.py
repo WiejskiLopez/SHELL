@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class SchedulerJobCreatedEvent(DomainEvent):
-    schedulerjob_id: SchedulerJobId
+    scheduler_job_id: SchedulerJobId
 
     @classmethod
-    def now(cls, schedulerjob_id: SchedulerJobId, now: CreatedAt) -> SchedulerJobCreatedEvent:
-        return cls(occurred_at=now, schedulerjob_id=schedulerjob_id)
+    def now(cls, scheduler_job_id: SchedulerJobId, now: CreatedAt) -> SchedulerJobCreatedEvent:
+        return cls(occurred_at=now, scheduler_job_id=scheduler_job_id)

@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
     NodeExecutionStateId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -25,19 +26,26 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
 class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     __slots__ = (
-        "_updated_at","_node_execution_id", "_direction", "_state_data", "_created_at")
+        "_updated_at",
+        "_node_execution_id",
+        "_direction",
+        "_state_data",
+        "_created_at",
+        "_deleted_at",
+    )
 
     _node_execution_id: NodeExecutionId
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
 
     def __init__(
         self,
@@ -86,7 +94,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def _delete(self, key: str) -> None:
+    def _remove_key(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
@@ -107,7 +115,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     def clear(self) -> None:
         current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
-            self.delete(key)
+            self._remove_key(key)
 
     def snapshot(self) -> StateData:
         return self._state_data
@@ -129,30 +137,22 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
             created_at=created_at,
         )
 
-
-    @classmethod
-    def _update(cls) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
-
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            NodeExecutionStateUpdatedEvent.now(
+                node_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeExecutionStateDeletedEvent.now(
-                nodeexecutionstate_id=self._id,
-                now=now,
-            )
-        )
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            NodeExecutionStateUpdatedEvent.now(
-                nodeexecutionstate_id=self._id,
-                now=now,
+                node_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -189,44 +189,3 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
             created_at=now,
         )
         return instance
-
-    def update(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            NodeExecutionStateChangedEvent.now(
-                node_execution_id=self._node_execution_id,
-                node_execution_state_id=self.id,
-                now=self._created_at,
-            )
-        )
-
-    def get(self, key: str) -> object | None:
-        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
-
-    def _delete(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                NodeExecutionStateChangedEvent.now(
-                    node_execution_id=self._node_execution_id,
-                    node_execution_state_id=self.id,
-                    now=self._created_at,
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.update(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self.delete(key)
-
-    def snapshot(self) -> StateData:
-        return self._state_data

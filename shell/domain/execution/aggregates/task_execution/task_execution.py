@@ -71,7 +71,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         if body is not None and not body.value.strip():
             raise DomainError("TaskExecutionBody cannot be empty")
 
-
     @classmethod
     def create(
         cls,
@@ -134,29 +133,25 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
 
     # --- Properties ---
 
-
-    @classmethod
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             TaskExecutionUpdatedEvent.now(
-                taskexecution_id=self._id,
-                now=now,
+                task_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             TaskExecutionDeletedEvent.now(
-                taskexecution_id=self._id,
+                task_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def name(self) -> TaskName:
         return self._name

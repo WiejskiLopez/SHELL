@@ -22,6 +22,7 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
     GraphExecutionStateUpdatedEvent,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
@@ -48,12 +48,15 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         "_direction",
         "_state_data",
         "_created_at",
+        "_deleted_at",
     )
 
     _graph_execution_id: GraphExecutionId
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
 
     def __init__(
         self,
@@ -103,7 +106,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def _delete(self, key: str) -> None:
+    def _remove_key(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)
@@ -124,7 +127,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def clear(self) -> None:
         current = json.loads(self._state_data.value.value)
         for key in list(current.keys()):
-            self.delete(key)
+            self._remove_key(key)
 
     def merge(self, other: GraphExecutionState) -> None:
         """Incorporate state from a child task (Tasker pattern).
@@ -158,32 +161,22 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             created_at=created_at,
         )
 
-    # ------------------------------------------------------------------ properties
-
-
-    @classmethod
-    def _update(cls) -> None:
-        raise NotImplementedError("_update() not yet implemented")
-
-
-
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphExecutionStateUpdatedEvent.now(
+                graph_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             GraphExecutionStateDeletedEvent.now(
-                graphexecutionstate_id=self._id,
-                now=now,
-            )
-        )
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            GraphExecutionStateUpdatedEvent.now(
-                graphexecutionstate_id=self._id,
-                now=now,
+                graph_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -221,58 +214,3 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
             state_data=StateData(JsonStr("{}")),
             created_at=now,
         )
-
-    # ------------------------------------------------------------------ mutations
-
-    def update(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            GraphExecutionStateChangedEvent.now(
-                graph_execution_id=self._graph_execution_id,
-                graph_execution_state_id=self.id,
-                now=self._created_at,
-            )
-        )
-
-    def get(self, key: str) -> object | None:
-        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
-
-    def _delete(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                GraphExecutionStateChangedEvent.now(
-                    graph_execution_id=self._graph_execution_id,
-                    graph_execution_state_id=self.id,
-                    now=self._created_at,
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.update(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self.delete(key)
-
-    def merge(self, other: GraphExecutionState) -> None:
-        """Incorporate state from a child task (Tasker pattern).
-
-        Keys present in *other* but absent in *self* are copied.
-        Keys already present in *self* are left unchanged (parent wins).
-        """
-        other_data = json.loads(other._state_data.value.value)
-        current = json.loads(self._state_data.value.value)
-        for key, value in other_data.items():
-            if key not in current:
-                self.update(key, value)
-
-    def snapshot(self) -> StateData:
-        return self._state_data

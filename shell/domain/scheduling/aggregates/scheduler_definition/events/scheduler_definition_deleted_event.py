@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class SchedulerDefinitionDeletedEvent(DomainEvent):
-    schedulerdefinition_id: SchedulerDefinitionId
+    scheduler_definition_id: SchedulerDefinitionId
 
     @classmethod
-    def now(cls, schedulerdefinition_id: SchedulerDefinitionId, now: CreatedAt) -> SchedulerDefinitionDeletedEvent:
-        return cls(occurred_at=now, schedulerdefinition_id=schedulerdefinition_id)
+    def now(
+        cls, scheduler_definition_id: SchedulerDefinitionId, now: CreatedAt
+    ) -> SchedulerDefinitionDeletedEvent:
+        return cls(occurred_at=now, scheduler_definition_id=scheduler_definition_id)

@@ -10,6 +10,7 @@ if TYPE_CHECKING:
         SchedulerExecutionId,
     )
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SchedulerExecutionCompletedEvent(DomainEvent):
     execution_id: SchedulerExecutionId

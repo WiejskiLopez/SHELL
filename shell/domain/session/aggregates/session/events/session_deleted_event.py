@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class SessionDeletedEvent(DomainEvent):
     session_id: SessionId

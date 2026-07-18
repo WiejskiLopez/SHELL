@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class SessionExecutionStateCreatedEvent(DomainEvent):
-    sessionexecutionstate_id: SessionExecutionStateId
+    session_execution_state_id: SessionExecutionStateId
 
     @classmethod
-    def now(cls, sessionexecutionstate_id: SessionExecutionStateId, now: CreatedAt) -> SessionExecutionStateCreatedEvent:
-        return cls(occurred_at=now, sessionexecutionstate_id=sessionexecutionstate_id)
+    def now(
+        cls, session_execution_state_id: SessionExecutionStateId, now: CreatedAt
+    ) -> SessionExecutionStateCreatedEvent:
+        return cls(occurred_at=now, session_execution_state_id=session_execution_state_id)

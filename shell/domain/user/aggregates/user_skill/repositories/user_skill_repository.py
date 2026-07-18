@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
+    from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserSkillId
     from shell.domain.user.value_objects.user_id import UserId
     from shell.platform.domain.value_objects.exists_result import ExistsResult
 

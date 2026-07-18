@@ -66,7 +66,6 @@ class User(AggregateRoot[UserId]):
         user.append_event(UserCreatedEvent.now(user_id=id, now=created_at))
         return user
 
-
     @classmethod
     def create(
         cls,
@@ -97,9 +96,6 @@ class User(AggregateRoot[UserId]):
             deleted_at=deleted_at,
         )
 
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
@@ -118,6 +114,7 @@ class User(AggregateRoot[UserId]):
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def email(self) -> UserEmail:
         return self._email

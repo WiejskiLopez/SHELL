@@ -1,4 +1,5 @@
 """Architecture tests: aggregate _delete() and _update() behavior (#28-#29)."""
+
 from __future__ import annotations
 
 import ast
@@ -31,7 +32,10 @@ def test_aggregate_delete_sets_deleted_at_and_emits_event() -> None:
                 continue
             has_proper_delete = False
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name == "_delete":
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name == "_delete"
+                ):
                     source = ast.unparse(stmt)
                     if "append_event(" in source and "_deleted_at" in source:
                         has_proper_delete = True
@@ -40,8 +44,8 @@ def test_aggregate_delete_sets_deleted_at_and_emits_event() -> None:
                 key = f"{path.relative_to(BASE)}: {node.name} has no proper _delete(now) with _deleted_at + append_event"
                 if key not in _KNOWN_DELETE_BEHAVIOR:
                     violations.append(key)
-    assert not violations, (
-        "_delete() must set _deleted_at and call append_event():\n" + "\n".join(violations)
+    assert not violations, "_delete() must set _deleted_at and call append_event():\n" + "\n".join(
+        violations
     )
 
 
@@ -63,7 +67,10 @@ def test_aggregate_update_sets_updated_at_and_emits_event() -> None:
                 continue
             has_proper_update = False
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name == "_update":
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name == "_update"
+                ):
                     source = ast.unparse(stmt)
                     if "append_event(" in source and "_updated_at" in source:
                         has_proper_update = True
@@ -72,6 +79,6 @@ def test_aggregate_update_sets_updated_at_and_emits_event() -> None:
                 key = f"{path.relative_to(BASE)}: {node.name} has no proper _update(now) with _updated_at + append_event"
                 if key not in _KNOWN_UPDATE_BEHAVIOR:
                     violations.append(key)
-    assert not violations, (
-        "_update() must set _updated_at and call append_event():\n" + "\n".join(violations)
+    assert not violations, "_update() must set _updated_at and call append_event():\n" + "\n".join(
+        violations
     )

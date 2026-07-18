@@ -48,6 +48,7 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         "_node_type",
         "_status",
         "_created_at",
+        "_deleted_at",
     )
 
     def __init__(
@@ -124,29 +125,25 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
 
     # --- Properties ---
 
-
-    @classmethod
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             NodeExecutionUpdatedEvent.now(
-                nodeexecution_id=self._id,
-                now=now,
+                node_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeExecutionDeletedEvent.now(
-                nodeexecution_id=self._id,
+                node_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def node_definition_id(self) -> NodeDefinitionIdRef | None:
         return self._node_definition_id
@@ -216,75 +213,3 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
             )
         )
         return instance
-
-    # --- V3 FSM ---
-
-    def start(self) -> None:
-        if self._status != NodeExecutionStatus.PENDING:
-            raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
-        self._status = NodeExecutionStatus.RUNNING
-
-    def complete(self, result: StateData | JsonStr | None) -> None:
-        if self._status != NodeExecutionStatus.RUNNING:
-            raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
-        self._status = NodeExecutionStatus.COMPLETED
-
-    def fail(self, error: ErrorDescription | str) -> None:
-        if self._status != NodeExecutionStatus.RUNNING:
-            raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
-        self._status = NodeExecutionStatus.FAILED
-
-    def retry(self) -> None:
-        if self._status != NodeExecutionStatus.FAILED:
-            raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
-        self._status = NodeExecutionStatus.PENDING
-
-    def timeout(self) -> None:
-        if self._status != NodeExecutionStatus.RUNNING:
-            raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
-        self._status = NodeExecutionStatus.TIMED_OUT
-
-    # --- Properties ---
-
-
-    @classmethod
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            NodeExecutionUpdatedEvent.now(
-                nodeexecution_id=self._id,
-                now=now,
-            )
-        )
-
-
-
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            NodeExecutionDeletedEvent.now(
-                nodeexecution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-    @property
-    def node_definition_id(self) -> NodeDefinitionIdRef | None:
-        return self._node_definition_id
-
-    @property
-    def order(self) -> NodeOrder:
-        return self._order
-
-    @property
-    def node_type(self) -> NodeType:
-        return self._node_type
-
-    @property
-    def status(self) -> NodeExecutionStatus:
-        return self._status
-
-    @property
-    def created_at(self) -> CreatedAt:
-        return self._created_at

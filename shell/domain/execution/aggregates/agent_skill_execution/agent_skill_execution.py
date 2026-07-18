@@ -15,6 +15,7 @@ from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent
     AgentSkillExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -24,12 +25,11 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_skill_execution.value_objects.skill_data import (
         SkillData,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
+
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
-    __slots__ = (
-        "_updated_at","_agent_execution_id", "_skill_data", "_created_at")
+    __slots__ = ("_updated_at", "_agent_execution_id", "_skill_data", "_created_at", "_deleted_at")
 
     _agent_execution_id: AgentExecutionId
     _skill_data: SkillData
@@ -104,8 +104,8 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             AgentSkillExecutionDeletedEvent.now(
-                agentskillexecution_id=self._id,
-                now=now,
+                agent_skill_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -113,8 +113,8 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         self._updated_at = now
         self.append_event(
             AgentSkillExecutionUpdatedEvent.now(
-                agentskillexecution_id=self._id,
-                now=now,
+                agent_skill_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 

@@ -79,7 +79,6 @@ class UserSkill(AggregateRoot[UserSkillId]):
             user_id=user_id,
             skill_data=SkillData(skill_data),
             created_at=now,
-
         )
         instance.append_event(
             UserSkillCreatedEvent.now(
@@ -94,13 +93,12 @@ class UserSkill(AggregateRoot[UserSkillId]):
     def new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
         return cls._new(user_id=user_id, skill_data=skill_data, now=now)
 
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             UserSkillDeletedEvent.now(
-                userskill_id=self._id,
+                user_skill_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -109,10 +107,11 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self._updated_at = now
         self.append_event(
             UserSkillUpdatedEvent.now(
-                userskill_id=self._id,
+                user_skill_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def user_id(self) -> UserId:
         return self._user_id

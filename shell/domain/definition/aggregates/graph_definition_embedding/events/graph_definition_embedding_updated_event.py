@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class GraphDefinitionEmbeddingUpdatedEvent(DomainEvent):
-    graphdefinitionembedding_id: GraphDefinitionEmbeddingId
+    graph_definition_embedding_id: GraphDefinitionEmbeddingId
 
     @classmethod
-    def now(cls, graphdefinitionembedding_id: GraphDefinitionEmbeddingId, now: CreatedAt) -> GraphDefinitionEmbeddingUpdatedEvent:
-        return cls(occurred_at=now, graphdefinitionembedding_id=graphdefinitionembedding_id)
+    def now(
+        cls, graph_definition_embedding_id: GraphDefinitionEmbeddingId, now: CreatedAt
+    ) -> GraphDefinitionEmbeddingUpdatedEvent:
+        return cls(occurred_at=now, graph_definition_embedding_id=graph_definition_embedding_id)

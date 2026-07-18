@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class ProjectStateDeletedEvent(DomainEvent):
-    projectstate_id: ProjectStateId
+    project_state_id: ProjectStateId
 
     @classmethod
-    def now(cls, projectstate_id: ProjectStateId, now: CreatedAt) -> ProjectStateDeletedEvent:
-        return cls(occurred_at=now, projectstate_id=projectstate_id)
+    def now(cls, project_state_id: ProjectStateId, now: CreatedAt) -> ProjectStateDeletedEvent:
+        return cls(occurred_at=now, project_state_id=project_state_id)

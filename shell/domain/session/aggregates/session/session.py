@@ -19,7 +19,6 @@ from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -30,13 +29,14 @@ class Session(AggregateRoot[SessionId]):
     """Session aggregate root — V3 with FSM (OPEN -> CLOSED)."""
 
     __slots__ = (
-        "_updated_at",
-        "_created_at",
         "_user_id",
         "_project_id",
         "_status",
         "_opened_at",
         "_closed_at",
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
     )
 
     _user_id: UserIdRef
@@ -44,6 +44,9 @@ class Session(AggregateRoot[SessionId]):
     _status: SessionStatus
     _opened_at: CreatedAt
     _closed_at: UpdatedAt | None
+    _created_at: CreatedAt | None
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
 
     def __init__(
         self,
@@ -61,6 +64,9 @@ class Session(AggregateRoot[SessionId]):
         self._status = status
         self._opened_at = opened_at
         self._closed_at = closed_at
+        self._created_at = opened_at
+        self._updated_at = None
+        self._deleted_at = None
 
     @classmethod
     def open(
@@ -106,6 +112,7 @@ class Session(AggregateRoot[SessionId]):
         status: SessionStatus,
         opened_at: CreatedAt,
         closed_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -118,19 +125,14 @@ class Session(AggregateRoot[SessionId]):
 
     # --- V3 properties ---
 
-
-    @classmethod
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             SessionUpdatedEvent.now(
                 session_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -141,6 +143,7 @@ class Session(AggregateRoot[SessionId]):
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def user_id(self) -> UserIdRef:
         return self._user_id
@@ -161,17 +164,24 @@ class Session(AggregateRoot[SessionId]):
     def closed_at(self) -> UpdatedAt | None:
         return self._closed_at
 
+    @property
+    def created_at(self) -> CreatedAt | None:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> UpdatedAt | None:
+        return self._updated_at
+
+    @property
+    def deleted_at(self) -> DeletedAt | None:
+        return self._deleted_at
+
     # --- Legacy deprecated properties ---
 
     @property
     def goal(self) -> str:
         """Deprecated: goal was replaced by structured state_inputs."""
         return ""
-
-    @property
-    def status(self) -> str:
-        """Returns lowercase status string for backward compat."""
-        return self._status.value.lower()
 
     # --- Factory ---
 
@@ -199,12 +209,3 @@ class Session(AggregateRoot[SessionId]):
         )
         session.append_event(SessionOpenedEvent.now(session.id, user_id, project_id, now=now))
         return session
-
-    # --- Methods ---
-
-    def close(self, now: UpdatedAt) -> None:
-        if self._status != SessionStatus.OPEN:
-            raise DomainError(f"Cannot close session in status {self._status!r}")
-        self._status = SessionStatus.CLOSED
-        self._closed_at = now
-        self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))

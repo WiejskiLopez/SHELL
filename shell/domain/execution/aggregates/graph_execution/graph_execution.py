@@ -105,8 +105,20 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return instance
 
     @classmethod
-    def _new(cls, *args: object, **kwargs: object) -> GraphExecution:
-        return cls.initialize(*args, **kwargs)
+    def _new(
+        cls,
+        *,
+        id_: GraphExecutionId,
+        task_execution_id: TaskExecutionId,
+        graph_definition_id: GraphDefinitionIdRef,
+        now: CreatedAt,
+    ) -> GraphExecution:
+        return cls.initialize(
+            id_=id_,
+            task_execution_id=task_execution_id,
+            graph_definition_id=graph_definition_id,
+            now=now,
+        )
 
     @classmethod
     def initialize(
@@ -164,6 +176,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
+        now: CreatedAt,
     ) -> GraphExecution:
         return cls(
             id=id_,
@@ -171,6 +184,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             parent_graph_execution_id=None,
             depth=depth,
             max_subgraph_depth=max_subgraph_depth,
+            created_at=now,
         )
 
     @classmethod
@@ -181,6 +195,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         parent_id: GraphExecutionId,
         parent_depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
+        now: CreatedAt,
     ) -> GraphExecution:
         depth_val = GraphDepth(parent_depth.value + 1)
         if depth_val.value > max_subgraph_depth.value:
@@ -193,28 +208,25 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             parent_graph_execution_id=parent_id,
             depth=depth_val,
             max_subgraph_depth=max_subgraph_depth,
+            created_at=now,
         )
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             GraphExecutionDeletedEvent.now(
-                graphexecution_id=self._id,
-                now=now,
+                graph_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
 
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             GraphExecutionUpdatedEvent.now(
-                graphexecution_id=self._id,
-                now=now,
+                graph_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 

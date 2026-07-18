@@ -73,16 +73,12 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         )
         return instance
 
-
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             ProjectSkillDeletedEvent.now(
-                projectskill_id=self._id,
+                project_skill_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -91,10 +87,11 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self._updated_at = now
         self.append_event(
             ProjectSkillUpdatedEvent.now(
-                projectskill_id=self._id,
+                project_skill_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def project_id(self) -> ProjectId:
         return self._project_id
@@ -137,59 +134,4 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
 
     @classmethod
     def _new(cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt) -> ProjectSkill:
-        instance = cls(
-            id=ProjectSkillId.generate(),
-            project_id=project_id,
-            skill_data=ProjectSkillData(skill_data),
-            created_at=now,
-        )
-        instance.append_event(
-            ProjectSkillCreatedEvent.now(
-                skill_id=instance.id,
-                project_id=project_id,
-                now=now,
-            )
-        )
-        return instance
-
-
-
-
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            ProjectSkillDeletedEvent.now(
-                projectskill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            ProjectSkillUpdatedEvent.now(
-                projectskill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-    @property
-    def project_id(self) -> ProjectId:
-        return self._project_id
-
-    @property
-    def skill_data(self) -> ProjectSkillData:
-        return self._skill_data
-
-    @property
-    def created_at(self) -> CreatedAt | None:
-        return self._created_at
-
-    @property
-    def updated_at(self) -> UpdatedAt | None:
-        return self._updated_at
-
-    @property
-    def deleted_at(self) -> DeletedAt | None:
-        return self._deleted_at
+        return cls.new(project_id=project_id, skill_data=skill_data, now=now)

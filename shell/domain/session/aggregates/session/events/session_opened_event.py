@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from shell.domain.session.value_objects.user_id_ref import UserIdRef
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class SessionOpenedEvent(DomainEvent):
     session_id: SessionId

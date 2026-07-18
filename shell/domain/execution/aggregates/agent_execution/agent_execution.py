@@ -24,11 +24,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
+
 class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = (
         "_node_execution_id",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     _node_execution_id: NodeExecutionId
@@ -98,18 +100,20 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             AgentExecutionDeletedEvent.now(
-                agentexecution_id=self._id,
+                agent_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             AgentExecutionUpdatedEvent.now(
-                agentexecution_id=self._id,
+                agent_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def node_execution_id(self) -> NodeExecutionId:
         return self._node_execution_id

@@ -159,16 +159,12 @@ class UserState(AggregateRoot[UserStateId]):
 
     # ------------------------------------------------------------------ properties
 
-
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             UserStateDeletedEvent.now(
-                userstate_id=self._id,
+                user_state_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -177,10 +173,11 @@ class UserState(AggregateRoot[UserStateId]):
         self._updated_at = now
         self.append_event(
             UserStateUpdatedEvent.now(
-                userstate_id=self._id,
+                user_state_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def user_id(self) -> UserId:
         return self._user_id
@@ -223,54 +220,3 @@ class UserState(AggregateRoot[UserStateId]):
             state_data=StateData(JsonStr("{}")),
             created_at=now,
         )
-
-    # ------------------------------------------------------------------ mutations
-
-    def set_key(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            UserStateChangedEvent.now(
-                user_id=self._user_id,
-                user_state_id=self.id,
-                now=self._created_at,
-            )
-        )
-
-    def get(self, key: str) -> object | None:
-        result: object | None = json.loads(self._state_data.value.value).get(key)
-        return result
-
-    def remove_key(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                UserStateChangedEvent.now(
-                    user_id=self._user_id,
-                    user_state_id=self.id,
-                    now=self._created_at,
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.set_key(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self.remove_key(key)
-
-    def merge(self, other: UserState) -> None:
-        other_data = json.loads(other._state_data.value.value)
-        current = json.loads(self._state_data.value.value)
-        for key, value in other_data.items():
-            if key not in current:
-                self.set_key(key, value)
-
-    def snapshot(self) -> StateData:
-        return self._state_data

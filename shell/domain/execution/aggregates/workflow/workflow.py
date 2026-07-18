@@ -7,10 +7,16 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.workflow.events.workflow_created_event import (
     WorkflowCreatedEvent,
 )
+from shell.domain.execution.aggregates.workflow.events.workflow_deleted_event import (
+    WorkflowDeletedEvent,
+)
+from shell.domain.execution.aggregates.workflow.events.workflow_updated_event import (
+    WorkflowUpdatedEvent,
+)
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -21,7 +27,6 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -38,6 +43,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     _session_id: SessionIdRef | None
     _status: WorkflowStatus
     _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
 
     def __init__(
         self,
@@ -52,6 +58,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._session_id = session_id
         self._status = status if status is not None else WorkflowStatus.ACTIVE
         self._created_at = created_at
+        self._updated_at = None
         self._deleted_at = deleted_at
 
     @classmethod
@@ -62,14 +69,23 @@ class Workflow(AggregateRoot["WorkflowId"]):
         now: CreatedAt,
         session_id: SessionIdRef | None = None,
     ) -> Workflow:
-        created_at = now
+        return cls._new(id_=id_, now=now, session_id=session_id)
+
+    @classmethod
+    def _new(
+        cls,
+        *,
+        id_: WorkflowId,
+        now: CreatedAt,
+        session_id: SessionIdRef | None = None,
+    ) -> Workflow:
         workflow = cls(
             id=id_,
             session_id=session_id,
             status=WorkflowStatus.ACTIVE,
-            created_at=created_at,
+            created_at=now,
         )
-        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=created_at))
+        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=now))
         return workflow
 
     # --- Methods ---
@@ -140,20 +156,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
 
     # --- Properties ---
 
-
-    @classmethod
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             WorkflowUpdatedEvent.now(
                 workflow_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -161,7 +171,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.append_event(
             WorkflowDeletedEvent.now(
                 workflow_id=self._id,
-                now=now,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -182,69 +192,3 @@ class Workflow(AggregateRoot["WorkflowId"]):
         return self._deleted_at
 
     # --- Factory ---
-
-    @classmethod
-    def _new(
-        cls,
-        *,
-        id_: WorkflowId,
-        now: CreatedAt,
-        session_id: SessionIdRef | None = None,
-    ) -> Workflow:
-        created_at = now
-        workflow = cls(
-            id=id_,
-            session_id=session_id,
-            status=WorkflowStatus.ACTIVE,
-            created_at=created_at,
-        )
-        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=created_at))
-        return workflow
-
-    # --- Methods ---
-
-    def start_at(
-        self,
-        *,
-        task_execution_id: TaskExecutionId | None = None,
-        work_dir: str | None = None,
-    ) -> None:
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
-
-    def finish(
-        self,
-        task_execution_id: TaskExecutionId | None = None,
-    ) -> None:
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"finish requires status=ACTIVE, got {self._status.value!r}")
-        self._status = WorkflowStatus.COMPLETED
-
-    def fail(
-        self,
-        *,
-        task_execution_id: TaskExecutionId | None = None,
-    ) -> None:
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"fail requires status=ACTIVE, got {self._status.value!r}")
-        self._status = WorkflowStatus.FAILED
-
-    def abort(
-        self,
-        *,
-        reason: str | Reason | None = None,
-        task_execution_id: TaskExecutionId | None = None,
-    ) -> None:
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"abort requires status=ACTIVE, got {self._status.value!r}")
-        self._status = WorkflowStatus.ABORTED
-
-    def pause(self) -> None:
-        if self._status != WorkflowStatus.ACTIVE:
-            raise DomainError(f"pause requires status=ACTIVE, got {self._status.value!r}")
-        self._status = WorkflowStatus.PAUSED
-
-    def resume(self) -> None:
-        if self._status != WorkflowStatus.PAUSED:
-            raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
-        self._status = WorkflowStatus.ACTIVE

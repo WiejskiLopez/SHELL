@@ -27,10 +27,11 @@ class CreateProjectHandler:
     async def handle(self, command: CreateProjectCommand) -> ProjectId:
         project_id = self._id_generator.new_id(ProjectId)
         now = CreatedAt.from_datetime(self._clock.now())
+        repo_url = RepoUrl(command.repo_url)
         project = Project.create(
             id_=project_id,
             name=ProjectName(command.name),
-            repo_url=RepoUrl(command.repo_url) if command.repo_url else None,
+            repo_url=repo_url,
             now=now,
         )
         async with self._unit_of_work as unit_of_work:

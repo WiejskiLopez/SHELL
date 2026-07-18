@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class GraphDefinitionUpdatedEvent(DomainEvent):
-    graphdefinition_id: GraphDefinitionId
+    graph_definition_id: GraphDefinitionId
 
     @classmethod
-    def now(cls, graphdefinition_id: GraphDefinitionId, now: CreatedAt) -> GraphDefinitionUpdatedEvent:
-        return cls(occurred_at=now, graphdefinition_id=graphdefinition_id)
+    def now(
+        cls, graph_definition_id: GraphDefinitionId, now: CreatedAt
+    ) -> GraphDefinitionUpdatedEvent:
+        return cls(occurred_at=now, graph_definition_id=graph_definition_id)

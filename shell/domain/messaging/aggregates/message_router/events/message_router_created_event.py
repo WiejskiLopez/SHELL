@@ -11,17 +11,18 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class MessageRouterCreatedEvent(DomainEvent):
-    message_id: MessageRouterId
+    message_router_id: MessageRouterId
 
     @classmethod
     def now(
         cls,
-        message_id: MessageRouterId,
+        message_router_id: MessageRouterId,
         now: CreatedAt,
     ) -> MessageRouterCreatedEvent:
         return cls(
             occurred_at=now,
-            message_id=message_id,
+            message_router_id=message_router_id,
         )

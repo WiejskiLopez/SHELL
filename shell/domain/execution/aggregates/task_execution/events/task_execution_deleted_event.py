@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class TaskExecutionDeletedEvent(DomainEvent):
-    taskexecution_id: TaskExecutionId
+    task_execution_id: TaskExecutionId
 
     @classmethod
-    def now(cls, taskexecution_id: TaskExecutionId, now: CreatedAt) -> TaskExecutionDeletedEvent:
-        return cls(occurred_at=now, taskexecution_id=taskexecution_id)
+    def now(cls, task_execution_id: TaskExecutionId, now: CreatedAt) -> TaskExecutionDeletedEvent:
+        return cls(occurred_at=now, task_execution_id=task_execution_id)

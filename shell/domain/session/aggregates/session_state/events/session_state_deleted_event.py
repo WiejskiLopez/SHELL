@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class SessionStateDeletedEvent(DomainEvent):
-    sessionstate_id: SessionStateId
+    session_state_id: SessionStateId
 
     @classmethod
-    def now(cls, sessionstate_id: SessionStateId, now: CreatedAt) -> SessionStateDeletedEvent:
-        return cls(occurred_at=now, sessionstate_id=sessionstate_id)
+    def now(cls, session_state_id: SessionStateId, now: CreatedAt) -> SessionStateDeletedEvent:
+        return cls(occurred_at=now, session_state_id=session_state_id)

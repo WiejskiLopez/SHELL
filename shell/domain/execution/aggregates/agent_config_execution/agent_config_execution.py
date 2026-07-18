@@ -33,12 +33,13 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         "_config_data",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     _agent_execution_id: AgentExecutionId
     _config_data: ConfigData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt
+    _updated_at: UpdatedAt | None
 
     def __init__(
         self,
@@ -46,7 +47,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
         created_at: CreatedAt,
-        updated_at: UpdatedAt,
+        updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._agent_execution_id = agent_execution_id
@@ -82,9 +83,6 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
             )
         )
 
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
 
@@ -103,6 +101,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def agent_execution_id(self) -> AgentExecutionId:
         return self._agent_execution_id
@@ -116,7 +115,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt:
+    def updated_at(self) -> UpdatedAt | None:
         return self._updated_at
 
     @classmethod
@@ -126,7 +125,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
         created_at: CreatedAt,
-        updated_at: UpdatedAt,
+        updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -149,5 +148,4 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
             agent_execution_id=agent_execution_id,
             config_data=config_data,
             created_at=now,
-
         )

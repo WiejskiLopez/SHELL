@@ -15,6 +15,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
     GraphDefinitionEmbeddingId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -27,12 +28,11 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_model import (
         EmbeddingModel,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
-GraphDefinitionEmbeddingCreatedEvent,
+    GraphDefinitionEmbeddingCreatedEvent,
 )
 
 
@@ -44,6 +44,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         "_model",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     def __init__(
@@ -54,7 +55,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         embedding: Embedding,
         model: EmbeddingModel,
         created_at: CreatedAt,
-        updated_at: CreatedAt | None = None,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_definition_id = graph_definition_id
@@ -63,6 +65,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self._model = model
         self._created_at = created_at
         self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -81,7 +84,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             embedding=embedding,
             model=model,
             created_at=now,
-            updated_at=now,
+            updated_at=UpdatedAt.from_datetime(now.value),
         )
         instance.append_event(
             GraphDefinitionEmbeddingCreatedEvent.now(
@@ -92,25 +95,21 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         )
         return instance
 
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             GraphDefinitionEmbeddingDeletedEvent.now(
-                graphdefinitionembedding_id=self._id,
-                now=now,
+                graph_definition_embedding_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _update(self, now: CreatedAt) -> None:
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             GraphDefinitionEmbeddingUpdatedEvent.now(
-                graphdefinitionembedding_id=self._id,
+                graph_definition_embedding_id=self._id,
                 now=now,
             )
         )
@@ -136,7 +135,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> CreatedAt | None:
+    def updated_at(self) -> UpdatedAt | None:
         return self._updated_at
 
     @classmethod
@@ -148,7 +147,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         embedding: Embedding,
         model: EmbeddingModel,
         created_at: CreatedAt,
-        updated_at: CreatedAt | None = None,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> GraphDefinitionEmbedding:
         return cls(
             id=id,
@@ -158,6 +158,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             model=model,
             created_at=created_at,
             updated_at=updated_at,
+            deleted_at=deleted_at,
         )
 
     @classmethod
@@ -177,7 +178,6 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             embedding=embedding,
             model=model,
             created_at=now,
-
         )
         instance.append_event(
             GraphDefinitionEmbeddingCreatedEvent.now(
@@ -187,26 +187,3 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             )
         )
         return instance
-
-
-
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            GraphDefinitionEmbeddingDeletedEvent.now(
-                graphdefinitionembedding_id=self._id,
-                now=now,
-            )
-        )
-
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            GraphDefinitionEmbeddingUpdatedEvent.now(
-                graphdefinitionembedding_id=self._id,
-                now=now,
-            )
-        )

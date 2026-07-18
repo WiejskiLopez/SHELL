@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class TaskExecutionStateCreatedEvent(DomainEvent):
-    taskexecutionstate_id: TaskExecutionStateId
+    task_execution_state_id: TaskExecutionStateId
 
     @classmethod
-    def now(cls, taskexecutionstate_id: TaskExecutionStateId, now: CreatedAt) -> TaskExecutionStateCreatedEvent:
-        return cls(occurred_at=now, taskexecutionstate_id=taskexecutionstate_id)
+    def now(
+        cls, task_execution_state_id: TaskExecutionStateId, now: CreatedAt
+    ) -> TaskExecutionStateCreatedEvent:
+        return cls(occurred_at=now, task_execution_state_id=task_execution_state_id)

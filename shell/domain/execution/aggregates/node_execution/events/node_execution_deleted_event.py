@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class NodeExecutionDeletedEvent(DomainEvent):
-    nodeexecution_id: NodeExecutionId
+    node_execution_id: NodeExecutionId
 
     @classmethod
-    def now(cls, nodeexecution_id: NodeExecutionId, now: CreatedAt) -> NodeExecutionDeletedEvent:
-        return cls(occurred_at=now, nodeexecution_id=nodeexecution_id)
+    def now(cls, node_execution_id: NodeExecutionId, now: CreatedAt) -> NodeExecutionDeletedEvent:
+        return cls(occurred_at=now, node_execution_id=node_execution_id)

@@ -89,11 +89,8 @@ class Project(AggregateRoot[ProjectId]):
             repo_url=repo_url,
             status=ProjectStatus.ACTIVE,
             created_at=now,
-
         )
-        instance.append_event(
-            ProjectCreatedEvent.now(project_id=instance.id, now=now)
-        )
+        instance.append_event(ProjectCreatedEvent.now(project_id=instance.id, now=now))
         return instance
 
     @classmethod
@@ -106,7 +103,6 @@ class Project(AggregateRoot[ProjectId]):
         now: CreatedAt,
     ) -> Project:
         return cls._new(id_=id_, name=name, repo_url=repo_url, now=now)
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -126,6 +122,7 @@ class Project(AggregateRoot[ProjectId]):
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def name(self) -> ProjectName:
         return self._name

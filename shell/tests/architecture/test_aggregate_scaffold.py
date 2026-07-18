@@ -1,4 +1,5 @@
 """Architecture tests: aggregate scaffold standards (#21-#27)."""
+
 from __future__ import annotations
 
 import ast
@@ -48,8 +49,7 @@ def test_aggregates_have_timestamps() -> None:
                 if key not in _KNOWN_AGGREGATE_NO_TIMESTAMPS:
                     violations.append(key)
     assert not violations, (
-        "Aggregates must have _created_at and _updated_at in __slots__:\n"
-        + "\n".join(violations)
+        "Aggregates must have _created_at and _updated_at in __slots__:\n" + "\n".join(violations)
     )
 
 
@@ -74,8 +74,8 @@ def test_aggregates_have_private_new() -> None:
                 key = f"{path.relative_to(BASE)}: {node.name} missing _new()"
                 if key not in _KNOWN_NO_PRIVATE_NEW:
                     violations.append(key)
-    assert not violations, (
-        "Aggregates must have a private _new() factory:\n" + "\n".join(violations)
+    assert not violations, "Aggregates must have a private _new() factory:\n" + "\n".join(
+        violations
     )
 
 
@@ -100,8 +100,8 @@ def test_aggregates_have_restore() -> None:
                 key = f"{path.relative_to(BASE)}: {node.name} missing restore()"
                 if key not in _KNOWN_NO_RESTORE:
                     violations.append(key)
-    assert not violations, (
-        "Aggregates must have restore() for rekonstrukcja z DB:\n" + "\n".join(violations)
+    assert not violations, "Aggregates must have restore() for rekonstrukcja z DB:\n" + "\n".join(
+        violations
     )
 
 
@@ -122,10 +122,15 @@ def test_aggregate_factory_emits_event() -> None:
             if not has_slots(node):
                 continue
             method_names = all_method_names(node)
-            factory_candidates = [m for m in method_names if not m.startswith("__") and m != "restore"]
+            factory_candidates = [
+                m for m in method_names if not m.startswith("__") and m != "restore"
+            ]
             has_event = False
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name in factory_candidates:
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name in factory_candidates
+                ):
                     source = ast.unparse(stmt)
                     if "append_event(" in source:
                         has_event = True
@@ -135,7 +140,8 @@ def test_aggregate_factory_emits_event() -> None:
                 if key not in _KNOWN_NO_FACTORY_EVENT:
                     violations.append(key)
     assert not violations, (
-        "Aggregate factory must call append_event() to emit *CreatedEvent:\n" + "\n".join(violations)
+        "Aggregate factory must call append_event() to emit *CreatedEvent:\n"
+        + "\n".join(violations)
     )
 
 
@@ -163,7 +169,8 @@ def test_aggregates_have_private_methods() -> None:
                     if key not in _KNOWN_PRIVATE_MISSING:
                         violations.append(key)
     assert not violations, (
-        "Aggregates must have private methods _new(), _delete(), _update():\n" + "\n".join(violations)
+        "Aggregates must have private methods _new(), _delete(), _update():\n"
+        + "\n".join(violations)
     )
 
 
@@ -174,10 +181,11 @@ _KNOWN_PRIVATE_CALLERS: frozenset[str] = frozenset({})
 
 def _is_inside_own_class(call_node: ast.Call, path: pathlib.Path) -> bool:
     func = call_node.func
-    if isinstance(func, ast.Attribute):
-        if isinstance(func.value, ast.Name) and func.value.id in ("self", "cls"):
-            return True
-    return False
+    return (
+        isinstance(func, ast.Attribute)
+        and isinstance(func.value, ast.Name)
+        and func.value.id in ("self", "cls")
+    )
 
 
 def test_no_external_calls_to_private_methods() -> None:
@@ -221,12 +229,16 @@ def test_aggregate_new_does_not_set_updated_at() -> None:
             if not has_slots(node):
                 continue
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name == "_new":
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name == "_new"
+                ):
                     source = ast.unparse(stmt)
                     if "updated_at" in source.lower():
                         key = f"{path.relative_to(BASE)}: {node.name}._new() sets _updated_at"
                         if key not in _KNOWN_NEW_SETS_UPDATED_AT:
                             violations.append(key)
     assert not violations, (
-        "_new() must NOT set _updated_at. Nothing updated yet. Use _update():\n" + "\n".join(violations)
+        "_new() must NOT set _updated_at. Nothing updated yet. Use _update():\n"
+        + "\n".join(violations)
     )

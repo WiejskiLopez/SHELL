@@ -35,7 +35,7 @@ class TestMessageRouter:
         events = message.pull_events()
         assert len(events) == 1
         event = events[0]
-        assert event.message_id == message.id  # type: ignore[attr-defined]
+        assert event.message_router_id == message.id
 
     def test_restore_preserves_fields(self) -> None:
         now = datetime.now(tz=UTC)

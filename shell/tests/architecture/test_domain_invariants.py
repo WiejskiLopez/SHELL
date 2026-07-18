@@ -1,4 +1,5 @@
 """Architecture tests: domain invariants (#30-#32)."""
+
 from __future__ import annotations
 
 import ast
@@ -31,16 +32,21 @@ def test_created_at_is_never_nullable() -> None:
             if not has_slots(node):
                 continue
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name in ("__init__", "restore"):
+                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name in (
+                    "__init__",
+                    "restore",
+                ):
                     source = ast.unparse(stmt)
-                    if "created_at: CreatedAt | None" in source or "created_at : CreatedAt | None" in source:
+                    if (
+                        "created_at: CreatedAt | None" in source
+                        or "created_at : CreatedAt | None" in source
+                    ):
                         key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} has nullable created_at"
                         if key not in _KNOWN_NULLABLE_CREATED_AT:
                             violations.append(key)
     assert not violations, (
         "created_at must NEVER be nullable (CreatedAt | None). "
-        "Every aggregate always has a creation timestamp:\n"
-        + "\n".join(violations)
+        "Every aggregate always has a creation timestamp:\n" + "\n".join(violations)
     )
 
 
@@ -62,7 +68,10 @@ def test_aggregate_new_is_implemented() -> None:
             if not has_slots(node):
                 continue
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name == "_new":
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name == "_new"
+                ):
                     source = ast.unparse(stmt)
                     if "NotImplementedError" in source:
                         key = f"{path.relative_to(BASE)}: {node.name}._new() is NotImplementedError stub"
@@ -70,8 +79,7 @@ def test_aggregate_new_is_implemented() -> None:
                             violations.append(key)
     assert not violations, (
         "_new() must be implemented in every aggregate. "
-        "NotImplementedError stubs are not allowed:\n"
-        + "\n".join(violations)
+        "NotImplementedError stubs are not allowed:\n" + "\n".join(violations)
     )
 
 
@@ -80,7 +88,9 @@ def test_aggregate_new_is_implemented() -> None:
 _KNOWN_BARE_EXCEPTIONS: frozenset[str] = frozenset({})
 
 
-def _check_function_for_bare_exceptions(source: str, path_str: str, class_name: str, func_name: str) -> list[str]:
+def _check_function_for_bare_exceptions(
+    source: str, path_str: str, class_name: str, func_name: str
+) -> list[str]:
     """Check a function body for bare exceptions (ValueError, TypeError, AssertionError)."""
     violations: list[str] = []
     for exc in ("ValueError", "TypeError", "AssertionError"):
@@ -106,16 +116,18 @@ def test_no_bare_exceptions_in_domain() -> None:
         for node in ast.walk(tree):
             if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call):
                 func = node.exc.func
-                if isinstance(func, ast.Name):
-                    if func.id in ("ValueError", "TypeError", "AssertionError"):
-                        lineno = getattr(node, "lineno", 0)
-                        key = f"{rel}:{lineno}: bare raise {func.id}"
-                        if key not in _KNOWN_BARE_EXCEPTIONS:
-                            violations.append(key)
+                if isinstance(func, ast.Name) and func.id in (
+                    "ValueError",
+                    "TypeError",
+                    "AssertionError",
+                ):
+                    lineno = getattr(node, "lineno", 0)
+                    key = f"{rel}:{lineno}: bare raise {func.id}"
+                    if key not in _KNOWN_BARE_EXCEPTIONS:
+                        violations.append(key)
     assert not violations, (
         "Domain code must use domain-specific exceptions (e.g. UserAlreadyDeletedError), "
-        "not bare ValueError/TypeError/AssertionError:\n"
-        + "\n".join(violations)
+        "not bare ValueError/TypeError/AssertionError:\n" + "\n".join(violations)
     )
 
 
@@ -153,13 +165,11 @@ def test_aggregate_id_matches_aggregate_name() -> None:
             # Find the generic base class argument: AggregateRoot[XxxId]
             for base in node.bases:
                 id_type_name = _extract_id_type_name(base)
-                if id_type_name and id_type_name.endswith("Id"):
-                    if id_type_name != expected_id:
-                        key = f"{path.relative_to(BASE)}: {agg_name} uses {id_type_name}, expected {expected_id}"
-                        if key not in _KNOWN_AGGREGATE_ID_MISMATCH:
-                            violations.append(key)
+                if id_type_name and id_type_name.endswith("Id") and id_type_name != expected_id:
+                    key = f"{path.relative_to(BASE)}: {agg_name} uses {id_type_name}, expected {expected_id}"
+                    if key not in _KNOWN_AGGREGATE_ID_MISMATCH:
+                        violations.append(key)
     assert not violations, (
         "Aggregate ID must match its name (e.g. User -> UserId). "
-        "Rename the ID class or change which ID the aggregate uses:\n"
-        + "\n".join(violations)
+        "Rename the ID class or change which ID the aggregate uses:\n" + "\n".join(violations)
     )

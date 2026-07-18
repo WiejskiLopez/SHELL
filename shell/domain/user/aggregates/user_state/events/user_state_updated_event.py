@@ -9,10 +9,11 @@ if TYPE_CHECKING:
     from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class UserStateUpdatedEvent(DomainEvent):
-    userstate_id: UserStateId
+    user_state_id: UserStateId
 
     @classmethod
-    def now(cls, userstate_id: UserStateId, now: CreatedAt) -> UserStateUpdatedEvent:
-        return cls(occurred_at=now, userstate_id=userstate_id)
+    def now(cls, user_state_id: UserStateId, now: CreatedAt) -> UserStateUpdatedEvent:
+        return cls(occurred_at=now, user_state_id=user_state_id)

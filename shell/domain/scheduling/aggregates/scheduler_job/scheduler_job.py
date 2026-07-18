@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_data import StateData
-    from shell.platform.domain.value_objects.timestamp import Timestamp
+
 
 class SchedulerJob(AggregateRoot[SchedulerJobId]):
     """Represents a cyclic job configuration run on an interval by APScheduler."""
@@ -46,6 +46,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         "_config",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     def __init__(
@@ -59,7 +60,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         enabled: Enabled,
         config: StateData,
         created_at: CreatedAt,
-        updated_at: Timestamp,
+        updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._scheduler_definition_id = scheduler_definition_id
@@ -90,7 +91,17 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         now: CreatedAt,
         enabled: bool = True,
     ) -> SchedulerJob:
-        return cls._new(id_=id_, scheduler_definition_id=scheduler_definition_id, name=name, job_type=job_type, interval_seconds=interval_seconds, batch_size=batch_size, config=config, now=now, enabled=enabled)
+        return cls._new(
+            id_=id_,
+            scheduler_definition_id=scheduler_definition_id,
+            name=name,
+            job_type=job_type,
+            interval_seconds=interval_seconds,
+            batch_size=batch_size,
+            config=config,
+            now=now,
+            enabled=enabled,
+        )
 
     @classmethod
     def restore(
@@ -104,7 +115,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         enabled: Enabled,
         config: StateData,
         created_at: CreatedAt,
-        updated_at: Timestamp,
+        updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -147,7 +158,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
 
         instance.append_event(
             SchedulerJobCreatedEvent.now(
-                schedulerjob_id=instance.id,
+                scheduler_job_id=instance.id,
                 now=now,
             )
         )
@@ -158,18 +169,20 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SchedulerJobDeletedEvent.now(
-                schedulerjob_id=self._id,
+                scheduler_job_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             SchedulerJobUpdatedEvent.now(
-                schedulerjob_id=self._id,
+                scheduler_job_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:
         return self._scheduler_definition_id
@@ -203,5 +216,5 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> Timestamp:
+    def updated_at(self) -> UpdatedAt | None:
         return self._updated_at

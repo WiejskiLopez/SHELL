@@ -34,6 +34,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         "_node_execution_id",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     def __init__(
@@ -111,18 +112,20 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeLinkExecutionDeletedEvent.now(
-                nodelinkexecution_id=self._id,
+                node_link_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             NodeLinkExecutionUpdatedEvent.now(
-                nodelinkexecution_id=self._id,
+                node_link_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def graph_execution_id(self) -> GraphExecutionId:
         return self._graph_execution_id

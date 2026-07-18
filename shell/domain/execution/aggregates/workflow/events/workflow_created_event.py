@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class WorkflowCreatedEvent(DomainEvent):
     workflow_id: WorkflowId

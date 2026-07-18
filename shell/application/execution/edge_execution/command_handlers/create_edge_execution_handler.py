@@ -40,7 +40,7 @@ class CreateEdgeExecutionHandler:
         )
 
         now = CreatedAt.from_datetime(self._time.now())
-        edge_execution = EdgeExecution.new(
+        edge_execution = EdgeExecution.create(
             id_=self._identity.new_id(EdgeExecutionId),
             edge_definition_id=EdgeDefinitionIdRef(command.edge_definition_id),
             source_node_execution_id=NodeExecutionId(command.source_node_execution_id),
@@ -54,4 +54,4 @@ class CreateEdgeExecutionHandler:
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.repository(EdgeExecutionRepository).save(edge_execution)
             unit_of_work.stage_events(edge_execution.pull_events())
-        return edge_execution.id.value
+        return str(edge_execution.id.value)

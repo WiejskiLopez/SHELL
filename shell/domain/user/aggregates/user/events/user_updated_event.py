@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class UserUpdatedEvent(DomainEvent):
     user_id: UserId

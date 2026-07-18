@@ -30,6 +30,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         "_message_data",
         "_created_at",
         "_updated_at",
+        "_deleted_at",
     )
 
     _message_data: MessageData
@@ -70,7 +71,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             MessageRouterDeletedEvent.now(
-                messagerouter_id=self._id,
+                message_router_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -79,10 +80,11 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self._updated_at = now
         self.append_event(
             MessageRouterUpdatedEvent.now(
-                messagerouter_id=self._id,
+                message_router_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def message_data(self) -> MessageData:
         return self._message_data
@@ -107,11 +109,10 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
             id=id_,
             message_data=message_data,
             created_at=now,
-
         )
         instance.append_event(
             MessageRouterCreatedEvent.now(
-                message_id=instance.id,
+                message_router_id=instance.id,
                 now=now,
             )
         )

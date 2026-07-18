@@ -67,6 +67,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
             id_=id_,
             node_execution_id=node_execution_id,
             edge_execution_id=edge_execution_id,
+            created_at=now,
         )
         instance.append_event(
             EdgeLinkExecutionCreatedEvent.now(
@@ -101,16 +102,12 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
             )
         )
 
-
-
-
-
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             EdgeLinkExecutionDeletedEvent.now(
-                edgelinkexecution_id=self._id,
+                edge_link_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -119,10 +116,11 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self._updated_at = now
         self.append_event(
             EdgeLinkExecutionUpdatedEvent.now(
-                edgelinkexecution_id=self._id,
+                edge_link_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def node_execution_id(self) -> NodeExecutionId:
         return self._node_execution_id
@@ -163,6 +161,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
             id_=id_,
             node_execution_id=node_execution_id,
             edge_execution_id=edge_execution_id,
+            created_at=now,
         )
         instance.append_event(
             EdgeLinkExecutionCreatedEvent.now(

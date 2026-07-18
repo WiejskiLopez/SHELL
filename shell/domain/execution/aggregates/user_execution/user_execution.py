@@ -16,7 +16,6 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,10 +28,14 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         "_updated_at",
         "_user_id",
         "_created_at",
+        "_deleted_at",
     )
 
     _user_id: UserIdRef | None
     _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
+
     def __init__(
         self,
         *,
@@ -44,7 +47,8 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self._user_id = user_id
         if created_at is not None:
             self._created_at = created_at
-
+        self._updated_at = None
+        self._deleted_at = None
 
     @classmethod
     def create(
@@ -70,28 +74,25 @@ class UserExecution(AggregateRoot[UserExecutionId]):
             created_at=created_at,
         )
 
-
-    @classmethod
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             UserExecutionUpdatedEvent.now(
-                userexecution_id=self._id,
-                now=now,
+                user_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             UserExecutionDeletedEvent.now(
-                userexecution_id=self._id,
+                user_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
+
     @property
     def user_id(self) -> UserIdRef | None:
         return self._user_id

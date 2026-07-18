@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class MessageRouterDeletedEvent(DomainEvent):
-    messagerouter_id: MessageRouterId
+    message_router_id: MessageRouterId
 
     @classmethod
-    def now(cls, messagerouter_id: MessageRouterId, now: CreatedAt) -> MessageRouterDeletedEvent:
-        return cls(occurred_at=now, messagerouter_id=messagerouter_id)
+    def now(cls, message_router_id: MessageRouterId, now: CreatedAt) -> MessageRouterDeletedEvent:
+        return cls(occurred_at=now, message_router_id=message_router_id)

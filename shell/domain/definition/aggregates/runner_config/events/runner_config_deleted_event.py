@@ -11,10 +11,11 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class RunnerConfigDeletedEvent(DomainEvent):
-    runnerconfig_id: RunnerConfigId
+    runner_config_id: RunnerConfigId
 
     @classmethod
-    def now(cls, runnerconfig_id: RunnerConfigId, now: CreatedAt) -> RunnerConfigDeletedEvent:
-        return cls(occurred_at=now, runnerconfig_id=runnerconfig_id)
+    def now(cls, runner_config_id: RunnerConfigId, now: CreatedAt) -> RunnerConfigDeletedEvent:
+        return cls(occurred_at=now, runner_config_id=runner_config_id)

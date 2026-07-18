@@ -5,6 +5,12 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.session_execution_state.events.session_execution_state_created_event import (
     SessionExecutionStateCreatedEvent,
 )
+from shell.domain.execution.aggregates.session_execution_state.events.session_execution_state_deleted_event import (
+    SessionExecutionStateDeletedEvent,
+)
+from shell.domain.execution.aggregates.session_execution_state.events.session_execution_state_updated_event import (
+    SessionExecutionStateUpdatedEvent,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -16,10 +22,10 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution_state.value_objects.session_execution_state_id import (
         SessionExecutionStateId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
+
 
 class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
     __slots__ = (
@@ -28,12 +34,15 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         "_direction",
         "_state_data",
         "_created_at",
+        "_deleted_at",
     )
 
     _session_execution_id: SessionExecutionId
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
 
     def __init__(
         self,
@@ -48,6 +57,8 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
+        self._updated_at = None
+        self._deleted_at = None
 
     @classmethod
     def create(
@@ -59,7 +70,13 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         now: CreatedAt,
         direction: StateDirection,
     ) -> SessionExecutionState:
-        return cls._new(id_=id_, session_execution_id=session_execution_id, state_data=state_data, now=now, direction=direction)
+        return cls._new(
+            id_=id_,
+            session_execution_id=session_execution_id,
+            state_data=state_data,
+            now=now,
+            direction=direction,
+        )
 
     @classmethod
     def restore(
@@ -83,8 +100,8 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SessionExecutionStateDeletedEvent.now(
-                sessionexecutionstate_id=self._id,
-                now=now,
+                session_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -92,8 +109,8 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self._updated_at = now
         self.append_event(
             SessionExecutionStateUpdatedEvent.now(
-                sessionexecutionstate_id=self._id,
-                now=now,
+                session_execution_state_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
             )
         )
 
@@ -132,7 +149,7 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         )
         instance.append_event(
             SessionExecutionStateCreatedEvent.now(
-                sessionexecutionstate_id=instance.id,
+                session_execution_state_id=instance.id,
                 now=now,
             )
         )

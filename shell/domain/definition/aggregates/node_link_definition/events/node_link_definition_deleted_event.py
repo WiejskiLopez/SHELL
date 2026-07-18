@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class NodeLinkDefinitionDeletedEvent(DomainEvent):
-    nodelinkdefinition_id: NodeLinkDefinitionId
+    node_link_definition_id: NodeLinkDefinitionId
 
     @classmethod
-    def now(cls, nodelinkdefinition_id: NodeLinkDefinitionId, now: CreatedAt) -> NodeLinkDefinitionDeletedEvent:
-        return cls(occurred_at=now, nodelinkdefinition_id=nodelinkdefinition_id)
+    def now(
+        cls, node_link_definition_id: NodeLinkDefinitionId, now: CreatedAt
+    ) -> NodeLinkDefinitionDeletedEvent:
+        return cls(occurred_at=now, node_link_definition_id=node_link_definition_id)

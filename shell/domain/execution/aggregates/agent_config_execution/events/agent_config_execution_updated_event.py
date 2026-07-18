@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class AgentConfigExecutionUpdatedEvent(DomainEvent):
     agent_config_execution_id: AgentConfigExecutionId
 
     @classmethod
-    def now(cls, agent_config_execution_id: AgentConfigExecutionId, now: CreatedAt) -> AgentConfigExecutionUpdatedEvent:
+    def now(
+        cls, agent_config_execution_id: AgentConfigExecutionId, now: CreatedAt
+    ) -> AgentConfigExecutionUpdatedEvent:
         return cls(occurred_at=now, agent_config_execution_id=agent_config_execution_id)

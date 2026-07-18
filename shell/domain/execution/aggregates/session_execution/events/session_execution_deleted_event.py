@@ -11,10 +11,13 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
+
 @dataclass(frozen=True, slots=True)
 class SessionExecutionDeletedEvent(DomainEvent):
-    sessionexecution_id: SessionExecutionId
+    session_execution_id: SessionExecutionId
 
     @classmethod
-    def now(cls, sessionexecution_id: SessionExecutionId, now: CreatedAt) -> SessionExecutionDeletedEvent:
-        return cls(occurred_at=now, sessionexecution_id=sessionexecution_id)
+    def now(
+        cls, session_execution_id: SessionExecutionId, now: CreatedAt
+    ) -> SessionExecutionDeletedEvent:
+        return cls(occurred_at=now, session_execution_id=session_execution_id)
