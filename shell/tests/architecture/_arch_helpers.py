@@ -218,6 +218,29 @@ def is_magic(name: str) -> bool:
     return name.startswith("__") and name.endswith("__")
 
 
+AGGREGATE_BASES = {"AggregateRoot"}
+
+
+def get_slots(node: ast.ClassDef) -> list[str]:
+    for stmt in node.body:
+        if isinstance(stmt, ast.Assign):
+            for target in stmt.targets:
+                if isinstance(target, ast.Name) and target.id == "__slots__":
+                    if isinstance(stmt.value, ast.Tuple):
+                        return [e.value if isinstance(e, ast.Constant) and isinstance(e.value, str) else ast.unparse(e) for e in stmt.value.elts]
+                    if isinstance(stmt.value, ast.List):
+                        return [e.value if isinstance(e, ast.Constant) and isinstance(e.value, str) else ast.unparse(e) for e in stmt.value.elts]
+    return []
+
+
+def all_method_names(node: ast.ClassDef) -> set[str]:
+    names: set[str] = set()
+    for stmt in node.body:
+        if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            names.add(stmt.name)
+    return names
+
+
 _SLOT_METHODS = frozenset(
     {
         "__slots__",
