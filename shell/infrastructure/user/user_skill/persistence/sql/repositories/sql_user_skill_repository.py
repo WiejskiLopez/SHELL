@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
-    from shell.domain.user.value_objects.skill_id import SkillId
+    from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
     from shell.domain.user.value_objects.user_id import UserId
 
 
@@ -29,7 +29,7 @@ class SqlUserSkillRepository(UserSkillRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def get_by_id(self, skill_id: SkillId) -> UserSkill | None:
+    async def get_by_id(self, skill_id: UserSkillId) -> UserSkill | None:
         query = select(UserSkillModel).where(UserSkillModel.id == skill_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return user_skill_model_to_entity(row) if row else None
@@ -47,14 +47,14 @@ class SqlUserSkillRepository(UserSkillRepository):
         else:
             model.skill_data = json.dumps(json.loads(user_skill.skill_data.value.value))  # type: ignore[assignment]
 
-    async def delete(self, id: SkillId, now: datetime | None = None) -> None:
+    async def delete(self, id: UserSkillId, now: datetime | None = None) -> None:
         if now is None:
             now = datetime.now(tz=UTC)
         model = await self._session.get(UserSkillModel, id.value)
         if model is not None:
             model.deleted_at = now
 
-    async def exists(self, id: SkillId) -> ExistsResult:
+    async def exists(self, id: UserSkillId) -> ExistsResult:
         query = select(UserSkillModel).where(UserSkillModel.id == id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return ExistsResult(row is not None)

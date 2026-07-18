@@ -117,3 +117,49 @@ def test_no_bare_exceptions_in_domain() -> None:
         "not bare ValueError/TypeError/AssertionError:\n"
         + "\n".join(violations)
     )
+
+
+# ── 33. Aggregate ID must match aggregate name ─────────────────────────
+
+_KNOWN_AGGREGATE_ID_MISMATCH: frozenset[str] = frozenset({})
+
+
+def _extract_id_type_name(base: ast.expr) -> str | None:
+    """Extract the ID type name from AggregateRoot[XxxId]."""
+    if isinstance(base, ast.Subscript):
+        # The slice is XxxId in AggregateRoot[XxxId]
+        if isinstance(base.slice, ast.Name):
+            return base.slice.id
+        if isinstance(base.slice, ast.Attribute):
+            return base.slice.attr
+    return None
+
+
+def test_aggregate_id_matches_aggregate_name() -> None:
+    """Every aggregate's ID must be {AggregateName}Id. E.g. User -> UserId, UserSkill -> UserSkillId."""
+    violations: list[str] = []
+    for path in iter_py_files(BASE / "domain"):
+        tree = parse_file(path)
+        if tree is None:
+            continue
+        for node in find_classes(tree):
+            if not extends_any_base(node, AGGREGATE_BASES):
+                continue
+            if not has_slots(node):
+                continue
+            agg_name = node.name
+            expected_id = f"{agg_name}Id"
+
+            # Find the generic base class argument: AggregateRoot[XxxId]
+            for base in node.bases:
+                id_type_name = _extract_id_type_name(base)
+                if id_type_name and id_type_name.endswith("Id"):
+                    if id_type_name != expected_id:
+                        key = f"{path.relative_to(BASE)}: {agg_name} uses {id_type_name}, expected {expected_id}"
+                        if key not in _KNOWN_AGGREGATE_ID_MISMATCH:
+                            violations.append(key)
+    assert not violations, (
+        "Aggregate ID must match its name (e.g. User -> UserId). "
+        "Rename the ID class or change which ID the aggregate uses:\n"
+        + "\n".join(violations)
+    )

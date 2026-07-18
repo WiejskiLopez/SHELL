@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.user.aggregates.user_skill.value_objects.skill_id import SkillId
+    from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserSkillId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 

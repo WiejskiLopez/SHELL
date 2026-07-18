@@ -12,7 +12,7 @@ from shell.domain.user.aggregates.user_skill.events.user_skill_updated_event imp
     UserSkillUpdatedEvent,
 )
 from shell.domain.user.value_objects.skill_data import SkillData
-from shell.domain.user.value_objects.skill_id import SkillId
+from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
-class UserSkill(AggregateRoot[SkillId]):
+class UserSkill(AggregateRoot[UserSkillId]):
     __slots__ = (
         "_user_id",
         "_skill_data",
@@ -38,7 +38,7 @@ class UserSkill(AggregateRoot[SkillId]):
     def __init__(
         self,
         *,
-        id: SkillId,
+        id: UserSkillId,
         user_id: UserId,
         skill_data: SkillData,
         created_at: CreatedAt,
@@ -56,7 +56,7 @@ class UserSkill(AggregateRoot[SkillId]):
     def restore(
         cls,
         *,
-        id: SkillId,
+        id: UserSkillId,
         user_id: UserId,
         skill_data: SkillData,
         created_at: CreatedAt,
@@ -75,7 +75,7 @@ class UserSkill(AggregateRoot[SkillId]):
     @classmethod
     def _new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
         instance = cls(
-            id=SkillId.generate(),
+            id=UserSkillId.generate(),
             user_id=user_id,
             skill_data=SkillData(skill_data),
             created_at=now,

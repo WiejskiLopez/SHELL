@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
 from shell.domain.user.value_objects.skill_data import SkillData
-from shell.domain.user.value_objects.skill_id import SkillId
+from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
 from shell.domain.user.value_objects.user_id import UserId
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.infrastructure.persistence.sql.mappers._ensure_utc import (
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 def user_skill_model_to_entity(model: UserSkillModel) -> UserSkill:
     return UserSkill.restore(
-        id=SkillId(model.id),
+        id=UserSkillId(model.id),
         user_id=UserId(model.user_id),
         skill_data=SkillData(JsonStr(json.dumps(dict(model.skill_data))))
         if model.skill_data

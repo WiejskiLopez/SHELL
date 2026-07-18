@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.node_definition.value_objects.NodeDefinitionId import (
+    from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class NodeDefinitionUpdatedEvent(DomainEvent):

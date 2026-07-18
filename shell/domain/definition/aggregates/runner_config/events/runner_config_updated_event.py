@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.runner_config.value_objects.RunnerConfigId import (
+    from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
         RunnerConfigId,
     )
 
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class RunnerConfigUpdatedEvent(DomainEvent):

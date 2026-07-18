@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.SchedulerDefinitionId import (
+    from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
 
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class SchedulerDefinitionDeletedEvent(DomainEvent):

@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.user.aggregates.user_skill.value_objects.skill_id import SkillId
+    from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 @dataclass(frozen=True, slots=True)
 class UserSkillDeletedEvent(DomainEvent):
-    userskill_id: SkillId
+    userskill_id: UserSkillId
 
     @classmethod
-    def now(cls, userskill_id: SkillId, now: CreatedAt) -> UserSkillDeletedEvent:
+    def now(cls, userskill_id: UserSkillId, now: CreatedAt) -> UserSkillDeletedEvent:
         return cls(occurred_at=now, userskill_id=userskill_id)

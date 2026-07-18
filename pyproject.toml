@@ -103,11 +103,11 @@ module = [
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = [
-    "shell.application.*",
-    "shell.process.*",
-]
-disable_error_code = ["type-abstract"]
+  module = [
+      "shell.application.*",
+      "shell.process.*",
+  ]
+  disable_error_code = ["type-abstract"]
 
 [tool.importlinter]
 root_package = "shell"

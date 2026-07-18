@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.session_execution.value_objects.SessionExecutionId import (
+    from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class SessionExecutionUpdatedEvent(DomainEvent):

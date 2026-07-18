@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.graph_definition.value_objects.GraphDefinitionId import (
+    from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class GraphDefinitionDeletedEvent(DomainEvent):

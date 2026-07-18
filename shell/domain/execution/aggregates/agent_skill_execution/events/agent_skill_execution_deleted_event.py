@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.AgentSkillExecutionId import (
+    from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
         AgentSkillExecutionId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class AgentSkillExecutionDeletedEvent(DomainEvent):

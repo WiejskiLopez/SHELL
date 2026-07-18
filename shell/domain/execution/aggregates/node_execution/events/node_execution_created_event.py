@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
-
 @dataclass(frozen=True, slots=True)
 class NodeExecutionCreatedEvent(DomainEvent):
     node_execution_id: NodeExecutionId

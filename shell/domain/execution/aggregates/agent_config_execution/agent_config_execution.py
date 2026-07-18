@@ -90,7 +90,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
 
         self.append_event(
             AgentConfigExecutionDeletedEvent.now(
-                agentconfigexecution_id=self._id,
+                agent_config_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )
@@ -99,7 +99,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._updated_at = now
         self.append_event(
             AgentConfigExecutionUpdatedEvent.now(
-                agentconfigexecution_id=self._id,
+                agent_config_execution_id=self._id,
                 now=CreatedAt.from_datetime(now.value),
             )
         )

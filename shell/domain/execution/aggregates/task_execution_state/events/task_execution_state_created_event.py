@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
-
 @dataclass(frozen=True, slots=True)
 class TaskExecutionStateCreatedEvent(DomainEvent):
     taskexecutionstate_id: TaskExecutionStateId

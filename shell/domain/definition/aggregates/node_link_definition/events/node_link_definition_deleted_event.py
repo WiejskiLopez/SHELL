@@ -6,12 +6,11 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.definition.aggregates.node_link_definition.value_objects.NodeLinkDefinitionId import (
+    from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
         NodeLinkDefinitionId,
     )
 
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class NodeLinkDefinitionDeletedEvent(DomainEvent):

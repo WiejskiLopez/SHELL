@@ -6,11 +6,10 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.project.aggregates.project_state.value_objects.ProjectStateId import (
+    from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
         ProjectStateId,
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 @dataclass(frozen=True, slots=True)
 class ProjectStateDeletedEvent(DomainEvent):
