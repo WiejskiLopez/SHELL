@@ -15,6 +15,9 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.timestamp import Timestamp
 
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.domain.scheduling.aggregates.scheduler_job.events.scheduler_job_created_event import SchedulerJobCreatedEvent
+
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
@@ -66,6 +69,22 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = updated_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        name: JobName,
+        job_type: JobType,
+        interval_seconds: IntervalSeconds,
+        batch_size: BatchSize,
+        config: StateData,
+        now: CreatedAt,
+        enabled: bool = True,
+    ) -> SchedulerJob:
+        return cls._new(id_=id_, scheduler_definition_id=scheduler_definition_id, name=name, job_type=job_type, interval_seconds=interval_seconds, batch_size=batch_size, config=config, now=now, enabled=enabled)
+
+    @classmethod
     def restore(
         cls,
         id: SchedulerExecutionId,
@@ -93,7 +112,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         )
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: SchedulerExecutionId,
@@ -106,7 +125,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
         now: CreatedAt,
         enabled: bool = True,
     ) -> SchedulerJob:
-        return cls(
+        instance = cls(
             id=id_,
             scheduler_definition_id=scheduler_definition_id,
             name=name,
@@ -116,8 +135,15 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
             enabled=Enabled(enabled),
             config=config,
             created_at=now,
-            updated_at=Timestamp.from_datetime(now.value),
         )
+
+        instance.append_event(
+            SchedulerJobCreatedEvent.now(
+                schedulerjob_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
 
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")

@@ -7,6 +7,7 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.domain.execution.aggregates.agent_execution.events.agentexecution_created_event import AgentExecutionCreatedEvent
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
@@ -38,6 +39,27 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self._updated_at = updated_at
 
     @classmethod
+    def _new(
+        cls,
+        *,
+        id_: AgentExecutionId,
+        node_execution_id: NodeExecutionId,
+        now: CreatedAt,
+    ) -> AgentExecution:
+        instance = cls(
+            id_=id_,
+            node_execution_id=node_execution_id,
+            created_at=now,
+        )
+        instance.append_event(
+            AgentExecutionCreatedEvent.now(
+                agent_execution_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
+
+    @classmethod
     def create(
         cls,
         *,
@@ -45,12 +67,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         node_execution_id: NodeExecutionId,
         now: CreatedAt,
     ) -> AgentExecution:
-        return cls(
-            id_=id_,
-            node_execution_id=node_execution_id,
-            created_at=now,
-            updated_at=UpdatedAt(now.value),
-        )
+        return cls._new(id_=id_, node_execution_id=node_execution_id, now=now)
 
     @classmethod
     def restore(

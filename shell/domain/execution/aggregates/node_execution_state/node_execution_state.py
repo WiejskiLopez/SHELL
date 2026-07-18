@@ -120,8 +120,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def _delete(self,
-, key: str) -> None:
+    def _delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)

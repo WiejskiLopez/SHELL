@@ -7,6 +7,9 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.domain.definition.aggregates.node_link_definition.events.node_link_definition_created_event import NodeLinkDefinitionCreatedEvent
+
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
         GraphDefinitionId,
@@ -34,6 +37,26 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         self._node_definition_id = node_definition_id
 
     @classmethod
+    def _new(
+        cls,
+        *,
+        id_: NodeLinkDefinitionId,
+        graph_definition_id: GraphDefinitionId,
+        node_definition_id: NodeDefinitionId,
+    ) -> NodeLinkDefinition:
+        instance = cls(
+            id=id_,
+            graph_definition_id=graph_definition_id,
+            node_definition_id=node_definition_id,
+        )
+        instance.append_event(
+            NodeLinkDefinitionCreatedEvent.now(
+                nodelinkdefinition_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
+    @classmethod
     def create(
         cls,
         *,
@@ -41,11 +64,7 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         graph_definition_id: GraphDefinitionId,
         node_definition_id: NodeDefinitionId,
     ) -> NodeLinkDefinition:
-        return cls(
-            id=id_,
-            graph_definition_id=graph_definition_id,
-            node_definition_id=node_definition_id,
-        )
+        return cls._new(id_=id_, graph_definition_id=graph_definition_id, node_definition_id=node_definition_id, now=now)
 
     @classmethod
     def restore(
@@ -62,6 +81,9 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
 
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def graph_definition_id(self) -> GraphDefinitionId:

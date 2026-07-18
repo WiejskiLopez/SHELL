@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base import AggregateRoot
 
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.domain.execution.aggregates.session_execution_state.events.session_execution_state_created_event import SessionExecutionStateCreatedEvent
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
         SessionExecutionId,
@@ -44,6 +47,18 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self._created_at = created_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: SessionExecutionStateId,
+        session_execution_id: SessionExecutionId,
+        state_data: StateData,
+        now: CreatedAt,
+        direction: StateDirection,
+    ) -> SessionExecutionState:
+        return cls._new(id_=id_, session_execution_id=session_execution_id, state_data=state_data, now=now, direction=direction)
+
+    @classmethod
     def restore(
         cls,
         id: SessionExecutionStateId,
@@ -63,6 +78,9 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")
 
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def session_execution_id(self) -> SessionExecutionId:
         return self._session_execution_id
@@ -80,7 +98,7 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: SessionExecutionStateId,
@@ -89,10 +107,17 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         now: CreatedAt,
         direction: StateDirection,
     ) -> SessionExecutionState:
-        return cls(
+        instance = cls(
             id=id_,
             session_execution_id=session_execution_id,
             direction=direction,
             state_data=state_data,
             created_at=now,
         )
+        instance.append_event(
+            SessionExecutionStateCreatedEvent.now(
+                sessionexecutionstate_id=instance.id,
+                now=now,
+            )
+        )
+        return instance

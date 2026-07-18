@@ -122,8 +122,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def _delete(self,
-, key: str) -> None:
+    def _delete(self, key: str) -> None:
         current = json.loads(self._state_data.value.value)
         if current.get(key) is not None:
             new_data = dict(current)

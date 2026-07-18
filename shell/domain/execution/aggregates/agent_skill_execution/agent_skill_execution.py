@@ -6,6 +6,9 @@ from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent
     AgentSkillExecutionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_created_event import (
+    AgentSkillExecutionCreatedEvent,
+)
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
@@ -52,6 +55,28 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         )
 
     @classmethod
+    def _new(
+        cls,
+        id_: AgentSkillExecutionId,
+        agent_execution_id: AgentExecutionId,
+        skill_data: SkillData,
+        now: CreatedAt,
+    ) -> AgentSkillExecution:
+        instance = cls(
+            id_=id_,
+            agent_execution_id=agent_execution_id,
+            skill_data=skill_data,
+            created_at=now,
+        )
+        instance.append_event(
+            AgentSkillExecutionCreatedEvent.now(
+                agent_skill_execution_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
+
+    @classmethod
     def create(
         cls,
         id_: AgentSkillExecutionId,
@@ -59,15 +84,18 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         skill_data: SkillData,
         now: CreatedAt,
     ) -> AgentSkillExecution:
-        return cls(
+        return cls._new(
             id_=id_,
             agent_execution_id=agent_execution_id,
             skill_data=skill_data,
-            created_at=now,
+            now=now,
         )
 
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def agent_execution_id(self) -> AgentExecutionId:

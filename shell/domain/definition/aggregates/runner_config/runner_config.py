@@ -25,21 +25,39 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")
 
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod
-    def new(
+    def _new(
         cls,
         *,
         id_: RunnerConfigId,
         now: CreatedAt,
     ) -> RunnerConfig:
-        return cls(
+        instance = cls(
             id=id_,
             created_at=now,
         )
+        instance.append_event(
+            RunnerConfigCreatedEvent.now(
+                runnerconfig_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: RunnerConfigId,
+        now: CreatedAt,
+    ) -> RunnerConfig:
+        return cls._new(id_=id_, now=now)
 
     @classmethod
     def restore(

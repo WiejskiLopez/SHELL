@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base import AggregateRoot
 
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.domain.execution.aggregates.user_execution_state.events.user_execution_state_created_event import UserExecutionStateCreatedEvent
+
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
         UserExecutionId,
@@ -44,6 +47,18 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         self._created_at = created_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: UserExecutionStateId,
+        user_execution_id: UserExecutionId,
+        state_data: StateData,
+        now: CreatedAt,
+        direction: StateDirection,
+    ) -> UserExecutionState:
+        return cls._new(id_=id_, user_execution_id=user_execution_id, state_data=state_data, now=now, direction=direction)
+
+    @classmethod
     def restore(
         cls,
         id: UserExecutionStateId,
@@ -63,6 +78,9 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     def _delete(self) -> None:
         raise NotImplementedError("_delete() not yet implemented")
 
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def user_execution_id(self) -> UserExecutionId:
         return self._user_execution_id
@@ -80,7 +98,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: UserExecutionStateId,
@@ -89,10 +107,17 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         now: CreatedAt,
         direction: StateDirection,
     ) -> UserExecutionState:
-        return cls(
+        instance = cls(
             id=id_,
             user_execution_id=user_execution_id,
             direction=direction,
             state_data=state_data,
             created_at=now,
         )
+        instance.append_event(
+            UserExecutionStateCreatedEvent.now(
+                userexecutionstate_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
