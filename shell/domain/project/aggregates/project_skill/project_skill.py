@@ -41,7 +41,7 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         id: ProjectSkillId,
         project_id: ProjectId,
         skill_data: ProjectSkillData,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -51,26 +51,6 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
-
-    @classmethod
-    def restore(
-        cls,
-        *,
-        id: ProjectSkillId,
-        project_id: ProjectId,
-        skill_data: ProjectSkillData,
-        created_at: CreatedAt | None = None,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
-    ) -> Self:
-        return cls(
-            id=id,
-            project_id=project_id,
-            skill_data=skill_data,
-            created_at=created_at,
-            updated_at=updated_at,
-            deleted_at=deleted_at,
-        )
 
     @classmethod
     def new(cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt) -> ProjectSkill:
@@ -90,9 +70,86 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         return instance
 
 
+
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            ProjectSkillDeletedEvent.now(
+                projectskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            ProjectSkillUpdatedEvent.now(
+                projectskill_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    @property
+    def project_id(self) -> ProjectId:
+        return self._project_id
+
+    @property
+    def skill_data(self) -> ProjectSkillData:
+        return self._skill_data
+
+    @property
+    def created_at(self) -> CreatedAt | None:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> UpdatedAt | None:
+        return self._updated_at
+
+    @property
+    def deleted_at(self) -> DeletedAt | None:
+        return self._deleted_at
+
     @classmethod
-    def _new(cls) -> ProjectSkill:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        *,
+        id: ProjectSkillId,
+        project_id: ProjectId,
+        skill_data: ProjectSkillData,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            project_id=project_id,
+            skill_data=skill_data,
+            created_at=created_at,
+            updated_at=updated_at,
+            deleted_at=deleted_at,
+        )
+
+    @classmethod
+    def _new(cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt) -> ProjectSkill:
+        instance = cls(
+            id=ProjectSkillId.generate(),
+            project_id=project_id,
+            skill_data=ProjectSkillData(skill_data),
+            created_at=now,
+        )
+        instance.append_event(
+            ProjectSkillCreatedEvent.now(
+                skill_id=instance.id,
+                project_id=project_id,
+                now=now,
+            )
+        )
+        return instance
+
+
+
 
 
     def _delete(self, now: DeletedAt) -> None:

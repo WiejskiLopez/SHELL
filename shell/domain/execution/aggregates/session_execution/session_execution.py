@@ -39,21 +39,30 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
 
     _user_execution_id: UserExecutionId | None
     _session_id: SessionIdRef | None
-    _created_at: CreatedAt | None
-
-    def __init__(
+    _created_at: CreatedAtdef __init__(
         self,
         *,
         id: SessionExecutionId,
         user_execution_id: UserExecutionId | None = None,
         session_id: SessionIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._user_execution_id = user_execution_id
         self._session_id = session_id
         if created_at is not None:
             self._created_at = created_at
+
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: SessionExecutionId,
+        session_id: SessionIdRef,
+        now: CreatedAt,
+    ) -> SessionExecution:
+        return cls._new(id_=id_, session_id=session_id, now=now)
 
     @classmethod
     def restore(
@@ -62,7 +71,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         id: SessionExecutionId,
         user_execution_id: UserExecutionId | None = None,
         session_id: SessionIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -83,9 +92,6 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> SessionExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -110,7 +116,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: SessionExecutionId,

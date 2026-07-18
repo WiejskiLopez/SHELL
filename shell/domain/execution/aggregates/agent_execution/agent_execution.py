@@ -26,14 +26,13 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
     )
 
     _node_execution_id: NodeExecutionId
-    _created_at: CreatedAt | None
-    _updated_at: UpdatedAt | None
+    _created_at: CreatedAt_updated_at: UpdatedAt | None
 
     def __init__(
         self,
         id_: AgentExecutionId,
         node_execution_id: NodeExecutionId,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id_)
@@ -77,7 +76,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         cls,
         id_: AgentExecutionId,
         node_execution_id: NodeExecutionId,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(

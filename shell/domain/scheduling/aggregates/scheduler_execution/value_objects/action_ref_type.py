@@ -11,7 +11,7 @@ class ActionRefType(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("ActionRefType cannot be empty")
+            raise DomainError("ActionRefType cannot be empty")
 
     def __str__(self) -> str:
         return self.value

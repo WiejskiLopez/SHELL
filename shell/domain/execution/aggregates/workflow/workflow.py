@@ -1,6 +1,7 @@
 """Workflow aggregate root — V3 with FSM (ACTIVE -> COMPLETED | FAILED | ABORTED | PAUSED)."""
 
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -58,6 +59,72 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._deleted_at = deleted_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: WorkflowId,
+        now: CreatedAt,
+        session_id: SessionIdRef | None = None,
+    ) -> Workflow:
+        created_at = now
+        workflow = cls(
+            id=id_,
+            session_id=session_id,
+            status=WorkflowStatus.ACTIVE,
+            created_at=created_at,
+        )
+        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=created_at))
+        return workflow
+
+    # --- Methods ---
+
+    def start_at(
+        self,
+        *,
+        task_execution_id: TaskExecutionId | None = None,
+        work_dir: str | None = None,
+    ) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise DomainError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
+
+    def finish(
+        self,
+        task_execution_id: TaskExecutionId | None = None,
+    ) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise DomainError(f"finish requires status=ACTIVE, got {self._status.value!r}")
+        self._status = WorkflowStatus.COMPLETED
+
+    def fail(
+        self,
+        *,
+        task_execution_id: TaskExecutionId | None = None,
+    ) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise DomainError(f"fail requires status=ACTIVE, got {self._status.value!r}")
+        self._status = WorkflowStatus.FAILED
+
+    def abort(
+        self,
+        *,
+        reason: str | Reason | None = None,
+        task_execution_id: TaskExecutionId | None = None,
+    ) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise DomainError(f"abort requires status=ACTIVE, got {self._status.value!r}")
+        self._status = WorkflowStatus.ABORTED
+
+    def pause(self) -> None:
+        if self._status != WorkflowStatus.ACTIVE:
+            raise DomainError(f"pause requires status=ACTIVE, got {self._status.value!r}")
+        self._status = WorkflowStatus.PAUSED
+
+    def resume(self) -> None:
+        if self._status != WorkflowStatus.PAUSED:
+            raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
+        self._status = WorkflowStatus.ACTIVE
+
+    @classmethod
     def restore(
         cls,
         *,
@@ -89,9 +156,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         )
 
 
-    @classmethod
-    def _new(cls) -> Workflow:
-        raise NotImplementedError("_new() not yet implemented")
+
 
 
     def _delete(self, now: DeletedAt) -> None:
@@ -123,7 +188,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     # --- Factory ---
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: WorkflowId,
@@ -149,14 +214,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
         work_dir: str | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise ValueError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
+            raise DomainError(f"start_at requires status=ACTIVE, got {self._status.value!r}")
 
     def finish(
         self,
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise ValueError(f"finish requires status=ACTIVE, got {self._status.value!r}")
+            raise DomainError(f"finish requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.COMPLETED
 
     def fail(
@@ -165,7 +230,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise ValueError(f"fail requires status=ACTIVE, got {self._status.value!r}")
+            raise DomainError(f"fail requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.FAILED
 
     def abort(
@@ -175,15 +240,15 @@ class Workflow(AggregateRoot["WorkflowId"]):
         task_execution_id: TaskExecutionId | None = None,
     ) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise ValueError(f"abort requires status=ACTIVE, got {self._status.value!r}")
+            raise DomainError(f"abort requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.ABORTED
 
     def pause(self) -> None:
         if self._status != WorkflowStatus.ACTIVE:
-            raise ValueError(f"pause requires status=ACTIVE, got {self._status.value!r}")
+            raise DomainError(f"pause requires status=ACTIVE, got {self._status.value!r}")
         self._status = WorkflowStatus.PAUSED
 
     def resume(self) -> None:
         if self._status != WorkflowStatus.PAUSED:
-            raise ValueError(f"resume requires status=PAUSED, got {self._status.value!r}")
+            raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
         self._status = WorkflowStatus.ACTIVE

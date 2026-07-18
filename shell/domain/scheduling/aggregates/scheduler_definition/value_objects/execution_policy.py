@@ -14,13 +14,13 @@ class ExecutionPolicy(ValueObject):
 
     def __post_init__(self) -> None:
         if self.max_concurrent < 1:
-            raise ValueError("ExecutionPolicy.max_concurrent must be >= 1")
+            raise DomainError("ExecutionPolicy.max_concurrent must be >= 1")
         if self.timeout_seconds is not None and self.timeout_seconds < 0:
-            raise ValueError("ExecutionPolicy.timeout_seconds cannot be negative")
+            raise DomainError("ExecutionPolicy.timeout_seconds cannot be negative")
         if self.retry_count < 0:
-            raise ValueError("ExecutionPolicy.retry_count cannot be negative")
+            raise DomainError("ExecutionPolicy.retry_count cannot be negative")
         if self.retry_delay_seconds < 0:
-            raise ValueError("ExecutionPolicy.retry_delay_seconds cannot be negative")
+            raise DomainError("ExecutionPolicy.retry_delay_seconds cannot be negative")
 
     def __str__(self) -> str:
         parts = [f"max_concurrent={self.max_concurrent}"]

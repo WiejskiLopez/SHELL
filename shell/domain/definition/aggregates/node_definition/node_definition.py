@@ -45,19 +45,6 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         )
 
     @classmethod
-    def restore(
-        cls,
-        id: NodeDefinitionId,
-        node_type: NodeType,
-        max_step: MaxStep | None = None,
-    ) -> NodeDefinition:
-        return cls(
-            id=id,
-            node_type=node_type,
-            max_step=max_step,
-        )
-
-    @classmethod
     def create(
         cls,
         id: NodeDefinitionId,
@@ -93,9 +80,75 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
         )
 
 
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            NodeDefinitionDeletedEvent.now(
+                nodedefinition_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    @property
+    def node_type(self) -> NodeType:
+        return self._node_type
+
+    @property
+    def max_step(self) -> MaxStep | None:
+        return self._max_step
+
     @classmethod
-    def _new(cls) -> NodeDefinition:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        id: NodeDefinitionId,
+        node_type: NodeType,
+        max_step: MaxStep | None = None,
+    ) -> NodeDefinition:
+        return cls(
+            id=id,
+            node_type=node_type,
+            max_step=max_step,
+        )
+
+    @classmethod
+    def _new(
+        cls,
+        id: NodeDefinitionId,
+        node_type: NodeType,
+        max_step: MaxStep | None = None,
+        now: CreatedAt | None = None,
+    ) -> NodeDefinition:
+        instance = cls(
+            id=id,
+            node_type=node_type,
+            max_step=max_step,
+        )
+
+        if now is not None:
+            instance.append_event(
+                NodeDefinitionCreatedEvent.now(
+                    node_definition_id=id,
+                    now=now,
+                )
+            )
+
+        return instance
+
+
+    @classmethod
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            NodeDefinitionUpdatedEvent.now(
+                nodedefinition_id=self._id,
+                now=now,
+            )
+        )
+
+
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

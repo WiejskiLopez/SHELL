@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -58,7 +59,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -86,7 +87,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         max_subgraph_depth: MaxSubgraphDepth,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -131,7 +132,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     def update_status(self, new_status: GraphExecutionStatus, now: UpdatedAt) -> None:
         if self._deleted_at is not None:
-            raise ValueError("Cannot update status of a deleted graph execution")
+            raise DomainError("Cannot update status of a deleted graph execution")
         self._execution_status = new_status
         self._updated_at = now
         self.append_event(
@@ -143,7 +144,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
 
     def soft_delete(self, now: DeletedAt) -> None:
         if self._deleted_at is not None:
-            raise ValueError("Graph execution already deleted")
+            raise DomainError("Graph execution already deleted")
         self._deleted_at = now
         self.append_event(
             GraphExecutionDeletedEvent.now(
@@ -179,7 +180,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
     ) -> GraphExecution:
         depth_val = GraphDepth(parent_depth.value + 1)
         if depth_val.value > max_subgraph_depth.value:
-            raise ValueError(
+            raise DomainError(
                 f"Cannot create sub-graph at depth {depth_val.value}, max is {max_subgraph_depth.value}"
             )
         return cls(
@@ -191,9 +192,6 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> GraphExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
 
     def _delete(self, now: DeletedAt) -> None:

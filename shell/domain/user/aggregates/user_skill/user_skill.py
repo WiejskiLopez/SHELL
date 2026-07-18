@@ -38,7 +38,7 @@ class UserSkill(AggregateRoot[SkillId]):
         id: SkillId,
         user_id: UserId,
         skill_data: SkillData,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -56,7 +56,7 @@ class UserSkill(AggregateRoot[SkillId]):
         id: SkillId,
         user_id: UserId,
         skill_data: SkillData,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:

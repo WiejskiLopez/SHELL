@@ -11,7 +11,7 @@ class MaxLoopCount(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            raise ValueError("MaxLoopCount must be >= 0")
+            raise DomainError("MaxLoopCount must be >= 0")
 
     def __str__(self) -> str:
         return str(self.value)

@@ -66,27 +66,6 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         self._created_at = created_at
 
     @classmethod
-    def restore(
-        cls,
-        id: NodeExecutionId,
-        node_type: NodeType,
-        order: NodeOrder,
-        status: NodeExecutionStatus,
-        created_at: CreatedAt,
-        node_definition_id: NodeDefinitionIdRef | None = None,
-    ) -> Self:
-        return cls(
-            id=id,
-            node_type=node_type,
-            order=order,
-            status=status,
-            created_at=created_at,
-            node_definition_id=node_definition_id,
-        )
-
-    # --- Factory ---
-
-    @classmethod
     def new(
         cls,
         *,
@@ -156,9 +135,129 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         )
 
 
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            NodeExecutionDeletedEvent.now(
+                nodeexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    @property
+    def node_definition_id(self) -> NodeDefinitionIdRef | None:
+        return self._node_definition_id
+
+    @property
+    def order(self) -> NodeOrder:
+        return self._order
+
+    @property
+    def node_type(self) -> NodeType:
+        return self._node_type
+
+    @property
+    def status(self) -> NodeExecutionStatus:
+        return self._status
+
+    @property
+    def created_at(self) -> CreatedAt:
+        return self._created_at
+
     @classmethod
-    def _new(cls) -> NodeExecution:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        id: NodeExecutionId,
+        node_type: NodeType,
+        order: NodeOrder,
+        status: NodeExecutionStatus,
+        created_at: CreatedAt,
+        node_definition_id: NodeDefinitionIdRef | None = None,
+    ) -> Self:
+        return cls(
+            id=id,
+            node_type=node_type,
+            order=order,
+            status=status,
+            created_at=created_at,
+            node_definition_id=node_definition_id,
+        )
+
+    # --- Factory ---
+
+    @classmethod
+    def _new(
+        cls,
+        *,
+        id: NodeExecutionId,
+        node_type: NodeType,
+        graph_execution_id: GraphExecutionId | None = None,
+        node_definition_id: NodeDefinitionIdRef | None = None,
+        order: NodeOrder,
+        now: CreatedAt,
+    ) -> NodeExecution:
+        instance = cls(
+            id=id,
+            node_type=node_type,
+            order=order,
+            status=NodeExecutionStatus.PENDING,
+            node_definition_id=node_definition_id,
+            created_at=now,
+        )
+        instance.append_event(
+            NodeExecutionCreatedEvent.now(
+                node_execution_id=id,
+                node_definition_id=node_definition_id,
+                graph_execution_id=graph_execution_id,
+                now=now,
+            )
+        )
+        return instance
+
+    # --- V3 FSM ---
+
+    def start(self) -> None:
+        if self._status != NodeExecutionStatus.PENDING:
+            raise InvalidNodeStateError(f"Cannot start node in status {self._status}")
+        self._status = NodeExecutionStatus.RUNNING
+
+    def complete(self, result: StateData | JsonStr | None) -> None:
+        if self._status != NodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(f"Cannot complete node in status {self._status}")
+        self._status = NodeExecutionStatus.COMPLETED
+
+    def fail(self, error: ErrorDescription | str) -> None:
+        if self._status != NodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(f"Cannot fail node in status {self._status}")
+        self._status = NodeExecutionStatus.FAILED
+
+    def retry(self) -> None:
+        if self._status != NodeExecutionStatus.FAILED:
+            raise InvalidNodeStateError(f"Cannot retry node in status {self._status}")
+        self._status = NodeExecutionStatus.PENDING
+
+    def timeout(self) -> None:
+        if self._status != NodeExecutionStatus.RUNNING:
+            raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
+        self._status = NodeExecutionStatus.TIMED_OUT
+
+    # --- Properties ---
+
+
+    @classmethod
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            NodeExecutionUpdatedEvent.now(
+                nodeexecution_id=self._id,
+                now=now,
+            )
+        )
+
+
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

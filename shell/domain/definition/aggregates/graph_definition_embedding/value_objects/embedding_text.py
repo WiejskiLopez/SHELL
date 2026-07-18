@@ -11,7 +11,7 @@ class EmbeddingText(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("EmbeddingText cannot be empty")
+            raise DomainError("EmbeddingText cannot be empty")
 
     def __str__(self) -> str:
         return self.value

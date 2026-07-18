@@ -35,7 +35,7 @@ class MessageRouter(AggregateRoot[MessageId]):
         *,
         id: MessageId,
         message_data: MessageData,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -49,7 +49,7 @@ class MessageRouter(AggregateRoot[MessageId]):
         *,
         id: MessageId,
         message_data: MessageData,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(

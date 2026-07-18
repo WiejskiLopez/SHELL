@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -105,6 +106,16 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = updated_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: SchedulerExecutionId,
+        scheduler_definition_id: SchedulerDefinitionId,
+        now: CreatedAt,
+    ) -> SchedulerExecution:
+        return cls._new(id_=id_, scheduler_definition_id=scheduler_definition_id, now=now)
+
+    @classmethod
     def restore(
         cls,
         id: SchedulerExecutionId,
@@ -140,7 +151,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         )
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: SchedulerExecutionId,
@@ -152,13 +163,10 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             scheduler_definition_id=scheduler_definition_id,
             status=ExecutionStatus.PENDING,
             created_at=now,
-            updated_at=Timestamp.from_datetime(now.value),
+
         )
 
 
-    @classmethod
-    def _new(cls) -> SchedulerExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -234,7 +242,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self, action_ref: ActionRef | str, action_ref_type: ActionRefType | str, now: Timestamp
     ) -> None:
         if self._status != ExecutionStatus.PENDING:
-            raise ValueError(f"Cannot start execution in status {self._status!r}")
+            raise DomainError(f"Cannot start execution in status {self._status!r}")
         self._status = ExecutionStatus.EXECUTING
         self._action_ref = ActionRef(action_ref) if isinstance(action_ref, str) else action_ref
         self._action_ref_type = (
@@ -251,7 +259,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
 
     def complete(self, output_state: StateData | None = None, now: Timestamp | None = None) -> None:
         if self._status != ExecutionStatus.EXECUTING:
-            raise ValueError(f"Cannot complete execution in status {self._status!r}")
+            raise DomainError(f"Cannot complete execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.COMPLETED
@@ -269,7 +277,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self, error: ErrorDescription | str | None = None, now: Timestamp | None = None
     ) -> None:
         if self._status != ExecutionStatus.EXECUTING:
-            raise ValueError(f"Cannot fail execution in status {self._status!r}")
+            raise DomainError(f"Cannot fail execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.FAILED
@@ -285,7 +293,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
 
     def skip(self, reason: Reason | str, now: Timestamp | None = None) -> None:
         if self._status != ExecutionStatus.PENDING:
-            raise ValueError(f"Cannot skip execution in status {self._status!r}")
+            raise DomainError(f"Cannot skip execution in status {self._status!r}")
         if now is None:
             now = Timestamp.now()
         self._status = ExecutionStatus.SKIPPED

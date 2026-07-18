@@ -51,6 +51,65 @@ class SessionState(AggregateRoot[SessionStateId]):
         self._created_at = created_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: SessionStateId,
+        session_id: SessionId,
+        direction: StateDirection,
+        now: CreatedAt,
+    ) -> SessionState:
+        instance = cls(
+            id=id_,
+            session_id=session_id,
+            direction=direction,
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
+        )
+        return instance
+
+    def update(self, key: str, value: object) -> None:
+        new_data = json.loads(self._state_data.value.value)
+        new_data[key] = value
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
+        self.append_event(
+            SessionStateChangedEvent.now(
+                session_id=self._session_id,
+                session_state_id=self.id,
+                now=self._created_at,
+            )
+        )
+
+    def get(self, key: str) -> object | None:
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
+
+    def _delete(self, key: str) -> None:
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            new_data = json.loads(self._state_data.value.value)
+            new_data.pop(key, None)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
+            self.append_event(
+                SessionStateChangedEvent.now(
+                    session_id=self._session_id,
+                    session_state_id=self.id,
+                    now=self._created_at,
+                )
+            )
+
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
+            self.update(key, value)
+
+    def clear(self) -> None:
+        current = json.loads(self._state_data.value.value)
+        for key in list(current.keys()):
+            self.delete(key)
+
+    def snapshot(self) -> StateData:
+        return self._state_data
+
+    @classmethod
     def restore(
         cls,
         id: SessionStateId,
@@ -79,9 +138,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> SessionState:
-        raise NotImplementedError("_new() not yet implemented")
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -119,7 +176,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: SessionStateId,

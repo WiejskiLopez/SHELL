@@ -50,23 +50,6 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._updated_at = updated_at
 
     @classmethod
-    def restore(
-        cls,
-        id: AgentConfigExecutionId,
-        agent_execution_id: AgentExecutionId,
-        config_data: ConfigData,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt,
-    ) -> Self:
-        return cls(
-            id=id,
-            agent_execution_id=agent_execution_id,
-            config_data=config_data,
-            created_at=created_at,
-            updated_at=updated_at,
-        )
-
-    @classmethod
     def create(
         cls,
         id: AgentConfigExecutionId,
@@ -84,7 +67,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
 
     def update_config(self, config_data: ConfigData, now: UpdatedAt) -> None:
         if config_data is None:
-            raise ValueError("ConfigData cannot be None")
+            raise DomainError("ConfigData cannot be None")
         self._config_data = config_data
         self._updated_at = now
         self.append_event(
@@ -95,9 +78,89 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         )
 
 
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            AgentConfigExecutionDeletedEvent.now(
+                agentconfigexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            AgentConfigExecutionUpdatedEvent.now(
+                agentconfigexecution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+    @property
+    def agent_execution_id(self) -> AgentExecutionId:
+        return self._agent_execution_id
+
+    @property
+    def config_data(self) -> ConfigData:
+        return self._config_data
+
+    @property
+    def created_at(self) -> CreatedAt:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> UpdatedAt:
+        return self._updated_at
+
     @classmethod
-    def _new(cls) -> AgentConfigExecution:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        id: AgentConfigExecutionId,
+        agent_execution_id: AgentExecutionId,
+        config_data: ConfigData,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt,
+    ) -> Self:
+        return cls(
+            id=id,
+            agent_execution_id=agent_execution_id,
+            config_data=config_data,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
+
+    @classmethod
+    def _new(
+        cls,
+        id: AgentConfigExecutionId,
+        agent_execution_id: AgentExecutionId,
+        config_data: ConfigData,
+        now: CreatedAt,
+    ) -> AgentConfigExecution:
+        return cls(
+            id=id,
+            agent_execution_id=agent_execution_id,
+            config_data=config_data,
+            created_at=now,
+
+        )
+
+    def update_config(self, config_data: ConfigData, now: UpdatedAt) -> None:
+        if config_data is None:
+            raise DomainError("ConfigData cannot be None")
+        self._config_data = config_data
+        self._updated_at = now
+        self.append_event(
+            AgentConfigUpdatedEvent.now(
+                agent_config_execution_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+
+
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

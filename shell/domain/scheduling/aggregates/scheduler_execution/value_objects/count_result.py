@@ -11,7 +11,7 @@ class CountResult(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            raise ValueError("CountResult cannot be negative")
+            raise DomainError("CountResult cannot be negative")
 
     def __str__(self) -> str:
         return str(self.value)

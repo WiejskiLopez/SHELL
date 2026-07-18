@@ -21,9 +21,9 @@ class Manifest(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.name:
-            raise ValueError("Manifest.name cannot be empty")
+            raise DomainError("Manifest.name cannot be empty")
         if not self.role:
-            raise ValueError("Manifest.role cannot be empty")
+            raise DomainError("Manifest.role cannot be empty")
 
     def __str__(self) -> str:
         return f"Manifest(name={self.name}, mode={self.mode})"

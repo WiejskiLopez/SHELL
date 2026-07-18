@@ -31,19 +31,28 @@ class UserExecution(AggregateRoot[UserExecutionId]):
     )
 
     _user_id: UserIdRef | None
-    _created_at: CreatedAt | None
-
-    def __init__(
+    _created_at: CreatedAtdef __init__(
         self,
         *,
         id: UserExecutionId,
         user_id: UserIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
         if created_at is not None:
             self._created_at = created_at
+
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: UserExecutionId,
+        user_id: UserIdRef,
+        now: CreatedAt,
+    ) -> UserExecution:
+        return cls._new(id_=id_, user_id=user_id, now=now)
 
     @classmethod
     def restore(
@@ -51,7 +60,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         *,
         id: UserExecutionId,
         user_id: UserIdRef | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -71,9 +80,6 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> UserExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -93,7 +99,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: UserExecutionId,

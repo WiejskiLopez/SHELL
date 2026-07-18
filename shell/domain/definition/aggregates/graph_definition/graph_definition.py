@@ -34,13 +34,6 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         super().__init__(id)
 
     @classmethod
-    def restore(
-        cls,
-        id: GraphDefinitionId,
-    ) -> GraphDefinition:
-        return cls(id=id)
-
-    @classmethod
     def create(
         cls,
         id: GraphDefinitionId,
@@ -69,9 +62,56 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         )
 
 
+
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            GraphDefinitionDeletedEvent.now(
+                graphdefinition_id=self._id,
+                now=CreatedAt.from_datetime(now.value),
+            )
+        )
+
     @classmethod
-    def _new(cls) -> GraphDefinition:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        id: GraphDefinitionId,
+    ) -> GraphDefinition:
+        return cls(id=id)
+
+    @classmethod
+    def _new(
+        cls,
+        id: GraphDefinitionId,
+        now: CreatedAt | None = None,
+    ) -> GraphDefinition:
+        instance = cls(id=id)
+
+        if now is not None:
+            instance.append_event(
+                GraphDefinitionCreatedEvent.now(
+                    graph_definition_id=id,
+                    now=now,
+                )
+            )
+
+        return instance
+
+    @classmethod
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphDefinitionUpdatedEvent.now(
+                graphdefinition_id=self._id,
+                now=now,
+            )
+        )
+
+
+
 
 
     def _delete(self, now: DeletedAt) -> None:

@@ -55,7 +55,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -67,7 +67,20 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._created_at = created_at
         self._deleted_at = deleted_at
         if body is not None and not body.value.strip():
-            raise ValueError("TaskExecutionBody cannot be empty")
+            raise DomainError("TaskExecutionBody cannot be empty")
+
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: TaskExecutionId,
+        name: TaskName | None = None,
+        now: CreatedAt,
+        body: TaskExecutionBody,
+        workflow_id: WorkflowId | None = None,
+    ) -> TaskExecution:
+        return cls._new(id_=id_, name=name, now=now, body=body, workflow_id=workflow_id)
 
     @classmethod
     def restore(
@@ -77,7 +90,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
@@ -131,9 +144,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> TaskExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
 
     def _delete(self, now: DeletedAt) -> None:
@@ -183,7 +193,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._work_dir = WorkDir(path)
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: TaskExecutionId,

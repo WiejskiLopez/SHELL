@@ -11,7 +11,7 @@ class UserCode(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("UserCode cannot be empty")
+            raise DomainError("UserCode cannot be empty")
 
     def __str__(self) -> str:
         return self.value

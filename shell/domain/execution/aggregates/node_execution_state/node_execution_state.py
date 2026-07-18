@@ -53,6 +53,65 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         self._created_at = created_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: NodeExecutionStateId,
+        node_execution_id: NodeExecutionId,
+        direction: StateDirection,
+        now: CreatedAt,
+    ) -> NodeExecutionState:
+        instance = cls(
+            id=id_,
+            node_execution_id=node_execution_id,
+            direction=direction,
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
+        )
+        return instance
+
+    def update(self, key: str, value: object) -> None:
+        new_data = json.loads(self._state_data.value.value)
+        new_data[key] = value
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
+        self.append_event(
+            NodeExecutionStateChangedEvent.now(
+                node_execution_id=self._node_execution_id,
+                node_execution_state_id=self.id,
+                now=self._created_at,
+            )
+        )
+
+    def get(self, key: str) -> object | None:
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
+
+    def _delete(self, key: str) -> None:
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            new_data = json.loads(self._state_data.value.value)
+            new_data.pop(key, None)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
+            self.append_event(
+                NodeExecutionStateChangedEvent.now(
+                    node_execution_id=self._node_execution_id,
+                    node_execution_state_id=self.id,
+                    now=self._created_at,
+                )
+            )
+
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
+            self.update(key, value)
+
+    def clear(self) -> None:
+        current = json.loads(self._state_data.value.value)
+        for key in list(current.keys()):
+            self.delete(key)
+
+    def snapshot(self) -> StateData:
+        return self._state_data
+
+    @classmethod
     def restore(
         cls,
         id: NodeExecutionStateId,
@@ -75,9 +134,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         raise NotImplementedError("_update() not yet implemented")
 
 
-    @classmethod
-    def _new(cls) -> NodeExecutionState:
-        raise NotImplementedError("_new() not yet implemented")
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -115,7 +172,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         return self._created_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: NodeExecutionStateId,

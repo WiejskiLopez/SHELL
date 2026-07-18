@@ -11,7 +11,7 @@ class BatchSize(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 1:
-            raise ValueError("BatchSize must be at least 1")
+            raise DomainError("BatchSize must be at least 1")
 
     def __str__(self) -> str:
         return str(self.value)

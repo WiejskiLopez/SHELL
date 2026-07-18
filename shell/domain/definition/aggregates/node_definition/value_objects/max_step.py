@@ -12,7 +12,7 @@ class MaxStep(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value is not None and self.value < 0:
-            raise ValueError("MaxStep must be >= 0")
+            raise DomainError("MaxStep must be >= 0")
 
     def __str__(self) -> str:
         return str(self.value)

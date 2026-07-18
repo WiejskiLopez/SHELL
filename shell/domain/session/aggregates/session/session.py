@@ -1,6 +1,7 @@
 """Session aggregate root — V3 with FSM (OPEN -> CLOSED) and skills."""
 
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -65,6 +66,40 @@ class Session(AggregateRoot[SessionId]):
         self._closed_at = closed_at
 
     @classmethod
+    def open(
+        cls,
+        id_: SessionId,
+        user_id: UserIdRef | None = None,
+        project_id: ProjectIdRef | None = None,
+        now: CreatedAt | None = None,
+        goal: str | None = None,  # legacy
+    ) -> Session:
+        if user_id is None:
+            user_id = UserIdRef.generate()
+        if project_id is None:
+            project_id = ProjectIdRef.generate()
+        if now is None:
+            now = CreatedAt.now()
+        session = cls(
+            id=id_,
+            user_id=user_id,
+            project_id=project_id,
+            status=SessionStatus.OPEN,
+            opened_at=now,
+        )
+        session.append_event(SessionOpenedEvent.now(session.id, user_id, project_id, now=now))
+        return session
+
+    # --- Methods ---
+
+    def close(self, now: UpdatedAt) -> None:
+        if self._status != SessionStatus.OPEN:
+            raise DomainError(f"Cannot close session in status {self._status!r}")
+        self._status = SessionStatus.CLOSED
+        self._closed_at = now
+        self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))
+
+    @classmethod
     def restore(
         cls,
         *,
@@ -98,9 +133,7 @@ class Session(AggregateRoot[SessionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> Session:
-        raise NotImplementedError("_new() not yet implemented")
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -146,7 +179,7 @@ class Session(AggregateRoot[SessionId]):
     # --- Factory ---
 
     @classmethod
-    def open(
+    def _new(
         cls,
         id_: SessionId,
         user_id: UserIdRef | None = None,
@@ -174,7 +207,7 @@ class Session(AggregateRoot[SessionId]):
 
     def close(self, now: UpdatedAt) -> None:
         if self._status != SessionStatus.OPEN:
-            raise ValueError(f"Cannot close session in status {self._status!r}")
+            raise DomainError(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
         self._closed_at = now
         self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))

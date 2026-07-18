@@ -69,6 +69,78 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self._created_at = created_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: GraphExecutionStateId,
+        graph_execution_id: GraphExecutionId,
+        direction: StateDirection,
+        now: CreatedAt,
+    ) -> GraphExecutionState:
+        return cls(
+            id=id_,
+            graph_execution_id=graph_execution_id,
+            direction=direction,
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
+        )
+
+    # ------------------------------------------------------------------ mutations
+
+    def update(self, key: str, value: object) -> None:
+        new_data = json.loads(self._state_data.value.value)
+        new_data[key] = value
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
+        self.append_event(
+            GraphExecutionStateChangedEvent.now(
+                graph_execution_id=self._graph_execution_id,
+                graph_execution_state_id=self.id,
+                now=self._created_at,
+            )
+        )
+
+    def get(self, key: str) -> object | None:
+        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
+
+    def _delete(self, key: str) -> None:
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            new_data = json.loads(self._state_data.value.value)
+            new_data.pop(key, None)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
+            self.append_event(
+                GraphExecutionStateChangedEvent.now(
+                    graph_execution_id=self._graph_execution_id,
+                    graph_execution_state_id=self.id,
+                    now=self._created_at,
+                )
+            )
+
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
+            self.update(key, value)
+
+    def clear(self) -> None:
+        current = json.loads(self._state_data.value.value)
+        for key in list(current.keys()):
+            self.delete(key)
+
+    def merge(self, other: GraphExecutionState) -> None:
+        """Incorporate state from a child task (Tasker pattern).
+
+        Keys present in *other* but absent in *self* are copied.
+        Keys already present in *self* are left unchanged (parent wins).
+        """
+        other_data = json.loads(other._state_data.value.value)
+        current = json.loads(self._state_data.value.value)
+        for key, value in other_data.items():
+            if key not in current:
+                self.update(key, value)
+
+    def snapshot(self) -> StateData:
+        return self._state_data
+
+    @classmethod
     def restore(
         cls,
         id: GraphExecutionStateId,
@@ -93,9 +165,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         raise NotImplementedError("_update() not yet implemented")
 
 
-    @classmethod
-    def _new(cls) -> GraphExecutionState:
-        raise NotImplementedError("_new() not yet implemented")
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -135,7 +205,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     # ------------------------------------------------------------------ factory
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: GraphExecutionStateId,

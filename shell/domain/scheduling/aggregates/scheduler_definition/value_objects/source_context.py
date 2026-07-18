@@ -11,7 +11,7 @@ class SourceContext(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("SourceContext cannot be empty")
+            raise DomainError("SourceContext cannot be empty")
 
     def __str__(self) -> str:
         return self.value

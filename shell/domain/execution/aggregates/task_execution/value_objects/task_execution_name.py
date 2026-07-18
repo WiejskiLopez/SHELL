@@ -13,9 +13,9 @@ class TaskExecutionName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value or not self.value.strip():
-            raise ValueError("TaskExecutionName cannot be empty")
+            raise DomainError("TaskExecutionName cannot be empty")
         if len(self.value) > 255:
-            raise ValueError("TaskExecutionName cannot exceed 255 characters")
+            raise DomainError("TaskExecutionName cannot exceed 255 characters")
 
     def __str__(self) -> str:
         return self.value

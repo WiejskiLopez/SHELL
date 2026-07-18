@@ -66,6 +66,74 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self._deleted_at = deleted_at
 
     @classmethod
+    def create(
+        cls,
+        *,
+        id_: ProjectStateId,
+        project_id: ProjectId,
+        direction: StateDirection,
+        now: CreatedAt,
+    ) -> ProjectState:
+        return cls(
+            id=id_,
+            project_id=project_id,
+            direction=direction,
+            state_data=StateData(JsonStr("{}")),
+            created_at=now,
+        )
+
+    # ------------------------------------------------------------------ mutations
+
+    def set_key(self, key: str, value: object) -> None:
+        new_data = json.loads(self._state_data.value.value)
+        new_data[key] = value
+        self._state_data = StateData(JsonStr(json.dumps(new_data)))
+        self.append_event(
+            ProjectStateChangedEvent.now(
+                project_id=self._project_id,
+                project_state_id=self.id,
+                now=self._created_at,
+            )
+        )
+
+    def get(self, key: str) -> object | None:
+        result: object | None = json.loads(self._state_data.value.value).get(key)
+        return result
+
+    def remove_key(self, key: str) -> None:
+        if json.loads(self._state_data.value.value).get(key) is not None:
+            new_data = json.loads(self._state_data.value.value)
+            new_data.pop(key, None)
+            self._state_data = StateData(JsonStr(json.dumps(new_data)))
+            self.append_event(
+                ProjectStateChangedEvent.now(
+                    project_id=self._project_id,
+                    project_state_id=self.id,
+                    now=self._created_at,
+                )
+            )
+
+    def patch(self, data: JsonStr) -> None:
+        parsed = json.loads(data.value)
+        for key, value in parsed.items():
+            self.set_key(key, value)
+
+    def clear(self) -> None:
+        current = json.loads(self._state_data.value.value)
+        for key in list(current.keys()):
+            self.remove_key(key)
+
+    def merge(self, other: ProjectState) -> None:
+        other_data = json.loads(other._state_data.value.value)
+        current = json.loads(self._state_data.value.value)
+        for key, value in other_data.items():
+            if key not in current:
+                self.set_key(key, value)
+
+    def snapshot(self) -> StateData:
+        return self._state_data
+
+    @classmethod
     def restore(
         cls,
         *,
@@ -90,9 +158,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
     # ------------------------------------------------------------------ properties
 
 
-    @classmethod
-    def _new(cls) -> ProjectState:
-        raise NotImplementedError("_new() not yet implemented")
+
 
 
     def _delete(self, now: DeletedAt) -> None:
@@ -140,7 +206,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
     # ------------------------------------------------------------------ factory
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id_: ProjectStateId,

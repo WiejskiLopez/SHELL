@@ -48,7 +48,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -60,6 +60,19 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self._updated_at = updated_at
         self._deleted_at = deleted_at
 
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id_: EdgeExecutionId,
+        edge_definition_id: EdgeDefinitionIdRef,
+        source_node_execution_id: NodeExecutionId,
+        target_node_execution_id: NodeExecutionId | None = None,
+        now: CreatedAt,
+    ) -> EdgeExecution:
+        return cls._new(id_=id_, edge_definition_id=edge_definition_id, source_node_execution_id=source_node_execution_id, target_node_execution_id=target_node_execution_id, now=now)
+
     @classmethod
     def restore(
         cls,
@@ -67,7 +80,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -82,7 +95,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         )
 
     @classmethod
-    def new(
+    def _new(
         cls,
         *,
         id_: EdgeExecutionId,
@@ -114,7 +127,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         now: UpdatedAt,
     ) -> None:
         if self._deleted_at is not None:
-            raise ValueError("Cannot change target on a deleted edge")
+            raise DomainError("Cannot change target on a deleted edge")
         self._target_node_execution_id = target_node_execution_id
         self._updated_at = now
         self.append_event(
@@ -126,7 +139,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
 
     def mark_deleted(self, now: DeletedAt) -> None:
         if self._deleted_at is not None:
-            raise ValueError("Edge already deleted")
+            raise DomainError("Edge already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
@@ -137,9 +150,6 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> EdgeExecution:
-        raise NotImplementedError("_new() not yet implemented")
 
 
     def _delete(self, now: DeletedAt) -> None:

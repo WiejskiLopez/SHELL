@@ -41,7 +41,7 @@ class Project(AggregateRoot[ProjectId]):
         name: ProjectName,
         repo_url: RepoUrl,
         status: ProjectStatus = ProjectStatus.ACTIVE,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -61,7 +61,7 @@ class Project(AggregateRoot[ProjectId]):
         name: ProjectName,
         repo_url: RepoUrl,
         status: ProjectStatus = ProjectStatus.ACTIVE,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -158,7 +158,7 @@ class Project(AggregateRoot[ProjectId]):
     def update(self, *, name: ProjectName, repo_url: RepoUrl, now: UpdatedAt) -> None:
         """Update project fields and bump updated_at."""
         if self._deleted_at is not None:
-            raise ValueError("Cannot update a deleted project")
+            raise DomainError("Cannot update a deleted project")
         self._name = name
         self._repo_url = repo_url
         self._updated_at = now
@@ -172,7 +172,7 @@ class Project(AggregateRoot[ProjectId]):
     def delete(self, now: DeletedAt) -> None:
         """Soft-delete this project."""
         if self._deleted_at is not None:
-            raise ValueError("Project already deleted")
+            raise DomainError("Project already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(

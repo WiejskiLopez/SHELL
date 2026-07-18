@@ -11,7 +11,7 @@ class JobType(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("JobType cannot be empty")
+            raise DomainError("JobType cannot be empty")
 
     def __str__(self) -> str:
         return self.value

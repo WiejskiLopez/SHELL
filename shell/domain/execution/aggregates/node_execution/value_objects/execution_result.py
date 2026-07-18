@@ -15,7 +15,7 @@ class ExecutionResult(ValueObject):
 
     def __post_init__(self) -> None:
         if not isinstance(self.returncode, int):
-            raise ValueError("ExecutionResult.returncode must be an int")
+            raise DomainError("ExecutionResult.returncode must be an int")
 
     def __str__(self) -> str:
         return f"ExecutionResult(returncode={self.returncode})"

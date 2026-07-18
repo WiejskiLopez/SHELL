@@ -11,7 +11,7 @@ class TaskName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("TaskName cannot be empty")
+            raise DomainError("TaskName cannot be empty")
 
     def __str__(self) -> str:
         return self.value

@@ -11,7 +11,7 @@ class ProjectName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("ProjectName cannot be empty")
+            raise DomainError("ProjectName cannot be empty")
 
     def __str__(self) -> str:
         return self.value

@@ -48,7 +48,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         text: EmbeddingText,
         embedding: Embedding,
         model: EmbeddingModel,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: CreatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -58,27 +58,6 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self._model = model
         self._created_at = created_at
         self._updated_at = updated_at
-
-    @classmethod
-    def restore(
-        cls,
-        id: GraphDefinitionEmbeddingId,
-        graph_definition_id: GraphDefinitionId,
-        text: EmbeddingText,
-        embedding: Embedding,
-        model: EmbeddingModel,
-        created_at: CreatedAt | None = None,
-        updated_at: CreatedAt | None = None,
-    ) -> GraphDefinitionEmbedding:
-        return cls(
-            id=id,
-            graph_definition_id=graph_definition_id,
-            text=text,
-            embedding=embedding,
-            model=model,
-            created_at=created_at,
-            updated_at=updated_at,
-        )
 
     @classmethod
     def create(
@@ -109,9 +88,103 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         return instance
 
 
+
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            GraphDefinitionEmbeddingDeletedEvent.now(
+                graphdefinitionembedding_id=self._id,
+                now=now,
+            )
+        )
+
+
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
+        self.append_event(
+            GraphDefinitionEmbeddingUpdatedEvent.now(
+                graphdefinitionembedding_id=self._id,
+                now=now,
+            )
+        )
+
+    @property
+    def graph_definition_id(self) -> GraphDefinitionId:
+        return self._graph_definition_id
+
+    @property
+    def text(self) -> EmbeddingText:
+        return self._text
+
+    @property
+    def embedding(self) -> Embedding:
+        return self._embedding
+
+    @property
+    def model(self) -> EmbeddingModel:
+        return self._model
+
+    @property
+    def created_at(self) -> CreatedAt | None:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> CreatedAt | None:
+        return self._updated_at
+
     @classmethod
-    def _new(cls) -> GraphDefinitionEmbedding:
-        raise NotImplementedError("_new() not yet implemented")
+    def restore(
+        cls,
+        id: GraphDefinitionEmbeddingId,
+        graph_definition_id: GraphDefinitionId,
+        text: EmbeddingText,
+        embedding: Embedding,
+        model: EmbeddingModel,
+        created_at: CreatedAt,
+        updated_at: CreatedAt | None = None,
+    ) -> GraphDefinitionEmbedding:
+        return cls(
+            id=id,
+            graph_definition_id=graph_definition_id,
+            text=text,
+            embedding=embedding,
+            model=model,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
+
+    @classmethod
+    def _new(
+        cls,
+        id: GraphDefinitionEmbeddingId,
+        graph_definition_id: GraphDefinitionId,
+        text: EmbeddingText,
+        embedding: Embedding,
+        model: EmbeddingModel,
+        now: CreatedAt,
+    ) -> GraphDefinitionEmbedding:
+        instance = cls(
+            id=id,
+            graph_definition_id=graph_definition_id,
+            text=text,
+            embedding=embedding,
+            model=model,
+            created_at=now,
+
+        )
+        instance.append_event(
+            GraphDefinitionEmbeddingCreatedEvent.now(
+                graph_definition_embedding_id=id,
+                graph_definition_id=graph_definition_id,
+                now=now,
+            )
+        )
+        return instance
+
+
+
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

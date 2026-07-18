@@ -37,7 +37,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         id: NodeLinkExecutionId,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
@@ -91,7 +91,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         id: NodeLinkExecutionId,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(

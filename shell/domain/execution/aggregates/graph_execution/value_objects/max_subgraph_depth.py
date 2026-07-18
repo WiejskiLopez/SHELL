@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from dataclasses import dataclass
 
@@ -11,7 +12,7 @@ class MaxSubgraphDepth(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 1:
-            raise ValueError(f"MaxSubgraphDepth must be >= 1, got {self.value}")
+            raise DomainError(f"MaxSubgraphDepth must be >= 1, got {self.value}")
 
     def __str__(self) -> str:
         return str(self.value)

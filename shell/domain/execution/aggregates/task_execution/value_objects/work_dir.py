@@ -11,7 +11,7 @@ class WorkDir(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("WorkDir cannot be empty")
+            raise DomainError("WorkDir cannot be empty")
 
     def __str__(self) -> str:
         return self.value

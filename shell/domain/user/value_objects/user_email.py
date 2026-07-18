@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from dataclasses import dataclass
 
@@ -11,9 +12,9 @@ class UserEmail(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("UserEmail cannot be empty")
+            raise DomainError("UserEmail cannot be empty")
         if "@" not in self.value:
-            raise ValueError(f"UserEmail must contain '@', got: {self.value!r}")
+            raise DomainError(f"UserEmail must contain '@', got: {self.value!r}")
 
     def __str__(self) -> str:
         return self.value

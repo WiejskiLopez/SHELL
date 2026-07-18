@@ -11,7 +11,7 @@ class EmbeddingModel(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("EmbeddingModel cannot be empty")
+            raise DomainError("EmbeddingModel cannot be empty")
 
     def __str__(self) -> str:
         return self.value

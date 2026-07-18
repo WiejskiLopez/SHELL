@@ -11,7 +11,7 @@ class GraphName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("GraphName cannot be empty")
+            raise DomainError("GraphName cannot be empty")
 
     def __str__(self) -> str:
         return self.value

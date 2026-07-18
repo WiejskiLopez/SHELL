@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from dataclasses import dataclass
 
@@ -11,7 +12,7 @@ class GraphDepth(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            raise ValueError(f"GraphDepth must be >= 0, got {self.value}")
+            raise DomainError(f"GraphDepth must be >= 0, got {self.value}")
 
     def __str__(self) -> str:
         return str(self.value)

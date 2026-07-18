@@ -11,7 +11,7 @@ class NodeType(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError("NodeType cannot be empty")
+            raise DomainError("NodeType cannot be empty")
 
     def __str__(self) -> str:
         return self.value

@@ -19,7 +19,7 @@ class ActionConfig(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.action_type:
-            raise ValueError("ActionConfig.action_type cannot be empty")
+            raise DomainError("ActionConfig.action_type cannot be empty")
 
     def __str__(self) -> str:
         return f"ActionConfig({self.action_type})"

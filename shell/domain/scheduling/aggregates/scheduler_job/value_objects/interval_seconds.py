@@ -11,7 +11,7 @@ class IntervalSeconds(ValueObject):
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            raise ValueError("IntervalSeconds cannot be negative")
+            raise DomainError("IntervalSeconds cannot be negative")
 
     def __str__(self) -> str:
         return str(self.value)

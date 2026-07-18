@@ -1,4 +1,5 @@
 from __future__ import annotations
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 from typing import TYPE_CHECKING, Self
 
@@ -29,8 +30,7 @@ class User(AggregateRoot[UserId]):
 
     _email: UserEmail
     _status: UserStatus
-    _created_at: CreatedAt | None
-    _updated_at: UpdatedAt | None
+    _created_at: CreatedAt_updated_at: UpdatedAt | None
     _deleted_at: DeletedAt | None
 
     def __init__(
@@ -39,7 +39,7 @@ class User(AggregateRoot[UserId]):
         id: UserId,
         email: UserEmail,
         status: UserStatus = UserStatus.ACTIVE,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> None:
@@ -51,7 +51,7 @@ class User(AggregateRoot[UserId]):
         self._deleted_at = deleted_at
 
     @classmethod
-    def create(
+    def _new(
         cls,
         *,
         id: UserId,
@@ -67,6 +67,17 @@ class User(AggregateRoot[UserId]):
         user.append_event(UserCreatedEvent.now(user_id=id, now=created_at))
         return user
 
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        id: UserId,
+        email: UserEmail,
+        now: CreatedAt,
+    ) -> User:
+        return cls._new(id=id, email=email, now=now)
+
     @classmethod
     def restore(
         cls,
@@ -74,7 +85,7 @@ class User(AggregateRoot[UserId]):
         id: UserId,
         email: UserEmail,
         status: UserStatus = UserStatus.ACTIVE,
-        created_at: CreatedAt | None = None,
+        created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
     ) -> Self:
@@ -88,9 +99,6 @@ class User(AggregateRoot[UserId]):
         )
 
 
-    @classmethod
-    def _new(cls) -> User:
-        raise NotImplementedError("_new() not yet implemented")
 
 
     def _delete(self, now: DeletedAt) -> None:
@@ -137,7 +145,7 @@ class User(AggregateRoot[UserId]):
 
     def update(self, email: UserEmail, now: UpdatedAt) -> None:
         if self._deleted_at is not None:
-            raise ValueError("Cannot update a deleted user")
+            raise DomainError("Cannot update a deleted user")
         self._email = email
         self._updated_at = now
         self.append_event(
@@ -146,7 +154,7 @@ class User(AggregateRoot[UserId]):
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at is not None:
-            raise ValueError("User already deleted")
+            raise DomainError("User already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
@@ -155,10 +163,10 @@ class User(AggregateRoot[UserId]):
 
     def enable(self) -> None:
         if self._status != UserStatus.DISABLED:
-            raise ValueError(f"Cannot enable user in status {self._status!r}")
+            raise DomainError(f"Cannot enable user in status {self._status!r}")
         self._status = UserStatus.ACTIVE
 
     def disable(self) -> None:
         if self._status != UserStatus.ACTIVE:
-            raise ValueError(f"Cannot disable user in status {self._status!r}")
+            raise DomainError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED
