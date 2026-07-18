@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
+        "_updated_at",
         "_workflow_id",
         "_status",
         "_name",
@@ -110,6 +111,20 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._status = TaskExecutionStatus.EXHAUSTED
 
     # --- Properties ---
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> TaskExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def name(self) -> TaskName:

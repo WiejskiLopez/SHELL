@@ -151,6 +151,18 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
             updated_at=Timestamp.from_datetime(now.value),
         )
 
+
+    @classmethod
+    def _new(cls) -> SchedulerExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:
         return self._scheduler_definition_id

@@ -15,9 +15,9 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
-
 class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     __slots__ = (
+        "_updated_at",
         "_user_execution_id",
         "_direction",
         "_state_data",
@@ -59,6 +59,9 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
             state_data=state_data,
             created_at=created_at,
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def user_execution_id(self) -> UserExecutionId:

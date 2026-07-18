@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.project.aggregates.project.events.project_created_event import ProjectCreatedEvent
 from shell.domain.project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
 from shell.domain.project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
 from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
@@ -73,6 +74,28 @@ class Project(AggregateRoot[ProjectId]):
         )
 
     @classmethod
+    def _new(
+        cls,
+        *,
+        id_: ProjectId,
+        name: ProjectName,
+        repo_url: RepoUrl,
+        now: CreatedAt,
+    ) -> Project:
+        instance = cls(
+            id=id_,
+            name=name,
+            repo_url=repo_url,
+            status=ProjectStatus.ACTIVE,
+            created_at=now,
+
+        )
+        instance.append_event(
+            ProjectCreatedEvent.now(project_id=instance.id, now=now)
+        )
+        return instance
+
+    @classmethod
     def create(
         cls,
         *,
@@ -81,13 +104,15 @@ class Project(AggregateRoot[ProjectId]):
         repo_url: RepoUrl,
         now: CreatedAt,
     ) -> Project:
-        return cls(
-            id=id_,
-            name=name,
-            repo_url=repo_url,
-            status=ProjectStatus.ACTIVE,
-            created_at=now,
-        )
+        return cls._new(id_=id_, name=name, repo_url=repo_url, now=now)
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def name(self) -> ProjectName:

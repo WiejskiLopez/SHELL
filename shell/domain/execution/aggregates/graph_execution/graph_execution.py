@@ -190,6 +190,19 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             max_subgraph_depth=max_subgraph_depth,
         )
 
+
+    @classmethod
+    def _new(cls) -> GraphExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def task_execution_id(self) -> TaskExecutionId:
         return self._task_execution_id

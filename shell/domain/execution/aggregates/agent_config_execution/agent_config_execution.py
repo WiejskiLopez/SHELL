@@ -91,6 +91,18 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
             )
         )
 
+
+    @classmethod
+    def _new(cls) -> AgentConfigExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def agent_execution_id(self) -> AgentExecutionId:
         return self._agent_execution_id

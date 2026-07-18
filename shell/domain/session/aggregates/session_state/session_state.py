@@ -20,7 +20,8 @@ if TYPE_CHECKING:
 
 
 class SessionState(AggregateRoot[SessionStateId]):
-    __slots__ = ("_session_id", "_direction", "_state_data", "_created_at")
+    __slots__ = (
+        "_updated_at","_session_id", "_direction", "_state_data", "_created_at")
 
     _session_id: SessionId
     _direction: StateDirection
@@ -57,6 +58,16 @@ class SessionState(AggregateRoot[SessionStateId]):
             state_data=state_data,
             created_at=created_at,
         )
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> SessionState:
+        raise NotImplementedError("_new() not yet implemented")
 
     @property
     def session_id(self) -> SessionId:
@@ -107,7 +118,8 @@ class SessionState(AggregateRoot[SessionStateId]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def delete(self, key: str) -> None:
+    def _delete(self,
+, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)

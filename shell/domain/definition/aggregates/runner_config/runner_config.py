@@ -8,9 +8,9 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
-
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
-    __slots__ = ("_created_at",)
+    __slots__ = (
+        "_updated_at","_created_at",)
 
     def __init__(
         self,
@@ -21,6 +21,9 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         self._created_at = (
             created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def created_at(self) -> CreatedAt:

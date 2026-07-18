@@ -85,6 +85,19 @@ class User(AggregateRoot[UserId]):
             deleted_at=deleted_at,
         )
 
+
+    @classmethod
+    def _new(cls) -> User:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def email(self) -> UserEmail:
         return self._email

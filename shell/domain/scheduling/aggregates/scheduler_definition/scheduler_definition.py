@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
+from shell.domain.scheduling.aggregates.scheduler_definition.events.scheduler_definition_created_event import (
+    SchedulerDefinitionCreatedEvent,
+)
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
@@ -12,9 +15,8 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
     SchedulerName,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
-from shell.platform.domain.value_objects.timestamp import Timestamp
-
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
         ActionConfig,
@@ -25,8 +27,6 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigger_config import (
         TriggerConfig,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
-
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
     __slots__ = (
@@ -90,6 +90,38 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         )
 
     @classmethod
+    def _new(
+        cls,
+        *,
+        id_: SchedulerDefinitionId,
+        name: SchedulerName,
+        trigger_config: TriggerConfig,
+        action_config: ActionConfig,
+        execution_policy: ExecutionPolicy,
+        now: CreatedAt,
+        enabled: bool = True,
+        description: SchedulerDescription | None = None,
+    ) -> SchedulerDefinition:
+        instance = cls(
+            id=id_,
+            name=name,
+            enabled=Enabled(enabled),
+            trigger_config=trigger_config,
+            action_config=action_config,
+            execution_policy=execution_policy,
+            created_at=now,
+
+            description=description,
+        )
+        instance.append_event(
+            SchedulerDefinitionCreatedEvent.now(
+                scheduler_definition_id=instance.id,
+                now=now,
+            )
+        )
+        return instance
+
+    @classmethod
     def create(
         cls,
         *,
@@ -102,15 +134,14 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         enabled: bool = True,
         description: SchedulerDescription | None = None,
     ) -> SchedulerDefinition:
-        return cls(
-            id=id_,
+        return cls._new(
+            id_=id_,
             name=name,
-            enabled=Enabled(enabled),
             trigger_config=trigger_config,
             action_config=action_config,
             execution_policy=execution_policy,
-            created_at=now,
-            updated_at=Timestamp.from_datetime(now.value),
+            now=now,
+            enabled=enabled,
             description=description,
         )
 

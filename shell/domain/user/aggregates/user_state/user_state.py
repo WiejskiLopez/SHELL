@@ -85,6 +85,19 @@ class UserState(AggregateRoot[UserStateId]):
 
     # ------------------------------------------------------------------ properties
 
+
+    @classmethod
+    def _new(cls) -> UserState:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def user_id(self) -> UserId:
         return self._user_id

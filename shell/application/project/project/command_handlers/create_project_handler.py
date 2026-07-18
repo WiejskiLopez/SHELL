@@ -26,13 +26,14 @@ class CreateProjectHandler:
 
     async def handle(self, command: CreateProjectCommand) -> ProjectId:
         project_id = self._id_generator.new_id(ProjectId)
-        now = self._clock.now()
-        project = Project(
-            id=project_id,
+        now = CreatedAt.from_datetime(self._clock.now())
+        project = Project.create(
+            id_=project_id,
             name=ProjectName(command.name),
-            repo_url=RepoUrl(command.repo_url) if command.repo_url else RepoUrl(None),
-            created_at=CreatedAt.from_datetime(now),
+            repo_url=RepoUrl(command.repo_url) if command.repo_url else None,
+            now=now,
         )
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.save(ProjectRepository, project)
+            unit_of_work.stage_events(project.pull_events())
         return project_id

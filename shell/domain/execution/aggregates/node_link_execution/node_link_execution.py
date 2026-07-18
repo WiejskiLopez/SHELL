@@ -15,9 +15,10 @@ if TYPE_CHECKING:
         NodeExecutionId,
     )
 
-
 class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
     __slots__ = (
+        "_updated_at",
+        "_created_at",
         "_graph_execution_id",
         "_node_execution_id",
     )
@@ -58,6 +59,9 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
             graph_execution_id=graph_execution_id,
             node_execution_id=node_execution_id,
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def graph_execution_id(self) -> GraphExecutionId:

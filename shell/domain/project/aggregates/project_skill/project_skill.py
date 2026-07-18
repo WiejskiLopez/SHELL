@@ -87,6 +87,19 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         )
         return instance
 
+
+    @classmethod
+    def _new(cls) -> ProjectSkill:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def project_id(self) -> ProjectId:
         return self._project_id

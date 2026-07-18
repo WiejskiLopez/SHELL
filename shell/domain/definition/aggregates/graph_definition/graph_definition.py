@@ -15,7 +15,9 @@ if TYPE_CHECKING:
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
-    __slots__ = ()
+    __slots__ = (
+        "_updated_at",
+        "_created_at",)
 
     def __init__(
         self,
@@ -47,3 +49,17 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
             )
 
         return instance
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> GraphDefinition:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+

@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
-
 class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = (
         "_node_execution_id",
@@ -67,6 +66,12 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
             created_at=created_at,
             updated_at=updated_at,
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def node_execution_id(self) -> NodeExecutionId:

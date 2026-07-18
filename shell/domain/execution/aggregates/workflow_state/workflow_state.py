@@ -22,7 +22,8 @@ from shell.domain.execution.aggregates.workflow_state.events.workflow_state_chan
 
 
 class WorkflowState(AggregateRoot["WorkflowStateId"]):
-    __slots__ = ("_workflow_id", "_direction", "_state_data", "_created_at")
+    __slots__ = (
+        "_updated_at","_workflow_id", "_direction", "_state_data", "_created_at")
 
     _workflow_id: WorkflowId
     _direction: StateDirection
@@ -61,6 +62,16 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
             state_data=state_data,
             created_at=created_at,
         )
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> WorkflowState:
+        raise NotImplementedError("_new() not yet implemented")
 
     @property
     def workflow_id(self) -> WorkflowId:
@@ -111,7 +122,8 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def delete(self, key: str) -> None:
+    def _delete(self,
+, key: str) -> None:
         current = json.loads(self._state_data.value.value)
         if current.get(key) is not None:
             new_data = dict(current)

@@ -24,6 +24,7 @@ from shell.domain.execution.aggregates.session_execution.events.session_executio
 
 class SessionExecution(AggregateRoot[SessionExecutionId]):
     __slots__ = (
+        "_updated_at",
         "_user_execution_id",
         "_session_id",
         "_created_at",
@@ -62,6 +63,19 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
             session_id=session_id,
             created_at=created_at,
         )
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> SessionExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def user_execution_id(self) -> UserExecutionId | None:

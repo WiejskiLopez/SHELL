@@ -134,6 +134,19 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
             )
         )
 
+
+    @classmethod
+    def _new(cls) -> EdgeExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
     @property
     def edge_definition_id(self) -> EdgeDefinitionIdRef:
         return self._edge_definition_id

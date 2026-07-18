@@ -33,6 +33,7 @@ if TYPE_CHECKING:
 
 class NodeExecution(AggregateRoot[NodeExecutionId]):
     __slots__ = (
+        "_updated_at",
         "_node_definition_id",
         "_order",
         "_node_type",
@@ -134,6 +135,19 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         self._status = NodeExecutionStatus.TIMED_OUT
 
     # --- Properties ---
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> NodeExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def node_definition_id(self) -> NodeDefinitionIdRef | None:

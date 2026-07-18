@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 class UserExecution(AggregateRoot[UserExecutionId]):
     __slots__ = (
+        "_updated_at",
         "_user_id",
         "_created_at",
     )
@@ -49,6 +50,19 @@ class UserExecution(AggregateRoot[UserExecutionId]):
             user_id=user_id,
             created_at=created_at,
         )
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> UserExecution:
+        raise NotImplementedError("_new() not yet implemented")
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def user_id(self) -> UserIdRef | None:

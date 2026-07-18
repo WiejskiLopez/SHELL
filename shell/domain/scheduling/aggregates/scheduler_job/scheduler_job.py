@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.state_data import StateData
 
-
 class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
     """Represents a cyclic job configuration run on an interval by APScheduler."""
 
@@ -119,6 +118,12 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
             created_at=now,
             updated_at=Timestamp.from_datetime(now.value),
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def scheduler_definition_id(self) -> SchedulerDefinitionId:

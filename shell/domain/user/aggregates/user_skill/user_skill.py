@@ -10,11 +10,12 @@ from shell.domain.user.value_objects.skill_id import SkillId
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
     from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class UserSkill(AggregateRoot[SkillId]):
@@ -67,12 +68,13 @@ class UserSkill(AggregateRoot[SkillId]):
         )
 
     @classmethod
-    def new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
+    def _new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
         instance = cls(
             id=SkillId.generate(),
             user_id=user_id,
             skill_data=SkillData(skill_data),
             created_at=now,
+
         )
         instance.append_event(
             UserSkillCreatedEvent.now(
@@ -82,6 +84,18 @@ class UserSkill(AggregateRoot[SkillId]):
             )
         )
         return instance
+
+    @classmethod
+    def new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
+        return cls._new(user_id=user_id, skill_data=skill_data, now=now)
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
+
+
+    def _update(self) -> None:
+        raise NotImplementedError("_update() not yet implemented")
 
     @property
     def user_id(self) -> UserId:

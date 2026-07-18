@@ -34,6 +34,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     """Aggregate that holds mutable key-value state for one graph execution, discriminated by kind."""
 
     __slots__ = (
+        "_updated_at",
         "_graph_execution_id",
         "_direction",
         "_state_data",
@@ -77,6 +78,16 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         )
 
     # ------------------------------------------------------------------ properties
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> GraphExecutionState:
+        raise NotImplementedError("_new() not yet implemented")
 
     @property
     def graph_execution_id(self) -> GraphExecutionId:
@@ -130,7 +141,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def get(self, key: str) -> object | None:
         return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
 
-    def delete(self, key: str) -> None:
+    def _delete(self, key: str) -> None:
         if json.loads(self._state_data.value.value).get(key) is not None:
             new_data = json.loads(self._state_data.value.value)
             new_data.pop(key, None)

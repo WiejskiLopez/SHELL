@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
-
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
-    __slots__ = ("_agent_execution_id", "_skill_data", "_created_at")
+    __slots__ = (
+        "_updated_at","_agent_execution_id", "_skill_data", "_created_at")
 
     _agent_execution_id: AgentExecutionId
     _skill_data: SkillData
@@ -65,6 +65,9 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
             skill_data=skill_data,
             created_at=now,
         )
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def agent_execution_id(self) -> AgentExecutionId:

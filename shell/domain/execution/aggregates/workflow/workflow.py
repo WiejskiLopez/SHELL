@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 class Workflow(AggregateRoot["WorkflowId"]):
     __slots__ = (
+        "_updated_at",
         "_session_id",
         "_status",
         "_created_at",
@@ -69,6 +70,20 @@ class Workflow(AggregateRoot["WorkflowId"]):
         )
 
     # --- Properties ---
+
+
+    @classmethod
+    def _update(cls) -> None:
+        raise NotImplementedError("_update() not yet implemented")
+
+
+    @classmethod
+    def _new(cls) -> Workflow:
+        raise NotImplementedError("_new() not yet implemented")
+
+
+    def _delete(self) -> None:
+        raise NotImplementedError("_delete() not yet implemented")
 
     @property
     def session_id(self) -> SessionIdRef | None:
