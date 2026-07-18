@@ -11,6 +11,7 @@ from shell.domain.user.aggregates.user_skill.events.user_skill_deleted_event imp
 from shell.domain.user.aggregates.user_skill.events.user_skill_updated_event import (
     UserSkillUpdatedEvent,
 )
+from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserSkillId
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt

@@ -15,6 +15,12 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
     GraphExecutionStateChangedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_deleted_event import (
+    GraphExecutionStateDeletedEvent,
+)
+from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_updated_event import (
+    GraphExecutionStateUpdatedEvent,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.state_data import StateData
