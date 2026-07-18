@@ -5,6 +5,12 @@ from typing import TYPE_CHECKING, Self
 from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_created_event import (
     AgentSkillExecutionCreatedEvent,
 )
+from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_deleted_event import (
+    AgentSkillExecutionDeletedEvent,
+)
+from shell.domain.execution.aggregates.agent_skill_execution.events.agent_skill_execution_updated_event import (
+    AgentSkillExecutionUpdatedEvent,
+)
 from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
     AgentSkillExecutionId,
 )

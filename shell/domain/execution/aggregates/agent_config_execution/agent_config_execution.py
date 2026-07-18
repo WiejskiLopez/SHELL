@@ -151,17 +151,3 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
             created_at=now,
 
         )
-
-    def update_config(self, config_data: ConfigData, now: UpdatedAt) -> None:
-        if config_data is None:
-            raise DomainError("ConfigData cannot be None")
-        self._config_data = config_data
-        self._updated_at = now
-        self.append_event(
-            AgentConfigUpdatedEvent.now(
-                agent_config_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-
