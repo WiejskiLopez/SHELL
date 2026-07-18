@@ -3,15 +3,14 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
-from session.aggregates.session_state.events.sessionstate_deleted_event import (
-    SessionStateDeletedEvent,
-)
-from session.aggregates.session_state.events.sessionstate_updated_event import (
-    SessionStateUpdatedEvent,
-)
-
 from shell.domain.session.aggregates.session_state.events.session_state_changed_event import (
     SessionStateChangedEvent,
+)
+from shell.domain.session.aggregates.session_state.events.session_state_deleted_event import (
+    SessionStateDeletedEvent,
+)
+from shell.domain.session.aggregates.session_state.events.session_state_updated_event import (
+    SessionStateUpdatedEvent,
 )
 from shell.domain.session.aggregates.session_state.value_objects.session_state_id import (
     SessionStateId,

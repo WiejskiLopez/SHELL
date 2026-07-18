@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.node_execution.events.nodeexecution_deleted_event import (
-    NodeExecutionDeletedEvent,
-)
-from execution.aggregates.node_execution.events.nodeexecution_updated_event import (
-    NodeExecutionUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
     NodeExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_deleted_event import (
+    NodeExecutionDeletedEvent,
+)
+from shell.domain.execution.aggregates.node_execution.events.node_execution_updated_event import (
+    NodeExecutionUpdatedEvent,
 )
 from shell.domain.execution.aggregates.node_execution.exceptions.invalid_node_state_error import (
     InvalidNodeStateError,

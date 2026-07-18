@@ -3,15 +3,14 @@ from __future__ import annotations
 import tempfile
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.task_execution.events.taskexecution_deleted_event import (
-    TaskExecutionDeletedEvent,
-)
-from execution.aggregates.task_execution.events.taskexecution_updated_event import (
-    TaskExecutionUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_deleted_event import (
+    TaskExecutionDeletedEvent,
+)
+from shell.domain.execution.aggregates.task_execution.events.task_execution_updated_event import (
+    TaskExecutionUpdatedEvent,
 )
 from shell.domain.execution.aggregates.task_execution.exceptions.invalid_task_state_error import (
     InvalidTaskStateError,

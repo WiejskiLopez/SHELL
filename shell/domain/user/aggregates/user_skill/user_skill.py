@@ -2,11 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from user.aggregates.user_skill.events.userskill_deleted_event import UserSkillDeletedEvent
-from user.aggregates.user_skill.events.userskill_updated_event import UserSkillUpdatedEvent
-
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
+)
+from shell.domain.user.aggregates.user_skill.events.user_skill_deleted_event import (
+    UserSkillDeletedEvent,
+)
+from shell.domain.user.aggregates.user_skill.events.user_skill_updated_event import (
+    UserSkillUpdatedEvent,
 )
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.domain.user.value_objects.skill_id import SkillId

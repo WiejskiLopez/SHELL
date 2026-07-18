@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from definition.aggregates.node_definition.events.nodedefinition_deleted_event import (
-    NodeDefinitionDeletedEvent,
-)
-from definition.aggregates.node_definition.events.nodedefinition_updated_event import (
-    NodeDefinitionUpdatedEvent,
-)
-
 from shell.domain.definition.aggregates.node_definition.events.node_definition_created_event import (
     NodeDefinitionCreatedEvent,
+)
+from shell.domain.definition.aggregates.node_definition.events.node_definition_deleted_event import (
+    NodeDefinitionDeletedEvent,
+)
+from shell.domain.definition.aggregates.node_definition.events.node_definition_updated_event import (
+    NodeDefinitionUpdatedEvent,
 )
 from shell.domain.definition.aggregates.node_definition.value_objects.max_step import MaxStep
 from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (

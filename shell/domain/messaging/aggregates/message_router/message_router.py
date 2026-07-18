@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from messaging.aggregates.message_router.events.messagerouter_deleted_event import (
-    MessageRouterDeletedEvent,
-)
-from messaging.aggregates.message_router.events.messagerouter_updated_event import (
-    MessageRouterUpdatedEvent,
-)
-
 from shell.domain.messaging.aggregates.message_router.events.message_router_created_event import (
     MessageRouterCreatedEvent,
+)
+from shell.domain.messaging.aggregates.message_router.events.message_router_deleted_event import (
+    MessageRouterDeletedEvent,
+)
+from shell.domain.messaging.aggregates.message_router.events.message_router_updated_event import (
+    MessageRouterUpdatedEvent,
 )
 from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
 from shell.platform.domain.base.aggregate_root import AggregateRoot

@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.agent_config_execution.events.agentconfigexecution_deleted_event import (
+from shell.domain.execution.aggregates.agent_config_execution.events.agent_config_execution_deleted_event import (
     AgentConfigExecutionDeletedEvent,
 )
-from execution.aggregates.agent_config_execution.events.agentconfigexecution_updated_event import (
+from shell.domain.execution.aggregates.agent_config_execution.events.agent_config_execution_updated_event import (
     AgentConfigExecutionUpdatedEvent,
 )
-
 from shell.domain.execution.aggregates.agent_config_execution.events.agent_config_updated_event import (
     AgentConfigUpdatedEvent,
 )

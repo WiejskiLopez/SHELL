@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.agent_execution.events.agentexecution_deleted_event import (
+from shell.domain.execution.aggregates.agent_execution.events.agent_execution_created_event import (
+    AgentExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.agent_execution.events.agent_execution_deleted_event import (
     AgentExecutionDeletedEvent,
 )
-from execution.aggregates.agent_execution.events.agentexecution_updated_event import (
+from shell.domain.execution.aggregates.agent_execution.events.agent_execution_updated_event import (
     AgentExecutionUpdatedEvent,
-)
-
-from shell.domain.execution.aggregates.agent_execution.events.agentexecution_created_event import (
-    AgentExecutionCreatedEvent,
 )
 from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
     AgentExecutionId,

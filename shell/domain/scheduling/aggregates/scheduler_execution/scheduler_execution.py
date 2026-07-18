@@ -2,18 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from scheduling.aggregates.scheduler_execution.events.schedulerexecution_deleted_event import (
-    SchedulerExecutionDeletedEvent,
-)
-from scheduling.aggregates.scheduler_execution.events.schedulerexecution_updated_event import (
-    SchedulerExecutionUpdatedEvent,
-)
-
 from shell.domain.scheduling.aggregates.scheduler_execution.events import (
     SchedulerExecutionCompletedEvent,
     SchedulerExecutionFailedEvent,
     SchedulerExecutionSkippedEvent,
     SchedulerExecutionStartedEvent,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_deleted_event import (
+    SchedulerExecutionDeletedEvent,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.events.scheduler_execution_updated_event import (
+    SchedulerExecutionUpdatedEvent,
 )
 from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.action_ref import (
     ActionRef,

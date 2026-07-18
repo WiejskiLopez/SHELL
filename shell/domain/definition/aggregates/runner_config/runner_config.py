@@ -2,13 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from definition.aggregates.runner_config.events.runnerconfig_deleted_event import (
+from shell.domain.definition.aggregates.runner_config.events.runner_config_deleted_event import (
     RunnerConfigDeletedEvent,
 )
-from definition.aggregates.runner_config.events.runnerconfig_updated_event import (
+from shell.domain.definition.aggregates.runner_config.events.runner_config_updated_event import (
     RunnerConfigUpdatedEvent,
 )
-
 from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )

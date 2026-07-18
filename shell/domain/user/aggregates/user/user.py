@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from user.aggregates.user.events.user_deleted_event import UserDeletedEvent
-from user.aggregates.user.events.user_updated_event import UserUpdatedEvent
-
 from shell.domain.user.aggregates.user.events.user_created_event import UserCreatedEvent
 from shell.domain.user.aggregates.user.events.user_deleted_event import UserDeletedEvent
 from shell.domain.user.aggregates.user.events.user_updated_event import UserUpdatedEvent

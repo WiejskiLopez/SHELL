@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from project.aggregates.project_skill.events.projectskill_deleted_event import (
-    ProjectSkillDeletedEvent,
-)
-from project.aggregates.project_skill.events.projectskill_updated_event import (
-    ProjectSkillUpdatedEvent,
-)
-
 from shell.domain.project.aggregates.project_skill.events.project_skill_created_event import (
     ProjectSkillCreatedEvent,
+)
+from shell.domain.project.aggregates.project_skill.events.project_skill_deleted_event import (
+    ProjectSkillDeletedEvent,
+)
+from shell.domain.project.aggregates.project_skill.events.project_skill_updated_event import (
+    ProjectSkillUpdatedEvent,
 )
 from shell.domain.project.aggregates.project_skill.value_objects.project_skill_data import (
     ProjectSkillData,

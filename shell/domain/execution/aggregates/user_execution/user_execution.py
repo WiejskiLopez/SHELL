@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.user_execution.events.userexecution_deleted_event import (
-    UserExecutionDeletedEvent,
-)
-from execution.aggregates.user_execution.events.userexecution_updated_event import (
-    UserExecutionUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.user_execution.events.user_execution_created_event import (
     UserExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.user_execution.events.user_execution_deleted_event import (
+    UserExecutionDeletedEvent,
+)
+from shell.domain.execution.aggregates.user_execution.events.user_execution_updated_event import (
+    UserExecutionUpdatedEvent,
 )
 from shell.domain.execution.aggregates.user_execution.value_objects.user_execution_id import (
     UserExecutionId,

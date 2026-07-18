@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from definition.aggregates.graph_definition.events.graphdefinition_deleted_event import (
-    GraphDefinitionDeletedEvent,
-)
-from definition.aggregates.graph_definition.events.graphdefinition_updated_event import (
-    GraphDefinitionUpdatedEvent,
-)
-
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
     GraphDefinitionCreatedEvent,
+)
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_deleted_event import (
+    GraphDefinitionDeletedEvent,
+)
+from shell.domain.definition.aggregates.graph_definition.events.graph_definition_updated_event import (
+    GraphDefinitionUpdatedEvent,
 )
 from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,

@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.node_link_execution.events.nodelinkexecution_deleted_event import (
-    NodeLinkExecutionDeletedEvent,
-)
-from execution.aggregates.node_link_execution.events.nodelinkexecution_updated_event import (
-    NodeLinkExecutionUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.node_link_execution.events.node_link_execution_created_event import (
     NodeLinkExecutionCreatedEvent,
+)
+from shell.domain.execution.aggregates.node_link_execution.events.node_link_execution_deleted_event import (
+    NodeLinkExecutionDeletedEvent,
+)
+from shell.domain.execution.aggregates.node_link_execution.events.node_link_execution_updated_event import (
+    NodeLinkExecutionUpdatedEvent,
 )
 from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
     NodeLinkExecutionId,

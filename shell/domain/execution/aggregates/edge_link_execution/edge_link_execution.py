@@ -17,13 +17,6 @@ if TYPE_CHECKING:
         NodeExecutionId,
     )
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from execution.aggregates.edge_link_execution.events.edgelinkexecution_deleted_event import (
-    EdgeLinkExecutionDeletedEvent,
-)
-from execution.aggregates.edge_link_execution.events.edgelinkexecution_updated_event import (
-    EdgeLinkExecutionUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_created_event import (
     EdgeLinkExecutionCreatedEvent,
 )

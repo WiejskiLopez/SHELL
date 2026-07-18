@@ -3,15 +3,14 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
-from execution.aggregates.node_execution_state.events.nodeexecutionstate_deleted_event import (
-    NodeExecutionStateDeletedEvent,
-)
-from execution.aggregates.node_execution_state.events.nodeexecutionstate_updated_event import (
-    NodeExecutionStateUpdatedEvent,
-)
-
 from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_changed_event import (
     NodeExecutionStateChangedEvent,
+)
+from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_deleted_event import (
+    NodeExecutionStateDeletedEvent,
+)
+from shell.domain.execution.aggregates.node_execution_state.events.node_execution_state_updated_event import (
+    NodeExecutionStateUpdatedEvent,
 )
 from shell.domain.execution.aggregates.node_execution_state.value_objects.node_execution_state_id import (
     NodeExecutionStateId,

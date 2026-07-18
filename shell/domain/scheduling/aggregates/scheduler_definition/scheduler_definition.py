@@ -2,15 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_deleted_event import (
-    SchedulerDefinitionDeletedEvent,
-)
-from scheduling.aggregates.scheduler_definition.events.schedulerdefinition_updated_event import (
-    SchedulerDefinitionUpdatedEvent,
-)
-
 from shell.domain.scheduling.aggregates.scheduler_definition.events.scheduler_definition_created_event import (
     SchedulerDefinitionCreatedEvent,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.events.scheduler_definition_deleted_event import (
+    SchedulerDefinitionDeletedEvent,
+)
+from shell.domain.scheduling.aggregates.scheduler_definition.events.scheduler_definition_updated_event import (
+    SchedulerDefinitionUpdatedEvent,
 )
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,

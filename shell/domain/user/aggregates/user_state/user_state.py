@@ -12,11 +12,14 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
-from user.aggregates.user_state.events.userstate_deleted_event import UserStateDeletedEvent
-from user.aggregates.user_state.events.userstate_updated_event import UserStateUpdatedEvent
-
 from shell.domain.user.aggregates.user_state.events.user_state_changed_event import (
     UserStateChangedEvent,
+)
+from shell.domain.user.aggregates.user_state.events.user_state_deleted_event import (
+    UserStateDeletedEvent,
+)
+from shell.domain.user.aggregates.user_state.events.user_state_updated_event import (
+    UserStateUpdatedEvent,
 )
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.platform.domain.base import AggregateRoot

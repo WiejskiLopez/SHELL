@@ -4,15 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from session.aggregates.session.events.session_deleted_event import SessionDeletedEvent
-from session.aggregates.session.events.session_updated_event import SessionUpdatedEvent
-
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
 )
+from shell.domain.session.aggregates.session.events.session_deleted_event import SessionDeletedEvent
 from shell.domain.session.aggregates.session.events.session_opened_event import (
     SessionOpenedEvent,
 )
+from shell.domain.session.aggregates.session.events.session_updated_event import SessionUpdatedEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus

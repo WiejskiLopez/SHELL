@@ -12,15 +12,14 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING, Self
 
-from project.aggregates.project_state.events.projectstate_deleted_event import (
-    ProjectStateDeletedEvent,
-)
-from project.aggregates.project_state.events.projectstate_updated_event import (
-    ProjectStateUpdatedEvent,
-)
-
 from shell.domain.project.aggregates.project_state.events.project_state_changed_event import (
     ProjectStateChangedEvent,
+)
+from shell.domain.project.aggregates.project_state.events.project_state_deleted_event import (
+    ProjectStateDeletedEvent,
+)
+from shell.domain.project.aggregates.project_state.events.project_state_updated_event import (
+    ProjectStateUpdatedEvent,
 )
 from shell.domain.project.aggregates.project_state.value_objects.project_state_id import (
     ProjectStateId,

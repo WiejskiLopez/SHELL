@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
-from project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
-
 from shell.domain.project.aggregates.project.events.project_created_event import ProjectCreatedEvent
 from shell.domain.project.aggregates.project.events.project_deleted_event import ProjectDeletedEvent
 from shell.domain.project.aggregates.project.events.project_updated_event import ProjectUpdatedEvent
