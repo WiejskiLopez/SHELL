@@ -82,7 +82,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         if self._deleted_at is not None:
             raise DomainError("Edge link already deleted")
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+
         self.append_event(
             EdgeLinkExecutionDeletedEvent.now(
                 edge_link_execution_id=self._id,
@@ -173,56 +173,3 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
             )
         )
         return instance
-
-    def mark_deleted(self, now: DeletedAt) -> None:
-        if self._deleted_at is not None:
-            raise DomainError("Edge link already deleted")
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            EdgeLinkExecutionDeletedEvent.now(
-                edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-    def update(self, now: UpdatedAt) -> None:
-        if self._deleted_at is not None:
-            raise DomainError("Cannot update a deleted edge link")
-        self._updated_at = now
-        self.append_event(
-            EdgeLinkExecutionUpdatedEvent.now(
-                edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-
-
-
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            EdgeLinkExecutionDeletedEvent.now(
-                edgelinkexecution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            EdgeLinkExecutionUpdatedEvent.now(
-                edgelinkexecution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-    @property
-    def node_execution_id(self) -> NodeExecutionId:
-        return self._node_execution_id
-
-    @property
-    def edge_execution_id(self) -> EdgeExecutionId:
-        return self._edge_execution_id

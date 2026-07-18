@@ -87,7 +87,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+
         self.append_event(
             AgentConfigExecutionDeletedEvent.now(
                 agentconfigexecution_id=self._id,
@@ -165,38 +165,3 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         )
 
 
-
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            AgentConfigExecutionDeletedEvent.now(
-                agentconfigexecution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            AgentConfigExecutionUpdatedEvent.now(
-                agentconfigexecution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-    @property
-    def agent_execution_id(self) -> AgentExecutionId:
-        return self._agent_execution_id
-
-    @property
-    def config_data(self) -> ConfigData:
-        return self._config_data
-
-    @property
-    def created_at(self) -> CreatedAt:
-        return self._created_at
-
-    @property
-    def updated_at(self) -> UpdatedAt:
-        return self._updated_at

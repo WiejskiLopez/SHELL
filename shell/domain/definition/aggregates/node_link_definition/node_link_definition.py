@@ -52,11 +52,13 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         id_: NodeLinkDefinitionId,
         graph_definition_id: GraphDefinitionId,
         node_definition_id: NodeDefinitionId,
+        now: CreatedAt,
     ) -> NodeLinkDefinition:
         instance = cls(
             id=id_,
             graph_definition_id=graph_definition_id,
             node_definition_id=node_definition_id,
+            created_at=now,
         )
         instance.append_event(
             NodeLinkDefinitionCreatedEvent.now(
@@ -72,6 +74,7 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         id_: NodeLinkDefinitionId,
         graph_definition_id: GraphDefinitionId,
         node_definition_id: NodeDefinitionId,
+        now: CreatedAt,
     ) -> NodeLinkDefinition:
         return cls._new(id_=id_, graph_definition_id=graph_definition_id, node_definition_id=node_definition_id, now=now)
 

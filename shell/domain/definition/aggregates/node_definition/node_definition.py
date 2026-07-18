@@ -18,11 +18,10 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_defin
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
+    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):
@@ -85,7 +84,7 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+
         self.append_event(
             NodeDefinitionDeletedEvent.now(
                 nodedefinition_id=self._id,
@@ -150,20 +149,3 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
 
 
 
-
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
-        self.append_event(
-            NodeDefinitionDeletedEvent.now(
-                nodedefinition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
-            )
-        )
-    @property
-    def node_type(self) -> NodeType:
-        return self._node_type
-
-    @property
-    def max_step(self) -> MaxStep | None:
-        return self._max_step
