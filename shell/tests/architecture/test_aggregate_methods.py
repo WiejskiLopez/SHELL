@@ -13,7 +13,6 @@ from _arch_helpers import (
     parse_file,
 )
 
-
 # ── 28. _delete() must set _deleted_at and emit DeletedEvent ──────────────
 
 _KNOWN_DELETE_BEHAVIOR: frozenset[str] = frozenset({})

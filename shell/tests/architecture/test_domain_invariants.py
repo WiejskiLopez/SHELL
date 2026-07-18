@@ -13,7 +13,6 @@ from _arch_helpers import (
     parse_file,
 )
 
-
 # ── 30. created_at must NEVER be nullable (CreatedAt | None) ────────────
 
 _KNOWN_NULLABLE_CREATED_AT: frozenset[str] = frozenset({})
@@ -105,15 +104,14 @@ def test_no_bare_exceptions_in_domain() -> None:
         if tree is None:
             continue
         for node in ast.walk(tree):
-            if isinstance(node, ast.Raise):
-                if isinstance(node.exc, ast.Call):
-                    func = node.exc.func
-                    if isinstance(func, ast.Name):
-                        if func.id in ("ValueError", "TypeError", "AssertionError"):
-                            lineno = getattr(node, "lineno", 0)
-                            key = f"{rel}:{lineno}: bare raise {func.id}"
-                            if key not in _KNOWN_BARE_EXCEPTIONS:
-                                violations.append(key)
+            if isinstance(node, ast.Raise) and isinstance(node.exc, ast.Call):
+                func = node.exc.func
+                if isinstance(func, ast.Name):
+                    if func.id in ("ValueError", "TypeError", "AssertionError"):
+                        lineno = getattr(node, "lineno", 0)
+                        key = f"{rel}:{lineno}: bare raise {func.id}"
+                        if key not in _KNOWN_BARE_EXCEPTIONS:
+                            violations.append(key)
     assert not violations, (
         "Domain code must use domain-specific exceptions (e.g. UserAlreadyDeletedError), "
         "not bare ValueError/TypeError/AssertionError:\n"
