@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
-    from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
     from shell.domain.user.value_objects.user_id import UserId
 
 

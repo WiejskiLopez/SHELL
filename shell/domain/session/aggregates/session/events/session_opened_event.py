@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId  
-    from shell.domain.session.value_objects.project_id_ref import ProjectIdRef  
-    from shell.domain.session.value_objects.user_id_ref import UserIdRef  
+    from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
+    from shell.domain.session.value_objects.user_id_ref import UserIdRef
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 @dataclass(frozen=True, slots=True)

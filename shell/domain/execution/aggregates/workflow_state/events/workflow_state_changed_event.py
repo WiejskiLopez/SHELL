@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId  
+    from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )

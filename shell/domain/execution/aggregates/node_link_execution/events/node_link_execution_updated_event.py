@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
         NodeLinkExecutionId,
     )
-
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 @dataclass(frozen=True, slots=True)

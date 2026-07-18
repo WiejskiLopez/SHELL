@@ -6,7 +6,9 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
+from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+    MessageRouterId,
+)
 
 
 class TestIds:
@@ -25,5 +27,5 @@ class TestIds:
         assert w.value
 
     def test_message_id_generate(self) -> None:
-        m = MessageId.generate()
+        m = MessageRouterId.generate()
         assert m.value

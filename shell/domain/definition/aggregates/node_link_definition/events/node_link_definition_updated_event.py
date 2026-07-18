@@ -9,7 +9,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
         NodeLinkDefinitionId,
     )
-
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 @dataclass(frozen=True, slots=True)

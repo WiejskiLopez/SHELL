@@ -20,7 +20,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
-    from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
+    from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+        MessageRouterId,
+    )
 
 
 class SqlMessageRouterRepository(MessageRouterRepository):
@@ -35,7 +37,7 @@ class SqlMessageRouterRepository(MessageRouterRepository):
         else:
             model.message_data = message.message_data  # type: ignore[assignment]
 
-    async def get_by_id(self, message_id: MessageId) -> MessageRouter | None:
+    async def get_by_id(self, message_id: MessageRouterId) -> MessageRouter | None:
         query = select(MessageRouterModel).where(MessageRouterModel.id == message_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return message_router_model_to_entity(row) if row else None

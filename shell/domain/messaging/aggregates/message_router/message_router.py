@@ -11,7 +11,9 @@ from shell.domain.messaging.aggregates.message_router.events.message_router_dele
 from shell.domain.messaging.aggregates.message_router.events.message_router_updated_event import (
     MessageRouterUpdatedEvent,
 )
-from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId
+from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+    MessageRouterId,
+)
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -23,7 +25,7 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
-class MessageRouter(AggregateRoot[MessageId]):
+class MessageRouter(AggregateRoot[MessageRouterId]):
     __slots__ = (
         "_message_data",
         "_created_at",
@@ -37,7 +39,7 @@ class MessageRouter(AggregateRoot[MessageId]):
     def __init__(
         self,
         *,
-        id: MessageId,
+        id: MessageRouterId,
         message_data: MessageData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
@@ -51,7 +53,7 @@ class MessageRouter(AggregateRoot[MessageId]):
     def restore(
         cls,
         *,
-        id: MessageId,
+        id: MessageRouterId,
         message_data: MessageData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
@@ -97,7 +99,7 @@ class MessageRouter(AggregateRoot[MessageId]):
     def _new(
         cls,
         *,
-        id_: MessageId,
+        id_: MessageRouterId,
         message_data: MessageData,
         now: CreatedAt,
     ) -> MessageRouter:
@@ -119,7 +121,7 @@ class MessageRouter(AggregateRoot[MessageId]):
     def new(
         cls,
         *,
-        id_: MessageId,
+        id_: MessageRouterId,
         message_data: MessageData,
         now: CreatedAt,
     ) -> MessageRouter:

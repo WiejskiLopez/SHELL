@@ -6,17 +6,19 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.domain.messaging.aggregates.message_router.value_objects.message_id import MessageId  
+    from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+        MessageRouterId,
+    )
     from shell.platform.domain.value_objects.created_at import CreatedAt
 
 @dataclass(frozen=True, slots=True)
 class MessageRouterCreatedEvent(DomainEvent):
-    message_id: MessageId
+    message_id: MessageRouterId
 
     @classmethod
     def now(
         cls,
-        message_id: MessageId,
+        message_id: MessageRouterId,
         now: CreatedAt,
     ) -> MessageRouterCreatedEvent:
         return cls(

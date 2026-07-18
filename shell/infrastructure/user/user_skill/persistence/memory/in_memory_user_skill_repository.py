@@ -6,7 +6,6 @@ from shell.domain.user.aggregates.user_skill.repositories.user_skill_repository 
     UserSkillRepository,
 )
 from shell.domain.user.aggregates.user_skill.user_skill import UserSkill
-from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserUserSkillId
 from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
 
 if TYPE_CHECKING:

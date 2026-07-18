@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Self
 
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
-    SchedulerExecutionId,
-)
 from shell.domain.scheduling.aggregates.scheduler_job.events.scheduler_job_created_event import (
     SchedulerJobCreatedEvent,
 )
@@ -20,6 +17,9 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_sec
 )
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name import JobName
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
+    SchedulerJobId,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from shell.platform.domain.value_objects.state_data import StateData
     from shell.platform.domain.value_objects.timestamp import Timestamp
 
-class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
+class SchedulerJob(AggregateRoot[SchedulerJobId]):
     """Represents a cyclic job configuration run on an interval by APScheduler."""
 
     __slots__ = (
@@ -50,7 +50,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
 
     def __init__(
         self,
-        id: SchedulerExecutionId,
+        id: SchedulerJobId,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -80,7 +80,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
     def create(
         cls,
         *,
-        id_: SchedulerExecutionId,
+        id_: SchedulerJobId,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -95,7 +95,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
     @classmethod
     def restore(
         cls,
-        id: SchedulerExecutionId,
+        id: SchedulerJobId,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -123,7 +123,7 @@ class SchedulerJob(AggregateRoot[SchedulerExecutionId]):
     def _new(
         cls,
         *,
-        id_: SchedulerExecutionId,
+        id_: SchedulerJobId,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
