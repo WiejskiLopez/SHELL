@@ -3,14 +3,10 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-<<<<<<< Updated upstream
       <sourceFolder url="file://$MODULE_DIR$" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/shell" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
-=======
-      <excludeFolder url="file://$MODULE_DIR$/.venv" />
->>>>>>> Stashed changes
       <excludeFolder url="file://$MODULE_DIR$/shell/.venv" />
     </content>
     <orderEntry type="inheritedJdk" />
