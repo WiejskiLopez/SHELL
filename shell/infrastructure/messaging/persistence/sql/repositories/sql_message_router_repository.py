@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import exists as sa_exists
 from sqlalchemy import select
 
 from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
@@ -13,6 +14,7 @@ from shell.infrastructure.messaging.persistence.sql.mappers.message_router_entit
 from shell.infrastructure.messaging.persistence.sql.mappers.message_router_model_to_entity import (
     message_router_model_to_entity,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models.message_router import MessageRouterModel
 
@@ -41,3 +43,13 @@ class SqlMessageRouterRepository(MessageRouterRepository):
         query = select(MessageRouterModel).where(MessageRouterModel.id == message_id.value)
         row = (await self._session.execute(query)).scalar_one_or_none()
         return message_router_model_to_entity(row) if row else None
+
+    async def delete(self, id: MessageRouterId) -> None:
+        model = await self._session.get(MessageRouterModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: MessageRouterId) -> ExistsResult:
+        stmt = select(sa_exists().where(MessageRouterModel.id == id.value))
+        result = await self._session.execute(stmt)
+        return ExistsResult(result.scalar() or False)

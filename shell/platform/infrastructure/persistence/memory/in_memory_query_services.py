@@ -93,4 +93,5 @@ class InMemoryQueryServices:
             status=session._status,
             opened_at=session.opened_at.value,
             closed_at=session.closed_at.value if session.closed_at else None,
+            created_at=session.created_at.value,
         )

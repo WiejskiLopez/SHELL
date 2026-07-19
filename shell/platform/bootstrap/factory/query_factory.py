@@ -25,6 +25,9 @@ from shell.application.execution.agent_skill_execution.queries.get_agent_skill_e
 from shell.application.execution.edge_execution.queries.get_edge_execution_by_id_query import (
     GetEdgeExecutionByIdQuery,
 )
+from shell.application.execution.edge_link_execution.queries.get_edge_link_execution_by_id_query import (
+    GetEdgeLinkExecutionByIdQuery,
+)
 from shell.application.execution.graph_execution.queries.get_graph_execution_by_id_query import (
     GetGraphExecutionByIdQuery,
 )
@@ -113,6 +116,7 @@ def register_queries(container: Container) -> None:
     )
     q_bus.register(GetSchedulerExecutionByIdQuery, queries.get_scheduler_execution_handler_factory)
     q_bus.register(GetEdgeExecutionByIdQuery, queries.get_edge_execution_handler_factory)
+    q_bus.register(GetEdgeLinkExecutionByIdQuery, queries.get_edge_link_execution_handler_factory)
     q_bus.register(GetAgentExecutionByIdQuery, queries.get_agent_execution_handler_factory)
     q_bus.register(
         GetAgentConfigExecutionByIdQuery, queries.get_agent_config_execution_handler_factory

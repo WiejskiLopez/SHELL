@@ -15,7 +15,9 @@ from shell.domain.messaging.aggregates.message_router.value_objects.message_rout
     MessageRouterId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -23,7 +25,6 @@ if TYPE_CHECKING:
     from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
         MessageData,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class MessageRouter(AggregateRoot[MessageRouterId]):
@@ -44,12 +45,14 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         id: MessageRouterId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         message_data: MessageData,
     ) -> None:
         super().__init__(id)
         self._message_data = message_data
         self._created_at = created_at
         self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def restore(
@@ -58,6 +61,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         id: MessageRouterId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         message_data: MessageData,
     ) -> Self:
         return cls(
@@ -65,13 +69,15 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
             message_data=message_data,
             created_at=created_at,
             updated_at=updated_at,
+            deleted_at=deleted_at,
         )
 
-    def _delete(self, now: DeletedAt) -> None:
-        self._deleted_at = now
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+    def update(self, now: UpdatedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Message router already deleted")
+        self._updated_at = now
         self.append_event(
-            MessageRouterDeletedEvent.now(
+            MessageRouterUpdatedEvent.now(
                 message_router_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )
@@ -81,6 +87,28 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self._updated_at = now
         self.append_event(
             MessageRouterUpdatedEvent.now(
+                message_router_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+
+    def delete(self, now: DeletedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Message router already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            MessageRouterDeletedEvent.now(
+                message_router_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+
+    def _delete(self, now: DeletedAt) -> None:
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            MessageRouterDeletedEvent.now(
                 message_router_id=self._id,
                 now=OccurredAt.from_datetime(now.value),
             )

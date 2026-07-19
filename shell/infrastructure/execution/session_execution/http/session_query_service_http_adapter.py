@@ -27,4 +27,5 @@ class SessionQueryServiceHttpAdapter(SessionQueryService):
             status=data["status"],
             opened_at=data["opened_at"],
             closed_at=data.get("closed_at"),
+            created_at=data.get("created_at", data["opened_at"]),
         )

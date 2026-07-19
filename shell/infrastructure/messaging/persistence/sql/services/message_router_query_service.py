@@ -28,6 +28,8 @@ class MessageRouterQueryService:
                 id=model.id,
                 message_data=JsonStr(json.dumps(dict(model.message_data))),
                 created_at=model.created_at,
+                updated_at=model.updated_at,
+                deleted_at=model.deleted_at,
             )
 
 

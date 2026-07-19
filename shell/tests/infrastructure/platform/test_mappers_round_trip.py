@@ -288,6 +288,7 @@ class TestSessionMapper:
     def test_entity_to_model(self) -> None:
         original = Session.restore(
             id=SessionId("sess-1"),
+            created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-1"),
             project_id=ProjectIdRef("proj-1"),
             status=SessionStatus.OPEN,
@@ -301,6 +302,7 @@ class TestSessionMapper:
     def test_entity_to_model_closed(self) -> None:
         original = Session.restore(
             id=SessionId("sess-2"),
+            created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-2"),
             project_id=ProjectIdRef("proj-2"),
             status=SessionStatus.CLOSED,
@@ -315,6 +317,7 @@ class TestSessionMapper:
     def test_round_trip(self) -> None:
         original = Session.restore(
             id=SessionId("sess-3"),
+            created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-3"),
             project_id=ProjectIdRef("proj-3"),
             status=SessionStatus.OPEN,

@@ -21,6 +21,7 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
     NodeExecutionStatus,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
@@ -123,6 +124,11 @@ class NodeExecution(AggregateRoot[NodeExecutionId]):
         if self._status != NodeExecutionStatus.RUNNING:
             raise InvalidNodeStateError(f"Cannot timeout node in status {self._status}")
         self._status = NodeExecutionStatus.TIMED_OUT
+
+    def mark_deleted(self, now: DeletedAt) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise DomainError("Node execution already deleted")
+        self._delete(now)
 
     # --- Properties ---
 

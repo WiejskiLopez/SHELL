@@ -26,4 +26,7 @@ class WorkflowQueryService:
                 id=model.id,
                 status=model.status,
                 created_at=model.created_at,
+                session_id=model.session_id,
+                updated_at=model.updated_at,
+                deleted_at=model.deleted_at,
             )

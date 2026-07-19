@@ -21,7 +21,9 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_jo
     SchedulerJobId,
 )
 from shell.platform.domain.base import AggregateRoot
+from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -30,7 +32,6 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
         SchedulerDefinitionId,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_data import StateData
 
 
@@ -78,6 +79,30 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self._config = config
         self._created_at = created_at
         self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None)
+
+    def delete(self, now: DeletedAt) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise DomainError("Scheduler job already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SchedulerJobDeletedEvent.now(
+                scheduler_job_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+
+    def update(self, now: UpdatedAt) -> None:
+        if self._deleted_at is not None and self._deleted_at.value is not None:
+            raise DomainError("Scheduler job already deleted")
+        self._updated_at = now
+        self.append_event(
+            SchedulerJobUpdatedEvent.now(
+                scheduler_job_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
 
     @classmethod
     def create(
@@ -158,7 +183,6 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
             config=config,
             created_at=CreatedAt.from_datetime(now.value),
         )
-
         instance.append_event(
             SchedulerJobCreatedEvent.now(
                 scheduler_job_id=instance.id,

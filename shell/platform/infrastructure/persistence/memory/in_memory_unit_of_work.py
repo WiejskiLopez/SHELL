@@ -53,6 +53,15 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
     MessageRouterRepository,
 )
+from shell.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
+    SchedulerDefinitionRepository,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
+    SchedulerExecutionRepository,
+)
+from shell.domain.scheduling.aggregates.scheduler_job.repositories.scheduler_job_repository import (
+    SchedulerJobRepository,
+)
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
@@ -103,6 +112,15 @@ from shell.infrastructure.execution.workflow_state.persistence.memory.in_memory_
 )
 from shell.infrastructure.messaging.persistence.memory.in_memory_message_router_repository import (
     InMemoryMessageRouterRepository,
+)
+from shell.infrastructure.scheduling.scheduler_definition.persistence.memory.in_memory_scheduler_definition_repository import (
+    InMemorySchedulerDefinitionRepository,
+)
+from shell.infrastructure.scheduling.scheduler_execution.persistence.memory.in_memory_scheduler_execution_repository import (
+    InMemorySchedulerExecutionRepository,
+)
+from shell.infrastructure.scheduling.scheduler_job.persistence.memory.in_memory_scheduler_job_repository import (
+    InMemorySchedulerJobRepository,
 )
 from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
@@ -164,6 +182,9 @@ class InMemoryUnitOfWork(UnitOfWork):
         self._workflow_state_repository = InMemoryWorkflowStateRepository()
         self._message_repository = InMemoryMessageRouterRepository()
         self._session_repository = InMemorySessionRepository()
+        self._scheduler_definition_repository = InMemorySchedulerDefinitionRepository()
+        self._scheduler_execution_repository = InMemorySchedulerExecutionRepository()
+        self._scheduler_job_repository = InMemorySchedulerJobRepository()
 
         self._committed = False
         self._staged_events: list[DomainEvent] = []
@@ -233,6 +254,12 @@ class InMemoryUnitOfWork(UnitOfWork):
             MessageRouterRepository: self._message_repository,
             InMemorySessionRepository: self._session_repository,
             SessionRepository: self._session_repository,
+            InMemorySchedulerDefinitionRepository: self._scheduler_definition_repository,
+            SchedulerDefinitionRepository: self._scheduler_definition_repository,
+            InMemorySchedulerExecutionRepository: self._scheduler_execution_repository,
+            SchedulerExecutionRepository: self._scheduler_execution_repository,
+            InMemorySchedulerJobRepository: self._scheduler_job_repository,
+            SchedulerJobRepository: self._scheduler_job_repository,
         }
         repo = repos.get(repo_type)
         if repo is None:

@@ -1,0 +1,14 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any
+
+
+@dataclass(frozen=True, slots=True)
+class CreateSchedulerDefinitionCommand:
+    name: str
+    trigger_config: dict[str, Any]
+    action_config: dict[str, Any]
+    execution_policy: dict[str, Any]
+    enabled: bool = True
+    description: str | None = None

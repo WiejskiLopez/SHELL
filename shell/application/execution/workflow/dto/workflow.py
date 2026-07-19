@@ -10,3 +10,5 @@ class WorkflowDto:
     status: str
     created_at: datetime
     session_id: str | None = None
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None

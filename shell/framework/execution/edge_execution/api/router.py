@@ -2,32 +2,44 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, Depends
 
 from shell.framework.execution.edge_execution.api.controller import (
     EdgeExecutionController,
 )
 from shell.framework.execution.edge_execution.api.create_edge_execution_request import (
-    CreateEdgeExecutionRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
+    CreateEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
 )
 from shell.framework.execution.edge_execution.api.edge_execution_response import (
     EdgeExecutionResponse,
 )
 from shell.framework.execution.edge_execution.api.update_edge_execution_request import (
-    UpdateEdgeExecutionRequest,  # noqa: TC001 — Pydantic model wymagany przez FastAPI w runtime
+    UpdateEdgeExecutionRequest,  # noqa: TC001 -- used at runtime for FastAPI
 )
-from shell.platform.application.bus.command_bus import (
-    CommandBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
-)
-from shell.platform.framework.api.dependencies import get_command_bus
+from shell.platform.framework.api.dependencies import get_core_container
+
+if TYPE_CHECKING:
+    from shell.platform.bootstrap.container.core_container import CoreContainer
 
 router = APIRouter(prefix="/edge-executions", tags=["EdgeExecutions"])
 
 
 def get_edge_execution_controller(
-    command_bus: CommandBus = Depends(get_command_bus),
+    container: CoreContainer = Depends(get_core_container),
 ) -> EdgeExecutionController:
-    return EdgeExecutionController(command_bus=command_bus)
+    command_bus = container.app.buses.command_bus
+    query_bus = container.app.buses.query_bus
+    return EdgeExecutionController(command_bus=command_bus, query_bus=query_bus)
+
+
+@router.get("/{edge_execution_id}", response_model=EdgeExecutionResponse)
+async def get_edge_execution(
+    edge_execution_id: str,
+    controller: EdgeExecutionController = Depends(get_edge_execution_controller),
+) -> EdgeExecutionResponse:
+    return await controller.get_edge_execution(edge_execution_id)
 
 
 @router.post("", response_model=EdgeExecutionResponse, status_code=201)

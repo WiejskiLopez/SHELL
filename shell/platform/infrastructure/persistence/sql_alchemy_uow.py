@@ -58,6 +58,15 @@ from shell.domain.execution.aggregates.workflow_state.repositories.workflow_stat
 from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
     MessageRouterRepository,
 )
+from shell.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
+    SchedulerDefinitionRepository,
+)
+from shell.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
+    SchedulerExecutionRepository,
+)
+from shell.domain.scheduling.aggregates.scheduler_job.repositories.scheduler_job_repository import (
+    SchedulerJobRepository,
+)
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
@@ -113,6 +122,9 @@ from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.reposi
 from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.repositories.sql_scheduler_execution_repository import (
     SqlSchedulerExecutionRepository,
 )
+from shell.infrastructure.scheduling.scheduler_job.persistence.sql.repositories.sql_scheduler_job_repository import (
+    SqlSchedulerJobRepository,
+)
 from shell.infrastructure.session.session.persistence.sql.repositories.sql_session_repository import (
     SqlSessionRepository,
 )
@@ -156,6 +168,10 @@ _ALL_REPOS: dict[type, type] = {
     SqlUserStateRepository: SqlUserStateRepository,
     # platform
     MessageRouterRepository: SqlMessageRouterRepository,
+    # scheduling BC
+    SchedulerDefinitionRepository: SqlSchedulerDefinitionRepository,
+    SchedulerExecutionRepository: SqlSchedulerJobRepository,
+    SchedulerJobRepository: SqlSchedulerExecutionRepository,
 }
 
 
@@ -173,6 +189,4 @@ class SqlAlchemyUnitOfWork(SqlAlchemyUnitOfWorkBase):
         """Nadpisuje bazową metodę aby obsłużyć specjalny konstruktor schedulerów."""
         if repo_type is SqlSchedulerDefinitionRepository:
             return SqlSchedulerDefinitionRepository(self._active_session)  # type: ignore[return-value]
-        if repo_type is SqlSchedulerExecutionRepository:
-            return SqlSchedulerExecutionRepository(self._active_session)  # type: ignore[return-value]
         return super().repository(repo_type)

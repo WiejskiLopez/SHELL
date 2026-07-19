@@ -28,4 +28,7 @@ class SessionQueryService:
                 status=session_model.status,
                 opened_at=session_model.opened_at,
                 closed_at=session_model.closed_at,
+                created_at=session_model.created_at,
+                updated_at=session_model.updated_at,
+                deleted_at=session_model.deleted_at,
             )

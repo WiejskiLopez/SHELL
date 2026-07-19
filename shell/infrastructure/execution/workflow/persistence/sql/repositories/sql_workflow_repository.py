@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import exists as sa_exists
 from sqlalchemy import select
 
 from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
@@ -12,6 +13,7 @@ from shell.infrastructure.execution.workflow.persistence.sql.mappers import (
     workflow_model_to_entity,
     workflow_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import WorkflowModel
 
@@ -23,7 +25,7 @@ if TYPE_CHECKING:
     )
     from shell.domain.execution.aggregates.workflow import Workflow
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import (
-        WorkflowId,  # noqa: TC002 — WorkflowId używany w konstruktorach w repozytorium
+        WorkflowId,
     )
 
 
@@ -48,6 +50,16 @@ class SqlWorkflowRepository(WorkflowRepository):
             self._session.add(model)
         else:
             workflow_update_model(model, workflow)
+
+    async def delete(self, id: WorkflowId) -> None:
+        model = await self._session.get(WorkflowModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: WorkflowId) -> ExistsResult:
+        stmt = select(sa_exists().where(WorkflowModel.id == id.value))
+        result = await self._session.execute(stmt)
+        return ExistsResult(result.scalar() or False)
 
 
 __all__ = [

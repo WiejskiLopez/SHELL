@@ -5,26 +5,62 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from shell.framework.execution.workflow.api.controller import WorkflowController
+from shell.framework.execution.workflow.api.create_workflow_request import (
+    CreateWorkflowRequest,
+)
+from shell.framework.execution.workflow.api.create_workflow_response import (
+    CreateWorkflowResponse,
+)
+from shell.framework.execution.workflow.api.update_workflow_request import (
+    UpdateWorkflowRequest,
+)
 from shell.framework.execution.workflow.api.workflow_response import (
-    WorkflowResponse,  # noqa: TC001 — FastAPI needs it at runtime for response_model
+    WorkflowResponse,
 )
-from shell.platform.application.bus.query_bus import (
-    QueryBus,  # noqa: TC001 — FastAPI wymaga runtime do Dependency Injection
-)
-from shell.platform.framework.api.dependencies import get_query_bus
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.bootstrap.container.core_container import CoreContainer
+from shell.platform.framework.api.dependencies import get_core_container
 
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 def get_workflow_controller(
-    query_bus: QueryBus = Depends(get_query_bus),
+    container: CoreContainer = Depends(get_core_container),
 ) -> WorkflowController:
-    return WorkflowController(query_bus=query_bus)
+    command_bus: CommandBus = container.app.buses.command_bus
+    query_bus: QueryBus = container.app.buses.query_bus
+    return WorkflowController(command_bus, query_bus)
 
 
-@router.get("/{workflow_id}")
+@router.get("/{workflow_id}", response_model=WorkflowResponse)
 async def get_workflow(
     workflow_id: str,
     controller: WorkflowController = Depends(get_workflow_controller),
 ) -> WorkflowResponse:
     return await controller.get_workflow(workflow_id)
+
+
+@router.post("/", response_model=CreateWorkflowResponse, status_code=201)
+async def create_workflow(
+    body: CreateWorkflowRequest,
+    controller: WorkflowController = Depends(get_workflow_controller),
+) -> CreateWorkflowResponse:
+    return await controller.create_workflow(body)
+
+
+@router.put("/{workflow_id}", status_code=204)
+async def update_workflow(
+    workflow_id: str,
+    body: UpdateWorkflowRequest,
+    controller: WorkflowController = Depends(get_workflow_controller),
+) -> None:
+    await controller.update_workflow(workflow_id, body)
+
+
+@router.delete("/{workflow_id}", status_code=204)
+async def delete_workflow(
+    workflow_id: str,
+    controller: WorkflowController = Depends(get_workflow_controller),
+) -> None:
+    await controller.delete_workflow(workflow_id)

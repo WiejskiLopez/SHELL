@@ -24,6 +24,22 @@ OPENAPI_TAGS = [
     },
     {"name": "EdgeLinkExecutions", "description": "Edge link execution — link nodes to edges"},
     {"name": "Projects", "description": "Project management — CRUD for projects"},
+    {
+        "name": "MessageRouters",
+        "description": "Message router management — CRUD for message routing",
+    },
+    {
+        "name": "SchedulerDefinitions",
+        "description": "Scheduler definitions — trigger-based scheduling rules",
+    },
+    {
+        "name": "SchedulerJobs",
+        "description": "Scheduler jobs — cyclic APScheduler job configuration",
+    },
+    {
+        "name": "SchedulerExecutions",
+        "description": "Scheduler executions — one-shot evaluation results",
+    },
     {"name": "Health", "description": "Health monitoring — service liveness and version info"},
 ]
 

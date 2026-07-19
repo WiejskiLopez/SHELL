@@ -105,28 +105,28 @@ class Session(AggregateRoot[SessionId]):
         self._closed_at = now
         self.append_event(SessionClosedEvent.now(self._id, now=OccurredAt.from_datetime(now.value)))
 
-    @classmethod
-    def restore(
-        cls,
-        *,
-        id: SessionId,
-        deleted_at: DeletedAt | None = None,
-        closed_at: UpdatedAt | None = None,
-        opened_at: CreatedAt,
-        user_id: UserIdRef,
-        project_id: ProjectIdRef,
-        status: SessionStatus,
-    ) -> Self:
-        return cls(
-            id=id,
-            user_id=user_id,
-            project_id=project_id,
-            status=status,
-            opened_at=opened_at,
-            closed_at=closed_at,
+    def update(self, now: UpdatedAt) -> None:
+        if self._status != SessionStatus.OPEN:
+            raise DomainError(f"Cannot update session in status {self._status!r}")
+        self._updated_at = now
+        self.append_event(
+            SessionUpdatedEvent.now(
+                session_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
         )
 
-    # --- V3 properties ---
+    def delete(self, now: DeletedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Session already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            SessionDeletedEvent.now(
+                session_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
 
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
@@ -146,6 +146,35 @@ class Session(AggregateRoot[SessionId]):
                 now=OccurredAt.from_datetime(now.value),
             )
         )
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        id: SessionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
+        opened_at: CreatedAt,
+        closed_at: UpdatedAt | None = None,
+        user_id: UserIdRef,
+        project_id: ProjectIdRef,
+        status: SessionStatus,
+    ) -> Self:
+        session = cls(
+            id=id,
+            user_id=user_id,
+            project_id=project_id,
+            status=status,
+            opened_at=opened_at,
+            closed_at=closed_at,
+        )
+        session._created_at = created_at
+        if updated_at is not None:
+            session._updated_at = updated_at
+        if deleted_at is not None:
+            session._deleted_at = deleted_at
+        return session
 
     @property
     def user_id(self) -> UserIdRef:

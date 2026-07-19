@@ -10,6 +10,7 @@ from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -24,4 +25,7 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         status=SessionStatus(session_model.status),
         opened_at=CreatedAt.from_datetime(session_model.opened_at),
         closed_at=UpdatedAt.from_datetime(session_model.closed_at),
+        created_at=CreatedAt.from_datetime(session_model.created_at),
+        updated_at=UpdatedAt.from_datetime(session_model.updated_at),
+        deleted_at=DeletedAt.from_datetime(session_model.deleted_at),
     )

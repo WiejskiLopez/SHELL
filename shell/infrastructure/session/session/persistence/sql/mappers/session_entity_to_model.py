@@ -17,7 +17,9 @@ def session_entity_to_model(session: Session) -> SessionModel:
         status=session._status,
         user_id=session.user_id.value,
         project_id=session.project_id.value,
-        created_at=session.opened_at.value,
+        created_at=session.created_at.value,
         opened_at=session.opened_at.value,
         closed_at=session.closed_at.value if session.closed_at is not None else None,
+        updated_at=session.updated_at.value,
+        deleted_at=session.deleted_at.value if session._deleted_at is not None else None,
     )

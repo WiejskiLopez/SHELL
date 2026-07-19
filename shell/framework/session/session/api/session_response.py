@@ -11,3 +11,6 @@ class SessionResponse(BaseModel):
     status: str
     opened_at: datetime
     closed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime | None = None
+    deleted_at: datetime | None = None

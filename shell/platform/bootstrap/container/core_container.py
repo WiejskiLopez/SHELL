@@ -87,6 +87,9 @@ from shell.infrastructure.execution.agent_skill_execution.persistence.sql.servic
 from shell.infrastructure.execution.edge_execution.persistence.sql.services.edge_execution_query_service import (
     EdgeExecutionQueryService,
 )
+from shell.infrastructure.execution.edge_link_execution.persistence.sql.services.edge_link_execution_query_service import (
+    EdgeLinkExecutionQueryService,
+)
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
@@ -122,6 +125,9 @@ from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.servic
 )
 from shell.infrastructure.scheduling.scheduler_execution.persistence.sql.services.scheduler_execution_query_service import (
     SchedulerExecutionQueryService,
+)
+from shell.infrastructure.scheduling.scheduler_job.persistence.sql.services.scheduler_job_query_service import (
+    SchedulerJobQueryService,
 )
 from shell.infrastructure.scheduling.services.scheduler_service import SchedulerService
 from shell.infrastructure.session.session_state.persistence.sql.services.session_state_query_service import (
@@ -186,8 +192,14 @@ if TYPE_CHECKING:
     from shell.application.execution.edge_link_execution.command_handlers.update_edge_link_execution_handler import (
         UpdateEdgeLinkExecutionHandler,
     )
+    from shell.application.execution.edge_link_execution.query_handlers.get_edge_link_execution_by_id_handler import (
+        GetEdgeLinkExecutionByIdHandler,
+    )
     from shell.application.execution.node_execution.command_handlers.create_node_execution_handler import (
         CreateNodeExecutionHandler,
+    )
+    from shell.application.execution.node_execution.command_handlers.delete_node_execution_handler import (
+        DeleteNodeExecutionHandler,
     )
     from shell.application.execution.node_execution.query_handlers.get_node_execution_by_id_handler import (
         GetNodeExecutionByIdHandler,
@@ -195,8 +207,74 @@ if TYPE_CHECKING:
     from shell.application.execution.task_execution.query_handlers.get_task_execution_by_id_handler import (
         GetTaskExecutionByIdHandler,
     )
+    from shell.application.execution.workflow.command_handlers.create_workflow_handler import (
+        CreateWorkflowHandler,
+    )
+    from shell.application.execution.workflow.command_handlers.delete_workflow_handler import (
+        DeleteWorkflowHandler,
+    )
+    from shell.application.execution.workflow.command_handlers.update_workflow_handler import (
+        UpdateWorkflowHandler,
+    )
+    from shell.application.messaging.message_router.command_handlers.create_message_router_handler import (
+        CreateMessageRouterHandler,
+    )
+    from shell.application.messaging.message_router.command_handlers.delete_message_router_handler import (
+        DeleteMessageRouterHandler,
+    )
+    from shell.application.messaging.message_router.command_handlers.update_message_router_handler import (
+        UpdateMessageRouterHandler,
+    )
     from shell.application.messaging.message_router.query_handlers.get_message_by_id_handler import (
         GetMessageByIdHandler,
+    )
+    from shell.application.project.project.command_handlers.create_project_handler import (
+        CreateProjectHandler,
+    )
+    from shell.application.project.project.command_handlers.delete_project_handler import (
+        DeleteProjectHandler,
+    )
+    from shell.application.project.project.command_handlers.update_project_handler import (
+        UpdateProjectHandler,
+    )
+    from shell.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
+        CreateSchedulerDefinitionHandler,
+    )
+    from shell.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
+        DeleteSchedulerDefinitionHandler,
+    )
+    from shell.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
+        UpdateSchedulerDefinitionHandler,
+    )
+    from shell.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
+        CreateSchedulerExecutionHandler,
+    )
+    from shell.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
+        DeleteSchedulerExecutionHandler,
+    )
+    from shell.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
+        UpdateSchedulerExecutionHandler,
+    )
+    from shell.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
+        CreateSchedulerJobHandler,
+    )
+    from shell.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
+        DeleteSchedulerJobHandler,
+    )
+    from shell.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
+        UpdateSchedulerJobHandler,
+    )
+    from shell.application.session.session.command_handlers.close_session_handler import (
+        CloseSessionHandler,
+    )
+    from shell.application.session.session.command_handlers.delete_session_handler import (
+        DeleteSessionHandler,
+    )
+    from shell.application.session.session.command_handlers.open_session_handler import (
+        OpenSessionHandler,
+    )
+    from shell.application.session.session.command_handlers.update_session_handler import (
+        UpdateSessionHandler,
     )
     from shell.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
         GetUserStateByIdHandler,
@@ -253,12 +331,14 @@ class Infrastructure:
             self.session_factory
         )
         self.edge_execution_query_service = EdgeExecutionQueryService(self.session_factory)
+        self.edge_link_execution_query_service = EdgeLinkExecutionQueryService(self.session_factory)
         self.message_router_query_service = MessageRouterQueryService(self.session_factory)
         self.project_query_service = ProjectQueryService(self.session_factory)
         self.project_skill_query_service = ProjectSkillQueryService(self.session_factory)
         self.scheduler_definition_query_service = SchedulerDefinitionQueryService(
             self.session_factory
         )
+        self.scheduler_job_query_service = SchedulerJobQueryService(self.session_factory)
         self.scheduler_execution_query_service = SchedulerExecutionQueryService(
             self.session_factory
         )
@@ -292,6 +372,16 @@ class Commands:
     def __init__(self, buses: Buses, infra: Infrastructure) -> None:
         self._buses = buses
         self._infra = infra
+
+    def delete_node_execution_handler_factory(self) -> DeleteNodeExecutionHandler:
+        from shell.application.execution.node_execution.command_handlers.delete_node_execution_handler import (
+            DeleteNodeExecutionHandler,
+        )
+
+        return DeleteNodeExecutionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
 
     def create_node_execution_handler_factory(self) -> CreateNodeExecutionHandler:
         from shell.application.execution.node_execution.command_handlers.create_node_execution_handler import (
@@ -424,6 +514,238 @@ class Commands:
             clock=self._infra.clock_factory(),
         )
 
+    def open_session_handler_factory(self) -> OpenSessionHandler:
+        from shell.application.session.session.command_handlers.open_session_handler import (
+            OpenSessionHandler,
+        )
+
+        return OpenSessionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def close_session_handler_factory(self) -> CloseSessionHandler:
+        from shell.application.session.session.command_handlers.close_session_handler import (
+            CloseSessionHandler,
+        )
+
+        return CloseSessionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def update_session_handler_factory(self) -> UpdateSessionHandler:
+        from shell.application.session.session.command_handlers.update_session_handler import (
+            UpdateSessionHandler,
+        )
+
+        return UpdateSessionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_session_handler_factory(self) -> DeleteSessionHandler:
+        from shell.application.session.session.command_handlers.delete_session_handler import (
+            DeleteSessionHandler,
+        )
+
+        return DeleteSessionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_scheduler_definition_handler_factory(self) -> CreateSchedulerDefinitionHandler:
+        from shell.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
+            CreateSchedulerDefinitionHandler,
+        )
+        from shell.infrastructure.scheduling.scheduler_definition.persistence.sql.unit_of_work import (
+            SqlAlchemySchedulerDefinitionUnitOfWork,
+        )
+
+        return CreateSchedulerDefinitionHandler(
+            unit_of_work=SqlAlchemySchedulerDefinitionUnitOfWork(
+                session_factory=self._infra.session_factory
+            ),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_scheduler_definition_handler_factory(self) -> UpdateSchedulerDefinitionHandler:
+        from shell.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
+            UpdateSchedulerDefinitionHandler,
+        )
+
+        return UpdateSchedulerDefinitionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_scheduler_definition_handler_factory(self) -> DeleteSchedulerDefinitionHandler:
+        from shell.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
+            DeleteSchedulerDefinitionHandler,
+        )
+
+        return DeleteSchedulerDefinitionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_scheduler_execution_handler_factory(self) -> CreateSchedulerExecutionHandler:
+        from shell.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
+            CreateSchedulerExecutionHandler,
+        )
+
+        return CreateSchedulerExecutionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_scheduler_execution_handler_factory(self) -> UpdateSchedulerExecutionHandler:
+        from shell.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
+            UpdateSchedulerExecutionHandler,
+        )
+
+        return UpdateSchedulerExecutionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_scheduler_execution_handler_factory(self) -> DeleteSchedulerExecutionHandler:
+        from shell.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
+            DeleteSchedulerExecutionHandler,
+        )
+
+        return DeleteSchedulerExecutionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_scheduler_job_handler_factory(self) -> CreateSchedulerJobHandler:
+        from shell.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
+            CreateSchedulerJobHandler,
+        )
+
+        return CreateSchedulerJobHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_scheduler_job_handler_factory(self) -> UpdateSchedulerJobHandler:
+        from shell.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
+            UpdateSchedulerJobHandler,
+        )
+
+        return UpdateSchedulerJobHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_scheduler_job_handler_factory(self) -> DeleteSchedulerJobHandler:
+        from shell.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
+            DeleteSchedulerJobHandler,
+        )
+
+        return DeleteSchedulerJobHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_message_router_handler_factory(self) -> CreateMessageRouterHandler:
+        from shell.application.messaging.message_router.command_handlers.create_message_router_handler import (
+            CreateMessageRouterHandler,
+        )
+
+        return CreateMessageRouterHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_message_router_handler_factory(self) -> UpdateMessageRouterHandler:
+        from shell.application.messaging.message_router.command_handlers.update_message_router_handler import (
+            UpdateMessageRouterHandler,
+        )
+
+        return UpdateMessageRouterHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_message_router_handler_factory(self) -> DeleteMessageRouterHandler:
+        from shell.application.messaging.message_router.command_handlers.delete_message_router_handler import (
+            DeleteMessageRouterHandler,
+        )
+
+        return DeleteMessageRouterHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_project_handler_factory(self) -> CreateProjectHandler:
+        from shell.application.project.project.command_handlers.create_project_handler import (
+            CreateProjectHandler,
+        )
+
+        return CreateProjectHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_project_handler_factory(self) -> UpdateProjectHandler:
+        from shell.application.project.project.command_handlers.update_project_handler import (
+            UpdateProjectHandler,
+        )
+
+        return UpdateProjectHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_project_handler_factory(self) -> DeleteProjectHandler:
+        from shell.application.project.project.command_handlers.delete_project_handler import (
+            DeleteProjectHandler,
+        )
+
+        return DeleteProjectHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def create_workflow_handler_factory(self) -> CreateWorkflowHandler:
+        from shell.application.execution.workflow.command_handlers.create_workflow_handler import (
+            CreateWorkflowHandler,
+        )
+
+        return CreateWorkflowHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+    def update_workflow_handler_factory(self) -> UpdateWorkflowHandler:
+        from shell.application.execution.workflow.command_handlers.update_workflow_handler import (
+            UpdateWorkflowHandler,
+        )
+
+        return UpdateWorkflowHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def delete_workflow_handler_factory(self) -> DeleteWorkflowHandler:
+        from shell.application.execution.workflow.command_handlers.delete_workflow_handler import (
+            DeleteWorkflowHandler,
+        )
+
+        return DeleteWorkflowHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
 
 class Queries:
     """Container for query handler factories."""
@@ -528,6 +850,15 @@ class Queries:
 
     def get_edge_execution_handler_factory(self) -> GetEdgeExecutionByIdHandler:
         return GetEdgeExecutionByIdHandler(queries=self._infra.edge_execution_query_service)
+
+    def get_edge_link_execution_handler_factory(self) -> GetEdgeLinkExecutionByIdHandler:
+        from shell.application.execution.edge_link_execution.query_handlers.get_edge_link_execution_by_id_handler import (
+            GetEdgeLinkExecutionByIdHandler,
+        )
+
+        return GetEdgeLinkExecutionByIdHandler(
+            queries=self._infra.edge_link_execution_query_service
+        )
 
     def get_agent_execution_handler_factory(self) -> GetAgentExecutionByIdHandler:
         return GetAgentExecutionByIdHandler(queries=self._infra.agent_execution_query_service)

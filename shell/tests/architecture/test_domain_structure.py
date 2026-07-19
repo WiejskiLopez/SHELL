@@ -250,6 +250,8 @@ _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
         "domain/execution/aggregates/workflow/workflow.py: Workflow.abort",
         "domain/execution/aggregates/workflow/workflow.py: Workflow.pause",
         "domain/execution/aggregates/workflow/workflow.py: Workflow.resume",
+        # Delegates to _delete() which calls append_event()
+        "domain/execution/aggregates/node_execution/node_execution.py: NodeExecution.mark_deleted",
     }
 )
 

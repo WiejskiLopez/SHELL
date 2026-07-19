@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from sqlalchemy import exists as sa_exists
 from sqlalchemy import select
 
 from shell.domain.session.aggregates.session.repositories.session_repository import (
@@ -12,6 +13,7 @@ from shell.infrastructure.session.session.persistence.sql.mappers import (
     session_model_to_entity,
     session_update_model,
 )
+from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 from ..models import SessionModel
 
@@ -40,6 +42,16 @@ class SqlSessionRepository(SessionRepository):
         if row is None:
             return None
         return session_model_to_entity(row)
+
+    async def delete(self, id: SessionId) -> None:
+        model = await self._session.get(SessionModel, id.value)
+        if model is not None:
+            await self._session.delete(model)
+
+    async def exists(self, id: SessionId) -> ExistsResult:
+        stmt = select(sa_exists().where(SessionModel.id == id.value))
+        result = await self._session.execute(stmt)
+        return ExistsResult(result.scalar() or False)
 
 
 __all__ = [

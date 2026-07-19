@@ -19,6 +19,8 @@ class SessionModel(Base, VersionedMixin):
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     opened_at: Mapped[datetime] = mapped_column(nullable=False)
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    updated_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
 
     @declared_attr  # type: ignore[arg-type]  # SQLAlchemy stubs expect Mapped[T], but __mapper_args__ returns dict
     def __mapper_args__(cls) -> dict[str, object]:

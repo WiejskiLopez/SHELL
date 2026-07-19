@@ -139,6 +139,29 @@ class Workflow(AggregateRoot["WorkflowId"]):
             raise DomainError(f"resume requires status=PAUSED, got {self._status.value!r}")
         self._status = WorkflowStatus.ACTIVE
 
+    def update(self, now: UpdatedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
+        self._updated_at = now
+        self.append_event(
+            WorkflowUpdatedEvent.now(
+                workflow_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+
+    def delete(self, now: DeletedAt) -> None:
+        if self._deleted_at.value is not None:
+            raise DomainError("Workflow already deleted")
+        self._deleted_at = now
+        self._updated_at = UpdatedAt.from_datetime(now.value)
+        self.append_event(
+            WorkflowDeletedEvent.now(
+                workflow_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
+            )
+        )
+
     @classmethod
     def restore(
         cls,
@@ -146,16 +169,20 @@ class Workflow(AggregateRoot["WorkflowId"]):
         id: WorkflowId,
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt | None = None,
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus,
     ) -> Self:
-        return cls(
+        workflow = cls(
             id=id,
             session_id=session_id,
             status=status,
             created_at=created_at,
             deleted_at=deleted_at,
         )
+        if updated_at is not None:
+            workflow._updated_at = updated_at
+        return workflow
 
     # --- Properties ---
 
