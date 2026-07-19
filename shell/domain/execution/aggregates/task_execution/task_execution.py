@@ -24,16 +24,12 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-        TaskExecutionBody,
-    )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -46,7 +42,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         "_workflow_id",
         "_status",
         "_name",
-        "_body",
         "_work_dir",
     )
 
@@ -57,7 +52,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
         name: TaskName,
-        body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
     ) -> None:
@@ -65,12 +59,9 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._workflow_id = workflow_id
         self._status = TaskExecutionStatus.CREATED
         self._name = name
-        self._body = body
         self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
         self._created_at = created_at
         self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
-        if body is not None and not body.value.strip():
-            raise DomainError("TaskExecutionBody cannot be empty")
 
     @classmethod
     def create(
@@ -79,14 +70,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         id_: TaskExecutionId,
         now: CreatedAt,
         name: TaskName | None = None,
-        body: TaskExecutionBody,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
         return cls._new(
             id_=id_,
             name=name,
             now=OccurredAt.from_datetime(now.value),
-            body=body,
             workflow_id=workflow_id,
         )
 
@@ -98,14 +87,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
         name: TaskName,
-        body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
     ) -> Self:
         return cls(
             id=id,
             name=name,
-            body=body,
             workflow_id=workflow_id,
             work_dir=work_dir,
             created_at=created_at,
@@ -169,10 +156,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         return self._status
 
     @property
-    def body(self) -> TaskExecutionBody | None:
-        return self._body
-
-    @property
     def work_dir(self) -> WorkDir:
         return self._work_dir
 
@@ -204,14 +187,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         id_: TaskExecutionId,
         now: OccurredAt,
         name: TaskName | None = None,
-        body: TaskExecutionBody,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
         task_name = name if name is not None else TaskName(str(id_.value))
         task_execution = cls(
             id=id_,
             name=task_name,
-            body=body,
             workflow_id=workflow_id,
             created_at=CreatedAt.from_datetime(now.value),
         )

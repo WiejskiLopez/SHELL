@@ -5,9 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
-)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
@@ -27,11 +24,9 @@ if TYPE_CHECKING:
 
 
 def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> TaskExecution:
-    body = TaskExecutionBody(task_execution_model.body) if task_execution_model.body else None
     return TaskExecution.restore(
         id=TaskExecutionId(task_execution_model.id),
         name=TaskName(task_execution_model.name),
-        body=body,
         created_at=CreatedAt.from_datetime(_ensure_utc(task_execution_model.created_at)),
         work_dir=WorkDir(task_execution_model.work_dir),
         workflow_id=(

@@ -5,9 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
-)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
@@ -23,7 +20,6 @@ class TestTaskExecution:
             id_=TaskExecutionId.generate(),
             name=TaskName("my-task"),
             now=_NOW,
-            body=TaskExecutionBody("task body"),
         )
         events = task_execution.pull_events()
         assert len(events) == 1
@@ -34,18 +30,5 @@ class TestTaskExecution:
         task_execution = TaskExecution.create(
             id_=id_,
             now=_NOW,
-            body=TaskExecutionBody("task body"),
         )
         assert task_execution.name.value == str(id_.value)
-
-    def test_create_validates_body_not_empty(self) -> None:
-        import pytest
-
-        from shell.platform.domain.exceptions.domain_error import DomainError
-
-        with pytest.raises(DomainError, match="cannot be empty"):
-            TaskExecution.create(
-                id_=TaskExecutionId.generate(),
-                now=_NOW,
-                body=TaskExecutionBody(""),
-            )

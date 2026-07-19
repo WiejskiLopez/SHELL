@@ -41,9 +41,6 @@ from shell.domain.execution.aggregates.session_execution.value_objects.session_i
     SessionIdRef,
 )
 from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
-    TaskExecutionBody,
-)
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
@@ -152,7 +149,6 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-1"),
             name=TaskName("test-task"),
-            body=TaskExecutionBody("test body"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -165,7 +161,6 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-2"),
             name=TaskName("nested"),
-            body=TaskExecutionBody("nested body"),
             workflow_id=WorkflowId("wf-1"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
@@ -178,7 +173,6 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-3"),
             name=TaskName("test"),
-            body=TaskExecutionBody("test body"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)

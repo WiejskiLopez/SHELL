@@ -10,7 +10,6 @@ from shell.application.execution.node_execution.dto.node_execution import NodeEx
 class TaskExecutionDto:
     id: str
     name: str = ""
-    body: str = ""
     created_at: datetime | None = None
     work_dir: str = ""
     workflow_id: str | None = None

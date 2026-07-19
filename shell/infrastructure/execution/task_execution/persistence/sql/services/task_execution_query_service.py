@@ -37,7 +37,6 @@ class TaskExecutionQueryService:
             return TaskExecutionDto(
                 id=model.id,
                 name=model.name,
-                body=model.body,
                 created_at=model.created_at,
                 work_dir=model.work_dir,
                 workflow_id=model.workflow_id,
@@ -81,7 +80,6 @@ class TaskExecutionQueryService:
             return TaskExecutionDto(
                 id=model.id,
                 name=model.name,
-                body=model.body,
                 created_at=model.created_at,
                 node_executions=tuple(node_executions),
             )

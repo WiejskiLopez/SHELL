@@ -14,7 +14,6 @@ class TaskExecutionModel(Base, VersionedMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
     status: Mapped[str] = mapped_column(nullable=False, default="created")
     name: Mapped[str] = mapped_column(nullable=False)
-    body: Mapped[str] = mapped_column(nullable=False, default="")
     work_dir: Mapped[str] = mapped_column(nullable=False, default="")
     workflow_id: Mapped[str | None] = mapped_column(nullable=True)
     created_at: Mapped[datetime] = mapped_column(nullable=False)

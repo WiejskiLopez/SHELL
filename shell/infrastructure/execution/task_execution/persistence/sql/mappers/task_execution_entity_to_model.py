@@ -18,7 +18,6 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
     return TaskExecutionModel(
         id=task_execution.id.value,
         name=task_execution.name.value,
-        body=task_execution.body.value if task_execution.body else "",
         work_dir=task_execution.work_dir.value if task_execution.work_dir else "",
         created_at=_created_at_value(task_execution.created_at),
         workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,

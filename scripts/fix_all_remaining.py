@@ -31,12 +31,6 @@ fixes = {
             "created_at: CreatedAt,\n        parent_graph_execution_id: GraphExecutionId | None = None,\n        graph_definition_id: GraphDefinitionIdRef | None = None,",
         ),
     ],
-    "shell/domain/execution/aggregates/task_execution/task_execution.py": [
-        (
-            "body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,\n        created_at: CreatedAt,",
-            "created_at: CreatedAt,\n        body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,",
-        ),
-    ],
 }
 
 for path_str, pairs in fixes.items():
