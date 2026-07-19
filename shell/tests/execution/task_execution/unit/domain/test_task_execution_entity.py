@@ -9,6 +9,8 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
+from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 _NOW = CreatedAt.from_datetime(datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC))
@@ -20,6 +22,8 @@ class TestTaskExecution:
             id_=TaskExecutionId.generate(),
             name=TaskName("my-task"),
             now=_NOW,
+            workflow_id=WorkflowId("wf-1"),
+            work_dir=WorkDir("/tmp"),
         )
         events = task_execution.pull_events()
         assert len(events) == 1
@@ -30,5 +34,7 @@ class TestTaskExecution:
         task_execution = TaskExecution.create(
             id_=id_,
             now=_NOW,
+            workflow_id=WorkflowId("wf-1"),
+            work_dir=WorkDir("/tmp"),
         )
         assert task_execution.name.value == str(id_.value)

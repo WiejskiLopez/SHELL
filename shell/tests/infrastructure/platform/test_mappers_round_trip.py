@@ -45,6 +45,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
+from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.domain.execution.aggregates.workflow import Workflow
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
@@ -149,19 +150,22 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-1"),
             name=TaskName("test-task"),
+            workflow_id=WorkflowId("wf-1"),
+            work_dir=WorkDir("/tmp"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
 
         assert model.id == "te-1"
         assert model.name == "test-task"
-        assert model.workflow_id is None
+        assert model.workflow_id == "wf-1"
 
     def test_entity_to_model_with_workflow(self) -> None:
         original = TaskExecution(
             id=TaskExecutionId("te-2"),
             name=TaskName("nested"),
             workflow_id=WorkflowId("wf-1"),
+            work_dir=WorkDir("/tmp"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)
@@ -173,6 +177,8 @@ class TestTaskExecutionMapper:
         original = TaskExecution(
             id=TaskExecutionId("te-3"),
             name=TaskName("test"),
+            workflow_id=WorkflowId("wf-1"),
+            work_dir=WorkDir("/tmp"),
             created_at=CreatedAt.from_datetime(_NOW),
         )
         model = task_execution_entity_to_model(original)

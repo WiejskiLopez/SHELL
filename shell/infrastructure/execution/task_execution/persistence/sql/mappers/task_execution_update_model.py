@@ -17,6 +17,6 @@ def task_execution_update_model(model: TaskExecutionModel, entity: TaskExecution
     model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
     model.name = entity.name.value
     model.work_dir = entity.work_dir.value if entity.work_dir else ""
-    model.workflow_id = entity.workflow_id.value if entity.workflow_id else None
+    model.workflow_id = entity.workflow_id.value
     model.created_at = _created_at_value(entity.created_at)  # type: ignore[assignment]
     model.deleted_at = _created_at_value(entity.deleted_at)

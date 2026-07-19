@@ -12,5 +12,5 @@ class TaskExecutionDto:
     name: str = ""
     created_at: datetime | None = None
     work_dir: str = ""
-    workflow_id: str | None = None
+    workflow_id: str = ""
     node_executions: tuple[NodeExecutionDto, ...] = field(default_factory=tuple)

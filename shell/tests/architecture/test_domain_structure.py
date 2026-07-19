@@ -231,8 +231,6 @@ def test_domain_event_fields_are_ids_only() -> None:
 _KNOWN_NO_EVENT_EMIT: frozenset[str] = frozenset(
     {
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
         # Methods intentionally stripped of event emission (events removed in cleanup)
         "domain/user/aggregates/user/user.py: User.enable",
         "domain/user/aggregates/user/user.py: User.disable",
@@ -327,8 +325,6 @@ _KNOWN_NO_GUARD: frozenset[str] = frozenset(
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.update",
         "domain/execution/aggregates/node_execution_state/node_execution_state.py: NodeExecutionState.delete",
         "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.rename",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.execute_in_workflow",
-        "domain/execution/aggregates/task_execution/task_execution.py: TaskExecution.prepare_workspace",
         "domain/session/aggregates/session_state/session_state.py: SessionState.update",
         "domain/session/aggregates/session_state/session_state.py: SessionState.delete",
         "domain/execution/aggregates/workflow_state/workflow_state.py: WorkflowState.update",

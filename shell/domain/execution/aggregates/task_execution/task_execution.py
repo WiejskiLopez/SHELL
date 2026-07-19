@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import tempfile
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
@@ -22,7 +21,6 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionStatus,
 )
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
-from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -30,6 +28,7 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
     from shell.platform.domain.value_objects.reason import Reason
 
@@ -52,14 +51,14 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
         name: TaskName,
-        workflow_id: WorkflowId | None = None,
-        work_dir: WorkDir | None = None,
+        workflow_id: WorkflowId,
+        work_dir: WorkDir,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
         self._status = TaskExecutionStatus.CREATED
         self._name = name
-        self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
+        self._work_dir = work_dir
         self._created_at = created_at
         self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
@@ -70,13 +69,15 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         id_: TaskExecutionId,
         now: CreatedAt,
         name: TaskName | None = None,
-        workflow_id: WorkflowId | None = None,
+        workflow_id: WorkflowId,
+        work_dir: WorkDir,
     ) -> TaskExecution:
         return cls._new(
             id_=id_,
             name=name,
             now=OccurredAt.from_datetime(now.value),
             workflow_id=workflow_id,
+            work_dir=work_dir,
         )
 
     @classmethod
@@ -87,8 +88,8 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
         name: TaskName,
-        workflow_id: WorkflowId | None = None,
-        work_dir: WorkDir | None = None,
+        workflow_id: WorkflowId,
+        work_dir: WorkDir,
     ) -> Self:
         return cls(
             id=id,
@@ -160,7 +161,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         return self._work_dir
 
     @property
-    def workflow_id(self) -> WorkflowId | None:
+    def workflow_id(self) -> WorkflowId:
         return self._workflow_id
 
     @property
@@ -174,12 +175,6 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
     def rename(self, new_name: TaskName) -> None:
         self._name = new_name
 
-    def execute_in_workflow(self, workflow_id: WorkflowId) -> None:
-        self._workflow_id = workflow_id
-
-    def prepare_workspace(self, path: str) -> None:
-        self._work_dir = WorkDir(path)
-
     @classmethod
     def _new(
         cls,
@@ -187,13 +182,15 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         id_: TaskExecutionId,
         now: OccurredAt,
         name: TaskName | None = None,
-        workflow_id: WorkflowId | None = None,
+        workflow_id: WorkflowId,
+        work_dir: WorkDir,
     ) -> TaskExecution:
         task_name = name if name is not None else TaskName(str(id_.value))
         task_execution = cls(
             id=id_,
             name=task_name,
             workflow_id=workflow_id,
+            work_dir=work_dir,
             created_at=CreatedAt.from_datetime(now.value),
         )
         task_execution.append_event(

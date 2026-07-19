@@ -20,6 +20,6 @@ def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecuti
         name=task_execution.name.value,
         work_dir=task_execution.work_dir.value if task_execution.work_dir else "",
         created_at=_created_at_value(task_execution.created_at),
-        workflow_id=task_execution.workflow_id.value if task_execution.workflow_id else None,
+        workflow_id=task_execution.workflow_id.value,
         deleted_at=_created_at_value(task_execution.deleted_at),
     )

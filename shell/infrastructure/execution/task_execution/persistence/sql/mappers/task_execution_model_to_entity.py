@@ -29,10 +29,6 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
         name=TaskName(task_execution_model.name),
         created_at=CreatedAt.from_datetime(_ensure_utc(task_execution_model.created_at)),
         work_dir=WorkDir(task_execution_model.work_dir),
-        workflow_id=(
-            WorkflowId(task_execution_model.workflow_id)
-            if task_execution_model.workflow_id
-            else None
-        ),
+        workflow_id=WorkflowId(task_execution_model.workflow_id),
         deleted_at=(DeletedAt.from_datetime(task_execution_model.deleted_at)),
     )

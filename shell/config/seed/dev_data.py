@@ -381,7 +381,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="completed",
                 name="simple-analysis-task",
                 work_dir=f"{_DEV_ROOT}/simple/analysis",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-simple",
                 created_at=_NOW,
             ),
             "input": {
@@ -397,7 +397,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="running",
                 name="simple-fix-task",
                 work_dir=f"{_DEV_ROOT}/simple/fix",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-simple",
                 created_at=_NOW,
             ),
             "input": {"issue_ids": ["ISS-1", "ISS-2", "ISS-3"]},
@@ -409,7 +409,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="completed",
                 name="planner-design-task",
                 work_dir=f"{_DEV_ROOT}/planner/design",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-planner",
                 created_at=_NOW,
             ),
             "input": {"objective": "Design authentication module", "language": "python"},
@@ -421,7 +421,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="created",
                 name="planner-implement-task",
                 work_dir=f"{_DEV_ROOT}/planner/implement",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-planner",
                 created_at=_NOW,
             ),
             "input": {"design_ref": "/tmp/design.md", "modules": ["auth", "session"]},
@@ -433,7 +433,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="completed",
                 name="pipeline-analysis-task",
                 work_dir=f"{_DEV_ROOT}/pipeline/analysis",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-pipeline",
                 created_at=_NOW,
             ),
             "input": {"project_path": f"{_DEV_ROOT}/project", "pipeline_stage": "analysis"},
@@ -445,7 +445,7 @@ def _seed_task_executions(session: Session) -> None:
                 status="running",
                 name="pipeline-execute-task",
                 work_dir=f"{_DEV_ROOT}/pipeline/execute",
-                workflow_id=None,
+                workflow_id=f"{_DEV_ID_PREFIX}-workflow-pipeline",
                 created_at=_NOW,
             ),
             "input": {"stage": "build", "artifacts": ["src/", "tests/"]},
@@ -529,9 +529,6 @@ def _seed_workflow_scenario(session: Session) -> None:
     from shell.infrastructure.execution.session_execution_state.persistence.sql.models.session_execution_state import (
         SessionExecutionStateModel,
     )
-    from shell.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
-        TaskExecutionModel,
-    )
     from shell.infrastructure.execution.user_execution.persistence.sql.models.user_execution import (
         UserExecutionModel,
     )
@@ -580,14 +577,6 @@ def _seed_workflow_scenario(session: Session) -> None:
             created_at=_NOW,
         )
         session.add(wf)
-
-        # Update task workflows
-        for task_id in wd["task_ids"]:
-            task = session.execute(
-                select(TaskExecutionModel).where(TaskExecutionModel.id == task_id)
-            ).scalar_one_or_none()
-            if task is not None and task.workflow_id is None:
-                task.workflow_id = wd["id"]
 
         # UserExecution + SessionExecution per workflow
         wf_user_id = wd["session_id"].replace("-session-", "-user-")
