@@ -26,10 +26,8 @@ from shell.domain.execution.aggregates.edge_execution.events.edge_execution_dele
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_updated_event import (
     EdgeExecutionUpdatedEvent,
 )
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class EdgeExecution(AggregateRoot[EdgeExecutionId]):
@@ -58,8 +56,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self._source_node_execution_id = source_node_execution_id
         self._target_node_execution_id = target_node_execution_id
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(
@@ -134,7 +132,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         target_node_execution_id: NodeExecutionId | None,
         now: UpdatedAt,
     ) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot change target on a deleted edge")
         self._target_node_execution_id = target_node_execution_id
         self._updated_at = now
@@ -165,7 +163,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         )
 
     def mark_deleted(self, now: DeletedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Edge already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)

@@ -53,12 +53,6 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
                 else datetime.now(tz=UTC)
             )
         ),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(graph_execution_model.updated_at))
-        if graph_execution_model.updated_at
-        else None,
-        deleted_at=(
-            DeletedAt.from_datetime(graph_execution_model.deleted_at)
-            if graph_execution_model.deleted_at
-            else None
-        ),
+        updated_at=UpdatedAt.from_datetime(_ensure_utc(graph_execution_model.updated_at)),
+        deleted_at=(DeletedAt.from_datetime(graph_execution_model.deleted_at)),
     )

@@ -10,12 +10,12 @@ from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_email import UserEmail
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class User(AggregateRoot[UserId]):
@@ -30,8 +30,8 @@ class User(AggregateRoot[UserId]):
     _email: UserEmail
     _status: UserStatus
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,
@@ -47,8 +47,8 @@ class User(AggregateRoot[UserId]):
         self._email = email
         self._status = status
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def _new(
@@ -128,19 +128,19 @@ class User(AggregateRoot[UserId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     @property
     def is_deleted(self) -> bool:
-        return self._deleted_at is not None
+        return self._deleted_at.value is not None
 
     def update(self, email: UserEmail, now: UpdatedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot update a deleted user")
         self._email = email
         self._updated_at = now
@@ -149,7 +149,7 @@ class User(AggregateRoot[UserId]):
         )
 
     def delete(self, now: DeletedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("User already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)

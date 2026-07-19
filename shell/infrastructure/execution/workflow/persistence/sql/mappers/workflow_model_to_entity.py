@@ -23,9 +23,5 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
         status=WorkflowStatus(workflow_model.status),
         session_id=SessionIdRef(workflow_model.session_id) if workflow_model.session_id else None,
         created_at=CreatedAt.from_datetime(workflow_model.created_at),
-        deleted_at=(
-            DeletedAt.from_datetime(workflow_model.deleted_at)
-            if workflow_model.deleted_at
-            else None
-        ),
+        deleted_at=(DeletedAt.from_datetime(workflow_model.deleted_at)),
     )

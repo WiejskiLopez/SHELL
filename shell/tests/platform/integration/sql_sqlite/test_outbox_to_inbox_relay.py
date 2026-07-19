@@ -13,7 +13,7 @@ from shell.domain.execution.aggregates.task_execution.events.task_execution_crea
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
 from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
@@ -31,7 +31,7 @@ class TestOutboxToInboxRelay:
         outbox_pub = SqlOutboxPublisher(session_factory)
         event = TaskExecutionCreatedEvent.now(
             task_execution_id=TaskExecutionId.generate(),
-            now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+            now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
         )
         await outbox_pub.publish([event])
 
@@ -61,7 +61,7 @@ class TestOutboxToInboxRelay:
             [
                 TaskExecutionCreatedEvent.now(
                     task_execution_id=TaskExecutionId.generate(),
-                    now=CreatedAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
+                    now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
                 )
             ]
         )

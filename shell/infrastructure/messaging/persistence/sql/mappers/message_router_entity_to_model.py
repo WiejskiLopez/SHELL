@@ -12,5 +12,5 @@ def message_router_entity_to_model(message: MessageRouter) -> MessageRouterModel
     return MessageRouterModel(
         id=message.id.value,
         message_data=message.message_data.value,
-        created_at=message.created_at.value,
+        created_at=message.created_at.value if message.created_at else None,
     )

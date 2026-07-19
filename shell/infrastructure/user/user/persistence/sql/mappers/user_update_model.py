@@ -14,5 +14,5 @@ def user_update_model(model: UserModel, entity: User) -> None:
     model.status = entity.status.value
     assert entity.created_at is not None
     model.created_at = entity.created_at.value
-    model.updated_at = entity.updated_at.value if entity.updated_at else None  # type: ignore[assignment]
-    model.deleted_at = entity.deleted_at.value if entity.deleted_at else None
+    model.updated_at = entity.updated_at.value  # type: ignore[assignment]
+    model.deleted_at = entity.deleted_at.value

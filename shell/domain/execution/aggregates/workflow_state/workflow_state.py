@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -15,7 +16,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -44,8 +44,8 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,
@@ -61,8 +61,8 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = None
-        self._deleted_at = None
+        self._updated_at = UpdatedAt(value=None)
+        self._deleted_at = DeletedAt(value=None)
 
     @classmethod
     def create(

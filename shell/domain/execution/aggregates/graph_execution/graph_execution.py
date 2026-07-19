@@ -18,13 +18,13 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgrap
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 from shell.domain.execution.aggregates.graph_execution.events.graph_execution_created_event import (
@@ -77,8 +77,8 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             else GraphDefinitionIdRef.generate()
         )
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def restore(
@@ -150,7 +150,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return instance
 
     def update_status(self, new_status: GraphExecutionStatus, now: UpdatedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot update status of a deleted graph execution")
         self._execution_status = new_status
         self._updated_at = now
@@ -162,7 +162,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         )
 
     def soft_delete(self, now: DeletedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Graph execution already deleted")
         self._deleted_at = now
         self.append_event(
@@ -266,9 +266,9 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at

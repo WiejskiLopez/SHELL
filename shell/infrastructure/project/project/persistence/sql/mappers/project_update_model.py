@@ -14,5 +14,5 @@ def project_update_model(model: ProjectModel, entity: Project) -> None:
     model.repo_url = entity.repo_url.value
     model.status = entity.status.value
     model.created_at = entity.created_at.value if entity.created_at else None  # type: ignore[assignment]
-    model.updated_at = entity.updated_at.value if entity.updated_at else None
-    model.deleted_at = entity.deleted_at.value if entity.deleted_at else None
+    model.updated_at = entity.updated_at.value
+    model.deleted_at = entity.deleted_at.value

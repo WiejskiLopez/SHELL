@@ -36,7 +36,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
 
     _message_data: MessageData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
+    _updated_at: UpdatedAt
 
     def __init__(
         self,
@@ -49,7 +49,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         super().__init__(id)
         self._message_data = message_data
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
 
     @classmethod
     def restore(
@@ -95,7 +95,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @classmethod

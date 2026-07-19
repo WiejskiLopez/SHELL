@@ -5,12 +5,12 @@ from datetime import UTC, datetime
 
 from shell.platform.domain.base import AggregateRoot, Entity
 from shell.platform.domain.events import DomainEvent
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 def make_sample_event(payload: str = "") -> _SampleEvent:
     now = datetime.now(tz=UTC)
-    return _SampleEvent(occurred_at=CreatedAt.from_datetime(now), payload=payload)
+    return _SampleEvent(occurred_at=OccurredAt.from_datetime(now), payload=payload)
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,4 +51,4 @@ class _SampleAggregate(AggregateRoot[_SampleId]):
 
     def do_something(self, payload: str) -> None:
         now = datetime.now(tz=UTC)
-        self.append_event(_SampleEvent(occurred_at=CreatedAt.from_datetime(now), payload=payload))
+        self.append_event(_SampleEvent(occurred_at=OccurredAt.from_datetime(now), payload=payload))

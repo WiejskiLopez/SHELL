@@ -27,8 +27,8 @@ def _user_to_response(user: User) -> ApiUserResponse:
         email=user.email.value,
         status=user.status.value,
         created_at=user.created_at.value,  # type: ignore[union-attr]
-        updated_at=user.updated_at.value if user.updated_at else None,
-        deleted_at=user.deleted_at.value if user.deleted_at else None,
+        updated_at=user.updated_at.value,
+        deleted_at=user.deleted_at.value,
     )
 
 

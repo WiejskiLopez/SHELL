@@ -45,8 +45,8 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,

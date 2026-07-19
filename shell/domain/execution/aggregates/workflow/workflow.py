@@ -17,6 +17,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_status im
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -28,7 +29,6 @@ if TYPE_CHECKING:
         TaskExecutionId,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
 
@@ -44,7 +44,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
     _session_id: SessionIdRef | None
     _status: WorkflowStatus
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
+    _updated_at: UpdatedAt
 
     def __init__(
         self,
@@ -59,8 +59,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._session_id = session_id
         self._status = status if status is not None else WorkflowStatus.ACTIVE
         self._created_at = created_at
-        self._updated_at = None
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None)
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(
@@ -191,7 +191,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         return self._created_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     # --- Factory ---

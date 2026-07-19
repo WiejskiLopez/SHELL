@@ -22,6 +22,7 @@ class TestMessageRouter:
         )
 
         assert json.loads(message.message_data.value.value) == {"key": "value", "type": "test"}
+        assert message.created_at is not None
         assert message.created_at.value == now.value
 
     def test_new_generates_created_event(self) -> None:
@@ -35,7 +36,7 @@ class TestMessageRouter:
         events = message.pull_events()
         assert len(events) == 1
         event = events[0]
-        assert event.message_router_id == message.id
+        assert event.aggregate_id.value == message.id.value
 
     def test_restore_preserves_fields(self) -> None:
         now = datetime.now(tz=UTC)
@@ -50,4 +51,5 @@ class TestMessageRouter:
 
         assert restored.id == msg_id
         assert restored.message_data == data
+        assert restored.created_at is not None
         assert restored.created_at.value == now

@@ -35,6 +35,6 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
         correlation_id=get_correlation_id(),
         tags={},
         created_at=graph_execution.created_at.value if graph_execution.created_at else None,
-        updated_at=graph_execution.updated_at.value if graph_execution.updated_at else None,
+        updated_at=graph_execution.updated_at.value,
         deleted_at=_created_at_value(graph_execution.deleted_at),
     )

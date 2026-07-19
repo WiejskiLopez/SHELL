@@ -40,7 +40,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     _agent_execution_id: AgentExecutionId
     _config_data: ConfigData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
+    _updated_at: UpdatedAt
 
     def __init__(
         self,
@@ -55,7 +55,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._agent_execution_id = agent_execution_id
         self._config_data = config_data
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
 
     @classmethod
     def create(
@@ -117,7 +117,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @classmethod

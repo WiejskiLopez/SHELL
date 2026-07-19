@@ -25,7 +25,9 @@ class CreatedAt(ValueObject):
         return cls(datetime.now(tz=UTC))
 
     @classmethod
-    def from_datetime(cls, dt: datetime) -> CreatedAt:
+    def from_datetime(cls, dt: datetime | None) -> CreatedAt:
+        if dt is None:
+            raise ValueError("CreatedAt cannot be None")
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         return cls(dt)

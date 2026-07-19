@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 from shell.domain.definition.aggregates.runner_config.events.runner_config_created_event import (
     RunnerConfigCreatedEvent,
@@ -16,11 +16,9 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-
-if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
@@ -30,8 +28,8 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         "_deleted_at",
     )
 
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,
@@ -42,8 +40,8 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         self._created_at = (
             created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         )
-        self._updated_at = None
-        self._deleted_at = None
+        self._updated_at = UpdatedAt(value=None)
+        self._deleted_at = DeletedAt(value=None)
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

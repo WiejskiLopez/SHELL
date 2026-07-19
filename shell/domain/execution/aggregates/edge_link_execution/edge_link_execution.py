@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_created_event import (
     EdgeLinkExecutionCreatedEvent,
 )
@@ -53,8 +53,8 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self._node_execution_id = node_execution_id
         self._edge_execution_id = edge_execution_id
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def new(
@@ -82,7 +82,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         return instance
 
     def mark_deleted(self, now: DeletedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Edge link already deleted")
         self._deleted_at = now
 
@@ -94,7 +94,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         )
 
     def update(self, now: UpdatedAt) -> None:
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot update a deleted edge link")
         self._updated_at = now
         self.append_event(

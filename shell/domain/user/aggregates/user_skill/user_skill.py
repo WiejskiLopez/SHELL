@@ -15,13 +15,13 @@ from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import 
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.user.value_objects.user_id import UserId
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class UserSkill(AggregateRoot[UserSkillId]):
@@ -50,8 +50,8 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self._user_id = user_id
         self._skill_data = skill_data
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def restore(
@@ -128,9 +128,9 @@ class UserSkill(AggregateRoot[UserSkillId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at

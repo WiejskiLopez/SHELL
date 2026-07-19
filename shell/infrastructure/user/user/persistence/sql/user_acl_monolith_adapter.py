@@ -39,6 +39,6 @@ class UserAclMonolithAdapter:
             email=UserEmail(dto.email),
             status=UserStatus(dto.status),
             created_at=CreatedAt.from_datetime(dto.created_at),
-            updated_at=UpdatedAt.from_datetime(dto.updated_at) if dto.updated_at else None,
-            deleted_at=DeletedAt.from_datetime(dto.deleted_at) if dto.deleted_at else None,
+            updated_at=UpdatedAt.from_datetime(dto.updated_at),
+            deleted_at=DeletedAt.from_datetime(dto.deleted_at),
         )

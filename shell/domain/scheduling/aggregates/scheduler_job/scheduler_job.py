@@ -77,7 +77,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
         self._config = config
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
 
     @classmethod
     def create(
@@ -219,5 +219,5 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at

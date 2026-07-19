@@ -16,6 +16,6 @@ def user_entity_to_model(entity: User) -> UserModel:
         email=entity.email.value,
         status=entity.status.value,
         created_at=entity.created_at.value if entity.created_at else None,
-        updated_at=entity.updated_at.value if entity.updated_at else None,
-        deleted_at=entity.deleted_at.value if entity.deleted_at else None,
+        updated_at=entity.updated_at.value,
+        deleted_at=entity.deleted_at.value,
     )

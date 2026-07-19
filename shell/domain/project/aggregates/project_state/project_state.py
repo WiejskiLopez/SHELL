@@ -26,6 +26,7 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -33,7 +34,6 @@ from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_id import ProjectId
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -67,8 +67,8 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(
@@ -198,11 +198,11 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     # ------------------------------------------------------------------ factory

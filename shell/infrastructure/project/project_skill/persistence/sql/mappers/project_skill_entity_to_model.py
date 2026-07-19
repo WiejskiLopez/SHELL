@@ -19,6 +19,6 @@ def project_skill_entity_to_model(entity: ProjectSkill) -> ProjectSkillModel:
         project_id=entity.project_id.value,
         skill_data=json.dumps(json.loads(entity.skill_data.value.value)),
         created_at=entity.created_at.value if entity.created_at else None,
-        updated_at=entity.updated_at.value if entity.updated_at else None,
-        deleted_at=entity.deleted_at.value if entity.deleted_at else None,
+        updated_at=entity.updated_at.value,
+        deleted_at=entity.deleted_at.value,
     )

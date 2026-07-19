@@ -26,7 +26,7 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.trigg
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
-from shell.platform.domain.value_objects.timestamp import Timestamp
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr
 
 if TYPE_CHECKING:
@@ -68,5 +68,5 @@ def scheduler_definition_model_to_entity(
         execution_policy=policy,
         enabled=Enabled(model.enabled),
         created_at=CreatedAt.from_datetime(model.created_at),
-        updated_at=Timestamp.from_datetime(model.updated_at),
+        updated_at=UpdatedAt.from_datetime(model.updated_at),
     )

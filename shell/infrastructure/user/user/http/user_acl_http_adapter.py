@@ -28,10 +28,6 @@ class UserAclHttpAdapter(UserACL):
             email=UserEmail(data["email"]),
             status=UserStatus(data["status"]),
             created_at=CreatedAt.from_datetime(data["created_at"]),
-            updated_at=UpdatedAt.from_datetime(data["updated_at"])
-            if data.get("updated_at")
-            else None,
-            deleted_at=DeletedAt.from_datetime(data["deleted_at"])
-            if data.get("deleted_at")
-            else None,
+            updated_at=UpdatedAt.from_datetime(data.get("updated_at")),
+            deleted_at=DeletedAt.from_datetime(data.get("deleted_at")),
         )

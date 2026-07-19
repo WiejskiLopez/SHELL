@@ -37,7 +37,5 @@ def edge_execution_model_to_entity(model: EdgeExecutionModel) -> EdgeExecution:
         ),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at)),
-        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at))
-        if model.deleted_at is not None
-        else None,
+        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at)),
     )

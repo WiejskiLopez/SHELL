@@ -25,10 +25,6 @@ def user_model_to_entity(model: UserModel) -> User:
         email=UserEmail(model.email),
         status=UserStatus(model.status),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
-        updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
-        if model.updated_at is not None
-        else None,
-        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at))
-        if model.deleted_at is not None
-        else None,
+        updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at)),
+        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at)),
     )

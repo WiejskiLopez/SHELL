@@ -23,7 +23,9 @@ class OccurredAt(ValueObject):
         return cls(datetime.now(tz=UTC))
 
     @classmethod
-    def from_datetime(cls, dt: datetime) -> OccurredAt:
+    def from_datetime(cls, dt: datetime | None) -> OccurredAt:
+        if dt is None:
+            raise ValueError("OccurredAt value cannot be None")
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         return cls(dt)

@@ -6,9 +6,6 @@ from typing import TYPE_CHECKING
 from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
-    SchedulerExecutionId,
-)
 from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
     SchedulerJob,
 )
@@ -18,10 +15,13 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.interval_sec
 )
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_name import JobName
 from shell.domain.scheduling.aggregates.scheduler_job.value_objects.job_type import JobType
+from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
+    SchedulerJobId,
+)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.timestamp import Timestamp
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime dla konstrukcji VO
 
 if TYPE_CHECKING:
@@ -34,7 +34,7 @@ def scheduler_execution_model_to_entity(
     model: SchedulerExecutionModel,
 ) -> SchedulerJob:
     return SchedulerJob.restore(
-        id=SchedulerExecutionId(model.id),
+        id=SchedulerJobId(model.id),
         scheduler_definition_id=SchedulerDefinitionId(model.scheduler_definition_id),
         name=JobName(model.name),
         job_type=JobType(model.job_type),
@@ -45,5 +45,5 @@ def scheduler_execution_model_to_entity(
         if model.config
         else StateData(JsonStr("{}")),
         created_at=CreatedAt.from_datetime(model.created_at),
-        updated_at=Timestamp.from_datetime(model.updated_at),
+        updated_at=UpdatedAt.from_datetime(model.updated_at),
     )

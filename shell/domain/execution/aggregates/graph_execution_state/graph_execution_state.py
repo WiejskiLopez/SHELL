@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -55,8 +54,8 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
     _direction: StateDirection
     _state_data: StateData
     _created_at: CreatedAt
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,
@@ -71,8 +70,8 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = None
-        self._deleted_at = None
+        self._updated_at = UpdatedAt(value=None)
+        self._deleted_at = DeletedAt(value=None)
 
     @classmethod
     def create(

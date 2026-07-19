@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self
+from typing import Self
 
 from shell.domain.session.aggregates.session.events.session_closed_event import (
     SessionClosedEvent,
@@ -19,11 +19,9 @@ from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class Session(AggregateRoot[SessionId]):
@@ -44,10 +42,10 @@ class Session(AggregateRoot[SessionId]):
     _project_id: ProjectIdRef
     _status: SessionStatus
     _opened_at: CreatedAt
-    _closed_at: UpdatedAt | None
+    _closed_at: UpdatedAt
     _created_at: CreatedAt | None
-    _updated_at: UpdatedAt | None
-    _deleted_at: DeletedAt | None
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
 
     def __init__(
         self,
@@ -64,10 +62,10 @@ class Session(AggregateRoot[SessionId]):
         self._project_id = project_id
         self._status = status
         self._opened_at = opened_at
-        self._closed_at = closed_at
+        self._closed_at = UpdatedAt(value=None) if closed_at is None else closed_at
         self._created_at = opened_at
-        self._updated_at = None
-        self._deleted_at = None
+        self._updated_at = UpdatedAt(value=None)
+        self._deleted_at = DeletedAt(value=None)
 
     @classmethod
     def open(
@@ -166,7 +164,7 @@ class Session(AggregateRoot[SessionId]):
         return self._opened_at
 
     @property
-    def closed_at(self) -> UpdatedAt | None:
+    def closed_at(self) -> UpdatedAt:
         return self._closed_at
 
     @property
@@ -174,11 +172,11 @@ class Session(AggregateRoot[SessionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     # --- Legacy deprecated properties ---

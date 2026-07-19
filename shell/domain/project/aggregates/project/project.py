@@ -17,7 +17,6 @@ from shell.platform.domain.value_objects.updated_at import UpdatedAt
 if TYPE_CHECKING:
     from shell.domain.project.aggregates.project.value_objects.project_name import ProjectName
     from shell.domain.project.aggregates.project.value_objects.repo_url import RepoUrl
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class Project(AggregateRoot[ProjectId]):
@@ -50,8 +49,8 @@ class Project(AggregateRoot[ProjectId]):
         self._repo_url = repo_url
         self._status = status
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def restore(
@@ -149,16 +148,16 @@ class Project(AggregateRoot[ProjectId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     def update(self, *, name: ProjectName, repo_url: RepoUrl, now: UpdatedAt) -> None:
         """Update project fields and bump updated_at."""
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Cannot update a deleted project")
         self._name = name
         self._repo_url = repo_url
@@ -172,7 +171,7 @@ class Project(AggregateRoot[ProjectId]):
 
     def delete(self, now: DeletedAt) -> None:
         """Soft-delete this project."""
-        if self._deleted_at is not None:
+        if self._deleted_at.value is not None:
             raise DomainError("Project already deleted")
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)

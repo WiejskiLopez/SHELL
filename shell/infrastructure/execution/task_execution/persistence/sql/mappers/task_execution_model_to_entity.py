@@ -39,9 +39,5 @@ def task_execution_model_to_entity(task_execution_model: TaskExecutionModel) -> 
             if task_execution_model.workflow_id
             else None
         ),
-        deleted_at=(
-            DeletedAt.from_datetime(task_execution_model.deleted_at)
-            if task_execution_model.deleted_at
-            else None
-        ),
+        deleted_at=(DeletedAt.from_datetime(task_execution_model.deleted_at)),
     )

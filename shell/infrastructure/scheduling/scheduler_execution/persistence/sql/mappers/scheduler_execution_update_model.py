@@ -20,4 +20,4 @@ def scheduler_execution_update_model(model: SchedulerExecutionModel, entity: Sch
     model.batch_size = entity.batch_size.value
     model.enabled = entity.enabled.value
     model.config = json.dumps(json.loads(entity.config.value.value))  # type: ignore[assignment]
-    model.updated_at = entity.updated_at.value
+    model.updated_at = entity.updated_at.value  # type: ignore[assignment]

@@ -42,4 +42,4 @@ def scheduler_definition_update_model(
         "retry_delay_seconds": entity.execution_policy.retry_delay_seconds,
     }
     model.enabled = entity.enabled.value
-    model.updated_at = entity.updated_at.value
+    model.updated_at = entity.updated_at.value  # type: ignore[assignment]

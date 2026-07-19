@@ -75,7 +75,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         self._execution_policy = execution_policy
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
 
     @classmethod
     def restore(
@@ -206,7 +206,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     def matches_trigger(self, source_context: str, trigger_event_type: str) -> bool:

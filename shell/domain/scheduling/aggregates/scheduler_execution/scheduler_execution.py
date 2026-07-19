@@ -110,7 +110,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._started_at = started_at
         self._completed_at = completed_at
         self._created_at = created_at
-        self._updated_at = updated_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
 
     @classmethod
     def create(
@@ -245,7 +245,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     def start(

@@ -17,6 +17,7 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
@@ -24,7 +25,6 @@ from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
@@ -59,8 +59,8 @@ class SessionState(AggregateRoot[SessionStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(

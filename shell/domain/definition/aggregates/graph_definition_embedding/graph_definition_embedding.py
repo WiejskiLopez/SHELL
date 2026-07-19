@@ -16,6 +16,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -29,7 +30,6 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.embedding_model import (
         EmbeddingModel,
     )
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_definition_embedding_created_event import (
@@ -66,8 +66,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self._embedding = embedding
         self._model = model
         self._created_at = created_at
-        self._updated_at = updated_at
-        self._deleted_at = deleted_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(
@@ -137,7 +137,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         return self._created_at
 
     @property
-    def updated_at(self) -> UpdatedAt | None:
+    def updated_at(self) -> UpdatedAt:
         return self._updated_at
 
     @classmethod

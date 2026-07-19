@@ -34,7 +34,5 @@ def edge_link_execution_model_to_entity(model: EdgeLinkExecutionModel) -> EdgeLi
         edge_execution_id=EdgeExecutionId(model.edge_execution_id),
         created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at)),
-        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at))
-        if model.deleted_at is not None
-        else None,
+        deleted_at=DeletedAt.from_datetime(_ensure_utc(model.deleted_at)),
     )

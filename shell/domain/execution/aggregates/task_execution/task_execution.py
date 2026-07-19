@@ -35,7 +35,6 @@ if TYPE_CHECKING:
         TaskExecutionBody,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.reason import Reason
 
 
@@ -69,7 +68,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._body = body
         self._work_dir = work_dir if work_dir is not None else WorkDir(tempfile.gettempdir())
         self._created_at = created_at
-        self._deleted_at = deleted_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
         if body is not None and not body.value.strip():
             raise DomainError("TaskExecutionBody cannot be empty")
 
@@ -186,7 +185,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         return self._created_at
 
     @property
-    def deleted_at(self) -> DeletedAt | None:
+    def deleted_at(self) -> DeletedAt:
         return self._deleted_at
 
     def rename(self, new_name: TaskName) -> None:

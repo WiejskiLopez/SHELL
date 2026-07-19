@@ -11,24 +11,24 @@ from shell.platform.domain.value_objects.timestamp import Timestamp
 
 @dataclass(frozen=True, slots=True)
 class UpdatedAt(ValueObject):
-    value: datetime
+    value: datetime | None
 
     def __post_init__(self) -> None:
-        if self.value.tzinfo is None:
+        if self.value is not None and self.value.tzinfo is None:
             raise ValueError("UpdatedAt must be timezone-aware (UTC)")
 
     def __str__(self) -> str:
-        return self.value.isoformat()
+        return self.value.isoformat() if self.value is not None else ""
 
     @classmethod
     def now(cls) -> UpdatedAt:
         return cls(datetime.now(tz=UTC))
 
     @classmethod
-    def from_datetime(cls, dt: datetime) -> UpdatedAt:
-        if dt.tzinfo is None:
+    def from_datetime(cls, dt: datetime | None) -> UpdatedAt:
+        if dt is not None and dt.tzinfo is None:
             dt = dt.replace(tzinfo=UTC)
         return cls(dt)
 
-    def to_timestamp(self) -> Timestamp:
-        return Timestamp(self.value)
+    def to_timestamp(self) -> Timestamp | None:
+        return Timestamp(self.value) if self.value is not None else None

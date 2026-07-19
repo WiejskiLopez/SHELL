@@ -23,7 +23,5 @@ def session_model_to_entity(session_model: SessionModel) -> Session:
         project_id=ProjectIdRef(session_model.project_id),
         status=SessionStatus(session_model.status),
         opened_at=CreatedAt.from_datetime(session_model.opened_at),
-        closed_at=UpdatedAt.from_datetime(session_model.closed_at)
-        if session_model.closed_at
-        else None,
+        closed_at=UpdatedAt.from_datetime(session_model.closed_at),
     )
