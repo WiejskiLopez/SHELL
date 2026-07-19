@@ -43,7 +43,7 @@ class Session(AggregateRoot[SessionId]):
     _status: SessionStatus
     _opened_at: CreatedAt
     _closed_at: UpdatedAt
-    _created_at: CreatedAt | None
+    _created_at: CreatedAt
     _updated_at: UpdatedAt
     _deleted_at: DeletedAt
 
@@ -168,7 +168,7 @@ class Session(AggregateRoot[SessionId]):
         return self._closed_at
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

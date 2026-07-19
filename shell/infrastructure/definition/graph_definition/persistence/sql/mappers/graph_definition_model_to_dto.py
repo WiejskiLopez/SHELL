@@ -13,5 +13,6 @@ if TYPE_CHECKING:
 def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitionDto:
     return GraphDefinitionDto(
         id=model.id,
+        created_at=model.created_at,
         node_definitions=[],
     )

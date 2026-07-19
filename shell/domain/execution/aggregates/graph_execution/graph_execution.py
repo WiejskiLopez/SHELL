@@ -262,7 +262,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         return self._graph_definition_id
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

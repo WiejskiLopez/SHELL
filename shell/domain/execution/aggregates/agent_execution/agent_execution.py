@@ -124,7 +124,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         return self._node_execution_id
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

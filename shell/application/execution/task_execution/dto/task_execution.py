@@ -9,8 +9,8 @@ from shell.application.execution.node_execution.dto.node_execution import NodeEx
 @dataclass(frozen=True, slots=True)
 class TaskExecutionDto:
     id: str
+    created_at: datetime
     name: str = ""
-    created_at: datetime | None = None
     work_dir: str = ""
     workflow_id: str = ""
     node_executions: tuple[NodeExecutionDto, ...] = field(default_factory=tuple)

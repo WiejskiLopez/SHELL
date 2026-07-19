@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from shell.domain.definition.aggregates.graph_definition.events.graph_definition_created_event import (
     GraphDefinitionCreatedEvent,
 )
@@ -15,12 +13,10 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
     GraphDefinitionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.deleted_at import DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
-
-if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.created_at import CreatedAt
-    from shell.platform.domain.value_objects.deleted_at import DeletedAt
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
@@ -30,32 +26,52 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         "_deleted_at",
     )
 
+    _created_at: CreatedAt
+    _updated_at: UpdatedAt
+    _deleted_at: DeletedAt
+
     def __init__(
         self,
+        *,
         id: GraphDefinitionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
+        self._created_at = created_at
+        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
 
     @classmethod
     def create(
         cls,
         id: GraphDefinitionId,
-        now: CreatedAt | None = None,
+        now: CreatedAt,
     ) -> GraphDefinition:
-        instance = cls(id=id)
-
-        if now is not None:
-            instance.append_event(
-                GraphDefinitionCreatedEvent.now(
-                    graph_definition_id=id,
-                    now=OccurredAt.from_datetime(now.value),
-                )
+        instance = cls(id=id, created_at=now)
+        instance.append_event(
+            GraphDefinitionCreatedEvent.now(
+                graph_definition_id=id,
+                now=OccurredAt.from_datetime(now.value),
             )
-
+        )
         return instance
 
-    def _update(self, now: CreatedAt) -> None:
-        self._updated_at = UpdatedAt.from_datetime(now.value)
+    @property
+    def created_at(self) -> CreatedAt:
+        return self._created_at
+
+    @property
+    def updated_at(self) -> UpdatedAt:
+        return self._updated_at
+
+    @property
+    def deleted_at(self) -> DeletedAt:
+        return self._deleted_at
+
+    def _update(self, now: UpdatedAt) -> None:
+        self._updated_at = now
         self.append_event(
             GraphDefinitionUpdatedEvent.now(
                 graph_definition_id=self._id,
@@ -76,24 +92,33 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: GraphDefinitionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
     ) -> GraphDefinition:
-        return cls(id=id)
+        return cls(
+            id=id,
+            created_at=created_at,
+            updated_at=updated_at,
+            deleted_at=deleted_at,
+        )
 
     @classmethod
     def _new(
         cls,
         id: GraphDefinitionId,
-        now: OccurredAt | None = None,
+        now: OccurredAt,
     ) -> GraphDefinition:
-        instance = cls(id=id)
-
-        if now is not None:
-            instance.append_event(
-                GraphDefinitionCreatedEvent.now(
-                    graph_definition_id=id,
-                    now=OccurredAt.from_datetime(now.value),
-                )
+        instance = cls(
+            id=id,
+            created_at=CreatedAt.from_datetime(now.value),
+        )
+        instance.append_event(
+            GraphDefinitionCreatedEvent.now(
+                graph_definition_id=id,
+                now=now,
             )
-
+        )
         return instance

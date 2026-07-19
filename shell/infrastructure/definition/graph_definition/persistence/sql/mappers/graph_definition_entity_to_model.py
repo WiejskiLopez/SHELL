@@ -13,4 +13,5 @@ if TYPE_CHECKING:
 def graph_definition_entity_to_model(entity: GraphDefinition) -> GraphDefinitionModel:
     return GraphDefinitionModel(
         id=str(entity.id.value),
+        created_at=entity.created_at.value,
     )

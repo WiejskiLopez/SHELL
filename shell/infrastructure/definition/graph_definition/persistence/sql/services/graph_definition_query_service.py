@@ -51,6 +51,7 @@ class SqlGraphDefinitionQueryService:
 
         return GraphDefinitionDto(
             id=model.id,
+            created_at=model.created_at,
             node_definitions=[
                 NodeDefinitionDto(
                     id=node.id,

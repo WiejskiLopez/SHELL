@@ -8,6 +8,6 @@ from datetime import datetime
 class AgentConfigExecutionDto:
     id: str
     agent_execution_id: str
+    created_at: datetime
     config_data: str = ""
-    created_at: datetime | None = None
     updated_at: datetime | None = None

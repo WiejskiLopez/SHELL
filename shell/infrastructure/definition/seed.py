@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -37,6 +38,7 @@ def _seed_sync(sync_conn: Connection) -> None:
     if graph_definition_model is None:
         graph_definition_model = GraphDefinitionModel(
             id="base-planner-id",
+            created_at=datetime.now(tz=UTC),
         )
         session.add(graph_definition_model)
         session.flush()

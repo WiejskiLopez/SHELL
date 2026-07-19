@@ -245,7 +245,7 @@ def _seed_graph_definitions(session: Session) -> None:
     )
 
     # ── Graph 1: Simple Agent ────────────────────────────────────────────────
-    g1 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-simple-agent")
+    g1 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-simple-agent", created_at=_NOW)
 
     g1_nodes = [
         NodeDefinitionModel(
@@ -263,7 +263,7 @@ def _seed_graph_definitions(session: Session) -> None:
     ]
 
     # ── Graph 2: Planner + Worker ────────────────────────────────────────────
-    g2 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-planner-worker")
+    g2 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-planner-worker", created_at=_NOW)
 
     g2_nodes = [
         NodeDefinitionModel(
@@ -291,7 +291,7 @@ def _seed_graph_definitions(session: Session) -> None:
     ]
 
     # ── Graph 3: Full Pipeline ───────────────────────────────────────────────
-    g3 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-full-pipeline")
+    g3 = GraphDefinitionModel(id=f"{_DEV_ID_PREFIX}-graph-full-pipeline", created_at=_NOW)
 
     g3_nodes = [
         NodeDefinitionModel(

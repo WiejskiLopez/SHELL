@@ -133,7 +133,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         return self._model
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

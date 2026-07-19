@@ -19,8 +19,19 @@ from _arch_helpers import (
 _KNOWN_NULLABLE_CREATED_AT: frozenset[str] = frozenset({})
 
 
+def _check_method_signature(
+    stmt: ast.FunctionDef | ast.AsyncFunctionDef,
+    param_name: str,
+) -> bool:
+    """Check if a method has a nullable parameter."""
+    source = ast.unparse(stmt)
+    return (
+        f"{param_name}: CreatedAt | None" in source or f"{param_name} : CreatedAt | None" in source
+    )
+
+
 def test_created_at_is_never_nullable() -> None:
-    """created_at param in __init__ must NOT have | None — timestamps are always required."""
+    """created_at must NEVER be nullable — in params, properties, or slot type annotations."""
     violations: list[str] = []
     for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
@@ -31,19 +42,43 @@ def test_created_at_is_never_nullable() -> None:
                 continue
             if not has_slots(node):
                 continue
+
+            # Check __init__ and restore parameter types
             for stmt in node.body:
-                if isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)) and stmt.name in (
-                    "__init__",
-                    "restore",
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name in ("__init__", "restore")
+                    and _check_method_signature(stmt, "created_at")
+                ):
+                    key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} has nullable created_at param"
+                    if key not in _KNOWN_NULLABLE_CREATED_AT:
+                        violations.append(key)
+
+            # Check created_at property return type
+            for stmt in node.body:
+                if (
+                    isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and stmt.name == "created_at"
                 ):
                     source = ast.unparse(stmt)
-                    if (
-                        "created_at: CreatedAt | None" in source
-                        or "created_at : CreatedAt | None" in source
-                    ):
-                        key = f"{path.relative_to(BASE)}: {node.name}.{stmt.name} has nullable created_at"
+                    if "-> CreatedAt | None" in source:
+                        key = f"{path.relative_to(BASE)}: {node.name}.created_at property returns CreatedAt | None"
                         if key not in _KNOWN_NULLABLE_CREATED_AT:
                             violations.append(key)
+
+            # Check _created_at type annotation in class body (field type)
+            for stmt in node.body:
+                if (
+                    isinstance(stmt, ast.AnnAssign)
+                    and stmt.target
+                    and ast.unparse(stmt.target) == "_created_at"
+                ):
+                    source = ast.unparse(stmt)
+                    if "CreatedAt | None" in source:
+                        key = f"{path.relative_to(BASE)}: {node.name}._created_at type is CreatedAt | None"
+                        if key not in _KNOWN_NULLABLE_CREATED_AT:
+                            violations.append(key)
+
     assert not violations, (
         "created_at must NEVER be nullable (CreatedAt | None). "
         "Every aggregate always has a creation timestamp:\n" + "\n".join(violations)

@@ -65,7 +65,7 @@ class InMemoryQueryServices:
         return TaskExecutionDto(
             id=task_execution.id.value,
             name=task_execution.name.value,
-            created_at=task_execution.created_at.value if task_execution.created_at else None,
+            created_at=task_execution.created_at.value,
             node_executions=tuple(node_executions),
         )
 

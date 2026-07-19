@@ -116,7 +116,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         return self._session_id
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod

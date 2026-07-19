@@ -8,5 +8,5 @@ from datetime import datetime
 class AgentExecutionDto:
     id: str
     node_execution_id: str
-    created_at: datetime | None = None
+    created_at: datetime
     updated_at: datetime | None = None

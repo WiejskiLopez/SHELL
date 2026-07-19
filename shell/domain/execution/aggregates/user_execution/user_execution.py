@@ -99,7 +99,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         return self._user_id
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @classmethod

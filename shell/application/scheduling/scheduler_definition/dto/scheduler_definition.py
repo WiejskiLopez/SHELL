@@ -13,6 +13,7 @@ from shell.application.scheduling.scheduler_definition.dto.execution_policy_dto 
 class SchedulerDefinitionDto:
     id: str
     name: str
+    created_at: datetime
     description: str | None = None
     source_context: str = ""
     trigger_event_type: str = ""
@@ -21,5 +22,4 @@ class SchedulerDefinitionDto:
     action_config: ActionConfigDto | None = None
     execution_policy: ExecutionPolicyDto | None = None
     enabled: bool = True
-    created_at: datetime | None = None
     updated_at: datetime | None = None

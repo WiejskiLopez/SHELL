@@ -102,7 +102,7 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         return self._skill_data
 
     @property
-    def created_at(self) -> CreatedAt | None:
+    def created_at(self) -> CreatedAt:
         return self._created_at
 
     @property

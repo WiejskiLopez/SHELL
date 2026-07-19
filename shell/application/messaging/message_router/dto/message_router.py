@@ -10,4 +10,4 @@ from shell.platform.types import JsonStr
 class MessageRouterDto:
     id: str
     message_data: JsonStr
-    created_at: datetime | None = None
+    created_at: datetime

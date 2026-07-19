@@ -10,4 +10,4 @@ if TYPE_CHECKING:
 
 
 def graph_definition_update_model(model: GraphDefinitionModel, entity: GraphDefinition) -> None:
-    pass
+    model.created_at = entity.created_at.value

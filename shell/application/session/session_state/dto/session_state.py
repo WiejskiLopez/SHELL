@@ -12,4 +12,4 @@ class SessionStateDto:
     session_id: str
     direction: str
     state_data: JsonStr
-    created_at: datetime | None = None
+    created_at: datetime

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from shell.domain.execution.aggregates.graph_execution import GraphExecution
@@ -46,13 +45,7 @@ def graph_execution_model_to_entity(graph_execution_model: GraphExecutionModel) 
         graph_definition_id=GraphDefinitionIdRef(graph_execution_model.graph_definition_id)
         if graph_execution_model.graph_definition_id
         else None,
-        created_at=CreatedAt.from_datetime(
-            _ensure_utc(
-                graph_execution_model.created_at
-                if graph_execution_model.created_at is not None
-                else datetime.now(tz=UTC)
-            )
-        ),
+        created_at=CreatedAt.from_datetime(_ensure_utc(graph_execution_model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(graph_execution_model.updated_at)),
         deleted_at=(DeletedAt.from_datetime(graph_execution_model.deleted_at)),
     )

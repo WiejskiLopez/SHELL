@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -90,9 +89,7 @@ def _node_execution_model_to_entity(
         order=NodeOrder(model.position),
         node_type=NodeType(model.node_type),
         status=NodeExecutionStatus(model.status),
-        created_at=CreatedAt.from_datetime(model.created_at)
-        if model.created_at
-        else CreatedAt.from_datetime(datetime.now(UTC)),
+        created_at=CreatedAt.from_datetime(model.created_at),
     )
 
 

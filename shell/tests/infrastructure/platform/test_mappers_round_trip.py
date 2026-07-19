@@ -218,6 +218,7 @@ class TestGraphExecutionMapper:
             depth=0,
             max_subgraph_depth=5,
             tags={},
+            created_at=_NOW,
         )
         entity = graph_execution_model_to_entity(model)
 
@@ -237,6 +238,7 @@ class TestGraphExecutionMapper:
             depth=2,
             max_subgraph_depth=5,
             tags={},
+            created_at=_NOW,
         )
         entity = graph_execution_model_to_entity(model)
 
@@ -268,6 +270,7 @@ class TestGraphExecutionMapper:
             depth=0,
             max_subgraph_depth=5,
             tags={},
+            created_at=_NOW,
         )
 
         entity = graph_execution_model_to_entity(model)
@@ -347,7 +350,9 @@ class TestNodeExecutionMapper:
         assert model.node_type == "worker"
 
     def test_model_to_entity_minimal(self) -> None:
-        model = NodeExecutionModel(id="gne-1", position=0, node_type="llm", status="pending")
+        model = NodeExecutionModel(
+            id="gne-1", position=0, node_type="llm", status="pending", created_at=_NOW
+        )
         entity = _node_execution_model_to_entity(model)
 
         assert entity.id.value == "gne-1"

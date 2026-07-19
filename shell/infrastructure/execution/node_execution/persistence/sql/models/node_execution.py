@@ -14,7 +14,7 @@ class NodeExecutionModel(Base, VersionedMixin):
     id: Mapped[str] = mapped_column(primary_key=True)
     position: Mapped[int] = mapped_column(nullable=False, default=0)
     node_type: Mapped[str] = mapped_column(nullable=False, default="")
-    created_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(nullable=False)
     model: Mapped[str] = mapped_column(nullable=False, default="")
     command: Mapped[str] = mapped_column(nullable=False, default="")
     retries: Mapped[int] = mapped_column(nullable=False, default=0)

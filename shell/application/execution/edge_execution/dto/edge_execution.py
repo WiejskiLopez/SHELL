@@ -9,6 +9,6 @@ class EdgeExecutionDto:
     id: str
     edge_definition_id: str
     source_node_execution_id: str
+    created_at: datetime
     target_node_execution_id: str | None = None
-    created_at: datetime | None = None
     updated_at: datetime | None = None

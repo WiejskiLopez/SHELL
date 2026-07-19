@@ -11,5 +11,5 @@ class ProjectSkillDto:
     id: str
     project_id: str
     skill_data: JsonStr
-    created_at: datetime | None = None
+    created_at: datetime
     updated_at: datetime | None = None
