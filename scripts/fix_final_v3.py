@@ -1,18 +1,28 @@
 #!/usr/bin/env python
 """Fix all remaining aggregates: _new with events + timestamps."""
+
 from pathlib import Path
 
 # Create event files
 events_data = {
-    ("shell/domain/definition/aggregates/node_link_definition/events/node_link_definition_created_event.py",
-     "NodeLinkDefinition", "NodeLinkDefinitionId",
-     "shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id"),
-    ("shell/domain/definition/aggregates/runner_config/events/runner_config_created_event.py",
-     "RunnerConfig", "RunnerConfigId",
-     "shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id"),
-    ("shell/domain/scheduling/aggregates/scheduler_job/events/scheduler_job_created_event.py",
-     "SchedulerJob", "SchedulerExecutionId",
-     "shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id"),
+    (
+        "shell/domain/definition/aggregates/node_link_definition/events/node_link_definition_created_event.py",
+        "NodeLinkDefinition",
+        "NodeLinkDefinitionId",
+        "shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id",
+    ),
+    (
+        "shell/domain/definition/aggregates/runner_config/events/runner_config_created_event.py",
+        "RunnerConfig",
+        "RunnerConfigId",
+        "shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id",
+    ),
+    (
+        "shell/domain/scheduling/aggregates/scheduler_job/events/scheduler_job_created_event.py",
+        "SchedulerJob",
+        "SchedulerExecutionId",
+        "shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id",
+    ),
 }
 
 for epath, name, id_type, id_module in events_data:
@@ -38,7 +48,8 @@ class {name}CreatedEvent(DomainEvent):
     @classmethod
     def now(cls, {name.lower()}_id: {id_type}, now: CreatedAt) -> "{name}CreatedEvent":
         return cls(occurred_at=now, {name.lower()}_id={name.lower()}_id)
-''')
+'''
+    )
     print(f"EVENT: {epath}")
 
 # Now read and fix each aggregate
@@ -80,7 +91,11 @@ for f in fixes:
     )
 
     # Remove stubs
-    content = re.sub(r"    def _(?:new|delete|update)\(self\) -> None:\n        raise NotImplementedError\(\"_[a-z]+\(\) not yet implemented\"\)\n?", "", content)
+    content = re.sub(
+        r"    def _(?:new|delete|update)\(self\) -> None:\n        raise NotImplementedError\(\"_[a-z]+\(\) not yet implemented\"\)\n?",
+        "",
+        content,
+    )
     content = re.sub(r"\n{3,}", "\n\n", content)
 
     # Rename factory to _new
@@ -91,13 +106,10 @@ for f in fixes:
     _new_match = re.search(r"(def _new\([^)]*\)[^:]*:\n(?:        .*\n)*?)(return cls\()", content)
     if _new_match:
         prefix = _new_match.group(1)
-        content = content.replace(
-            _new_match.group(0),
-            prefix + "instance = cls("
-        )
+        content = content.replace(_new_match.group(0), prefix + "instance = cls(")
         # Now add event emission before next method
         event_call = f"""        instance.append_event(
-            {f['event_name']}.now(
+            {f["event_name"]}.now(
                 {p.parent.name.lower()}_id=instance.id,
                 now=now,
             )
@@ -119,7 +131,7 @@ for f in fixes:
             obj_name = p.parent.name  # aggregate name from dir name
             factory_name = "create" if "def create(" not in orig else "new"
             wrapper = f"""    @classmethod
-    def {factory_name}({param_str}) -> {obj_name.title().replace('_', '')}:
+    def {factory_name}({param_str}) -> {obj_name.title().replace("_", "")}:
         return cls._new({call_args})
 """
             content = re.sub(

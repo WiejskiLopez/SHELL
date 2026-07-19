@@ -23,6 +23,7 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -40,27 +41,28 @@ if TYPE_CHECKING:
 
 class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_name",
         "_description",
         "_trigger_config",
         "_action_config",
         "_execution_policy",
         "_enabled",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: SchedulerDefinitionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
         name: SchedulerName,
         enabled: Enabled,
         trigger_config: TriggerConfig,
         action_config: ActionConfig,
         execution_policy: ExecutionPolicy,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
         description: SchedulerDescription | None = None,
     ) -> None:
         super().__init__(id)
@@ -78,14 +80,15 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: SchedulerDefinitionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
         name: SchedulerName,
         enabled: Enabled,
         trigger_config: TriggerConfig,
         action_config: ActionConfig,
         execution_policy: ExecutionPolicy,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
         description: SchedulerDescription | None = None,
     ) -> Self:
         return cls(
@@ -105,11 +108,11 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         cls,
         *,
         id_: SchedulerDefinitionId,
+        now: OccurredAt,
         name: SchedulerName,
         trigger_config: TriggerConfig,
         action_config: ActionConfig,
         execution_policy: ExecutionPolicy,
-        now: CreatedAt,
         enabled: bool = True,
         description: SchedulerDescription | None = None,
     ) -> SchedulerDefinition:
@@ -120,13 +123,13 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
             trigger_config=trigger_config,
             action_config=action_config,
             execution_policy=execution_policy,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
             description=description,
         )
         instance.append_event(
             SchedulerDefinitionCreatedEvent.now(
                 scheduler_definition_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -136,11 +139,11 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         cls,
         *,
         id_: SchedulerDefinitionId,
+        now: CreatedAt,
         name: SchedulerName,
         trigger_config: TriggerConfig,
         action_config: ActionConfig,
         execution_policy: ExecutionPolicy,
-        now: CreatedAt,
         enabled: bool = True,
         description: SchedulerDescription | None = None,
     ) -> SchedulerDefinition:
@@ -150,7 +153,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
             trigger_config=trigger_config,
             action_config=action_config,
             execution_policy=execution_policy,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
             enabled=enabled,
             description=description,
         )
@@ -161,7 +164,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         self.append_event(
             SchedulerDefinitionDeletedEvent.now(
                 scheduler_definition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -170,7 +173,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         self.append_event(
             SchedulerDefinitionUpdatedEvent.now(
                 scheduler_definition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

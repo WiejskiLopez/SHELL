@@ -6,6 +6,8 @@ from datetime import UTC, datetime
 
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.session.value_objects.session_status import SessionStatus
+from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -19,7 +21,7 @@ class TestSession:
 
     def test_open_creates_open_session(self) -> None:
         s = self._make_session()
-        assert s.status == "open"
+        assert s.session_status == SessionStatus.OPEN
 
     def test_close_sets_closed_at(self) -> None:
         s = self._make_session()
@@ -31,5 +33,5 @@ class TestSession:
         s.close(_LATER_DT)
         import pytest
 
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             s.close(UpdatedAt.from_datetime(datetime(2025, 1, 3, tzinfo=UTC)))

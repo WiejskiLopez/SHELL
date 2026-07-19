@@ -7,7 +7,7 @@ from shell.platform.domain.events import DomainEvent
 
 if TYPE_CHECKING:
     from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,5 +15,5 @@ class UserStateUpdatedEvent(DomainEvent):
     user_state_id: UserStateId
 
     @classmethod
-    def now(cls, user_state_id: UserStateId, now: CreatedAt) -> UserStateUpdatedEvent:
+    def now(cls, user_state_id: UserStateId, now: OccurredAt) -> UserStateUpdatedEvent:
         return cls(occurred_at=now, user_state_id=user_state_id)

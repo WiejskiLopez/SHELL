@@ -14,7 +14,7 @@ def session_entity_to_model(session: Session) -> SessionModel:
     return SessionModel(
         id=session.id.value,
         goal=session.goal,
-        status=session.status,
+        status=session._status,
         user_id=session.user_id.value,
         project_id=session.project_id.value,
         created_at=session.opened_at.value,

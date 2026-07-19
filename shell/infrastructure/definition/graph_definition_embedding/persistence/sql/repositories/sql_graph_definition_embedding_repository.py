@@ -29,6 +29,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 from shell.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
     GraphDefinitionEmbeddingModel,
 )
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,6 +52,7 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
             text=EmbeddingText(model.text),
             embedding=Embedding(model.embedding),
             model=EmbeddingModel(model.embedding_model),
+            created_at=CreatedAt.now(),
         )
 
     async def get_by_graph_definition_id(
@@ -70,6 +72,7 @@ class SqlGraphDefinitionEmbeddingRepository(GraphDefinitionEmbeddingRepository):
             text=EmbeddingText(model.text),
             embedding=Embedding(model.embedding),
             model=EmbeddingModel(model.embedding_model),
+            created_at=CreatedAt.now(),
         )
 
     async def save(self, embedding: GraphDefinitionEmbedding) -> None:

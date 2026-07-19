@@ -17,6 +17,7 @@ from shell.domain.session.aggregates.session_state.value_objects.session_state_i
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -29,12 +30,12 @@ if TYPE_CHECKING:
 
 class SessionState(AggregateRoot[SessionStateId]):
     __slots__ = (
-        "_session_id",
-        "_direction",
-        "_state_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_session_id",
+        "_direction",
+        "_state_data",
     )
 
     _session_id: SessionId
@@ -44,13 +45,14 @@ class SessionState(AggregateRoot[SessionStateId]):
 
     def __init__(
         self,
+        *,
         id: SessionStateId,
-        session_id: SessionId,
-        state_data: StateData,
         created_at: CreatedAt,
-        direction: StateDirection,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        session_id: SessionId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
@@ -65,16 +67,16 @@ class SessionState(AggregateRoot[SessionStateId]):
         cls,
         *,
         id_: SessionStateId,
+        now: CreatedAt,
         session_id: SessionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> SessionState:
         instance = cls(
             id=id_,
             session_id=session_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance
 
@@ -86,7 +88,7 @@ class SessionState(AggregateRoot[SessionStateId]):
             SessionStateChangedEvent.now(
                 session_id=self._session_id,
                 session_state_id=self.id,
-                now=self._created_at,
+                now=OccurredAt.from_datetime(self._created_at.value),
             )
         )
 
@@ -102,7 +104,7 @@ class SessionState(AggregateRoot[SessionStateId]):
                 SessionStateChangedEvent.now(
                     session_id=self._session_id,
                     session_state_id=self.id,
-                    now=self._created_at,
+                    now=OccurredAt.from_datetime(self._created_at.value),
                 )
             )
 
@@ -122,13 +124,14 @@ class SessionState(AggregateRoot[SessionStateId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: SessionStateId,
-        session_id: SessionId,
-        state_data: StateData,
         created_at: CreatedAt,
-        direction: StateDirection,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        session_id: SessionId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> Self:
         return cls(
             id=id,
@@ -145,7 +148,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         self.append_event(
             SessionStateUpdatedEvent.now(
                 session_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -155,7 +158,7 @@ class SessionState(AggregateRoot[SessionStateId]):
         self.append_event(
             SessionStateDeletedEvent.now(
                 session_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -180,15 +183,15 @@ class SessionState(AggregateRoot[SessionStateId]):
         cls,
         *,
         id_: SessionStateId,
+        now: OccurredAt,
         session_id: SessionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> SessionState:
         instance = cls(
             id=id_,
             session_id=session_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance

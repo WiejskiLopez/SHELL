@@ -27,6 +27,7 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -40,25 +41,26 @@ if TYPE_CHECKING:
 
 class TaskExecution(AggregateRoot[TaskExecutionId]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_workflow_id",
         "_status",
         "_name",
         "_body",
         "_work_dir",
-        "_created_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: TaskExecutionId,
-        name: TaskName,
         created_at: CreatedAt,
+        deleted_at: DeletedAt | None = None,
+        name: TaskName,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
@@ -76,23 +78,30 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         cls,
         *,
         id_: TaskExecutionId,
-        name: TaskName | None = None,
         now: CreatedAt,
+        name: TaskName | None = None,
         body: TaskExecutionBody,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
-        return cls._new(id_=id_, name=name, now=now, body=body, workflow_id=workflow_id)
+        return cls._new(
+            id_=id_,
+            name=name,
+            now=OccurredAt.from_datetime(now.value),
+            body=body,
+            workflow_id=workflow_id,
+        )
 
     @classmethod
     def restore(
         cls,
+        *,
         id: TaskExecutionId,
-        name: TaskName,
         created_at: CreatedAt,
+        deleted_at: DeletedAt | None = None,
+        name: TaskName,
         body: TaskExecutionBody | None = None,
         workflow_id: WorkflowId | None = None,
         work_dir: WorkDir | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -138,7 +147,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionUpdatedEvent.now(
                 task_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -148,7 +157,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self.append_event(
             TaskExecutionDeletedEvent.now(
                 task_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -194,8 +203,8 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         cls,
         *,
         id_: TaskExecutionId,
+        now: OccurredAt,
         name: TaskName | None = None,
-        now: CreatedAt,
         body: TaskExecutionBody,
         workflow_id: WorkflowId | None = None,
     ) -> TaskExecution:
@@ -205,12 +214,12 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
             name=task_name,
             body=body,
             workflow_id=workflow_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         task_execution.append_event(
             TaskExecutionCreatedEvent.now(
                 task_execution_id=id_,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return task_execution

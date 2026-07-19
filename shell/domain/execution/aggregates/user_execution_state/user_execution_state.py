@@ -13,6 +13,7 @@ from shell.domain.execution.aggregates.user_execution_state.events.user_executio
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,12 +30,12 @@ if TYPE_CHECKING:
 
 class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_user_execution_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _user_execution_id: UserExecutionId
@@ -47,10 +48,10 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     def __init__(
         self,
         id: UserExecutionStateId,
+        created_at: CreatedAt,
         user_execution_id: UserExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._user_execution_id = user_execution_id
@@ -65,16 +66,16 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         cls,
         *,
         id_: UserExecutionStateId,
-        user_execution_id: UserExecutionId,
-        state_data: StateData,
         now: CreatedAt,
+        user_execution_id: UserExecutionId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> UserExecutionState:
         return cls._new(
             id_=id_,
             user_execution_id=user_execution_id,
             state_data=state_data,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
             direction=direction,
         )
 
@@ -82,10 +83,10 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
     def restore(
         cls,
         id: UserExecutionStateId,
+        created_at: CreatedAt,
         user_execution_id: UserExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -101,7 +102,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         self.append_event(
             UserExecutionStateDeletedEvent.now(
                 user_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -110,7 +111,7 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         self.append_event(
             UserExecutionStateUpdatedEvent.now(
                 user_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -135,22 +136,22 @@ class UserExecutionState(AggregateRoot["UserExecutionStateId"]):
         cls,
         *,
         id_: UserExecutionStateId,
+        now: OccurredAt,
         user_execution_id: UserExecutionId,
-        state_data: StateData,
-        now: CreatedAt,
         direction: StateDirection,
+        state_data: StateData,
     ) -> UserExecutionState:
         instance = cls(
             id=id_,
             user_execution_id=user_execution_id,
             direction=direction,
             state_data=state_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             UserExecutionStateCreatedEvent.now(
                 user_execution_state_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance

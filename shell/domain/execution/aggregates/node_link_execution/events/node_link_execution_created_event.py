@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
         NodeLinkExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,6 +20,6 @@ class NodeLinkExecutionCreatedEvent(DomainEvent):
     def now(
         cls,
         node_link_execution_id: NodeLinkExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> NodeLinkExecutionCreatedEvent:
         return cls(occurred_at=now, node_link_execution_id=node_link_execution_id)

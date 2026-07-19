@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Fix RunnerConfig and state aggregates."""
+
 import re
 from pathlib import Path
+
 
 def fix_file(path, event_name, agg_name, event_import):
     content = path.read_text("utf-8")
@@ -10,7 +12,9 @@ def fix_file(path, event_name, agg_name, event_import):
     for stub in ["_new", "_delete", "_update"]:
         content = re.sub(
             rf"    (?:@classmethod\n)?    def {stub}\(.*?\) -> .*?:\n        raise NotImplementedError\(\".*?\"\)\n",
-            "", content, flags=re.DOTALL
+            "",
+            content,
+            flags=re.DOTALL,
         )
     content = re.sub(r"\n{3,}", "\n\n", content)
 
@@ -51,24 +55,42 @@ def fix_file(path, event_name, agg_name, event_import):
         return True
     return False
 
+
 # RunnerConfig
 p = Path("shell/domain/definition/aggregates/runner_config/runner_config.py")
-if fix_file(p, "RunnerConfigCreatedEvent", "RunnerConfig",
-            "from shell.domain.definition.aggregates.runner_config.events.runner_config_created_event import RunnerConfigCreatedEvent"):
+if fix_file(
+    p,
+    "RunnerConfigCreatedEvent",
+    "RunnerConfig",
+    "from shell.domain.definition.aggregates.runner_config.events.runner_config_created_event import RunnerConfigCreatedEvent",
+):
     print("FIXED: RunnerConfig")
 
 # State aggregates
 for path_str, agg_name in [
-    ("shell/domain/execution/aggregates/session_execution_state/session_execution_state.py", "SessionExecutionState"),
-    ("shell/domain/execution/aggregates/task_execution_state/task_execution_state.py", "TaskExecutionState"),
-    ("shell/domain/execution/aggregates/user_execution_state/user_execution_state.py", "UserExecutionState"),
+    (
+        "shell/domain/execution/aggregates/session_execution_state/session_execution_state.py",
+        "SessionExecutionState",
+    ),
+    (
+        "shell/domain/execution/aggregates/task_execution_state/task_execution_state.py",
+        "TaskExecutionState",
+    ),
+    (
+        "shell/domain/execution/aggregates/user_execution_state/user_execution_state.py",
+        "UserExecutionState",
+    ),
 ]:
     p = Path(path_str)
     if not p.exists():
         continue
     # State aggregates need their event too
-    if fix_file(p, f"{agg_name}CreatedEvent", agg_name,
-                f"from shell.domain.execution.aggregates.{agg_name.lower()}.events.{agg_name.lower()}_created_event import {agg_name}CreatedEvent"):
+    if fix_file(
+        p,
+        f"{agg_name}CreatedEvent",
+        agg_name,
+        f"from shell.domain.execution.aggregates.{agg_name.lower()}.events.{agg_name.lower()}_created_event import {agg_name}CreatedEvent",
+    ):
         print(f"FIXED: {agg_name}")
     else:
         print(f"SKIP: {agg_name}")

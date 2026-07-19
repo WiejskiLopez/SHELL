@@ -1,42 +1,43 @@
 #!/usr/bin/env python
 """Fix scheduler_job event placement."""
+
 from pathlib import Path
 
 fp = Path("shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py")
 content = fp.read_text("utf-8")
 
 old = (
-    '    def _delete(self) -> None:\n'
+    "    def _delete(self) -> None:\n"
     '        raise NotImplementedError("_delete() not yet implemented")\n'
-    '\n'
-    '    def _update(self) -> None:\n'
+    "\n"
+    "    def _update(self) -> None:\n"
     '        raise NotImplementedError("_update() not yet implemented")\n'
-    '        instance.append_event(\n'
-    '            SchedulerJobCreatedEvent.now(\n'
-    '                schedulerjob_id=instance.id,\n'
-    '                now=now,\n'
-    '            )\n'
-    '        )\n'
-    '        return instance\n'
-    '    @property'
+    "        instance.append_event(\n"
+    "            SchedulerJobCreatedEvent.now(\n"
+    "                schedulerjob_id=instance.id,\n"
+    "                now=now,\n"
+    "            )\n"
+    "        )\n"
+    "        return instance\n"
+    "    @property"
 )
 
 new = (
-    '        instance.append_event(\n'
-    '            SchedulerJobCreatedEvent.now(\n'
-    '                schedulerjob_id=instance.id,\n'
-    '                now=now,\n'
-    '            )\n'
-    '        )\n'
-    '        return instance\n'
-    '\n'
-    '    def _delete(self) -> None:\n'
+    "        instance.append_event(\n"
+    "            SchedulerJobCreatedEvent.now(\n"
+    "                schedulerjob_id=instance.id,\n"
+    "                now=now,\n"
+    "            )\n"
+    "        )\n"
+    "        return instance\n"
+    "\n"
+    "    def _delete(self) -> None:\n"
     '        raise NotImplementedError("_delete() not yet implemented")\n'
-    '\n'
-    '    def _update(self) -> None:\n'
+    "\n"
+    "    def _update(self) -> None:\n"
     '        raise NotImplementedError("_update() not yet implemented")\n'
-    '\n'
-    '    @property'
+    "\n"
+    "    @property"
 )
 
 if old in content:
@@ -46,6 +47,7 @@ if old in content:
 else:
     print("NOT FOUND: pattern didn't match - checking file...")
     import re
+
     idx = content.find("def _delete")
     if idx >= 0:
-        print(content[idx:idx+400])
+        print(content[idx : idx + 400])

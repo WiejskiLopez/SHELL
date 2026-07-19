@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Add remaining _delete/_update stubs + missing slots to all aggregates."""
+
 from __future__ import annotations
 
 import re
@@ -11,7 +12,7 @@ def add_stub(content: str, method_name: str) -> str:
         return content
     stub = (
         f"\n    def {method_name}(self) -> None:\n"
-        f"        raise NotImplementedError(\"{method_name}() not yet implemented\")\n"
+        f'        raise NotImplementedError("{method_name}() not yet implemented")\n'
     )
     lines = content.split("\n")
     insert_at = len(lines) - 1
@@ -34,7 +35,7 @@ def fix_file(path: Path) -> bool:
     for field in ('"_created_at"', '"_updated_at"'):
         if field not in content:
             content = re.sub(
-                r'(__slots__\s*=\s*\()',
+                r"(__slots__\s*=\s*\()",
                 f"\\1\n        {field},",
                 content,
                 count=1,
@@ -49,7 +50,10 @@ def fix_file(path: Path) -> bool:
 def main() -> None:
     fixed = 0
     for path in sorted(Path("shell/domain").rglob("**/aggregates/**/*.py")):
-        if any(p in path.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+        if any(
+            p in path.parts
+            for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+        ):
             continue
         if "AggregateRoot" not in path.read_text("utf-8"):
             continue

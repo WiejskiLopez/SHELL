@@ -24,6 +24,7 @@ from shell.domain.user.aggregates.user_state.events.user_state_updated_event imp
 from shell.domain.user.aggregates.user_state.value_objects.user_state_id import UserStateId
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr
@@ -36,12 +37,12 @@ if TYPE_CHECKING:
 
 class UserState(AggregateRoot[UserStateId]):
     __slots__ = (
-        "_user_id",
-        "_direction",
-        "_state_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_user_id",
+        "_direction",
+        "_state_data",
     )
 
     _user_id: UserId
@@ -52,12 +53,12 @@ class UserState(AggregateRoot[UserStateId]):
         self,
         *,
         id: UserStateId,
-        user_id: UserId,
-        direction: StateDirection,
-        state_data: StateData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        user_id: UserId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -72,16 +73,16 @@ class UserState(AggregateRoot[UserStateId]):
         cls,
         *,
         id_: UserStateId,
+        now: CreatedAt,
         user_id: UserId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> UserState:
         return cls(
             id=id_,
             user_id=user_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
     # ------------------------------------------------------------------ mutations
@@ -94,7 +95,7 @@ class UserState(AggregateRoot[UserStateId]):
             UserStateChangedEvent.now(
                 user_id=self._user_id,
                 user_state_id=self.id,
-                now=self._created_at,
+                now=OccurredAt.from_datetime(self._created_at.value),
             )
         )
 
@@ -111,7 +112,7 @@ class UserState(AggregateRoot[UserStateId]):
                 UserStateChangedEvent.now(
                     user_id=self._user_id,
                     user_state_id=self.id,
-                    now=self._created_at,
+                    now=OccurredAt.from_datetime(self._created_at.value),
                 )
             )
 
@@ -140,12 +141,12 @@ class UserState(AggregateRoot[UserStateId]):
         cls,
         *,
         id: UserStateId,
-        user_id: UserId,
-        direction: StateDirection,
-        state_data: StateData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        user_id: UserId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> Self:
         return cls(
             id=id,
@@ -165,7 +166,7 @@ class UserState(AggregateRoot[UserStateId]):
         self.append_event(
             UserStateDeletedEvent.now(
                 user_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -174,7 +175,7 @@ class UserState(AggregateRoot[UserStateId]):
         self.append_event(
             UserStateUpdatedEvent.now(
                 user_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -209,14 +210,14 @@ class UserState(AggregateRoot[UserStateId]):
         cls,
         *,
         id_: UserStateId,
+        now: OccurredAt,
         user_id: UserId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> UserState:
         return cls(
             id=id_,
             user_id=user_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )

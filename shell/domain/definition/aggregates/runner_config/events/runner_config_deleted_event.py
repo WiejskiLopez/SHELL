@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
         RunnerConfigId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,5 +17,5 @@ class RunnerConfigDeletedEvent(DomainEvent):
     runner_config_id: RunnerConfigId
 
     @classmethod
-    def now(cls, runner_config_id: RunnerConfigId, now: CreatedAt) -> RunnerConfigDeletedEvent:
+    def now(cls, runner_config_id: RunnerConfigId, now: OccurredAt) -> RunnerConfigDeletedEvent:
         return cls(occurred_at=now, runner_config_id=runner_config_id)

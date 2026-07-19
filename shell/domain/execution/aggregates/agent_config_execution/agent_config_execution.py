@@ -17,6 +17,7 @@ from shell.domain.execution.aggregates.agent_config_execution.value_objects.agen
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,11 +30,11 @@ if TYPE_CHECKING:
 
 class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     __slots__ = (
-        "_agent_execution_id",
-        "_config_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_agent_execution_id",
+        "_config_data",
     )
 
     _agent_execution_id: AgentExecutionId
@@ -43,11 +44,12 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
 
     def __init__(
         self,
+        *,
         id: AgentConfigExecutionId,
-        agent_execution_id: AgentExecutionId,
-        config_data: ConfigData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        agent_execution_id: AgentExecutionId,
+        config_data: ConfigData,
     ) -> None:
         super().__init__(id)
         self._agent_execution_id = agent_execution_id
@@ -59,15 +61,15 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def create(
         cls,
         id: AgentConfigExecutionId,
+        now: CreatedAt,
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
-        now: CreatedAt,
     ) -> AgentConfigExecution:
         return cls(
             id=id,
             agent_execution_id=agent_execution_id,
             config_data=config_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
             updated_at=UpdatedAt(now.value),
         )
 
@@ -79,7 +81,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self.append_event(
             AgentConfigUpdatedEvent.now(
                 agent_config_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -89,7 +91,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self.append_event(
             AgentConfigExecutionDeletedEvent.now(
                 agent_config_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -98,7 +100,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self.append_event(
             AgentConfigExecutionUpdatedEvent.now(
                 agent_config_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -121,11 +123,12 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: AgentConfigExecutionId,
-        agent_execution_id: AgentExecutionId,
-        config_data: ConfigData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        agent_execution_id: AgentExecutionId,
+        config_data: ConfigData,
     ) -> Self:
         return cls(
             id=id,
@@ -139,13 +142,13 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
     def _new(
         cls,
         id: AgentConfigExecutionId,
+        now: OccurredAt,
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
-        now: CreatedAt,
     ) -> AgentConfigExecution:
         return cls(
             id=id,
             agent_execution_id=agent_execution_id,
             config_data=config_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )

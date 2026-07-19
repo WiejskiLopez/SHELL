@@ -40,7 +40,7 @@ class TestSqlCommitRollback:
         try:
             async with sql_uow as u:
                 await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]
-                    RunnerConfig.new(
+                    RunnerConfig.create(
                         id_=id_generator.new_id(RunnerConfigId),
                         now=CreatedAt.from_datetime(clock.now()),
                     )

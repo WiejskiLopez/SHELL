@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
         EdgeExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,7 @@ class EdgeExecutionUpdatedEvent(DomainEvent):
     def now(
         cls,
         edge_execution_id: EdgeExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> EdgeExecutionUpdatedEvent:
         return cls(
             occurred_at=now,

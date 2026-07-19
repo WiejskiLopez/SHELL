@@ -15,6 +15,7 @@ from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import 
 from shell.domain.user.value_objects.skill_data import SkillData
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
@@ -25,11 +26,11 @@ if TYPE_CHECKING:
 
 class UserSkill(AggregateRoot[UserSkillId]):
     __slots__ = (
-        "_user_id",
-        "_skill_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_user_id",
+        "_skill_data",
     )
 
     _user_id: UserId
@@ -39,11 +40,11 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self,
         *,
         id: UserSkillId,
-        user_id: UserId,
-        skill_data: SkillData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        user_id: UserId,
+        skill_data: SkillData,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -57,11 +58,11 @@ class UserSkill(AggregateRoot[UserSkillId]):
         cls,
         *,
         id: UserSkillId,
-        user_id: UserId,
-        skill_data: SkillData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        user_id: UserId,
+        skill_data: SkillData,
     ) -> Self:
         return cls(
             id=id,
@@ -73,25 +74,27 @@ class UserSkill(AggregateRoot[UserSkillId]):
         )
 
     @classmethod
-    def _new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
+    def _new(cls, now: OccurredAt, user_id: UserId, skill_data: JsonStr) -> UserSkill:
         instance = cls(
             id=UserSkillId.generate(),
             user_id=user_id,
             skill_data=SkillData(skill_data),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             UserSkillCreatedEvent.now(
                 skill_id=instance.id,
                 user_id=user_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
 
     @classmethod
     def new(cls, user_id: UserId, skill_data: JsonStr, now: CreatedAt) -> UserSkill:
-        return cls._new(user_id=user_id, skill_data=skill_data, now=now)
+        return cls._new(
+            user_id=user_id, skill_data=skill_data, now=OccurredAt.from_datetime(now.value)
+        )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -99,7 +102,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self.append_event(
             UserSkillDeletedEvent.now(
                 user_skill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -108,7 +111,7 @@ class UserSkill(AggregateRoot[UserSkillId]):
         self.append_event(
             UserSkillUpdatedEvent.now(
                 user_skill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

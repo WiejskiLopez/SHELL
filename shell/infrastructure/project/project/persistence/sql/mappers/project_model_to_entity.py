@@ -26,9 +26,7 @@ def project_model_to_entity(model: ProjectModel) -> Project:
         name=ProjectName(model.name),
         repo_url=RepoUrl(model.repo_url),
         status=ProjectStatus(model.status),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at))
-        if model.created_at
-        else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
         if model.updated_at is not None
         else None,

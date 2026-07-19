@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Add *CreatedEvent emission to aggregates that lack it."""
+
 from __future__ import annotations
 
 import re
@@ -50,7 +51,7 @@ def add_event_to_new(content: str, name: str, id_var: str, agg_file: Path) -> st
     event_module = f"{name}CreatedEvent"
 
     # Find _new method body and add append_event before return
-    pattern = r'(def _new\([^)]*\)[^:]*:\n(?:.*\n)*?)(\s+)(return instance)'
+    pattern = r"(def _new\([^)]*\)[^:]*:\n(?:.*\n)*?)(\s+)(return instance)"
     m = re.search(pattern, content)
     if not m:
         return content
@@ -87,12 +88,24 @@ def main() -> None:
     base = Path("shell/domain")
     # These need events added
     targets = [
-        ("shell/domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py", "SchedulerDefinition"),
+        (
+            "shell/domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py",
+            "SchedulerDefinition",
+        ),
         ("shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py", "SchedulerJob"),
         ("shell/domain/execution/aggregates/agent_execution/agent_execution.py", "AgentExecution"),
-        ("shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py", "AgentSkillExecution"),
-        ("shell/domain/execution/aggregates/node_link_execution/node_link_execution.py", "NodeLinkExecution"),
-        ("shell/domain/definition/aggregates/node_link_definition/node_link_definition.py", "NodeLinkDefinition"),
+        (
+            "shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py",
+            "AgentSkillExecution",
+        ),
+        (
+            "shell/domain/execution/aggregates/node_link_execution/node_link_execution.py",
+            "NodeLinkExecution",
+        ),
+        (
+            "shell/domain/definition/aggregates/node_link_definition/node_link_definition.py",
+            "NodeLinkDefinition",
+        ),
     ]
 
     for rel_path, name in targets:

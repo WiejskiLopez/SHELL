@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from shell.platform.domain.events.domain_event import DomainEvent
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -19,6 +19,6 @@ class AggregateDeletedEvent(DomainEvent):
     @classmethod
     def now(cls, deleted_at: DeletedAt) -> AggregateDeletedEvent:
         return cls(
-            occurred_at=CreatedAt.from_datetime(deleted_at.value),
+            occurred_at=OccurredAt.from_datetime(deleted_at.value),
             deleted_at=deleted_at,
         )

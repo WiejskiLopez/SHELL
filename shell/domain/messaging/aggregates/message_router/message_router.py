@@ -16,6 +16,7 @@ from shell.domain.messaging.aggregates.message_router.value_objects.message_rout
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -27,10 +28,10 @@ if TYPE_CHECKING:
 
 class MessageRouter(AggregateRoot[MessageRouterId]):
     __slots__ = (
-        "_message_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_message_data",
     )
 
     _message_data: MessageData
@@ -41,9 +42,9 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self,
         *,
         id: MessageRouterId,
-        message_data: MessageData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        message_data: MessageData,
     ) -> None:
         super().__init__(id)
         self._message_data = message_data
@@ -55,9 +56,9 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         cls,
         *,
         id: MessageRouterId,
-        message_data: MessageData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        message_data: MessageData,
     ) -> Self:
         return cls(
             id=id,
@@ -72,7 +73,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self.append_event(
             MessageRouterDeletedEvent.now(
                 message_router_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -81,7 +82,7 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         self.append_event(
             MessageRouterUpdatedEvent.now(
                 message_router_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -102,18 +103,18 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         cls,
         *,
         id_: MessageRouterId,
+        now: OccurredAt,
         message_data: MessageData,
-        now: CreatedAt,
     ) -> MessageRouter:
         instance = cls(
             id=id_,
             message_data=message_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             MessageRouterCreatedEvent.now(
                 message_router_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -126,4 +127,4 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         message_data: MessageData,
         now: CreatedAt,
     ) -> MessageRouter:
-        return cls._new(id_=id_, message_data=message_data, now=now)
+        return cls._new(id_=id_, message_data=message_data, now=OccurredAt.from_datetime(now.value))

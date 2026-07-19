@@ -8,11 +8,11 @@ from typing import TYPE_CHECKING
 from shell.platform.domain.events.domain_event import DomainEvent
 
 if TYPE_CHECKING:
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
 class AggregateRestoredEvent(DomainEvent):
     @classmethod
-    def now(cls, now: CreatedAt) -> AggregateRestoredEvent:
+    def now(cls, now: OccurredAt) -> AggregateRestoredEvent:
         return cls(occurred_at=now)

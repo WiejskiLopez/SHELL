@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
         SchedulerExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +18,6 @@ class SchedulerExecutionUpdatedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, scheduler_execution_id: SchedulerExecutionId, now: CreatedAt
+        cls, scheduler_execution_id: SchedulerExecutionId, now: OccurredAt
     ) -> SchedulerExecutionUpdatedEvent:
         return cls(occurred_at=now, scheduler_execution_id=scheduler_execution_id)

@@ -7,6 +7,7 @@ from shell.domain.execution.aggregates.session_execution.value_objects.session_e
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -32,11 +33,11 @@ from shell.domain.execution.aggregates.session_execution.events.session_executio
 
 class SessionExecution(AggregateRoot[SessionExecutionId]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_user_execution_id",
         "_session_id",
-        "_created_at",
-        "_deleted_at",
     )
 
     _user_execution_id: UserExecutionId | None
@@ -49,9 +50,9 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         self,
         *,
         id: SessionExecutionId,
+        created_at: CreatedAt,
         user_execution_id: UserExecutionId | None = None,
         session_id: SessionIdRef | None = None,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._user_execution_id = user_execution_id
@@ -66,19 +67,19 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         cls,
         *,
         id_: SessionExecutionId,
-        session_id: SessionIdRef,
         now: CreatedAt,
+        session_id: SessionIdRef,
     ) -> SessionExecution:
-        return cls._new(id_=id_, session_id=session_id, now=now)
+        return cls._new(id_=id_, session_id=session_id, now=OccurredAt.from_datetime(now.value))
 
     @classmethod
     def restore(
         cls,
         *,
         id: SessionExecutionId,
+        created_at: CreatedAt,
         user_execution_id: UserExecutionId | None = None,
         session_id: SessionIdRef | None = None,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -92,7 +93,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         self.append_event(
             SessionExecutionUpdatedEvent.now(
                 session_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -102,7 +103,7 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         self.append_event(
             SessionExecutionDeletedEvent.now(
                 session_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -123,18 +124,18 @@ class SessionExecution(AggregateRoot[SessionExecutionId]):
         cls,
         *,
         id_: SessionExecutionId,
+        now: OccurredAt,
         session_id: SessionIdRef,
-        now: CreatedAt,
     ) -> SessionExecution:
         session_execution = cls(
             id=id_,
             session_id=session_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         session_execution.append_event(
             SessionExecutionCreatedEvent.now(
                 session_execution_id=id_,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return session_execution

@@ -15,7 +15,7 @@ from shell.domain.definition.aggregates.node_link_definition.value_objects.node_
     NodeLinkDefinitionId,
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -25,12 +25,15 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
+
 
 class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
     __slots__ = (
-        "_updated_at",
         "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_graph_definition_id",
         "_node_definition_id",
     )
@@ -50,33 +53,38 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         cls,
         *,
         id_: NodeLinkDefinitionId,
+        now: OccurredAt,
         graph_definition_id: GraphDefinitionId,
         node_definition_id: NodeDefinitionId,
-        now: CreatedAt,
     ) -> NodeLinkDefinition:
         instance = cls(
             id=id_,
             graph_definition_id=graph_definition_id,
             node_definition_id=node_definition_id,
-            created_at=now,
         )
         instance.append_event(
             NodeLinkDefinitionCreatedEvent.now(
-                nodelinkdefinition_id=instance.id,
-                now=now,
+                node_link_definition_id=instance.id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
+
     @classmethod
     def create(
         cls,
         *,
         id_: NodeLinkDefinitionId,
+        now: CreatedAt,
         graph_definition_id: GraphDefinitionId,
         node_definition_id: NodeDefinitionId,
-        now: CreatedAt,
     ) -> NodeLinkDefinition:
-        return cls._new(id_=id_, graph_definition_id=graph_definition_id, node_definition_id=node_definition_id, now=now)
+        return cls._new(
+            id_=id_,
+            graph_definition_id=graph_definition_id,
+            node_definition_id=node_definition_id,
+            now=OccurredAt.from_datetime(now.value),
+        )
 
     @classmethod
     def restore(
@@ -96,18 +104,20 @@ class NodeLinkDefinition(AggregateRoot[NodeLinkDefinitionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeLinkDefinitionDeletedEvent.now(
-                nodelinkdefinition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                node_link_definition_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+
+    def _update(self, now: CreatedAt) -> None:
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeLinkDefinitionUpdatedEvent.now(
-                nodelinkdefinition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                node_link_definition_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
+
     @property
     def graph_definition_id(self) -> GraphDefinitionId:
         return self._graph_definition_id

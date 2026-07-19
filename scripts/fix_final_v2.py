@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Final comprehensive fix for remaining aggregates."""
+
 from __future__ import annotations
 
 import re
@@ -61,7 +62,11 @@ for fix in FIXES:
     event_dir = p.parent / "events"
     event_dir.mkdir(exist_ok=True)
     event_file = event_dir / f"{agg.lower()}_created_event.py"
-    id_module = f"shell.domain.{re.search(r'shell/domain/(.+?)/', str(p)).group(1).replace('/', '.')}.aggregates.{agg.lower().replace('_', '')}.value_objects.{fix['id_type']}" if not fix.get("id_module") else fix["id_module"]
+    id_module = (
+        f"shell.domain.{re.search(r'shell/domain/(.+?)/', str(p)).group(1).replace('/', '.')}.aggregates.{agg.lower().replace('_', '')}.value_objects.{fix['id_type']}"
+        if not fix.get("id_module")
+        else fix["id_module"]
+    )
     # Simplified - just write a reasonable event file
     event_content = f'''from __future__ import annotations
 

@@ -29,7 +29,7 @@ class TestPgUnitOfWorkRollback:
         try:
             async with sql_uow as u:
                 await u.repository(RunnerConfigRepository).save(
-                    RunnerConfig.new(
+                    RunnerConfig.create(
                         id_=id_gen.new_id(RunnerConfigId),
                         now=clock.now(),
                     )

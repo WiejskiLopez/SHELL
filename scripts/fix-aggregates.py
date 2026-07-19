@@ -4,6 +4,7 @@
 Adds _new(), _delete(), _update() private methods + public wrappers
 to every aggregate that doesn't have them yet.
 """
+
 from __future__ import annotations
 
 import re
@@ -25,7 +26,10 @@ def find_aggregates() -> list[AggregateInfo]:
     result = []
     for f in files:
         parts = f.parts
-        if any(p in parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+        if any(
+            p in parts
+            for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+        ):
             continue
         content = f.read_text(encoding="utf-8")
         if "AggregateRoot" not in content:
@@ -55,10 +59,10 @@ def ensure_import(content: str, import_line: str) -> str:
 
 def add_to_list(content: str, lst_name: str, item: str) -> str:
     """Add item to a Python tuple/list if not present."""
-    pattern = rf'({lst_name}\s*=\s*\([^)]*?)(\))'
+    pattern = rf"({lst_name}\s*=\s*\([^)]*?)(\))"
     m = re.search(pattern, content, re.DOTALL)
     if m and item not in m.group(1):
-        return content[: m.end(1)] + f'        {item},\n    ' + content[m.end(1) :]
+        return content[: m.end(1)] + f"        {item},\n    " + content[m.end(1) :]
     return content
 
 
@@ -132,7 +136,7 @@ def add_private_new(agg: AggregateInfo) -> str:
         new_method = (
             f"\n{indent}@classmethod\n"
             f"{indent}def _new(cls) -> {agg.name}:\n"
-            f"{indent}    raise NotImplementedError(\"_new() not yet implemented\")\n"
+            f'{indent}    raise NotImplementedError("_new() not yet implemented")\n'
         )
         lines.insert(insert_at, new_method)
         content = "\n".join(lines)
@@ -158,7 +162,7 @@ def add_private_delete(agg: AggregateInfo) -> str:
     method = (
         f"\n{indent}@classmethod\n"
         f"{indent}def _delete(cls) -> None:\n"
-        f"{indent}    raise NotImplementedError(\"_delete() not yet implemented\")\n"
+        f'{indent}    raise NotImplementedError("_delete() not yet implemented")\n'
     )
     lines.insert(insert_at, method)
     return "\n".join(lines)
@@ -181,7 +185,7 @@ def add_private_update(agg: AggregateInfo) -> str:
     method = (
         f"\n{indent}@classmethod\n"
         f"{indent}def _update(cls) -> None:\n"
-        f"{indent}    raise NotImplementedError(\"_update() not yet implemented\")\n"
+        f'{indent}    raise NotImplementedError("_update() not yet implemented")\n'
     )
     lines.insert(insert_at, method)
     return "\n".join(lines)
@@ -193,7 +197,9 @@ def fix_aggregate(agg: AggregateInfo) -> bool:
     original = content
 
     # 1. Ensure UpdatedAt import
-    content = ensure_import(content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt")
+    content = ensure_import(
+        content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt"
+    )
 
     # 2. Add _updated_at to __slots__
     content = add_to_list(content, "__slots__", '"_updated_at"')

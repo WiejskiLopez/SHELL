@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
         NodeDefinitionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +18,6 @@ class NodeDefinitionDeletedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, node_definition_id: NodeDefinitionId, now: CreatedAt
+        cls, node_definition_id: NodeDefinitionId, now: OccurredAt
     ) -> NodeDefinitionDeletedEvent:
         return cls(occurred_at=now, node_definition_id=node_definition_id)

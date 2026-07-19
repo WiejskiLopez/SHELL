@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix remaining _update stubs."""
+
 from pathlib import Path
 
 FILES = [
@@ -9,7 +10,10 @@ FILES = [
     ("shell/domain/execution/aggregates/user_execution/user_execution.py", "UserExecution"),
     ("shell/domain/execution/aggregates/workflow/workflow.py", "Workflow"),
     ("shell/domain/execution/aggregates/node_execution/node_execution.py", "NodeExecution"),
-    ("shell/domain/execution/aggregates/session_execution/session_execution.py", "SessionExecution"),
+    (
+        "shell/domain/execution/aggregates/session_execution/session_execution.py",
+        "SessionExecution",
+    ),
     ("shell/domain/definition/aggregates/graph_definition/graph_definition.py", "GraphDefinition"),
     ("shell/domain/definition/aggregates/node_definition/node_definition.py", "NodeDefinition"),
 ]
@@ -27,8 +31,8 @@ for path_str, name in FILES:
 
     # Replace stubs
     for method in ["_delete", "_update"]:
-        stub_self = f"    def {method}(self) -> None:\n        raise NotImplementedError(\"{method}() not yet implemented\")"
-        stub_cls = f"    def {method}(cls) -> None:\n        raise NotImplementedError(\"{method}() not yet implemented\")"
+        stub_self = f'    def {method}(self) -> None:\n        raise NotImplementedError("{method}() not yet implemented")'
+        stub_cls = f'    def {method}(cls) -> None:\n        raise NotImplementedError("{method}() not yet implemented")'
         stub = stub_self if stub_self in content else (stub_cls if stub_cls in content else "")
         if stub:
             if method == "_delete":

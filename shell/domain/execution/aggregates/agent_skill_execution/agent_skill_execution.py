@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ if TYPE_CHECKING:
 
 
 class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
-    __slots__ = ("_updated_at", "_agent_execution_id", "_skill_data", "_created_at", "_deleted_at")
+    __slots__ = ("_created_at", "_updated_at", "_deleted_at", "_agent_execution_id", "_skill_data")
 
     _agent_execution_id: AgentExecutionId
     _skill_data: SkillData
@@ -38,9 +39,9 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
     def __init__(
         self,
         id_: AgentSkillExecutionId,
+        created_at: CreatedAt,
         agent_execution_id: AgentExecutionId,
         skill_data: SkillData,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id_)
         self._agent_execution_id = agent_execution_id
@@ -51,9 +52,9 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
     def restore(
         cls,
         id_: AgentSkillExecutionId,
+        created_at: CreatedAt,
         agent_execution_id: AgentExecutionId,
         skill_data: SkillData,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id_=id_,
@@ -66,20 +67,20 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
     def _new(
         cls,
         id_: AgentSkillExecutionId,
+        now: OccurredAt,
         agent_execution_id: AgentExecutionId,
         skill_data: SkillData,
-        now: CreatedAt,
     ) -> AgentSkillExecution:
         instance = cls(
             id_=id_,
             agent_execution_id=agent_execution_id,
             skill_data=skill_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             AgentSkillExecutionCreatedEvent.now(
                 agent_skill_execution_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -88,15 +89,15 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
     def create(
         cls,
         id_: AgentSkillExecutionId,
+        now: CreatedAt,
         agent_execution_id: AgentExecutionId,
         skill_data: SkillData,
-        now: CreatedAt,
     ) -> AgentSkillExecution:
         return cls._new(
             id_=id_,
             agent_execution_id=agent_execution_id,
             skill_data=skill_data,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
         )
 
     def _delete(self, now: DeletedAt) -> None:
@@ -105,7 +106,7 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         self.append_event(
             AgentSkillExecutionDeletedEvent.now(
                 agent_skill_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -114,7 +115,7 @@ class AgentSkillExecution(AggregateRoot[AgentSkillExecutionId]):
         self.append_event(
             AgentSkillExecutionUpdatedEvent.now(
                 agent_skill_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

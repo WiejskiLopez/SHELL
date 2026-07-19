@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,7 @@ class GraphExecutionDeletedEvent(DomainEvent):
     def now(
         cls,
         graph_execution_id: GraphExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> GraphExecutionDeletedEvent:
         return cls(
             occurred_at=now,

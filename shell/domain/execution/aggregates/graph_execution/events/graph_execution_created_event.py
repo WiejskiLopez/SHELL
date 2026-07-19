@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +26,7 @@ class GraphExecutionCreatedEvent(DomainEvent):
         cls,
         graph_execution_id: GraphExecutionId,
         task_execution_id: TaskExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
     ) -> GraphExecutionCreatedEvent:
         return cls(

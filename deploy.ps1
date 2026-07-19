@@ -3,7 +3,14 @@ param(
     [string]$Message = "auto: $(Get-Date -Format 'yyyy-MM-dd HH:mm')"
 )
 
-Write-Host "=== Krok 1: Testy ===" -ForegroundColor Cyan
+Write-Host "=== Krok 0: Autoformat ===" -ForegroundColor Cyan
+python -m ruff format shell/ shell/tests
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Autoformat nie powiodl sie" -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "`n=== Krok 1: Testy ===" -ForegroundColor Cyan
 & "$PSScriptRoot\run_tests.ps1" -UnitOnly -SkipSecurity
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Testy nie przeszly - deploy anulowany" -ForegroundColor Red

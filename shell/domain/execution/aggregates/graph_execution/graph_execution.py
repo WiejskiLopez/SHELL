@@ -18,6 +18,7 @@ from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgrap
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
@@ -40,28 +41,29 @@ from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 class GraphExecution(AggregateRoot[GraphExecutionId]):
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_task_execution_id",
         "_parent_graph_execution_id",
         "_depth",
         "_max_subgraph_depth",
         "_execution_status",
         "_graph_definition_id",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: GraphExecutionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
-        created_at: CreatedAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -81,15 +83,16 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: GraphExecutionId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         task_execution_id: TaskExecutionId,
         depth: GraphDepth,
         max_subgraph_depth: MaxSubgraphDepth,
-        created_at: CreatedAt,
         parent_graph_execution_id: GraphExecutionId | None = None,
         graph_definition_id: GraphDefinitionIdRef | None = None,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> Self:
         instance = cls(
             id=id,
@@ -109,15 +112,15 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         cls,
         *,
         id_: GraphExecutionId,
+        now: OccurredAt,
         task_execution_id: TaskExecutionId,
         graph_definition_id: GraphDefinitionIdRef,
-        now: CreatedAt,
     ) -> GraphExecution:
         return cls.initialize(
             id_=id_,
             task_execution_id=task_execution_id,
             graph_definition_id=graph_definition_id,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
         )
 
     @classmethod
@@ -126,7 +129,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         id_: GraphExecutionId,
         task_execution_id: TaskExecutionId,
         graph_definition_id: GraphDefinitionIdRef,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> GraphExecution:
         instance = cls(
             id=id_,
@@ -134,7 +137,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             depth=GraphDepth(0),
             max_subgraph_depth=MaxSubgraphDepth(5),
             graph_definition_id=graph_definition_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
         instance.append_event(
@@ -154,7 +157,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionUpdatedEvent.now(
                 graph_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -165,7 +168,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionDeletedEvent.now(
                 graph_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -184,7 +187,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             parent_graph_execution_id=None,
             depth=depth,
             max_subgraph_depth=max_subgraph_depth,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
     @classmethod
@@ -208,7 +211,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
             parent_graph_execution_id=parent_id,
             depth=depth_val,
             max_subgraph_depth=max_subgraph_depth,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
     def _delete(self, now: DeletedAt) -> None:
@@ -217,7 +220,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionDeletedEvent.now(
                 graph_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -226,7 +229,7 @@ class GraphExecution(AggregateRoot[GraphExecutionId]):
         self.append_event(
             GraphExecutionUpdatedEvent.now(
                 graph_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

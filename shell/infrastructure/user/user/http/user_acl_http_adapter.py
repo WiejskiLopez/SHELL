@@ -27,9 +27,7 @@ class UserAclHttpAdapter(UserACL):
             id=UserId(data["id"]),
             email=UserEmail(data["email"]),
             status=UserStatus(data["status"]),
-            created_at=CreatedAt.from_datetime(data["created_at"])
-            if data.get("created_at")
-            else None,
+            created_at=CreatedAt.from_datetime(data["created_at"]),
             updated_at=UpdatedAt.from_datetime(data["updated_at"])
             if data.get("updated_at")
             else None,

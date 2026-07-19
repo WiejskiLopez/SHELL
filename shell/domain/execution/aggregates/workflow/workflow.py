@@ -17,6 +17,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_status im
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -33,11 +34,11 @@ if TYPE_CHECKING:
 
 class Workflow(AggregateRoot["WorkflowId"]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_session_id",
         "_status",
-        "_created_at",
-        "_deleted_at",
     )
 
     _session_id: SessionIdRef | None
@@ -49,10 +50,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self,
         *,
         id: WorkflowId,
-        session_id: SessionIdRef | None = None,
-        status: WorkflowStatus | None = None,
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
+        session_id: SessionIdRef | None = None,
+        status: WorkflowStatus | None = None,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
@@ -69,23 +70,25 @@ class Workflow(AggregateRoot["WorkflowId"]):
         now: CreatedAt,
         session_id: SessionIdRef | None = None,
     ) -> Workflow:
-        return cls._new(id_=id_, now=now, session_id=session_id)
+        return cls._new(id_=id_, now=OccurredAt.from_datetime(now.value), session_id=session_id)
 
     @classmethod
     def _new(
         cls,
         *,
         id_: WorkflowId,
-        now: CreatedAt,
+        now: OccurredAt,
         session_id: SessionIdRef | None = None,
     ) -> Workflow:
         workflow = cls(
             id=id_,
             session_id=session_id,
             status=WorkflowStatus.ACTIVE,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
-        workflow.append_event(WorkflowCreatedEvent.now(workflow_id=id_, now=now))
+        workflow.append_event(
+            WorkflowCreatedEvent.now(workflow_id=id_, now=OccurredAt.from_datetime(now.value))
+        )
         return workflow
 
     # --- Methods ---
@@ -141,10 +144,10 @@ class Workflow(AggregateRoot["WorkflowId"]):
         cls,
         *,
         id: WorkflowId,
-        session_id: SessionIdRef | None = None,
-        status: WorkflowStatus,
         created_at: CreatedAt,
         deleted_at: DeletedAt | None = None,
+        session_id: SessionIdRef | None = None,
+        status: WorkflowStatus,
     ) -> Self:
         return cls(
             id=id,
@@ -161,7 +164,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.append_event(
             WorkflowUpdatedEvent.now(
                 workflow_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -171,7 +174,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self.append_event(
             WorkflowDeletedEvent.now(
                 workflow_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

@@ -6,6 +6,7 @@ from shell.domain.execution.aggregates.workflow.value_objects.node_execution_res
     NodeExecutionResultId,
 )
 from shell.platform.domain.base.entity import Entity
+from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
@@ -22,27 +23,26 @@ if TYPE_CHECKING:
         ExecutionStdout,
     )
     from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
 
 
 class NodeExecutionResult(Entity[NodeExecutionResultId]):
     __slots__ = (
+        "_created_at",
         "_node_execution_id",
         "_workflow_id",
         "_status",
         "_stdout",
         "_stderr",
         "_artifact_uri",
-        "_created_at",
     )
 
     def __init__(
         self,
         id: NodeExecutionResultId,
+        created_at: CreatedAt,
         node_execution_id: NodeExecutionId,
         workflow_id: WorkflowId,
         status: NodeExecutionStatus,
-        created_at: CreatedAt,
         stdout: ExecutionStdout | None = None,
         stderr: ExecutionStderr | None = None,
         artifact_uri: ArtifactUri | None = None,
@@ -105,5 +105,5 @@ class NodeExecutionResult(Entity[NodeExecutionResultId]):
             stdout=stdout,
             stderr=stderr,
             artifact_uri=artifact_uri,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )

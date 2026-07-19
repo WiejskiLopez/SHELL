@@ -16,6 +16,7 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -24,7 +25,13 @@ if TYPE_CHECKING:
 
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
     __slots__ = (
-        "_updated_at","_created_at",)
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
+    )
+
+    _updated_at: UpdatedAt | None
+    _deleted_at: DeletedAt | None
 
     def __init__(
         self,
@@ -35,23 +42,27 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         self._created_at = (
             created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         )
+        self._updated_at = None
+        self._deleted_at = None
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
         self.append_event(
             RunnerConfigDeletedEvent.now(
-                runnerconfig_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                runner_config_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
+
     def _update(self, now: UpdatedAt) -> None:
         self._updated_at = now
         self.append_event(
             RunnerConfigUpdatedEvent.now(
-                runnerconfig_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                runner_config_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
+
     @property
     def created_at(self) -> CreatedAt:
         return self._created_at
@@ -61,19 +72,20 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         cls,
         *,
         id_: RunnerConfigId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> RunnerConfig:
         instance = cls(
             id=id_,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             RunnerConfigCreatedEvent.now(
-                runnerconfig_id=instance.id,
-                now=now,
+                runner_config_id=instance.id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
+
     @classmethod
     def create(
         cls,
@@ -81,7 +93,7 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         id_: RunnerConfigId,
         now: CreatedAt,
     ) -> RunnerConfig:
-        return cls._new(id_=id_, now=now)
+        return cls._new(id_=id_, now=OccurredAt.from_datetime(now.value))
 
     @classmethod
     def restore(

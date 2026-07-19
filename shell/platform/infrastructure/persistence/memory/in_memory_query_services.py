@@ -90,7 +90,7 @@ class InMemoryQueryServices:
         return SessionDto(
             id=session.id.value,
             goal=session.goal,
-            status=session.status,
+            status=session._status,
             opened_at=session.opened_at.value,
             closed_at=session.closed_at.value if session.closed_at else None,
         )

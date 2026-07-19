@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_execution_id import (
@@ -31,21 +32,22 @@ from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
     __slots__ = (
-        "_node_execution_id",
-        "_edge_execution_id",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_node_execution_id",
+        "_edge_execution_id",
     )
 
     def __init__(
         self,
+        *,
         id_: EdgeLinkExecutionId,
-        node_execution_id: NodeExecutionId,
-        edge_execution_id: EdgeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        node_execution_id: NodeExecutionId,
+        edge_execution_id: EdgeExecutionId,
     ) -> None:
         super().__init__(id_)
         self._node_execution_id = node_execution_id
@@ -67,14 +69,14 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
             id_=id_,
             node_execution_id=node_execution_id,
             edge_execution_id=edge_execution_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             EdgeLinkExecutionCreatedEvent.now(
                 edge_link_execution_id=id_,
                 node_execution_id=node_execution_id,
                 edge_execution_id=edge_execution_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -87,7 +89,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self.append_event(
             EdgeLinkExecutionDeletedEvent.now(
                 edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -98,7 +100,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self.append_event(
             EdgeLinkExecutionUpdatedEvent.now(
                 edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -108,7 +110,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self.append_event(
             EdgeLinkExecutionDeletedEvent.now(
                 edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -117,7 +119,7 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self.append_event(
             EdgeLinkExecutionUpdatedEvent.now(
                 edge_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -132,12 +134,13 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
     @classmethod
     def restore(
         cls,
+        *,
         id_: EdgeLinkExecutionId,
-        node_execution_id: NodeExecutionId,
-        edge_execution_id: EdgeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        node_execution_id: NodeExecutionId,
+        edge_execution_id: EdgeExecutionId,
     ) -> Self:
         return cls(
             id_=id_,
@@ -153,22 +156,22 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         cls,
         *,
         id_: EdgeLinkExecutionId,
+        now: OccurredAt,
         node_execution_id: NodeExecutionId,
         edge_execution_id: EdgeExecutionId,
-        now: CreatedAt,
     ) -> EdgeLinkExecution:
         instance = cls(
             id_=id_,
             node_execution_id=node_execution_id,
             edge_execution_id=edge_execution_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             EdgeLinkExecutionCreatedEvent.now(
                 edge_link_execution_id=id_,
                 node_execution_id=node_execution_id,
                 edge_execution_id=edge_execution_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance

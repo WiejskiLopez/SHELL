@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition_embedding.value_objects.graph_definition_embedding_id import (
         GraphDefinitionEmbeddingId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,7 +25,7 @@ class GraphDefinitionEmbeddingCreatedEvent(DomainEvent):
         cls,
         graph_definition_embedding_id: GraphDefinitionEmbeddingId,
         graph_definition_id: GraphDefinitionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> GraphDefinitionEmbeddingCreatedEvent:
         return cls(
             occurred_at=now,

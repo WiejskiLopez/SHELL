@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix event file TYPE_CHECKING imports."""
+
 from pathlib import Path
 import re
 
@@ -9,7 +10,7 @@ for f in sorted(Path("shell/domain").rglob("**/events/*.py")):
         continue
     c = f.read_text("utf-8")
     orig = c
-    
+
     # Fix: from shell.domain.x.value_objects.CamelCaseId import CamelCaseId
     # To: from shell.domain.x.value_objects.snake_case_id import CamelCaseId
     lines = c.split("\n")
@@ -29,9 +30,9 @@ for f in sorted(Path("shell/domain").rglob("**/events/*.py")):
             new_lines.append(new_line)
         else:
             new_lines.append(line)
-    
+
     c = "\n".join(new_lines)
-    
+
     if c != orig:
         f.write_text(c, encoding="utf-8")
         count += 1

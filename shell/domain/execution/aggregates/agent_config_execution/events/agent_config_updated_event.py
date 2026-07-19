@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_config_execution.value_objects.agent_config_execution_id import (
         AgentConfigExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,7 @@ class AgentConfigUpdatedEvent(DomainEvent):
     def now(
         cls,
         agent_config_execution_id: AgentConfigExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> AgentConfigUpdatedEvent:
         return cls(
             occurred_at=now,

@@ -41,7 +41,7 @@ class TestSqlUnitOfWorkRollback:
         try:
             async with sql_uow as u:
                 await u.repository(RunnerConfigRepository).save(  # type: ignore[type-abstract]
-                    RunnerConfig.new(
+                    RunnerConfig.create(
                         id_=RunnerConfigId("rollback-runner-x"),
                         now=CreatedAt.from_datetime(clock.now()),
                     )

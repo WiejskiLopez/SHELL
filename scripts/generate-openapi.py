@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Generates openapi.json from the FastAPI application."""
+
 from __future__ import annotations
 
 import json

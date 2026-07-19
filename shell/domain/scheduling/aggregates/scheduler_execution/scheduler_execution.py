@@ -36,6 +36,7 @@ from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.timestamp import Timestamp
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -52,6 +53,9 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
     """Represents a one-shot evaluation of a SchedulerDefinition."""
 
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_scheduler_definition_id",
         "_status",
         "_trigger_event_id",
@@ -63,18 +67,16 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         "_error",
         "_started_at",
         "_completed_at",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: SchedulerExecutionId,
-        scheduler_definition_id: SchedulerDefinitionId,
         created_at: CreatedAt,
-        status: ExecutionStatus,
         updated_at: UpdatedAt | None = None,
+        scheduler_definition_id: SchedulerDefinitionId,
+        status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,
         trigger_event_type: TriggerEventType | None = None,
         action_ref: ActionRef | None = None,
@@ -115,19 +117,24 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         cls,
         *,
         id_: SchedulerExecutionId,
-        scheduler_definition_id: SchedulerDefinitionId,
         now: CreatedAt,
+        scheduler_definition_id: SchedulerDefinitionId,
     ) -> SchedulerExecution:
-        return cls._new(id_=id_, scheduler_definition_id=scheduler_definition_id, now=now)
+        return cls._new(
+            id_=id_,
+            scheduler_definition_id=scheduler_definition_id,
+            now=OccurredAt.from_datetime(now.value),
+        )
 
     @classmethod
     def restore(
         cls,
+        *,
         id: SchedulerExecutionId,
-        scheduler_definition_id: SchedulerDefinitionId,
         created_at: CreatedAt,
-        status: ExecutionStatus,
         updated_at: UpdatedAt | None = None,
+        scheduler_definition_id: SchedulerDefinitionId,
+        status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,
         trigger_event_type: TriggerEventType | None = None,
         action_ref: ActionRef | None = None,
@@ -160,14 +167,14 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         cls,
         *,
         id_: SchedulerExecutionId,
+        now: OccurredAt,
         scheduler_definition_id: SchedulerDefinitionId,
-        now: CreatedAt,
     ) -> SchedulerExecution:
         return cls(
             id=id_,
             scheduler_definition_id=scheduler_definition_id,
             status=ExecutionStatus.PENDING,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
     def _delete(self, now: DeletedAt) -> None:
@@ -176,7 +183,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self.append_event(
             SchedulerExecutionDeletedEvent.now(
                 scheduler_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -185,7 +192,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self.append_event(
             SchedulerExecutionUpdatedEvent.now(
                 scheduler_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -255,7 +262,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SchedulerExecutionStartedEvent(
-                occurred_at=CreatedAt.from_datetime(now.value),
+                occurred_at=OccurredAt.from_datetime(now.value),
                 execution_id=self.id,
             )
         )
@@ -271,7 +278,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SchedulerExecutionCompletedEvent(
-                occurred_at=CreatedAt.from_datetime(now.value),
+                occurred_at=OccurredAt.from_datetime(now.value),
                 execution_id=self.id,
             )
         )
@@ -289,7 +296,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SchedulerExecutionFailedEvent(
-                occurred_at=CreatedAt.from_datetime(now.value),
+                occurred_at=OccurredAt.from_datetime(now.value),
                 execution_id=self.id,
             )
         )
@@ -304,7 +311,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             SchedulerExecutionSkippedEvent(
-                occurred_at=CreatedAt.from_datetime(now.value),
+                occurred_at=OccurredAt.from_datetime(now.value),
                 execution_id=self.id,
             )
         )

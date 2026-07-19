@@ -26,6 +26,7 @@ from shell.domain.project.aggregates.project_state.value_objects.project_state_i
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -38,12 +39,12 @@ if TYPE_CHECKING:
 
 class ProjectState(AggregateRoot[ProjectStateId]):
     __slots__ = (
-        "_project_id",
-        "_direction",
-        "_state_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_project_id",
+        "_direction",
+        "_state_data",
     )
 
     _project_id: ProjectId
@@ -54,12 +55,12 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self,
         *,
         id: ProjectStateId,
-        project_id: ProjectId,
-        direction: StateDirection,
-        state_data: StateData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        project_id: ProjectId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> None:
         super().__init__(id)
         self._project_id = project_id
@@ -74,16 +75,16 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         cls,
         *,
         id_: ProjectStateId,
+        now: CreatedAt,
         project_id: ProjectId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> ProjectState:
         return cls(
             id=id_,
             project_id=project_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
     # ------------------------------------------------------------------ mutations
@@ -96,7 +97,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
             ProjectStateChangedEvent.now(
                 project_id=self._project_id,
                 project_state_id=self.id,
-                now=self._created_at,
+                now=OccurredAt.from_datetime(self._created_at.value),
             )
         )
 
@@ -113,7 +114,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
                 ProjectStateChangedEvent.now(
                     project_id=self._project_id,
                     project_state_id=self.id,
-                    now=self._created_at,
+                    now=OccurredAt.from_datetime(self._created_at.value),
                 )
             )
 
@@ -142,12 +143,12 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         cls,
         *,
         id: ProjectStateId,
-        project_id: ProjectId,
-        direction: StateDirection,
-        state_data: StateData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        project_id: ProjectId,
+        direction: StateDirection,
+        state_data: StateData,
     ) -> Self:
         return cls(
             id=id,
@@ -167,7 +168,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self.append_event(
             ProjectStateDeletedEvent.now(
                 project_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -176,7 +177,7 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         self.append_event(
             ProjectStateUpdatedEvent.now(
                 project_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -211,14 +212,14 @@ class ProjectState(AggregateRoot[ProjectStateId]):
         cls,
         *,
         id_: ProjectStateId,
+        now: OccurredAt,
         project_id: ProjectId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> ProjectState:
         return cls(
             id=id_,
             project_id=project_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )

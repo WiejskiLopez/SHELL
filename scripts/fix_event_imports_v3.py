@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix event file TYPE_CHECKING imports - use snake_case module paths."""
+
 from pathlib import Path
 import re
 

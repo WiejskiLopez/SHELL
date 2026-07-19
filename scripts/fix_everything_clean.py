@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 """Single comprehensive fix: _delete/_update + event imports + DomainError + cleanup."""
+
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
 BASE = Path("shell/domain")
-EVENT_E_IMPORT = "from shell.platform.domain.value_objects.error_description import ErrorDescription"
+EVENT_E_IMPORT = (
+    "from shell.platform.domain.value_objects.error_description import ErrorDescription"
+)
 
 
 def fix_aggregate(path: Path) -> bool:
@@ -37,7 +40,10 @@ def fix_aggregate(path: Path) -> bool:
     )
 
     # 3. Add DomainError import if DomainError is used
-    if "DomainError" in content and "from shell.platform.domain.exceptions.domain_error import DomainError" not in content:
+    if (
+        "DomainError" in content
+        and "from shell.platform.domain.exceptions.domain_error import DomainError" not in content
+    ):
         content = content.replace(
             "from __future__ import annotations",
             "from __future__ import annotations\nfrom shell.platform.domain.exceptions.domain_error import DomainError",
@@ -59,8 +65,8 @@ def fix_aggregate(path: Path) -> bool:
             content = content.replace("if TYPE_CHECKING:", imp + "\n\nif TYPE_CHECKING:", 1)
 
     # 6. Replace NotImplementedError _delete/_update stubs with real implementations
-    stub_del = f"    def _delete(self) -> None:\n        raise NotImplementedError(\"_delete() not yet implemented\")"
-    stub_upd = f"    def _update(self) -> None:\n        raise NotImplementedError(\"_update() not yet implemented\")"
+    stub_del = f'    def _delete(self) -> None:\n        raise NotImplementedError("_delete() not yet implemented")'
+    stub_upd = f'    def _update(self) -> None:\n        raise NotImplementedError("_update() not yet implemented")'
 
     real_del = (
         f"    def _delete(self, now: DeletedAt) -> None:\n"
@@ -101,7 +107,10 @@ def fix_aggregate(path: Path) -> bool:
 def main() -> None:
     fixed = 0
     for path in sorted(BASE.rglob("**/aggregates/**/*.py")):
-        if any(p in path.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+        if any(
+            p in path.parts
+            for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+        ):
             continue
         if "AggregateRoot" not in path.read_text("utf-8"):
             continue

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,7 +30,7 @@ class EdgeLinkExecutionCreatedEvent(DomainEvent):
         edge_link_execution_id: EdgeLinkExecutionId,
         node_execution_id: NodeExecutionId,
         edge_execution_id: EdgeExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> EdgeLinkExecutionCreatedEvent:
         return cls(
             occurred_at=now,

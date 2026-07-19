@@ -199,6 +199,7 @@ class TestGraphExecutionMapper:
     def test_entity_to_model_minimal(self) -> None:
         original = GraphExecution(
             id=GraphExecutionId("ge-1"),
+            created_at=CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC)),
             task_execution_id=TaskExecutionId("te-1"),
             depth=GraphDepth(0),
             max_subgraph_depth=MaxSubgraphDepth(5),
@@ -247,6 +248,7 @@ class TestGraphExecutionMapper:
     def test_round_trip(self) -> None:
         original = GraphExecution(
             id=GraphExecutionId("ge-3"),
+            created_at=CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC)),
             task_execution_id=TaskExecutionId("te-1"),
             depth=GraphDepth(0),
             max_subgraph_depth=MaxSubgraphDepth(5),

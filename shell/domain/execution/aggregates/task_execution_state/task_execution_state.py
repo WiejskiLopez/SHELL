@@ -19,6 +19,7 @@ from shell.domain.execution.aggregates.task_execution_state.events.task_executio
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -37,12 +38,12 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
     """Input or output payload for a TaskExecution, discriminated by kind."""
 
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_task_execution_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _task_execution_id: TaskExecutionId
@@ -55,10 +56,10 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
     def __init__(
         self,
         id: TaskExecutionStateId,
+        created_at: CreatedAt,
         task_execution_id: TaskExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._task_execution_id = task_execution_id
@@ -73,16 +74,16 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         cls,
         *,
         id_: TaskExecutionStateId,
-        task_execution_id: TaskExecutionId,
-        state_data: StateData,
         now: CreatedAt,
+        task_execution_id: TaskExecutionId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> TaskExecutionState:
         return cls._new(
             id_=id_,
             task_execution_id=task_execution_id,
             state_data=state_data,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
             direction=direction,
         )
 
@@ -90,10 +91,10 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
     def restore(
         cls,
         id: TaskExecutionStateId,
+        created_at: CreatedAt,
         task_execution_id: TaskExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -109,7 +110,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         self.append_event(
             TaskExecutionStateDeletedEvent.now(
                 task_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -118,7 +119,7 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         self.append_event(
             TaskExecutionStateUpdatedEvent.now(
                 task_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -143,22 +144,22 @@ class TaskExecutionState(AggregateRoot["TaskExecutionStateId"]):
         cls,
         *,
         id_: TaskExecutionStateId,
+        now: OccurredAt,
         task_execution_id: TaskExecutionId,
-        state_data: StateData,
-        now: CreatedAt,
         direction: StateDirection,
+        state_data: StateData,
     ) -> TaskExecutionState:
         instance = cls(
             id=id_,
             task_execution_id=task_execution_id,
             direction=direction,
             state_data=state_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             TaskExecutionStateCreatedEvent.now(
                 task_execution_state_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance

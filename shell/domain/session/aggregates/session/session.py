@@ -19,6 +19,7 @@ from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,14 +30,14 @@ class Session(AggregateRoot[SessionId]):
     """Session aggregate root — V3 with FSM (OPEN -> CLOSED)."""
 
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_user_id",
         "_project_id",
         "_status",
         "_opened_at",
         "_closed_at",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     _user_id: UserIdRef
@@ -90,7 +91,11 @@ class Session(AggregateRoot[SessionId]):
             status=SessionStatus.OPEN,
             opened_at=now,
         )
-        session.append_event(SessionOpenedEvent.now(session.id, user_id, project_id, now=now))
+        session.append_event(
+            SessionOpenedEvent.now(
+                session.id, user_id, project_id, now=OccurredAt.from_datetime(now.value)
+            )
+        )
         return session
 
     # --- Methods ---
@@ -100,19 +105,19 @@ class Session(AggregateRoot[SessionId]):
             raise DomainError(f"Cannot close session in status {self._status!r}")
         self._status = SessionStatus.CLOSED
         self._closed_at = now
-        self.append_event(SessionClosedEvent.now(self._id, now=CreatedAt.from_datetime(now.value)))
+        self.append_event(SessionClosedEvent.now(self._id, now=OccurredAt.from_datetime(now.value)))
 
     @classmethod
     def restore(
         cls,
         *,
         id: SessionId,
+        deleted_at: DeletedAt | None = None,
+        closed_at: UpdatedAt | None = None,
+        opened_at: CreatedAt,
         user_id: UserIdRef,
         project_id: ProjectIdRef,
         status: SessionStatus,
-        opened_at: CreatedAt,
-        closed_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -130,7 +135,7 @@ class Session(AggregateRoot[SessionId]):
         self.append_event(
             SessionUpdatedEvent.now(
                 session_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -140,7 +145,7 @@ class Session(AggregateRoot[SessionId]):
         self.append_event(
             SessionDeletedEvent.now(
                 session_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -189,9 +194,9 @@ class Session(AggregateRoot[SessionId]):
     def _new(
         cls,
         id_: SessionId,
+        now: OccurredAt | None = None,
         user_id: UserIdRef | None = None,
         project_id: ProjectIdRef | None = None,
-        now: CreatedAt | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
@@ -199,13 +204,13 @@ class Session(AggregateRoot[SessionId]):
         if project_id is None:
             project_id = ProjectIdRef.generate()
         if now is None:
-            now = CreatedAt.now()
+            now = OccurredAt.now()
         session = cls(
             id=id_,
             user_id=user_id,
             project_id=project_id,
             status=SessionStatus.OPEN,
-            opened_at=now,
+            opened_at=CreatedAt.from_datetime(now.value),
         )
         session.append_event(SessionOpenedEvent.now(session.id, user_id, project_id, now=now))
         return session

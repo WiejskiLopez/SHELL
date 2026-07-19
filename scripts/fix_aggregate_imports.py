@@ -1,9 +1,18 @@
 #!/usr/bin/env python
 """Fix import paths in all aggregate files."""
+
 from pathlib import Path
 
 # Wrong prefixes
-prefixes = ["execution.", "definition.", "scheduling.", "session.", "user.", "project.", "messaging."]
+prefixes = [
+    "execution.",
+    "definition.",
+    "scheduling.",
+    "session.",
+    "user.",
+    "project.",
+    "messaging.",
+]
 # Wrong event names
 event_renames = {
     "agentexecution": "agent_execution",
@@ -41,7 +50,9 @@ event_renames = {
 
 count = 0
 for f in sorted(Path("shell/domain").rglob("**/aggregates/**/*.py")):
-    if any(p in f.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+    if any(
+        p in f.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+    ):
         continue
     c = f.read_text("utf-8")
     orig = c

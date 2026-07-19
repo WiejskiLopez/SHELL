@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Implement _delete() and _update() in all aggregates + create event files."""
+
 from __future__ import annotations
 
 import ast
@@ -8,7 +9,7 @@ from pathlib import Path
 
 BASE = Path("shell/domain")
 
-EVENT_TEMPLATE_DELETED = '''from __future__ import annotations
+EVENT_TEMPLATE_DELETED = """from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -27,9 +28,9 @@ class {name}DeletedEvent(DomainEvent):
     @classmethod
     def now(cls, {name_lower}_id: {id_type}, now: CreatedAt) -> "{name}DeletedEvent":
         return cls(occurred_at=now, {name_lower}_id={name_lower}_id)
-'''
+"""
 
-EVENT_TEMPLATE_UPDATED = '''from __future__ import annotations
+EVENT_TEMPLATE_UPDATED = """from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -48,7 +49,7 @@ class {name}UpdatedEvent(DomainEvent):
     @classmethod
     def now(cls, {name_lower}_id: {id_type}, now: CreatedAt) -> "{name}UpdatedEvent":
         return cls(occurred_at=now, {name_lower}_id={name_lower}_id)
-'''
+"""
 
 
 def get_aggregate_name(content: str) -> str | None:
@@ -76,7 +77,10 @@ def ensure_event_files(agg_dir: Path, name: str, id_type: str, id_module: str) -
     event_dir = agg_dir / "events"
     event_dir.mkdir(exist_ok=True)
 
-    for event_type, template in [("Deleted", EVENT_TEMPLATE_DELETED), ("Updated", EVENT_TEMPLATE_UPDATED)]:
+    for event_type, template in [
+        ("Deleted", EVENT_TEMPLATE_DELETED),
+        ("Updated", EVENT_TEMPLATE_UPDATED),
+    ]:
         ef = event_dir / f"{name.lower()}_{event_type.lower()}_event.py"
         if ef.exists():
             continue
@@ -134,8 +138,12 @@ def fix_aggregate(path: Path) -> bool:
 
     content = add_import(content, deleted_import)
     content = add_import(content, updated_import)
-    content = add_import(content, "from shell.platform.domain.value_objects.deleted_at import DeletedAt")
-    content = add_import(content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt")
+    content = add_import(
+        content, "from shell.platform.domain.value_objects.deleted_at import DeletedAt"
+    )
+    content = add_import(
+        content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt"
+    )
 
     # Check _delete()
     if re.search(r"def _delete\(self", content):
@@ -155,7 +163,9 @@ def fix_aggregate(path: Path) -> bool:
         )
     elif "def _delete" not in content:
         # Add _delete method
-        content = add_method(content, f"    def _delete(self, now: DeletedAt) -> None:\n"
+        content = add_method(
+            content,
+            f"    def _delete(self, now: DeletedAt) -> None:\n"
             f"        self._deleted_at = now\n"
             f"        self._updated_at = UpdatedAt.from_datetime(now.value)\n"
             f"        self.append_event(\n"
@@ -163,7 +173,8 @@ def fix_aggregate(path: Path) -> bool:
             f"                {name.lower()}_id=self._id,\n"
             f"                now=CreatedAt.from_datetime(now.value),\n"
             f"            )\n"
-            f"        )")
+            f"        )",
+        )
 
     # Check _update()
     if re.search(r"def _update\(self", content):
@@ -180,14 +191,17 @@ def fix_aggregate(path: Path) -> bool:
             content,
         )
     elif "def _update" not in content:
-        content = add_method(content, f"    def _update(self, now: UpdatedAt) -> None:\n"
+        content = add_method(
+            content,
+            f"    def _update(self, now: UpdatedAt) -> None:\n"
             f"        self._updated_at = now\n"
             f"        self.append_event(\n"
             f"            {name}UpdatedEvent.now(\n"
             f"                {name.lower()}_id=self._id,\n"
             f"                now=CreatedAt.from_datetime(now.value),\n"
             f"            )\n"
-            f"        )")
+            f"        )",
+        )
 
     if content != orig:
         path.write_text(content, "utf-8")
@@ -210,7 +224,10 @@ def add_method(content: str, method: str) -> str:
 def main() -> None:
     fixed = 0
     for path in sorted(BASE.rglob("**/aggregates/**/*.py")):
-        if any(p in path.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+        if any(
+            p in path.parts
+            for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+        ):
             continue
         if "AggregateRoot" not in path.read_text("utf-8"):
             continue

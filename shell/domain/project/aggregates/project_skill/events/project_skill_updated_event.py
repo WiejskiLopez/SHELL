@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.project.aggregates.project_skill.value_objects.project_skill_id import (
         ProjectSkillId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -17,5 +17,5 @@ class ProjectSkillUpdatedEvent(DomainEvent):
     project_skill_id: ProjectSkillId
 
     @classmethod
-    def now(cls, project_skill_id: ProjectSkillId, now: CreatedAt) -> ProjectSkillUpdatedEvent:
+    def now(cls, project_skill_id: ProjectSkillId, now: OccurredAt) -> ProjectSkillUpdatedEvent:
         return cls(occurred_at=now, project_skill_id=project_skill_id)

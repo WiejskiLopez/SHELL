@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.workflow_state.value_objects.workflow_state_id import (
         WorkflowStateId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +23,7 @@ class WorkflowStateChangedEvent(DomainEvent):
         cls,
         workflow_id: WorkflowId,
         workflow_state_id: WorkflowStateId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> WorkflowStateChangedEvent:
         return cls(
             occurred_at=now,

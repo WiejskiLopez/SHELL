@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix remaining _delete/_update issues in all aggregates."""
+
 from pathlib import Path
 import re
 
@@ -20,6 +21,7 @@ files = {
     "shell/domain/definition/aggregates/graph_definition/graph_definition.py": "GraphDefinition",
 }
 
+
 def ensure_import(content, imp):
     if imp in content:
         return content
@@ -29,17 +31,22 @@ def ensure_import(content, imp):
         1,
     )
 
+
 for path_str, name in files.items():
     fp = Path(path_str)
     content = fp.read_text("utf-8")
     orig = content
 
-    content = ensure_import(content, "from shell.platform.domain.value_objects.deleted_at import DeletedAt")
-    content = ensure_import(content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt")
+    content = ensure_import(
+        content, "from shell.platform.domain.value_objects.deleted_at import DeletedAt"
+    )
+    content = ensure_import(
+        content, "from shell.platform.domain.value_objects.updated_at import UpdatedAt"
+    )
 
     # Replace NotImplementedError _delete stub
-    stub_delete = f"    def _delete(self) -> None:\n        raise NotImplementedError(\"_delete() not yet implemented\")"
-    stub_update = f"    def _update(self) -> None:\n        raise NotImplementedError(\"_update() not yet implemented\")"
+    stub_delete = f'    def _delete(self) -> None:\n        raise NotImplementedError("_delete() not yet implemented")'
+    stub_update = f'    def _update(self) -> None:\n        raise NotImplementedError("_update() not yet implemented")'
 
     real_delete = (
         f"    def _delete(self, now: DeletedAt) -> None:\n"

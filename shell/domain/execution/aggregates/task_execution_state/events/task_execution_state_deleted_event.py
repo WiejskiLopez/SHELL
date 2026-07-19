@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution_state.value_objects.task_execution_state_id import (
         TaskExecutionStateId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +18,6 @@ class TaskExecutionStateDeletedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, task_execution_state_id: TaskExecutionStateId, now: CreatedAt
+        cls, task_execution_state_id: TaskExecutionStateId, now: OccurredAt
     ) -> TaskExecutionStateDeletedEvent:
         return cls(occurred_at=now, task_execution_state_id=task_execution_state_id)

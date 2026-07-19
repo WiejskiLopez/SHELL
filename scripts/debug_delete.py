@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Debug test logic for _delete method."""
+
 import ast
 import sys
+
 sys.path.insert(0, "shell/tests/architecture")
 from _arch_helpers import BASE, iter_py_files, find_classes, extends_any_base
 
@@ -20,4 +22,6 @@ for path in iter_py_files(BASE / "domain"):
                 has_event = "append_event(" in source
                 has_deleted = "_deleted_at" in source
                 if not has_event or not has_deleted:
-                    print(f"{path.relative_to(BASE)}: {node.name}._delete() event={has_event} deleted_at={has_deleted}")
+                    print(
+                        f"{path.relative_to(BASE)}: {node.name}._delete() event={has_event} deleted_at={has_deleted}"
+                    )

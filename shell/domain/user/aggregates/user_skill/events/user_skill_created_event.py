@@ -8,7 +8,7 @@ from shell.platform.domain.events import DomainEvent
 if TYPE_CHECKING:
     from shell.domain.user.aggregates.user_skill.value_objects.user_skill_id import UserSkillId
     from shell.domain.user.value_objects.user_id import UserId
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -22,7 +22,7 @@ class UserSkillCreatedEvent(DomainEvent):
         *,
         skill_id: UserSkillId,
         user_id: UserId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> UserSkillCreatedEvent:
         return cls(
             occurred_at=now,

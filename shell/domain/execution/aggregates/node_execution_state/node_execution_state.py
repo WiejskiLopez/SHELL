@@ -18,6 +18,7 @@ from shell.domain.execution.aggregates.node_execution_state.value_objects.node_e
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -32,12 +33,12 @@ if TYPE_CHECKING:
 
 class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_node_execution_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _node_execution_id: NodeExecutionId
@@ -50,10 +51,10 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     def __init__(
         self,
         id: NodeExecutionStateId,
-        node_execution_id: NodeExecutionId,
-        state_data: StateData,
         created_at: CreatedAt,
+        node_execution_id: NodeExecutionId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> None:
         super().__init__(id)
         self._node_execution_id = node_execution_id
@@ -66,16 +67,16 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         cls,
         *,
         id_: NodeExecutionStateId,
+        now: CreatedAt,
         node_execution_id: NodeExecutionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> NodeExecutionState:
         instance = cls(
             id=id_,
             node_execution_id=node_execution_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance
 
@@ -87,7 +88,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
             NodeExecutionStateChangedEvent.now(
                 node_execution_id=self._node_execution_id,
                 node_execution_state_id=self.id,
-                now=self._created_at,
+                now=OccurredAt.from_datetime(self._created_at.value),
             )
         )
 
@@ -103,7 +104,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
                 NodeExecutionStateChangedEvent.now(
                     node_execution_id=self._node_execution_id,
                     node_execution_state_id=self.id,
-                    now=self._created_at,
+                    now=OccurredAt.from_datetime(self._created_at.value),
                 )
             )
 
@@ -124,10 +125,10 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
     def restore(
         cls,
         id: NodeExecutionStateId,
-        node_execution_id: NodeExecutionId,
-        state_data: StateData,
         created_at: CreatedAt,
+        node_execution_id: NodeExecutionId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> Self:
         return cls(
             id=id,
@@ -142,7 +143,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         self.append_event(
             NodeExecutionStateUpdatedEvent.now(
                 node_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -152,7 +153,7 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         self.append_event(
             NodeExecutionStateDeletedEvent.now(
                 node_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -177,15 +178,15 @@ class NodeExecutionState(AggregateRoot[NodeExecutionStateId]):
         cls,
         *,
         id_: NodeExecutionStateId,
+        now: OccurredAt,
         node_execution_id: NodeExecutionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> NodeExecutionState:
         instance = cls(
             id=id_,
             node_execution_id=node_execution_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance

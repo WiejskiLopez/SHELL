@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix state aggregates and remaining event issues."""
+
 from pathlib import Path
 import re
 
@@ -33,7 +34,11 @@ for f in state_agg_fixes:
     )
 
     # Remove stubs
-    content = re.sub(r"    def _(?:new|delete|update)\(self\) -> None:\n        raise NotImplementedError\(\"_[a-z]+\(\) not yet implemented\"\)\n?", "", content)
+    content = re.sub(
+        r"    def _(?:new|delete|update)\(self\) -> None:\n        raise NotImplementedError\(\"_[a-z]+\(\) not yet implemented\"\)\n?",
+        "",
+        content,
+    )
     content = re.sub(r"\n{3,}", "\n\n", content)
 
     # Rename create to _new
@@ -49,7 +54,10 @@ for f in state_agg_fixes:
     # Add event emission
     content = re.sub(
         r"(        \))(?=\n    @classmethod)",
-        lambda m: m.group(0) + f"\n        instance.append_event(\n            {f['event_name']}.now(\n                {p.parent.name.lower()}_id=instance.id,\n                now=now,\n            )\n        )\n        return instance",
+        lambda m: (
+            m.group(0)
+            + f"\n        instance.append_event(\n            {f['event_name']}.now(\n                {p.parent.name.lower()}_id=instance.id,\n                now=now,\n            )\n        )\n        return instance"
+        ),
         content,
     )
 

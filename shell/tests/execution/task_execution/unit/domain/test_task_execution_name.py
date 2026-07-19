@@ -5,6 +5,7 @@ import pytest
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 class TestTaskExecutionName:
@@ -13,13 +14,13 @@ class TestTaskExecutionName:
         assert str(tn) == "my-task"
 
     def test_empty_raises(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             TaskExecutionName("")
 
     def test_whitespace_only_raises(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             TaskExecutionName("   ")
 
     def test_too_long_raises(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(DomainError):
             TaskExecutionName("x" * 256)

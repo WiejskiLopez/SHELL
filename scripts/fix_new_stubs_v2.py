@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix _new stubs correctly: remove stub, rename real factory to _new, add wrapper."""
+
 import re
 from pathlib import Path
 
@@ -27,7 +28,10 @@ for path_str in FILES:
 
     # 2. Find the real factory (new or create) and rename to _new
     for factory in ["new", "create"]:
-        if re.search(rf"    @classmethod\n    def {factory}\(", content) and f"def _new(" not in content:
+        if (
+            re.search(rf"    @classmethod\n    def {factory}\(", content)
+            and f"def _new(" not in content
+        ):
             content = re.sub(
                 rf"(    @classmethod\n    def ){factory}\(",
                 r"\1_new(",

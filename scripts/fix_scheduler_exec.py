@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import re
-content = open("shell/domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py").read()
+
+content = open(
+    "shell/domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py"
+).read()
 orig = content
 
 content = re.sub(
@@ -17,16 +20,18 @@ if sig_match:
     params = [x.strip().split(":")[0].split("=")[0].strip() for x in sig.split(",")]
     params = [p for p in params if p and p not in ("cls", "*", "")]
     call_args = ", ".join(f"{p}={p}" for p in params)
-    wrapper = f'''    @classmethod
+    wrapper = f"""    @classmethod
     def create({sig}) -> SchedulerExecution:
         return cls._new({call_args})
 
-'''
+"""
     content = content.replace(
         "    @classmethod\n    def restore(",
         wrapper + "    @classmethod\n    def restore(",
     )
 
 if content != orig:
-    open("shell/domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py", "w").write(content)
+    open(
+        "shell/domain/scheduling/aggregates/scheduler_execution/scheduler_execution.py", "w"
+    ).write(content)
     print("FIXED")

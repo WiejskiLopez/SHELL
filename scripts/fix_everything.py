@@ -1,15 +1,40 @@
 #!/usr/bin/env python
 """Fix all 6 remaining aggregates: add events to _new."""
+
 import re
 from pathlib import Path
 
 FILES = [
-    ("shell/domain/definition/aggregates/node_link_definition/node_link_definition.py", "NodeLinkDefinition", "node_link_definition"),
-    ("shell/domain/definition/aggregates/runner_config/runner_config.py", "RunnerConfig", "runner_config"),
-    ("shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py", "SchedulerJob", "scheduler_job"),
-    ("shell/domain/execution/aggregates/session_execution_state/session_execution_state.py", "SessionExecutionState", "session_execution_state"),
-    ("shell/domain/execution/aggregates/task_execution_state/task_execution_state.py", "TaskExecutionState", "task_execution_state"),
-    ("shell/domain/execution/aggregates/user_execution_state/user_execution_state.py", "UserExecutionState", "user_execution_state"),
+    (
+        "shell/domain/definition/aggregates/node_link_definition/node_link_definition.py",
+        "NodeLinkDefinition",
+        "node_link_definition",
+    ),
+    (
+        "shell/domain/definition/aggregates/runner_config/runner_config.py",
+        "RunnerConfig",
+        "runner_config",
+    ),
+    (
+        "shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py",
+        "SchedulerJob",
+        "scheduler_job",
+    ),
+    (
+        "shell/domain/execution/aggregates/session_execution_state/session_execution_state.py",
+        "SessionExecutionState",
+        "session_execution_state",
+    ),
+    (
+        "shell/domain/execution/aggregates/task_execution_state/task_execution_state.py",
+        "TaskExecutionState",
+        "task_execution_state",
+    ),
+    (
+        "shell/domain/execution/aggregates/user_execution_state/user_execution_state.py",
+        "UserExecutionState",
+        "user_execution_state",
+    ),
 ]
 
 for path_str, agg_name, agg_dir in FILES:
@@ -22,13 +47,23 @@ for path_str, agg_name, agg_dir in FILES:
     # We need: shell.domain.definition.aggregates.node_link_definition.events.node_link_definition_created_event
     parts = path_str.replace("shell/domain/", "").replace("\\", "/").split("/")
     # parts = ['definition', 'aggregates', 'node_link_definition', 'node_link_definition.py']
-    event_module = "shell.domain." + parts[0] + ".aggregates." + parts[2] + ".events." + agg_dir + "_created_event"
+    event_module = (
+        "shell.domain."
+        + parts[0]
+        + ".aggregates."
+        + parts[2]
+        + ".events."
+        + agg_dir
+        + "_created_event"
+    )
     event_import = "from " + event_module + " import " + agg_name + "CreatedEvent"
 
     # 1. Move CreatedAt out of TYPE_CHECKING, add event import
     content = content.replace(
         "if TYPE_CHECKING:",
-        "from shell.platform.domain.value_objects.created_at import CreatedAt\n" + event_import + "\n\nif TYPE_CHECKING:",
+        "from shell.platform.domain.value_objects.created_at import CreatedAt\n"
+        + event_import
+        + "\n\nif TYPE_CHECKING:",
         1,
     )
 
@@ -73,7 +108,9 @@ for path_str, agg_name, agg_dir in FILES:
             new_new_body = new_new_body[:-1]
         last_paren = new_new_body.rfind(")")
         if last_paren > 0:
-            new_new_body = new_new_body[:last_paren+1] + "\n" + event_block + new_new_body[last_paren+1:]
+            new_new_body = (
+                new_new_body[: last_paren + 1] + "\n" + event_block + new_new_body[last_paren + 1 :]
+            )
 
         content = content[:idx] + new_new_body + content[end:]
 

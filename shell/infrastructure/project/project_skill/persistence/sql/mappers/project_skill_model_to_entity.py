@@ -34,9 +34,7 @@ def project_skill_model_to_entity(model: ProjectSkillModel) -> ProjectSkill:
         skill_data=ProjectSkillData(JsonStr(json.dumps(dict(model.skill_data))))
         if model.skill_data
         else ProjectSkillData(JsonStr(json.dumps({}))),
-        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at))
-        if model.created_at
-        else None,
+        created_at=CreatedAt.from_datetime(_ensure_utc(model.created_at)),
         updated_at=UpdatedAt.from_datetime(_ensure_utc(model.updated_at))
         if model.updated_at is not None
         else None,

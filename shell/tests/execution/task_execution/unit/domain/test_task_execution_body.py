@@ -7,6 +7,7 @@ import pytest
 from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_body import (
     TaskExecutionBody,
 )
+from shell.platform.domain.exceptions.domain_error import DomainError
 
 
 class TestTaskExecutionBody:
@@ -28,7 +29,7 @@ class TestTaskExecutionBody:
 
     @pytest.mark.parametrize("invalid", ["", " ", "\n", "\t", "   \n  "])
     def test_empty_or_whitespace_rejected(self, invalid: str) -> None:
-        with pytest.raises(ValueError, match="TaskExecutionBody cannot be empty"):
+        with pytest.raises(DomainError, match="TaskExecutionBody cannot be empty"):
             TaskExecutionBody(invalid)
 
     def test_is_frozen(self) -> None:

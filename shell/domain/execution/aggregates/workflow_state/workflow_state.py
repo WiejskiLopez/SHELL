@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Self
 
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -31,12 +32,12 @@ from shell.domain.execution.aggregates.workflow_state.events.workflow_state_upda
 
 class WorkflowState(AggregateRoot["WorkflowStateId"]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_workflow_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _workflow_id: WorkflowId
@@ -50,10 +51,10 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         self,
         *,
         id: WorkflowStateId,
-        workflow_id: WorkflowId,
-        state_data: StateData,
         created_at: CreatedAt,
+        workflow_id: WorkflowId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> None:
         super().__init__(id)
         self._workflow_id = workflow_id
@@ -68,16 +69,16 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         cls,
         *,
         id_: WorkflowStateId,
+        now: CreatedAt,
         workflow_id: WorkflowId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> WorkflowState:
         instance = cls(
             id=id_,
             workflow_id=workflow_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance
 
@@ -89,7 +90,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
             WorkflowStateChangedEvent.now(
                 workflow_id=self._workflow_id,
                 workflow_state_id=self.id,
-                now=self._created_at,
+                now=OccurredAt.from_datetime(self._created_at.value),
             )
         )
 
@@ -106,7 +107,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
                 WorkflowStateChangedEvent.now(
                     workflow_id=self._workflow_id,
                     workflow_state_id=self.id,
-                    now=self._created_at,
+                    now=OccurredAt.from_datetime(self._created_at.value),
                 )
             )
 
@@ -128,10 +129,10 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         cls,
         *,
         id: WorkflowStateId,
-        workflow_id: WorkflowId,
-        state_data: StateData,
         created_at: CreatedAt,
+        workflow_id: WorkflowId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> Self:
         return cls(
             id=id,
@@ -146,7 +147,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         self.append_event(
             WorkflowStateUpdatedEvent.now(
                 workflow_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -156,7 +157,7 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         self.append_event(
             WorkflowStateDeletedEvent.now(
                 workflow_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -181,15 +182,15 @@ class WorkflowState(AggregateRoot["WorkflowStateId"]):
         cls,
         *,
         id_: WorkflowStateId,
+        now: OccurredAt,
         workflow_id: WorkflowId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> WorkflowState:
         instance = cls(
             id=id_,
             workflow_id=workflow_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         return instance

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_skill_execution.value_objects.agent_skill_execution_id import (
         AgentSkillExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +18,6 @@ class AgentSkillExecutionUpdatedEvent(DomainEvent):
 
     @classmethod
     def now(
-        cls, agent_skill_execution_id: AgentSkillExecutionId, now: CreatedAt
+        cls, agent_skill_execution_id: AgentSkillExecutionId, now: OccurredAt
     ) -> AgentSkillExecutionUpdatedEvent:
         return cls(occurred_at=now, agent_skill_execution_id=agent_skill_execution_id)

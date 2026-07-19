@@ -10,6 +10,7 @@ from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -19,11 +20,11 @@ if TYPE_CHECKING:
 
 class User(AggregateRoot[UserId]):
     __slots__ = (
-        "_email",
-        "_status",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_email",
+        "_status",
     )
 
     _email: UserEmail
@@ -36,11 +37,11 @@ class User(AggregateRoot[UserId]):
         self,
         *,
         id: UserId,
-        email: UserEmail,
-        status: UserStatus = UserStatus.ACTIVE,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        email: UserEmail,
+        status: UserStatus = UserStatus.ACTIVE,
     ) -> None:
         super().__init__(id)
         self._email = email
@@ -54,16 +55,15 @@ class User(AggregateRoot[UserId]):
         cls,
         *,
         id: UserId,
+        now: OccurredAt,
         email: UserEmail,
-        now: CreatedAt,
     ) -> Self:
-        created_at = now
         user = cls(
             id=id,
             email=email,
-            created_at=created_at,
+            created_at=CreatedAt.from_datetime(now.value),
         )
-        user.append_event(UserCreatedEvent.now(user_id=id, now=created_at))
+        user.append_event(UserCreatedEvent.now(user_id=id, now=now))
         return user
 
     @classmethod
@@ -71,21 +71,21 @@ class User(AggregateRoot[UserId]):
         cls,
         *,
         id: UserId,
-        email: UserEmail,
         now: CreatedAt,
+        email: UserEmail,
     ) -> User:
-        return cls._new(id=id, email=email, now=now)
+        return cls._new(id=id, email=email, now=OccurredAt.from_datetime(now.value))
 
     @classmethod
     def restore(
         cls,
         *,
         id: UserId,
-        email: UserEmail,
-        status: UserStatus = UserStatus.ACTIVE,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        email: UserEmail,
+        status: UserStatus = UserStatus.ACTIVE,
     ) -> Self:
         return cls(
             id=id,
@@ -102,7 +102,7 @@ class User(AggregateRoot[UserId]):
         self.append_event(
             UserDeletedEvent.now(
                 user_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -111,7 +111,7 @@ class User(AggregateRoot[UserId]):
         self.append_event(
             UserUpdatedEvent.now(
                 user_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -145,7 +145,7 @@ class User(AggregateRoot[UserId]):
         self._email = email
         self._updated_at = now
         self.append_event(
-            UserUpdatedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value))
+            UserUpdatedEvent.now(user_id=self._id, now=OccurredAt.from_datetime(now.value))
         )
 
     def delete(self, now: DeletedAt) -> None:
@@ -154,7 +154,7 @@ class User(AggregateRoot[UserId]):
         self._deleted_at = now
         self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
-            UserDeletedEvent.now(user_id=self._id, now=CreatedAt.from_datetime(now.value))
+            UserDeletedEvent.now(user_id=self._id, now=OccurredAt.from_datetime(now.value))
         )
 
     def enable(self) -> None:

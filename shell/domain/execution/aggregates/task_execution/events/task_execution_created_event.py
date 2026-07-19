@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
         TaskExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,7 +20,7 @@ class TaskExecutionCreatedEvent(DomainEvent):
     def now(
         cls,
         task_execution_id: TaskExecutionId,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> TaskExecutionCreatedEvent:
         return cls(
             occurred_at=now,

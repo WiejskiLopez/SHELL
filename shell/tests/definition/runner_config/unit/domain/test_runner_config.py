@@ -13,14 +13,14 @@ _NOW = CreatedAt.from_datetime(datetime(2026, 6, 1, tzinfo=UTC))
 
 class TestRunnerConfig:
     def test_new_creates_with_correct_fields(self) -> None:
-        rc = RunnerConfig.new(
+        rc = RunnerConfig.create(
             id_=RunnerConfigId.generate(),
             now=_NOW,
         )
         assert rc.created_at == _NOW
 
     def test_fields_are_immutable(self) -> None:
-        rc = RunnerConfig.new(
+        rc = RunnerConfig.create(
             id_=RunnerConfigId.generate(),
             now=_NOW,
         )

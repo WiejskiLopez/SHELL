@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix all 3 domain invariant issues across all aggregates."""
+
 from __future__ import annotations
 
 import re
@@ -51,7 +52,11 @@ def fix_new_stubs(path: Path) -> bool:
     # Try to find a real new/create method we can base _new on
     existing = None
     for name in ["new", "create", "open", "initialize"]:
-        if f"def {name}(" in content and f"def {name}(" not in content[content.find("def _new("):content.find("def _new(")+200]:
+        if (
+            f"def {name}(" in content
+            and f"def {name}("
+            not in content[content.find("def _new(") : content.find("def _new(") + 200]
+        ):
             existing = name
             break
 
@@ -68,7 +73,7 @@ def fix_bare_exceptions(path: Path) -> bool:
     content = path.read_text("utf-8")
     orig = content
 
-    # Replace raise ValueError(...) with raise DomainError(...) 
+    # Replace raise ValueError(...) with raise DomainError(...)
     # Only in aggregates and VOs, not in test files
     content = re.sub(
         r"raise ValueError\((\"[^\"]*\"|'[^']*')\)",

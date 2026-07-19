@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix remaining _new methods - handles CRLF line endings."""
+
 import re
 from pathlib import Path
 

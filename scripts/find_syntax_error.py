@@ -8,5 +8,5 @@ for f in sorted(Path("shell").rglob("**/*.py")):
     except SyntaxError as e:
         print(f"{f} - line {e.lineno}: {e.msg}")
         lines = f.read_text("utf-8").split("\n")
-        for i in range(max(0, e.lineno-3), min(len(lines), e.lineno+2)):
-            print(f"{i+1}: {lines[i]}")
+        for i in range(max(0, e.lineno - 3), min(len(lines), e.lineno + 2)):
+            print(f"{i + 1}: {lines[i]}")

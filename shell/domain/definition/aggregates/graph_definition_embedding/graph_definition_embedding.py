@@ -16,6 +16,7 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -38,25 +39,26 @@ from shell.domain.definition.aggregates.graph_definition_embedding.events.graph_
 
 class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_graph_definition_id",
         "_text",
         "_embedding",
         "_model",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: GraphDefinitionEmbeddingId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,
         model: EmbeddingModel,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._graph_definition_id = graph_definition_id
@@ -71,11 +73,11 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     def create(
         cls,
         id: GraphDefinitionEmbeddingId,
+        now: CreatedAt,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,
         model: EmbeddingModel,
-        now: CreatedAt,
     ) -> GraphDefinitionEmbedding:
         instance = cls(
             id=id,
@@ -83,14 +85,14 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             text=text,
             embedding=embedding,
             model=model,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
             updated_at=UpdatedAt.from_datetime(now.value),
         )
         instance.append_event(
             GraphDefinitionEmbeddingCreatedEvent.now(
                 graph_definition_embedding_id=id,
                 graph_definition_id=graph_definition_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -101,7 +103,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self.append_event(
             GraphDefinitionEmbeddingDeletedEvent.now(
                 graph_definition_embedding_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -110,7 +112,7 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self.append_event(
             GraphDefinitionEmbeddingUpdatedEvent.now(
                 graph_definition_embedding_id=self._id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -141,14 +143,15 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     @classmethod
     def restore(
         cls,
+        *,
         id: GraphDefinitionEmbeddingId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt | None = None,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,
         model: EmbeddingModel,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
     ) -> GraphDefinitionEmbedding:
         return cls(
             id=id,
@@ -165,11 +168,11 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
     def _new(
         cls,
         id: GraphDefinitionEmbeddingId,
+        now: OccurredAt,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,
         model: EmbeddingModel,
-        now: CreatedAt,
     ) -> GraphDefinitionEmbedding:
         instance = cls(
             id=id,
@@ -177,13 +180,13 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
             text=text,
             embedding=embedding,
             model=model,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             GraphDefinitionEmbeddingCreatedEvent.now(
                 graph_definition_embedding_id=id,
                 graph_definition_id=graph_definition_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance

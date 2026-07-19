@@ -1,21 +1,50 @@
 #!/usr/bin/env python
 """Fix remaining _new methods: add now param + created_at + event emission."""
+
 import re
 from pathlib import Path
 
 FILES = [
-    ("shell/domain/definition/aggregates/node_link_definition/node_link_definition.py",
-     ["id_", "graph_definition_id", "node_definition_id"], "NodeLinkDefinition"),
-    ("shell/domain/definition/aggregates/runner_config/runner_config.py",
-     ["id_", "now"], "RunnerConfig"),
-    ("shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py",
-     ["id_", "scheduler_definition_id", "name", "job_type", "interval_seconds", "batch_size", "config", "now", "enabled"], "SchedulerJob"),
-    ("shell/domain/execution/aggregates/session_execution_state/session_execution_state.py",
-     [], "SessionExecutionState"),
-    ("shell/domain/execution/aggregates/task_execution_state/task_execution_state.py",
-     [], "TaskExecutionState"),
-    ("shell/domain/execution/aggregates/user_execution_state/user_execution_state.py",
-     [], "UserExecutionState"),
+    (
+        "shell/domain/definition/aggregates/node_link_definition/node_link_definition.py",
+        ["id_", "graph_definition_id", "node_definition_id"],
+        "NodeLinkDefinition",
+    ),
+    (
+        "shell/domain/definition/aggregates/runner_config/runner_config.py",
+        ["id_", "now"],
+        "RunnerConfig",
+    ),
+    (
+        "shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py",
+        [
+            "id_",
+            "scheduler_definition_id",
+            "name",
+            "job_type",
+            "interval_seconds",
+            "batch_size",
+            "config",
+            "now",
+            "enabled",
+        ],
+        "SchedulerJob",
+    ),
+    (
+        "shell/domain/execution/aggregates/session_execution_state/session_execution_state.py",
+        [],
+        "SessionExecutionState",
+    ),
+    (
+        "shell/domain/execution/aggregates/task_execution_state/task_execution_state.py",
+        [],
+        "TaskExecutionState",
+    ),
+    (
+        "shell/domain/execution/aggregates/user_execution_state/user_execution_state.py",
+        [],
+        "UserExecutionState",
+    ),
 ]
 
 for path_str, params, agg_name in FILES:
@@ -30,7 +59,10 @@ for path_str, params, agg_name in FILES:
         continue
 
     # Find _new method
-    new_match = re.search(r"(    @classmethod\n    def _new\([^)]*\)[^:]*:\n(?:        .*\n)*?)(return instance|return cls)\(", content)
+    new_match = re.search(
+        r"(    @classmethod\n    def _new\([^)]*\)[^:]*:\n(?:        .*\n)*?)(return instance|return cls)\(",
+        content,
+    )
     if not new_match:
         print(f"NO _new found: {path_str}")
         continue
@@ -44,7 +76,11 @@ for path_str, params, agg_name in FILES:
 
     # Add created_at=now to the cls() call
     # Find the constructor inside _new
-    if "created_at=now" not in content.split("def _new")[1].split("\n    @")[0] if "def _new" in content else "":
+    if (
+        "created_at=now" not in content.split("def _new")[1].split("\n    @")[0]
+        if "def _new" in content
+        else ""
+    ):
         # Add before closing paren
         content = content.replace(
             "        )\n\n    @classmethod",

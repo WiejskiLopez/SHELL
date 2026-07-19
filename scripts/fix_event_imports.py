@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix event file imports - wrong module paths."""
+
 import re
 from pathlib import Path
 

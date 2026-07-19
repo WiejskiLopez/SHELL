@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -25,10 +26,10 @@ if TYPE_CHECKING:
 
 class UserExecution(AggregateRoot[UserExecutionId]):
     __slots__ = (
-        "_updated_at",
-        "_user_id",
         "_created_at",
+        "_updated_at",
         "_deleted_at",
+        "_user_id",
     )
 
     _user_id: UserIdRef | None
@@ -40,8 +41,8 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self,
         *,
         id: UserExecutionId,
-        user_id: UserIdRef | None = None,
         created_at: CreatedAt,
+        user_id: UserIdRef | None = None,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -55,18 +56,18 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         cls,
         *,
         id_: UserExecutionId,
-        user_id: UserIdRef,
         now: CreatedAt,
+        user_id: UserIdRef,
     ) -> UserExecution:
-        return cls._new(id_=id_, user_id=user_id, now=now)
+        return cls._new(id_=id_, user_id=user_id, now=OccurredAt.from_datetime(now.value))
 
     @classmethod
     def restore(
         cls,
         *,
         id: UserExecutionId,
-        user_id: UserIdRef | None = None,
         created_at: CreatedAt,
+        user_id: UserIdRef | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -79,7 +80,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self.append_event(
             UserExecutionUpdatedEvent.now(
                 user_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -89,7 +90,7 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self.append_event(
             UserExecutionDeletedEvent.now(
                 user_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -106,18 +107,18 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         cls,
         *,
         id_: UserExecutionId,
+        now: OccurredAt,
         user_id: UserIdRef,
-        now: CreatedAt,
     ) -> UserExecution:
         user_execution = cls(
             id=id_,
             user_id=user_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         user_execution.append_event(
             UserExecutionCreatedEvent.now(
                 user_execution_id=id_,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return user_execution

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Move factory logic into _new() + add event emission for remaining aggregates."""
+
 from __future__ import annotations
 
 import re
@@ -43,12 +44,36 @@ def fix_aggregate(path: Path, factory_name: str, event_name: str) -> bool:
 # Files that need fixing with their factory name and event name
 FIXES = [
     # (path, factory_method, event_name)
-    ("shell/domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py", "create", "SchedulerDefinitionCreatedEvent"),
-    ("shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py", "create", "SchedulerJobCreatedEvent"),
-    ("shell/domain/execution/aggregates/agent_execution/agent_execution.py", "create", "AgentExecutionCreatedEvent"),
-    ("shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py", "create", "AgentSkillExecutionCreatedEvent"),
-    ("shell/domain/execution/aggregates/node_link_execution/node_link_execution.py", "create", "NodeLinkExecutionCreatedEvent"),
-    ("shell/domain/definition/aggregates/node_link_definition/node_link_definition.py", "create", "NodeLinkDefinitionCreatedEvent"),
+    (
+        "shell/domain/scheduling/aggregates/scheduler_definition/scheduler_definition.py",
+        "create",
+        "SchedulerDefinitionCreatedEvent",
+    ),
+    (
+        "shell/domain/scheduling/aggregates/scheduler_job/scheduler_job.py",
+        "create",
+        "SchedulerJobCreatedEvent",
+    ),
+    (
+        "shell/domain/execution/aggregates/agent_execution/agent_execution.py",
+        "create",
+        "AgentExecutionCreatedEvent",
+    ),
+    (
+        "shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py",
+        "create",
+        "AgentSkillExecutionCreatedEvent",
+    ),
+    (
+        "shell/domain/execution/aggregates/node_link_execution/node_link_execution.py",
+        "create",
+        "NodeLinkExecutionCreatedEvent",
+    ),
+    (
+        "shell/domain/definition/aggregates/node_link_definition/node_link_definition.py",
+        "create",
+        "NodeLinkDefinitionCreatedEvent",
+    ),
 ]
 
 

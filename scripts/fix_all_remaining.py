@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix ALL remaining syntax and parameter ordering issues at once."""
+
 from pathlib import Path
 import re
 
@@ -19,13 +20,22 @@ for f in Path("shell/domain").rglob("**/*.py"):
 # Fix parameter ordering - move created_at before optional params
 fixes = {
     "shell/domain/execution/aggregates/edge_execution/edge_execution.py": [
-        ("target_node_execution_id: NodeExecutionId | None = None,\n        created_at: CreatedAt,", "created_at: CreatedAt,\n        target_node_execution_id: NodeExecutionId | None = None,"),
+        (
+            "target_node_execution_id: NodeExecutionId | None = None,\n        created_at: CreatedAt,",
+            "created_at: CreatedAt,\n        target_node_execution_id: NodeExecutionId | None = None,",
+        ),
     ],
     "shell/domain/execution/aggregates/graph_execution/graph_execution.py": [
-        ("parent_graph_execution_id: GraphExecutionId | None = None,\n        graph_definition_id: GraphDefinitionIdRef | None = None,\n        created_at: CreatedAt,", "created_at: CreatedAt,\n        parent_graph_execution_id: GraphExecutionId | None = None,\n        graph_definition_id: GraphDefinitionIdRef | None = None,"),
+        (
+            "parent_graph_execution_id: GraphExecutionId | None = None,\n        graph_definition_id: GraphDefinitionIdRef | None = None,\n        created_at: CreatedAt,",
+            "created_at: CreatedAt,\n        parent_graph_execution_id: GraphExecutionId | None = None,\n        graph_definition_id: GraphDefinitionIdRef | None = None,",
+        ),
     ],
     "shell/domain/execution/aggregates/task_execution/task_execution.py": [
-        ("body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,\n        created_at: CreatedAt,", "created_at: CreatedAt,\n        body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,"),
+        (
+            "body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,\n        created_at: CreatedAt,",
+            "created_at: CreatedAt,\n        body: TaskExecutionBody | None = None,\n        workflow_id: WorkflowId | None = None,\n        work_dir: WorkDir | None = None,",
+        ),
     ],
 }
 

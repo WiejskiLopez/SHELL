@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Add remaining _delete/_update stubs + fix SchedulerJob updated_at."""
+
 from pathlib import Path
 
 for path_str in [
@@ -23,7 +24,7 @@ for path_str in [
                 if "@property" in line and i > 5:
                     insert_at = i
                     break
-            stub = f"    def {method}(self) -> None:\n        raise NotImplementedError(\"{method}() not yet implemented\")\n"
+            stub = f'    def {method}(self) -> None:\n        raise NotImplementedError("{method}() not yet implemented")\n'
             lines.insert(insert_at, stub)
             content = "\n".join(lines)
 

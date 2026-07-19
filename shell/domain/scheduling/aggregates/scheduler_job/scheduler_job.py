@@ -23,6 +23,7 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_jo
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.enabled import Enabled
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -37,6 +38,9 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
     """Represents a cyclic job configuration run on an interval by APScheduler."""
 
     __slots__ = (
+        "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_scheduler_definition_id",
         "_name",
         "_job_type",
@@ -44,14 +48,14 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         "_batch_size",
         "_enabled",
         "_config",
-        "_created_at",
-        "_updated_at",
-        "_deleted_at",
     )
 
     def __init__(
         self,
+        *,
         id: SchedulerJobId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -59,8 +63,6 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         batch_size: BatchSize,
         enabled: Enabled,
         config: StateData,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
     ) -> None:
         super().__init__(id)
         self._scheduler_definition_id = scheduler_definition_id
@@ -82,13 +84,13 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         cls,
         *,
         id_: SchedulerJobId,
+        now: CreatedAt,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
         config: StateData,
-        now: CreatedAt,
         enabled: bool = True,
     ) -> SchedulerJob:
         return cls._new(
@@ -99,14 +101,17 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
             interval_seconds=interval_seconds,
             batch_size=batch_size,
             config=config,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
             enabled=enabled,
         )
 
     @classmethod
     def restore(
         cls,
+        *,
         id: SchedulerJobId,
+        created_at: CreatedAt,
+        updated_at: UpdatedAt | None = None,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -114,8 +119,6 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         batch_size: BatchSize,
         enabled: Enabled,
         config: StateData,
-        created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
     ) -> Self:
         return cls(
             id=id,
@@ -135,13 +138,13 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         cls,
         *,
         id_: SchedulerJobId,
+        now: OccurredAt,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
         interval_seconds: IntervalSeconds,
         batch_size: BatchSize,
         config: StateData,
-        now: CreatedAt,
         enabled: bool = True,
     ) -> SchedulerJob:
         instance = cls(
@@ -153,13 +156,13 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
             batch_size=batch_size,
             enabled=Enabled(enabled),
             config=config,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
 
         instance.append_event(
             SchedulerJobCreatedEvent.now(
                 scheduler_job_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -170,7 +173,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self.append_event(
             SchedulerJobDeletedEvent.now(
                 scheduler_job_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -179,7 +182,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self.append_event(
             SchedulerJobUpdatedEvent.now(
                 scheduler_job_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

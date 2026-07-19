@@ -17,17 +17,19 @@ from shell.domain.definition.aggregates.node_definition.value_objects.node_defin
 )
 from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
 from shell.platform.domain.base.aggregate_root import AggregateRoot
-from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.platform.domain.value_objects.created_at import CreatedAt
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
-    from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 
 class NodeDefinition(AggregateRoot[NodeDefinitionId]):
     __slots__ = (
-        "_updated_at",
         "_created_at",
+        "_updated_at",
+        "_deleted_at",
         "_node_type",
         "_max_step",
     )
@@ -48,9 +50,9 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
     def create(
         cls,
         id: NodeDefinitionId,
+        now: CreatedAt,
         node_type: NodeType,
         max_step: MaxStep | None = None,
-        now: CreatedAt | None = None,
     ) -> NodeDefinition:
         instance = cls(
             id=id,
@@ -58,39 +60,34 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
             max_step=max_step,
         )
 
-        if now is not None:
-            instance.append_event(
-                NodeDefinitionCreatedEvent.now(
-                    node_definition_id=id,
-                    now=now,
-                )
+        instance.append_event(
+            NodeDefinitionCreatedEvent.now(
+                node_definition_id=id,
+                now=OccurredAt.from_datetime(now.value),
             )
+        )
 
         return instance
 
-
-    @classmethod
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
+    def _update(self, now: CreatedAt) -> None:
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeDefinitionUpdatedEvent.now(
-                nodedefinition_id=self._id,
-                now=now,
+                node_definition_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
-
-
-
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
-
+        self._updated_at = UpdatedAt.from_datetime(now.value)
         self.append_event(
             NodeDefinitionDeletedEvent.now(
-                nodedefinition_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                node_definition_id=self._id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
+
     @property
     def node_type(self) -> NodeType:
         return self._node_type
@@ -116,9 +113,9 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
     def _new(
         cls,
         id: NodeDefinitionId,
+        now: OccurredAt,
         node_type: NodeType,
         max_step: MaxStep | None = None,
-        now: CreatedAt | None = None,
     ) -> NodeDefinition:
         instance = cls(
             id=id,
@@ -126,26 +123,11 @@ class NodeDefinition(AggregateRoot[NodeDefinitionId]):
             max_step=max_step,
         )
 
-        if now is not None:
-            instance.append_event(
-                NodeDefinitionCreatedEvent.now(
-                    node_definition_id=id,
-                    now=now,
-                )
-            )
-
-        return instance
-
-
-    @classmethod
-    def _update(self, now: UpdatedAt) -> None:
-        self._updated_at = now
-        self.append_event(
-            NodeDefinitionUpdatedEvent.now(
-                nodedefinition_id=self._id,
-                now=now,
+        instance.append_event(
+            NodeDefinitionCreatedEvent.now(
+                node_definition_id=id,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
-
-
+        return instance

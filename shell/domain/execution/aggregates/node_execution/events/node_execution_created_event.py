@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
         NodeExecutionId,
     )
-    from shell.platform.domain.value_objects.created_at import CreatedAt
+    from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,7 +31,7 @@ class NodeExecutionCreatedEvent(DomainEvent):
         node_execution_id: NodeExecutionId,
         node_definition_id: NodeDefinitionIdRef | None,
         graph_execution_id: GraphExecutionId | None,
-        now: CreatedAt,
+        now: OccurredAt,
     ) -> NodeExecutionCreatedEvent:
         return cls(
             occurred_at=now,

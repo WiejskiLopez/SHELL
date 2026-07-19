@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix _new NotImplementedError stubs: rename create/new to _new, add message."""
+
 import re
 from pathlib import Path
 
@@ -12,22 +13,43 @@ FILES = [
     ("shell/domain/project/aggregates/project/project.py", "Project"),
     ("shell/domain/project/aggregates/project_skill/project_skill.py", "ProjectSkill"),
     ("shell/domain/project/aggregates/project_state/project_state.py", "ProjectState"),
-    ("shell/domain/execution/aggregates/agent_config_execution/agent_config_execution.py", "AgentConfigExecution"),
+    (
+        "shell/domain/execution/aggregates/agent_config_execution/agent_config_execution.py",
+        "AgentConfigExecution",
+    ),
     ("shell/domain/execution/aggregates/agent_execution/agent_execution.py", "AgentExecution"),
-    ("shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py", "AgentSkillExecution"),
+    (
+        "shell/domain/execution/aggregates/agent_skill_execution/agent_skill_execution.py",
+        "AgentSkillExecution",
+    ),
     ("shell/domain/execution/aggregates/edge_execution/edge_execution.py", "EdgeExecution"),
-    ("shell/domain/execution/aggregates/edge_link_execution/edge_link_execution.py", "EdgeLinkExecution"),
+    (
+        "shell/domain/execution/aggregates/edge_link_execution/edge_link_execution.py",
+        "EdgeLinkExecution",
+    ),
     ("shell/domain/execution/aggregates/graph_execution/graph_execution.py", "GraphExecution"),
-    ("shell/domain/execution/aggregates/graph_execution_state/graph_execution_state.py", "GraphExecutionState"),
+    (
+        "shell/domain/execution/aggregates/graph_execution_state/graph_execution_state.py",
+        "GraphExecutionState",
+    ),
     ("shell/domain/execution/aggregates/node_execution/node_execution.py", "NodeExecution"),
-    ("shell/domain/execution/aggregates/node_execution_state/node_execution_state.py", "NodeExecutionState"),
-    ("shell/domain/execution/aggregates/session_execution/session_execution.py", "SessionExecution"),
+    (
+        "shell/domain/execution/aggregates/node_execution_state/node_execution_state.py",
+        "NodeExecutionState",
+    ),
+    (
+        "shell/domain/execution/aggregates/session_execution/session_execution.py",
+        "SessionExecution",
+    ),
     ("shell/domain/execution/aggregates/task_execution/task_execution.py", "TaskExecution"),
     ("shell/domain/execution/aggregates/user_execution/user_execution.py", "UserExecution"),
     ("shell/domain/execution/aggregates/workflow/workflow.py", "Workflow"),
     ("shell/domain/execution/aggregates/workflow_state/workflow_state.py", "WorkflowState"),
     ("shell/domain/definition/aggregates/graph_definition/graph_definition.py", "GraphDefinition"),
-    ("shell/domain/definition/aggregates/graph_definition_embedding/graph_definition_embedding.py", "GraphDefinitionEmbedding"),
+    (
+        "shell/domain/definition/aggregates/graph_definition_embedding/graph_definition_embedding.py",
+        "GraphDefinitionEmbedding",
+    ),
     ("shell/domain/definition/aggregates/node_definition/node_definition.py", "NodeDefinition"),
 ]
 

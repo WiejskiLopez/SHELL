@@ -19,6 +19,7 @@ from shell.domain.project.aggregates.project_skill.value_objects.project_skill_i
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
@@ -29,11 +30,11 @@ if TYPE_CHECKING:
 
 class ProjectSkill(AggregateRoot[ProjectSkillId]):
     __slots__ = (
-        "_project_id",
-        "_skill_data",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_project_id",
+        "_skill_data",
     )
 
     _project_id: ProjectId
@@ -43,11 +44,11 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self,
         *,
         id: ProjectSkillId,
-        project_id: ProjectId,
-        skill_data: ProjectSkillData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        project_id: ProjectId,
+        skill_data: ProjectSkillData,
     ) -> None:
         super().__init__(id)
         self._project_id = project_id
@@ -57,18 +58,18 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self._deleted_at = deleted_at
 
     @classmethod
-    def new(cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt) -> ProjectSkill:
+    def new(cls, project_id: ProjectId, skill_data: JsonStr, now: OccurredAt) -> ProjectSkill:
         instance = cls(
             id=ProjectSkillId.generate(),
             project_id=project_id,
             skill_data=ProjectSkillData(skill_data),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             ProjectSkillCreatedEvent.now(
                 skill_id=instance.id,
                 project_id=project_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -79,7 +80,7 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self.append_event(
             ProjectSkillDeletedEvent.now(
                 project_skill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -88,7 +89,7 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         self.append_event(
             ProjectSkillUpdatedEvent.now(
                 project_skill_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -117,11 +118,11 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         cls,
         *,
         id: ProjectSkillId,
-        project_id: ProjectId,
-        skill_data: ProjectSkillData,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        project_id: ProjectId,
+        skill_data: ProjectSkillData,
     ) -> Self:
         return cls(
             id=id,
@@ -133,5 +134,5 @@ class ProjectSkill(AggregateRoot[ProjectSkillId]):
         )
 
     @classmethod
-    def _new(cls, project_id: ProjectId, skill_data: JsonStr, now: CreatedAt) -> ProjectSkill:
+    def _new(cls, now: OccurredAt, project_id: ProjectId, skill_data: JsonStr) -> ProjectSkill:
         return cls.new(project_id=project_id, skill_data=skill_data, now=now)

@@ -11,6 +11,7 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -21,12 +22,12 @@ if TYPE_CHECKING:
 
 class Project(AggregateRoot[ProjectId]):
     __slots__ = (
-        "_name",
-        "_repo_url",
-        "_status",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_name",
+        "_repo_url",
+        "_status",
     )
 
     _name: ProjectName
@@ -37,12 +38,12 @@ class Project(AggregateRoot[ProjectId]):
         self,
         *,
         id: ProjectId,
-        name: ProjectName,
-        repo_url: RepoUrl,
-        status: ProjectStatus = ProjectStatus.ACTIVE,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        name: ProjectName,
+        repo_url: RepoUrl,
+        status: ProjectStatus = ProjectStatus.ACTIVE,
     ) -> None:
         super().__init__(id)
         self._name = name
@@ -57,12 +58,12 @@ class Project(AggregateRoot[ProjectId]):
         cls,
         *,
         id: ProjectId,
-        name: ProjectName,
-        repo_url: RepoUrl,
-        status: ProjectStatus = ProjectStatus.ACTIVE,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        name: ProjectName,
+        repo_url: RepoUrl,
+        status: ProjectStatus = ProjectStatus.ACTIVE,
     ) -> Self:
         return cls(
             id=id,
@@ -79,18 +80,20 @@ class Project(AggregateRoot[ProjectId]):
         cls,
         *,
         id_: ProjectId,
+        now: OccurredAt,
         name: ProjectName,
         repo_url: RepoUrl,
-        now: CreatedAt,
     ) -> Project:
         instance = cls(
             id=id_,
             name=name,
             repo_url=repo_url,
             status=ProjectStatus.ACTIVE,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
-        instance.append_event(ProjectCreatedEvent.now(project_id=instance.id, now=now))
+        instance.append_event(
+            ProjectCreatedEvent.now(project_id=instance.id, now=OccurredAt.from_datetime(now.value))
+        )
         return instance
 
     @classmethod
@@ -98,11 +101,13 @@ class Project(AggregateRoot[ProjectId]):
         cls,
         *,
         id_: ProjectId,
+        now: CreatedAt,
         name: ProjectName,
         repo_url: RepoUrl,
-        now: CreatedAt,
     ) -> Project:
-        return cls._new(id_=id_, name=name, repo_url=repo_url, now=now)
+        return cls._new(
+            id_=id_, name=name, repo_url=repo_url, now=OccurredAt.from_datetime(now.value)
+        )
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now
@@ -110,7 +115,7 @@ class Project(AggregateRoot[ProjectId]):
         self.append_event(
             ProjectDeletedEvent.now(
                 project_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -119,7 +124,7 @@ class Project(AggregateRoot[ProjectId]):
         self.append_event(
             ProjectUpdatedEvent.now(
                 project_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -161,7 +166,7 @@ class Project(AggregateRoot[ProjectId]):
         self.append_event(
             ProjectUpdatedEvent.now(
                 project_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -174,6 +179,6 @@ class Project(AggregateRoot[ProjectId]):
         self.append_event(
             ProjectDeletedEvent.now(
                 project_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )

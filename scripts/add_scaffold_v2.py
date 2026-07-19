@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Add _new(), _delete(), _update() to all aggregates safely."""
+
 from __future__ import annotations
 
 import re
@@ -17,10 +18,20 @@ def add_scaffold(path: Path) -> bool:
 
     # Ensure imported modules
     imports_needed = []
-    if "DeletedAt" in content and "from shell.platform.domain.value_objects.deleted_at import DeletedAt" not in content:
-        imports_needed.append("from shell.platform.domain.value_objects.deleted_at import DeletedAt")
-    if "UpdatedAt" in content and "from shell.platform.domain.value_objects.updated_at import UpdatedAt" not in content:
-        imports_needed.append("from shell.platform.domain.value_objects.updated_at import UpdatedAt")
+    if (
+        "DeletedAt" in content
+        and "from shell.platform.domain.value_objects.deleted_at import DeletedAt" not in content
+    ):
+        imports_needed.append(
+            "from shell.platform.domain.value_objects.deleted_at import DeletedAt"
+        )
+    if (
+        "UpdatedAt" in content
+        and "from shell.platform.domain.value_objects.updated_at import UpdatedAt" not in content
+    ):
+        imports_needed.append(
+            "from shell.platform.domain.value_objects.updated_at import UpdatedAt"
+        )
 
     if imports_needed:
         content = content.replace(
@@ -88,7 +99,10 @@ def add_scaffold(path: Path) -> bool:
 def main() -> None:
     fixed = 0
     for path in sorted(Path("shell/domain").rglob("**/aggregates/**/*.py")):
-        if any(p in path.parts for p in ("events", "exceptions", "value_objects", "repositories", "__init__")):
+        if any(
+            p in path.parts
+            for p in ("events", "exceptions", "value_objects", "repositories", "__init__")
+        ):
             continue
         if "AggregateRoot" not in path.read_text("utf-8"):
             continue

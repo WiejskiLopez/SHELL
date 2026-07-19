@@ -8,6 +8,7 @@ from shell.domain.execution.aggregates.edge_execution.value_objects.edge_executi
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.edge_execution.value_objects.edge_definition_id_ref import (
@@ -33,23 +34,24 @@ if TYPE_CHECKING:
 
 class EdgeExecution(AggregateRoot[EdgeExecutionId]):
     __slots__ = (
-        "_edge_definition_id",
-        "_source_node_execution_id",
-        "_target_node_execution_id",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_edge_definition_id",
+        "_source_node_execution_id",
+        "_target_node_execution_id",
     )
 
     def __init__(
         self,
+        *,
         id_: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionIdRef,
-        source_node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
-        target_node_execution_id: NodeExecutionId | None = None,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        edge_definition_id: EdgeDefinitionIdRef,
+        source_node_execution_id: NodeExecutionId,
+        target_node_execution_id: NodeExecutionId | None = None,
     ) -> None:
         super().__init__(id_)
         self._edge_definition_id = edge_definition_id
@@ -64,29 +66,30 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         cls,
         *,
         id_: EdgeExecutionId,
+        now: CreatedAt,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
-        now: CreatedAt,
     ) -> EdgeExecution:
         return cls._new(
             id_=id_,
             edge_definition_id=edge_definition_id,
             source_node_execution_id=source_node_execution_id,
             target_node_execution_id=target_node_execution_id,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
         )
 
     @classmethod
     def restore(
         cls,
+        *,
         id_: EdgeExecutionId,
-        edge_definition_id: EdgeDefinitionIdRef,
-        source_node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
-        target_node_execution_id: NodeExecutionId | None = None,
         updated_at: UpdatedAt | None = None,
         deleted_at: DeletedAt | None = None,
+        edge_definition_id: EdgeDefinitionIdRef,
+        source_node_execution_id: NodeExecutionId,
+        target_node_execution_id: NodeExecutionId | None = None,
     ) -> Self:
         return cls(
             id_=id_,
@@ -103,17 +106,17 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         cls,
         *,
         id_: EdgeExecutionId,
+        now: OccurredAt,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
-        now: CreatedAt,
     ) -> EdgeExecution:
         instance = cls(
             id_=id_,
             edge_definition_id=edge_definition_id,
             source_node_execution_id=source_node_execution_id,
             target_node_execution_id=target_node_execution_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             EdgeExecutionCreatedEvent.now(
@@ -121,7 +124,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
                 edge_definition_id=edge_definition_id,
                 source_node_execution_id=source_node_execution_id,
                 target_node_execution_id=target_node_execution_id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -138,7 +141,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self.append_event(
             EdgeExecutionUpdatedEvent.now(
                 edge_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -147,7 +150,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self.append_event(
             EdgeExecutionUpdatedEvent.now(
                 edge_execution_id=self._id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -157,7 +160,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self.append_event(
             EdgeExecutionDeletedEvent.now(
                 edge_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -169,7 +172,7 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self.append_event(
             EdgeExecutionDeletedEvent.now(
                 edge_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

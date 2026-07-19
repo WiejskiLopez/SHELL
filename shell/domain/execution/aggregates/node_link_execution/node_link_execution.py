@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -30,20 +31,21 @@ if TYPE_CHECKING:
 
 class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
     __slots__ = (
-        "_graph_execution_id",
-        "_node_execution_id",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_graph_execution_id",
+        "_node_execution_id",
     )
 
     def __init__(
         self,
+        *,
         id: NodeLinkExecutionId,
-        graph_execution_id: GraphExecutionId,
-        node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        graph_execution_id: GraphExecutionId,
+        node_execution_id: NodeExecutionId,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
@@ -56,20 +58,20 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         cls,
         *,
         id_: NodeLinkExecutionId,
+        now: OccurredAt,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
-        now: CreatedAt,
     ) -> NodeLinkExecution:
         instance = cls(
             id=id_,
             graph_execution_id=graph_execution_id,
             node_execution_id=node_execution_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             NodeLinkExecutionCreatedEvent.now(
                 node_link_execution_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -79,25 +81,26 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         cls,
         *,
         id_: NodeLinkExecutionId,
+        now: CreatedAt,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
-        now: CreatedAt,
     ) -> NodeLinkExecution:
         return cls._new(
             id_=id_,
             graph_execution_id=graph_execution_id,
             node_execution_id=node_execution_id,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
         )
 
     @classmethod
     def restore(
         cls,
+        *,
         id: NodeLinkExecutionId,
-        graph_execution_id: GraphExecutionId,
-        node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        graph_execution_id: GraphExecutionId,
+        node_execution_id: NodeExecutionId,
     ) -> Self:
         return cls(
             id=id,
@@ -113,7 +116,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self.append_event(
             NodeLinkExecutionDeletedEvent.now(
                 node_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -122,7 +125,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self.append_event(
             NodeLinkExecutionUpdatedEvent.now(
                 node_link_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

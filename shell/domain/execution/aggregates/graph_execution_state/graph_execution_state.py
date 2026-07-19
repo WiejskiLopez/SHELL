@@ -9,7 +9,6 @@ OUTPUT state represents data produced by the graph's own nodes during execution.
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING, Self
 
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_changed_event import (
@@ -21,9 +20,13 @@ from shell.domain.execution.aggregates.graph_execution_state.events.graph_execut
 from shell.domain.execution.aggregates.graph_execution_state.events.graph_execution_state_updated_event import (
     GraphExecutionStateUpdatedEvent,
 )
+from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    GraphExecutionStateId,
+)
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
@@ -32,23 +35,20 @@ if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
-        GraphExecutionStateId,
-    )
     from shell.platform.domain.value_objects.deleted_at import DeletedAt
     from shell.platform.domain.value_objects.state_direction import StateDirection
 
 
-class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
+class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
     """Aggregate that holds mutable key-value state for one graph execution, discriminated by kind."""
 
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_graph_execution_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _graph_execution_id: GraphExecutionId
@@ -61,85 +61,36 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def __init__(
         self,
         id: GraphExecutionStateId,
+        created_at: CreatedAt,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._graph_execution_id = graph_execution_id
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
+        self._updated_at = None
+        self._deleted_at = None
 
     @classmethod
     def create(
         cls,
         *,
         id_: GraphExecutionStateId,
+        now: CreatedAt,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> GraphExecutionState:
-        return cls(
-            id=id_,
+        return cls._new(
+            id_=id_,
             graph_execution_id=graph_execution_id,
             direction=direction,
-            state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            now=OccurredAt.from_datetime(now.value),
         )
 
     # ------------------------------------------------------------------ mutations
-
-    def update(self, key: str, value: object) -> None:
-        new_data = json.loads(self._state_data.value.value)
-        new_data[key] = value
-        self._state_data = StateData(JsonStr(json.dumps(new_data)))
-        self.append_event(
-            GraphExecutionStateChangedEvent.now(
-                graph_execution_id=self._graph_execution_id,
-                graph_execution_state_id=self.id,
-                now=self._created_at,
-            )
-        )
-
-    def get(self, key: str) -> object | None:
-        return json.loads(self._state_data.value.value).get(key)  # type: ignore[no-any-return]
-
-    def _remove_key(self, key: str) -> None:
-        if json.loads(self._state_data.value.value).get(key) is not None:
-            new_data = json.loads(self._state_data.value.value)
-            new_data.pop(key, None)
-            self._state_data = StateData(JsonStr(json.dumps(new_data)))
-            self.append_event(
-                GraphExecutionStateChangedEvent.now(
-                    graph_execution_id=self._graph_execution_id,
-                    graph_execution_state_id=self.id,
-                    now=self._created_at,
-                )
-            )
-
-    def patch(self, data: JsonStr) -> None:
-        parsed = json.loads(data.value)
-        for key, value in parsed.items():
-            self.update(key, value)
-
-    def clear(self) -> None:
-        current = json.loads(self._state_data.value.value)
-        for key in list(current.keys()):
-            self._remove_key(key)
-
-    def merge(self, other: GraphExecutionState) -> None:
-        """Incorporate state from a child task (Tasker pattern).
-
-        Keys present in *other* but absent in *self* are copied.
-        Keys already present in *self* are left unchanged (parent wins).
-        """
-        other_data = json.loads(other._state_data.value.value)
-        current = json.loads(self._state_data.value.value)
-        for key, value in other_data.items():
-            if key not in current:
-                self.update(key, value)
 
     def snapshot(self) -> StateData:
         return self._state_data
@@ -148,10 +99,10 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
     def restore(
         cls,
         id: GraphExecutionStateId,
+        created_at: CreatedAt,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -166,7 +117,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self.append_event(
             GraphExecutionStateUpdatedEvent.now(
                 graph_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -176,7 +127,7 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         self.append_event(
             GraphExecutionStateDeletedEvent.now(
                 graph_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -203,14 +154,22 @@ class GraphExecutionState(AggregateRoot["GraphExecutionStateId"]):
         cls,
         *,
         id_: GraphExecutionStateId,
+        now: OccurredAt,
         graph_execution_id: GraphExecutionId,
         direction: StateDirection,
-        now: CreatedAt,
     ) -> GraphExecutionState:
-        return cls(
+        instance = cls(
             id=id_,
             graph_execution_id=graph_execution_id,
             direction=direction,
             state_data=StateData(JsonStr("{}")),
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
+        instance.append_event(
+            GraphExecutionStateChangedEvent.now(
+                graph_execution_id=graph_execution_id,
+                graph_execution_state_id=instance.id,
+                now=now,
+            )
+        )
+        return instance

@@ -16,6 +16,7 @@ from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execu
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -27,10 +28,10 @@ if TYPE_CHECKING:
 
 class AgentExecution(AggregateRoot[AgentExecutionId]):
     __slots__ = (
-        "_node_execution_id",
         "_created_at",
         "_updated_at",
         "_deleted_at",
+        "_node_execution_id",
     )
 
     _node_execution_id: NodeExecutionId
@@ -39,10 +40,11 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
 
     def __init__(
         self,
+        *,
         id_: AgentExecutionId,
-        node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        node_execution_id: NodeExecutionId,
     ) -> None:
         super().__init__(id_)
         self._node_execution_id = node_execution_id
@@ -54,18 +56,18 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         cls,
         *,
         id_: AgentExecutionId,
+        now: OccurredAt,
         node_execution_id: NodeExecutionId,
-        now: CreatedAt,
     ) -> AgentExecution:
         instance = cls(
             id_=id_,
             node_execution_id=node_execution_id,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             AgentExecutionCreatedEvent.now(
                 agent_execution_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
@@ -75,18 +77,21 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         cls,
         *,
         id_: AgentExecutionId,
-        node_execution_id: NodeExecutionId,
         now: CreatedAt,
+        node_execution_id: NodeExecutionId,
     ) -> AgentExecution:
-        return cls._new(id_=id_, node_execution_id=node_execution_id, now=now)
+        return cls._new(
+            id_=id_, node_execution_id=node_execution_id, now=OccurredAt.from_datetime(now.value)
+        )
 
     @classmethod
     def restore(
         cls,
+        *,
         id_: AgentExecutionId,
-        node_execution_id: NodeExecutionId,
         created_at: CreatedAt,
         updated_at: UpdatedAt | None = None,
+        node_execution_id: NodeExecutionId,
     ) -> Self:
         return cls(
             id_=id_,
@@ -101,7 +106,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self.append_event(
             AgentExecutionDeletedEvent.now(
                 agent_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -110,7 +115,7 @@ class AgentExecution(AggregateRoot[AgentExecutionId]):
         self.append_event(
             AgentExecutionUpdatedEvent.now(
                 agent_execution_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 

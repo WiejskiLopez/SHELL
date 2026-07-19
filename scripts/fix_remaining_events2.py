@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Fix remaining _new methods with DOTALL regex."""
+
 import re
 from pathlib import Path
 

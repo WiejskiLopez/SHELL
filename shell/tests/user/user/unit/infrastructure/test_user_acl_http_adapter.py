@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -41,7 +42,7 @@ class TestUserAclHttpAdapter:
                     "id": "user-1",
                     "email": "user@test.com",
                     "status": "active",
-                    "created_at": None,
+                    "created_at": datetime(2025, 1, 1, tzinfo=UTC),
                     "updated_at": None,
                     "deleted_at": None,
                 }

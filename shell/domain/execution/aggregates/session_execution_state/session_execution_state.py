@@ -13,6 +13,7 @@ from shell.domain.execution.aggregates.session_execution_state.events.session_ex
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
@@ -29,12 +30,12 @@ if TYPE_CHECKING:
 
 class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
     __slots__ = (
+        "_created_at",
         "_updated_at",
+        "_deleted_at",
         "_session_execution_id",
         "_direction",
         "_state_data",
-        "_created_at",
-        "_deleted_at",
     )
 
     _session_execution_id: SessionExecutionId
@@ -47,10 +48,10 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
     def __init__(
         self,
         id: SessionExecutionStateId,
+        created_at: CreatedAt,
         session_execution_id: SessionExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> None:
         super().__init__(id)
         self._session_execution_id = session_execution_id
@@ -65,16 +66,16 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         cls,
         *,
         id_: SessionExecutionStateId,
-        session_execution_id: SessionExecutionId,
-        state_data: StateData,
         now: CreatedAt,
+        session_execution_id: SessionExecutionId,
         direction: StateDirection,
+        state_data: StateData,
     ) -> SessionExecutionState:
         return cls._new(
             id_=id_,
             session_execution_id=session_execution_id,
             state_data=state_data,
-            now=now,
+            now=OccurredAt.from_datetime(now.value),
             direction=direction,
         )
 
@@ -82,10 +83,10 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
     def restore(
         cls,
         id: SessionExecutionStateId,
+        created_at: CreatedAt,
         session_execution_id: SessionExecutionId,
         direction: StateDirection,
         state_data: StateData,
-        created_at: CreatedAt,
     ) -> Self:
         return cls(
             id=id,
@@ -101,7 +102,7 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self.append_event(
             SessionExecutionStateDeletedEvent.now(
                 session_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -110,7 +111,7 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         self.append_event(
             SessionExecutionStateUpdatedEvent.now(
                 session_execution_state_id=self._id,
-                now=CreatedAt.from_datetime(now.value),
+                now=OccurredAt.from_datetime(now.value),
             )
         )
 
@@ -135,22 +136,22 @@ class SessionExecutionState(AggregateRoot["SessionExecutionStateId"]):
         cls,
         *,
         id_: SessionExecutionStateId,
+        now: OccurredAt,
         session_execution_id: SessionExecutionId,
-        state_data: StateData,
-        now: CreatedAt,
         direction: StateDirection,
+        state_data: StateData,
     ) -> SessionExecutionState:
         instance = cls(
             id=id_,
             session_execution_id=session_execution_id,
             direction=direction,
             state_data=state_data,
-            created_at=now,
+            created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
             SessionExecutionStateCreatedEvent.now(
                 session_execution_state_id=instance.id,
-                now=now,
+                now=OccurredAt.from_datetime(now.value),
             )
         )
         return instance
