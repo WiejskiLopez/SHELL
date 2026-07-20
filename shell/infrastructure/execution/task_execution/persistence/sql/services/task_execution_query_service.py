@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.sql import func
 
 from shell.application.execution.node_execution.dto.node_execution import NodeExecutionDto
 from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
@@ -40,7 +41,39 @@ class TaskExecutionQueryService:
                 created_at=model.created_at,
                 work_dir=model.work_dir,
                 workflow_id=model.workflow_id,
+                updated_at=model.updated_at,
+                deleted_at=model.deleted_at,
             )
+
+    async def list_all(
+        self, *, page: int = 1, page_size: int = 100
+    ) -> tuple[list[TaskExecutionDto], int]:
+        async with self._session_factory() as session:
+            count_stmt = select(func.count()).select_from(TaskExecutionModel)
+            total = (await session.execute(count_stmt)).scalar_one()
+
+            offset = (page - 1) * page_size
+            stmt = (
+                select(TaskExecutionModel)
+                .order_by(TaskExecutionModel.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            dtos = [
+                TaskExecutionDto(
+                    id=r.id,
+                    name=r.name,
+                    created_at=r.created_at,
+                    work_dir=r.work_dir,
+                    workflow_id=r.workflow_id,
+                    updated_at=r.updated_at,
+                    deleted_at=r.deleted_at,
+                )
+                for r in rows
+            ]
+            return dtos, total
 
     async def get_task_execution_by_name(self, name: str) -> TaskExecutionDto | None:
         async with self._session_factory() as session:

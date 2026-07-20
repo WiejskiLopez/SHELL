@@ -14,6 +14,49 @@ if TYPE_CHECKING:
 
 
 class TestUserEndpoints:
+    async def test_list_users_returns_page(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            await client.post(
+                "/api/v1/users/", json={"email": "alpha@example.com"}, headers=headers
+            )
+            await client.post("/api/v1/users/", json={"email": "beta@example.com"}, headers=headers)
+            resp = await client.get("/api/v1/users", headers=headers)
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "items" in body
+        assert "total" in body
+        assert body["total"] == 2
+        assert body["page"] == 1
+        assert body["page_size"] == 100
+        assert body["has_more"] is False
+        assert len(body["items"]) == 2
+
+    async def test_list_users_pagination(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            for i in range(5):
+                await client.post(
+                    "/api/v1/users/",
+                    json={"email": f"user{i}@example.com"},
+                    headers=headers,
+                )
+            resp_page1 = await client.get("/api/v1/users?page=1&page_size=2", headers=headers)
+            resp_page3 = await client.get("/api/v1/users?page=3&page_size=2", headers=headers)
+        assert resp_page1.status_code == 200
+        assert resp_page3.status_code == 200
+        p1 = resp_page1.json()
+        p3 = resp_page3.json()
+        assert len(p1["items"]) == 2
+        assert len(p3["items"]) == 1
+        assert p1["total"] == 5
+        assert p3["total"] == 5
+        assert p1["has_more"] is True
+        assert p3["has_more"] is False
+        assert p1["items"][0]["created_at"] >= p1["items"][1]["created_at"]
+
     async def test_create_user(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}

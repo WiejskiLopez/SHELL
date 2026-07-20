@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Query
 
-from shell.application.project.project.ports.project_query_service import (
-    ProjectQueryService,
-)
 from shell.framework.project.project.api.controller import ProjectController
 from shell.framework.project.project.api.create_project_request import (
     CreateProjectRequest,
@@ -19,8 +16,10 @@ from shell.framework.project.project.api.update_project_request import (
     UpdateProjectRequest,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
+from shell.platform.framework.api.models.page import Page
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -28,14 +27,18 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
 def get_project_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> ProjectController:
-    try:
-        _project_query_service: ProjectQueryService = container.infra.project_query_service
-    except Exception:
-        raise HTTPException(
-            status_code=501, detail="Project query service not implemented"
-        ) from None
     command_bus: CommandBus = container.app.buses.command_bus
-    return ProjectController(command_bus, _project_query_service)
+    query_bus: QueryBus = container.app.buses.query_bus
+    return ProjectController(command_bus, query_bus)
+
+
+@router.get("", response_model=Page[ProjectResponse])
+async def list_projects(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=100, ge=1, le=1000, alias="page_size"),
+    controller: ProjectController = Depends(get_project_controller),
+) -> Page[ProjectResponse]:
+    return await controller.list_projects(page=page, page_size=page_size)
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)

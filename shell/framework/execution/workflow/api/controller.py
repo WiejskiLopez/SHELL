@@ -14,6 +14,9 @@ from shell.application.execution.workflow.commands.update_workflow_command impor
 from shell.application.execution.workflow.queries.get_workflow_by_id_query import (
     GetWorkflowByIdQuery,
 )
+from shell.application.execution.workflow.queries.list_workflows_query import (
+    ListWorkflowsQuery,
+)
 from shell.framework.execution.workflow.api.create_workflow_request import (
     CreateWorkflowRequest as ApiCreateWorkflowRequest,
 )
@@ -28,6 +31,7 @@ from shell.framework.execution.workflow.api.workflow_response import (
 )
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.framework.api.models.page import Page
 
 
 class WorkflowController:
@@ -36,6 +40,32 @@ class WorkflowController:
     def __init__(self, command_bus: CommandBus, query_bus: QueryBus) -> None:
         self._command_bus = command_bus
         self._query_bus = query_bus
+
+    async def list_workflows(
+        self, page: int = 1, page_size: int = 100, status: str | None = None
+    ) -> Page[ApiWorkflowResponse]:
+        dtos, total = await self._query_bus.dispatch(
+            ListWorkflowsQuery(page=page, page_size=page_size, status=status)
+        )
+        items = [
+            ApiWorkflowResponse(
+                id=d.id,
+                status=d.status,
+                session_id=d.session_id,
+                created_at=d.created_at,
+                updated_at=d.updated_at,
+                deleted_at=d.deleted_at,
+            )
+            for d in dtos
+        ]
+        has_more = (page * page_size) < total
+        return Page(
+            items=items,
+            total=total,
+            page=page,
+            page_size=page_size,
+            has_more=has_more,
+        )
 
     async def get_workflow(self, workflow_id: str) -> ApiWorkflowResponse:
         result = await self._query_bus.dispatch(GetWorkflowByIdQuery(workflow_id=workflow_id))

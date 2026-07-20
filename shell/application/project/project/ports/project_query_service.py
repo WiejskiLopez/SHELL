@@ -8,3 +8,7 @@ if TYPE_CHECKING:
 
 class ProjectQueryService(Protocol):
     async def get_by_id(self, project_id: str) -> ProjectDto | None: ...
+
+    async def list_all(
+        self, *, page: int = 1, page_size: int = 100
+    ) -> tuple[list[ProjectDto], int]: ...

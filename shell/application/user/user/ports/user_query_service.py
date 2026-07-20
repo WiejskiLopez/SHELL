@@ -8,3 +8,7 @@ if TYPE_CHECKING:
 
 class UserQueryService(Protocol):
     async def get_by_id(self, user_id: str) -> UserDto | None: ...
+
+    async def list_all(
+        self, *, page: int = 1, page_size: int = 100
+    ) -> tuple[list[UserDto], int]: ...

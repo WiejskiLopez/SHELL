@@ -35,6 +35,9 @@ from shell.application.execution.task_execution.query_handlers.get_task_executio
 from shell.application.execution.task_execution.query_handlers.get_task_execution_current_handler import (
     GetTaskExecutionCurrentHandler,
 )
+from shell.application.execution.task_execution.query_handlers.list_task_executions_handler import (
+    ListTaskExecutionsHandler,
+)
 from shell.application.execution.user_execution.query_handlers.get_user_execution_by_id_handler import (
     GetUserExecutionByIdHandler,
 )
@@ -44,8 +47,14 @@ from shell.application.execution.workflow.query_handlers.get_workflow_by_id_hand
 from shell.application.execution.workflow.query_handlers.get_workflow_state_by_id_handler import (
     GetWorkflowStateByIdHandler,
 )
+from shell.application.execution.workflow.query_handlers.list_workflows_handler import (
+    ListWorkflowsHandler,
+)
 from shell.application.project.project.query_handlers.get_project_by_id_handler import (
     GetProjectByIdHandler,
+)
+from shell.application.project.project.query_handlers.list_projects_handler import (
+    ListProjectsHandler,
 )
 from shell.application.project.project_skill.query_handlers.get_project_skill_by_id_handler import (
     GetProjectSkillByIdHandler,
@@ -63,6 +72,9 @@ from shell.application.user.user.command_handlers.create_user_handler import Cre
 from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
 from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
 from shell.application.user.user.query_handlers.get_user_by_id_handler import GetUserByIdHandler
+from shell.application.user.user.query_handlers.list_users_handler import (
+    ListUsersHandler,
+)
 from shell.application.user.user_skill.query_handlers.get_user_skill_by_id_handler import (
     GetUserSkillByIdHandler,
 )
@@ -789,7 +801,19 @@ class Queries:
         return GetTaskExecutionCurrentHandler(queries=self._infra.task_execution_query_service)
 
     def get_workflow_handler_factory(self) -> GetWorkflowByIdHandler:
-        return GetWorkflowByIdHandler(queries=self._infra.workflow_query_service)  # type: ignore[arg-type]
+        return GetWorkflowByIdHandler(queries=self._infra.workflow_query_service)
+
+    def list_workflows_handler_factory(self) -> ListWorkflowsHandler:
+        return ListWorkflowsHandler(queries=self._infra.workflow_query_service)
+
+    def list_users_handler_factory(self) -> ListUsersHandler:
+        return ListUsersHandler(queries=self._infra.user_query_service)
+
+    def list_projects_handler_factory(self) -> ListProjectsHandler:
+        return ListProjectsHandler(queries=self._infra.project_query_service)
+
+    def list_task_executions_handler_factory(self) -> ListTaskExecutionsHandler:
+        return ListTaskExecutionsHandler(queries=self._infra.task_execution_query_service)
 
     def get_workflow_state_handler_factory(self) -> GetWorkflowStateByIdHandler:
         return GetWorkflowStateByIdHandler(queries=self._infra.workflow_query_service)  # type: ignore[arg-type]

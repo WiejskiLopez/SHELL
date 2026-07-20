@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from shell.framework.execution.workflow.api.controller import WorkflowController
 from shell.framework.execution.workflow.api.create_workflow_request import (
@@ -21,6 +21,7 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
+from shell.platform.framework.api.models.page import Page
 
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
@@ -31,6 +32,16 @@ def get_workflow_controller(
     command_bus: CommandBus = container.app.buses.command_bus
     query_bus: QueryBus = container.app.buses.query_bus
     return WorkflowController(command_bus, query_bus)
+
+
+@router.get("", response_model=Page[WorkflowResponse])
+async def list_workflows(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=100, ge=1, le=1000, alias="page_size"),
+    status: str | None = Query(default=None),
+    controller: WorkflowController = Depends(get_workflow_controller),
+) -> Page[WorkflowResponse]:
+    return await controller.list_workflows(page=page, page_size=page_size, status=status)
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)

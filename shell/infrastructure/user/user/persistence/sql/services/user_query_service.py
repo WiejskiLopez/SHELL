@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.sql import func
 
 from shell.application.user.user.dto.user import UserDto
 from shell.infrastructure.user.user.persistence.sql.models.user import UserModel
@@ -30,3 +31,30 @@ class UserQueryService:
                 updated_at=model.updated_at,
                 deleted_at=model.deleted_at,
             )
+
+    async def list_all(self, *, page: int = 1, page_size: int = 100) -> tuple[list[UserDto], int]:
+        async with self._session_factory() as session:
+            count_stmt = select(func.count()).select_from(UserModel)
+            total = (await session.execute(count_stmt)).scalar_one()
+
+            offset = (page - 1) * page_size
+            stmt = (
+                select(UserModel)
+                .order_by(UserModel.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            dtos = [
+                UserDto(
+                    id=r.id,
+                    email=r.email,
+                    status=r.status,
+                    created_at=r.created_at,
+                    updated_at=r.updated_at,
+                    deleted_at=r.deleted_at,
+                )
+                for r in rows
+            ]
+            return dtos, total

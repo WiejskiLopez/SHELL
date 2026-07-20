@@ -45,6 +45,9 @@ from shell.application.execution.task_execution.queries import (
     GetTaskExecutionByNameQuery,
     GetTaskExecutionCurrentQuery,
 )
+from shell.application.execution.task_execution.queries.list_task_executions_query import (
+    ListTaskExecutionsQuery,
+)
 from shell.application.execution.user_execution.queries.get_user_execution_by_id_query import (
     GetUserExecutionByIdQuery,
 )
@@ -54,11 +57,17 @@ from shell.application.execution.workflow.queries.get_workflow_by_id_query impor
 from shell.application.execution.workflow.queries.get_workflow_state_by_id_query import (
     GetWorkflowStateByIdQuery,
 )
+from shell.application.execution.workflow.queries.list_workflows_query import (
+    ListWorkflowsQuery,
+)
 from shell.application.messaging.message_router.queries.get_message_by_id_query import (
     GetMessageByIdQuery,
 )
 from shell.application.project.project.queries.get_project_by_id_query import (
     GetProjectByIdQuery,
+)
+from shell.application.project.project.queries.list_projects_query import (
+    ListProjectsQuery,
 )
 from shell.application.project.project_skill.queries.get_project_skill_by_id_query import (
     GetProjectSkillByIdQuery,
@@ -74,6 +83,9 @@ from shell.application.session.session_state.queries.get_session_state_by_id_que
 )
 from shell.application.user.user.queries.get_user_by_id_query import (
     GetUserByIdQuery,
+)
+from shell.application.user.user.queries.list_users_query import (
+    ListUsersQuery,
 )
 from shell.application.user.user_skill.queries.get_user_skill_by_id_query import (
     GetUserSkillByIdQuery,
@@ -101,6 +113,10 @@ def register_queries(container: Container) -> None:
     q_bus.register(GetTaskExecutionByNameQuery, queries.get_task_execution_by_name_handler_factory)
     q_bus.register(GetTaskExecutionCurrentQuery, queries.get_task_execution_current_handler_factory)
     q_bus.register(GetWorkflowByIdQuery, queries.get_workflow_handler_factory)
+    q_bus.register(ListWorkflowsQuery, queries.list_workflows_handler_factory)
+    q_bus.register(ListUsersQuery, queries.list_users_handler_factory)
+    q_bus.register(ListProjectsQuery, queries.list_projects_handler_factory)
+    q_bus.register(ListTaskExecutionsQuery, queries.list_task_executions_handler_factory)
     q_bus.register(GetWorkflowStateByIdQuery, queries.get_workflow_state_handler_factory)
     q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)
     q_bus.register(GetGraphExecutionByIdQuery, queries.get_graph_execution_handler_factory)

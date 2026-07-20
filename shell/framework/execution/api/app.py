@@ -11,6 +11,7 @@ from shell.framework.execution.edge_link_execution.api.router import (
     router as edge_link_executions_router,
 )
 from shell.framework.execution.node_execution.api.router import router as node_execution_router
+from shell.framework.execution.task_execution.api.router import router as task_executions_router
 from shell.framework.execution.workflow.api.router import router as workflows_router
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
@@ -31,6 +32,7 @@ def create_execution_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(edge_executions_router)
     app.include_router(edge_link_executions_router)
     app.include_router(workflows_router)
+    app.include_router(task_executions_router)
     app.include_router(node_execution_router)
 
     @app.get("/health", tags=["Health"])

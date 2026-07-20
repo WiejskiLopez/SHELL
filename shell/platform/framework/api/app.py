@@ -16,6 +16,7 @@ from shell.framework.execution.edge_link_execution.api.router import (
     router as edge_link_executions_router,
 )
 from shell.framework.execution.node_execution.api.router import router as node_execution_router
+from shell.framework.execution.task_execution.api.router import router as task_executions_router
 from shell.framework.execution.workflow.api.router import router as workflows_router
 from shell.framework.messaging.message_router.api.router import router as message_routers_router
 from shell.framework.project.project.api.router import router as projects_router
@@ -89,6 +90,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(edge_executions_router, prefix="/api/v1")
     app.include_router(edge_link_executions_router, prefix="/api/v1")
     app.include_router(workflows_router, prefix="/api/v1")
+    app.include_router(task_executions_router, prefix="/api/v1")
     app.include_router(node_execution_router, prefix="/api/v1")
     app.include_router(graph_definitions_router, prefix="/api/v1")
     app.include_router(sessions_router, prefix="/api/v1")

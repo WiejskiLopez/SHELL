@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
+from sqlalchemy.sql import func
 
 from shell.application.project.project.dto.project import ProjectDto
 from shell.infrastructure.project.project.persistence.sql.models.project import ProjectModel
@@ -31,3 +32,33 @@ class ProjectQueryService:
                 updated_at=model.updated_at,
                 deleted_at=model.deleted_at,
             )
+
+    async def list_all(
+        self, *, page: int = 1, page_size: int = 100
+    ) -> tuple[list[ProjectDto], int]:
+        async with self._session_factory() as session:
+            count_stmt = select(func.count()).select_from(ProjectModel)
+            total = (await session.execute(count_stmt)).scalar_one()
+
+            offset = (page - 1) * page_size
+            stmt = (
+                select(ProjectModel)
+                .order_by(ProjectModel.created_at.desc())
+                .offset(offset)
+                .limit(page_size)
+            )
+            rows = (await session.execute(stmt)).scalars().all()
+
+            dtos = [
+                ProjectDto(
+                    id=r.id,
+                    name=r.name,
+                    repo_url=r.repo_url,
+                    status=r.status,
+                    created_at=r.created_at,
+                    updated_at=r.updated_at,
+                    deleted_at=r.deleted_at,
+                )
+                for r in rows
+            ]
+            return dtos, total
