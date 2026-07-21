@@ -18,7 +18,7 @@ from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.agent_execution.value_objects.agent_execution_id import (
@@ -47,7 +47,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         *,
         id: AgentConfigExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
     ) -> None:
@@ -55,7 +55,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         self._agent_execution_id = agent_execution_id
         self._config_data = config_data
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._updated_at = updated_at
 
     @classmethod
     def create(
@@ -126,7 +126,7 @@ class AgentConfigExecution(AggregateRoot[AgentConfigExecutionId]):
         *,
         id: AgentConfigExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         agent_execution_id: AgentExecutionId,
         config_data: ConfigData,
     ) -> Self:

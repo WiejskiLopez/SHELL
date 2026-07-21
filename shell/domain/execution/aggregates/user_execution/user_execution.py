@@ -16,9 +16,9 @@ from shell.domain.execution.aggregates.user_execution.value_objects.user_executi
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.user_execution.value_objects.user_id_ref import UserIdRef
@@ -48,8 +48,8 @@ class UserExecution(AggregateRoot[UserExecutionId]):
         self._user_id = user_id
         if created_at is not None:
             self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None)
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = NONE_UPDATED_AT
+        self._deleted_at = NONE_DELETED_AT
 
     @classmethod
     def create(

@@ -23,10 +23,10 @@ from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_jo
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
@@ -56,7 +56,8 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         *,
         id: SchedulerJobId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -78,8 +79,8 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
         self._config = config
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     def delete(self, now: DeletedAt) -> None:
         if self._deleted_at is not None and self._deleted_at.value is not None:
@@ -136,7 +137,8 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
         *,
         id: SchedulerJobId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         scheduler_definition_id: SchedulerDefinitionId,
         name: JobName,
         job_type: JobType,
@@ -156,6 +158,7 @@ class SchedulerJob(AggregateRoot[SchedulerJobId]):
             config=config,
             created_at=created_at,
             updated_at=updated_at,
+            deleted_at=deleted_at,
         )
 
     @classmethod

@@ -16,9 +16,9 @@ from shell.domain.definition.aggregates.graph_definition_embedding.value_objects
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
@@ -53,8 +53,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         *,
         id: GraphDefinitionEmbeddingId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,
@@ -66,8 +66,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         self._embedding = embedding
         self._model = model
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -146,8 +146,8 @@ class GraphDefinitionEmbedding(AggregateRoot[GraphDefinitionEmbeddingId]):
         *,
         id: GraphDefinitionEmbeddingId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         graph_definition_id: GraphDefinitionId,
         text: EmbeddingText,
         embedding: Embedding,

@@ -23,10 +23,10 @@ from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.sched
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.enabled import Enabled
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.action_config import (
@@ -58,7 +58,8 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         *,
         id: SchedulerDefinitionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         name: SchedulerName,
         enabled: Enabled,
         trigger_config: TriggerConfig,
@@ -76,8 +77,8 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         self._execution_policy = execution_policy
         self._enabled = enabled if isinstance(enabled, Enabled) else Enabled(enabled)
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def restore(
@@ -85,7 +86,8 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
         *,
         id: SchedulerDefinitionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         name: SchedulerName,
         enabled: Enabled,
         trigger_config: TriggerConfig,
@@ -103,6 +105,7 @@ class SchedulerDefinition(AggregateRoot[SchedulerDefinitionId]):
             execution_policy=execution_policy,
             created_at=created_at,
             updated_at=updated_at,
+            deleted_at=deleted_at,
         )
 
     @classmethod

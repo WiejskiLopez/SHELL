@@ -21,6 +21,10 @@ class UpdatedAt(ValueObject):
         return self.value.isoformat() if self.value is not None else ""
 
     @classmethod
+    def none(cls) -> UpdatedAt:
+        return cls(value=None)
+
+    @classmethod
     def now(cls) -> UpdatedAt:
         return cls(datetime.now(tz=UTC))
 
@@ -32,3 +36,6 @@ class UpdatedAt(ValueObject):
 
     def to_timestamp(self) -> Timestamp | None:
         return Timestamp(self.value) if self.value is not None else None
+
+
+NONE_UPDATED_AT: UpdatedAt = UpdatedAt(value=None)

@@ -8,7 +8,7 @@ from shell.domain.execution.aggregates.edge_link_execution.value_objects.edge_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_exec
 from shell.domain.execution.aggregates.edge_link_execution.events.edge_link_execution_updated_event import (
     EdgeLinkExecutionUpdatedEvent,
 )
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
@@ -44,8 +44,8 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         *,
         id_: EdgeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         node_execution_id: NodeExecutionId,
         edge_execution_id: EdgeExecutionId,
     ) -> None:
@@ -53,8 +53,8 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         self._node_execution_id = node_execution_id
         self._edge_execution_id = edge_execution_id
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def new(
@@ -137,8 +137,8 @@ class EdgeLinkExecution(AggregateRoot[EdgeLinkExecutionId]):
         *,
         id_: EdgeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         node_execution_id: NodeExecutionId,
         edge_execution_id: EdgeExecutionId,
     ) -> Self:

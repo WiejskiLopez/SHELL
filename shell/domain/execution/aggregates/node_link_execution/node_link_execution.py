@@ -17,7 +17,7 @@ from shell.domain.execution.aggregates.node_link_execution.value_objects.node_li
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
@@ -43,7 +43,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         *,
         id: NodeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
     ) -> None:
@@ -51,7 +51,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         self._graph_execution_id = graph_execution_id
         self._node_execution_id = node_execution_id
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._updated_at = updated_at
 
     @classmethod
     def _new(
@@ -98,7 +98,7 @@ class NodeLinkExecution(AggregateRoot[NodeLinkExecutionId]):
         *,
         id: NodeLinkExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         graph_execution_id: GraphExecutionId,
         node_execution_id: NodeExecutionId,
     ) -> Self:

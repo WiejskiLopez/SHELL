@@ -17,9 +17,9 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_status im
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
@@ -51,7 +51,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id: WorkflowId,
         created_at: CreatedAt,
-        deleted_at: DeletedAt | None = None,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus | None = None,
     ) -> None:
@@ -59,8 +59,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         self._session_id = session_id
         self._status = status if status is not None else WorkflowStatus.ACTIVE
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None)
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._updated_at = NONE_UPDATED_AT
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -168,8 +168,8 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id: WorkflowId,
         created_at: CreatedAt,
-        deleted_at: DeletedAt | None = None,
-        updated_at: UpdatedAt | None = None,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         session_id: SessionIdRef | None = None,
         status: WorkflowStatus,
     ) -> Self:
@@ -180,8 +180,7 @@ class Workflow(AggregateRoot["WorkflowId"]):
             created_at=created_at,
             deleted_at=deleted_at,
         )
-        if updated_at is not None:
-            workflow._updated_at = updated_at
+        workflow._updated_at = updated_at
         return workflow
 
     # --- Properties ---

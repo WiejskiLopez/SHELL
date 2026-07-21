@@ -38,7 +38,7 @@ from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.error_description import ErrorDescription
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.timestamp import Timestamp
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
@@ -74,7 +74,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         *,
         id: SchedulerExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         scheduler_definition_id: SchedulerDefinitionId,
         status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,
@@ -110,7 +110,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         self._started_at = started_at
         self._completed_at = completed_at
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
+        self._updated_at = updated_at
 
     @classmethod
     def create(
@@ -132,7 +132,7 @@ class SchedulerExecution(AggregateRoot[SchedulerExecutionId]):
         *,
         id: SchedulerExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
         scheduler_definition_id: SchedulerDefinitionId,
         status: ExecutionStatus,
         trigger_event_id: TriggerEventId | None = None,

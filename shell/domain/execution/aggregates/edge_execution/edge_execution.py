@@ -26,8 +26,8 @@ from shell.domain.execution.aggregates.edge_execution.events.edge_execution_dele
 from shell.domain.execution.aggregates.edge_execution.events.edge_execution_updated_event import (
     EdgeExecutionUpdatedEvent,
 )
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class EdgeExecution(AggregateRoot[EdgeExecutionId]):
@@ -45,8 +45,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         *,
         id_: EdgeExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,
@@ -56,8 +56,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         self._source_node_execution_id = source_node_execution_id
         self._target_node_execution_id = target_node_execution_id
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -83,8 +83,8 @@ class EdgeExecution(AggregateRoot[EdgeExecutionId]):
         *,
         id_: EdgeExecutionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         edge_definition_id: EdgeDefinitionIdRef,
         source_node_execution_id: NodeExecutionId,
         target_node_execution_id: NodeExecutionId | None = None,

@@ -21,6 +21,10 @@ class DeletedAt(ValueObject):
         return self.value.isoformat() if self.value is not None else ""
 
     @classmethod
+    def none(cls) -> DeletedAt:
+        return cls(value=None)
+
+    @classmethod
     def now(cls) -> DeletedAt:
         return cls(datetime.now(tz=UTC))
 
@@ -32,3 +36,6 @@ class DeletedAt(ValueObject):
 
     def to_timestamp(self) -> Timestamp | None:
         return Timestamp(self.value) if self.value is not None else None
+
+
+NONE_DELETED_AT: DeletedAt = DeletedAt(value=None)

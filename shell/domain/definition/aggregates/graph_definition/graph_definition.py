@@ -14,9 +14,9 @@ from shell.domain.definition.aggregates.graph_definition.value_objects.graph_def
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class GraphDefinition(AggregateRoot[GraphDefinitionId]):
@@ -35,13 +35,13 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         *,
         id: GraphDefinitionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
     ) -> None:
         super().__init__(id)
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None) if updated_at is None else updated_at
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._updated_at = updated_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -95,8 +95,8 @@ class GraphDefinition(AggregateRoot[GraphDefinitionId]):
         *,
         id: GraphDefinitionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
     ) -> GraphDefinition:
         return cls(
             id=id,

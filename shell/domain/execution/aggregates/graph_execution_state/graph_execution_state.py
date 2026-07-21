@@ -25,10 +25,10 @@ from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph
 )
 from shell.platform.domain.base import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.state_data import StateData
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 from shell.platform.types import JsonStr  # noqa: TC001 -- potrzebny w runtime
 
 if TYPE_CHECKING:
@@ -70,8 +70,8 @@ class GraphExecutionState(AggregateRoot[GraphExecutionStateId]):
         self._direction = direction
         self._state_data = state_data
         self._created_at = created_at
-        self._updated_at = UpdatedAt(value=None)
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = NONE_UPDATED_AT
+        self._deleted_at = NONE_DELETED_AT
 
     @classmethod
     def create(

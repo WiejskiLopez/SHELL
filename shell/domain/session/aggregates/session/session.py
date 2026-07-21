@@ -19,9 +19,9 @@ from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class Session(AggregateRoot[SessionId]):
@@ -55,17 +55,17 @@ class Session(AggregateRoot[SessionId]):
         project_id: ProjectIdRef,
         status: SessionStatus,
         opened_at: CreatedAt,
-        closed_at: UpdatedAt | None = None,
+        closed_at: UpdatedAt = NONE_UPDATED_AT,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
         self._project_id = project_id
         self._status = status
         self._opened_at = opened_at
-        self._closed_at = UpdatedAt(value=None) if closed_at is None else closed_at
+        self._closed_at = closed_at
         self._created_at = opened_at
-        self._updated_at = UpdatedAt(value=None)
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = NONE_UPDATED_AT
+        self._deleted_at = NONE_DELETED_AT
 
     @classmethod
     def open(
@@ -153,10 +153,10 @@ class Session(AggregateRoot[SessionId]):
         *,
         id: SessionId,
         created_at: CreatedAt,
-        updated_at: UpdatedAt | None = None,
-        deleted_at: DeletedAt | None = None,
+        updated_at: UpdatedAt = NONE_UPDATED_AT,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         opened_at: CreatedAt,
-        closed_at: UpdatedAt | None = None,
+        closed_at: UpdatedAt = NONE_UPDATED_AT,
         user_id: UserIdRef,
         project_id: ProjectIdRef,
         status: SessionStatus,
@@ -170,10 +170,8 @@ class Session(AggregateRoot[SessionId]):
             closed_at=closed_at,
         )
         session._created_at = created_at
-        if updated_at is not None:
-            session._updated_at = updated_at
-        if deleted_at is not None:
-            session._deleted_at = deleted_at
+        session._updated_at = updated_at
+        session._deleted_at = deleted_at
         return session
 
     @property

@@ -16,9 +16,9 @@ from shell.domain.definition.aggregates.runner_config.value_objects.runner_confi
 )
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 
 class RunnerConfig(AggregateRoot[RunnerConfigId]):
@@ -40,8 +40,8 @@ class RunnerConfig(AggregateRoot[RunnerConfigId]):
         self._created_at = (
             created_at if isinstance(created_at, CreatedAt) else CreatedAt(created_at)
         )
-        self._updated_at = UpdatedAt(value=None)
-        self._deleted_at = DeletedAt(value=None)
+        self._updated_at = NONE_UPDATED_AT
+        self._deleted_at = NONE_DELETED_AT
 
     def _delete(self, now: DeletedAt) -> None:
         self._deleted_at = now

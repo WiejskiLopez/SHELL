@@ -23,7 +23,7 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
 from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.deleted_at import DeletedAt
+from shell.platform.domain.value_objects.deleted_at import NONE_DELETED_AT, DeletedAt
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
@@ -49,7 +49,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         *,
         id: TaskExecutionId,
         created_at: CreatedAt,
-        deleted_at: DeletedAt | None = None,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         name: TaskName,
         workflow_id: WorkflowId,
         work_dir: WorkDir,
@@ -60,7 +60,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         self._name = name
         self._work_dir = work_dir
         self._created_at = created_at
-        self._deleted_at = DeletedAt(value=None) if deleted_at is None else deleted_at
+        self._deleted_at = deleted_at
 
     @classmethod
     def create(
@@ -86,7 +86,7 @@ class TaskExecution(AggregateRoot[TaskExecutionId]):
         *,
         id: TaskExecutionId,
         created_at: CreatedAt,
-        deleted_at: DeletedAt | None = None,
+        deleted_at: DeletedAt = NONE_DELETED_AT,
         name: TaskName,
         workflow_id: WorkflowId,
         work_dir: WorkDir,
