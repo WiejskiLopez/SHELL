@@ -49,6 +49,5 @@ class CreateEdgeLinkExecutionHandler:
             now=now,
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(EdgeLinkExecutionRepository).save(link)
-            unit_of_work.stage_events(link.pull_events())
+            await unit_of_work.save(EdgeLinkExecutionRepository, link)
         return link.id.value

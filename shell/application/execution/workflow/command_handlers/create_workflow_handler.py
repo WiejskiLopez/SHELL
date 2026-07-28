@@ -49,7 +49,6 @@ class CreateWorkflowHandler:
         )
 
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(WorkflowRepository).save(workflow)
-            unit_of_work.stage_events(workflow.pull_events())
+            await unit_of_work.save(WorkflowRepository, workflow)
 
         return workflow_id.value

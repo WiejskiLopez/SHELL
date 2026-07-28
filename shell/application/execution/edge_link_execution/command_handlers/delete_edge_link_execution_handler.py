@@ -42,5 +42,4 @@ class DeleteEdgeLinkExecutionHandler:
             if link is None:
                 raise EdgeLinkExecutionNotFoundError(command.id)
             link.mark_deleted(now)
-            await repo.save(link)
-            unit_of_work.stage_events(link.pull_events())
+            await unit_of_work.save(EdgeLinkExecutionRepository, link)

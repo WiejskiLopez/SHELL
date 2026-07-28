@@ -19,3 +19,6 @@ class InboxEventModel(Base):
     causation_id: Mapped[str] = mapped_column(nullable=False, default="")
     received_at: Mapped[datetime] = mapped_column(nullable=False)
     processed_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    retry_count: Mapped[int] = mapped_column(default=0)
+    last_attempted_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    error: Mapped[str | None] = mapped_column(nullable=True)

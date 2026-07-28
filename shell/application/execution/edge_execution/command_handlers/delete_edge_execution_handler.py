@@ -42,5 +42,4 @@ class DeleteEdgeExecutionHandler:
             if edge is None:
                 raise EdgeExecutionNotFoundError(command.id)
             edge.mark_deleted(now)
-            await repo.save(edge)
-            unit_of_work.stage_events(edge.pull_events())
+            await unit_of_work.save(EdgeExecutionRepository, edge)

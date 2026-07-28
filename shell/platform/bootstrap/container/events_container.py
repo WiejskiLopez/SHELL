@@ -65,8 +65,10 @@ class EventsContainer(containers.DeclarativeContainer):
     inbox_processor = providers.Factory(
         InboxProcessor,
         session_factory=infra.session_factory,
-        event_publisher=event_bus_publisher,
+        event_bus=event_bus_publisher,
         batch_size=config.inbox_batch_size,
+        max_retries=config.inbox_max_retries,
+        retry_backoff_seconds=config.inbox_retry_backoff_seconds,
     )
 
     # 6. Command outbox/inbox

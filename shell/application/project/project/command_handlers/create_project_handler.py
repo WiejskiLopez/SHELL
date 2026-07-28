@@ -36,5 +36,4 @@ class CreateProjectHandler:
         )
         async with self._unit_of_work as unit_of_work:
             await unit_of_work.save(ProjectRepository, project)
-            unit_of_work.stage_events(project.pull_events())
         return project_id

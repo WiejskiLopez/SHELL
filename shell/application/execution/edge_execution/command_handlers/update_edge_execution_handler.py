@@ -53,5 +53,4 @@ class UpdateEdgeExecutionHandler:
                 ),
                 now=now,
             )
-            await repo.save(edge)
-            unit_of_work.stage_events(edge.pull_events())
+            await unit_of_work.save(EdgeExecutionRepository, edge)

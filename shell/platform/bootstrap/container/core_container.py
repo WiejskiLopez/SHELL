@@ -411,7 +411,8 @@ class Commands:
 
         return CreateNodeExecutionHandler(
             unit_of_work=SqlAlchemyNodeExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             identity=self._infra.id_generator_factory(),
             time=self._infra.clock_factory(),
@@ -427,7 +428,8 @@ class Commands:
 
         return CreateEdgeExecutionHandler(
             unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             identity=self._infra.id_generator_factory(),
             time=self._infra.clock_factory(),
@@ -443,7 +445,8 @@ class Commands:
 
         return UpdateEdgeExecutionHandler(
             unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             time=self._infra.clock_factory(),
             logger=self._infra.stdlib_logger,
@@ -459,7 +462,8 @@ class Commands:
 
         return DeleteEdgeExecutionHandler(
             unit_of_work=SqlAlchemyEdgeExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             time=self._infra.clock_factory(),
             logger=self._infra.stdlib_logger,
@@ -475,7 +479,8 @@ class Commands:
 
         return CreateEdgeLinkExecutionHandler(
             unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             identity=self._infra.id_generator_factory(),
             time=self._infra.clock_factory(),
@@ -491,7 +496,8 @@ class Commands:
 
         return DeleteEdgeLinkExecutionHandler(
             unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             time=self._infra.clock_factory(),
             logger=self._infra.stdlib_logger,
@@ -507,7 +513,8 @@ class Commands:
 
         return UpdateEdgeLinkExecutionHandler(
             unit_of_work=SqlAlchemyEdgeLinkExecutionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             time=self._infra.clock_factory(),
             logger=self._infra.stdlib_logger,
@@ -590,7 +597,8 @@ class Commands:
 
         return CreateSchedulerDefinitionHandler(
             unit_of_work=SqlAlchemySchedulerDefinitionUnitOfWork(
-                session_factory=self._infra.session_factory
+                session_factory=self._infra.session_factory,
+                mapper=ReflectiveIntegrationMapper(),
             ),
             clock=self._infra.clock_factory(),
             id_generator=self._infra.id_generator_factory(),
@@ -783,11 +791,16 @@ class EventHandlers:
         from shell.application.session.session.event_handlers.user_login_succeeded_handler import (
             UserLoginSucceededHandler,
         )
+        from shell.domain.session.services.session_management_service import (
+            SessionManagementService,
+        )
 
         return UserLoginSucceededHandler(
             unit_of_work=self._infra.unit_of_work_factory(),
             clock=self._infra.clock_factory(),
-            id_generator=self._infra.id_generator_factory(),
+            session_service=SessionManagementService(
+                id_generator=self._infra.id_generator_factory(),
+            ),
         )
 
 
@@ -964,13 +977,13 @@ class Events:
 
         # Event publishers
         sql_outbox_publisher = SqlOutboxPublisher(session_factory=infra.session_factory)
-        event_bus_publisher = EventBusPublisher(event_bus=buses.event_bus)
+        self._event_bus_publisher = EventBusPublisher(event_bus=buses.event_bus)
         self._event_publisher = CompositeEventPublisher(
             publishers=[
                 infra.logging_publisher,
                 infra.sql_audit_publisher,
                 sql_outbox_publisher,
-                event_bus_publisher,
+                self._event_bus_publisher,
             ]
         )
 
@@ -982,14 +995,14 @@ class Events:
     def outbox_to_inbox_relay(self) -> OutboxToInboxRelay:
         return OutboxToInboxRelay(
             session_factory=self._infra.session_factory,
-            downstream=self._event_publisher,
+            downstream=self._event_bus_publisher,
             batch_size=self._outbox_batch_size,
         )
 
     def inbox_processor(self) -> InboxProcessor:
         return InboxProcessor(
             session_factory=self._infra.session_factory,
-            event_bus=self._event_publisher,
+            event_bus=self._event_bus_publisher,
             batch_size=self._inbox_batch_size,
             registry=self._event_registry,
         )

@@ -52,6 +52,5 @@ class CreateEdgeExecutionHandler:
             now=now,
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(EdgeExecutionRepository).save(edge_execution)
-            unit_of_work.stage_events(edge_execution.pull_events())
+            await unit_of_work.save(EdgeExecutionRepository, edge_execution)
         return str(edge_execution.id.value)

@@ -53,6 +53,5 @@ class CreateNodeExecutionHandler:
             now=now,
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(NodeExecutionRepository).save(node_execution)
-            unit_of_work.stage_events(node_execution.pull_events())
+            await unit_of_work.save(NodeExecutionRepository, node_execution)
         return node_execution.id.value

@@ -39,7 +39,6 @@ class CreateUserHandler:
         )
 
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(UserRepository).save(user)
-            unit_of_work.stage_events(user.pull_events())
+            await unit_of_work.save(UserRepository, user)
 
         return user_id.value

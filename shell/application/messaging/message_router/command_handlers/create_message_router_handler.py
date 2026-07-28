@@ -42,6 +42,5 @@ class CreateMessageRouterHandler:
             now=now,
         )
         async with self._unit_of_work as unit_of_work:
-            await unit_of_work.repository(MessageRouterRepository).save(message_router)
-            unit_of_work.stage_events(message_router.pull_events())
+            await unit_of_work.save(MessageRouterRepository, message_router)
         return message_router_id.value
