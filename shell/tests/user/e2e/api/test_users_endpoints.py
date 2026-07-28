@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 
 from shell.tests.shared.e2e_helpers import TEST_API_KEY, _make_app
@@ -74,8 +73,8 @@ class TestUserEndpoints:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            with pytest.raises(ValueError):
-                await client.get("/api/v1/users/nonexistent", headers=headers)
+            resp = await client.get("/api/v1/users/nonexistent", headers=headers)
+        assert resp.status_code == 404
 
     async def test_get_user_found(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
@@ -109,6 +108,64 @@ class TestUserEndpoints:
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             delete_resp = await client.delete(f"/api/v1/users/{user_id}", headers=headers)
         assert delete_resp.status_code == 204
+
+    async def test_login_success(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            create_resp = await client.post(
+                "/api/v1/users/",
+                json={"email": "login@example.com"},
+                headers={"X-API-Key": TEST_API_KEY},
+            )
+            assert create_resp.status_code == 201
+            created_id = create_resp.json()["id"]
+
+            resp = await client.post(
+                "/api/v1/users/login",
+                json={"email": "login@example.com"},
+            )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["id"] == created_id
+
+    async def test_login_not_found(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post(
+                "/api/v1/users/login",
+                json={"email": "nonexistent@example.com"},
+            )
+        assert resp.status_code == 404
+
+    async def test_login_by_email_query(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            create_resp = await client.post(
+                "/api/v1/users/",
+                json={"email": "query@example.com"},
+                headers=headers,
+            )
+            assert create_resp.status_code == 201
+            created_id = create_resp.json()["id"]
+
+            resp = await client.get(
+                "/api/v1/users/by-email",
+                params={"email": "query@example.com"},
+                headers=headers,
+            )
+        assert resp.status_code == 200, f"Got {resp.status_code}: {resp.text}"
+        data = resp.json()
+        assert data["id"] == created_id
+
+    async def test_login_by_email_not_found(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.get(
+                "/api/v1/users/by-email",
+                params={"email": "ghost@example.com"},
+            )
+        assert resp.status_code == 404
 
     async def test_update_user(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)

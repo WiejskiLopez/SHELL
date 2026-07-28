@@ -70,7 +70,11 @@ from shell.application.session.session_state.query_handlers.get_session_state_by
 )
 from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
 from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
+from shell.application.user.user.command_handlers.login_handler import LoginHandler
 from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
+from shell.application.user.user.query_handlers.get_user_by_email_handler import (
+    GetUserByEmailHandler,
+)
 from shell.application.user.user.query_handlers.get_user_by_id_handler import GetUserByIdHandler
 from shell.application.user.user.query_handlers.list_users_handler import (
     ListUsersHandler,
@@ -148,9 +152,6 @@ from shell.infrastructure.session.session_state.persistence.sql.services.session
 from shell.infrastructure.user.user.persistence.sql.services.user_query_service import (
     UserQueryService,
 )
-from shell.infrastructure.user.user.persistence.sql.user_acl_monolith_adapter import (
-    UserAclMonolithAdapter,
-)
 from shell.infrastructure.user.user_skill.persistence.sql.services.user_skill_query_service import (
     UserSkillQueryService,
 )
@@ -167,6 +168,9 @@ from shell.platform.infrastructure.logging.composite_event_publisher import Comp
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
+from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
+    ReflectiveIntegrationMapper,
+)
 from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
     SqlCommandOutboxPublisher,
 )
@@ -175,6 +179,7 @@ from shell.platform.infrastructure.messaging.event.processor.inbox_processor imp
 from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
 from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.platform.infrastructure.serialization.event_registry import build_event_registry
 from shell.platform.infrastructure.time.system_clock import SystemClock
 
 if TYPE_CHECKING:
@@ -288,6 +293,9 @@ if TYPE_CHECKING:
     from shell.application.session.session.command_handlers.update_session_handler import (
         UpdateSessionHandler,
     )
+    from shell.application.session.session.event_handlers.user_login_succeeded_handler import (
+        UserLoginSucceededHandler,
+    )
     from shell.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
         GetUserStateByIdHandler,
     )
@@ -316,7 +324,8 @@ class Infrastructure:
 
         # Unit of Work factory — new UoW per request
         self.unit_of_work_factory = lambda: SqlAlchemyUnitOfWork(
-            session_factory=self.session_factory
+            session_factory=self.session_factory,
+            mapper=ReflectiveIntegrationMapper(),
         )
 
         # Query services (stateless, safe to share)
@@ -370,9 +379,6 @@ class Infrastructure:
         # Event publishers
         self.logging_publisher = LoggingEventPublisher(self.stdlib_logger)
         self.sql_audit_publisher = SqlAuditPublisher(self.session_factory)
-
-        # Monolith adapter
-        self.user_acl_factory = lambda: UserAclMonolithAdapter(self.session_factory)
 
     def _create_http_clients(self) -> None:
         pass
@@ -523,6 +529,13 @@ class Commands:
     def delete_user_handler_factory(self) -> DeleteUserHandler:
         return DeleteUserHandler(
             unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+        )
+
+    def login_handler_factory(self) -> LoginHandler:
+        return LoginHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            queries=self._infra.user_query_service,
             clock=self._infra.clock_factory(),
         )
 
@@ -759,6 +772,25 @@ class Commands:
         )
 
 
+class EventHandlers:
+    """Container for event handler factories."""
+
+    def __init__(self, buses: Buses, infra: Infrastructure) -> None:
+        self._buses = buses
+        self._infra = infra
+
+    def user_login_succeeded_handler_factory(self) -> UserLoginSucceededHandler:
+        from shell.application.session.session.event_handlers.user_login_succeeded_handler import (
+            UserLoginSucceededHandler,
+        )
+
+        return UserLoginSucceededHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+
+
 class Queries:
     """Container for query handler factories."""
 
@@ -828,6 +860,9 @@ class Queries:
 
     def get_user_handler_factory(self) -> GetUserByIdHandler:
         return GetUserByIdHandler(queries=self._infra.user_query_service)
+
+    def get_user_by_email_handler_factory(self) -> GetUserByEmailHandler:
+        return GetUserByEmailHandler(queries=self._infra.user_query_service)
 
     def get_user_skill_handler_factory(self) -> GetUserSkillByIdHandler:
         return GetUserSkillByIdHandler(queries=self._infra.user_skill_query_service)
@@ -908,6 +943,7 @@ class Application:
         self.buses = Buses()
         self.commands = Commands(buses=self.buses, infra=infra)
         self.queries = Queries(infra=infra)
+        self.event_handlers = EventHandlers(buses=self.buses, infra=infra)
 
 
 class Events:
@@ -922,6 +958,9 @@ class Events:
         ec = events_config or {}
         self._infra = infra
         self._buses = buses
+
+        # Event registry for deserialization
+        self._event_registry = build_event_registry()
 
         # Event publishers
         sql_outbox_publisher = SqlOutboxPublisher(session_factory=infra.session_factory)
@@ -952,6 +991,7 @@ class Events:
             session_factory=self._infra.session_factory,
             event_bus=self._event_publisher,
             batch_size=self._inbox_batch_size,
+            registry=self._event_registry,
         )
 
 

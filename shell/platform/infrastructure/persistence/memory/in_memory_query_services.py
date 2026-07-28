@@ -80,6 +80,8 @@ class InMemoryQueryServices:
             return WorkflowDto(
                 id=str(workflow.id),
                 status=workflow.status.value,
+                session_id=workflow.session_id.value,
+                project_id=workflow.project_id.value,
                 created_at=workflow.created_at.value,
             )
         session = await self._unit_of_work.repository(InMemorySessionRepository).get_by_id(

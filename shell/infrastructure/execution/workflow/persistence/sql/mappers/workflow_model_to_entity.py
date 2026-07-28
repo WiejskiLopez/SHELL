@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+    ProjectIdRef,
+)
 from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
@@ -21,7 +24,8 @@ def workflow_model_to_entity(workflow_model: WorkflowModel) -> Workflow:
     return Workflow.restore(
         id=WorkflowId(workflow_model.id),
         status=WorkflowStatus(workflow_model.status),
-        session_id=SessionIdRef(workflow_model.session_id) if workflow_model.session_id else None,
+        session_id=SessionIdRef(workflow_model.session_id),
+        project_id=ProjectIdRef(workflow_model.project_id),
         created_at=CreatedAt.from_datetime(workflow_model.created_at),
         deleted_at=(DeletedAt.from_datetime(workflow_model.deleted_at)),
     )

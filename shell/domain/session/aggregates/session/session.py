@@ -13,7 +13,6 @@ from shell.domain.session.aggregates.session.events.session_opened_event import 
 )
 from shell.domain.session.aggregates.session.events.session_updated_event import SessionUpdatedEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.base.aggregate_root import AggregateRoot
@@ -32,14 +31,12 @@ class Session(AggregateRoot[SessionId]):
         "_updated_at",
         "_deleted_at",
         "_user_id",
-        "_project_id",
         "_status",
         "_opened_at",
         "_closed_at",
     )
 
     _user_id: UserIdRef
-    _project_id: ProjectIdRef
     _status: SessionStatus
     _opened_at: CreatedAt
     _closed_at: UpdatedAt
@@ -52,14 +49,12 @@ class Session(AggregateRoot[SessionId]):
         *,
         id: SessionId,
         user_id: UserIdRef,
-        project_id: ProjectIdRef,
         status: SessionStatus,
         opened_at: CreatedAt,
         closed_at: UpdatedAt = NONE_UPDATED_AT,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
-        self._project_id = project_id
         self._status = status
         self._opened_at = opened_at
         self._closed_at = closed_at
@@ -72,27 +67,21 @@ class Session(AggregateRoot[SessionId]):
         cls,
         id_: SessionId,
         user_id: UserIdRef | None = None,
-        project_id: ProjectIdRef | None = None,
         now: CreatedAt | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
             user_id = UserIdRef.generate()
-        if project_id is None:
-            project_id = ProjectIdRef.generate()
         if now is None:
             now = CreatedAt.now()
         session = cls(
             id=id_,
             user_id=user_id,
-            project_id=project_id,
             status=SessionStatus.OPEN,
             opened_at=now,
         )
         session.append_event(
-            SessionOpenedEvent.now(
-                session.id, user_id, project_id, now=OccurredAt.from_datetime(now.value)
-            )
+            SessionOpenedEvent.now(session.id, user_id, now=OccurredAt.from_datetime(now.value))
         )
         return session
 
@@ -158,13 +147,11 @@ class Session(AggregateRoot[SessionId]):
         opened_at: CreatedAt,
         closed_at: UpdatedAt = NONE_UPDATED_AT,
         user_id: UserIdRef,
-        project_id: ProjectIdRef,
         status: SessionStatus,
     ) -> Self:
         session = cls(
             id=id,
             user_id=user_id,
-            project_id=project_id,
             status=status,
             opened_at=opened_at,
             closed_at=closed_at,
@@ -177,10 +164,6 @@ class Session(AggregateRoot[SessionId]):
     @property
     def user_id(self) -> UserIdRef:
         return self._user_id
-
-    @property
-    def project_id(self) -> ProjectIdRef:
-        return self._project_id
 
     @property
     def session_status(self) -> SessionStatus:
@@ -221,21 +204,17 @@ class Session(AggregateRoot[SessionId]):
         id_: SessionId,
         now: OccurredAt | None = None,
         user_id: UserIdRef | None = None,
-        project_id: ProjectIdRef | None = None,
         goal: str | None = None,  # legacy
     ) -> Session:
         if user_id is None:
             user_id = UserIdRef.generate()
-        if project_id is None:
-            project_id = ProjectIdRef.generate()
         if now is None:
             now = OccurredAt.now()
         session = cls(
             id=id_,
             user_id=user_id,
-            project_id=project_id,
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(now.value),
         )
-        session.append_event(SessionOpenedEvent.now(session.id, user_id, project_id, now=now))
+        session.append_event(SessionOpenedEvent.now(session.id, user_id, now=now))
         return session

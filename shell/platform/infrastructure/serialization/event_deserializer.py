@@ -8,14 +8,12 @@ from shell.platform.infrastructure.serialization import DomainEventSerializer
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from shell.platform.domain.events import DomainEvent
-
 logger = logging.getLogger(__name__)
 
 
 class EventDeserializer:
-    def __init__(self, registry: dict[str, type[DomainEvent]]) -> None:
-        self._registry = registry
+    def __init__(self, registry: dict[str, type] | None = None) -> None:
+        self._registry = registry or {}
         self._serializer = DomainEventSerializer()
 
     def deserialize(
@@ -24,7 +22,7 @@ class EventDeserializer:
         occurred_at: datetime,
         payload: dict[str, object],
         schema_version: int = 1,
-    ) -> DomainEvent | None:
+    ) -> object | None:
         event_cls = self._registry.get(event_type)
 
         if not event_cls:

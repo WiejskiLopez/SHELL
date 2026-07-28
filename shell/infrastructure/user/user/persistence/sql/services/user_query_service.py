@@ -32,6 +32,22 @@ class UserQueryService:
                 deleted_at=model.deleted_at,
             )
 
+    async def get_by_email(self, email: str) -> UserDto | None:
+        async with self._session_factory() as session:
+            stmt = select(UserModel).where(UserModel.email == email)
+            res = await session.execute(stmt)
+            model = res.scalar_one_or_none()
+            if not model:
+                return None
+            return UserDto(
+                id=model.id,
+                email=model.email,
+                status=model.status,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
+                deleted_at=model.deleted_at,
+            )
+
     async def list_all(self, *, page: int = 1, page_size: int = 100) -> tuple[list[UserDto], int]:
         async with self._session_factory() as session:
             count_stmt = select(func.count()).select_from(UserModel)

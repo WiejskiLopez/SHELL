@@ -1,0 +1,164 @@
+SPECYFIKACJA ARCHITEKTONICZNA I UI/UX: AGENT_OS (MFE ADMIN DASHBOARD)
+1. Założenia Ogólne i Architektura (Micro-Frontends)
+Konstrukcja: Interfejs oparty na architekturze mikrofrontendowej (MFE). Każda sekcja ekranu funkcjonuje jako niezależna widokowo i logicznie karta (kontener z tłem, zaokrąglonymi rogami i lekkim cieniem), komunikująca się z resztą aplikacji wyłącznie poprzez magistralę zdarzeń (Event Bus).
+
+Układ (Grid Layout):
+
+Wypełnienie 100% widocznej przestrzeni okna przeglądarki (100vw, 100vh), brak globalnego paska przewijania dla całej strony.
+
+Górny pasek: Szerokość 100%, wysokość ok. 50-60px, przyklejony do góry (sticky/fixed).
+
+Przestrzeń robocza poniżej paska: Podzielona na 3 pionowe kolumny przy użyciu CSS Grid / Flexbox z marginesami (odstępami) ok. 12-16px między kolumnami:
+
+Kolumna lewa (Task List MFE): 22% szerokości.
+
+Kolumna środkowa (Task Context MFE): 56% szerokości.
+
+Kolumna prawa (Reserved MFE): 22% szerokości.
+
+Paleta kolorów (Design System):
+
+Tło aplikacji (Global Background): Jasnoniebieski/szary #F4F7FC.
+
+Tło kart mikrofrontendów (Containers): Czysta biel #FFFFFF.
+
+Kolor główny/akcentowy (Primary Accent - przyciski, aktywne ramki): Głęboki niebieski #0056D2.
+
+Kolor tła nagłówka (Header Background): Ciemny granat #0A3060 (lub odcień od #0A2540 do #0F3B70).
+
+Tekst główny: Ciemno-szary #2D3748.
+
+Tekst poboczny/logi: Jasno-szary #718096.
+
+Obramowania i separatory: Subtelny szary #E2E8F0.
+
+2. Szczegółowy Opis Modułów (MFE)
+A. GÓRNY PASEK (Header MFE)
+Wypełnia całą górną krawędź ekranu na ciemnoniebieskim tle (#0A3060). Elementy wyrównane w poziomie (Flex row, align-items: center):
+
+Lewa strona - Wybór Sesji (Dropdown MFE):
+
+Element typu Select/Dropdown z ciemniejszym niebieskim tłem (np. #0D47A1), zaokrąglonymi rogami i białą obramówką lub lekkim kontrasztowym tłem.
+
+Tekst wewnątrz: Sesja #001 zapisany białą, pogrubioną czcionką + ikona strzałki w dół (▼) po prawej stronie elementu.
+
+Funkcja: Rozwijane menu umożliwiające zmianę aktywnej sesji użytkownika.
+
+Środek - Pasek Potoków (Workflows MFE):
+
+Zlokalizowany na prawo od selektora sesji.
+
+Aktywny Workflow: Wygląda jak zakładka (tab) o tła nieco jaśniejszym niż belka główna lub w kolorze akcentu #0056D2. Tekst: Workflow #001 białą czcionką + ikona strzałki w dół (▼) umożliwiająca np. akcje na potoku lub zmianę widoku potoku.
+
+(Opcjonalnie w tym obszarze renderowane są kolejne zakładki nieaktywne, np. Workflow #002 z ciemniejszym tłem, kliknięcie przełącza kontekst).
+
+Prawa strona - Profil Użytkownika (Auth MFE):
+
+Wyrównany do prawej krawędzi ekranu (margin-left: auto).
+
+Zestaw: Okrągły awatar ze zdjęciem lub inicjałami użytkownika (np. zdjęcie mężczyzny w garniturze) + tekst z imieniem i nazwiskiem (np. Jan K., biała czcionka) + mała ikona strzałki w dół (▼) rozwijająca menu z opcją Wyloguj/Log out.
+
+Behawiorystyka Pre-Login: Jeśli użytkownik jest niezalogowany, na całej górnej belce widoczny jest wyłącznie przycisk "Zaloguj się" po prawej stronie, a reszta interfejsu w dolnych kolumnach nie jest renderowana lub jest wyszarzona/zablokowana.
+
+B. LEWA KOLUMNA (Task List MFE)
+Biała karta (#FFFFFF) na całą wysokość przestrzeni roboczej, zaokrąglone rogi (ok. 8-12px), delikatny cień (box-shadow). Wewnątrz ukierunkowanie pionowe (Flex column):
+
+Nagłówek Kolumny:
+
+W górnej części karty napis (wielkimi literami, pogrubiony, szary/czarny, font ok. 14px): na przykład WORKFLOW #001 – Ważne: Ten napis jest dynamiczny i musi dokładnie odpowiadać nazwie aktualnie wybranego na górnej belce potoku workflow.
+
+Przycisk Akcji:
+
+Poniżej nagłówka przycisk z tłem #0056D2, białym tekstem i ikoną plusem: + Add Task.
+
+Szerokość przycisku: ok. 50-60% szerokości kolumny lub wyrównany do lewej, zaokrąglone rogi (ok. 6px), padding pionowy ok. 8-10px.
+
+Lista Zadań (Task List Scrollable Container):
+
+Poniżej przycisku znajduje się kontener z pionowym paskiem przewijania (overflow-y: auto), zawierający listę kart poszczególnych zadań (Task Cards) przypisanych do aktywnego workflow.
+
+Wygląd pojedynczej karty zadania:
+
+Białe tło, szara obramówka (#E2E8F0), zaokrąglone rogi, wewnętrzny padding ok. 12px, margines dolny między kartami ok. 10px.
+
+Karta Aktywna (zaznaczona): Wyróżniona niebieską obramówką (kolor #0056D2, opcjonalnie lekko błękitne tło #EBF8FF lub pogrubiony lewy border 4px w kolorze akcentu).
+
+Treść w karcie:
+
+Linia 1 (Tytuł): Pogrubiony tekst oznaczający ID oraz krótki opis, np. T-102: Pobranie danych API.
+
+Linia 2 (ID): Mały szary tekst: ID: 00452 (w przypadku aktywnej karty z dodatkowym napisem w nawiasie: (Aktywny)).
+
+Linia 3 (Data utworzenia): Mały szary tekst na dole karty: Utworzono 14:02 (zmienna z backendu: create_dt).
+
+Behawiorystyka:
+
+Kliknięcie w dowolną kartę zmienia jej status na "Aktywny" i natychmiast wysyła zdarzenie do Event Bus, co wywołuje przeładowanie Środkowego Panelu (Task Context MFE) dla wybranego ID zadania.
+
+Jeśli lista jest pusta, wysłanie pierwszej wiadomości na czacie (w środkowym panelu) automatycznie generuje na backendzie nowe zadanie, dodaje kartę na górę listy i oznacza ją jako aktywną.
+
+C. ŚRODKOWA KOLUMNA (Task Context MFE - Główna przestrzeń)
+Szeroka kolumna podzielona w pionie na 3 wyraźnie oddzielone od siebie sekcje (lub 3 sub-karty ułożone jedna pod drugą z marginesem 12-16px):
+
+1. Górna sekcja środkowej kolumny: Status Agenta (Agent Status MFE)
+Biała karta, zaokrąglone rogi, wewnętrzne tło sekcji nieco wyróżnione (np. jasnoszarozielone lub bardzo jasnoszare #F8FAFC).
+
+Nagłówek sekcji: Mały, pogrubiony tekst wielkimi literami: AKTUALNIE REALIZOWANE ZADANIE.
+
+Treść główna: Duży, czytelny tekst fontem ok. 18-20px, pogrubiony, w kolorze ciemnoszarym/czarnym. Format: [ID_ZADANIA] Agent wykonuje czynność: [Opis czynności...].
+
+Przykład: [T-102] Agent wykonuje czynność: Pobieranie danych z bazy API klientów...
+
+Wskaźnik postępu (Loader/Spinner): Po prawej stronie tekstu (lub przy prawej krawędzi karty) znajduje się animowana ikona ładowania (np. niebieski niepełny okręg / kręcący się spinner), sygnalizująca fizyczną pracę agenta w czasie rzeczywistym.
+
+2. Środkowa sekcja środkowej kolumny: Historia Komunikacji (Execution Logs MFE)
+Największa sekcja, zajmująca całą dostępną przestrzeń środkową (flex-grow: 1), z własnym pionowym paskiem przewijania (overflow-y: auto), biała karta z obramówką.
+
+Wnętrze (Chat / Log layout): Zawiera listę wiadomości układających się od góry do dołu. Trzy typy elementów visualnych:
+
+Wiadomość Użytkownika (User Message): Wyrównana do prawej strony kontenera (align-self: flex-end). Dymek o tłu głębokiego niebieskiego (#0056D2), tekst biały, zaokrąglone rogi (z mniejszym zaokrągleniem w prawym dolnym rogu). Treść poprzedzona pogrubionym nagłówkiem wewnątrz dymku: Użytkownik: [Treść polecenia].
+
+Odpowiedź Agenta (Agent Message): Wyrównana do lewej strony kontenera (align-self: flex-start). Dymek o tłu jasnoszarym (#EDF2F7 lub #E2E8F0), tekst ciemnoszary. Treść poprzedzona pogrubionym nagłówkiem: Agent: [Treść odpowiedzi/analizy]. Po prawej stronie dymku lub obok niego widoczna mała, estetyczna ikona robota (awatar AI).
+
+Log Systemowy (System Log): Element wyrównany do lewej lub wyśrodkowany, bez tła w formie dymku. Tekst zapisany czcionką o stałej szerokości (Monospace), w kolorze szarym (#718096), font mniejszy (ok. 12-13px). Format: System log: [Komunikat techniczny z backendu/wykonania np. Rapiestnaj czysnaie complete...].
+
+3. Dolna sekcja środkowej kolumny: Wprowadzanie Poleceń (User Input MFE)
+Biała karta przyklejona do dołu środkowej kolumny, zawierająca formularz sterowania agentem.
+
+Nagłówek mały nad polem: Tekst: Wpisz polecenie dla agenta.
+
+Pole tekstowe (Textarea): Duże, wielolinijkowe pole wprowadzania tekstu (<textarea>) z jasnoszarą obramówką (#CBD5E0), zaokrąglonymi rogami, paddingiem 10-12px.
+
+Tekst zastępczy (Placeholder): Wpisz tekst kierujący pracą agenta w kontekście T-102... (gdzie T-102 to dynamicznie wstrzykiwane ID aktywnego zadania).
+
+Możliwość rozszerzania w pionie (lub stała wysokość ok. 3-4 linijek tekstu).
+
+Przycisk wysyłania: Umieszczony bezpośrednio pod polem tekstowym (lub zintegrowany w dolnej części).
+
+Szerokość: Rozciągnięty na całą szerokość pola lub po prawej stronie.
+
+Tło: Kolor główny #0056D2, tekst biały, pogrubiony: Wyślij na backend.
+
+Ikona na przycisku: Po prawej stronie napisu znajduje się ikona papierowego samolociku (Paper Plane / Send icon).
+
+Behawiorystyka: Kliknięcie lub wciśnięcie skrótu (np. Ctrl+Enter) wysyła payload z tekstem oraz identyfikatorem aktywnego zadania (task_id) do API backendu, czyści textarea i natychmiast renderuje wiadomość użytkownika w sekcji Historii Komunikacji powyżej.
+
+D. PRAWA KOLUMNA (Reserved MFE)
+Biała karta (#FFFFFF), zaokrąglone rogi, obramówka i delikatny cień, zajmująca 100% wysokości po prawej stronie.
+
+Nagłówek kolumny: Pogrubiony tekst w lewym górnym rogu karty (wielkie litery, font ok. 14px): SZCZEGÓŁY / KONTEKST (WKRÓTCE).
+
+Treść: Kolumna pozostaje pusta w celach rezerwacji miejsca na przyszłe funkcje (podgląd plików, metadane taska, inspektor kodu). W jej centralnym punkcie (wyśrodkowanie w pionie i poziomie wewnątrz karty - Flex center/center) znajduje się jasnoszary, wyblakły tekst (#A0AEC0), zapisany mniejszą czcionką: [Miejsce rezerwowane na dodatkowe dane, np. metadane taska, podgląd plików].
+
+3. Zestaw Zdarzeń Komunikacyjnych (Kontrakt API / Event Bus)
+Aby interfejs działał poprawnie jako zbiór mikrofrontendów, komponenty muszą reagować na następujące zdarzenia globalne:
+
+AUTH_STATE_CHANGED: Zmiana logowania (pokazuje pełny dashboard lub ukrywa go do stanu Pre-Login).
+
+SESSION_SELECTED(session_id): Wybór sesji z rozwijanego menu w Header MFE -> pobiera listę potoków dla danej sesji.
+
+WORKFLOW_SELECTED(workflow_id): Kliknięcie w zakładkę workflow na górnym pasku -> zmienia nagłówek w lewym panelu i wywołuje pobranie listy zadań dla wybranego potoku z API.
+
+TASK_SELECTED(task_id): Kliknięcie w kartę zadania na liście po lewej -> podświetla ramkę karty na niebiesko, wstrzykuje task_id do placeholdera w User Input MFE, wywołuje pobranie logów chatu i statusu agenta do środkowego panelu.
+
+MESSAGE_SENT(payload, task_id): Kliknięcie "Wyślij na backend" -> wysyła żądanie do API, appenduje dymek użytkownika do chatu, uruchamia ikone spinnera w Agent Status MFE i oczekuje na strumień (SSE/WebSockets) z odpowiedziami agenta i logami systemowymi.

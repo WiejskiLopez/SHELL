@@ -16,7 +16,6 @@ class WorkflowSessionProviderHttpAdapter(WorkflowSessionProvider):
         self,
         session_id: str,
         user_id: str,
-        project_id: str,
         payload: dict,
     ) -> None:
         response = await self._client.post(
@@ -24,7 +23,6 @@ class WorkflowSessionProviderHttpAdapter(WorkflowSessionProvider):
             json={
                 "session_id": session_id,
                 "user_id": user_id,
-                "project_id": project_id,
                 "payload": payload,
             },
         )

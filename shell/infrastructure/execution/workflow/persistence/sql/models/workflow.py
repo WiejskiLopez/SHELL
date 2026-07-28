@@ -13,7 +13,8 @@ class WorkflowModel(Base, VersionedMixin):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     status: Mapped[str] = mapped_column(nullable=False, default="idle")
-    session_id: Mapped[str | None] = mapped_column(nullable=True)
+    session_id: Mapped[str] = mapped_column(nullable=False)
+    project_id: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     deleted_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
     updated_at: Mapped[datetime] = mapped_column(nullable=True)

@@ -22,6 +22,9 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+        ProjectIdRef,
+    )
     from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
         SessionIdRef,
     )
@@ -38,10 +41,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         "_updated_at",
         "_deleted_at",
         "_session_id",
+        "_project_id",
         "_status",
     )
 
-    _session_id: SessionIdRef | None
+    _session_id: SessionIdRef
+    _project_id: ProjectIdRef
     _status: WorkflowStatus
     _created_at: CreatedAt
     _updated_at: UpdatedAt
@@ -52,11 +57,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         id: WorkflowId,
         created_at: CreatedAt,
         deleted_at: DeletedAt = NONE_DELETED_AT,
-        session_id: SessionIdRef | None = None,
+        session_id: SessionIdRef,
+        project_id: ProjectIdRef,
         status: WorkflowStatus | None = None,
     ) -> None:
         super().__init__(id)
         self._session_id = session_id
+        self._project_id = project_id
         self._status = status if status is not None else WorkflowStatus.ACTIVE
         self._created_at = created_at
         self._updated_at = NONE_UPDATED_AT
@@ -68,9 +75,15 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id_: WorkflowId,
         now: CreatedAt,
-        session_id: SessionIdRef | None = None,
+        session_id: SessionIdRef,
+        project_id: ProjectIdRef,
     ) -> Workflow:
-        return cls._new(id_=id_, now=OccurredAt.from_datetime(now.value), session_id=session_id)
+        return cls._new(
+            id_=id_,
+            now=OccurredAt.from_datetime(now.value),
+            session_id=session_id,
+            project_id=project_id,
+        )
 
     @classmethod
     def _new(
@@ -78,11 +91,13 @@ class Workflow(AggregateRoot["WorkflowId"]):
         *,
         id_: WorkflowId,
         now: OccurredAt,
-        session_id: SessionIdRef | None = None,
+        session_id: SessionIdRef,
+        project_id: ProjectIdRef,
     ) -> Workflow:
         workflow = cls(
             id=id_,
             session_id=session_id,
+            project_id=project_id,
             status=WorkflowStatus.ACTIVE,
             created_at=CreatedAt.from_datetime(now.value),
         )
@@ -170,12 +185,14 @@ class Workflow(AggregateRoot["WorkflowId"]):
         created_at: CreatedAt,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         updated_at: UpdatedAt = NONE_UPDATED_AT,
-        session_id: SessionIdRef | None = None,
+        session_id: SessionIdRef,
+        project_id: ProjectIdRef,
         status: WorkflowStatus,
     ) -> Self:
         workflow = cls(
             id=id,
             session_id=session_id,
+            project_id=project_id,
             status=status,
             created_at=created_at,
             deleted_at=deleted_at,
@@ -205,8 +222,12 @@ class Workflow(AggregateRoot["WorkflowId"]):
         )
 
     @property
-    def session_id(self) -> SessionIdRef | None:
+    def session_id(self) -> SessionIdRef:
         return self._session_id
+
+    @property
+    def project_id(self) -> ProjectIdRef:
+        return self._project_id
 
     @property
     def status(self) -> WorkflowStatus:

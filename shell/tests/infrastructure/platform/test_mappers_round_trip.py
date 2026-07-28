@@ -37,6 +37,9 @@ from shell.domain.execution.aggregates.node_execution.value_objects.node_executi
 )
 from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
 from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
+from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+    ProjectIdRef,
+)
 from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
@@ -51,7 +54,6 @@ from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import
 from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
 from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.project_id_ref import ProjectIdRef
 from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.infrastructure.execution.graph_execution.persistence.sql.mappers import (
@@ -105,6 +107,7 @@ class TestWorkflowMapper:
         original = Workflow.restore(
             id=WorkflowId("wf-1"),
             session_id=SessionIdRef("sess-1"),
+            project_id=ProjectIdRef("proj-1"),
             status=WorkflowStatus.ACTIVE,
             created_at=CreatedAt.from_datetime(_NOW),
         )
@@ -113,19 +116,28 @@ class TestWorkflowMapper:
         assert model.id == "wf-1"
         assert model.status == original.status.value
         assert model.session_id == "sess-1"
+        assert model.project_id == "proj-1"
 
     def test_model_to_entity(self) -> None:
-        model = WorkflowModel(id="wf-2", status="active", session_id="sess-2", created_at=_NOW)
+        model = WorkflowModel(
+            id="wf-2",
+            status="active",
+            session_id="sess-2",
+            project_id="proj-2",
+            created_at=_NOW,
+        )
         entity = workflow_model_to_entity(model)
 
         assert entity.id.value == "wf-2"
         assert entity.status.value == "active"
-        assert entity.session_id is not None
         assert entity.session_id.value == "sess-2"
+        assert entity.project_id.value == "proj-2"
 
     def test_round_trip(self) -> None:
         original = Workflow.restore(
             id=WorkflowId("wf-3"),
+            session_id=SessionIdRef("sess-3"),
+            project_id=ProjectIdRef("proj-3"),
             status=WorkflowStatus.ACTIVE,
             created_at=CreatedAt.from_datetime(_NOW),
         )
@@ -137,6 +149,7 @@ class TestWorkflowMapper:
         assert restored.id.value == original.id.value
         assert restored.status.value == original.status.value
         assert restored.session_id == original.session_id
+        assert restored.project_id == original.project_id
         assert restored.pull_events() == []
 
 
@@ -290,7 +303,6 @@ class TestSessionMapper:
             id=SessionId("sess-1"),
             created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-1"),
-            project_id=ProjectIdRef("proj-1"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
         )
@@ -304,7 +316,6 @@ class TestSessionMapper:
             id=SessionId("sess-2"),
             created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-2"),
-            project_id=ProjectIdRef("proj-2"),
             status=SessionStatus.CLOSED,
             opened_at=CreatedAt.from_datetime(_NOW),
             closed_at=UpdatedAt.from_datetime(_NOW),
@@ -319,7 +330,6 @@ class TestSessionMapper:
             id=SessionId("sess-3"),
             created_at=CreatedAt.from_datetime(_NOW),
             user_id=UserIdRef("user-3"),
-            project_id=ProjectIdRef("proj-3"),
             status=SessionStatus.OPEN,
             opened_at=CreatedAt.from_datetime(_NOW),
         )

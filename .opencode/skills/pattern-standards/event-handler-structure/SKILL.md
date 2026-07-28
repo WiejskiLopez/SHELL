@@ -3,166 +3,322 @@ name: event-handler-structure
 description: Reguły struktury Event Handler — subskrypcja eventów, idempotencja przez inbox, rejestracja w EventBus.
 ---
 
-# Domain Event Handler Structure
+# Enterprise Event Handler Structure
 
-> Reguły struktury Domain Event Handler we wszystkich bounded contextach.
+> Kompletne reguły struktury Domain Event Handler we wszystkich bounded contextach.
+> Wzorzec jest **symetryczny** do Command Handler — analogiczna struktura plików, DI, rejestracja na busie.
 
-## Definicja
+---
 
-- Event Handler to komponent warstwy aplikacyjnej, który subskrybuje konkretny Domain Event i wykonuje reakcję biznesową.
-- Analogicznie do Command Handlera: buduje agregat z repozytorium, dostarcza mu dane przez serwisy (porty w module agregatu), wywołuje metodę agregatu, zapisuje + publikuje eventy.
-- **Różnica vs Command Handler**: event handler musi być idempotentny.
+## Architektura — Command vs Event
 
-## Jedna reakcja = jeden agregat
+| | Command | Event |
+|--|---------|-------|
+| **Bus** | `CommandBus` w `Buses` | `EventBus` w `Buses` |
+| **Message** | `LoginCommand` — `application/.../commands/` | `UserLoginSucceededIntegrationEvent` — `shell/integration_events/` |
+| **Handler** | `LoginHandler` — `application/.../command_handlers/` | `UserLoginSucceededHandler` — `application/.../event_handlers/` |
+| **DI fabryki** | `Commands` → `login_handler_factory()` | `EventHandlers` → `user_login_succeeded_handler_factory()` |
+| **Rejestracja** | `command_factory.py`: `cmd_bus.register(...)` | `event_factory.py`: `event_bus.subscribe(...)` |
 
-- Event Handler może modyfikować stan **maksymalnie jednego agregatu** domenowego w ramach jednej reakcji.
-- Jeśli reakcja na event wymaga koordynacji wielu agregatów — **nigdy nie modyfikuj dwóch agregatów w jednym handlerze**. Stosuj jeden z dwóch wzorców:
+---
 
-### Event Chain (choreografia)
+## Opublikowany język (Published Language)
 
-Handler A reaguje na event, modyfikuje agregat A → emituje event → Handler B reaguje, modyfikuje agregat B → opcjonalnie event zwrotny do A.
+Komunikacja między Bounded Contextami odbywa się przez **wspólne integration events** w `shell/integration_events/`. To jest "Published Language" z DDD — oficjalny kontrakt między BC, używający **tylko primitive typów** (str, int, bool). Żadne VOs domenowe nie przekraczają granic BC.
 
-```python
-# DOBRY — Event Chain: dwa osobne event handlery, każdy modyfikuje 1 agregat
+### Zasady
 
-class WorkflowStartedHandler:
-    """Reaguje na WorkflowStartedEvent, modyfikuje tylko TaskExecution."""
-    async def handle(self, event: WorkflowStartedEvent) -> None:
-        async with self._unit_of_work as unit_of_work:
-            task = await unit_of_work.repository(TaskExecutionRepository).get_by_id(...)
-            if task is None:
-                raise TaskExecutionNotFound(...)
-            task.execute_in_workflow(event.workflow_id)
-            unit_of_work.repository(TaskExecutionRepository).save(task)
-            unit_of_work.stage_events(task.pull_events())
-            # → TaskExecutionUpdatedEvent → ewentualny next handler
-```
+1. Integration event rozszerza `DomainEvent` (żeby przejść przez outbox/inbox pipeline)
+2. Używa tylko `str`, `int`, `bool`, `datetime` — nigdy VOs z żadnego BC
+3. Definiowany JEDEN RAZ w `shell/integration_events/`
+4. Producent i konsument importują z tego samego miejsca
+5. Żadnego ACL, żadnego mapowania
 
-### Saga / Process Manager (orkiestracja)
-
-Gdy agregat A emituje event wymagający koordynacji wielu agregatów:
-1. Event trafia do Sagi (Process Manager)
-2. Saga emituje osobne komendy — **każda modyfikuje dokładnie 1 agregat**
-3. Każdy agregat odpowiada eventem do sagi
-4. Saga po zebraniu odpowiedzi emituje event końcowy do agregatu A
+### Przykład
 
 ```python
-# DOBRY — Saga: osobne komendy, każda modyfikuje 1 agregat
-
-class NodeExecutionSaga:
-    async def handle(self, event: NodeExecutionStartedEvent) -> None:
-        await self._command_bus.publish(ExecuteNodeCommand(event.node_id))
-        # → ExecuteNodeHandler modyfikuje tylko NodeExecution
-
-    async def handle(self, event: NodeExecutionCompletedEvent) -> None:
-        if self._needs_retry(event):
-            await self._command_bus.publish(RetryNodeCommand(event.node_id))
-        else:
-            await self._command_bus.publish(AdvanceWorkflowCommand(event.workflow_id))
-            # → AdvanceWorkflowHandler modyfikuje tylko Workflow
+# shell/integration_events/user_login_succeeded_integration_event.py
+@dataclass(frozen=True, slots=True)
+class UserLoginSucceededIntegrationEvent(DomainEvent):
+    user_id: str
 ```
+
+```python
+# Producent (User BC, LoginHandler)
+from shell.integration_events.user_login_succeeded_integration_event import (
+    UserLoginSucceededIntegrationEvent,
+)
+event = UserLoginSucceededIntegrationEvent(
+    user_id=user.id,
+    occurred_at=OccurredAt.from_datetime(self._clock.now()),
+)
+unit_of_work.stage_events([event])
+```
+
+```python
+# Konsument (Session BC, UserLoginSucceededHandler)
+from shell.integration_events.user_login_succeeded_integration_event import (
+    UserLoginSucceededIntegrationEvent,
+)
+if TYPE_CHECKING:
+    from shell.integration_events.user_login_succeeded_integration_event import (
+        UserLoginSucceededIntegrationEvent,
+    )
+```
+
+## Pełny przepływ eventu
+
+```
+Handler źródłowy (np. LoginHandler)
+  → stage_events([UserLoginSucceededIntegrationEvent])
+    → UoW commit → serializacja → outbox_event (DB)
+      → OutboxToInboxRelay → inbox_event (DB)
+        → InboxProcessor.run_once()
+          1. SELECT z inbox_event WHERE processed_at IS NULL
+          2. EventDeserializer.deserialize(event_type, payload)
+          3. row.processed_at = now
+          4. session.commit() (najpierw mark processed)
+          5. await self._event_bus.publish([integration_event])
+               ↓
+              EventBus.publish([event])
+               ↓
+              handler = factory()
+              await handler.handle(event)
+```
+
+---
+
+## Lokalizacja
+
+```
+shell/application/<bounded_context>/<aggregate>/event_handlers/
+                                    ↑ obok command_handlers/
+```
+
+Przykład:
+```
+shell/application/session/session/event_handlers/user_login_succeeded_handler.py
+shell/application/session/session/event_handlers/__init__.py
+```
+
+---
 
 ## Klasa
 
-- Import eventu może być w TYPE_CHECKING — typ używany tylko w sygnaturze `handle()`.
-- Porty repozytoriów i serwisów w TYPE_CHECKING — zależności infrastrukturalne wstrzykiwane przez DI.
+- Import eventu w TYPE_CHECKING — typ używany tylko w sygnaturze `handle()`.
+- Porty repozytoriów i serwisów w TYPE_CHECKING.
+- Zależności infrastrukturalne wstrzykiwane przez DI.
 
 ```python
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.session.aggregates.session import Session
+from shell.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
+)
+from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.platform.domain.value_objects.created_at import CreatedAt
+from shell.platform.domain.value_objects.updated_at import UpdatedAt
+
 if TYPE_CHECKING:
-    from shell.domain.workflow.events.workflow_started_event import WorkflowStartedEvent
-    from shell.domain.platform.ports import UnitOfWork
-    from shell.domain.execution.services.eligibility_port import EligibilityPort
+    from shell.integration_events.user_login_succeeded_integration_event import (
+        UserLoginSucceededIntegrationEvent,
+    )
+    from shell.platform.application.ports.ports import Clock, IdGenerator, UnitOfWork
 ```
 
-## Metoda handle
+---
+
+## Metoda `handle`
 
 - Pojedyncza `async handle(self, event: TEvent) -> None`.
+- Zwraca `None` — event handlery są fire-and-forget.
+
+---
 
 ## Struktura metody — wzorzec
 
 ```python
-async def handle(self, event: WorkflowStartedEvent) -> None:
-    async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflow_repository.get_by_id(
-            event.workflow_id
-        )
-        if workflow is None:
-            raise WorkflowNotFound(event.workflow_id)
+class UserLoginSucceededHandler:
+    def __init__(self, unit_of_work: UnitOfWork, clock: Clock, id_generator: IdGenerator) -> None:
+        self._unit_of_work = unit_of_work
+        self._clock = clock
+        self._id_generator = id_generator
 
-        workflow.start(now=self._clock.now())
+    async def handle(self, event: UserLoginSucceededIntegrationEvent) -> None:
+        user_id_ref = UserIdRef(event.user_id)
+        now = CreatedAt.from_datetime(self._clock.now())
 
-        unit_of_work.workflow_repository.save(workflow)
-        unit_of_work.stage_events(workflow.pull_events())
+        async with self._unit_of_work as unit_of_work:
+            existing = await unit_of_work.repository(SessionRepository).get_open_by_user_id(
+                user_id_ref
+            )
+
+            if existing is not None:
+                existing.update(UpdatedAt.from_datetime(now.value))
+                await unit_of_work.save(SessionRepository, existing)
+            else:
+                session_id = self._id_generator.new_id(SessionId)
+                session = Session.open(id_=session_id, user_id=user_id_ref, now=now)
+                await unit_of_work.save(SessionRepository, session)
 ```
 
-
-## Zero decyzji biznesowych
-
-- Handler **nie podejmuje żadnych decyzji biznesowych**:
-  - Nie sprawdza stanu agregatu przed wywołaniem metody
-  - Nie wybiera między ścieżkami reakcji w zależności od parametrów
-  - Nie decyduje czy zapisać agregat czy nie
-- Handler jedyne co może zrobić to:
-  - **Błąd infrastrukturalny** — propagowany z repozytorium/serwisu
-  - **Błąd domenowy** — rzucony przez agregat przy naruszeniu invariantu
-
-```python
-# DOBRY — delegacja do agregatu
-workflow.confirm_started(eligibility=eligibility, now=now)
-
-# ŹLE — logika biznesowa w handlerze
-if workflow.status == WorkflowStatus.RUNNING:
-    return  # decyzja biznesowa w handlerze!
-```
-
-## Porty serwisów w module agregatu
-
-- Wszystko czego agregat wymaga do podjęcia decyzji jest dostarczane przez serwisy domenowe (porty w `domain/<bc>/aggregates/<agregat>/services/` lub `domain/<bc>/aggregates/<agregat>/ports/`).
-- Handler wstrzykuje implementacje portów, wywołuje je przed metodą agregatu i przekazuje wyniki jako parametry.
-- Agregat **nie ma bezpośrednich zależności do portów infrastrukturalnych**.
-
-```python
-# Port zdefiniowany w domain/execution/aggregates/<agregat>/ports/eligibility_port.py
-class EligibilityPort(Protocol):
-    async def check(self, customer_id: CustomerId) -> Eligibility: ...
-```
-
-
-
-## Agregat nie istnieje
-
-- Jeśli agregat nie istnieje w repozytorium — **rzuć błąd** (np. `WorkflowNotFound`).
-- Brak agregatu przy przetwarzaniu eventu to błąd, nie normalny przypadek.
-- Eventual consistency jest obsługiwana na poziomie architektury (kolejkowanie, retry), nie przez ignorowanie błędów w handlerze.
-
-```python
-# DOBRY
-if workflow is None:
-    raise WorkflowNotFound(event.workflow_id)
-```
+---
 
 ## UoW
 
 - `async with self._unit_of_work as unit_of_work:` — UoW jako async context manager.
 - `commit()` na `__aexit__` jeśli brak wyjątku; `rollback()` jeśli wyjątek.
-- `stage_events(aggregate.pull_events())` po każdej mutacji agregatu.
+- `stage_events(aggregate.pull_events())` jest automatyczne przez `unit_of_work.save()`.
+
+---
 
 ## Logowanie
 
-- Handler nie loguje na poziomie biznesowym. Brak agregatu skutkuje wyjątkiem propagowanym wyżej.
-- Duplicate event detection logowany przez InboxProcessor (infrastruktura), nie w handlerze.
+- Handler nie loguje na poziomie biznesowym.
+- Duplicate event detection logowany przez InboxProcessor (infrastruktura).
+- Logowanie błędów infrastrukturalnych poza handlerem (middleware/pipeline).
 
-
-
-## Lokalizacja
-
-- `shell/application/<bc>/event_handlers/`
+---
 
 ## Cross-BC
 
-- Handler aplikacyjny nie może bezpośrednio wołać agregatów, serwisów domenowych, repozytoriów ani żadnych innych elementów należących do innej domeny.
-- Zamiast tego używa portu (protokołu) zdefiniowanego w `application/ports/` lub domenie docelowej.
+### Published Language (rekomendowane)
+
+- Cross-BC komunikacja przez **wspólne integration events** w `shell/integration_events/`
+- Integration event używa tylko primitive typów (`str`, `int`, `bool`)
+- Producent i konsument importują z `shell.integration_events`
+- **Żadnego ACL, żadnego mapowania, żadnego cross-BC importu domeny**
+
+### Kompozycyjny korzeń (`event_factory.py`)
+
+```python
+from shell.integration_events.user_login_succeeded_integration_event import (
+    UserLoginSucceededIntegrationEvent,
+)
+
+def register_events(core_container):
+    event_bus.subscribe(
+        UserLoginSucceededIntegrationEvent,
+        event_handlers.user_login_succeeded_handler_factory,
+    )
+```
+
+### Konwersja na referencję
+
+```python
+# w handlerze docelowego BC
+user_id_ref = UserIdRef(event.user_id)  # str → UserIdRef
+```
+
+---
+
+## Rejestracja w DI
+
+### 1. Klasa fabryk w CoreContainer (`core_container.py`)
+
+```python
+class EventHandlers:
+    """Container for event handler factories."""
+
+    def __init__(self, buses: Buses, infra: Infrastructure) -> None:
+        self._buses = buses
+        self._infra = infra
+
+    def user_login_succeeded_handler_factory(self) -> UserLoginSucceededHandler:
+        from shell.application.session.session.event_handlers.user_login_succeeded_handler import (
+            UserLoginSucceededHandler,
+        )
+
+        return UserLoginSucceededHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            clock=self._infra.clock_factory(),
+            id_generator=self._infra.id_generator_factory(),
+        )
+```
+
+### 2. W `Application.__init__`
+
+```python
+class Application:
+    def __init__(self, infra: Infrastructure) -> None:
+        self.buses = Buses()
+        self.commands = Commands(buses=self.buses, infra=infra)
+        self.queries = Queries(infra=infra)
+        self.event_handlers = EventHandlers(buses=self.buses, infra=infra)
+```
+
+---
+
+## Rejestracja na EventBus (`event_factory.py`)
+
+```python
+from shell.integration_events.user_login_succeeded_integration_event import (
+    UserLoginSucceededIntegrationEvent,
+)
+
+def register_events(core_container: CoreContainer) -> None:
+    event_bus = core_container.app.buses.event_bus
+    event_handlers = core_container.app.event_handlers
+
+    event_bus.subscribe(
+        UserLoginSucceededIntegrationEvent,
+        event_handlers.user_login_succeeded_handler_factory,
+    )
+```
+
+---
+
+## Nazewnictwo
+
+| Element | Wzorzec | Przykład |
+|---------|---------|----------|
+| **Katalog** | `event_handlers/` | `session/session/event_handlers/` |
+| **Plik** | `<event_name_in_snake_case>_handler.py` | `user_login_succeeded_handler.py` |
+| **Klasa** | `<EventName>Handler` | `UserLoginSucceededHandler` |
+| **DI metoda** | `<event_name_in_snake_case>_handler_factory` | `user_login_succeeded_handler_factory` |
+
+Nazwa handlera = nazwa eventu bez `Event` + `Handler`:
+- `WorkflowStartedEvent` → `WorkflowStartedHandler`
+- `UserLoginSucceededEvent` → `UserLoginSucceededHandler`
+- `SessionOpenedEvent` → `SessionOpenedHandler`
+
+---
+
+## Agregat nie istnieje — tworzenie vs błąd
+
+- Jeśli event jest **triggerem utworzenia agregatu** (np. login → session) — brak istniejącego agregatu jest normalnym przypadkiem: **utwórz nowy**.
+- Jeśli event jest **reakcją na zmianę istniejącego agregatu** (np. `WorkflowStarted` → task execution) — brak agregatu to błąd: **rzuć wyjątek**.
+
+Decyzja należy do analizy biznesowej — wzorzec nie narzuca jednej ścieżki.
+
+---
+
+## Orkiestracja — Event Chain vs Saga
+
+### Event Chain (choreografia) — gdy 1 handler modyfikuje 1 agregat
+
+Handler A reaguje na event → modyfikuje agregat A → emituje event → Handler B → modyfikuje agregat B.
+
+### Saga (orkiestracja) — gdy potrzeba koordynacji wielu agregatów
+
+1. Event trafia do Process Managera (Saga)
+2. Saga emituje osobne **komendy** — każda modyfikuje dokładnie 1 agregat
+3. Każdy agregat odpowiada eventem do sagi
+4. Saga po zebraniu odpowiedzi emituje event końcowy
+
+---
+
+## Zasady enterprise
+
+1. **Symetria z Command Handler**: event handlery mają identyczną strukturę, DI i rejestrację jak command handlery.
+2. **Idempotentność**: EventBus nie gwarantuje exactly-once. Handler musi być idempotentny — InboxProcessor zapewnia to przez `processed_at`.
+3. **Jeden agregat na handler**: handler modyfikuje maksymalnie jeden agregat domenowy.
+4. **Brak logiki biznesowej**: handler deleguje decyzje biznesowe do agregatu. Wyjątek: **wybór między ścieżkami** (create vs update) to orkiestracja aplikacyjna, nie logika biznesowa.
+5. **Cross-BC przez Published Language**: komunikacja między BC przez wspólne integration events w `shell/integration_events/`. Tylko primitive typy — żadne VOs domenowe nie przekraczają granic BC.
+6. **Event registry**: każdy DomainEvent (w tym integration events) musi być w `build_event_registry()` w `shell/platform/infrastructure/serialization/event_registry.py`, inaczej deserializacja w InboxProcessor nie znajdzie klasy.
+7. **Mapper — `ReflectiveIntegrationMapper`**: jeden mapper w `shell/platform/infrastructure/mapping/reflective_integration_mapper.py`. Używa `importlib` + `dataclasses.fields()` do reflectywnego mapowania dowolnego domain event → integration event. Zero per-aggregate mapperów, zero `isinstance`, zero `try/except`.
+8. **UoW integration**: `SqlAlchemyUnitOfWorkBase.save()` wspiera opcjonalny `mapper` — `ReflectiveIntegrationMapper` wstrzyknięty w `core_container.py` na poziomie `Infrastructure.unit_of_work_factory`.

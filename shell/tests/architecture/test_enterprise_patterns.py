@@ -609,7 +609,7 @@ def test_domain_event_fields_no_mutable_collections() -> None:
                 if field_name in (
                     "event_id",
                     "aggregate_id",
-                    "aggregate_type",
+                    "aggregate_name",
                     "occurred_at",
                     "correlation_id",
                     "causation_id",

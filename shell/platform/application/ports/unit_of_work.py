@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, TypeVar
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
-    from shell.platform.domain.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
 
@@ -12,14 +13,14 @@ TRepository = TypeVar("TRepository")
 class UnitOfWork(Protocol):
     def repository(self, repo_type: type[TRepository]) -> TRepository: ...
 
-    def stage_events(self, events: list[DomainEvent]) -> None: ...
+    def stage_events(self, events: Sequence[object]) -> None: ...
 
     async def save(self, repo_type: type, aggregate: object) -> None: ...
 
     def stage_messages(self, messages: list[MessageRouter]) -> None: ...
 
     @property
-    def events(self) -> list[DomainEvent]: ...
+    def events(self) -> Sequence[object]: ...
 
     async def commit(self) -> None: ...
 

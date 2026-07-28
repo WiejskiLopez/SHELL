@@ -11,5 +11,6 @@ if TYPE_CHECKING:
 
 def workflow_update_model(model: WorkflowModel, entity: Workflow) -> None:
     model.status = entity.status.value if hasattr(entity.status, "value") else entity.status
-    model.session_id = entity.session_id.value if entity.session_id else None
+    model.session_id = entity.session_id.value
+    model.project_id = entity.project_id.value
     model.created_at = entity.created_at.value

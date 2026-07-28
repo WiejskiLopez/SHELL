@@ -10,9 +10,9 @@ from shell.platform.infrastructure.persistence.sql.models import AuditEventModel
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+    from collections.abc import Sequence
 
-    from shell.platform.domain.events import DomainEvent
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
 class SqlAuditPublisher:
@@ -21,7 +21,7 @@ class SqlAuditPublisher:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def publish(self, events: list[DomainEvent]) -> None:
+    async def publish(self, events: Sequence[object]) -> None:
         if not events:
             return
         serializer = DomainEventSerializer()
@@ -33,7 +33,7 @@ class SqlAuditPublisher:
                         AuditEventModel(
                             id=str(uuid.uuid4()),
                             event_type=type(event).__name__,
-                            occurred_at=event.occurred_at.value,
+                            occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]
                             payload=payload,
                         )
                     )

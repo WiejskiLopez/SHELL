@@ -26,8 +26,9 @@ class WorkflowQueryService:
             return WorkflowDto(
                 id=model.id,
                 status=model.status,
-                created_at=model.created_at,
                 session_id=model.session_id,
+                project_id=model.project_id,
+                created_at=model.created_at,
                 updated_at=model.updated_at,
                 deleted_at=model.deleted_at,
             )
@@ -57,8 +58,9 @@ class WorkflowQueryService:
                 WorkflowDto(
                     id=r.id,
                     status=r.status,
-                    created_at=r.created_at,
                     session_id=r.session_id,
+                    project_id=r.project_id,
+                    created_at=r.created_at,
                     updated_at=r.updated_at,
                     deleted_at=r.deleted_at,
                 )

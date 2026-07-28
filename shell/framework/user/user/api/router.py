@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 
-from shell.domain.user.ports.user_acl import UserACL
 from shell.framework.user.user.api.controller import UserController
 from shell.framework.user.user.api.create_user_request import CreateUserRequest
 from shell.framework.user.user.api.create_user_response import CreateUserResponse
+from shell.framework.user.user.api.login_request import LoginRequest
+from shell.framework.user.user.api.login_response import LoginResponse
 from shell.framework.user.user.api.update_user_request import UpdateUserRequest
 from shell.framework.user.user.api.user_response import UserResponse
 from shell.platform.application.bus.command_bus import CommandBus
@@ -20,13 +21,9 @@ router = APIRouter(prefix="/users", tags=["Users"])
 def get_user_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> UserController:
-    try:
-        _user_acl: UserACL = container.infra.user_acl_factory()
-    except Exception:
-        raise HTTPException(status_code=501, detail="User ACL not implemented") from None
     command_bus: CommandBus = container.app.buses.command_bus
     query_bus: QueryBus = container.app.buses.query_bus
-    return UserController(command_bus, query_bus, _user_acl)
+    return UserController(command_bus, query_bus)
 
 
 @router.get("", response_model=Page[UserResponse])
@@ -36,6 +33,22 @@ async def list_users(
     controller: UserController = Depends(get_user_controller),
 ) -> Page[UserResponse]:
     return await controller.list_users(page=page, page_size=page_size)
+
+
+@router.get("/by-email", response_model=LoginResponse)
+async def get_user_by_email(
+    email: str = Query(...),
+    controller: UserController = Depends(get_user_controller),
+) -> LoginResponse:
+    return await controller.get_user_by_email(email)
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login(
+    body: LoginRequest,
+    controller: UserController = Depends(get_user_controller),
+) -> LoginResponse:
+    return await controller.login(body)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

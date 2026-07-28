@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from sqlalchemy import select
 
@@ -27,12 +27,12 @@ class InboxProcessor:
         session_factory: async_sessionmaker[AsyncSession],
         event_bus: EventPublisher,  # In-memory EventBus
         batch_size: int = 100,
-        registry: dict[str, type[DomainEvent]] | None = None,
+        registry: dict[str, type] | None = None,
     ) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
         self._batch_size = batch_size
-        self._deserializer = EventDeserializer(registry=registry)  # type: ignore[arg-type]
+        self._deserializer = EventDeserializer(registry=registry)
 
         engine = getattr(session_factory, "bind", None)
         dialect_name: str = engine.dialect.name if engine is not None else "unknown"
@@ -62,7 +62,7 @@ class InboxProcessor:
                     row.event_type, row.occurred_at, row.payload
                 )
                 if domain_event:
-                    pairs.append((domain_event, row))
+                    pairs.append((cast("DomainEvent", domain_event), row))
 
                 # Mark in Inbox as processed (our ACK!)
                 row.processed_at = datetime.now(tz=UTC)

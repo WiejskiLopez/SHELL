@@ -52,6 +52,7 @@ class WorkflowController:
                 id=d.id,
                 status=d.status,
                 session_id=d.session_id,
+                project_id=d.project_id,
                 created_at=d.created_at,
                 updated_at=d.updated_at,
                 deleted_at=d.deleted_at,
@@ -75,6 +76,7 @@ class WorkflowController:
             id=result.id,
             status=result.status,
             session_id=result.session_id,
+            project_id=result.project_id,
             created_at=result.created_at,
             updated_at=result.updated_at,
             deleted_at=result.deleted_at,
@@ -82,7 +84,7 @@ class WorkflowController:
 
     async def create_workflow(self, body: ApiCreateWorkflowRequest) -> ApiCreateWorkflowResponse:
         workflow_id = await self._command_bus.dispatch(
-            CreateWorkflowCommand(session_id=body.session_id)
+            CreateWorkflowCommand(session_id=body.session_id, project_id=body.project_id)
         )
         return ApiCreateWorkflowResponse(id=workflow_id)
 

@@ -5,8 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from shell.platform.application.ports.ports import EventPublisher
-    from shell.platform.domain.events import DomainEvent
 
 
 class CompositeEventPublisher:
@@ -15,6 +16,6 @@ class CompositeEventPublisher:
     def __init__(self, publishers: list[EventPublisher]) -> None:
         self._publishers = list(publishers)
 
-    async def publish(self, events: list[DomainEvent]) -> None:
+    async def publish(self, events: Sequence[object]) -> None:
         for publisher in self._publishers:
             await publisher.publish(events)

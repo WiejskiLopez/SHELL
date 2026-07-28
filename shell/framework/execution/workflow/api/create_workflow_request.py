@@ -4,4 +4,5 @@ from pydantic import BaseModel
 
 
 class CreateWorkflowRequest(BaseModel):
-    session_id: str | None = None
+    session_id: str
+    project_id: str

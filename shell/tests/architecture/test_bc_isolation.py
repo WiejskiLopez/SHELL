@@ -46,6 +46,8 @@ _CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
     # Execution BC → Session BC (DTO reference for queries)
     "application/execution/session_execution/query_handlers/get_session_history_handler.py",
     "application/execution/session_execution/ports/session_query_service.py",
+    # Session BC → User BC (event handler for user login succeeded)
+    "application/session/session/event_handlers/user_login_succeeded_handler.py",
 ]
 
 

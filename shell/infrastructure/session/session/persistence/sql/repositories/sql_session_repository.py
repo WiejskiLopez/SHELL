@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from shell.domain.session.aggregates.session import Session
     from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+    from shell.domain.session.value_objects.user_id_ref import UserIdRef
 
 
 class SqlSessionRepository(SessionRepository):
@@ -38,6 +39,21 @@ class SqlSessionRepository(SessionRepository):
 
     async def get_by_id(self, session_id: SessionId) -> Session | None:
         query = select(SessionModel).where(SessionModel.id == session_id.value)
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        if row is None:
+            return None
+        return session_model_to_entity(row)
+
+    async def get_open_by_user_id(self, user_id: UserIdRef) -> Session | None:
+        query = (
+            select(SessionModel)
+            .where(
+                SessionModel.user_id == user_id.value,
+                SessionModel.status == "open",
+                SessionModel.deleted_at.is_(None),
+            )
+            .limit(1)
+        )
         row = (await self._session.execute(query)).scalar_one_or_none()
         if row is None:
             return None

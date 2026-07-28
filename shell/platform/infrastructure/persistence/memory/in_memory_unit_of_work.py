@@ -131,6 +131,8 @@ from shell.platform.infrastructure.persistence.memory.in_memory_graph_execution_
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
     from shell.platform.domain.events import DomainEvent
 from datetime import UTC, datetime
@@ -267,8 +269,8 @@ class InMemoryUnitOfWork(UnitOfWork):
             raise ValueError(msg)
         return repo  # type: ignore[return-value]
 
-    def stage_events(self, events: list[DomainEvent]) -> None:
-        self._staged_events.extend(events)
+    def stage_events(self, events: Sequence[object]) -> None:
+        self._staged_events.extend(events)  # type: ignore[arg-type]
 
     async def save(self, repo_type: type, aggregate: object) -> None:
         repo: Any = self.repository(repo_type)

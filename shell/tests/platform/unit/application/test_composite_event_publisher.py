@@ -7,10 +7,9 @@ from shell.platform.infrastructure.logging.composite_event_publisher import Comp
 from shell.tests.shared.sample_aggregate import make_sample_event
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from shell.platform.application.ports.ports import EventPublisher
-    from shell.platform.domain.events import (
-        DomainEvent,  # noqa: TC002 — DomainEvent używany w typowaniu listy eventów
-    )
 
 
 class TestCompositeEventPublisher:
@@ -19,7 +18,7 @@ class TestCompositeEventPublisher:
         p2 = AsyncMock()
         p3 = AsyncMock()
         composite = CompositeEventPublisher([p1, p2, p3])
-        events: list[DomainEvent] = [make_sample_event()]
+        events: list[object] = [make_sample_event()]
         await composite.publish(events)
         p1.publish.assert_awaited_once_with(events)
         p2.publish.assert_awaited_once_with(events)
@@ -30,7 +29,7 @@ class TestCompositeEventPublisher:
 
         async def make_mock(n: int) -> EventPublisher:
             class _Pub:
-                async def publish(self, evs: list) -> None:
+                async def publish(self, evs: Sequence[object]) -> None:
                     order.append(n)
 
             return _Pub()

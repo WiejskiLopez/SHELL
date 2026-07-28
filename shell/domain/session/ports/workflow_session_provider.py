@@ -13,6 +13,5 @@ class WorkflowSessionProvider(Protocol):
         self,
         session_id: str,
         user_id: str,
-        project_id: str,
         payload: dict[str, Any],
     ) -> None: ...

@@ -27,6 +27,7 @@ from shell.application.execution.node_execution.command_handlers.create_node_exe
 )
 from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
 from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
+from shell.application.user.user.command_handlers.login_handler import LoginHandler
 from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
 
 
@@ -88,6 +89,12 @@ class CommandContainer(containers.DeclarativeContainer):
         unit_of_work=buses.unit_of_work_factory,
         clock=infra.clock_factory,
         id_generator=infra.id_generator_factory,
+    )
+    login_handler_factory = providers.Factory(
+        LoginHandler,
+        unit_of_work=buses.unit_of_work_factory,
+        queries=infra.user_query_service,
+        clock=infra.clock_factory,
     )
     update_user_handler_factory = providers.Factory(
         UpdateUserHandler,

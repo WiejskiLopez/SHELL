@@ -16,7 +16,8 @@ def workflow_entity_to_model(work_flow: Workflow) -> WorkflowModel:
     return WorkflowModel(
         id=work_flow.id.value,
         status=work_flow.status.value,
-        session_id=work_flow.session_id.value if work_flow.session_id else None,
+        session_id=work_flow.session_id.value,
+        project_id=work_flow.project_id.value,
         created_at=work_flow.created_at.value,
         deleted_at=_created_at_value(work_flow.deleted_at),
     )

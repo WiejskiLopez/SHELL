@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.platform.domain.events import DomainEvent
-
 
 class SqlOutboxPublisher:
     """Writes domain events to the ``outbox_event`` table (own session per call)."""
@@ -29,7 +27,7 @@ class SqlOutboxPublisher:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def publish(self, events: Sequence[DomainEvent]) -> None:
+    async def publish(self, events: Sequence[object]) -> None:
         if not events:
             return
         correlation_id = get_correlation_id()
@@ -43,7 +41,7 @@ class SqlOutboxPublisher:
                         OutboxEventModel(
                             id=str(uuid.uuid4()),
                             event_type=type(event).__name__,
-                            occurred_at=event.occurred_at.value,
+                            occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]
                             payload=payload,
                             correlation_id=correlation_id,
                             causation_id=causation_id,

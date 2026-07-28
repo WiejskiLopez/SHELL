@@ -12,7 +12,7 @@ from shell.platform.framework.api.models.problem_detail import ProblemDetail
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
 
-PUBLIC_EXACT = frozenset({"/health", "/api"})
+PUBLIC_EXACT = frozenset({"/health", "/api", "/api/v1/users/by-email", "/api/v1/users/login"})
 PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 

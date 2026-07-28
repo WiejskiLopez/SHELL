@@ -20,6 +20,8 @@ from shell.platform.infrastructure.persistence.sql.models import OutboxEventMode
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
@@ -35,8 +37,13 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     wyłącznie repozytoria swojego BC.
     """
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self,
+        session_factory: async_sessionmaker[AsyncSession],
+        mapper: Any | None = None,
+    ) -> None:
         self._factory = session_factory
+        self._mapper = mapper
         self._staged_events: list[DomainEvent] = []
         self._staged_messages: list[MessageRouter] = []
         self._committed = False
@@ -75,8 +82,8 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         msg = f"Unknown repository type for this BC: {repo_type.__name__}"
         raise ValueError(msg)
 
-    def stage_events(self, events: list[DomainEvent]) -> None:
-        self._staged_events.extend(events)
+    def stage_events(self, events: Sequence[object]) -> None:
+        self._staged_events.extend(events)  # type: ignore[arg-type]
 
     def stage_messages(self, messages: list[MessageRouter]) -> None:
         self._staged_messages.extend(messages)
@@ -84,7 +91,12 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     async def save(self, repo_type: type, aggregate: object) -> None:
         repo: Any = self.repository(repo_type)
         await repo.save(aggregate)
-        self.stage_events(aggregate.pull_events())  # type: ignore[attr-defined]
+        domain_events = aggregate.pull_events()  # type: ignore[attr-defined]
+        if self._mapper is not None:
+            mapped = [self._mapper.map(e) for e in domain_events]
+            self.stage_events(mapped)
+        else:
+            self.stage_events(domain_events)
 
     async def __aenter__(self) -> SqlAlchemyUnitOfWorkBase:
         self._session = self._factory()
@@ -106,10 +118,15 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         try:
             serializer = DomainEventSerializer()
             for event in self._staged_events:
+                raw_occurred_at = (
+                    event.occurred_at.value
+                    if hasattr(event.occurred_at, "value")
+                    else event.occurred_at
+                )
                 outbox = OutboxEventModel(
                     id=str(uuid.uuid4()),
                     event_type=type(event).__name__,
-                    occurred_at=event.occurred_at.value,
+                    occurred_at=raw_occurred_at,
                     payload=serializer.to_payload(event),
                     correlation_id=get_correlation_id(),
                     causation_id=get_causation_id(),

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
 
 class EventBus:
@@ -17,7 +17,7 @@ class EventBus:
             self._handler_factories[event_type] = []
         self._handler_factories[event_type].append(factory)
 
-    async def publish(self, events: list[Any]) -> None:
+    async def publish(self, events: Sequence[Any]) -> None:
         for event in events:
             factories = self._handler_factories.get(type(event), [])
             for factory in factories:

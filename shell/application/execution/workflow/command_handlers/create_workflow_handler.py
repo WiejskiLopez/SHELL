@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+    ProjectIdRef,
+)
 from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
@@ -36,11 +39,13 @@ class CreateWorkflowHandler:
         now = CreatedAt.from_datetime(self._clock.now())
         workflow_id = self._id_generator.new_id(WorkflowId)
 
-        session_id = SessionIdRef(command.session_id) if command.session_id else None
+        session_id = SessionIdRef(command.session_id)
+        project_id = ProjectIdRef(command.project_id)
         workflow = Workflow.create(
             id_=workflow_id,
             now=now,
             session_id=session_id,
+            project_id=project_id,
         )
 
         async with self._unit_of_work as unit_of_work:

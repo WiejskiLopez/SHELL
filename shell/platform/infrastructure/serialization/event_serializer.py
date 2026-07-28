@@ -3,51 +3,57 @@ from __future__ import annotations
 import dataclasses
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.schema_version import SchemaVersion
-
-if TYPE_CHECKING:
-    from shell.platform.domain.events import DomainEvent
 
 logger = logging.getLogger(__name__)
 
 
 class DomainEventSerializer:
-    def to_payload(self, event: DomainEvent) -> dict[str, object]:
+    def to_payload(self, event: object) -> dict[str, object]:
         payload: dict[str, object] = {}
-        for f in dataclasses.fields(event):
+        for f in dataclasses.fields(event):  # type: ignore[arg-type]
             if f.name in ("occurred_at", "schema_version"):
                 continue
             raw = getattr(event, f.name)
             payload[f.name] = self._serialize_value(raw)
         return payload
 
-    def to_outbox_payload(self, event: DomainEvent) -> dict[str, object]:
+    def to_outbox_payload(self, event: object) -> dict[str, object]:
+        raw_occurred_at = event.occurred_at  # type: ignore[attr-defined]
+        if hasattr(raw_occurred_at, "value"):
+            raw_occurred_at = raw_occurred_at.value
         return {
             "id": None,
             "event_type": type(event).__name__,
-            "occurred_at": event.occurred_at.value,
+            "occurred_at": raw_occurred_at,
             "payload": self.to_payload(event),
         }
 
     def from_payload(
         self,
-        event_cls: type[DomainEvent],
+        event_cls: type,
         occurred_at: datetime,
         payload: dict[str, object],
         schema_version: int = 1,
-    ) -> DomainEvent:
+    ) -> object:
         kwargs: dict[str, Any] = {
-            "occurred_at": CreatedAt.from_datetime(occurred_at),
             "schema_version": SchemaVersion(schema_version),
         }
         for f in dataclasses.fields(event_cls):
-            if f.name in ("occurred_at", "schema_version"):
+            if f.name == "schema_version":
                 continue
-            raw = payload.get(f.name)
-            kwargs[f.name] = self._deserialize_value(raw, cast("type", f.type))
+            if f.name == "occurred_at":
+                f_type = f.type
+                if isinstance(f_type, str):
+                    kwargs["occurred_at"] = occurred_at
+                else:
+                    kwargs["occurred_at"] = CreatedAt.from_datetime(occurred_at)
+            else:
+                raw = payload.get(f.name)
+                kwargs[f.name] = self._deserialize_value(raw, cast("type", f.type))
         return event_cls(**kwargs)
 
     def _serialize_value(self, value: object) -> object:

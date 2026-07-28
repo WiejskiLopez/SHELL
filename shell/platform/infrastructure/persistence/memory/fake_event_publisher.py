@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shell.platform.domain.events import DomainEvent
+    from collections.abc import Sequence
+
+    pass
 
 
 class FakeEventPublisher:
     def __init__(self) -> None:
-        self.published: list[DomainEvent] = []
+        self.published: list[object] = []
 
-    async def publish(self, events: list[DomainEvent]) -> None:
+    async def publish(self, events: Sequence[object]) -> None:
         self.published.extend(events)
