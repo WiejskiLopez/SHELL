@@ -14,6 +14,8 @@ _ALLOWED_CROSS_BC = frozenset(
     {
         "shell.platform.domain",
         "shell.platform.application",
+        # Source-owned integration events — designed to be consumed cross-BC
+        "shell.application.user.user.integration_events",
     }
 )
 
@@ -36,18 +38,10 @@ def _is_allowed_cross_bc(imp: str) -> bool:
 
 
 _CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
-    # User BC → Execution BC (TYPE_CHECKING, Identity VO)
-    "domain/user/aggregates/user/user.py",
-    # Session BC → Execution BC (commands co-located in execution BC)
-    "application/session/event_handlers/propagate_session_output_to_workflow_input.py",
-    "application/session/event_handlers/session_opened_propagate_output_handler.py",
-    "application/session/session/command_handlers/close_session_handler.py",
-    "application/session/session/command_handlers/open_session_handler.py",
-    # Execution BC → Session BC (DTO reference for queries)
-    "application/execution/session_execution/query_handlers/get_session_history_handler.py",
+    # SessionDto cross-BC reference — port owned by execution BC, DTO owned by session BC.
+    # Infrastructure adapter (HTTP) bridges the boundary at runtime.
     "application/execution/session_execution/ports/session_query_service.py",
-    # Session BC → User BC (event handler for user login succeeded)
-    "application/session/session/event_handlers/user_login_succeeded_handler.py",
+    "application/execution/session_execution/query_handlers/get_session_history_handler.py",
 ]
 
 

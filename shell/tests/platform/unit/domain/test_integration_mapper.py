@@ -25,6 +25,9 @@ from shell.domain.user.aggregates.user.events.user_login_succeeded_event import 
     UserLoginSucceededEvent,
 )
 from shell.domain.user.value_objects.user_id import UserId
+from shell.platform.application.context.causation_id import get_causation_id
+from shell.platform.application.context.correlation_id import get_correlation_id
+from shell.platform.application.events import IntegrationEvent
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
@@ -43,8 +46,11 @@ class TestReflectiveIntegrationMapper:
             user_id=UserIdRef.generate(),
             now=_NOW,
         )
-        result: object = self._mapper.map(event)
+        result: IntegrationEvent = self._mapper.map(event)  # type: ignore[assignment]
         assert type(result).__name__ == "SessionOpenedIntegrationEvent"
+        assert isinstance(result, IntegrationEvent)
+        assert result.correlation_id == get_correlation_id()
+        assert result.causation_id == get_causation_id()
         assert result.session_id == event.session_id.value  # type: ignore[attr-defined]
         assert result.user_id == event.user_id.value  # type: ignore[attr-defined]
 
@@ -53,8 +59,11 @@ class TestReflectiveIntegrationMapper:
             user_id=UserId.generate(),
             now=_NOW,
         )
-        result: object = self._mapper.map(event)
+        result: IntegrationEvent = self._mapper.map(event)  # type: ignore[assignment]
         assert type(result).__name__ == "UserLoginSucceededIntegrationEvent"
+        assert isinstance(result, IntegrationEvent)
+        assert result.correlation_id == get_correlation_id()
+        assert result.causation_id == get_causation_id()
         assert result.user_id == event.user_id.value  # type: ignore[attr-defined]
 
     def test_map_event_with_nullable_fields(self) -> None:
@@ -64,8 +73,11 @@ class TestReflectiveIntegrationMapper:
             graph_execution_id=None,
             now=_NOW,
         )
-        result: object = self._mapper.map(event)
+        result: IntegrationEvent = self._mapper.map(event)  # type: ignore[assignment]
         assert type(result).__name__ == "NodeExecutionCreatedIntegrationEvent"
+        assert isinstance(result, IntegrationEvent)
+        assert result.correlation_id == get_correlation_id()
+        assert result.causation_id == get_causation_id()
         assert result.node_execution_id == event.node_execution_id.value  # type: ignore[attr-defined]
         assert result.node_definition_id is None  # type: ignore[attr-defined]
         assert result.graph_execution_id is None  # type: ignore[attr-defined]
@@ -75,8 +87,11 @@ class TestReflectiveIntegrationMapper:
             session_execution_id=SessionExecutionId.generate(),
             now=_NOW,
         )
-        result: object = self._mapper.map(event)
+        result: IntegrationEvent = self._mapper.map(event)  # type: ignore[assignment]
         assert type(result).__name__ == "SessionExecutionCreatedIntegrationEvent"
+        assert isinstance(result, IntegrationEvent)
+        assert result.correlation_id == get_correlation_id()
+        assert result.causation_id == get_causation_id()
         assert result.session_execution_id == event.session_execution_id.value  # type: ignore[attr-defined]
 
     def test_unknown_event_type_raises(self) -> None:

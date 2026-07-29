@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 
 from fastapi import HTTPException
 
-from shell.application.execution.session_execution.commands.open_session_command import (
-    OpenSessionCommand,
-)
 from shell.application.session.session.commands.delete_session_command import (
     DeleteSessionCommand,
+)
+from shell.application.session.session.commands.open_session_command import (
+    OpenSessionCommand,
 )
 from shell.application.session.session.commands.update_session_command import (
     UpdateSessionCommand,
@@ -28,10 +28,10 @@ from shell.framework.session.session.api.update_session_request import (
 from shell.platform.application.bus.command_bus import CommandBus
 
 if TYPE_CHECKING:
-    from shell.application.execution.session_execution.ports.session_query_service import (
+    from shell.application.session.session.dto.session import SessionDto
+    from shell.application.session.session.ports.session_query_service import (
         SessionQueryService,
     )
-    from shell.application.session.session.dto.session import SessionDto
 
 
 def _to_response(dto: SessionDto) -> ApiSessionResponse:

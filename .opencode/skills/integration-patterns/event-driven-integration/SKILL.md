@@ -11,83 +11,112 @@ Integracja zdarzeniowa pozwala agregatom i bounded context komunikować się bez
 
 Problem: jak zagwarantować że event jest opublikowany dokładnie wtedy gdy zmiana stanu jest zapisana w bazie? Nie możesz zrobić "save to DB + publish to broker" — jeśli jedno fejluje, drugie zostaje.
 
-Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI co zmiana domenowa. Osobny proces (OutboxRelay) odczytuje nieopublikowane eventy z outbox i publikuje je do brokera.
+Rozwiązanie: zapisujesz event do tabeli `outbox_event` W TEJ SAMEJ TRANSAKCJI co zmiana domenowa. Osobny proces (`OutboxToInboxRelay`) odczytuje nieopublikowane eventy z outbox i kopiuje je do `inbox_event`. `InboxProcessor` dispatchuje je do handlerów przez `EventBus`.
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ Transaction 1                                        │
-│   INSERT INTO aggregate (...)                        │
-│   INSERT INTO outbox_event (event_id, type, payload) │
-│   COMMIT — oba zapisy atomowe                       │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ Transakcja 1 (UoW)                                               │
+│   aggregate.domain_method() → append_event(DomainEvent)          │
+│   ReflectiveIntegrationMapper → IntegrationEvent                 │
+│   INSERT INTO outbox_event (event_type, payload, correlation_id) │
+│   COMMIT — atomowo z zapisem agregatu                           │
+└──────────────────────────────────────────────────────────────────┘
                     │
                     ▼
-┌─────────────────────────────────────────────────────┐
-│ OutboxRelay (osobny proces / background task)        │
-│   SELECT * FROM outbox_event WHERE processed_at IS NULL ORDER BY created_at
-│   FOR EACH event:                                    │
-│     → publish do brokera (RabbitMQ / Kafka / ...)    │
-│     → UPDATE outbox_event SET processed_at = now()   │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ OutboxToInboxRelay.run_once()  (background task / scheduler)      │
+│   SELECT FROM outbox_event WHERE published_at IS NULL            │
+│     ORDER BY occurred_at LIMIT batch_size                        │
+│     FOR UPDATE SKIP LOCKED  (pomija blokowane wiersze)          │
+│   INSERT INTO inbox_event (id, event_type, payload,              │
+│     correlation_id, causation_id, received_at)                   │
+│     ON CONFLICT DO NOTHING   (idempotentny insert)              │
+│   UPDATE outbox_event SET published_at = now()                   │
+│   COMMIT                                                         │
+└──────────────────────────────────────────────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────────────────────────┐
+│ InboxProcessor.run_once()  (background task / scheduler)          │
+│   SELECT FROM inbox_event WHERE processed_at IS NULL             │
+│     AND retry_count < max_retries                                │
+│     AND (last_attempted_at IS NULL OR < backoff_cutoff)          │
+│     FOR UPDATE SKIP LOCKED                                      │
+│   for each row:                                                  │
+│     deserialize → DomainEvent/IntegrationEvent                   │
+│     set correlation_id + causation_id ContextVars                │
+│     await EventBus.publish([event])                              │
+│       → handler = factory(); await handler.handle(event)         │
+│     on success: processed_at = now                               │
+│     on failure: retry_count++, backoff, or DLQ (processed_at)    │
+│   COMMIT                                                         │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
 ### Gwarancje
 
 Outbox daje **at-least-once delivery**. Event może być dostarczony więcej niż raz (np. broker potwierdził, ale update `processed_at` nie doszedł). Dlatego każdy consumer musi być **idempotentny** — patrz Inbox Pattern.
 
-### Schemat tabeli outbox
+### Schemat tabeli outbox (`OutboxEventModel`)
 
 | Kolumna | Typ | Opis |
 |---------|-----|------|
-| `id` | UUID / int | Primary key |
-| `event_id` | UUID | Unikalny identyfikator eventu |
-| `aggregate_id` | string | ID agregatu który wyemitował event |
-| `aggregate_type` | string | Typ agregatu (np. `Workflow`) |
-| `event_type` | string | Klasa eventu (np. `WorkflowCompletedEvent`) |
-| `payload` | JSONB / TEXT | Pełny event jako JSON |
-| `correlation_id` | string (nullable) | Łączy eventy w jeden łańcuch przyczynowy |
-| `causation_id` | string (nullable) | ID eventu który bezpośrednio spowodował ten event |
-| `created_at` | timestamp | Kiedy event został zapisany do outbox |
-| `processed_at` | timestamp (nullable) | Kiedy OutboxRelay opublikował event |
-| `retry_count` | int (default 0) | Liczba prób publikacji |
-| `error` | text (nullable) | Ostatni błąd przy publikacji |
+| `id` | str (PK) | UUID — tożsamy z `event_id` |
+| `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
+| `occurred_at` | datetime | Kiedy event wystąpił (UTC) |
+| `payload` | JSONB | Serializowane pola eventu |
+| `correlation_id` | str | Łączy eventy w jeden łańcuch przyczynowy (z ContextVar) |
+| `causation_id` | str | ID eventu który spowodował ten event (z ContextVar) |
+| `published_at` | datetime (nullable) | Kiedy OutboxToInboxRelay skopiował do inbox |
 
 ## Inbox Pattern — idempotentny consumer
 
 Problem: event może przyjść wielokrotnie (at-least-once). Consumer nie może przetworzyć go dwa razy.
 
-Rozwiązanie: przed przetworzeniem eventu sprawdź czy jego `event_id` już jest w tabeli inbox. Jeśli tak — pomiń (event już był przetworzony). Jeśli nie — przetwórz + zapisz `event_id` do inbox.
+Rozwiązanie: **InboxProcessor** (w SHELL) odczytuje `inbox_event`, deserializuje i dispatchuje do `EventBus` tylko dla nieprzetworzonych wierszy.
 
-```
-Consumer.handle(event):
-    if inbox.contains(event.event_id):  → SKIP
-    try:
-        process(event)                   → business logic
-        inbox.add(event.event_id)        → mark as processed
-    except Exception:
-        retry / DLQ                      → error handling
-```
+Idempotentność na dwóch poziomach:
+1. **Relay**: `ON CONFLICT DO NOTHING` / `OR IGNORE` przy INSERT do inbox — ten sam event nie trafi dwa razy do inbox
+2. **Processor**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest ponownie dispatchowany
 
-### Schemat tabeli inbox
+### Schemat tabeli inbox (`InboxEventModel`)
 
 | Kolumna | Typ | Opis |
 |---------|-----|------|
-| `event_id` | UUID | Primary key — identyfikator przetworzonego eventu |
-| `processed_at` | timestamp | Kiedy event został przetworzony |
+| `id` | str (PK) | UUID — tożsamy z outbox `id` |
+| `event_type` | str | Klasa eventu (np. `WorkflowCompletedEvent`) |
+| `occurred_at` | datetime | Kiedy event wystąpił |
+| `payload` | JSONB | Serializowane pola eventu |
+| `correlation_id` | str | Łańcuch przyczynowy (kopiowane z outbox) |
+| `causation_id` | str | ID eventu który spowodował ten event |
+| `received_at` | datetime | Kiedy relay skopiował do inbox |
+| `processed_at` | datetime (nullable) | Kiedy InboxProcessor dispatchował |
+| `retry_count` | int (default 0) | Liczba prób (dodane w migracji 065) |
+| `last_attempted_at` | datetime (nullable) | Ostatnia próba (do backoff) |
+| `error` | str (nullable) | Komunikat błędu przy ostatniej próbie |
+
+## Implementacja w SHELL — klasy
+
+| Klasa | Lokalizacja | Odpowiedzialność |
+|-------|-------------|------------------|
+| `SqlAlchemyUnitOfWorkBase` | `shell/platform/infrastructure/persistence/sql_alchemy_uow_base.py` | W outbox w tej samej transakcji co agregat |
+| `ReflectiveIntegrationMapper` | `shell/platform/infrastructure/mapping/reflective_integration_mapper.py` | Mapuje domain event → integration event |
+| `OutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/outbox_to_inbox_relay.py` | Kopiuje outbox → inbox, FOR UPDATE SKIP LOCKED |
+| `InboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/inbox_processor.py` | Deserializuje, dispatchuje do EventBus, retry/DLQ |
+| `EventBus` | `shell/platform/application/bus/event_bus.py` | In-memory dispatch do handlerów (lazy factories) |
+| `DomainEventSerializer` | `shell/platform/infrastructure/serialization/event_serializer.py` | Serializacja/deserializacja eventów |
+| `EventDeserializer` | `shell/platform/infrastructure/serialization/event_deserializer.py` | Deserializacja z rejestrem klas |
+| `build_event_registry()` | `shell/platform/infrastructure/serialization/event_registry.py` | Auto-generowany rejestr event → klasa |
 
 ## Saga — choreografia vs orkiestracja
 
-Saga to wzorzec realizacji długotrwałego procesu biznesowego przez sekwencję lokalnych transakcji. Każdy krok to osobna transakkcja na pojedynczym agregacie.
+> **TODO**: W SHELL architektura przewiduje sagę w warstwie `shell/process/`, ale NIE MA jeszcze żadnej implementacji. Poniższy opis jest wzorcem docelowym.
+
+Saga to wzorzec realizacji długotrwałego procesu biznesowego przez sekwencję lokalnych transakcji. Każdy krok to osobna transakcja na pojedynczym agregacie.
 
 ### Choreografia (event-driven saga)
 
 Każdy krok słucha eventów poprzedniego i emituje event dla następnego. Nie ma centralnego koordynatora.
-
-```
-OrderConfirmedEvent → InventoryHandler.reserve()
-                       → StockReservedEvent → PaymentHandler.charge()
-                                                → PaymentCompletedEvent → ShipmentHandler.ship()
-```
 
 **Kiedy użyć:**
 - Prosty flow liniowy (≤ 5 kroków)
@@ -97,15 +126,6 @@ OrderConfirmedEvent → InventoryHandler.reserve()
 ### Orkiestracja (orchestration-based saga)
 
 Centralny koordynator (Saga Manager / Process Manager) śledzi stan całego procesu i wywołuje kolejne kroki.
-
-```
-SagaOrchestrator:
-    1. Wyślij ReserveInventory command
-    2. Odbierz InventoryReserved event
-    3. Wyślij ChargePayment command
-    4. Odbierz PaymentCompleted event
-    5. Wyślij CreateShipment command
-```
 
 **Kiedy użyć:**
 - Złożony flow z warunkami, pętlami, timeoutami
@@ -135,12 +155,9 @@ Event sourcing stosuj gdy potrzebujesz:
 
 Dla większości przypadków outbox jest wystarczający. Event sourcing dodaje złożoność (snapshoty, replay, versioning eventów).
 
-## Kiedy czytasz references
-
-- Implementujesz outbox / inbox pierwzy raz → `references/outbox-inbox.md`
-- Projektujesz długotrwały proces biznesowy między agregatami → `references/saga-patterns.md`
-- Projektujesz schemat nowego eventu domenowego / integracyjnego → `references/event-design.md`
-
 ## Konwencje
 
-- OutboxRelay publikuje eventy w osobnej transakcji od zapisu domenowego
+- `OutboxToInboxRelay` i `InboxProcessor` działają w osobnych transakcjach od zapisu domenowego
+- Concurrency: `FOR UPDATE SKIP LOCKED` na PostgreSQL, pomijane na SQLite
+- Retry: fixed backoff (30s), max 3 próby, po wyczerpaniu `processed_at = now` (tombstone DLQ)
+- Tracing: `correlation_id` i `causation_id` propagowane przez `ContextVar` → outbox → inbox → handler

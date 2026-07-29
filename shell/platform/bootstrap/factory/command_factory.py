@@ -28,12 +28,6 @@ from shell.application.execution.node_execution.commands.create_node_execution_c
 from shell.application.execution.node_execution.commands.delete_node_execution_command import (
     DeleteNodeExecutionCommand,
 )
-from shell.application.execution.session_execution.commands.close_session_command import (
-    CloseSessionCommand,
-)
-from shell.application.execution.session_execution.commands.open_session_command import (
-    OpenSessionCommand,
-)
 from shell.application.execution.workflow.commands.create_workflow_command import (
     CreateWorkflowCommand,
 )
@@ -88,8 +82,14 @@ from shell.application.scheduling.scheduler_job.commands.delete_scheduler_job_co
 from shell.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
     UpdateSchedulerJobCommand,
 )
+from shell.application.session.session.commands.close_session_command import (
+    CloseSessionCommand,
+)
 from shell.application.session.session.commands.delete_session_command import (
     DeleteSessionCommand,
+)
+from shell.application.session.session.commands.open_session_command import (
+    OpenSessionCommand,
 )
 from shell.application.session.session.commands.update_session_command import (
     UpdateSessionCommand,

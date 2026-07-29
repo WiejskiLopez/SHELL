@@ -4,7 +4,7 @@ Enforces:
 1. Every per-BC UnitOfWork accepts and forwards the ``mapper`` parameter.
 2. No handler manually calls ``stage_events(pull_events())`` — must go through ``UoW.save()``.
 3. ``InboxProcessor`` in ``core_container.py`` is wired with ``EventBusPublisher``,
-   not ``CompositeEventPublisher`` (prevents infinite outbox→inbox→outbox loop).
+   not CompositeEventPublisher (prevents infinite outbox→inbox→outbox loop).
 """
 
 from __future__ import annotations
@@ -98,10 +98,8 @@ _CORE_CONTAINER = BASE / "platform" / "bootstrap" / "container" / "core_containe
 
 
 def test_inbox_processor_uses_event_bus_publisher() -> None:
-    """InboxProcessor must receive EventBusPublisher, not CompositeEventPublisher.
-
-    The CompositeEventPublisher contains SqlOutboxPublisher which would cause
-    an infinite loop: inbox → outbox → relay → inbox → outbox → ...
+    """InboxProcessor must receive EventBusPublisher, not a composite with SqlOutboxPublisher
+    (which would cause an infinite inbox → outbox → relay → inbox → outbox → ... loop).
     """
     tree = parse_file(_CORE_CONTAINER)
     assert tree is not None, f"Cannot parse {_CORE_CONTAINER}"
@@ -117,18 +115,7 @@ def test_inbox_processor_uses_event_bus_publisher() -> None:
             source = ast.get_source_segment(_CORE_CONTAINER.read_text(encoding="utf-8"), stmt)
             assert source is not None, f"Cannot get source for {_CORE_CONTAINER}"
 
-            violations: list[str] = []
-            if "self._event_publisher" in source:
-                violations.append(
-                    "inbox_processor() passes self._event_publisher "
-                    "(CompositeEventPublisher) as event_bus — must use EventBusPublisher"
-                )
-            if "self._event_bus_publisher" not in source:
-                violations.append(
-                    "inbox_processor() does not reference self._event_bus_publisher "
-                    "(EventBusPublisher)"
-                )
-            assert not violations, (
-                "InboxProcessor event_bus must be EventBusPublisher, "
-                "not CompositeEventPublisher:\n" + "\n".join(violations)
+            assert "self._event_bus_publisher" in source, (
+                "inbox_processor() must use self._event_bus_publisher "
+                "(EventBusPublisher), not a composite publisher"
             )

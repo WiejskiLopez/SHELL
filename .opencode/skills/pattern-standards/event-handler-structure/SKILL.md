@@ -15,56 +15,40 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 | | Command | Event |
 |--|---------|-------|
 | **Bus** | `CommandBus` w `Buses` | `EventBus` w `Buses` |
-| **Message** | `LoginCommand` — `application/.../commands/` | `UserLoginSucceededIntegrationEvent` — `shell/integration_events/` |
+| **Message** | `LoginCommand` — `application/.../commands/` | `UserLoginSucceededIntegrationEvent` — `application/.../integration_events/` |
 | **Handler** | `LoginHandler` — `application/.../command_handlers/` | `UserLoginSucceededHandler` — `application/.../event_handlers/` |
 | **DI fabryki** | `Commands` → `login_handler_factory()` | `EventHandlers` → `user_login_succeeded_handler_factory()` |
 | **Rejestracja** | `command_factory.py`: `cmd_bus.register(...)` | `event_factory.py`: `event_bus.subscribe(...)` |
 
 ---
 
-## Opublikowany język (Published Language)
+## Integration Events — per‑BC
 
-Komunikacja między Bounded Contextami odbywa się przez **wspólne integration events** w `shell/integration_events/`. To jest "Published Language" z DDD — oficjalny kontrakt między BC, używający **tylko primitive typów** (str, int, bool). Żadne VOs domenowe nie przekraczają granic BC.
+Integracja między Bounded Contextami odbywa się przez **integration events** definiowane **per BC** w `shell/application/<bc>/<aggregate>/integration_events/`. Każdy BC posiada własne integration events — nie ma wspólnego katalogu.
 
 ### Zasady
 
-1. Integration event rozszerza `DomainEvent` (żeby przejść przez outbox/inbox pipeline)
-2. Używa tylko `str`, `int`, `bool`, `datetime` — nigdy VOs z żadnego BC
-3. Definiowany JEDEN RAZ w `shell/integration_events/`
-4. Producent i konsument importują z tego samego miejsca
-5. Żadnego ACL, żadnego mapowania
-
-### Przykład
+1. Integration event rozszerza `IntegrationEvent` (klasa w `shell/platform/application/events/integration_event.py`)
+2. Używa tylko `str`, `int`, `bool`, `datetime` — nigdy VOs domenowych
+3. Definiowany w `shell/application/<produkujący_bc>/<aggregate>/integration_events/`
+4. Konsument importuje z tego samego miejsca (produkujący BC jest właścicielem DTO)
+5. Mapaowanie domain → integration event robi `ReflectiveIntegrationMapper` automatycznie
 
 ```python
-# shell/integration_events/user_login_succeeded_integration_event.py
+# shell/application/user/user/integration_events/user_login_succeeded_integration_event.py
 @dataclass(frozen=True, slots=True)
-class UserLoginSucceededIntegrationEvent(DomainEvent):
+class UserLoginSucceededIntegrationEvent(IntegrationEvent):
+    event_id: str
+    correlation_id: str
+    causation_id: str
+    occurred_at: datetime
+    aggregate_id: str
+    aggregate_name: str
+    schema_version: int
     user_id: str
 ```
 
-```python
-# Producent (User BC, LoginHandler)
-from shell.integration_events.user_login_succeeded_integration_event import (
-    UserLoginSucceededIntegrationEvent,
-)
-event = UserLoginSucceededIntegrationEvent(
-    user_id=user.id,
-    occurred_at=OccurredAt.from_datetime(self._clock.now()),
-)
-unit_of_work.stage_events([event])
-```
-
-```python
-# Konsument (Session BC, UserLoginSucceededHandler)
-from shell.integration_events.user_login_succeeded_integration_event import (
-    UserLoginSucceededIntegrationEvent,
-)
-if TYPE_CHECKING:
-    from shell.integration_events.user_login_succeeded_integration_event import (
-        UserLoginSucceededIntegrationEvent,
-    )
-```
+> **Uwaga**: pola `event_id`–`schema_version` to envelope dziedziczony z `IntegrationEvent`. W praktyce wypełnia je `ReflectiveIntegrationMapper` — handler nie tworzy integration eventów ręcznie.
 
 ## Pełny przepływ eventu
 
@@ -73,12 +57,13 @@ Handler źródłowy (np. LoginHandler)
   → stage_events([UserLoginSucceededIntegrationEvent])
     → UoW commit → serializacja → outbox_event (DB)
       → OutboxToInboxRelay → inbox_event (DB)
-        → InboxProcessor.run_once()
-          1. SELECT z inbox_event WHERE processed_at IS NULL
-          2. EventDeserializer.deserialize(event_type, payload)
-          3. row.processed_at = now
-          4. session.commit() (najpierw mark processed)
-          5. await self._event_bus.publish([integration_event])
+         → InboxProcessor.run_once()
+           1. SELECT z inbox_event WHERE processed_at IS NULL (FOR UPDATE SKIP LOCKED)
+           2. EventDeserializer.deserialize(event_type, payload)
+           3. set ContextVar (correlation_id, causation_id)
+           4. await self._event_bus.publish([integration_event])  ← dispatch FIRST
+           5. row.processed_at = now                              ← mark success (lub retry++ przy błędzie)
+           6. session.commit()                                    ← COMMIT wszystkich zmian
                ↓
               EventBus.publish([event])
                ↓
@@ -114,20 +99,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.session.aggregates.session import Session
 from shell.domain.session.aggregates.session.repositories.session_repository import (
     SessionRepository,
 )
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.value_objects.created_at import CreatedAt
-from shell.platform.domain.value_objects.updated_at import UpdatedAt
 
 if TYPE_CHECKING:
-    from shell.integration_events.user_login_succeeded_integration_event import (
+    from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
         UserLoginSucceededIntegrationEvent,
     )
-    from shell.platform.application.ports.ports import Clock, IdGenerator, UnitOfWork
+    from shell.platform.application.ports.ports import Clock, UnitOfWork
 ```
 
 ---
@@ -143,27 +125,30 @@ if TYPE_CHECKING:
 
 ```python
 class UserLoginSucceededHandler:
-    def __init__(self, unit_of_work: UnitOfWork, clock: Clock, id_generator: IdGenerator) -> None:
+    def __init__(
+        self,
+        unit_of_work: UnitOfWork,
+        clock: Clock,
+        session_service: SessionManagementService,
+    ) -> None:
         self._unit_of_work = unit_of_work
         self._clock = clock
-        self._id_generator = id_generator
+        self._session_service = session_service
 
     async def handle(self, event: UserLoginSucceededIntegrationEvent) -> None:
         user_id_ref = UserIdRef(event.user_id)
-        now = CreatedAt.from_datetime(self._clock.now())
+        now_dt = self._clock.now()
 
         async with self._unit_of_work as unit_of_work:
             existing = await unit_of_work.repository(SessionRepository).get_open_by_user_id(
                 user_id_ref
             )
-
-            if existing is not None:
-                existing.update(UpdatedAt.from_datetime(now.value))
-                await unit_of_work.save(SessionRepository, existing)
-            else:
-                session_id = self._id_generator.new_id(SessionId)
-                session = Session.open(id_=session_id, user_id=user_id_ref, now=now)
-                await unit_of_work.save(SessionRepository, session)
+            session = self._session_service.ensure_open(
+                user_id_ref=user_id_ref,
+                now_dt=now_dt,
+                existing=existing,
+            )
+            await unit_of_work.save(SessionRepository, session)
 ```
 
 ---
@@ -186,17 +171,21 @@ class UserLoginSucceededHandler:
 
 ## Cross-BC
 
-### Published Language (rekomendowane)
+### Mechanizm integracji
 
-- Cross-BC komunikacja przez **wspólne integration events** w `shell/integration_events/`
-- Integration event używa tylko primitive typów (`str`, `int`, `bool`)
-- Producent i konsument importują z `shell.integration_events`
-- **Żadnego ACL, żadnego mapowania, żadnego cross-BC importu domeny**
+Cross-BC komunikacja przez **integration events** — per‑BC DTO w `shell/application/<produkujący_bc>/<aggregate>/integration_events/`:
+
+1. Domain event emitowany przez agregat w BC A
+2. `ReflectiveIntegrationMapper` (w `SqlAlchemyUnitOfWorkBase.save()`) mapuje domain event → integration event (wypełnia envelope + konwertuje VOs na stringi)
+3. Integration event zapisywany do `outbox_event` w tej samej transakcji
+4. `OutboxToInboxRelay` → `InboxProcessor` → `EventBus` → handler w BC B
+
+Integration event używa tylko primitive typów (`str`, `int`, `bool`, `datetime`). Właścicielem DTO jest produkujący BC.
 
 ### Kompozycyjny korzeń (`event_factory.py`)
 
 ```python
-from shell.integration_events.user_login_succeeded_integration_event import (
+from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
     UserLoginSucceededIntegrationEvent,
 )
 
@@ -236,7 +225,7 @@ class EventHandlers:
         return UserLoginSucceededHandler(
             unit_of_work=self._infra.unit_of_work_factory(),
             clock=self._infra.clock_factory(),
-            id_generator=self._infra.id_generator_factory(),
+            session_service=self._infra.session_management_service_factory(),
         )
 ```
 
@@ -256,7 +245,7 @@ class Application:
 ## Rejestracja na EventBus (`event_factory.py`)
 
 ```python
-from shell.integration_events.user_login_succeeded_integration_event import (
+from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
     UserLoginSucceededIntegrationEvent,
 )
 
@@ -318,7 +307,7 @@ Handler A reaguje na event → modyfikuje agregat A → emituje event → Handle
 2. **Idempotentność**: EventBus nie gwarantuje exactly-once. Handler musi być idempotentny — InboxProcessor zapewnia to przez `processed_at`.
 3. **Jeden agregat na handler**: handler modyfikuje maksymalnie jeden agregat domenowy.
 4. **Brak logiki biznesowej**: handler deleguje decyzje biznesowe do agregatu. Wyjątek: **wybór między ścieżkami** (create vs update) to orkiestracja aplikacyjna, nie logika biznesowa.
-5. **Cross-BC przez Published Language**: komunikacja między BC przez wspólne integration events w `shell/integration_events/`. Tylko primitive typy — żadne VOs domenowe nie przekraczają granic BC.
+5. **Cross-BC przez integration events**: komunikacja między BC przez integration events per‑BC w `shell/application/<bc>/<aggregate>/integration_events/`. Tylko primitive typy — żadne VOs domenowe nie przekraczają granic BC. Mapowanie domain→integration robi `ReflectiveIntegrationMapper`.
 6. **Event registry**: każdy DomainEvent (w tym integration events) musi być w `build_event_registry()` w `shell/platform/infrastructure/serialization/event_registry.py`, inaczej deserializacja w InboxProcessor nie znajdzie klasy.
 7. **Mapper — `ReflectiveIntegrationMapper`**: jeden mapper w `shell/platform/infrastructure/mapping/reflective_integration_mapper.py`. Używa `importlib` + `dataclasses.fields()` do reflectywnego mapowania dowolnego domain event → integration event. Zero per-aggregate mapperów, zero `isinstance`, zero `try/except`.
 8. **UoW integration**: `SqlAlchemyUnitOfWorkBase.save()` wspiera opcjonalny `mapper` — `ReflectiveIntegrationMapper` wstrzyknięty w `core_container.py` na poziomie `Infrastructure.unit_of_work_factory`.

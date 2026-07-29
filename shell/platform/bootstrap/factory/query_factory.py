@@ -37,9 +37,6 @@ from shell.application.execution.node_execution.queries.get_node_execution_by_id
 from shell.application.execution.node_execution.queries.get_node_execution_result_query import (
     GetNodeExecutionResultQuery,
 )
-from shell.application.execution.session_execution.queries.get_session_history_query import (
-    GetSessionHistoryQuery,
-)
 from shell.application.execution.task_execution.queries import (
     GetTaskExecutionByIdQuery,
     GetTaskExecutionByNameQuery,
@@ -77,6 +74,9 @@ from shell.application.scheduling.scheduler_definition.queries.get_scheduler_def
 )
 from shell.application.scheduling.scheduler_execution.queries.get_scheduler_execution_by_id_query import (
     GetSchedulerExecutionByIdQuery,
+)
+from shell.application.session.session.queries.get_session_history_query import (
+    GetSessionHistoryQuery,
 )
 from shell.application.session.session_state.queries.get_session_state_by_id_query import (
     GetSessionStateByIdQuery,

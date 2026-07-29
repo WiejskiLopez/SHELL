@@ -36,7 +36,7 @@ description: Tracing context (correlation_id / causation_id / event_id / trace_i
 
 ## ContextVary
 
-Zdefiniowane w `shell/application/platform/context/`:
+Zdefiniowane w `shell/platform/application/context/`:
 
 | Zmienna | Typ | Default | Znaczenie |
 |---------|-----|---------|-----------|
@@ -46,8 +46,6 @@ Zdefiniowane w `shell/application/platform/context/`:
 Funkcje dostępu (z tego samego modułu):
 - `get_correlation_id()`, `set_correlation_id(val)`, `reset_correlation_id(token)`
 - `get_causation_id()`, `set_causation_id(val)`, `reset_causation_id(token)`
-
-Backward-compat re-export: `shell/infrastructure/platform/context/` → `shell.application.platform.context`
 
 ## Gdzie ContextVar JEST ustawiane
 
@@ -84,26 +82,22 @@ Backward-compat re-export: `shell/infrastructure/platform/context/` → `shell.a
 | `graph_execution` | `correlation_id` | Tylko `correlation_id`, ustawiany przez mapper z ContextVar |
 | `workflow` | ~~`correlation_id`~~ | Usunięta w migracji 040 (V2 nie używa) |
 
-## Envelope (Message system)
+## Envelope (Message system — legacy)
 
-`shell/domain/platform/envelope.py`:
+> **Uwaga**: `Envelope` w `shell/domain/platform/envelope.py` należy do **starego systemu messaging** (MessageBus). Nowy system eventów (EventBus) nie używa Envelope — tracing context żyje w osobnych kolumnach outbox/inbox.
 
-- `Envelope.correlation_id` jest przekazywane przez `transport_metadata["correlation_id"]`
+`Envelope.correlation_id` jest przekazywane przez `transport_metadata["correlation_id"]`
 - Ustawiane w `SqlAlchemyUnitOfWork.commit()` przy `Envelope.from_message(correlation_id=get_correlation_id())`
-- Propagowane automatycznie przez `to_dict()`/`from_dict()` (część `transport_metadata`)
 - Nie ma osobnej kolumny w `outbox_message`/`inbox_message` — żyje w JSON envelope
 
 ## Reguły (invariants)
 
 1. **Każde `OutboxEventModel(...)` musi mieć `correlation_id=` i `causation_id=`** — nigdy nie pozwalaj na domyślne `""`
-2. **Każde `Envelope.from_message(...)` w kodzie produkcyjnym musi mieć `correlation_id=`**
-3. **`causation_id` w `InboxProcessor` = `event_id` przetwarzanego eventu** — nigdy nie kopiuj starego causation_id
-4. **`causation_id` w `CommandInboxProcessor` = `""`** — komendy nie są odpowiedzią na event
-5. **Test `auto_correlation_id` fixture (autouse)** — każdy test ma swój correlation_id
+2. **`causation_id` w `InboxProcessor` = `event_id` przetwarzanego eventu** — nigdy nie kopiuj starego causation_id
+3. **Test `auto_correlation_id` fixture (autouse)** — każdy test ma swój correlation_id
 
 ## Testowanie
 
 - `shell/tests/platform/unit/application/test_correlation_id.py` — podstawowy test ContextVar
 - `shell/tests/platform/unit/application/test_outbox.py` — `InMemoryOutboxStore` zapisuje correlation/causation
-- `shell/tests/platform/architecture/test_tracing_context_structure.py` — AST: pilnuje że `OutboxEventModel` i `Envelope.from_message` mają correlation_id
-- `shell/tests/platform/unit/domain/test_message.py` — test `Envelope.from_message()` z correlation_id
+- `shell/tests/platform/architecture/test_tracing_context_structure.py` — AST: pilnuje że `OutboxEventModel` ma correlation_id

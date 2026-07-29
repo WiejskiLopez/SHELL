@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell.platform.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
 from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
@@ -26,7 +25,7 @@ class RelayCommand(RunnableCommand):
         await bootstrap_database(config)
         sf = build_session_factory(config.database_url)
         relay_logger = StdlibLogger("shell.relay")
-        downstream = CompositeEventPublisher([LoggingEventPublisher(relay_logger)])
+        downstream = LoggingEventPublisher(relay_logger)
 
         relay = OutboxToInboxRelay(sf, downstream)
         count = await relay.run_once()

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from shell.application.execution.session_execution.ports.session_query_service import (
+from shell.application.session.session.ports.session_query_service import (
     SessionQueryService,
 )
 from shell.framework.session.session.api.controller import SessionController

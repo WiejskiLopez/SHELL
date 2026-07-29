@@ -10,7 +10,9 @@ from shell.domain.session.aggregates.session.value_objects.session_id import Ses
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
-    from shell.application.execution.session_execution.commands import OpenSessionCommand
+    from shell.application.session.session.commands.open_session_command import (
+        OpenSessionCommand,
+    )
     from shell.platform.application.ports.ports import Clock, IdGenerator, UnitOfWork
 
 

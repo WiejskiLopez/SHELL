@@ -16,7 +16,7 @@ from shell.platform.domain.exceptions.concurrent_modification_error import (
     ConcurrentModificationError,
 )
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
-from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
+from shell.platform.infrastructure.persistence.sql.models import AuditEventModel, OutboxEventModel
 from shell.platform.infrastructure.serialization import DomainEventSerializer
 
 if TYPE_CHECKING:
@@ -123,15 +123,25 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
                     if hasattr(event.occurred_at, "value")
                     else event.occurred_at
                 )
+                event_type = type(event).__name__
+                payload = serializer.to_payload(event)
                 outbox = OutboxEventModel(
                     id=str(uuid.uuid4()),
-                    event_type=type(event).__name__,
+                    event_type=event_type,
                     occurred_at=raw_occurred_at,
-                    payload=serializer.to_payload(event),
+                    payload=payload,
                     correlation_id=get_correlation_id(),
                     causation_id=get_causation_id(),
                 )
                 self._session.add(outbox)
+                self._session.add(
+                    AuditEventModel(
+                        id=str(uuid.uuid4()),
+                        event_type=event_type,
+                        occurred_at=raw_occurred_at,
+                        payload=payload,
+                    )
+                )
 
             await self._session.commit()
             self._staged_events.clear()

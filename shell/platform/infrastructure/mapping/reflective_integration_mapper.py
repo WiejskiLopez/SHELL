@@ -13,6 +13,12 @@ import importlib
 import re
 from typing import Any
 
+from shell.platform.application.context.causation_id import get_causation_id
+from shell.platform.application.context.correlation_id import get_correlation_id
+from shell.platform.application.events import IntegrationEvent
+
+ENVELOPE_FIELDS: frozenset[str] = frozenset(f.name for f in dataclasses.fields(IntegrationEvent))
+
 
 class ReflectiveIntegrationMapper:
     def map(self, domain_event: object) -> object:
@@ -20,6 +26,8 @@ class ReflectiveIntegrationMapper:
 
         kwargs: dict[str, Any] = {
             "event_id": str(domain_event.event_id.value),  # type: ignore[attr-defined]
+            "correlation_id": get_correlation_id(),
+            "causation_id": get_causation_id(),
             "occurred_at": domain_event.occurred_at.value,  # type: ignore[attr-defined]
             "aggregate_id": str(domain_event.aggregate_id.value),  # type: ignore[attr-defined]
             "aggregate_name": str(domain_event.aggregate_name.value),  # type: ignore[attr-defined]
@@ -27,13 +35,7 @@ class ReflectiveIntegrationMapper:
         }
 
         for f in dataclasses.fields(int_cls):
-            if f.name in (
-                "event_id",
-                "occurred_at",
-                "aggregate_id",
-                "aggregate_name",
-                "schema_version",
-            ):
+            if f.name in ENVELOPE_FIELDS:
                 continue
 
             raw: Any = getattr(domain_event, f.name)

@@ -1,18 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.platform.application.events import IntegrationEvent
 
 
 @dataclass(frozen=True, slots=True)
-class UserStateChangedIntegrationEvent:
-    event_id: str
-    occurred_at: datetime
-    aggregate_id: str
-    aggregate_name: str
-    schema_version: int
+class UserStateChangedIntegrationEvent(IntegrationEvent):
     user_id: str
     user_state_id: str

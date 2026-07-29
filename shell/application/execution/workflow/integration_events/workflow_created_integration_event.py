@@ -1,17 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.platform.application.events import IntegrationEvent
 
 
 @dataclass(frozen=True, slots=True)
-class WorkflowCreatedIntegrationEvent:
-    event_id: str
-    occurred_at: datetime
-    aggregate_id: str
-    aggregate_name: str
-    schema_version: int
+class WorkflowCreatedIntegrationEvent(IntegrationEvent):
     workflow_id: str

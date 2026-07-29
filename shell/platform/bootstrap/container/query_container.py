@@ -36,9 +36,6 @@ from shell.application.execution.node_execution.query_handlers.get_node_executio
 from shell.application.execution.node_execution.query_handlers.get_node_execution_result_handler import (
     GetNodeExecutionResultHandler,
 )
-from shell.application.execution.session_execution.query_handlers.get_session_history_handler import (
-    GetSessionHistoryHandler,
-)
 from shell.application.execution.task_execution.query_handlers.get_task_execution_by_id_handler import (
     GetTaskExecutionByIdHandler,
 )
@@ -71,6 +68,9 @@ from shell.application.scheduling.scheduler_definition.query_handlers.get_schedu
 )
 from shell.application.scheduling.scheduler_execution.query_handlers.get_scheduler_execution_by_id_handler import (
     GetSchedulerExecutionByIdHandler,
+)
+from shell.application.session.session.query_handlers.get_session_history_handler import (
+    GetSessionHistoryHandler,
 )
 from shell.application.session.session_state.query_handlers.get_session_state_by_id_handler import (
     GetSessionStateByIdHandler,

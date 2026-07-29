@@ -26,9 +26,6 @@ from shell.application.execution.graph_execution.query_handlers.get_graph_execut
 from shell.application.execution.node_execution.query_handlers.get_node_execution_result_handler import (
     GetNodeExecutionResultHandler,
 )
-from shell.application.execution.session_execution.query_handlers.get_session_history_handler import (
-    GetSessionHistoryHandler,
-)
 from shell.application.execution.task_execution.query_handlers.get_task_execution_by_name_handler import (
     GetTaskExecutionByNameHandler,
 )
@@ -64,6 +61,9 @@ from shell.application.scheduling.scheduler_definition.query_handlers.get_schedu
 )
 from shell.application.scheduling.scheduler_execution.query_handlers.get_scheduler_execution_by_id_handler import (
     GetSchedulerExecutionByIdHandler,
+)
+from shell.application.session.session.query_handlers.get_session_history_handler import (
+    GetSessionHistoryHandler,
 )
 from shell.application.session.session_state.query_handlers.get_session_state_by_id_handler import (
     GetSessionStateByIdHandler,
@@ -164,7 +164,6 @@ from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
 from shell.platform.application.bus.message_bus import MessageBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
-from shell.platform.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.platform.infrastructure.logging.sql_audit_publisher import SqlAuditPublisher
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
@@ -176,7 +175,6 @@ from shell.platform.infrastructure.messaging.command.sql_command_outbox_publishe
 )
 from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
 from shell.platform.infrastructure.messaging.event.processor.inbox_processor import InboxProcessor
-from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
 from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.event_registry import build_event_registry
@@ -975,17 +973,8 @@ class Events:
         # Event registry for deserialization
         self._event_registry = build_event_registry()
 
-        # Event publishers
-        sql_outbox_publisher = SqlOutboxPublisher(session_factory=infra.session_factory)
+        # Event publisher
         self._event_bus_publisher = EventBusPublisher(event_bus=buses.event_bus)
-        self._event_publisher = CompositeEventPublisher(
-            publishers=[
-                infra.logging_publisher,
-                infra.sql_audit_publisher,
-                sql_outbox_publisher,
-                self._event_bus_publisher,
-            ]
-        )
 
         self._outbox_batch_size = ec.get("outbox_batch_size", 100)
         self._inbox_batch_size = ec.get("inbox_batch_size", 50)

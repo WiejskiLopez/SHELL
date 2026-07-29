@@ -5,7 +5,7 @@ description: Reguły struktury Saga i Process Manager — choreografia vs orkies
 
 # Saga / Process Manager Structure
 
-> Reguły struktury klas Saga i Process Manager we wszystkich bounded contextach.
+> **⚠️ UWAGA**: SHELL ma przewidzianą architekturę dla sag (`shell/process/`), ale **NIE MA jeszcze żadnej implementacji**. Poniższe reguły są wzorcem docelowym — struktura katalogów istnieje, ale sagi nie są zaimplementowane.
 
 ## Definicja
 

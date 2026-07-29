@@ -31,13 +31,17 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 ```python
 async def handle(self, event: WorkflowStartedEvent) -> None:
     async with self._unit_of_work as unit_of_work:
-        workflow = await unit_of_work.workflow_repository.get_by_id(event.workflow_id)
+        workflow = await unit_of_work.repository(WorkflowRepository).get_by_id(event.workflow_id)
         if workflow is None:
             raise WorkflowNotFound(event.workflow_id)
         workflow.start(now=self._clock.now())
-        unit_of_work.workflow_repository.save(workflow)
-        unit_of_work.stage_events(workflow.pull_events())
+        await unit_of_work.save(WorkflowRepository, workflow)
 ```
+
+## ⚠️ Ograniczenia obecnej implementacji
+
+- **Brak idempotency key**: obecnie nie ma mechanizmu idempotency key na poziomie handlera. Replay tego samego eventu może wyprodukować inne eventy (np. za pierwszym razem `SessionOpenedEvent`, za drugim `SessionUpdatedEvent`). Docelowo każdy handler powinien sprawdzać czy agregat jest już w stanie docelowym i skipować jeśli tak.
+- **Brak dedykowanego DLQ**: po przekroczeniu max_retries event jest oznaczany `processed_at` w tej samej tabeli inbox (tombstone). Nie ma osobnej tabeli DLQ ani mechanizmu reprocessingu.
 
 ## Kluczowe zasady
 

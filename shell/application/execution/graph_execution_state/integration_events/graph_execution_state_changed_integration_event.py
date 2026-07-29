@@ -1,18 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from datetime import datetime
+from shell.platform.application.events import IntegrationEvent
 
 
 @dataclass(frozen=True, slots=True)
-class GraphExecutionStateChangedIntegrationEvent:
-    event_id: str
-    occurred_at: datetime
-    aggregate_id: str
-    aggregate_name: str
-    schema_version: int
+class GraphExecutionStateChangedIntegrationEvent(IntegrationEvent):
     graph_execution_id: str
     graph_execution_state_id: str

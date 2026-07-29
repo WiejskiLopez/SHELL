@@ -14,11 +14,11 @@ description: Reguły struktury Domain Event — frozen dataclass, rozszerza Doma
 
 ## Klasa
 
-- `@dataclass(frozen=True)` — niemutowalny.
+- `@dataclass(frozen=True, slots=True, kw_only=True)` — niemutowalny, oszczędny, wymagane nazwane parametry.
 - Rozszerza `DomainEvent` (klasa bazowa z metadanymi).
 
 ```python
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class WorkflowStartedEvent(DomainEvent):
     workflow_id: WorkflowId
     started_by: UserId
@@ -27,7 +27,9 @@ class WorkflowStartedEvent(DomainEvent):
 
 ## Metadane
 
-- Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_type`, `occurred_at`, `correlation_id`, `causation_id`, `schema_version`.
+- Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`.
+
+> **Uwaga**: `correlation_id` i `causation_id` NIE są polami `DomainEvent` — są dodawane dopiero w `IntegrationEvent` (warstwa aplikacji). Tracing context jest ustawiany przez `ContextVar` w `InboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny, nie w evencie.
 
 ## ⚠️ Primitive Obsession
 
@@ -78,7 +80,7 @@ Event domenowy ma identyfikować **co się stało i którego agregatu dotyczy** 
 ### Przykład (ZŁO — nadmiarowe dane)
 
 ```python
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId
     task_execution_name: TaskExecutionName   # NADMIAR — property agregatu
@@ -89,7 +91,7 @@ class TaskExecutionCreatedEvent(DomainEvent):
 ### Przykład (DOBRZE — tylko identyfikatory)
 
 ```python
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class TaskExecutionCreatedEvent(DomainEvent):
     task_execution_id: TaskExecutionId        # ID agregatu — wystarczy
 ```
@@ -108,13 +110,13 @@ Jeśli pole eventu to property / atrybut / lista / obiekt wartościowy danego ag
 
 ```python
 # DOBRZE — ID powiązanego agregatu
-@dataclass
+@dataclass(frozen=True, slots=True, kw_only=True)
 class WorkflowStartedEvent(DomainEvent):
     workflow_id: WorkflowId               # ID własnego agregatu
     task_execution_id: TaskExecutionId    # ID powiązanego agregatu (OK — referencja)
 
 # ŹLE — property własnego agregatu
-@dataclass  
+@dataclass(frozen=True, slots=True, kw_only=True)
 class GraphExecutionCreatedEvent(DomainEvent):
     graph_execution_id: GraphExecutionId  # ID własnego agregatu
     goal: Goal                            # NADMIAR — property
@@ -128,32 +130,24 @@ class GraphExecutionCreatedEvent(DomainEvent):
 
 ```python
 # Dobrze — bezwarunkowo
-def start(self) -> None:
+def start(self, now: OccurredAt) -> None:
     self._status = WorkflowStatus.RUNNING
-    self.append_event(WorkflowStartedEvent(...))
+    self.append_event(WorkflowStartedEvent(workflow_id=self._id, occurred_at=now))
 
 # Źle — warunkowo
-def start(self, emit_event: bool = True) -> None:
+def start(self, now: OccurredAt, emit_event: bool = True) -> None:
     self._status = WorkflowStatus.RUNNING
     if emit_event:
-        self.append_event(WorkflowStartedEvent(...))
+        self.append_event(WorkflowStartedEvent(workflow_id=self._id, occurred_at=now))
 ```
 
-## Backward compatibility
+## Serializacja
 
-- `from_payload()` obsługuje brakujące pola przez `.get()` z domyślną wartością.
-- Nigdy `payload['field']` — zawsze `payload.get('field', default)`.
-- Każda zmiana schematu = inkrementacja `schema_version` + obsługa starego formatu.
-
-```python
-@classmethod
-def from_payload(cls, payload: dict[str, Any]) -> WorkflowStartedEvent:
-    return cls(
-        workflow_id=WorkflowId.from_string(payload.get('workflow_id', '')),
-        started_by=UserId.from_string(payload.get('started_by', '')),
-        started_at=Timestamp.from_string(payload.get('started_at', '1970-01-01')),
-    )
-```
+- Serializacja/deserializacja eventów NIE jest robiona przez `from_payload()` na klasie eventu.
+- Obsługuje ją `DomainEventSerializer` → `EventDeserializer` w `shell/platform/infrastructure/serialization/`.
+- `to_payload(event)` — serializuje wszystkie pola dataclass (oprócz `occurred_at` i `schema_version` które są kolumnami w outbox/inbox).
+- `from_payload(event_cls, occurred_at, payload, schema_version)` — rekonstruuje event z serializowanych części.
+- Obsługuje zagnieżdżone dataclass, value objects (przez `.value`), listy, dict, daty.
 
 ## Lokalizacja
 

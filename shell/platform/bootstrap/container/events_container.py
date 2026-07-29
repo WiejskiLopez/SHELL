@@ -5,7 +5,6 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
-from shell.platform.infrastructure.logging.composite_event_publisher import CompositeEventPublisher
 from shell.platform.infrastructure.messaging.command.command_outbox_to_inbox_relay import (
     CommandOutboxToInboxRelay,
 )
@@ -43,18 +42,7 @@ class EventsContainer(containers.DeclarativeContainer):
         event_bus=buses.event_bus,
     )
 
-    # 3. Composite publisher for UoW post-commit (audit + outbox + in-memory EventBus)
-    event_publisher = providers.Singleton(
-        CompositeEventPublisher,
-        publishers=providers.List(
-            infra.logging_publisher,
-            infra.sql_audit_publisher,
-            sql_outbox_publisher,
-            event_bus_publisher,
-        ),
-    )
-
-    # 4. Outbox Relay (outbox_event → inbox_event)
+    # 3. Outbox Relay (outbox_event → inbox_event)
     outbox_to_inbox_relay = providers.Factory(
         OutboxToInboxRelay,
         session_factory=infra.session_factory,

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.session_execution.ports.session_query_service import (
+from shell.application.session.session.dto.session import SessionDto
+from shell.application.session.session.ports.session_query_service import (
     SessionQueryService,
 )
-from shell.application.session.session.dto.session import SessionDto
 
 if TYPE_CHECKING:
     import httpx
