@@ -1,7 +1,11 @@
-from __future__ import annotations
-
-from shell.application.execution.session_execution.ports.session_query_service import (
-    SessionQueryService,
+from shell.application.execution.session_execution.ports.session_execution_query_service import (
+    SessionExecutionQueryService,
+)
+from shell.application.execution.session_execution.ports.session_execution_state_query_service import (
+    SessionExecutionStateQueryService,
 )
 
-__all__ = ["SessionQueryService"]
+__all__ = [
+    "SessionExecutionQueryService",
+    "SessionExecutionStateQueryService",
+]

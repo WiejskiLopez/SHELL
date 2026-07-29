@@ -15,7 +15,7 @@ class SessionQueryService:
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def get_session_history(self, session_id: str) -> SessionDto | None:
+    async def get_by_id(self, session_id: str) -> SessionDto | None:
         async with self._session_factory() as session:
             stmt = select(SessionModel).where(SessionModel.id == session_id)
             res = await session.execute(stmt)

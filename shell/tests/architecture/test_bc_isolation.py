@@ -37,12 +37,7 @@ def _is_allowed_cross_bc(imp: str) -> bool:
 # ── 1. No direct cross-BC imports ────────────────────────────────
 
 
-_CROSS_BC_KNOWN_VIOLATIONS: list[str] = [
-    # SessionDto cross-BC reference — port owned by execution BC, DTO owned by session BC.
-    # Infrastructure adapter (HTTP) bridges the boundary at runtime.
-    "application/execution/session_execution/ports/session_query_service.py",
-    "application/execution/session_execution/query_handlers/get_session_history_handler.py",
-]
+_CROSS_BC_KNOWN_VIOLATIONS: list[str] = []
 
 
 def test_no_direct_cross_bc_imports() -> None:

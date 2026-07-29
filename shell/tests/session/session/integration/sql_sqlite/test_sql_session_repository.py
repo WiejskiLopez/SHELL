@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
+from shell.infrastructure.session.session.persistence.sql.services.session_query_service import (
     SessionQueryService,
 )
 

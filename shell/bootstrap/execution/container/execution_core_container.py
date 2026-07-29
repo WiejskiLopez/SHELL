@@ -37,9 +37,6 @@ from shell.infrastructure.execution.node_execution.persistence.sql.services.node
 from shell.infrastructure.execution.node_execution.persistence.sql.unit_of_work import (
     SqlAlchemyNodeExecutionUnitOfWork,
 )
-from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
-    SessionQueryService,
-)
 from shell.infrastructure.execution.task_execution.persistence.sql.services.task_execution_query_service import (
     TaskExecutionQueryService,
 )
@@ -89,9 +86,6 @@ class ExecutionCoreContainer(containers.DeclarativeContainer):
     )
     node_result_query_service = providers.Singleton(
         NodeResultQueryService, session_factory=session_factory
-    )
-    session_query_service = providers.Singleton(
-        SessionQueryService, session_factory=session_factory
     )
 
     # Application buses

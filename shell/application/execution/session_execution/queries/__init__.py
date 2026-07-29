@@ -1,7 +1,11 @@
-from __future__ import annotations
-
-from shell.application.execution.session_execution.queries.get_session_history_query import (
-    GetSessionHistoryQuery,
+from shell.application.execution.session_execution.queries.get_session_execution_by_id_query import (
+    GetSessionExecutionByIdQuery,
+)
+from shell.application.execution.session_execution.queries.get_session_execution_state_by_id_query import (
+    GetSessionExecutionStateByIdQuery,
 )
 
-__all__ = ["GetSessionHistoryQuery"]
+__all__ = [
+    "GetSessionExecutionByIdQuery",
+    "GetSessionExecutionStateByIdQuery",
+]

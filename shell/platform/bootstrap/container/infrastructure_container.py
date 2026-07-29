@@ -19,9 +19,6 @@ from shell.infrastructure.execution.node_execution.persistence.sql.services.node
 from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
     SessionQueryServiceHttpAdapter,
 )
-from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
-    SessionQueryService,
-)
 from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
     FileSystemTaskLoader,
 )
@@ -33,6 +30,9 @@ from shell.infrastructure.execution.workflow.persistence.sql.services.workflow_q
 )
 from shell.infrastructure.session.session.http.workflow_session_provider_http_adapter import (
     WorkflowSessionProviderHttpAdapter,
+)
+from shell.infrastructure.session.session.persistence.sql.services.session_query_service import (
+    SessionQueryService,
 )
 from shell.platform.infrastructure.context.client import CorrelationIdAsyncClient
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator

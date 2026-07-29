@@ -109,9 +109,6 @@ from shell.infrastructure.execution.edge_link_execution.persistence.sql.services
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
-from shell.infrastructure.execution.session_execution.persistence.sql.services.session_query_service import (
-    SessionQueryService,
-)
 from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
     FileSystemTaskLoader,
 )
@@ -146,6 +143,9 @@ from shell.infrastructure.scheduling.scheduler_job.persistence.sql.services.sche
     SchedulerJobQueryService,
 )
 from shell.infrastructure.scheduling.services.scheduler_service import SchedulerService
+from shell.infrastructure.session.session.persistence.sql.services.session_query_service import (
+    SessionQueryService,
+)
 from shell.infrastructure.session.session_state.persistence.sql.services.session_state_query_service import (
     SessionStateQueryService,
 )
