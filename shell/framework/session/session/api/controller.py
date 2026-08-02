@@ -40,6 +40,7 @@ if TYPE_CHECKING:
 def _to_response(dto: SessionDto) -> ApiSessionResponse:
     return ApiSessionResponse(
         id=dto.id,
+        user_id=dto.user_id,
         goal=dto.goal,
         status=dto.status,
         opened_at=dto.opened_at,
@@ -83,8 +84,12 @@ class SessionController:
             has_more=(page * page_size) < total,
         )
 
-    async def create_session(self, body: ApiCreateSessionRequest) -> ApiCreateSessionResponse:
-        session_id = await self._command_bus.dispatch(OpenSessionCommand(goal=body.goal))
+    async def create_session(
+        self, body: ApiCreateSessionRequest, user_id: str
+    ) -> ApiCreateSessionResponse:
+        session_id = await self._command_bus.dispatch(
+            OpenSessionCommand(goal=body.goal, user_id=user_id)
+        )
         return ApiCreateSessionResponse(id=str(session_id))
 
     async def update_session(self, session_id: str, body: ApiUpdateSessionRequest) -> None:

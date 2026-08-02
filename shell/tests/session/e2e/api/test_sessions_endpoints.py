@@ -31,6 +31,29 @@ class TestSessionEndpoints:
             "has_more": False,
         }
 
+    async def test_list_sessions_filters_matching_user(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            create_resp = await client.post(
+                "/api/v1/sessions/",
+                headers=headers,
+                json={"goal": "filter me"},
+            )
+            assert create_resp.status_code == 201
+            session_id = create_resp.json()["id"]
+
+            resp = await client.get(
+                "/api/v1/sessions?user_id=system",
+                headers=headers,
+            )
+            data = resp.json()
+
+        assert resp.status_code == 200
+        assert data["total"] == 1
+        assert [item["id"] for item in data["items"]] == [session_id]
+        assert data["items"][0]["user_id"] == "system"
+
     async def test_get_session_history_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}

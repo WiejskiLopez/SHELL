@@ -7,6 +7,7 @@ from shell.domain.session.aggregates.session.repositories.session_repository imp
     SessionRepository,
 )
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 if TYPE_CHECKING:
@@ -26,6 +27,7 @@ class OpenSessionHandler:
         session_id = self._id_generator.new_id(SessionId)
         session = Session.open(
             id_=session_id,
+            user_id=UserIdRef(command.user_id),
             goal=command.goal,
             now=CreatedAt.from_datetime(self._clock.now()),
         )

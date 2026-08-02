@@ -91,6 +91,7 @@ class InMemoryQueryServices:
             return None
         return SessionDto(
             id=session.id.value,
+            user_id=session.user_id.value,
             goal=session.goal,
             status=session._status,
             opened_at=session.opened_at.value,

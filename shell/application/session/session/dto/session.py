@@ -7,6 +7,7 @@ from datetime import datetime
 @dataclass(frozen=True, slots=True)
 class SessionDto:
     id: str
+    user_id: str
     goal: str
     status: str
     opened_at: datetime

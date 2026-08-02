@@ -49,7 +49,7 @@ class TestSqlSessionRepository:
         session_factory: async_sessionmaker,
     ) -> None:
         session_id = await OpenSessionHandler(sql_uow, clock, id_generator).handle(
-            OpenSessionCommand(goal="integration test")
+            OpenSessionCommand(goal="integration test", user_id="integration-user")
         )
         await CloseSessionHandler(sql_uow, clock).handle(
             CloseSessionCommand(session_id=session_id.value)

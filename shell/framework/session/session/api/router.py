@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from shell.application.session.session.ports.session_query_service import (
     SessionQueryService,
@@ -62,9 +62,11 @@ async def get_session(
 @router.post("/", response_model=CreateSessionResponse, status_code=201)
 async def create_session(
     body: CreateSessionRequest,
+    request: Request,
     controller: SessionController = Depends(get_session_controller),
 ) -> CreateSessionResponse:
-    return await controller.create_session(body)
+    user_id: str = getattr(request.state, "current_user_id", "system")
+    return await controller.create_session(body, user_id=user_id)
 
 
 @router.put("/{session_id}", status_code=204)
