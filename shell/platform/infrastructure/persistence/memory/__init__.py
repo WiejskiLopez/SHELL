@@ -8,6 +8,9 @@ from shell.platform.infrastructure.persistence.memory.fake_clock import FakeCloc
 from shell.platform.infrastructure.persistence.memory.fake_event_publisher import FakeEventPublisher
 from shell.platform.infrastructure.persistence.memory.fake_id_generator import FakeIdGenerator
 from shell.platform.infrastructure.persistence.memory.fake_logger import FakeLogger
+from shell.platform.infrastructure.persistence.memory.fake_message_publisher import (
+    FakeMessagePublisher,
+)
 from shell.platform.infrastructure.persistence.memory.fake_task_loader import FakeTaskLoader
 from shell.platform.infrastructure.persistence.memory.in_memory_query_services import (
     InMemoryQueryServices,
@@ -23,6 +26,7 @@ __all__ = [
     "FakeEventPublisher",
     "FakeIdGenerator",
     "FakeLogger",
+    "FakeMessagePublisher",
     "FakeTaskLoader",
     "InMemoryQueryServices",
     "InMemoryUnitOfWork",

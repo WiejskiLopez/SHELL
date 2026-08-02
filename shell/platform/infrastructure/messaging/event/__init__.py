@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
+from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
+    EventOutboxToInboxRelay,
+)
+from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
+    SqlEventOutboxPublisher,
+)
 
 __all__ = [
-    "OutboxToInboxRelay",
-    "SqlOutboxPublisher",
+    "EventOutboxToInboxRelay",
+    "SqlEventOutboxPublisher",
 ]

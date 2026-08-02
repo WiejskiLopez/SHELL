@@ -14,19 +14,21 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
+from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
+    SqlEventOutboxPublisher,
+)
 from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
-class TestSqlOutboxPublisher:
+class TestSqlEventOutboxPublisher:
     async def test_writes_outbox_rows(
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlOutboxPublisher(session_factory)
+        pub = SqlEventOutboxPublisher(session_factory)
         events = [
             TaskExecutionCreatedEvent.now(
                 task_execution_id=TaskExecutionId.generate(),
@@ -44,7 +46,7 @@ class TestSqlOutboxPublisher:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        pub = SqlOutboxPublisher(session_factory)
+        pub = SqlEventOutboxPublisher(session_factory)
         async with session_factory() as session:
             before = len((await session.execute(select(OutboxEventModel))).scalars().all())
         await pub.publish([])

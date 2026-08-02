@@ -8,12 +8,12 @@ description: Wzorce niezawodności w architekturze event-driven — idempotentno
 ## 1. Inbox Pattern — Deduplikacja Eventów
 
 W SHELL deduplikacja jest realizowana przez:
-- **`OutboxToInboxRelay`**: `ON CONFLICT DO NOTHING` / `OR IGNORE` przy INSERT do inbox — ten sam event nie trafi dwa razy
-- **`InboxProcessor`**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest dispatchowany ponownie
+- **`EventOutboxToInboxRelay`**: `ON CONFLICT DO NOTHING` / `OR IGNORE` przy INSERT do inbox — ten sam event nie trafi dwa razy
+- **`EventInboxProcessor`**: `SELECT WHERE processed_at IS NULL` — event przetworzony raz nie jest dispatchowany ponownie
 
 ## 2. Retry — fixed backoff (obecna implementacja)
 
-`InboxProcessor` używa **fixed backoff**, nie exponential:
+`EventInboxProcessor` używa **fixed backoff**, nie exponential:
 
 ```python
 max_retries: int = 3
@@ -31,12 +31,12 @@ retry_backoff_seconds: int = 30  # stałe opóźnienie, nie skalowane
 
 | Klasa | Lokalizacja | Opis |
 |-------|-------------|------|
-| `InboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/inbox_processor.py` | Retry + backoff + tombstone DLQ |
-| `OutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/outbox_to_inbox_relay.py` | Brak retry — propaguje błąd |
+| `EventInboxProcessor` | `shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py` | Retry + backoff + tombstone DLQ |
+| `EventOutboxToInboxRelay` | `shell/platform/infrastructure/messaging/event/event_outbox_to_inbox_relay.py` | Brak retry — propaguje błąd |
 | `OutboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/outbox_event.py` | Model outbox |
 | `InboxEventModel` | `shell/platform/infrastructure/persistence/sql/models/event/inbox_event.py` | Model inbox z kolumnami retry |
 
-**TODO**: brak dedykowanych katalogów `retry/`, `circuit_breaker/`, `dlq/` — to wszystko jest inline w inbox_processor.py.
+**TODO**: brak dedykowanych katalogów `retry/`, `circuit_breaker/`, `dlq/` — to wszystko jest inline w event_inbox_processor.py.
 
 ## 4. Circuit Breaker — niezaimplementowany
 
@@ -49,5 +49,5 @@ Implementując niezawodność:
 - [ ] Exponential backoff (obecnie fixed 30s)
 - [ ] Dedykowana tabela DLQ
 - [ ] Circuit breaker dla zewnętrznych zasobów
-- [ ] Retry dla OutboxToInboxRelay (obecnie brak)
+- [ ] Retry dla EventOutboxToInboxRelay (obecnie brak)
 - [ ] Monitoring i alerting na DLQ

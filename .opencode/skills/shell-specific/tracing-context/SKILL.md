@@ -16,15 +16,15 @@ description: Tracing context (correlation_id / causation_id / event_id / trace_i
        ▼
   Handler tworzy DomainEvent (auto event_id)
        │
-       ├─► SqlOutboxPublisher / SqlAlchemyUnitOfWork
+       ├─► SqlEventOutboxPublisher / SqlAlchemyUnitOfWork
        │     └─► outbox_event: [correlation_id, causation_id] ← z ContextVar
        │
        ▼
-  OutboxToInboxRelay
+  EventOutboxToInboxRelay
        └─► inbox_event: [correlation_id, causation_id] ← kopiowane z outbox
        │
        ▼
-  InboxProcessor.run_once()
+  EventInboxProcessor.run_once()
        │
        ├─► correlation_id_var.set(row.correlation_id)
        ├─► causation_id_var.set(domain_event.event_id)   ← causation = ID przetwarzanego eventu
@@ -54,7 +54,7 @@ Funkcje dostępu (z tego samego modułu):
 | `CorrelationIdMiddleware` (HTTP) | `correlation_id` | `request.headers["x-correlation-id"]` lub UUID |
 | `CorrelationIdAsyncClient` (HTTP out) | `X-Correlation-ID` header | `get_correlation_id()` |
 | `CorrelationIdInterceptor` (gRPC out) | `x-correlation-id` metadata | `get_correlation_id()` |
-| `InboxProcessor.run_once()` | `correlation_id`, `causation_id` | `correlation_id`=z wiersza inbox, `causation_id`=`domain_event.event_id` |
+| `EventInboxProcessor.run_once()` | `correlation_id`, `causation_id` | `correlation_id`=z wiersza inbox, `causation_id`=`domain_event.event_id` |
 | `CommandInboxProcessor.run_once()` | `correlation_id` | z wiersza inbox; `causation_id` resetowane do `""` |
 | `auto_correlation_id` (test fixture) | `correlation_id` | `f"test-{uuid.uuid4()}"` (autouse we wszystkich testach) |
 
@@ -62,7 +62,7 @@ Funkcje dostępu (z tego samego modułu):
 
 | Miejsce | Co czyta | Zapisuje do |
 |---------|----------|------------|
-| `SqlOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_event.correlation_id`, `.causation_id` |
+| `SqlEventOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_event.correlation_id`, `.causation_id` |
 | `SqlCommandOutboxPublisher.publish()` | `correlation_id`, `causation_id` | `outbox_command.correlation_id`, `.causation_id` |
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id`, `causation_id` | `outbox_event` (przez `stage_events`) |
 | `SqlAlchemyUnitOfWork.commit()` | `correlation_id` | `Envelope.transport_metadata["correlation_id"]` |
@@ -93,7 +93,7 @@ Funkcje dostępu (z tego samego modułu):
 ## Reguły (invariants)
 
 1. **Każde `OutboxEventModel(...)` musi mieć `correlation_id=` i `causation_id=`** — nigdy nie pozwalaj na domyślne `""`
-2. **`causation_id` w `InboxProcessor` = `event_id` przetwarzanego eventu** — nigdy nie kopiuj starego causation_id
+2. **`causation_id` w `EventInboxProcessor` = `event_id` przetwarzanego eventu** — nigdy nie kopiuj starego causation_id
 3. **Test `auto_correlation_id` fixture (autouse)** — każdy test ma swój correlation_id
 
 ## Testowanie

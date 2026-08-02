@@ -1,8 +1,8 @@
-"""SqlOutboxPublisher — EventPublisher adapter that writes to outbox_event table.
+"""SqlMessageOutboxPublisher — MessagePublisher adapter that writes to outbox_message table.
 
-Events are stored in a dedicated DB session so they survive even if the caller's
-transaction was already committed.  An OutboxToInboxRelay then reads them and fans them
-out to the EventBus.
+Messages are stored in a dedicated DB session so they survive even if the caller's
+transaction was already committed.  A MessageOutboxToInboxRelay then reads them and
+forwards them to the MessageBus.
 """
 
 from __future__ import annotations
@@ -12,8 +12,8 @@ import uuid
 from typing import TYPE_CHECKING
 
 from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
-from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
-from shell.platform.infrastructure.serialization import DomainEventSerializer
+from shell.platform.infrastructure.persistence.sql.models.message import OutboxMessageModel
+from shell.platform.infrastructure.serialization import DomainMessageSerializer
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -21,27 +21,27 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
-class SqlOutboxPublisher:
-    """Writes domain events to the ``outbox_event`` table (own session per call)."""
+class SqlMessageOutboxPublisher:
+    """Writes domain messages to the ``outbox_message`` table (own session per call)."""
 
     def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
         self._session_factory = session_factory
 
-    async def publish(self, events: Sequence[object]) -> None:
-        if not events:
+    async def publish(self, messages: Sequence[object]) -> None:
+        if not messages:
             return
         correlation_id = get_correlation_id()
         causation_id = get_causation_id()
-        serializer = DomainEventSerializer()
+        serializer = DomainMessageSerializer()
         async with self._session_factory() as session:
-            for event in events:
+            for message in messages:
                 try:
-                    payload = serializer.to_payload(event)
+                    payload = serializer.to_payload(message)
                     session.add(
-                        OutboxEventModel(
+                        OutboxMessageModel(
                             id=str(uuid.uuid4()),
-                            event_type=type(event).__name__,
-                            occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]
+                            message_type=type(message).__name__,
+                            occurred_at=message.occurred_at.value,  # type: ignore[attr-defined]
                             payload=payload,
                             correlation_id=correlation_id,
                             causation_id=causation_id,
@@ -50,7 +50,7 @@ class SqlOutboxPublisher:
                     )
                 except Exception:
                     logging.getLogger(__name__).critical(
-                        "Failed to serialize event %s — event LOST", type(event).__name__
+                        "Failed to serialize message %s — message LOST", type(message).__name__
                     )
                     raise
             await session.commit()

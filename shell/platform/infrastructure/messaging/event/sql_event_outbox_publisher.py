@@ -1,0 +1,56 @@
+"""SqlEventOutboxPublisher — EventPublisher adapter that writes to outbox_event table.
+
+Events are stored in a dedicated DB session so they survive even if the caller's
+transaction was already committed.  An EventOutboxToInboxRelay then reads them and fans them
+out to the EventBus.
+"""
+
+from __future__ import annotations
+
+import logging
+import uuid
+from typing import TYPE_CHECKING
+
+from shell.platform.infrastructure.context import get_causation_id, get_correlation_id
+from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
+from shell.platform.infrastructure.serialization import DomainEventSerializer
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+
+class SqlEventOutboxPublisher:
+    """Writes domain events to the ``outbox_event`` table (own session per call)."""
+
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession]) -> None:
+        self._session_factory = session_factory
+
+    async def publish(self, events: Sequence[object]) -> None:
+        if not events:
+            return
+        correlation_id = get_correlation_id()
+        causation_id = get_causation_id()
+        serializer = DomainEventSerializer()
+        async with self._session_factory() as session:
+            for event in events:
+                try:
+                    payload = serializer.to_payload(event)
+                    session.add(
+                        OutboxEventModel(
+                            id=str(uuid.uuid4()),
+                            event_type=type(event).__name__,
+                            occurred_at=event.occurred_at.value,  # type: ignore[attr-defined]
+                            payload=payload,
+                            correlation_id=correlation_id,
+                            causation_id=causation_id,
+                            published_at=None,
+                        )
+                    )
+                except Exception:
+                    logging.getLogger(__name__).critical(
+                        "Failed to serialize event %s — event LOST", type(event).__name__
+                    )
+                    raise
+            await session.commit()

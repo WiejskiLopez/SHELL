@@ -162,6 +162,7 @@ from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.event_bus import EventBus
 from shell.platform.application.bus.event_bus_publisher import EventBusPublisher
 from shell.platform.application.bus.message_bus import MessageBus
+from shell.platform.application.bus.message_bus_publisher import MessageBusPublisher
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
@@ -173,11 +174,25 @@ from shell.platform.infrastructure.mapping.reflective_integration_mapper import 
 from shell.platform.infrastructure.messaging.command.sql_command_outbox_publisher import (
     SqlCommandOutboxPublisher,
 )
-from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-from shell.platform.infrastructure.messaging.event.processor.inbox_processor import InboxProcessor
+from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
+    EventOutboxToInboxRelay,
+)
+from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+    EventInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.message.message_outbox_to_inbox_relay import (
+    MessageOutboxToInboxRelay,
+)
+from shell.platform.infrastructure.messaging.message.processor.message_inbox_processor import (
+    MessageInboxProcessor,
+)
+from shell.platform.infrastructure.messaging.message.sql_message_outbox_publisher import (
+    SqlMessageOutboxPublisher,
+)
 from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.serialization.event_registry import build_event_registry
+from shell.platform.infrastructure.serialization.message_registry import build_message_registry
 from shell.platform.infrastructure.time.system_clock import SystemClock
 
 if TYPE_CHECKING:
@@ -373,6 +388,7 @@ class Infrastructure:
 
         # Outbox/inbox publishers
         self.sql_command_outbox_publisher = SqlCommandOutboxPublisher(self.session_factory)
+        self.sql_message_outbox_publisher = SqlMessageOutboxPublisher(self.session_factory)
 
         # Event publishers
         self.logging_publisher = LoggingEventPublisher(self.stdlib_logger)
@@ -976,24 +992,45 @@ class Events:
         # Event publisher
         self._event_bus_publisher = EventBusPublisher(event_bus=buses.event_bus)
 
+        # Message registry for deserialization
+        self._message_registry = build_message_registry()
+
+        # Message publisher
+        self._message_bus_publisher = MessageBusPublisher(message_bus=buses.message_bus)
+
         self._outbox_batch_size = ec.get("outbox_batch_size", 100)
         self._inbox_batch_size = ec.get("inbox_batch_size", 50)
         self._command_outbox_batch_size = ec.get("command_outbox_batch_size", 100)
         self._command_inbox_batch_size = ec.get("command_inbox_batch_size", 50)
 
-    def outbox_to_inbox_relay(self) -> OutboxToInboxRelay:
-        return OutboxToInboxRelay(
+    def event_outbox_to_inbox_relay(self) -> EventOutboxToInboxRelay:
+        return EventOutboxToInboxRelay(
             session_factory=self._infra.session_factory,
             downstream=self._event_bus_publisher,
             batch_size=self._outbox_batch_size,
         )
 
-    def inbox_processor(self) -> InboxProcessor:
-        return InboxProcessor(
+    def event_inbox_processor(self) -> EventInboxProcessor:
+        return EventInboxProcessor(
             session_factory=self._infra.session_factory,
             event_bus=self._event_bus_publisher,
             batch_size=self._inbox_batch_size,
             registry=self._event_registry,
+        )
+
+    def message_outbox_to_inbox_relay(self) -> MessageOutboxToInboxRelay:
+        return MessageOutboxToInboxRelay(
+            session_factory=self._infra.session_factory,
+            downstream=self._message_bus_publisher,
+            batch_size=self._outbox_batch_size,
+        )
+
+    def message_inbox_processor(self) -> MessageInboxProcessor:
+        return MessageInboxProcessor(
+            session_factory=self._infra.session_factory,
+            message_bus=self._message_bus_publisher,
+            batch_size=self._inbox_batch_size,
+            registry=self._message_registry,
         )
 
 
@@ -1004,7 +1041,7 @@ class Container:
         container = Container(db_url="sqlite+aiosqlite:///shell.db")
         await container.buses.command_bus.dispatch(command)
         container.application.buses.query_bus.dispatch(query)
-        relay = container.events.outbox_to_inbox_relay()
+        relay = container.events.event_outbox_to_inbox_relay()
     """
 
     def __init__(
@@ -1031,8 +1068,10 @@ class Container:
         # Scheduler service
         self.scheduler_service = SchedulerService(
             session_factory=self.infra.session_factory,
-            outbox_to_inbox_relay=self.events.outbox_to_inbox_relay,  # type: ignore[arg-type]
-            inbox_processor=self.events.inbox_processor,  # type: ignore[arg-type]
+            event_outbox_to_inbox_relay=self.events.event_outbox_to_inbox_relay,  # type: ignore[arg-type]
+            event_inbox_processor=self.events.event_inbox_processor,  # type: ignore[arg-type]
+            message_outbox_to_inbox_relay=self.events.message_outbox_to_inbox_relay,  # type: ignore[arg-type]
+            message_inbox_processor=self.events.message_inbox_processor,  # type: ignore[arg-type]
         )
 
 

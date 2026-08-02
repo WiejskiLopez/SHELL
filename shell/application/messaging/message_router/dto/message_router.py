@@ -10,6 +10,7 @@ from shell.platform.types import JsonStr
 class MessageRouterDto:
     id: str
     message_data: JsonStr
+    message_context: JsonStr
     created_at: datetime
     updated_at: datetime | None = None
     deleted_at: datetime | None = None

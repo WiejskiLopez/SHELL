@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime  # noqa: TC003 -- Mapped[datetime] wymaga datetime w runtime
+
+
+@dataclass
+class MessageOutboxRecord:
+    id: str
+    message_type: str
+    occurred_at: datetime
+    payload: dict[str, object]
+    correlation_id: str = ""
+    causation_id: str = ""
+    published_at: datetime | None = None
+
+    @property
+    def is_published(self) -> bool:
+        return self.published_at is not None

@@ -22,6 +22,9 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.domain.messaging.aggregates.message_router.value_objects.message_context import (
+        MessageContext,
+    )
     from shell.domain.messaging.aggregates.message_router.value_objects.message_data import (
         MessageData,
     )
@@ -33,9 +36,11 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         "_updated_at",
         "_deleted_at",
         "_message_data",
+        "_message_context",
     )
 
     _message_data: MessageData
+    _message_context: MessageContext
     _created_at: CreatedAt
     _updated_at: UpdatedAt
 
@@ -47,9 +52,11 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         updated_at: UpdatedAt = NONE_UPDATED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         message_data: MessageData,
+        message_context: MessageContext,
     ) -> None:
         super().__init__(id)
         self._message_data = message_data
+        self._message_context = message_context
         self._created_at = created_at
         self._updated_at = updated_at
         self._deleted_at = deleted_at
@@ -63,10 +70,12 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         updated_at: UpdatedAt = NONE_UPDATED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         message_data: MessageData,
+        message_context: MessageContext,
     ) -> Self:
         return cls(
             id=id,
             message_data=message_data,
+            message_context=message_context,
             created_at=created_at,
             updated_at=updated_at,
             deleted_at=deleted_at,
@@ -119,6 +128,10 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         return self._message_data
 
     @property
+    def message_context(self) -> MessageContext:
+        return self._message_context
+
+    @property
     def created_at(self) -> CreatedAt:
         return self._created_at
 
@@ -133,10 +146,12 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         id_: MessageRouterId,
         now: OccurredAt,
         message_data: MessageData,
+        message_context: MessageContext,
     ) -> MessageRouter:
         instance = cls(
             id=id_,
             message_data=message_data,
+            message_context=message_context,
             created_at=CreatedAt.from_datetime(now.value),
         )
         instance.append_event(
@@ -153,6 +168,12 @@ class MessageRouter(AggregateRoot[MessageRouterId]):
         *,
         id_: MessageRouterId,
         message_data: MessageData,
+        message_context: MessageContext,
         now: CreatedAt,
     ) -> MessageRouter:
-        return cls._new(id_=id_, message_data=message_data, now=OccurredAt.from_datetime(now.value))
+        return cls._new(
+            id_=id_,
+            message_data=message_data,
+            message_context=message_context,
+            now=OccurredAt.from_datetime(now.value),
+        )

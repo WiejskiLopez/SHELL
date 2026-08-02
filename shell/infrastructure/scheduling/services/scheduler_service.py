@@ -33,11 +33,17 @@ if TYPE_CHECKING:
     from shell.domain.scheduling.aggregates.scheduler_job.scheduler_job import (
         SchedulerJob,
     )
-    from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import (
-        OutboxToInboxRelay,
+    from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
+        EventOutboxToInboxRelay,
     )
-    from shell.platform.infrastructure.messaging.event.processor.inbox_processor import (
-        InboxProcessor,
+    from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+        EventInboxProcessor,
+    )
+    from shell.platform.infrastructure.messaging.message.message_outbox_to_inbox_relay import (
+        MessageOutboxToInboxRelay,
+    )
+    from shell.platform.infrastructure.messaging.message.processor.message_inbox_processor import (
+        MessageInboxProcessor,
     )
 
 logger = logging.getLogger(__name__)
@@ -51,12 +57,16 @@ class SchedulerService:
     def __init__(
         self,
         session_factory: async_sessionmaker[AsyncSession],
-        outbox_to_inbox_relay: OutboxToInboxRelay,
-        inbox_processor: InboxProcessor,
+        event_outbox_to_inbox_relay: EventOutboxToInboxRelay,
+        event_inbox_processor: EventInboxProcessor,
+        message_outbox_to_inbox_relay: MessageOutboxToInboxRelay,
+        message_inbox_processor: MessageInboxProcessor,
     ) -> None:
         self._session_factory = session_factory
-        self._outbox_to_inbox_relay = outbox_to_inbox_relay
-        self._inbox_processor = inbox_processor
+        self._event_outbox_to_inbox_relay = event_outbox_to_inbox_relay
+        self._event_inbox_processor = event_inbox_processor
+        self._message_outbox_to_inbox_relay = message_outbox_to_inbox_relay
+        self._message_inbox_processor = message_inbox_processor
         self._scheduler = AsyncIOScheduler()
         self._running = False
 
@@ -113,8 +123,10 @@ class SchedulerService:
 
         job_fn = _build_job_fn(
             job_type=job.job_type.value,
-            outbox_relay=self._outbox_to_inbox_relay,
-            inbox_processor=self._inbox_processor,
+            event_outbox_to_inbox_relay=self._event_outbox_to_inbox_relay,
+            event_inbox_processor=self._event_inbox_processor,
+            message_outbox_to_inbox_relay=self._message_outbox_to_inbox_relay,
+            message_inbox_processor=self._message_inbox_processor,
         )
 
         self._scheduler.add_job(
@@ -137,15 +149,19 @@ class SchedulerService:
 def _build_job_fn(
     *,
     job_type: str,
-    outbox_relay: OutboxToInboxRelay,
-    inbox_processor: InboxProcessor,
+    event_outbox_to_inbox_relay: EventOutboxToInboxRelay,
+    event_inbox_processor: EventInboxProcessor,
+    message_outbox_to_inbox_relay: MessageOutboxToInboxRelay,
+    message_inbox_processor: MessageInboxProcessor,
 ) -> Callable[[], Awaitable[None]]:
     if job_type == "messaging":
 
         async def _run() -> None:
             try:
-                await outbox_relay.run_once()
-                await inbox_processor.run_once()
+                await event_outbox_to_inbox_relay.run_once()
+                await event_inbox_processor.run_once()
+                await message_outbox_to_inbox_relay.run_once()
+                await message_inbox_processor.run_once()
             except Exception:
                 logger.exception("scheduler_service.job_error")
 

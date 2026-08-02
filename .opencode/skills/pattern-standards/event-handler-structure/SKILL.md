@@ -56,8 +56,8 @@ class UserLoginSucceededIntegrationEvent(IntegrationEvent):
 Handler źródłowy (np. LoginHandler)
   → stage_events([UserLoginSucceededIntegrationEvent])
     → UoW commit → serializacja → outbox_event (DB)
-      → OutboxToInboxRelay → inbox_event (DB)
-         → InboxProcessor.run_once()
+      → EventOutboxToInboxRelay → inbox_event (DB)
+         → EventInboxProcessor.run_once()
            1. SELECT z inbox_event WHERE processed_at IS NULL (FOR UPDATE SKIP LOCKED)
            2. EventDeserializer.deserialize(event_type, payload)
            3. set ContextVar (correlation_id, causation_id)
@@ -164,7 +164,7 @@ class UserLoginSucceededHandler:
 ## Logowanie
 
 - Handler nie loguje na poziomie biznesowym.
-- Duplicate event detection logowany przez InboxProcessor (infrastruktura).
+- Duplicate event detection logowany przez EventInboxProcessor (infrastruktura).
 - Logowanie błędów infrastrukturalnych poza handlerem (middleware/pipeline).
 
 ---
@@ -178,7 +178,7 @@ Cross-BC komunikacja przez **integration events** — per‑BC DTO w `shell/appl
 1. Domain event emitowany przez agregat w BC A
 2. `ReflectiveIntegrationMapper` (w `SqlAlchemyUnitOfWorkBase.save()`) mapuje domain event → integration event (wypełnia envelope + konwertuje VOs na stringi)
 3. Integration event zapisywany do `outbox_event` w tej samej transakcji
-4. `OutboxToInboxRelay` → `InboxProcessor` → `EventBus` → handler w BC B
+4. `EventOutboxToInboxRelay` → `EventInboxProcessor` → `EventBus` → handler w BC B
 
 Integration event używa tylko primitive typów (`str`, `int`, `bool`, `datetime`). Właścicielem DTO jest produkujący BC.
 
@@ -304,10 +304,10 @@ Handler A reaguje na event → modyfikuje agregat A → emituje event → Handle
 ## Zasady enterprise
 
 1. **Symetria z Command Handler**: event handlery mają identyczną strukturę, DI i rejestrację jak command handlery.
-2. **Idempotentność**: EventBus nie gwarantuje exactly-once. Handler musi być idempotentny — InboxProcessor zapewnia to przez `processed_at`.
+2. **Idempotentność**: EventBus nie gwarantuje exactly-once. Handler musi być idempotentny — EventInboxProcessor zapewnia to przez `processed_at`.
 3. **Jeden agregat na handler**: handler modyfikuje maksymalnie jeden agregat domenowy.
 4. **Brak logiki biznesowej**: handler deleguje decyzje biznesowe do agregatu. Wyjątek: **wybór między ścieżkami** (create vs update) to orkiestracja aplikacyjna, nie logika biznesowa.
 5. **Cross-BC przez integration events**: komunikacja między BC przez integration events per‑BC w `shell/application/<bc>/<aggregate>/integration_events/`. Tylko primitive typy — żadne VOs domenowe nie przekraczają granic BC. Mapowanie domain→integration robi `ReflectiveIntegrationMapper`.
-6. **Event registry**: każdy DomainEvent (w tym integration events) musi być w `build_event_registry()` w `shell/platform/infrastructure/serialization/event_registry.py`, inaczej deserializacja w InboxProcessor nie znajdzie klasy.
+6. **Event registry**: każdy DomainEvent (w tym integration events) musi być w `build_event_registry()` w `shell/platform/infrastructure/serialization/event_registry.py`, inaczej deserializacja w EventInboxProcessor nie znajdzie klasy.
 7. **Mapper — `ReflectiveIntegrationMapper`**: jeden mapper w `shell/platform/infrastructure/mapping/reflective_integration_mapper.py`. Używa `importlib` + `dataclasses.fields()` do reflectywnego mapowania dowolnego domain event → integration event. Zero per-aggregate mapperów, zero `isinstance`, zero `try/except`.
 8. **UoW integration**: `SqlAlchemyUnitOfWorkBase.save()` wspiera opcjonalny `mapper` — `ReflectiveIntegrationMapper` wstrzyknięty w `core_container.py` na poziomie `Infrastructure.unit_of_work_factory`.

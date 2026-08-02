@@ -1,5 +1,7 @@
 from __future__ import annotations
 
-from shell.platform.infrastructure.messaging.event.processor.inbox_processor import InboxProcessor
+from shell.platform.infrastructure.messaging.event.processor.event_inbox_processor import (
+    EventInboxProcessor,
+)
 
-__all__ = ["InboxProcessor"]
+__all__ = ["EventInboxProcessor"]

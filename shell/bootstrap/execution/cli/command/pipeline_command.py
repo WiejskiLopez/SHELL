@@ -24,8 +24,8 @@ class PipelineCommand(RunnableCommand):
         config: ShellConfig = args.shell_config
         core_container = await ApplicationFactory(config).build()
 
-        relay = core_container.events.outbox_to_inbox_relay()
-        processor = core_container.events.inbox_processor()
+        relay = core_container.events.event_outbox_to_inbox_relay()
+        processor = core_container.events.event_inbox_processor()
 
         outbox_count = await relay.run_once()
         inbox_count = await processor.run_once()

@@ -8,3 +8,7 @@ if TYPE_CHECKING:
 
 class EventPublisher(Protocol):
     async def publish(self, events: Sequence[object]) -> None: ...
+
+
+class MessagePublisher(Protocol):
+    async def publish(self, messages: Sequence[object]) -> None: ...

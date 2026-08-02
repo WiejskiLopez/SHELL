@@ -3,7 +3,7 @@
 Enforces:
 1. Every per-BC UnitOfWork accepts and forwards the ``mapper`` parameter.
 2. No handler manually calls ``stage_events(pull_events())`` — must go through ``UoW.save()``.
-3. ``InboxProcessor`` in ``core_container.py`` is wired with ``EventBusPublisher``,
+3. ``EventInboxProcessor`` in ``core_container.py`` is wired with ``EventBusPublisher``,
    not CompositeEventPublisher (prevents infinite outbox→inbox→outbox loop).
 """
 
@@ -92,14 +92,14 @@ def test_handler_does_not_stage_events_manually() -> None:
     )
 
 
-# ── 3. InboxProcessor wiring is safe ────────────────────────────────
+# ── 3. EventInboxProcessor wiring is safe ───────────────────────────
 
 _CORE_CONTAINER = BASE / "platform" / "bootstrap" / "container" / "core_container.py"
 
 
 def test_inbox_processor_uses_event_bus_publisher() -> None:
-    """InboxProcessor must receive EventBusPublisher, not a composite with SqlOutboxPublisher
-    (which would cause an infinite inbox → outbox → relay → inbox → outbox → ... loop).
+    """EventInboxProcessor must receive EventBusPublisher, not a composite with
+    SqlEventOutboxPublisher (which would cause an infinite inbox → outbox → relay → inbox → outbox → ... loop).
     """
     tree = parse_file(_CORE_CONTAINER)
     assert tree is not None, f"Cannot parse {_CORE_CONTAINER}"
@@ -110,12 +110,12 @@ def test_inbox_processor_uses_event_bus_publisher() -> None:
         for stmt in class_node.body:
             if not isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 continue
-            if stmt.name != "inbox_processor":
+            if stmt.name != "event_inbox_processor":
                 continue
             source = ast.get_source_segment(_CORE_CONTAINER.read_text(encoding="utf-8"), stmt)
             assert source is not None, f"Cannot get source for {_CORE_CONTAINER}"
 
             assert "self._event_bus_publisher" in source, (
-                "inbox_processor() must use self._event_bus_publisher "
+                "event_inbox_processor() must use self._event_bus_publisher "
                 "(EventBusPublisher), not a composite publisher"
             )

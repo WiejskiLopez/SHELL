@@ -10,7 +10,9 @@ from shell.bootstrap.execution.cli.command.command import RunnableCommand
 from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
 from shell.platform.infrastructure.logging.logging_event_publisher import LoggingEventPublisher
 from shell.platform.infrastructure.logging.stdlib_logger import StdlibLogger
-from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
+from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
+    EventOutboxToInboxRelay,
+)
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
@@ -27,6 +29,6 @@ class RelayCommand(RunnableCommand):
         relay_logger = StdlibLogger("shell.relay")
         downstream = LoggingEventPublisher(relay_logger)
 
-        relay = OutboxToInboxRelay(sf, downstream)
+        relay = EventOutboxToInboxRelay(sf, downstream)
         count = await relay.run_once()
         logger.info("processed %s outbox event(s)", count)

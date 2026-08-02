@@ -37,7 +37,8 @@ class SqlMessageRouterRepository(MessageRouterRepository):
             model = message_router_entity_to_model(message)
             self._session.add(model)
         else:
-            model.message_data = message.message_data  # type: ignore[assignment]
+            model.message_data = message.message_data.value
+            model.message_context = message.message_context.value
 
     async def get_by_id(self, message_id: MessageRouterId) -> MessageRouter | None:
         query = select(MessageRouterModel).where(MessageRouterModel.id == message_id.value)

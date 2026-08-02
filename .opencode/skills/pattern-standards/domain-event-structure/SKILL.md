@@ -29,7 +29,7 @@ class WorkflowStartedEvent(DomainEvent):
 
 - Klasa bazowa dostarcza: `event_id`, `aggregate_id`, `aggregate_name`, `occurred_at`, `schema_version`.
 
-> **Uwaga**: `correlation_id` i `causation_id` NIE są polami `DomainEvent` — są dodawane dopiero w `IntegrationEvent` (warstwa aplikacji). Tracing context jest ustawiany przez `ContextVar` w `InboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny, nie w evencie.
+> **Uwaga**: `correlation_id` i `causation_id` NIE są polami `DomainEvent` — są dodawane dopiero w `IntegrationEvent` (warstwa aplikacji). Tracing context jest ustawiany przez `ContextVar` w `EventInboxProcessor` i zapisywany w outbox/inbox jako osobne kolumny, nie w evencie.
 
 ## ⚠️ Primitive Obsession
 

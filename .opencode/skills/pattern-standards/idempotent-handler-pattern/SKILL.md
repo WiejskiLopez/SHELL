@@ -14,12 +14,12 @@ description: Reguły idempotentności handlerów — inbox pattern, sprawdzanie 
 
 ## Inbox pattern — warstwa infrastruktury
 
-- Idempotentność jest zapewniana przez **InboxProcessor** na poziomie infrastruktury.
-- `InboxProcessor` odczytuje `inbox_event`, sprawdza duplikaty i dispatchuje do handlera tylko dla nieprzetworzonych eventów.
+- Idempotentność jest zapewniana przez **EventInboxProcessor** na poziomie infrastruktury.
+- `EventInboxProcessor` odczytuje `inbox_event`, sprawdza duplikaty i dispatchuje do handlera tylko dla nieprzetworzonych eventów.
 - Event handler **nie sprawdza inboxa** — to odpowiedzialność infrastruktury.
 
 ```
-[Outbox] → OutboxToInboxRelay → [InboxEvent] → InboxProcessor (dedup) → EventBus → Handler
+[Outbox] → EventOutboxToInboxRelay → [InboxEvent] → EventInboxProcessor (dedup) → EventBus → Handler
 ```
 
 ## Idempotentność na poziomie domeny
@@ -45,7 +45,7 @@ async def handle(self, event: WorkflowStartedEvent) -> None:
 
 ## Kluczowe zasady
 
-- Deduplikacja na poziomie infrastruktury (InboxProcessor) — handler nie sprawdza inboxa.
+- Deduplikacja na poziomie infrastruktury (EventInboxProcessor) — handler nie sprawdza inboxa.
 - Idempotentność na poziomie domeny — agregat sam decyduje czy operacja jest dozwolona.
 - Handler nie sprawdza stanu agregatu — deleguje do domeny.
 - Brak agregatu to błąd — handler rzuca wyjątkiem, nie loguje warninga i nie ignoruje.

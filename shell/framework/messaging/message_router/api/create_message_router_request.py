@@ -7,3 +7,4 @@ from shell.platform.types import JsonStr
 
 class CreateMessageRouterRequest(BaseModel):
     message_data: JsonStr = Field(..., min_length=1)
+    message_context: JsonStr = Field(..., min_length=1)

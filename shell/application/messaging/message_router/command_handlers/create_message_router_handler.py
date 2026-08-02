@@ -6,6 +6,9 @@ from shell.domain.messaging.aggregates.message_router.message_router import Mess
 from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
     MessageRouterRepository,
 )
+from shell.domain.messaging.aggregates.message_router.value_objects.message_context import (
+    MessageContext,
+)
 from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
 from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
     MessageRouterId,
@@ -39,6 +42,7 @@ class CreateMessageRouterHandler:
         message_router = MessageRouter.new(
             id_=message_router_id,
             message_data=MessageData(JsonStr(command.message_data)),
+            message_context=MessageContext(JsonStr(command.message_context)),
             now=now,
         )
         async with self._unit_of_work as unit_of_work:

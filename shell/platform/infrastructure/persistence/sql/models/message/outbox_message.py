@@ -15,6 +15,9 @@ class OutboxMessageModel(Base):
     __table_args__ = (Index("ix_outbox_message_published_at", "published_at"),)
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    envelope: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
-    created_at: Mapped[datetime] = mapped_column(nullable=False)
+    message_type: Mapped[str] = mapped_column(nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(nullable=False)
+    payload: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
+    correlation_id: Mapped[str] = mapped_column(nullable=False, default="")
+    causation_id: Mapped[str] = mapped_column(nullable=False, default="")
     published_at: Mapped[datetime | None] = mapped_column(nullable=True)

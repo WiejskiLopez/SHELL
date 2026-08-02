@@ -5,7 +5,7 @@ description: Reguły wzorców Retry i Circuit Breaker — exponential backoff, t
 
 # Retry / Circuit Breaker Pattern
 
-> **⚠️ UWAGA**: SHELL **NIE MA** implementacji exponential backoff, circuit breaker ani dedykowanych katalogów `retry/`, `circuit_breaker/`, `dlq/`. Poniższy wzorzec jest **aspiracyjny** — opisuje docelowy design, który nie został jeszcze zaimplementowany. Obecnie SHELL używa fixed backoff (30s) w `InboxProcessor` i nie ma circuit breaker.
+> **⚠️ UWAGA**: SHELL **NIE MA** implementacji exponential backoff, circuit breaker ani dedykowanych katalogów `retry/`, `circuit_breaker/`, `dlq/`. Poniższy wzorzec jest **aspiracyjny** — opisuje docelowy design, który nie został jeszcze zaimplementowany. Obecnie SHELL używa fixed backoff (30s) w `EventInboxProcessor` i nie ma circuit breaker.
 
 ## Definicja
 
@@ -122,4 +122,4 @@ class PermanentError(Exception):
 - `shell/platform/infrastructure/retry/`
 - `shell/platform/infrastructure/circuit_breaker/`
 
-> **TODO**: obecnie retry jest inline w `InboxProcessor` (`shell/platform/infrastructure/messaging/event/processor/inbox_processor.py`), brak dedykowanych klas.
+> **TODO**: obecnie retry jest inline w `EventInboxProcessor` (`shell/platform/infrastructure/messaging/event/processor/event_inbox_processor.py`), brak dedykowanych klas.

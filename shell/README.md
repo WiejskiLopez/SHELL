@@ -540,8 +540,8 @@ Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 
 ### Tabela outbox_event
 
-`SqlOutboxPublisher` zapisuje eventy do `outbox_event` z `published_at = NULL`.  
-`OutboxRelay.run_once()` pobiera niepublikowane wpisy i przekazuje je downstream, ustawiając `published_at`.
+`SqlEventOutboxPublisher` zapisuje eventy do `outbox_event` z `published_at = NULL`.  
+`EventOutboxToInboxRelay.run_once()` pobiera niepublikowane wpisy i przekazuje je do `inbox_event`, ustawiając `published_at`.
 
 ```powershell
 # Uruchom relay ręcznie

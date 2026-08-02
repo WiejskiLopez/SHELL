@@ -14,8 +14,12 @@ from shell.domain.execution.aggregates.task_execution.value_objects.task_executi
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
-from shell.platform.infrastructure.messaging.event.outbox_to_inbox_relay import OutboxToInboxRelay
-from shell.platform.infrastructure.messaging.event.sql_outbox_publisher import SqlOutboxPublisher
+from shell.platform.infrastructure.messaging.event.event_outbox_to_inbox_relay import (
+    EventOutboxToInboxRelay,
+)
+from shell.platform.infrastructure.messaging.event.sql_event_outbox_publisher import (
+    SqlEventOutboxPublisher,
+)
 from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql.models import OutboxEventModel
 
@@ -23,12 +27,12 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
 
-class TestOutboxToInboxRelay:
+class TestEventOutboxToInboxRelay:
     async def test_relay_marks_rows_published(
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        outbox_pub = SqlOutboxPublisher(session_factory)
+        outbox_pub = SqlEventOutboxPublisher(session_factory)
         event = TaskExecutionCreatedEvent.now(
             task_execution_id=TaskExecutionId.generate(),
             now=OccurredAt.from_datetime(datetime(2026, 1, 1, tzinfo=UTC)),
@@ -36,7 +40,7 @@ class TestOutboxToInboxRelay:
         await outbox_pub.publish([event])
 
         downstream = FakeEventPublisher()
-        relay = OutboxToInboxRelay(session_factory, downstream)
+        relay = EventOutboxToInboxRelay(session_factory, downstream)
         count = await relay.run_once()
 
         assert count >= 1
@@ -56,7 +60,7 @@ class TestOutboxToInboxRelay:
         self,
         session_factory: async_sessionmaker,
     ) -> None:
-        outbox_pub = SqlOutboxPublisher(session_factory)
+        outbox_pub = SqlEventOutboxPublisher(session_factory)
         await outbox_pub.publish(
             [
                 TaskExecutionCreatedEvent.now(
@@ -67,7 +71,7 @@ class TestOutboxToInboxRelay:
         )
 
         downstream = FakeEventPublisher()
-        relay = OutboxToInboxRelay(session_factory, downstream)
+        relay = EventOutboxToInboxRelay(session_factory, downstream)
         first = await relay.run_once()
         second = await relay.run_once()
 

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class InMemoryOutboxStore:
-    """Simple in-memory outbox for tests — implements the same interface as SqlOutboxPublisher."""
+    """Simple in-memory outbox for tests — implements the same interface as SqlEventOutboxPublisher."""
 
     def __init__(self) -> None:
         self.records: list[OutboxRecord] = []

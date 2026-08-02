@@ -56,6 +56,7 @@ class MessageRouterController:
         return ApiMessageRouterResponse(
             id=result.id,
             message_data=str(result.message_data),
+            message_context=str(result.message_context),
             created_at=result.created_at,
             updated_at=result.updated_at,
             deleted_at=result.deleted_at,
@@ -65,7 +66,10 @@ class MessageRouterController:
         self, body: ApiCreateMessageRouterRequest
     ) -> ApiCreateMessageRouterResponse:
         message_router_id = await self._command_bus.dispatch(
-            CreateMessageRouterCommand(message_data=str(body.message_data))
+            CreateMessageRouterCommand(
+                message_data=str(body.message_data),
+                message_context=str(body.message_context),
+            )
         )
         return ApiCreateMessageRouterResponse(id=message_router_id)
 
