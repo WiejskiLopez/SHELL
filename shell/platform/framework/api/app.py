@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
 from shell.framework.definition.graph_definition.api.router import (
     router as graph_definitions_router,
@@ -80,6 +81,21 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     configure_openapi(app)
 
     # Middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:8080",
+            "http://localhost:3010",
+            "http://localhost:3011",
+            "http://localhost:3012",
+            "http://localhost:3013",
+            "http://localhost:3014",
+            "http://localhost:3015",
+        ],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "X-Correlation-ID"],
+    )
     app.add_middleware(CorrelationIdMiddleware)
     app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
