@@ -6,8 +6,8 @@ from shell.platform.domain.base.value_object import ValueObject
 
 
 class ExecutionStatus(ValueObject, StrEnum):
-    PENDING = "pending"
-    SKIPPED = "skipped"
-    EXECUTING = "executing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    PENDING = "PENDING"
+    SKIPPED = "SKIPPED"
+    EXECUTING = "EXECUTING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"

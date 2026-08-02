@@ -11,7 +11,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n=== Krok 1: Testy ===" -ForegroundColor Cyan
-& "$PSScriptRoot\run_tests.ps1" -UnitOnly -SkipSecurity
+& "$PSScriptRoot\run_tests.ps1"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Testy nie przeszly - deploy anulowany" -ForegroundColor Red
     exit 1

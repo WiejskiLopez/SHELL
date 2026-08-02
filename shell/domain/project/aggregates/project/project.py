@@ -42,7 +42,7 @@ class Project(AggregateRoot[ProjectId]):
         deleted_at: DeletedAt = NONE_DELETED_AT,
         name: ProjectName,
         repo_url: RepoUrl,
-        status: ProjectStatus = ProjectStatus.ACTIVE,
+        status: ProjectStatus,
     ) -> None:
         super().__init__(id)
         self._name = name
@@ -62,7 +62,7 @@ class Project(AggregateRoot[ProjectId]):
         deleted_at: DeletedAt = NONE_DELETED_AT,
         name: ProjectName,
         repo_url: RepoUrl,
-        status: ProjectStatus = ProjectStatus.ACTIVE,
+        status: ProjectStatus,
     ) -> Self:
         return cls(
             id=id,

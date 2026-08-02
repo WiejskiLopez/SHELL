@@ -144,3 +144,4 @@ if (-not $UnitOnly -and -not $IntegrationOnly) {
 }
 
 Write-Host "`n=== All requested checks completed ===" -ForegroundColor Green
+exit 0

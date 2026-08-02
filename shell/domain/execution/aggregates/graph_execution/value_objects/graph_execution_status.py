@@ -6,10 +6,10 @@ from shell.platform.domain.base.value_object import ValueObject
 
 
 class GraphExecutionStatus(ValueObject, StrEnum):
-    PENDING = "pending"
-    PLANNING = "planning"
-    EXECUTING = "executing"
-    VERIFYING = "verifying"
-    SUSPENDED = "suspended"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    PENDING = "PENDING"
+    PLANNING = "PLANNING"
+    EXECUTING = "EXECUTING"
+    VERIFYING = "VERIFYING"
+    SUSPENDED = "SUSPENDED"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"

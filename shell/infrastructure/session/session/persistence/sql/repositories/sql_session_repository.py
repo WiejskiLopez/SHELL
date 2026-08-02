@@ -49,7 +49,7 @@ class SqlSessionRepository(SessionRepository):
             select(SessionModel)
             .where(
                 SessionModel.user_id == user_id.value,
-                SessionModel.status == "open",
+                SessionModel.status == "OPEN",
                 SessionModel.deleted_at.is_(None),
             )
             .limit(1)

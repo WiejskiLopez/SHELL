@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
 
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models.base import Base
@@ -24,7 +25,7 @@ class NodeExecutionModel(Base, VersionedMixin):
     autopilot: Mapped[bool] = mapped_column(nullable=False, default=False)
     task_execution_id: Mapped[str] = mapped_column(nullable=False, default="")
     source_dir: Mapped[str] = mapped_column(nullable=False, default="")
-    status: Mapped[str] = mapped_column(nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
     status_initial: Mapped[str] = mapped_column(nullable=False, default="")
 
     @declared_attr  # type: ignore[arg-type]

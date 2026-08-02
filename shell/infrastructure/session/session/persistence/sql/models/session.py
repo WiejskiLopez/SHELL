@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models.base import Base
@@ -13,7 +14,7 @@ class SessionModel(Base, VersionedMixin):
 
     id: Mapped[str] = mapped_column(primary_key=True)
     goal: Mapped[str] = mapped_column(nullable=False)
-    status: Mapped[str] = mapped_column(nullable=False, default="open")
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
     user_id: Mapped[str] = mapped_column(nullable=False, server_default="")
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     opened_at: Mapped[datetime] = mapped_column(nullable=False)

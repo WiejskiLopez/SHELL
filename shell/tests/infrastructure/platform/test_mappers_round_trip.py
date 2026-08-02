@@ -121,7 +121,7 @@ class TestWorkflowMapper:
     def test_model_to_entity(self) -> None:
         model = WorkflowModel(
             id="wf-2",
-            status="active",
+            status="ACTIVE",
             session_id="sess-2",
             project_id="proj-2",
             created_at=_NOW,
@@ -129,7 +129,7 @@ class TestWorkflowMapper:
         entity = workflow_model_to_entity(model)
 
         assert entity.id.value == "wf-2"
-        assert entity.status.value == "active"
+        assert entity.status.value == "ACTIVE"
         assert entity.session_id.value == "sess-2"
         assert entity.project_id.value == "proj-2"
 
@@ -364,7 +364,7 @@ class TestNodeExecutionMapper:
 
     def test_model_to_entity_minimal(self) -> None:
         model = NodeExecutionModel(
-            id="gne-1", position=0, node_type="llm", status="pending", created_at=_NOW
+            id="gne-1", position=0, node_type="llm", status="PENDING", created_at=_NOW
         )
         entity = _node_execution_model_to_entity(model)
 

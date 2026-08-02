@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 def task_execution_entity_to_model(task_execution: TaskExecution) -> TaskExecutionModel:
     return TaskExecutionModel(
         id=task_execution.id.value,
+        status=task_execution.status.value,
         name=task_execution.name.value,
         work_dir=task_execution.work_dir.value if task_execution.work_dir else "",
         created_at=_created_at_value(task_execution.created_at),

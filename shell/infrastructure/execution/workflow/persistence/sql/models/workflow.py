@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetime w runtime
 
+from sqlalchemy import String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models.base import Base
@@ -12,7 +13,7 @@ class WorkflowModel(Base, VersionedMixin):
     __tablename__ = "workflow"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    status: Mapped[str] = mapped_column(nullable=False, default="idle")
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
     session_id: Mapped[str] = mapped_column(nullable=False)
     project_id: Mapped[str] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(nullable=False)

@@ -57,4 +57,4 @@ class TestSqlSessionRepository:
             GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
-        assert dto.status == "closed"
+        assert dto.status == "CLOSED"

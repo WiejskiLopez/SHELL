@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003 -- potrzebny w runtime dla Mapped[datetime]
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
@@ -22,7 +22,7 @@ class SchedulerJobModel(Base, VersionedMixin):
         ForeignKey("scheduler_definition.id", ondelete="CASCADE"),
         nullable=False,
     )
-    status: Mapped[str] = mapped_column(nullable=False, default="pending")
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
     trigger_event_id: Mapped[str | None] = mapped_column(nullable=True)
     trigger_event_type: Mapped[str | None] = mapped_column(nullable=True)
     action_ref: Mapped[str | None] = mapped_column(nullable=True)

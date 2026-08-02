@@ -48,7 +48,7 @@ class TestSessionHandlers:
             GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
-        assert dto.status == "open"
+        assert dto.status == "OPEN"
 
     async def test_close_session(
         self,
@@ -67,7 +67,7 @@ class TestSessionHandlers:
             GetSessionHistoryQuery(session_id=session_id.value)
         )
         assert dto is not None
-        assert dto.status == "closed"
+        assert dto.status == "CLOSED"
 
     async def test_close_not_found_raises(
         self,

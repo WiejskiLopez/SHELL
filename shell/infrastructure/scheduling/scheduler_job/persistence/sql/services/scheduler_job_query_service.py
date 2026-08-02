@@ -53,6 +53,6 @@ class SchedulerJobQueryService:
 
     async def list_enabled(self) -> list[SchedulerJobDto]:
         async with self._session_factory() as session:
-            stmt = select(SchedulerJobModel).where(SchedulerJobModel.status == "pending")
+            stmt = select(SchedulerJobModel).where(SchedulerJobModel.status == "PENDING")
             rows = (await session.execute(stmt)).scalars().all()
             return [self._model_to_dto(r) for r in rows if r is not None]

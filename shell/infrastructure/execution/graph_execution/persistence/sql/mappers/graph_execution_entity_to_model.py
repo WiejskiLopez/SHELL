@@ -20,6 +20,7 @@ def graph_execution_entity_to_model(graph_execution: GraphExecution) -> GraphExe
         id=graph_execution.id.value,
         task_execution_id=graph_execution.task_execution_id.value,
         graph_definition_id=graph_execution.graph_definition_id.value,
+        status=graph_execution.status.value,
         parent_graph_execution_id=(
             graph_execution.parent_graph_execution_id.value
             if graph_execution.parent_graph_execution_id

@@ -44,7 +44,7 @@ class User(AggregateRoot[UserId]):
         updated_at: UpdatedAt = NONE_UPDATED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         email: UserEmail,
-        status: UserStatus = UserStatus.ACTIVE,
+        status: UserStatus,
     ) -> None:
         super().__init__(id)
         self._email = email
@@ -64,6 +64,7 @@ class User(AggregateRoot[UserId]):
         user = cls(
             id=id,
             email=email,
+            status=UserStatus.ACTIVE,
             created_at=CreatedAt.from_datetime(now.value),
         )
         user.append_event(UserCreatedEvent.now(user_id=id, now=now))
@@ -88,7 +89,7 @@ class User(AggregateRoot[UserId]):
         updated_at: UpdatedAt = NONE_UPDATED_AT,
         deleted_at: DeletedAt = NONE_DELETED_AT,
         email: UserEmail,
-        status: UserStatus = UserStatus.ACTIVE,
+        status: UserStatus,
     ) -> Self:
         return cls(
             id=id,

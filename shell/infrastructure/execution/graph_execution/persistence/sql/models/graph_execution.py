@@ -4,7 +4,7 @@ from datetime import (
     datetime,  # noqa: TC003 — needed by SQLAlchemy ORM at runtime for Mapped[datetime | None]
 )
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
@@ -21,7 +21,7 @@ class GraphExecutionModel(Base, VersionedMixin):
         nullable=False,
     )
     graph_definition_id: Mapped[str] = mapped_column(nullable=False, default="")
-    status: Mapped[str] = mapped_column(nullable=False, default="created")
+    status: Mapped[str] = mapped_column(String(50), nullable=False)
 
     parent_graph_execution_id: Mapped[str | None] = mapped_column(
         ForeignKey("graph_execution.id", ondelete="SET NULL"),
