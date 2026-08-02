@@ -11,7 +11,7 @@ class UserModel(Base):
     __tablename__ = "user"
 
     id: Mapped[str] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(nullable=False, unique=True)
     status: Mapped[str] = mapped_column(nullable=False, default="active")
     created_at: Mapped[datetime] = mapped_column(nullable=False)
     updated_at: Mapped[datetime] = mapped_column(nullable=True)
