@@ -96,7 +96,7 @@ Pobranie profilu użytkownika (do wyświetlenia awatara i nazwy w prawym górnym
 
 | Endpoint | Status | Uwagi |
 |---|---|---|
-| `GET /api/v1/sessions` | ✗ Brak | Router sessions nie ma endpointu `GET /` (list). Jest tylko get by ID. |
+| `GET /api/v1/sessions` | ✓ Jest | Paginowana lista sesji z opcjonalnym filtrem `user_id`. |
 | `GET /api/v1/sessions/{id}` | ✓ Jest | Zwraca SessionResponse. |
 | `POST /api/v1/sessions/` | ✓ Jest | Tworzy sesję z `goal`. |
 | `GET /api/v1/workflows` | ✓ Jest (częściowo) | Endpoint istnieje, ale nie ma filtra `?session_id=`. |
@@ -110,7 +110,7 @@ Pobranie profilu użytkownika (do wyświetlenia awatara i nazwy w prawym górnym
 - [ ] Auth MFE musi być gotowe (login, `GET /auth/me`)
 
 ### Priorytet — sesje
-- [ ] Dodać `GET /api/v1/sessions` (list sessions) z paginacją
+- [x] Dodać `GET /api/v1/sessions` (list sessions) z paginacją i filtrem `user_id`
 - [ ] Dodać opcjonalny filtr `?status=` do listowania sesji
 
 ### Priorytet — workflowy

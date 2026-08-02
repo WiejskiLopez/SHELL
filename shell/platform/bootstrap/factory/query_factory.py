@@ -78,6 +78,7 @@ from shell.application.scheduling.scheduler_execution.queries.get_scheduler_exec
 from shell.application.session.session.queries.get_session_history_query import (
     GetSessionHistoryQuery,
 )
+from shell.application.session.session.queries.list_sessions_query import ListSessionsQuery
 from shell.application.session.session_state.queries.get_session_state_by_id_query import (
     GetSessionStateByIdQuery,
 )
@@ -122,6 +123,7 @@ def register_queries(container: Container) -> None:
     q_bus.register(ListTaskExecutionsQuery, queries.list_task_executions_handler_factory)
     q_bus.register(GetWorkflowStateByIdQuery, queries.get_workflow_state_handler_factory)
     q_bus.register(GetSessionHistoryQuery, queries.get_session_history_handler_factory)
+    q_bus.register(ListSessionsQuery, queries.list_sessions_handler_factory)
     q_bus.register(GetGraphExecutionByIdQuery, queries.get_graph_execution_handler_factory)
     q_bus.register(GetUserByIdQuery, queries.get_user_handler_factory)
     q_bus.register(GetUserByEmailQuery, queries.get_user_by_email_handler_factory)

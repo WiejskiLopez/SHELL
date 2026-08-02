@@ -4,24 +4,26 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from shell.application.session.session.dto.session import SessionDto
-from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
-    SessionQueryServiceHttpAdapter,
+from shell.domain.execution.aggregates.session_execution.value_objects.session_snapshot import (
+    SessionSnapshot,
+)
+from shell.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
+    SessionQueryProviderHttpAdapter,
 )
 
 
-class TestSessionQueryServiceHttpAdapter:
+class TestSessionQueryProviderHttpAdapter:
     @pytest.fixture
     def mock_client(self) -> AsyncMock:
         return AsyncMock(spec="httpx.AsyncClient")
 
     @pytest.fixture
-    def adapter(self, mock_client: AsyncMock) -> SessionQueryServiceHttpAdapter:
-        return SessionQueryServiceHttpAdapter(client=mock_client)
+    def adapter(self, mock_client: AsyncMock) -> SessionQueryProviderHttpAdapter:
+        return SessionQueryProviderHttpAdapter(client=mock_client)
 
     async def test_get_by_id_returns_none_on_404(
         self,
-        adapter: SessionQueryServiceHttpAdapter,
+        adapter: SessionQueryProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         mock_client.get = AsyncMock(return_value=Mock(status_code=404))
@@ -30,7 +32,7 @@ class TestSessionQueryServiceHttpAdapter:
 
     async def test_get_by_id_maps_response(
         self,
-        adapter: SessionQueryServiceHttpAdapter,
+        adapter: SessionQueryProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         response_data = {
@@ -44,15 +46,15 @@ class TestSessionQueryServiceHttpAdapter:
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_by_id("session-1")
-        assert isinstance(result, SessionDto)
-        assert result.id == "session-1"
+        assert isinstance(result, SessionSnapshot)
+        assert result.session_id.value == "session-1"
         assert result.goal == "test goal"
         assert result.status == "opened"
         assert result.closed_at is None
 
     async def test_get_by_id_with_closed_at(
         self,
-        adapter: SessionQueryServiceHttpAdapter,
+        adapter: SessionQueryProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         response_data = {
@@ -66,12 +68,12 @@ class TestSessionQueryServiceHttpAdapter:
             return_value=Mock(status_code=200, json=Mock(return_value=response_data))
         )
         result = await adapter.get_by_id("session-2")
-        assert isinstance(result, SessionDto)
+        assert isinstance(result, SessionSnapshot)
         assert result.closed_at is not None
 
     async def test_raises_on_5xx(
         self,
-        adapter: SessionQueryServiceHttpAdapter,
+        adapter: SessionQueryProviderHttpAdapter,
         mock_client: AsyncMock,
     ) -> None:
         mock_client.get = AsyncMock(

@@ -13,6 +13,7 @@ from shell.application.session.session.commands.open_session_command import (
 from shell.application.session.session.commands.update_session_command import (
     UpdateSessionCommand,
 )
+from shell.application.session.session.queries.list_sessions_query import ListSessionsQuery
 from shell.framework.session.session.api.create_session_request import (
     CreateSessionRequest as ApiCreateSessionRequest,
 )
@@ -26,6 +27,8 @@ from shell.framework.session.session.api.update_session_request import (
     UpdateSessionRequest as ApiUpdateSessionRequest,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
+from shell.platform.framework.api.models.page import Page
 
 if TYPE_CHECKING:
     from shell.application.session.session.dto.session import SessionDto
@@ -48,17 +51,37 @@ def _to_response(dto: SessionDto) -> ApiSessionResponse:
 
 
 class SessionController:
-    __slots__ = ("_command_bus", "_query_service")
+    __slots__ = ("_command_bus", "_query_bus", "_query_service")
 
-    def __init__(self, command_bus: CommandBus, query_service: SessionQueryService) -> None:
+    def __init__(
+        self,
+        command_bus: CommandBus,
+        query_service: SessionQueryService,
+        query_bus: QueryBus,
+    ) -> None:
         self._command_bus = command_bus
         self._query_service = query_service
+        self._query_bus = query_bus
 
     async def get_session(self, session_id: str) -> ApiSessionResponse:
         result = await self._query_service.get_by_id(session_id)
         if result is None:
             raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
         return _to_response(result)
+
+    async def list_sessions(
+        self, page: int = 1, page_size: int = 100, user_id: str | None = None
+    ) -> Page[ApiSessionResponse]:
+        dtos, total = await self._query_bus.dispatch(
+            ListSessionsQuery(page=page, page_size=page_size, user_id=user_id)
+        )
+        return Page(
+            items=[_to_response(dto) for dto in dtos],
+            total=total,
+            page=page,
+            page_size=page_size,
+            has_more=(page * page_size) < total,
+        )
 
     async def create_session(self, body: ApiCreateSessionRequest) -> ApiCreateSessionResponse:
         session_id = await self._command_bus.dispatch(OpenSessionCommand(goal=body.goal))

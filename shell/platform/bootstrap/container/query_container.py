@@ -72,6 +72,9 @@ from shell.application.scheduling.scheduler_execution.query_handlers.get_schedul
 from shell.application.session.session.query_handlers.get_session_history_handler import (
     GetSessionHistoryHandler,
 )
+from shell.application.session.session.query_handlers.list_sessions_handler import (
+    ListSessionsHandler,
+)
 from shell.application.session.session_state.query_handlers.get_session_state_by_id_handler import (
     GetSessionStateByIdHandler,
 )
@@ -100,6 +103,7 @@ if TYPE_CHECKING:
         get_node_execution_handler_factory: Factory[GetNodeExecutionByIdHandler]
         get_node_execution_result_handler_factory: Factory[GetNodeExecutionResultHandler]
         get_session_history_handler_factory: Factory[GetSessionHistoryHandler]
+        list_sessions_handler_factory: Factory[ListSessionsHandler]
         get_task_execution_handler_factory: Factory[GetTaskExecutionByIdHandler]
         get_task_execution_by_name_handler_factory: Factory[GetTaskExecutionByNameHandler]
         get_current_task_execution_handler_factory: Factory[GetTaskExecutionCurrentHandler]
@@ -153,7 +157,10 @@ class QueryContainer(containers.DeclarativeContainer):
         GetNodeExecutionResultHandler, queries=infra.node_result_query_service
     )
     get_session_history_handler_factory = providers.Factory(
-        GetSessionHistoryHandler, queries=infra.session_query_http_service
+        GetSessionHistoryHandler, queries=infra.session_query_service
+    )
+    list_sessions_handler_factory = providers.Factory(
+        ListSessionsHandler, queries=infra.session_query_service
     )
     get_task_execution_handler_factory = providers.Factory(
         GetTaskExecutionByIdHandler, queries=infra.task_execution_query_service

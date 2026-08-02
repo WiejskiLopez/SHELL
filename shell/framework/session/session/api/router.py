@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from shell.application.session.session.ports.session_query_service import (
     SessionQueryService,
@@ -19,8 +19,10 @@ from shell.framework.session.session.api.update_session_request import (
     UpdateSessionRequest,
 )
 from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
+from shell.platform.framework.api.models.page import Page
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
@@ -35,7 +37,18 @@ def get_session_controller(
             status_code=501, detail="Session query service not implemented"
         ) from None
     command_bus: CommandBus = container.app.buses.command_bus
-    return SessionController(command_bus, _query_service)
+    query_bus: QueryBus = container.app.buses.query_bus
+    return SessionController(command_bus, _query_service, query_bus)
+
+
+@router.get("", response_model=Page[SessionResponse])
+async def list_sessions(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=100, ge=1, le=1000, alias="page_size"),
+    user_id: str | None = Query(default=None),
+    controller: SessionController = Depends(get_session_controller),
+) -> Page[SessionResponse]:
+    return await controller.list_sessions(page=page, page_size=page_size, user_id=user_id)
 
 
 @router.get("/{session_id}", response_model=SessionResponse)

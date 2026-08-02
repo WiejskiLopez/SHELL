@@ -65,6 +65,9 @@ from shell.application.scheduling.scheduler_execution.query_handlers.get_schedul
 from shell.application.session.session.query_handlers.get_session_history_handler import (
     GetSessionHistoryHandler,
 )
+from shell.application.session.session.query_handlers.list_sessions_handler import (
+    ListSessionsHandler,
+)
 from shell.application.session.session_state.query_handlers.get_session_state_by_id_handler import (
     GetSessionStateByIdHandler,
 )
@@ -879,6 +882,9 @@ class Queries:
 
     def get_session_history_handler_factory(self) -> GetSessionHistoryHandler:
         return GetSessionHistoryHandler(queries=self._infra.session_query_service)
+
+    def list_sessions_handler_factory(self) -> ListSessionsHandler:
+        return ListSessionsHandler(queries=self._infra.session_query_service)
 
     def get_graph_execution_handler_factory(self) -> GetGraphExecutionByIdHandler:
         return GetGraphExecutionByIdHandler(

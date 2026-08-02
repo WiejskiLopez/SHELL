@@ -13,6 +13,24 @@ if TYPE_CHECKING:
 
 
 class TestSessionEndpoints:
+    async def test_list_sessions_filters_by_user_id(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        headers = {"X-API-Key": TEST_API_KEY}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.get(
+                "/api/v1/sessions?user_id=unknown-user",
+                headers=headers,
+            )
+
+        assert resp.status_code == 200
+        assert resp.json() == {
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "page_size": 100,
+            "has_more": False,
+        }
+
     async def test_get_session_history_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}

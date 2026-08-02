@@ -16,8 +16,8 @@ from shell.infrastructure.execution.graph_execution.http.graph_execution_definit
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
-from shell.infrastructure.execution.session_execution.http.session_query_service_http_adapter import (
-    SessionQueryServiceHttpAdapter,
+from shell.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
+    SessionQueryProviderHttpAdapter,
 )
 from shell.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
     FileSystemTaskLoader,
@@ -110,8 +110,8 @@ class InfrastructureContainer(containers.DeclarativeContainer):
         GraphExecutionDefinitionProviderHttpAdapter,
         client=definition_http_client,
     )
-    session_query_http_service = providers.Factory(
-        SessionQueryServiceHttpAdapter,
+    session_query_provider_factory = providers.Factory(
+        SessionQueryProviderHttpAdapter,
         client=session_http_client,
     )
     workflow_session_provider_factory = providers.Factory(
