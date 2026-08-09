@@ -6,7 +6,6 @@ from fastapi import HTTPException
 
 from shell.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.application.user.user.commands.login_user_command import LoginUserCommand
 from shell.application.user.user.commands.update_user_command import UpdateUserCommand
 from shell.application.user.user.queries.get_user_by_email_query import GetUserByEmailQuery
 from shell.application.user.user.queries.get_user_by_id_query import GetUserByIdQuery
@@ -17,7 +16,6 @@ from shell.framework.user.user.api.create_user_request import (
 from shell.framework.user.user.api.create_user_response import (
     CreateUserResponse as ApiCreateUserResponse,
 )
-from shell.framework.user.user.api.login_request import LoginRequest as ApiLoginRequest
 from shell.framework.user.user.api.login_response import LoginResponse as ApiLoginResponse
 from shell.framework.user.user.api.update_user_request import (
     UpdateUserRequest as ApiUpdateUserRequest,
@@ -74,13 +72,6 @@ class UserController:
     async def create_user(self, body: ApiCreateUserRequest) -> ApiCreateUserResponse:
         user_id = await self._command_bus.dispatch(CreateUserCommand(email=body.email))
         return ApiCreateUserResponse(id=user_id)
-
-    async def login(self, body: ApiLoginRequest) -> ApiLoginResponse:
-        try:
-            user_id = await self._command_bus.dispatch(LoginUserCommand(email=body.email))
-        except ValueError as exc:
-            raise HTTPException(status_code=404, detail=str(exc)) from exc
-        return ApiLoginResponse(id=user_id)
 
     async def get_user_by_email(self, email: str) -> ApiLoginResponse:
         result = await self._query_bus.dispatch(GetUserByEmailQuery(email=email))

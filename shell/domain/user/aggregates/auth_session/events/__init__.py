@@ -6,12 +6,6 @@ from shell.domain.user.aggregates.auth_session.events.auth_session_created_event
 from shell.domain.user.aggregates.auth_session.events.auth_session_deleted_event import (
     AuthSessionDeletedEvent,
 )
-from shell.domain.user.aggregates.auth_session.events.auth_session_login_failed_event import (
-    AuthSessionLoginFailedEvent,
-)
-from shell.domain.user.aggregates.auth_session.events.auth_session_login_succeeded_event import (
-    AuthSessionLoginSucceededEvent,
-)
 from shell.domain.user.aggregates.auth_session.events.auth_session_revoked_event import (
     AuthSessionRevokedEvent,
 )
@@ -24,6 +18,4 @@ __all__ = [
     "AuthSessionUpdatedEvent",
     "AuthSessionRevokedEvent",
     "AuthSessionDeletedEvent",
-    "AuthSessionLoginSucceededEvent",
-    "AuthSessionLoginFailedEvent",
 ]

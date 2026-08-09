@@ -3,7 +3,7 @@
 Enforces:
 1. Every per-BC UnitOfWork accepts and forwards the ``mapper`` parameter.
 2. No handler manually calls ``stage_events(pull_events())`` — must go through ``UoW.save()``.
-3. ``EventInboxProcessor`` in ``core_container.py`` is wired with ``EventBusPublisher``,
+3. ``EventInboxProcessor`` in ``events.py`` is wired with ``EventBusPublisher``,
    not CompositeEventPublisher (prevents infinite outbox→inbox→outbox loop).
 """
 
@@ -94,15 +94,15 @@ def test_handler_does_not_stage_events_manually() -> None:
 
 # ── 3. EventInboxProcessor wiring is safe ───────────────────────────
 
-_CORE_CONTAINER = BASE / "platform" / "bootstrap" / "container" / "core_container.py"
+_EVENTS_MODULE = BASE / "platform" / "bootstrap" / "container" / "events.py"
 
 
 def test_inbox_processor_uses_event_bus_publisher() -> None:
     """EventInboxProcessor must receive EventBusPublisher, not a composite with
     SqlEventOutboxPublisher (which would cause an infinite inbox → outbox → relay → inbox → outbox → ... loop).
     """
-    tree = parse_file(_CORE_CONTAINER)
-    assert tree is not None, f"Cannot parse {_CORE_CONTAINER}"
+    tree = parse_file(_EVENTS_MODULE)
+    assert tree is not None, f"Cannot parse {_EVENTS_MODULE}"
 
     for class_node in find_classes(tree):
         if class_node.name != "Events":
@@ -112,8 +112,8 @@ def test_inbox_processor_uses_event_bus_publisher() -> None:
                 continue
             if stmt.name != "event_inbox_processor":
                 continue
-            source = ast.get_source_segment(_CORE_CONTAINER.read_text(encoding="utf-8"), stmt)
-            assert source is not None, f"Cannot get source for {_CORE_CONTAINER}"
+            source = ast.get_source_segment(_EVENTS_MODULE.read_text(encoding="utf-8"), stmt)
+            assert source is not None, f"Cannot get source for {_EVENTS_MODULE}"
 
             assert "self._event_bus_publisher" in source, (
                 "event_inbox_processor() must use self._event_bus_publisher "

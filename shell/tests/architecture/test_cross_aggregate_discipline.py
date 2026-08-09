@@ -233,24 +233,44 @@ def test_process_handlers_dont_use_cross_bc_repos() -> None:
 
 
 def test_query_handlers_dont_use_unit_of_work() -> None:
-    """Query handlers must use QueryService, never unit_of_work.repository()."""
-    dirs = [
-        BASE / "application" / "query_handlers",
-    ]
+    """Query handlers must use QueryService, never domain repositories."""
     violations: list[str] = []
 
-    for d in dirs:
-        if not d.exists():
-            continue
-        for path in iter_py_files(d):
+    query_handler_dirs = [
+        path for path in (BASE / "application").rglob("query_handlers") if path.is_dir()
+    ]
+    known_repositories = _build_repo_to_bc_map()
+
+    for query_handler_dir in query_handler_dirs:
+        for path in iter_py_files(query_handler_dir):
             tree = parse_file(path)
             if tree is None:
                 continue
-            if _find_repo_calls_in_tree(tree):
-                rel = path.relative_to(BASE).as_posix()
-                violations.append(rel)
+
+            rel = path.relative_to(BASE).as_posix()
+            used_repositories = set(_find_repo_calls_in_tree(tree))
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.ImportFrom) or node.module is None:
+                    continue
+                if ".repositories" not in node.module:
+                    continue
+                for imported_name in node.names:
+                    repository_name = imported_name.name
+                    if repository_name in known_repositories:
+                        used_repositories.add(repository_name)
+
+            used_repositories.update(
+                repository_name
+                for repository_name in _find_repo_injected_in_init(tree)
+                if repository_name in known_repositories
+            )
+
+            for repository_name in sorted(used_repositories):
+                violations.append(f"{rel}: {repository_name}")
 
     assert not violations, (
-        "Query handlers must NOT use unit_of_work.repository(). "
-        "Use QueryService instead.\n" + "\n".join(violations)
+        "Query handlers must NOT use domain repositories. "
+        "Use an injected QueryService port and return an application DTO instead:\n"
+        + "\n".join(violations)
     )

@@ -8,7 +8,6 @@ Uporzadkowac obecny email-only login w oparciu o istniejacy agregat `User` i now
 User        1--N AuthSession
 User        1--N dane domenowe
 ```
-
 `User.email` pozostaje zrodlem prawdy dla emaila biznesowego i loginu. `AuthSession` przechowuje cykl zycia sesji logowania. Nie tworzymy osobnego agregatu identity.
 
 ## Kontrakt API
@@ -25,7 +24,7 @@ Request:
 }
 ```
 
-Response `200` zwraca **tylko identyfikator sesji** — spójnie z konwencja aplikacji, gdzie kazdy POST tworzacy zasob zwraca `{id}` (`POST /users/login` -> `{id}`, `POST /sessions/` -> `{id}`). Backend ustanawia sesje i ustawia bezpieczne cookies.
+Response `200` zwraca **tylko identyfikator sesji** — spójnie z konwencja aplikacji, gdzie kazdy POST tworzacy zasob zwraca `{id}`. Backend ustanawia sesje i ustawia bezpieczne cookies.
 
 ```json
 {
@@ -264,9 +263,20 @@ Decyzje projektowe:
 - Predykat "aktywna sesja" w repozytorium (`get_active_by_user_id(user_id, now)`) — wzorzec `SessionRepository.get_open_by_user_id`; testy architektury nie pozwalaja na publiczne metody agregatu bez `append_event()`.
 - Token: prosty symboliczny, w bazie tylko SHA-256 hash (`token_hash`), raw w `HttpOnly` cookie.
 
-### Do zrobienia
+### Status prac
 
-- application warstwa: `LoginAuthSessionCommand`/`LoginAuthSessionHandler`, `LogoutAuthSessionCommand`/`LogoutAuthSessionHandler`, `GetCurrentUser` query;
-- framework: router/controller `shell/framework/user/auth_session/api/`, middleware cookie -> `request.state.current_user_id`;
-- usuniecie fallbacku `"system"` i user scoping;
-- frontend + testy + E2E.
+Wykonane:
+
+- agregat `AuthSession`, eventy, repozytoria SQL/InMemory i migracja `072`;
+- handlery login/logout/me, query service, router trzech endpointów i rejestracja DI;
+- usunięty legacy `POST /users/login` wraz z `LoginUserCommand`, handlerem, eventami i automatycznym tworzeniem workflowowej `Session`;
+- `GET /users/by-email` pozostawiony jako niezależny getter; `User.email` pozostaje źródłem prawdy.
+
+Najbliższe prace:
+
+- middleware cookie -> `request.state.current_user_id`;
+- usunięcie fallbacku `"system"` z tras user-owned i user scoping;
+- testy cookie, revocation, expiry, scoping, frontend cookie-only i E2E;
+- aktualizacja frontendowych legacy referencji w osobnym checkoutcie, jeśli są nadal używane.
+
+Workflowowa `Session` nie jest tworzona automatycznie przez `POST /auth_session/login`; pozostaje obsługiwana przez jawny endpoint/proces.

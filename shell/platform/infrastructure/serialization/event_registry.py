@@ -311,9 +311,6 @@ from shell.application.user.user.integration_events.user_created_integration_eve
 from shell.application.user.user.integration_events.user_deleted_integration_event import (
     UserDeletedIntegrationEvent,
 )
-from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
-    UserLoginSucceededIntegrationEvent,
-)
 from shell.application.user.user.integration_events.user_updated_integration_event import (
     UserUpdatedIntegrationEvent,
 )
@@ -623,9 +620,6 @@ from shell.domain.session.aggregates.session_state.events.session_state_updated_
 )
 from shell.domain.user.aggregates.user.events.user_created_event import UserCreatedEvent
 from shell.domain.user.aggregates.user.events.user_deleted_event import UserDeletedEvent
-from shell.domain.user.aggregates.user.events.user_login_succeeded_event import (
-    UserLoginSucceededEvent,
-)
 from shell.domain.user.aggregates.user.events.user_updated_event import UserUpdatedEvent
 from shell.domain.user.aggregates.user_skill.events.user_skill_created_event import (
     UserSkillCreatedEvent,
@@ -842,8 +836,6 @@ def build_event_registry() -> dict[str, type]:
         UserExecutionStateUpdatedIntegrationEvent,
         UserExecutionUpdatedEvent,
         UserExecutionUpdatedIntegrationEvent,
-        UserLoginSucceededEvent,
-        UserLoginSucceededIntegrationEvent,
         UserSkillCreatedEvent,
         UserSkillCreatedIntegrationEvent,
         UserSkillDeletedEvent,

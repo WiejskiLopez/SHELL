@@ -4,8 +4,6 @@ from shell.domain.user.aggregates.auth_session.auth_session import AuthSession
 from shell.domain.user.aggregates.auth_session.events import (
     AuthSessionCreatedEvent,
     AuthSessionDeletedEvent,
-    AuthSessionLoginFailedEvent,
-    AuthSessionLoginSucceededEvent,
     AuthSessionRevokedEvent,
     AuthSessionUpdatedEvent,
 )
@@ -32,6 +30,4 @@ __all__ = [
     "AuthSessionUpdatedEvent",
     "AuthSessionRevokedEvent",
     "AuthSessionDeletedEvent",
-    "AuthSessionLoginSucceededEvent",
-    "AuthSessionLoginFailedEvent",
 ]

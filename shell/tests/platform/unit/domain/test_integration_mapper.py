@@ -21,10 +21,6 @@ from shell.domain.execution.aggregates.session_execution.value_objects.session_e
 from shell.domain.session.aggregates.session.events.session_opened_event import SessionOpenedEvent
 from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
 from shell.domain.session.value_objects.user_id_ref import UserIdRef
-from shell.domain.user.aggregates.user.events.user_login_succeeded_event import (
-    UserLoginSucceededEvent,
-)
-from shell.domain.user.value_objects.user_id import UserId
 from shell.platform.application.context.causation_id import get_causation_id
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.application.events import IntegrationEvent
@@ -52,18 +48,6 @@ class TestReflectiveIntegrationMapper:
         assert result.correlation_id == get_correlation_id()
         assert result.causation_id == get_causation_id()
         assert result.session_id == event.session_id.value  # type: ignore[attr-defined]
-        assert result.user_id == event.user_id.value  # type: ignore[attr-defined]
-
-    def test_map_user_login_succeeded(self) -> None:
-        event = UserLoginSucceededEvent.now(
-            user_id=UserId.generate(),
-            now=_NOW,
-        )
-        result: IntegrationEvent = self._mapper.map(event)  # type: ignore[assignment]
-        assert type(result).__name__ == "UserLoginSucceededIntegrationEvent"
-        assert isinstance(result, IntegrationEvent)
-        assert result.correlation_id == get_correlation_id()
-        assert result.causation_id == get_causation_id()
         assert result.user_id == event.user_id.value  # type: ignore[attr-defined]
 
     def test_map_event_with_nullable_fields(self) -> None:

@@ -4,9 +4,6 @@ from typing import TYPE_CHECKING, Self
 
 from shell.domain.user.aggregates.user.events.user_created_event import UserCreatedEvent
 from shell.domain.user.aggregates.user.events.user_deleted_event import UserDeletedEvent
-from shell.domain.user.aggregates.user.events.user_login_succeeded_event import (
-    UserLoginSucceededEvent,
-)
 from shell.domain.user.aggregates.user.events.user_updated_event import UserUpdatedEvent
 from shell.domain.user.value_objects.user_id import UserId
 from shell.domain.user.value_objects.user_status import UserStatus
@@ -171,7 +168,3 @@ class User(AggregateRoot[UserId]):
             raise DomainError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED
 
-    def login(self, now: OccurredAt) -> None:
-        if self._deleted_at.value is not None:
-            raise DomainError("Cannot login a deleted user")
-        self.append_event(UserLoginSucceededEvent.now(user_id=self._id, now=now))

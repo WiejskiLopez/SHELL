@@ -82,6 +82,9 @@ from shell.application.session.session.queries.list_sessions_query import ListSe
 from shell.application.session.session_state.queries.get_session_state_by_id_query import (
     GetSessionStateByIdQuery,
 )
+from shell.application.user.auth_session.queries.get_current_auth_session_query import (
+    GetCurrentAuthSessionQuery,
+)
 from shell.application.user.user.queries.get_user_by_email_query import (
     GetUserByEmailQuery,
 )
@@ -127,6 +130,7 @@ def register_queries(container: Container) -> None:
     q_bus.register(GetGraphExecutionByIdQuery, queries.get_graph_execution_handler_factory)
     q_bus.register(GetUserByIdQuery, queries.get_user_handler_factory)
     q_bus.register(GetUserByEmailQuery, queries.get_user_by_email_handler_factory)
+    q_bus.register(GetCurrentAuthSessionQuery, queries.get_current_auth_session_handler_factory)
     q_bus.register(GetUserSkillByIdQuery, queries.get_user_skill_handler_factory)
     q_bus.register(GetUserStateByIdQuery, queries.get_user_state_handler_factory)
     q_bus.register(GetUserExecutionByIdQuery, queries.get_user_execution_handler_factory)

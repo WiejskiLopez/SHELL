@@ -5,7 +5,6 @@ from fastapi import APIRouter, Depends, Query
 from shell.framework.user.user.api.controller import UserController
 from shell.framework.user.user.api.create_user_request import CreateUserRequest
 from shell.framework.user.user.api.create_user_response import CreateUserResponse
-from shell.framework.user.user.api.login_request import LoginRequest
 from shell.framework.user.user.api.login_response import LoginResponse
 from shell.framework.user.user.api.update_user_request import UpdateUserRequest
 from shell.framework.user.user.api.user_response import UserResponse
@@ -41,14 +40,6 @@ async def get_user_by_email(
     controller: UserController = Depends(get_user_controller),
 ) -> LoginResponse:
     return await controller.get_user_by_email(email)
-
-
-@router.post("/login", response_model=LoginResponse)
-async def login(
-    body: LoginRequest,
-    controller: UserController = Depends(get_user_controller),
-) -> LoginResponse:
-    return await controller.login(body)
 
 
 @router.get("/{user_id}", response_model=UserResponse)

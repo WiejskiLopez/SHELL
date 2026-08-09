@@ -1,18 +1,31 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from http.cookies import SimpleCookie
 from typing import TYPE_CHECKING
 
 import jwt
 from starlette.responses import JSONResponse
 
+from shell.application.user.auth_session.queries.get_current_auth_session_query import (
+    GetCurrentAuthSessionQuery,
+)
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.framework.api.models.problem_detail import ProblemDetail
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
 
-PUBLIC_EXACT = frozenset({"/health", "/api", "/api/v1/users/by-email", "/api/v1/users/login"})
+PUBLIC_EXACT = frozenset(
+    {
+        "/health",
+        "/api",
+        "/api/v1/users/by-email",
+        "/api/v1/auth_session/login",
+        "/api/v1/auth_session/me",
+        "/api/v1/auth_session/logout",
+    }
+)
 PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
@@ -33,7 +46,7 @@ class AuthMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        user_id = await self._resolve_user(headers)
+        user_id = await self._resolve_user(scope, headers)
         if user_id is None:
             problem = ProblemDetail(
                 title="Unauthorized",
@@ -55,7 +68,17 @@ class AuthMiddleware:
             return True
         return any(path.startswith(prefix) for prefix in PUBLIC_PREFIX)
 
-    async def _resolve_user(self, headers: dict[bytes, bytes]) -> str | None:
+    async def _resolve_user(self, scope: Scope, headers: dict[bytes, bytes]) -> str | None:
+        session_token = self._session_token(headers)
+        if session_token:
+            query_bus = self._query_bus(scope)
+            if query_bus is not None:
+                session = await query_bus.dispatch(
+                    GetCurrentAuthSessionQuery(token=session_token)
+                )
+                if session is not None:
+                    return session.user_id
+
         auth = headers.get(b"authorization", b"").decode()
         if auth.startswith("Bearer "):
             token = auth[7:]
@@ -66,6 +89,23 @@ class AuthMiddleware:
             return "system"
 
         return None
+
+    @staticmethod
+    def _session_token(headers: dict[bytes, bytes]) -> str | None:
+        cookie_header = headers.get(b"cookie", b"").decode()
+        cookies = SimpleCookie()
+        cookies.load(cookie_header)
+        morsel = cookies.get("shell_session")
+        return morsel.value if morsel is not None and morsel.value else None
+
+    @staticmethod
+    def _query_bus(scope: Scope) -> object | None:
+        app = scope.get("app")
+        state = getattr(app, "state", None)
+        container = getattr(state, "core_container", None)
+        application = getattr(container, "app", None)
+        buses = getattr(application, "buses", None)
+        return getattr(buses, "query_bus", None)
 
     async def _validate_jwt(self, token: str) -> str | None:
         if not self._jwt_secret:

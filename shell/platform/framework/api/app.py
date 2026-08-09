@@ -29,6 +29,7 @@ from shell.framework.scheduling.scheduler_execution.api.router import (
 )
 from shell.framework.scheduling.scheduler_job.api.router import router as scheduler_jobs_router
 from shell.framework.session.session.api.router import router as sessions_router
+from shell.framework.user.auth_session.api.router import router as auth_sessions_router
 from shell.framework.user.user.api.router import router as users_router
 from shell.platform.application.exceptions import ApplicationError
 from shell.platform.bootstrap.config_logging.setup_logging import setup_logging
@@ -114,6 +115,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.include_router(graph_definitions_router, prefix="/api/v1")
     app.include_router(sessions_router, prefix="/api/v1")
     app.include_router(users_router, prefix="/api/v1")
+    app.include_router(auth_sessions_router, prefix="/api/v1")
     app.include_router(projects_router, prefix="/api/v1")
     app.include_router(message_routers_router, prefix="/api/v1")
     app.include_router(scheduler_definitions_router, prefix="/api/v1")

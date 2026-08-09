@@ -12,20 +12,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.user.user.integration_events.user_login_succeeded_integration_event import (
-    UserLoginSucceededIntegrationEvent,
-)
-
 if TYPE_CHECKING:
     from shell.platform.bootstrap.container.core_container import CoreContainer
 
 
-def register_events(core_container: CoreContainer) -> None:
-    """Subscribe all event handlers to the event bus."""
-    event_bus = core_container.app.buses.event_bus
-    event_handlers = core_container.app.event_handlers
+def register_events(_core_container: CoreContainer) -> None:
+    """Register cross-context event subscriptions."""
 
-    event_bus.subscribe(
-        UserLoginSucceededIntegrationEvent,
-        event_handlers.user_login_succeeded_handler_factory,
-    )
