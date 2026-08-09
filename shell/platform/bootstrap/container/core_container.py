@@ -73,7 +73,7 @@ from shell.application.session.session_state.query_handlers.get_session_state_by
 )
 from shell.application.user.user.command_handlers.create_user_handler import CreateUserHandler
 from shell.application.user.user.command_handlers.delete_user_handler import DeleteUserHandler
-from shell.application.user.user.command_handlers.login_handler import LoginHandler
+from shell.application.user.user.command_handlers.login_user_handler import LoginUserHandler
 from shell.application.user.user.command_handlers.update_user_handler import UpdateUserHandler
 from shell.application.user.user.query_handlers.get_user_by_email_handler import (
     GetUserByEmailHandler,
@@ -151,6 +151,12 @@ from shell.infrastructure.session.session.persistence.sql.services.session_query
 )
 from shell.infrastructure.session.session_state.persistence.sql.services.session_state_query_service import (
     SessionStateQueryService,
+)
+from shell.infrastructure.user.auth_session.services.secure_token_generator import (
+    SecureTokenGenerator,
+)
+from shell.infrastructure.user.auth_session.services.user_query_provider import (
+    SqlUserQueryProvider,
 )
 from shell.infrastructure.user.user.persistence.sql.services.user_query_service import (
     UserQueryService,
@@ -312,6 +318,9 @@ if TYPE_CHECKING:
     from shell.application.session.session.event_handlers.user_login_succeeded_handler import (
         UserLoginSucceededHandler,
     )
+    from shell.application.user.auth_session.command_handlers.login_auth_session_handler import (
+        LoginAuthSessionHandler,
+    )
     from shell.application.user.user_state.query_handlers.get_user_state_by_id_handler import (
         GetUserStateByIdHandler,
     )
@@ -384,6 +393,8 @@ class Infrastructure:
         self.stdlib_logger = StdlibLogger("shell")
         self.clock_factory = lambda: SystemClock()
         self.id_generator_factory = lambda: UuidIdGenerator()
+        self.token_generator_factory = lambda: SecureTokenGenerator()
+        self.user_query_provider = SqlUserQueryProvider(self.user_query_service)
         self.task_execution_loader_factory = lambda: FileSystemTaskLoader()
 
         # HTTP clients for cross-BC communication
@@ -556,11 +567,32 @@ class Commands:
             clock=self._infra.clock_factory(),
         )
 
-    def login_handler_factory(self) -> LoginHandler:
-        return LoginHandler(
+    def login_user_handler_factory(self) -> LoginUserHandler:
+        return LoginUserHandler(
             unit_of_work=self._infra.unit_of_work_factory(),
             queries=self._infra.user_query_service,
             clock=self._infra.clock_factory(),
+        )
+
+    def login_auth_session_handler_factory(self) -> LoginAuthSessionHandler:
+        from datetime import timedelta
+
+        from shell.application.user.auth_session.command_handlers.login_auth_session_handler import (
+            LoginAuthSessionHandler,
+        )
+        from shell.domain.user.services.auth_session_management_service import (
+            AuthSessionManagementService,
+        )
+
+        return LoginAuthSessionHandler(
+            unit_of_work=self._infra.unit_of_work_factory(),
+            user_query_provider=self._infra.user_query_provider,
+            clock=self._infra.clock_factory(),
+            token_generator=self._infra.token_generator_factory(),
+            auth_session_service=AuthSessionManagementService(
+                id_generator=self._infra.id_generator_factory(),
+                session_ttl=timedelta(hours=24),
+            ),
         )
 
     def open_session_handler_factory(self) -> OpenSessionHandler:

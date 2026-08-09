@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class LoginCommand:
+class LoginAuthSessionCommand:
     email: str
 
     def __post_init__(self) -> None:

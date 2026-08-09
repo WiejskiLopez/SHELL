@@ -4,9 +4,9 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
-class CloseSessionCommand:
-    session_id: str
+class LoginUserCommand:
+    email: str
 
     def __post_init__(self) -> None:
-        if not self.session_id:
-            raise ValueError("session_id cannot be empty")
+        if not self.email:
+            raise ValueError("email cannot be empty")

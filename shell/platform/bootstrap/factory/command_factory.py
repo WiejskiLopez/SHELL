@@ -94,9 +94,12 @@ from shell.application.session.session.commands.open_session_command import (
 from shell.application.session.session.commands.update_session_command import (
     UpdateSessionCommand,
 )
+from shell.application.user.auth_session.commands.login_auth_session_command import (
+    LoginAuthSessionCommand,
+)
 from shell.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.application.user.user.commands.login_command import LoginCommand
+from shell.application.user.user.commands.login_user_command import LoginUserCommand
 from shell.application.user.user.commands.update_user_command import UpdateUserCommand
 
 if TYPE_CHECKING:
@@ -145,9 +148,10 @@ def register_commands(container: Container) -> None:
     )
 
     cmd_bus.register(CreateUserCommand, commands.create_user_handler_factory)
-    cmd_bus.register(LoginCommand, commands.login_handler_factory)
+    cmd_bus.register(LoginUserCommand, commands.login_user_handler_factory)
     cmd_bus.register(UpdateUserCommand, commands.update_user_handler_factory)
     cmd_bus.register(DeleteUserCommand, commands.delete_user_handler_factory)
+    cmd_bus.register(LoginAuthSessionCommand, commands.login_auth_session_handler_factory)
 
     cmd_bus.register(OpenSessionCommand, commands.open_session_handler_factory)
     cmd_bus.register(CloseSessionCommand, commands.close_session_handler_factory)

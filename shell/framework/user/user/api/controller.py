@@ -6,7 +6,7 @@ from fastapi import HTTPException
 
 from shell.application.user.user.commands.create_user_command import CreateUserCommand
 from shell.application.user.user.commands.delete_user_command import DeleteUserCommand
-from shell.application.user.user.commands.login_command import LoginCommand
+from shell.application.user.user.commands.login_user_command import LoginUserCommand
 from shell.application.user.user.commands.update_user_command import UpdateUserCommand
 from shell.application.user.user.queries.get_user_by_email_query import GetUserByEmailQuery
 from shell.application.user.user.queries.get_user_by_id_query import GetUserByIdQuery
@@ -77,7 +77,7 @@ class UserController:
 
     async def login(self, body: ApiLoginRequest) -> ApiLoginResponse:
         try:
-            user_id = await self._command_bus.dispatch(LoginCommand(email=body.email))
+            user_id = await self._command_bus.dispatch(LoginUserCommand(email=body.email))
         except ValueError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         return ApiLoginResponse(id=user_id)

@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from shell.domain.user.aggregates.auth_session.repositories.auth_session_repository import (
+    AuthSessionRepository,
+)
 from shell.domain.user.aggregates.user.repositories.user_repository import UserRepository
+from shell.infrastructure.user.auth_session.persistence.sql.repositories.sql_auth_session_repository import (
+    SqlAuthSessionRepository,
+)
 from shell.infrastructure.user.user.persistence.sql.repositories.sql_user_repository import (
     SqlUserRepository,
 )
@@ -13,6 +19,7 @@ if TYPE_CHECKING:
 
 _REPO_MAP: dict[type, type] = {
     UserRepository: SqlUserRepository,
+    AuthSessionRepository: SqlAuthSessionRepository,
 }
 
 

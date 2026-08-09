@@ -61,61 +61,77 @@ class EmailNotificationAdapter:
 - Gdy BC komunikuje się z systemem legacy / zewnętrznym, ACL izoluje BC od 'zepsutego' modelu danych zewnętrznego systemu.
 - Stosuj gdy: integracja z systemem legacy, zewnętrzne API o słabym/zmiennym kontrakcie, migracja (strangler fig pattern), third-party SaaS.
 
-## Adaptery cross-aggregate data retrieval
+## Porty serwisów domenowych i adaptery (wzorzec `services/`)
 
-Adaptery do pobierania danych z innych agregatów (w obrębie BC, subdomeny lub zewnętrznego mikroserwisu) implementują port zdefiniowany w domenie konsumującej.
+Gdy agregat A potrzebuje danych z zewnątrz (inny agregat tego samego BC, subdomena, zewnętrzny mikroserwis, usługa techniczna jak generator tokena), konsumujący definiuje **port w swoim podfolderze**, a implementacja ląduje w **infrastrukturze tego samego agregatu**.
 
 ### Lokalizacja
 
 ```
-shell/infrastructure/<bc>/services/
-    <nazwa_agregatu>/
-        workflow_data_adapter.py
-        eligibility_adapter.py
+# Port (domena konsumująca)
+shell/domain/<bc>/aggregates/<agregat>/services/
+    <nazwa_portu>.py                      # np. token_generator.py, workflow_data_port.py
+
+# Adapter (infrastruktura tego samego agregatu)
+shell/infrastructure/<bc>/<aggregate>/services/
+    <nazwa_adaptera>.py                   # np. secure_token_generator.py, sql_workflow_data_adapter.py
 ```
 
-Folder `<nazwa_agregatu>` skupia wszystkie adaptery związane z danym agregatem. Jeśli agregat zostanie wydzielony do osobnego mikroserwisu, cały folder jest przenoszony — adaptery zaczynają wołać HTTP zamiast lokalnego repozytorium, a reszta systemu (domena, aplikacja) pozostaje bez zmian.
+Port i adapter leżą w poddrzewie **tego samego agregatu**, który ich potrzebuje — nie w wydzielonym katalogu `services/` na poziomie BC, nie obok persystencji (`persistence/`). Folder `services/` agregatu w infrastrukturze skupia wyłącznie zewnętrzne implementacje portów tego agregatu.
+
+Przykład (agregat `AuthSession`, BC `user`):
+
+```
+shell/domain/user/aggregates/auth_session/services/
+    token_generator.py                     # class TokenGenerator(Protocol): generate() -> str
+
+shell/infrastructure/user/auth_session/services/
+    secure_token_generator.py              # class SecureTokenGenerator: generate() -> str
+```
 
 ### Zasady
 
-1. **Adapter implementuje port konsumującego** — port jest w `shell/domain/<konsumujący_bc>/services/`, adapter w `shell/infrastructure/<konsumujący_bc>/services/<nazwa_agregatu>/`.
+1. **Adapter implementuje port konsumującego** — port w `shell/domain/<bc>/aggregates/<agregat>/services/`, adapter w `shell/infrastructure/<bc>/<aggregate>/services/`.
 2. **Mapowanie na VO konsumującego** — adapter pobiera dane ze źródła (repozytorium, HTTP API, gRPC) i mapuje na Value Objecty domeny konsumującej. Nigdy nie przepuszcza surowych DTO źródła.
-3. **Async** — każda metoda adaptera jest `async`.
+3. **Async** — metody adaptera pobierające dane są `async` (usługi techniczne, np. generator tokena, mogą być synchroniczne).
 4. **Error handling** — błędy sieciowe/timeouty są łapane i opakowywane w dedykowane wyjątki domenowe (np. `WorkflowDataUnavailable`). Adapter nie propaguje surowych wyjątków HTTP/transportowych.
 5. **Retry / Circuit Breaker** — stosowany na poziomie adaptera, nie domeny.
+6. **Domain service korzysta z portu, nie z adaptera** — serwis domenowy (`AuthSessionManagementService`) dostaje port wstrzyknięty w konstruktorze; decyzje podejmuje na danych z portu, nigdy nie woła infrastruktury.
 
 ```python
-# Adapter lokalny (przed ekstrakcją mikroserwisu)
-class LocalEligibilityAdapter:
-    def __init__(self, repo: EligibilityRepository, mapper: EligibilityMapper) -> None:
-        self._repo = repo
-        self._mapper = mapper
+# Port (domain/<bc>/aggregates/<agregat>/services/user_lookup_port.py)
+class UserLookupPort(Protocol):
+    async def get_by_email(self, email: UserEmail) -> User | None: ...
+```
 
-    async def check(self, customer_id: CustomerId) -> Eligibility:
-        model = await self._repo.get_by_customer_id(customer_id)
-        return self._mapper.to_domain(model)
+```python
+# Adapter (infrastructure/<bc>/<aggregate>/services/sql_user_lookup_adapter.py)
+class SqlUserLookupAdapter:
+    def __init__(self, repo: UserRepository) -> None:
+        self._repo = repo
+
+    async def get_by_email(self, email: UserEmail) -> User | None:
+        return await self._repo.get_by_email(email)
 ```
 
 ```python
 # Adapter HTTP (po ekstrakcji mikroserwisu — reszta systemu bez zmian)
-class HttpEligibilityAdapter:
+class HttpUserLookupAdapter:
     def __init__(self, http_client: HttpClient) -> None:
         self._http_client = http_client
 
-    async def check(self, customer_id: CustomerId) -> Eligibility:
+    async def get_by_email(self, email: UserEmail) -> User | None:
         try:
-            raw = await self._http_client.get(
-                f"/eligibility/{customer_id.value}"
-            )
-            return Eligibility.from_dict(raw)
+            raw = await self._http_client.get(f"/users/by-email?email={email.value}")
+            return User.restore(...)
         except HttpTimeoutError as e:
-            raise EligibilityDataUnavailable(customer_id) from e
+            raise UserLookupUnavailable(email) from e
 ```
 
 ### Minimalizacja coupling
 
 Dzięki tej strukturze wydzielenie agregatu do osobnego mikroserwisu wymaga tylko:
-1. Skopiowania folderu `infrastructure/<bc>/services/<agregat>/` do nowego serwisu.
+1. Skopiowania folderu `infrastructure/<bc>/<aggregate>/services/` do nowego serwisu.
 2. Zmiany implementacji adapterów (lokalne repo → HTTP).
 3. Reszta systemu (domena, aplikacja, handlery) — **zero zmian**.
 
@@ -123,5 +139,5 @@ Dzięki tej strukturze wydzielenie agregatu do osobnego mikroserwisu wymaga tylk
 
 ## Lokalizacja
 
-- Porty: `shell/domain/platform/ports/` (uniwersalne), `shell/domain/<bc>/aggregates/<agregat>/repositories/` (repozytoria), `shell/domain/<bc>/aggregates/<agregat>/services/` (serwisy)
-- Adaptery: `shell/infrastructure/platform/time/`, `shell/infrastructure/platform/identity/`, `shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`, `shell/infrastructure/<bc>/<aggregate>/persistence/memory/`, `shell/infrastructure/<bc>/http/`, `shell/infrastructure/<bc>/acl/`
+- Porty: `shell/domain/platform/ports/` (uniwersalne), `shell/domain/<bc>/aggregates/<agregat>/repositories/` (repozytoria), `shell/domain/<bc>/aggregates/<agregat>/services/` (serwisy i porty serwisów domenowych)
+- Adaptery: `shell/infrastructure/platform/time/`, `shell/infrastructure/platform/identity/`, `shell/infrastructure/<bc>/<aggregate>/persistence/sql/repositories/`, `shell/infrastructure/<bc>/<aggregate>/persistence/memory/`, `shell/infrastructure/<bc>/<aggregate>/services/`, `shell/infrastructure/<bc>/http/`, `shell/infrastructure/<bc>/acl/`

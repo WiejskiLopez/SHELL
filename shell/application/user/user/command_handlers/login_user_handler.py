@@ -7,13 +7,13 @@ from shell.domain.user.value_objects.user_id import UserId
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 
 if TYPE_CHECKING:
-    from shell.application.user.user.commands.login_command import LoginCommand
+    from shell.application.user.user.commands.login_user_command import LoginUserCommand
     from shell.application.user.user.ports.user_query_service import UserQueryService
     from shell.platform.application.ports.unit_of_work import UnitOfWork
     from shell.platform.domain.ports.time import Clock
 
 
-class LoginHandler:
+class LoginUserHandler:
     def __init__(
         self,
         unit_of_work: UnitOfWork,
@@ -24,7 +24,7 @@ class LoginHandler:
         self._queries = queries
         self._clock = clock
 
-    async def handle(self, command: LoginCommand) -> str:
+    async def handle(self, command: LoginUserCommand) -> str:
         async with self._unit_of_work as unit_of_work:
             user_dto = await self._queries.get_by_email(command.email)
             if user_dto is None:

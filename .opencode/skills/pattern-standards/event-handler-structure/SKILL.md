@@ -15,9 +15,9 @@ description: Reguły struktury Event Handler — subskrypcja eventów, idempoten
 | | Command | Event |
 |--|---------|-------|
 | **Bus** | `CommandBus` w `Buses` | `EventBus` w `Buses` |
-| **Message** | `LoginCommand` — `application/.../commands/` | `UserLoginSucceededIntegrationEvent` — `application/.../integration_events/` |
-| **Handler** | `LoginHandler` — `application/.../command_handlers/` | `UserLoginSucceededHandler` — `application/.../event_handlers/` |
-| **DI fabryki** | `Commands` → `login_handler_factory()` | `EventHandlers` → `user_login_succeeded_handler_factory()` |
+| **Message** | `LoginUserCommand` — `application/.../commands/` | `UserLoginSucceededIntegrationEvent` — `application/.../integration_events/` |
+| **Handler** | `LoginUserHandler` — `application/.../command_handlers/` | `UserLoginSucceededHandler` — `application/.../event_handlers/` |
+| **DI fabryki** | `Commands` → `login_user_handler_factory()` | `EventHandlers` → `user_login_succeeded_handler_factory()` |
 | **Rejestracja** | `command_factory.py`: `cmd_bus.register(...)` | `event_factory.py`: `event_bus.subscribe(...)` |
 
 ---
@@ -53,7 +53,7 @@ class UserLoginSucceededIntegrationEvent(IntegrationEvent):
 ## Pełny przepływ eventu
 
 ```
-Handler źródłowy (np. LoginHandler)
+Handler źródłowy (np. LoginUserHandler)
   → stage_events([UserLoginSucceededIntegrationEvent])
     → UoW commit → serializacja → outbox_event (DB)
       → EventOutboxToInboxRelay → inbox_event (DB)

@@ -97,6 +97,9 @@ async def handle(self, command: SomeCommand) -> None:
 
 ## Klasa
 
+- Nazwa klasy command handlera musi miec postac `<Operation><Aggregate>Handler`.
+- Nazwa pliku command handlera musi miec postac `<operation>_<aggregate>_handler.py`.
+- Nazwa operacji musi zawierac agregat, którego stan zmienia handler.
 - Zależności wstrzykiwane przez konstruktor.
 - Porty repozytoriów i serwisów w TYPE_CHECKING.
 - Import komendy może być w TYPE_CHECKING — używana tylko w sygnaturze `handle()`.
