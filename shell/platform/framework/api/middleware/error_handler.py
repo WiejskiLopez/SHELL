@@ -1,4 +1,4 @@
-"""Error handler middleware — maps DomainErrors to 4xx HTTP responses.
+"""Error handler middleware — maps expected errors to HTTP responses.
 
 BC-specific exception mappings should be added via per-BC middleware.
 """
@@ -9,6 +9,9 @@ from typing import TYPE_CHECKING
 
 from fastapi.responses import JSONResponse
 
+from shell.platform.application.exceptions import (  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
+    ApplicationError,
+)
 from shell.platform.domain.exceptions import (
     DomainError,  # noqa: TC001 — potrzebny w runtime dla isinstance() i handlera wyjątków
 )
@@ -25,6 +28,10 @@ if TYPE_CHECKING:
 async def domain_error_handler(request: Request, exc: DomainError) -> JSONResponse:
     if isinstance(exc, ConcurrentModificationError):
         return JSONResponse(status_code=409, content={"detail": str(exc)})
+    return JSONResponse(status_code=400, content={"detail": str(exc)})
+
+
+async def application_error_handler(request: Request, exc: ApplicationError) -> JSONResponse:
     return JSONResponse(status_code=400, content={"detail": str(exc)})
 
 

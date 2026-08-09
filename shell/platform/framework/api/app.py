@@ -30,10 +30,12 @@ from shell.framework.scheduling.scheduler_execution.api.router import (
 from shell.framework.scheduling.scheduler_job.api.router import router as scheduler_jobs_router
 from shell.framework.session.session.api.router import router as sessions_router
 from shell.framework.user.user.api.router import router as users_router
+from shell.platform.application.exceptions import ApplicationError
 from shell.platform.bootstrap.config_logging.setup_logging import setup_logging
 from shell.platform.domain.exceptions import DomainError
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import (
+    application_error_handler,
     domain_error_handler,
     http_exception_handler,
     unhandled_exception_handler,
@@ -100,6 +102,7 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
     app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(ApplicationError, application_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
     # Routers — wszystkie agregaty pod /api/v1/ dla spójnego versionowania

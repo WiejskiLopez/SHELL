@@ -186,6 +186,7 @@ def test_domain_events_are_frozen_dataclass() -> None:
 
 
 # ── 6a. Domain Event fields carry only IDs (not aggregate properties) ─
+# This is a closed contract: do not add non-ID fields to domain events.
 
 _EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset(
     {
@@ -193,10 +194,9 @@ _EVENT_FIELD_ALLOWLIST: frozenset[str] = frozenset(
     }
 )
 
-_KNOWN_EVENT_FIELD_VIOLATIONS: frozenset[str] = frozenset({})
-
 
 def test_domain_event_fields_are_ids_only() -> None:
+    """Domain events may contain only IDs and the timestamp field."""
     violations: list[str] = []
     for path in iter_py_files(BASE / "domain"):
         tree = parse_file(path)
@@ -216,11 +216,10 @@ def test_domain_event_fields_are_ids_only() -> None:
                 if name.endswith("_id"):
                     continue
                 key = f"{path.relative_to(BASE)}: {node.name}.{name}"
-                if key not in _KNOWN_EVENT_FIELD_VIOLATIONS:
-                    violations.append(key)
+                violations.append(key)
     assert not violations, (
-        "DomainEvent fields must be IDs only (suffix `_id`) or in ALLOWLIST "
-        "(occurred_at):\n" + "\n".join(violations)
+        "DomainEvent fields are a closed contract: only ID fields (suffix `_id`) "
+        "and `occurred_at` are allowed. Do not add other fields:\n" + "\n".join(violations)
     )
 
 

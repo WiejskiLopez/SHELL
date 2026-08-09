@@ -33,9 +33,9 @@ class WorkflowName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value:
-            raise ValueError('Workflow name cannot be empty')
+            raise WorkflowNameEmptyError()
         if len(self.value) > 100:
-            raise ValueError('Workflow name too long')
+            raise WorkflowNameTooLongError()
 ```
 
 ```python
@@ -46,12 +46,12 @@ class EmailAddress(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.local_part or not self.domain:
-            raise ValueError('Invalid email address')
+            raise EmailAddressInvalidError()
 ```
 
 ## Walidacja
 
-- Każdy VO waliduje swój stan w `__post_init__` i rzuca `ValueError` jeśli nie spełnia invariantów.
+- Każdy VO waliduje swój stan w `__post_init__` i rzuca dedykowany błąd domenowy, jeśli nie spełnia invariantów.
 - Fail-fast — walidacja przy konstrukcji, nie przy użyciu.
 
 ## Zachowania biznesowe
@@ -150,7 +150,7 @@ class EmailId(EntityId):
     def __post_init__(self) -> None:
         super().__post_init__()
         if "@" not in self.value:
-            raise ValueError("EmailId must contain @")
+            raise EmailIdInvalidFormatError()
 ```
 
 ## Lokalizacja

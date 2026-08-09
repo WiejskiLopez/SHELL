@@ -1,4 +1,4 @@
-"""Platform exceptions — base class for all domain errors."""
+"""Platform exceptions shared by the domain layer."""
 
 from __future__ import annotations
 

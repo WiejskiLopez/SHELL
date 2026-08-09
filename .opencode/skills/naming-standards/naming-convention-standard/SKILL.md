@@ -57,7 +57,8 @@ Wszystkie artefakty wywodzą się z tej samej Capability.
 | Mapper | `<Aggregate>Mapper` | `InvoiceMapper` | Aggregate |
 | Entity / Aggregate Root | `<Aggregate>` | `Invoice` | Aggregate |
 | Value Object | `<DomainConcept>` | `InvoiceId`, `Money`, `Email` | Domain Concept |
-| Exception | `<Aggregate><Problem>Exception` | `InvoiceNotFoundException` | Aggregate + Problem |
+| Domain Error | `<Aggregate><Problem>Error` | `InvoiceNotFoundError` | Aggregate + Problem |
+| Application Error | `<Aggregate><Problem>Error` | `InvoiceNotFoundError` | Use case + Problem |
 | Agent | `<BusinessCapability>Agent` | `ApproveInvoiceAgent` | Capability |
 
 ## 3. Domain Methods

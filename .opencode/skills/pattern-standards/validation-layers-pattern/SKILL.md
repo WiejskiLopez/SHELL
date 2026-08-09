@@ -53,9 +53,9 @@ class WorkflowName(ValueObject):
 
     def __post_init__(self) -> None:
         if not self.value.strip():
-            raise ValueError('Workflow name cannot be empty')
+            raise WorkflowNameEmptyError()
         if len(self.value) > 100:
-            raise ValueError('Workflow name too long')
+            raise WorkflowNameTooLongError()
 ```
 
 ```python
@@ -90,4 +90,4 @@ class StartWorkflowCommand:
 |---------|-------------|-----------|------|
 | API | Typy, formaty, zakresy | Pydantic | HTTP 422 |
 | Application | Autoryzacja, quota,跨-polowa | Validator | Wyjątek aplikacyjny |
-| Domain | Invarianty biznesowe | VO / Aggregate | DomainError |
+| Domain | Invarianty biznesowe | VO / Aggregate | Dedykowany `...Error` dziedziczący po `DomainError` |

@@ -48,7 +48,7 @@ GraphDefinitionDto  →  graph_definition_dto.py
 | Message Handler | `<aggregate>_<description>_handler.py` | `invoice_summary_handler.py` |
 | DTO | `<aggregate>_<projection>_dto.py` | `invoice_summary_dto.py` |
 | Domain Event | `<aggregate>_<past_verb>_event.py` | `invoice_approved_event.py` |
-| Domain Exception | `<aggregate>_<problem>_exception.py` | `invoice_not_found_exception.py` |
+| Domain Error | `<aggregate>_<problem>_error.py` | `invoice_not_found_error.py` |
 | Entity (child) | `<entity_name>.py` | `envelope_event.py` |
 | VO | `<vo_name>.py` | `invoice_id.py` |
 | Domain Service | `<aggregate>_<process>_service.py` | `invoice_pricing_service.py` |
