@@ -13,9 +13,6 @@ from shell.application.messaging.message_router.commands.delete_message_router_c
 from shell.application.messaging.message_router.commands.update_message_router_command import (
     UpdateMessageRouterCommand,
 )
-from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
-    MessageRouterId,
-)
 from shell.framework.messaging.message_router.api.create_message_router_request import (
     CreateMessageRouterRequest as ApiCreateMessageRouterRequest,
 )
@@ -48,7 +45,7 @@ class MessageRouterController:
         self._query_service = query_service
 
     async def get_message_router(self, message_router_id: str) -> ApiMessageRouterResponse:
-        result = await self._query_service.get_by_id(MessageRouterId(message_router_id))
+        result = await self._query_service.get_by_id(message_router_id)
         if result is None:
             raise HTTPException(
                 status_code=404, detail=f"MessageRouter '{message_router_id}' not found"

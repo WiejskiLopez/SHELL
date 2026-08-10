@@ -34,6 +34,7 @@ from shell.framework.user.user.api.router import router as users_router
 from shell.platform.application.exceptions import ApplicationError
 from shell.platform.bootstrap.config_logging.setup_logging import setup_logging
 from shell.platform.domain.exceptions import DomainError
+from shell.platform.framework.api.middleware.api_key import AuthMiddleware
 from shell.platform.framework.api.middleware.correlation_id import CorrelationIdMiddleware
 from shell.platform.framework.api.middleware.error_handler import (
     application_error_handler,
@@ -43,6 +44,7 @@ from shell.platform.framework.api.middleware.error_handler import (
     validation_error_handler,
 )
 from shell.platform.framework.api.openapi import configure_openapi
+from shell.platform.framework.api.setup import resolve_api_key, resolve_jwt_secret
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -100,6 +102,11 @@ def create_monolith_app(core_container: CoreContainer) -> FastAPI:
         allow_headers=["Content-Type", "Authorization", "X-Correlation-ID"],
     )
     app.add_middleware(CorrelationIdMiddleware)
+    app.add_middleware(
+        AuthMiddleware,
+        api_key=resolve_api_key(core_container),
+        jwt_secret=resolve_jwt_secret(core_container),
+    )
     app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(DomainError, domain_error_handler)  # type: ignore[arg-type]

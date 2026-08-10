@@ -24,6 +24,7 @@ from shell.framework.user.user.api.user_response import UserResponse as ApiUserR
 from shell.platform.application.bus.command_bus import CommandBus
 from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.framework.api.models.page import Page
+from shell.platform.framework.api.principal import Principal, PrincipalKind
 
 if TYPE_CHECKING:
     from shell.application.user.user.dto.user import UserDto
@@ -51,13 +52,18 @@ class UserController:
         self._command_bus = command_bus
         self._query_bus = query_bus
 
-    async def get_user(self, user_id: str) -> ApiUserResponse:
+    async def get_user(self, user_id: str, principal: Principal) -> ApiUserResponse:
+        self._require_access(user_id, principal)
         result = await self._query_bus.dispatch(GetUserByIdQuery(user_id=user_id))
         if result is None:
             raise HTTPException(status_code=404, detail=f"User '{user_id}' not found")
         return _dto_to_response(result)
 
-    async def list_users(self, page: int = 1, page_size: int = 100) -> Page[ApiUserResponse]:
+    async def list_users(
+        self, page: int = 1, page_size: int = 100, principal: Principal | None = None
+    ) -> Page[ApiUserResponse]:
+        if principal is None:
+            raise HTTPException(status_code=401, detail="Missing or invalid authentication")
         dtos, total = await self._query_bus.dispatch(ListUsersQuery(page=page, page_size=page_size))
         items = [_dto_to_response(d) for d in dtos]
         has_more = (page * page_size) < total
@@ -79,18 +85,28 @@ class UserController:
             raise HTTPException(status_code=404, detail=f"User with email '{email}' not found")
         return ApiLoginResponse(id=result.id)
 
-    async def update_user(self, user_id: str, body: ApiUpdateUserRequest) -> None:
+    async def update_user(
+        self, user_id: str, body: ApiUpdateUserRequest, principal: Principal
+    ) -> None:
         try:
+            self._require_access(user_id, principal)
             await self._command_bus.dispatch(UpdateUserCommand(user_id=user_id, email=body.email))
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    async def delete_user(self, user_id: str) -> None:
+    async def delete_user(self, user_id: str, principal: Principal) -> None:
         try:
+            self._require_access(user_id, principal)
             await self._command_bus.dispatch(DeleteUserCommand(user_id=user_id))
         except HTTPException:
             raise
         except Exception as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @staticmethod
+    def _require_access(user_id: str, principal: Principal) -> None:
+        if principal.kind == PrincipalKind.SYSTEM or principal.subject_id == user_id:
+            return
+        raise HTTPException(status_code=404, detail=f"User '{user_id}' not found")

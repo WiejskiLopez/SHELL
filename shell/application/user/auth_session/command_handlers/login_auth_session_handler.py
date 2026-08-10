@@ -79,9 +79,7 @@ class LoginAuthSessionHandler:
                     now=now,
                     user_id=user.id,
                     token_hash=Hash.of(raw_token),
-                    expires_at=CreatedAt.from_datetime(
-                        now.value + self._session_ttl
-                    ),
+                    expires_at=CreatedAt.from_datetime(now.value + self._session_ttl),
                 )
 
             await unit_of_work.save(

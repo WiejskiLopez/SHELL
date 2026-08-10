@@ -305,6 +305,18 @@ from shell.application.session.session_state.integration_events.session_state_de
 from shell.application.session.session_state.integration_events.session_state_updated_integration_event import (
     SessionStateUpdatedIntegrationEvent,
 )
+from shell.application.user.auth_session.integration_events.auth_session_created_integration_event import (
+    AuthSessionCreatedIntegrationEvent,
+)
+from shell.application.user.auth_session.integration_events.auth_session_deleted_integration_event import (
+    AuthSessionDeletedIntegrationEvent,
+)
+from shell.application.user.auth_session.integration_events.auth_session_revoked_integration_event import (
+    AuthSessionRevokedIntegrationEvent,
+)
+from shell.application.user.auth_session.integration_events.auth_session_updated_integration_event import (
+    AuthSessionUpdatedIntegrationEvent,
+)
 from shell.application.user.user.integration_events.user_created_integration_event import (
     UserCreatedIntegrationEvent,
 )
@@ -836,6 +848,10 @@ def build_event_registry() -> dict[str, type]:
         UserExecutionStateUpdatedIntegrationEvent,
         UserExecutionUpdatedEvent,
         UserExecutionUpdatedIntegrationEvent,
+        AuthSessionCreatedIntegrationEvent,
+        AuthSessionDeletedIntegrationEvent,
+        AuthSessionRevokedIntegrationEvent,
+        AuthSessionUpdatedIntegrationEvent,
         UserSkillCreatedEvent,
         UserSkillCreatedIntegrationEvent,
         UserSkillDeletedEvent,

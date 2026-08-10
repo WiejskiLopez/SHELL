@@ -32,6 +32,7 @@ class ApplicationFactory:
                 "worker_max_backoff": self._config.events.worker_max_backoff,
             },
         )
+        container.config = self._config
 
         wire_buses(container)
 

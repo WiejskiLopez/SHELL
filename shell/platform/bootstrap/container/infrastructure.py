@@ -37,6 +37,9 @@ from shell.infrastructure.execution.edge_link_execution.persistence.sql.services
 from shell.infrastructure.execution.edge_link_execution.persistence.sql.unit_of_work import (
     SqlAlchemyEdgeLinkExecutionUnitOfWork,
 )
+from shell.infrastructure.execution.graph_execution.persistence.sql.services.graph_execution_query_service import (
+    GraphExecutionQueryService,
+)
 from shell.infrastructure.execution.node_execution.persistence.sql.services.node_result_query_service import (
     NodeResultQueryService,
 )
@@ -95,6 +98,9 @@ from shell.infrastructure.user.auth_session.services.user_query_provider import 
 from shell.infrastructure.user.user.persistence.sql.services.user_query_service import (
     UserQueryService,
 )
+from shell.infrastructure.user.user.persistence.sql.unit_of_work import (
+    SqlAlchemyUserUnitOfWork,
+)
 from shell.infrastructure.user.user_skill.persistence.sql.services.user_skill_query_service import (
     UserSkillQueryService,
 )
@@ -125,17 +131,17 @@ class Infrastructure:
     def __init__(self, db_url: str) -> None:
         self.session_factory: async_sessionmaker[AsyncSession] = build_session_factory(db_url)
         self.unit_of_work_factory = self.create_unit_of_work
+        self.user_unit_of_work_factory = self.create_user_unit_of_work
         self.node_execution_unit_of_work_factory = self.create_node_execution_unit_of_work
         self.edge_execution_unit_of_work_factory = self.create_edge_execution_unit_of_work
-        self.edge_link_execution_unit_of_work_factory = (
-            self.create_edge_link_execution_unit_of_work
-        )
+        self.edge_link_execution_unit_of_work_factory = self.create_edge_link_execution_unit_of_work
         self.scheduler_definition_unit_of_work_factory = (
             self.create_scheduler_definition_unit_of_work
         )
 
         self.task_execution_query_service = TaskExecutionQueryService(self.session_factory)
         self.workflow_query_service = WorkflowQueryService(self.session_factory)
+        self.graph_execution_query_service = GraphExecutionQueryService(self.session_factory)
         self.workflow_state_query_service = WorkflowStateQueryService(self.session_factory)
         self.node_result_query_service = NodeResultQueryService(self.session_factory)
         self.runner_config_query_service = RunnerConfigQueryService(self.session_factory)
@@ -182,6 +188,12 @@ class Infrastructure:
 
     def create_unit_of_work(self) -> SqlAlchemyUnitOfWork:
         return SqlAlchemyUnitOfWork(
+            session_factory=self.session_factory,
+            mapper=ReflectiveIntegrationMapper(),
+        )
+
+    def create_user_unit_of_work(self) -> SqlAlchemyUserUnitOfWork:
+        return SqlAlchemyUserUnitOfWork(
             session_factory=self.session_factory,
             mapper=ReflectiveIntegrationMapper(),
         )

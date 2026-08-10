@@ -25,7 +25,7 @@ def get_graph_definition_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> GraphDefinitionController:
     query_service = container.infra.graph_definition_query_service_factory()
-    return GraphDefinitionController(query_service)  # type: ignore[arg-type]
+    return GraphDefinitionController(query_service)
 
 
 @router.get("/{graph_definition_id}", response_model=GraphDefinitionResponse)

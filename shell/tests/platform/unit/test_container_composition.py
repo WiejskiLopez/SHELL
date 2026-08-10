@@ -11,7 +11,7 @@ def test_core_container_exports_preserve_public_api() -> None:
 
     assert isinstance(container.app.commands, Commands)
     assert isinstance(container.app.queries, Queries)
-    assert container.app.buses.command_bus is not container.app.buses.query_bus
+    assert id(container.app.buses.command_bus) != id(container.app.buses.query_bus)
 
 
 def test_handler_factories_create_transient_handlers() -> None:

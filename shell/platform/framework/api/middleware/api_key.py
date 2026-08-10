@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from http.cookies import SimpleCookie
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, cast
 
 import jwt
 from starlette.responses import JSONResponse
@@ -12,9 +12,19 @@ from shell.application.user.auth_session.queries.get_current_auth_session_query 
 )
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.framework.api.models.problem_detail import ProblemDetail
+from shell.platform.framework.api.principal import (
+    SYSTEM_SUBJECT_ID,
+    Principal,
+    PrincipalKind,
+)
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
+
+
+class _QueryBus(Protocol):
+    async def dispatch(self, query: object) -> object: ...
+
 
 PUBLIC_EXACT = frozenset(
     {
@@ -46,8 +56,8 @@ class AuthMiddleware:
             return
 
         headers = dict(scope.get("headers", []))
-        user_id = await self._resolve_user(scope, headers)
-        if user_id is None:
+        principal = await self._resolve_principal(scope, headers)
+        if principal is None:
             problem = ProblemDetail(
                 title="Unauthorized",
                 status=401,
@@ -60,7 +70,7 @@ class AuthMiddleware:
             await response(scope, receive, send)
             return
 
-        scope.setdefault("state", {})["current_user_id"] = user_id
+        scope.setdefault("state", {})["principal"] = principal
         await self.app(scope, receive, send)
 
     def _is_public_path(self, path: str) -> bool:
@@ -68,27 +78,33 @@ class AuthMiddleware:
             return True
         return any(path.startswith(prefix) for prefix in PUBLIC_PREFIX)
 
-    async def _resolve_user(self, scope: Scope, headers: dict[bytes, bytes]) -> str | None:
+    async def _resolve_principal(
+        self, scope: Scope, headers: dict[bytes, bytes]
+    ) -> Principal | None:
         session_token = self._session_token(headers)
         if session_token:
             query_bus = self._query_bus(scope)
             if query_bus is not None:
-                session = await query_bus.dispatch(
-                    GetCurrentAuthSessionQuery(token=session_token)
-                )
-                if session is not None:
-                    return session.user_id
+                session = await query_bus.dispatch(GetCurrentAuthSessionQuery(token=session_token))
+                if session is not None and hasattr(session, "user_id"):
+                    return Principal(session.user_id, PrincipalKind.USER)
 
         auth = headers.get(b"authorization", b"").decode()
         if auth.startswith("Bearer "):
             token = auth[7:]
-            return await self._validate_jwt(token)
+            subject_id = await self._validate_jwt(token)
+            if subject_id is not None:
+                return Principal(subject_id, PrincipalKind.USER)
 
         api_key = headers.get(b"x-api-key", b"").decode()
         if api_key and api_key == self._api_key:
-            return "system"
+            return Principal(SYSTEM_SUBJECT_ID, PrincipalKind.SYSTEM)
 
         return None
+
+    async def _resolve_user(self, scope: Scope, headers: dict[bytes, bytes]) -> str | None:
+        principal = await self._resolve_principal(scope, headers)
+        return principal.subject_id if principal is not None else None
 
     @staticmethod
     def _session_token(headers: dict[bytes, bytes]) -> str | None:
@@ -99,13 +115,13 @@ class AuthMiddleware:
         return morsel.value if morsel is not None and morsel.value else None
 
     @staticmethod
-    def _query_bus(scope: Scope) -> object | None:
+    def _query_bus(scope: Scope) -> _QueryBus | None:
         app = scope.get("app")
         state = getattr(app, "state", None)
         container = getattr(state, "core_container", None)
         application = getattr(container, "app", None)
         buses = getattr(application, "buses", None)
-        return getattr(buses, "query_bus", None)
+        return cast("_QueryBus | None", getattr(buses, "query_bus", None))
 
     async def _validate_jwt(self, token: str) -> str | None:
         if not self._jwt_secret:

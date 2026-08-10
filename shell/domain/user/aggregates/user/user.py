@@ -167,4 +167,3 @@ class User(AggregateRoot[UserId]):
         if self._status != UserStatus.ACTIVE:
             raise DomainError(f"Cannot disable user in status {self._status!r}")
         self._status = UserStatus.DISABLED
-

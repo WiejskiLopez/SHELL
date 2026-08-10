@@ -166,7 +166,7 @@ class Queries:
         return ListTaskExecutionsHandler(queries=self._infra.task_execution_query_service)
 
     def get_workflow_state_handler_factory(self) -> GetWorkflowStateByIdHandler:
-        return GetWorkflowStateByIdHandler(queries=self._infra.workflow_query_service)
+        return GetWorkflowStateByIdHandler(queries=self._infra.workflow_state_query_service)
 
     def get_session_history_handler_factory(self) -> GetSessionHistoryHandler:
         return GetSessionHistoryHandler(queries=self._infra.session_query_service)
@@ -175,9 +175,7 @@ class Queries:
         return ListSessionsHandler(queries=self._infra.session_query_service)
 
     def get_graph_execution_handler_factory(self) -> GetGraphExecutionByIdHandler:
-        return GetGraphExecutionByIdHandler(
-            queries=self._infra.graph_definition_query_service_factory()
-        )
+        return GetGraphExecutionByIdHandler(queries=self._infra.graph_execution_query_service)
 
     def get_user_handler_factory(self) -> GetUserByIdHandler:
         return GetUserByIdHandler(queries=self._infra.user_query_service)
@@ -234,7 +232,9 @@ class Queries:
         )
 
     def get_scheduler_execution_handler_factory(self) -> GetSchedulerExecutionByIdHandler:
-        return GetSchedulerExecutionByIdHandler(queries=self._infra.scheduler_execution_query_service)
+        return GetSchedulerExecutionByIdHandler(
+            queries=self._infra.scheduler_execution_query_service
+        )
 
     def get_edge_execution_handler_factory(self) -> GetEdgeExecutionByIdHandler:
         return GetEdgeExecutionByIdHandler(queries=self._infra.edge_execution_query_service)
@@ -244,7 +244,9 @@ class Queries:
             GetEdgeLinkExecutionByIdHandler,
         )
 
-        return GetEdgeLinkExecutionByIdHandler(queries=self._infra.edge_link_execution_query_service)
+        return GetEdgeLinkExecutionByIdHandler(
+            queries=self._infra.edge_link_execution_query_service
+        )
 
     def get_agent_execution_handler_factory(self) -> GetAgentExecutionByIdHandler:
         return GetAgentExecutionByIdHandler(queries=self._infra.agent_execution_query_service)

@@ -18,6 +18,7 @@ class Container:
         db_url: str = "",
         events_config: dict[str, Any] | None = None,
     ) -> None:
+        self.config: Any | None = None
         self.infra = Infrastructure(db_url=db_url)
         self.app = Application(infra=self.infra)
         self.events = Events(

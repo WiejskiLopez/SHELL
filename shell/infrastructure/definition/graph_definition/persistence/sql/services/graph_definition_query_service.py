@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -19,6 +20,8 @@ from shell.infrastructure.definition.node_link_definition.persistence.sql.models
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+    from shell.platform.types import JsonStr
+
 
 class SqlGraphDefinitionQueryService:
     def __init__(
@@ -35,6 +38,19 @@ class SqlGraphDefinitionQueryService:
             if model is None:
                 return None
             return await self._to_dto(session, model)
+
+    async def get_graph_definition_by_semantic(
+        self, semantic_query: JsonStr
+    ) -> GraphDefinitionDto | None:
+        try:
+            payload = json.loads(semantic_query.value)
+        except (TypeError, ValueError):
+            return None
+
+        default_id = payload.get("default_graph_definition_id")
+        if not isinstance(default_id, str) or not default_id:
+            return None
+        return await self.get_by_id(default_id)
 
     async def _to_dto(
         self, session: AsyncSession, model: GraphDefinitionModel

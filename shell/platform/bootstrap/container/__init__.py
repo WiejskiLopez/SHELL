@@ -12,13 +12,13 @@ from shell.platform.bootstrap.container.infrastructure import Infrastructure
 from shell.platform.bootstrap.container.query_factories import Queries
 
 __all__ = [
-	"Application",
-	"Buses",
-	"Commands",
-	"Container",
-	"CoreContainer",
-	"EventHandlers",
-	"Events",
-	"Infrastructure",
-	"Queries",
+    "Application",
+    "Buses",
+    "Commands",
+    "Container",
+    "CoreContainer",
+    "EventHandlers",
+    "Events",
+    "Infrastructure",
+    "Queries",
 ]

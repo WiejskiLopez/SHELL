@@ -15,4 +15,3 @@ class EventHandlers:
     def __init__(self, buses: Buses, infra: Infrastructure) -> None:
         self._buses = buses
         self._infra = infra
-

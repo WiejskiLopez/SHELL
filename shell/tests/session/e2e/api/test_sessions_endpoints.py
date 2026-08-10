@@ -13,6 +13,26 @@ if TYPE_CHECKING:
 
 
 class TestSessionEndpoints:
+    async def test_create_session_without_authentication_is_rejected(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/sessions/", json={"goal": "unauthorized"})
+
+        assert resp.status_code == 401
+
+    async def test_system_cannot_create_user_session(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post(
+                "/api/v1/sessions/",
+                headers={"X-API-Key": TEST_API_KEY},
+                json={"goal": "system must not own sessions"},
+            )
+
+        assert resp.status_code == 403
+
     async def test_list_sessions_filters_by_user_id(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
@@ -33,26 +53,32 @@ class TestSessionEndpoints:
 
     async def test_list_sessions_filters_matching_user(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)
-        headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            create_resp = await client.post(
-                "/api/v1/sessions/",
-                headers=headers,
-                json={"goal": "filter me"},
+            user_resp = await client.post(
+                "/api/v1/users/",
+                headers={"X-API-Key": TEST_API_KEY},
+                json={"email": "session-owner@example.com"},
             )
+            assert user_resp.status_code == 201
+            user_id = user_resp.json()["id"]
+
+            login_resp = await client.post(
+                "/api/v1/auth_session/login",
+                json={"email": "session-owner@example.com"},
+            )
+            assert login_resp.status_code == 200
+
+            create_resp = await client.post("/api/v1/sessions/", json={"goal": "filter me"})
             assert create_resp.status_code == 201
             session_id = create_resp.json()["id"]
 
-            resp = await client.get(
-                "/api/v1/sessions?user_id=system",
-                headers=headers,
-            )
+            resp = await client.get("/api/v1/sessions?user_id=system")
             data = resp.json()
 
         assert resp.status_code == 200
         assert data["total"] == 1
         assert [item["id"] for item in data["items"]] == [session_id]
-        assert data["items"][0]["user_id"] == "system"
+        assert data["items"][0]["user_id"] == user_id
 
     async def test_get_session_history_not_found(self, tmp_path: pathlib.Path) -> None:
         app = await _make_app(tmp_path)

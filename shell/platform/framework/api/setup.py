@@ -33,7 +33,7 @@ def resolve_api_key(container: object | None = None) -> str:
             if config is not None:
                 key_provider = getattr(config, "api_key", None)
                 if key_provider is not None:
-                    value = key_provider()
+                    value = key_provider() if callable(key_provider) else key_provider
                     if value:
                         return value
         except (ValueError, AttributeError):
@@ -48,7 +48,7 @@ def resolve_jwt_secret(container: object | None = None) -> str:
             if config is not None:
                 secret_provider = getattr(config, "jwt_secret", None)
                 if secret_provider is not None:
-                    value = secret_provider()
+                    value = secret_provider() if callable(secret_provider) else secret_provider
                     if value:
                         return value
         except (ValueError, AttributeError):

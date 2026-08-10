@@ -35,7 +35,7 @@ def get_message_router_controller(
     container: CoreContainer = Depends(get_core_container),
 ) -> MessageRouterController:
     try:
-        _query_service: MessageRouterQueryService = container.infra.message_router_query_service  # type: ignore[assignment]
+        _query_service: MessageRouterQueryService = container.infra.message_router_query_service
     except Exception:
         raise HTTPException(
             status_code=501, detail="MessageRouter query service not implemented"

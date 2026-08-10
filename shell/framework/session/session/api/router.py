@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from shell.application.session.session.ports.session_query_service import (
     SessionQueryService,
@@ -23,6 +23,11 @@ from shell.platform.application.bus.query_bus import QueryBus
 from shell.platform.bootstrap.container.core_container import CoreContainer
 from shell.platform.framework.api.dependencies import get_core_container
 from shell.platform.framework.api.models.page import Page
+from shell.platform.framework.api.principal import (
+    Principal,
+    get_principal,
+    require_user_principal,
+)
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
@@ -46,41 +51,49 @@ async def list_sessions(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=100, ge=1, le=1000, alias="page_size"),
     user_id: str | None = Query(default=None),
+    principal: Principal = Depends(get_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> Page[SessionResponse]:
-    return await controller.list_sessions(page=page, page_size=page_size, user_id=user_id)
+    return await controller.list_sessions(
+        page=page,
+        page_size=page_size,
+        user_id=user_id,
+        principal=principal,
+    )
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session(
     session_id: str,
+    principal: Principal = Depends(get_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> SessionResponse:
-    return await controller.get_session(session_id)
+    return await controller.get_session(session_id, principal=principal)
 
 
 @router.post("/", response_model=CreateSessionResponse, status_code=201)
 async def create_session(
     body: CreateSessionRequest,
-    request: Request,
+    principal: Principal = Depends(require_user_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> CreateSessionResponse:
-    user_id: str = getattr(request.state, "current_user_id", "system")
-    return await controller.create_session(body, user_id=user_id)
+    return await controller.create_session(body, user_id=principal.subject_id)
 
 
 @router.put("/{session_id}", status_code=204)
 async def update_session(
     session_id: str,
     body: UpdateSessionRequest,
+    principal: Principal = Depends(get_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> None:
-    await controller.update_session(session_id, body)
+    await controller.update_session(session_id, body, principal=principal)
 
 
 @router.delete("/{session_id}", status_code=204)
 async def delete_session(
     session_id: str,
+    principal: Principal = Depends(get_principal),
     controller: SessionController = Depends(get_session_controller),
 ) -> None:
-    await controller.delete_session(session_id)
+    await controller.delete_session(session_id, principal=principal)

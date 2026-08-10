@@ -115,6 +115,8 @@ if TYPE_CHECKING:
         GetCurrentAuthSessionHandler,
     )
     from shell.platform.bootstrap.container.infrastructure import Infrastructure
+
+
 class Commands(ExecutionCommandFactories, SchedulingCommandFactories):
     """Container for command handler factories."""
 
@@ -172,7 +174,7 @@ class Commands(ExecutionCommandFactories, SchedulingCommandFactories):
         )
 
         return LoginAuthSessionHandler(
-            unit_of_work=self._infra.unit_of_work_factory(),
+            unit_of_work=self._infra.user_unit_of_work_factory(),
             user_query_provider=self._infra.user_query_provider,
             clock=self._infra.clock_factory(),
             token_generator=self._infra.token_generator_factory(),
@@ -186,7 +188,7 @@ class Commands(ExecutionCommandFactories, SchedulingCommandFactories):
         )
 
         return RuntimeLogoutAuthSessionHandler(
-            unit_of_work=self._infra.unit_of_work_factory(),
+            unit_of_work=self._infra.user_unit_of_work_factory(),
             clock=self._infra.clock_factory(),
         )
 
@@ -363,4 +365,3 @@ class Commands(ExecutionCommandFactories, SchedulingCommandFactories):
 
 
 __all__ = ["Commands"]
-

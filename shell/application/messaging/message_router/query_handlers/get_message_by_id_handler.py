@@ -17,4 +17,4 @@ class GetMessageByIdHandler:
         self._queries = queries
 
     async def handle(self, query: GetMessageByIdQuery) -> MessageRouterDto | None:
-        return await self._queries.get_by_id(query.message_id)  # type: ignore[arg-type]
+        return await self._queries.get_by_id(query.message_id)

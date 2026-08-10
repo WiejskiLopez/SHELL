@@ -18,4 +18,3 @@ if TYPE_CHECKING:
 
 def register_events(_core_container: CoreContainer) -> None:
     """Register cross-context event subscriptions."""
-

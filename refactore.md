@@ -271,12 +271,17 @@ Wykonane:
 - handlery login/logout/me, query service, router trzech endpointów i rejestracja DI;
 - usunięty legacy `POST /users/login` wraz z `LoginUserCommand`, handlerem, eventami i automatycznym tworzeniem workflowowej `Session`;
 - `GET /users/by-email` pozostawiony jako niezależny getter; `User.email` pozostaje źródłem prawdy.
+- typowany `Principal` (`USER`/`SYSTEM`) i zależności fail-closed (`401`/`403`);
+- `AuthMiddleware` podłączony do monolitu, z obsługą cookie sesyjnego, JWT i API key;
+- user scoping dla tras `sessions` oraz self/system access dla tras `users`;
+- integracyjne eventy AuthSession i testy principal/scoping.
 
 Najbliższe prace:
 
-- middleware cookie -> `request.state.current_user_id`;
-- usunięcie fallbacku `"system"` z tras user-owned i user scoping;
+- decyzja i migracja endpointów technicznych z API key, jeśli fallback `"system"` ma zostać całkowicie usunięty;
 - testy cookie, revocation, expiry, scoping, frontend cookie-only i E2E;
 - aktualizacja frontendowych legacy referencji w osobnym checkoutcie, jeśli są nadal używane.
+
+Wykonano krok middleware: `AuthMiddleware` rozpoznaje `shell_session`, pyta `AuthSessionQueryService` przez `GetCurrentAuthSessionQuery` i ustawia `current_user_id` dla aktywnej sesji. Nieważne, wygasłe, revoked lub usunięte sesje nie uwierzytelniają żądania. API key pozostaje jawnym dostępem systemowym dla istniejących operacji technicznych.
 
 Workflowowa `Session` nie jest tworzona automatycznie przez `POST /auth_session/login`; pozostaje obsługiwana przez jawny endpoint/proces.
