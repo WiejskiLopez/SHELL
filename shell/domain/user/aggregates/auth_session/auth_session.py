@@ -23,6 +23,10 @@ from shell.domain.user.aggregates.auth_session.events.auth_session_updated_event
 from shell.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
 )
+from shell.domain.user.aggregates.auth_session.value_objects.revoked_at import (
+    NONE_REVOKED_AT,
+    RevokedAt,
+)
 from shell.platform.domain.base.aggregate_root import AggregateRoot
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -31,6 +35,7 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.domain.value_objects.updated_at import NONE_UPDATED_AT, UpdatedAt
 
 if TYPE_CHECKING:
+    from shell.domain.user.aggregates.auth_session.value_objects.expires_at import ExpiresAt
     from shell.domain.user.value_objects.user_id import UserId
     from shell.platform.domain.value_objects.hash import Hash
 
@@ -48,8 +53,8 @@ class AuthSession(AggregateRoot[AuthSessionId]):
 
     _user_id: UserId
     _token_hash: Hash
-    _expires_at: CreatedAt
-    _revoked_at: UpdatedAt
+    _expires_at: ExpiresAt
+    _revoked_at: RevokedAt
     _created_at: CreatedAt
     _updated_at: UpdatedAt
     _deleted_at: DeletedAt
@@ -63,8 +68,8 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         token_hash: Hash,
-        expires_at: CreatedAt,
-        revoked_at: UpdatedAt = NONE_UPDATED_AT,
+        expires_at: ExpiresAt,
+        revoked_at: RevokedAt = NONE_REVOKED_AT,
     ) -> None:
         super().__init__(id)
         self._user_id = user_id
@@ -83,7 +88,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         now: OccurredAt,
         user_id: UserId,
         token_hash: Hash,
-        expires_at: CreatedAt,
+        expires_at: ExpiresAt,
     ) -> AuthSession:
         auth_session = cls(
             id=id_,
@@ -109,7 +114,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         now: CreatedAt,
         user_id: UserId,
         token_hash: Hash,
-        expires_at: CreatedAt,
+        expires_at: ExpiresAt,
     ) -> AuthSession:
         return cls._new(
             id_=id_,
@@ -129,8 +134,8 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         deleted_at: DeletedAt = NONE_DELETED_AT,
         user_id: UserId,
         token_hash: Hash,
-        expires_at: CreatedAt,
-        revoked_at: UpdatedAt = NONE_UPDATED_AT,
+        expires_at: ExpiresAt,
+        revoked_at: RevokedAt = NONE_REVOKED_AT,
     ) -> Self:
         return cls(
             id=id,
@@ -209,7 +214,7 @@ class AuthSession(AggregateRoot[AuthSessionId]):
             raise DomainError("Cannot revoke a deleted auth session")
         if self._revoked_at.value is not None:
             raise DomainError("Auth session already revoked")
-        self._revoked_at = now
+        self._revoked_at = RevokedAt.from_datetime(now.value)
         self._updated_at = now
         self.append_event(
             AuthSessionRevokedEvent.now(
@@ -228,11 +233,11 @@ class AuthSession(AggregateRoot[AuthSessionId]):
         return self._token_hash
 
     @property
-    def expires_at(self) -> CreatedAt:
+    def expires_at(self) -> ExpiresAt:
         return self._expires_at
 
     @property
-    def revoked_at(self) -> UpdatedAt:
+    def revoked_at(self) -> RevokedAt:
         return self._revoked_at
 
     @property

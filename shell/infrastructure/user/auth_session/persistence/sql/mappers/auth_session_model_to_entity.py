@@ -8,6 +8,8 @@ from shell.domain.user.aggregates.auth_session.auth_session import AuthSession
 from shell.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
 )
+from shell.domain.user.aggregates.auth_session.value_objects.expires_at import ExpiresAt
+from shell.domain.user.aggregates.auth_session.value_objects.revoked_at import RevokedAt
 from shell.domain.user.value_objects.user_id import UserId
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.deleted_at import DeletedAt
@@ -26,8 +28,8 @@ def auth_session_model_to_entity(model: AuthSessionModel) -> AuthSession:
         user_id=UserId(model.user_id),
         token_hash=Hash(model.token_hash),
         created_at=CreatedAt.from_datetime(model.created_at),
-        expires_at=CreatedAt.from_datetime(model.expires_at),
-        revoked_at=UpdatedAt.from_datetime(model.revoked_at),
+        expires_at=ExpiresAt.from_datetime(model.expires_at),
+        revoked_at=RevokedAt.from_datetime(model.revoked_at),
         updated_at=UpdatedAt.from_datetime(model.updated_at),
         deleted_at=DeletedAt.from_datetime(model.deleted_at),
     )

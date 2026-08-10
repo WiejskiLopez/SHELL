@@ -15,6 +15,7 @@ from shell.domain.user.aggregates.auth_session.repositories.auth_session_reposit
 from shell.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
     AuthSessionId,
 )
+from shell.domain.user.aggregates.auth_session.value_objects.expires_at import ExpiresAt
 from shell.domain.user.value_objects.user_email import UserEmail
 from shell.domain.user.value_objects.user_status import UserStatus
 from shell.platform.domain.value_objects.created_at import CreatedAt
@@ -79,7 +80,7 @@ class LoginAuthSessionHandler:
                     now=now,
                     user_id=user.id,
                     token_hash=Hash.of(raw_token),
-                    expires_at=CreatedAt.from_datetime(now.value + self._session_ttl),
+                    expires_at=ExpiresAt.from_datetime(now.value + self._session_ttl),
                 )
 
             await unit_of_work.save(

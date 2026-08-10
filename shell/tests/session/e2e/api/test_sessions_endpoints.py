@@ -13,6 +13,66 @@ if TYPE_CHECKING:
 
 
 class TestSessionEndpoints:
+    async def test_auth_session_login_sets_cookie_and_me_returns_user(
+        self, tmp_path: pathlib.Path
+    ) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            user_resp = await client.post(
+                "/api/v1/users/",
+                headers={"X-API-Key": TEST_API_KEY},
+                json={"email": "auth-cycle@example.com"},
+            )
+            assert user_resp.status_code == 201
+            user_id = user_resp.json()["id"]
+
+            login_resp = await client.post(
+                "/api/v1/auth_session/login",
+                json={"email": "auth-cycle@example.com"},
+            )
+            me_resp = await client.get("/api/v1/auth_session/me")
+
+        assert login_resp.status_code == 200
+        assert login_resp.json()["id"]
+        assert "shell_session=" in login_resp.headers["set-cookie"]
+        assert "httponly" in login_resp.headers["set-cookie"].lower()
+        assert me_resp.status_code == 200
+        assert me_resp.json() == {"user_id": user_id}
+
+    async def test_auth_session_logout_revokes_cookie_session(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            user_resp = await client.post(
+                "/api/v1/users/",
+                headers={"X-API-Key": TEST_API_KEY},
+                json={"email": "logout-cycle@example.com"},
+            )
+            assert user_resp.status_code == 201
+
+            login_resp = await client.post(
+                "/api/v1/auth_session/login",
+                json={"email": "logout-cycle@example.com"},
+            )
+            assert login_resp.status_code == 200
+            assert (await client.get("/api/v1/auth_session/me")).status_code == 200
+
+            logout_resp = await client.post("/api/v1/auth_session/logout")
+            me_resp = await client.get("/api/v1/auth_session/me")
+
+        assert logout_resp.status_code == 204
+        assert me_resp.status_code == 401
+
+    async def test_auth_session_login_rejects_unknown_email(self, tmp_path: pathlib.Path) -> None:
+        app = await _make_app(tmp_path)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            response = await client.post(
+                "/api/v1/auth_session/login",
+                json={"email": "missing@example.com"},
+            )
+
+        assert response.status_code == 401
+        assert response.json()["detail"] == "Invalid credentials"
+
     async def test_create_session_without_authentication_is_rejected(
         self, tmp_path: pathlib.Path
     ) -> None:

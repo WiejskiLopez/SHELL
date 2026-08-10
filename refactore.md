@@ -127,11 +127,8 @@ Port repozytorium:
 - `get_active_by_user_id(user_id, now)` — predykat "aktywna sesja" (nie revoked, nie deleted, niewygasla) mieszka w repozytorium, wzorzec jak `SessionRepository.get_open_by_user_id`; agregat nie ma publicznych metod `is_active`/`is_expired` — testy architektury wymagaja, by publiczne metody agregatu wywolywaly `append_event()`;
 - `delete`, `exists`.
 
-Do zrobienia:
-
-- router i kontroler agregatu `AuthSession` w `shell/framework/user/auth_session/api/`;
-- application handlers (`LoginAuthSessionCommand`/`LoginAuthSessionHandler`, `LogoutAuthSessionCommand`/`LogoutAuthSessionHandler`);
-- middleware czytajacy cookie i ustawiajacy `request.state.current_user_id`.
+Backendowe elementy aplikacyjne sa zaimplementowane: router, handlery login/logout/me oraz
+middleware czytajacy cookie i ustawiajacy `request.state.current_user_id`.
 
 Odczyt `User` moze sluzyc do walidacji, ale pojedynczy handler zapisuje tylko jeden agregat. Po poprawnym sprawdzeniu cookie odczytana wartosc `AuthSession.user_id` ustawia `request.state.current_user_id`.
 
@@ -153,7 +150,7 @@ Usunac fallback `"system"` z operacji user-owned i ignorowac `user_id` przesylan
 
 ## Frontend
 
-### Platform auth
+### Platform auth — kontrakt oczekiwany przez backend
 
 Istniejacy `libs/platform/auth-service` pozostaje jedynym publicznym serwisem logowania dla frontendu.
 
@@ -173,6 +170,11 @@ Zmiany:
 - cookie-only flow z sesja przechowywana w `HttpOnly` cookie;
 - po `401` wyczyscic auth store i przejsc do stanu unauthenticated;
 - `apiFetch` i streaming korzystaja z tego samego cookie transportu.
+
+Frontend oczekuje odpowiedzi `{id}` tylko jako potwierdzenia utworzenia sesji. Nie przechowuje
+identyfikatora sesji ani tokena; sesja jest obslugiwana wylacznie przez cookie `HttpOnly`.
+`user_id` pochodzi z `/auth_session/me`, a nie z odpowiedzi loginu ani danych przeslanych
+przez klienta do tras user-owned.
 
 ### Usuniecie legacy
 
@@ -199,7 +201,7 @@ Nie usuwac `libs/platform/event-bus`; jest aktywnie uzywany do notyfikacji auth/
 
 ## Mocki i testy
 
-Frontend MSW musi implementowac stanowo:
+Frontend MSW musi implementowac stanowo i zgodnie z powyzszym kontraktem:
 
 - `/auth_session/login`;
 - `/auth_session/me`;
@@ -207,6 +209,8 @@ Frontend MSW musi implementowac stanowo:
 - expired/revoked session.
 
 Chronione mocki nie moga przyjmowac dowolnego `user_id` z requestu jako zrodla tozsamosci.
+Powinny utrzymywac sesje po stronie mocka, ustawiac cookie po loginie, zwracac `user_id`
+z `/auth_session/me`, odrzucac sesje wygasle/revoked i czyscic stan po logout.
 
 Backend testy: agregat, use cases, migracja, endpointy, cookie, revokacja i user scoping.
 
@@ -217,14 +221,16 @@ E2E: login -> me -> dane domenowe scoped do usera -> logout -> `401`.
 ## Kolejnosc wdrozenia
 
 1. Uzgodnic DTO, statusy i topology session cookie. **[ZROBIONE]** — kontrakt: `POST /auth_session/login` zwraca `{id}` sesji, `GET /auth_session/me` zwraca `{user_id}`, `POST /auth_session/logout` -> `204`; token tylko w `HttpOnly` cookie, nigdy w JSON.
-2. Wdrozyc `AuthSession`, repozytorium, cookie i revocation. **[CZESCIOWO]** — domena, port, SQL/InMemory repo, model, migracja `072` zaimplementowane i zarejestrowane w UoW; brak middleware cookie i revocation endpointow.
-3. Dodac application handler, router i middleware.
-4. Usunac `system` fallback i dodac user scoping.
+2. Wdrozyc `AuthSession`, repozytorium, cookie i revocation. **[ZROBIONE]** — domena, port,
+   SQL/InMemory repo, model, migracja `072`, middleware cookie i endpointy revocation sa
+   zaimplementowane oraz zarejestrowane w UoW.
+3. Dodac application handler, router i middleware. **[ZROBIONE]**
+4. Pozostawic API key dla operacji technicznych, usunac `system` fallback z operacji user-owned i dodac user scoping. **[ZROBIONE]**
 5. Przelaczyc frontendowy serwis logowania na obsluge cookie-only.
 6. Rozszerzyc MSW i testy kontraktowe.
 7. Usunac `feature-user` i `auth-api.ts` tylko jesli nie beda juz uzywane.
 8. Pozostawic `/auth_session/login` oraz getter `/users/by-email`; getter nie uczestniczy w procesie logowania.
-9. Zaktualizowac OpenAPI i dokumentacje.
+9. Zaktualizowac OpenAPI i dokumentacje backendu. **[CZESCIOWO]** — schemat jest walidowany testami, pozostaje synchronizacja kontraktu z frontendem.
 10. Uruchomic Docker quality gates oraz E2E w obu repozytoriach.
 
 ## Kryteria akceptacji
@@ -234,7 +240,7 @@ E2E: login -> me -> dane domenowe scoped do usera -> logout -> `401`.
 - `AuthSession` jest powiazana z `User` przez `user_id`.
 - `AuthSession` jest niezalezna od workflow `Session`.
 - Brak tokenow i danych auth w browser storage.
-- Brak fallbacku `system` dla user-owned routes.
+- Brak fallbacku `system` dla user-owned routes; API key pozostaje dla jawnych operacji technicznych.
 - Trzy endpointy `AuthSession` maja testy backend i frontend.
 - `/auth_session/login` pozostaje endpointem logowania agregatu `AuthSession`.
 - `/users/by-email` pozostaje getterem backendowym, ale nie uczestniczy w produkcyjnym flow logowania.
@@ -276,11 +282,14 @@ Wykonane:
 - user scoping dla tras `sessions` oraz self/system access dla tras `users`;
 - integracyjne eventy AuthSession i testy principal/scoping.
 
-Najbliższe prace:
+Najblizsze prace:
 
-- decyzja i migracja endpointów technicznych z API key, jeśli fallback `"system"` ma zostać całkowicie usunięty;
-- testy cookie, revocation, expiry, scoping, frontend cookie-only i E2E;
-- aktualizacja frontendowych legacy referencji w osobnym checkoutcie, jeśli są nadal używane.
+- frontendowy `auth-service`: przejscie na `/auth_session/login`, `/auth_session/me`
+  i `/auth_session/logout`;
+- usuniecie frontendowego token/refresh flow i pozostawienie cookie-only;
+- aktualizacja MSW, testow frontendowych i E2E;
+- usuniecie legacy `auth-api.ts` oraz `feature-user` tylko po potwierdzeniu braku uzyc;
+- uruchomienie wspolnych Docker quality gates i E2E.
 
 Wykonano krok middleware: `AuthMiddleware` rozpoznaje `shell_session`, pyta `AuthSessionQueryService` przez `GetCurrentAuthSessionQuery` i ustawia `current_user_id` dla aktywnej sesji. Nieważne, wygasłe, revoked lub usunięte sesje nie uwierzytelniają żądania. API key pozostaje jawnym dostępem systemowym dla istniejących operacji technicznych.
 
