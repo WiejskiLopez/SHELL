@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from shell.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt

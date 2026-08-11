@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.definition.aggregates.runner_config.runner_config import RunnerConfig
-from shell.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
+from shell.definition.domain.definition.aggregates.runner_config.runner_config import RunnerConfig
+from shell.definition.domain.definition.aggregates.runner_config.value_objects.runner_config_id import (
     RunnerConfigId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt

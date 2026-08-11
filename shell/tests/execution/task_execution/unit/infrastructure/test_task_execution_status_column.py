@@ -1,6 +1,8 @@
 from sqlalchemy import String
 
-from shell.infrastructure.execution.task_execution.persistence.sql.models import TaskExecutionModel
+from shell.execution.infrastructure.execution.task_execution.persistence.sql.models import (
+    TaskExecutionModel,
+)
 
 
 def test_task_execution_status_column_is_limited_to_50_characters() -> None:

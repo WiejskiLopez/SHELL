@@ -2,28 +2,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.node_execution.dto.node_execution import NodeExecutionDto
-from shell.application.execution.task_execution.dto.task_execution import TaskExecutionDto
-from shell.application.execution.workflow.dto.workflow import WorkflowDto
-from shell.application.session.session.dto.session import SessionDto
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
+from shell.execution.application.execution.node_execution.dto.node_execution import NodeExecutionDto
+from shell.execution.application.execution.task_execution.dto.task_execution import TaskExecutionDto
+from shell.execution.application.execution.workflow.dto.workflow import WorkflowDto
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_id import (
+    WorkflowId,
+)
+from shell.execution.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
+from shell.execution.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
+from shell.execution.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
-from shell.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
+from shell.execution.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
+from shell.session.application.session.session.dto.session import SessionDto
+from shell.session.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.session.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
     InMemorySessionRepository,
 )
 

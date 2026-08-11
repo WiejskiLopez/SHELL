@@ -1,6 +1,6 @@
 """Architecture test — cross-aggregate / cross-BC repository discipline.
 
-Rule (microservices-in-a-monolith):
+Rule: bounded contexts remain isolated:
   A handler in bounded context X must NOT use unit_of_work.repository() to
   access a repository that belongs to bounded context Y (X != Y).
 

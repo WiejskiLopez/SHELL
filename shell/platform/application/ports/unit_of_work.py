@@ -5,8 +5,6 @@ from typing import TYPE_CHECKING, Protocol, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
-
 TRepository = TypeVar("TRepository")
 
 
@@ -17,7 +15,7 @@ class UnitOfWork(Protocol):
 
     async def save(self, repo_type: type, aggregate: object) -> None: ...
 
-    def stage_messages(self, messages: list[MessageRouter]) -> None: ...
+    def stage_messages(self, messages: list[object]) -> None: ...
 
     @property
     def events(self) -> Sequence[object]: ...

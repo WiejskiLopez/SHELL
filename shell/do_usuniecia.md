@@ -8,16 +8,16 @@ po refaktorze Composition Root z `dependency-injector` na Pure DI.
 Nikt ich nie importuje (potwierdzone grepem — jedyną referencją był `README.md`,
 który już został zaktualizowany):
 
-- `shell/bootstrap/user/container/user_core_container.py`
-- `shell/bootstrap/session/container/session_core_container.py`
-- `shell/bootstrap/execution/container/execution_core_container.py`
-- `shell/bootstrap/definition/container/definition_core_container.py`
+- `shell/user/bootstrap/user/container/user_core_container.py`
+- `shell/session/bootstrap/session/container/session_core_container.py`
+- `shell/execution/bootstrap/execution/container/execution_core_container.py`
+- `shell/definition/bootstrap/definition/container/definition_core_container.py`
 
 Po usunięciu warto usunąć także puste katalogi
-`shell/bootstrap/{user,session,execution,definition}/container/`.
+`shell/{user,session,execution,definition}/bootstrap/*/container/`.
 
-> Uwaga: `shell/bootstrap/execution/container/` NIE jest tym samym co
-> `shell/bootstrap/execution/cli/` i `shell/bootstrap/execution/factory/`
+> Uwaga: `shell/execution/bootstrap/execution/container/` NIE jest tym samym co
+> `shell/execution/bootstrap/execution/cli/`.
 > (`ApplicationFactory` — ŻYWE, zostają).
 
 ## 2. Zależność `dependency-injector`
@@ -77,8 +77,8 @@ nadal rozwiązuje się do metody mixina.
 ```powershell
 # 1. Cały stack kontenerów wciąż się buduje i wiąże busy
 python -c "
-from shell.platform.bootstrap.container.core_container import Container
-from shell.platform.bootstrap.factory.bus_factory import wire_buses
+from shell.platform.application.bus.command_bus import CommandBus
+from shell.platform.application.bus.query_bus import QueryBus
 c = Container(db_url='sqlite+aiosqlite:///:memory:')
 wire_buses(c)
 print('OK')

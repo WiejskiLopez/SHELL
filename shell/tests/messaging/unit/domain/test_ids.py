@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_id import (
+    WorkflowId,
+)
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
     MessageRouterId,
 )
 

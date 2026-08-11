@@ -1,6 +1,8 @@
 from sqlalchemy import String
 
-from shell.infrastructure.scheduling.scheduler_job.persistence.sql.models import SchedulerJobModel
+from shell.scheduling.infrastructure.scheduling.scheduler_job.persistence.sql.models import (
+    SchedulerJobModel,
+)
 
 
 def test_scheduler_job_status_column_is_limited_to_50_characters() -> None:

@@ -1,6 +1,6 @@
 from sqlalchemy import String
 
-from shell.infrastructure.project.project.persistence.sql.models import ProjectModel
+from shell.project.infrastructure.project.project.persistence.sql.models import ProjectModel
 
 
 def test_project_status_column_is_limited_to_50_characters() -> None:

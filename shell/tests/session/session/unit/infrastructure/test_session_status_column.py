@@ -1,6 +1,6 @@
 from sqlalchemy import String
 
-from shell.infrastructure.session.session.persistence.sql.models import SessionModel
+from shell.session.infrastructure.session.session.persistence.sql.models import SessionModel
 
 
 def test_session_status_column_is_limited_to_50_characters() -> None:

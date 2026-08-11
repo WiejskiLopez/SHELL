@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-BASE = pathlib.Path(__file__).resolve().parent.parent.parent.parent  # shell/ (source root)
+BASE = pathlib.Path(__file__).resolve().parent.parent.parent  # shell/ (source root)
 
 
 def _iter_python_files(layer: str) -> Iterator[pathlib.Path]:
@@ -40,6 +40,11 @@ def _get_imports(path: pathlib.Path) -> list[str]:
         elif isinstance(node, ast.ImportFrom) and node.module:
             imports.append(node.module)
     return imports
+
+
+def _iter_platform_core_files() -> Iterator[pathlib.Path]:
+    yield from _iter_python_files("platform/domain")
+    yield BASE / "platform" / "infrastructure" / "serialization" / "type_registry.py"
 
 
 _KNOWN_DOMAIN_VIOLATIONS: frozenset[str] = frozenset({})
@@ -159,6 +164,63 @@ def test_infrastructure_does_not_import_framework() -> None:
     )
 
 
+def test_platform_core_does_not_import_bounded_contexts() -> None:
+    violations: list[str] = []
+    platform_roots = [
+        BASE / "platform" / "domain",
+        BASE / "platform" / "application",
+        BASE / "platform" / "framework",
+        BASE / "platform" / "types",
+        BASE / "platform" / "infrastructure" / "configuration",
+        BASE / "platform" / "infrastructure" / "context",
+        BASE / "platform" / "infrastructure" / "identity",
+        BASE / "platform" / "infrastructure" / "logging",
+        BASE / "platform" / "infrastructure" / "time",
+    ]
+    forbidden_prefixes = (
+        "shell.definition",
+        "shell.execution",
+        "shell.session",
+        "shell.user",
+        "shell.project",
+        "shell.scheduling",
+        "shell.messaging",
+    )
+
+    for root in platform_roots:
+        for path in root.rglob("*.py"):
+            for imp in _get_imports(path):
+                if imp.startswith(forbidden_prefixes):
+                    violations.append(f"{path.relative_to(BASE)}: imports {imp!r}")
+
+    assert not violations, "Platform core must not depend on bounded contexts:\n" + "\n".join(
+        violations
+    )
+
+
+def test_event_transport_receives_registries_from_composition_root() -> None:
+    for path in (BASE / "definition", BASE / "execution", BASE / "session", BASE / "user"):
+        assert path.exists(), f"Expected standalone BC root is missing: {path}"
+
+
+def test_message_registry_builder_is_platform_owned() -> None:
+    platform_registry = BASE / "platform" / "infrastructure" / "serialization" / "message_registry.py"
+    bc_registry = BASE / "messaging" / "bootstrap" / "messaging" / "message_registry.py"
+
+    assert platform_registry.exists(), "Message registry builder must remain in platform"
+    assert not bc_registry.exists(), "Message registry must not be duplicated inside Messaging BC"
+    assert "shell.messaging" not in "\n".join(_get_imports(platform_registry))
+
+
+def test_event_registry_builder_is_platform_owned() -> None:
+    platform_registry = BASE / "platform" / "infrastructure" / "serialization" / "event_registry.py"
+
+    assert platform_registry.exists(), "Event registry builder must remain in platform"
+    assert "shell.platform.infrastructure.serialization.type_registry" in _get_imports(
+        platform_registry
+    )
+
+
 # ── 5. Framework must not import bootstrap (except main) ──────────
 
 _FRAMEWORK_BOOTSTRAP_KNOWN: frozenset[str] = _KNOWN_FRAMEWORK_BOOTSTRAP
@@ -178,9 +240,31 @@ def test_framework_does_not_import_bootstrap() -> None:
     assert not violations, "Framework must not import bootstrap:\n" + "\n".join(violations)
 
 
-# ── 6. Shared must not import any other layer ──────────────────────
+# ── 6. Platform must not import bounded contexts or outer layers ───
 
-_SHARED_KNOWN: frozenset[str] = frozenset({})
+_PLATFORM_KNOWN: frozenset[str] = frozenset({})
+
+
+def test_platform_does_not_import_bounded_contexts() -> None:
+    violations: list[str] = []
+    bounded_contexts = [
+        "shell.definition",
+        "shell.execution",
+        "shell.session",
+        "shell.user",
+        "shell.project",
+        "shell.scheduling",
+        "shell.messaging",
+    ]
+    for path in _iter_platform_core_files():
+        for imp in _get_imports(path):
+            if any(imp == bc or imp.startswith(bc + ".") for bc in bounded_contexts):
+                key = f"{path.relative_to(BASE)}: imports {imp!r}"
+                if key not in _PLATFORM_KNOWN:
+                    violations.append(key)
+    assert not violations, "Platform must not import bounded contexts:\n" + "\n".join(
+        violations
+    )
 
 
 def test_domain_does_not_import_datetime() -> None:
@@ -198,7 +282,7 @@ def test_domain_does_not_import_datetime() -> None:
     )
 
 
-def test_shared_does_not_import_other_layers() -> None:
+def test_platform_does_not_import_other_layers() -> None:
     violations: list[str] = []
     forbidden = [
         "shell.domain",
@@ -208,13 +292,13 @@ def test_shared_does_not_import_other_layers() -> None:
         "shell.framework",
         "shell.bootstrap",
     ]
-    for path in _iter_python_files("shared"):
+    for path in _iter_platform_core_files():
         for imp in _get_imports(path):
             for banned in forbidden:
                 if imp == banned or imp.startswith(banned + "."):
                     key = f"{path.relative_to(BASE)}: imports {imp!r}"
-                    if key not in _SHARED_KNOWN:
+                    if key not in _PLATFORM_KNOWN:
                         violations.append(key)
-    assert not violations, "Shared layer must not import any other project layer:\n" + "\n".join(
+    assert not violations, "Platform must not import other project layers:\n" + "\n".join(
         violations
     )

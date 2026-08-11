@@ -1,0 +1,16 @@
+from __future__ import annotations
+
+from shell.messaging.domain.messaging.aggregates.message_router.message_router import MessageRouter
+from shell.messaging.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
+    MessageRouterRepository,
+)
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+    MessageRouterId,
+)
+from shell.platform.infrastructure.persistence.in_memory_repository import InMemoryRepository
+
+
+class InMemoryMessageRouterRepository(
+    InMemoryRepository[MessageRouter, MessageRouterId], MessageRouterRepository
+):
+    pass

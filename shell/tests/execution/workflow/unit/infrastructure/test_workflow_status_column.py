@@ -1,6 +1,6 @@
 from sqlalchemy import String
 
-from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
+from shell.execution.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
 
 
 def test_workflow_status_column_is_limited_to_50_characters() -> None:

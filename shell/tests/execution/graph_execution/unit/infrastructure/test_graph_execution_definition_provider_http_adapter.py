@@ -5,13 +5,13 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from shell.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
+from shell.execution.domain.execution.aggregates.graph_execution.ports.graph_definition_semantic_query import (
     GraphDefinitionSemanticQuery,
 )
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_definition import (
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_execution_definition import (
     GraphExecutionDefinition,
 )
-from shell.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
+from shell.execution.infrastructure.execution.graph_execution.http.graph_execution_definition_provider_http_adapter import (
     GraphExecutionDefinitionProviderHttpAdapter,
 )
 

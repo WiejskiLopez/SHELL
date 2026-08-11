@@ -1,0 +1,9 @@
+services:
+  shell-user:
+    build:
+      context: ../../..
+      dockerfile: shell/user/docker/Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

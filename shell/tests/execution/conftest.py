@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
-from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.execution.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -72,7 +70,7 @@ async def session_factory(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:
     url = test_db_url(tmp_path_factory, subdir="sqlite", db_name="test.db")
-    await bootstrap_database(ShellConfig(database_url=url))
+    await run_execution_baseline(url)
     return build_session_factory(url)
 
 
@@ -81,9 +79,3 @@ def events() -> FakeEventPublisher:
     return FakeEventPublisher()
 
 
-@pytest.fixture()
-def sql_uow(
-    session_factory: async_sessionmaker,
-    events: FakeEventPublisher,
-) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory)

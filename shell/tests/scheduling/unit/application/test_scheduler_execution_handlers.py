@@ -6,34 +6,34 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
+from shell.scheduling.application.scheduling.scheduler_execution.command_handlers.create_scheduler_execution_handler import (
     CreateSchedulerExecutionHandler,
 )
-from shell.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
+from shell.scheduling.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
     DeleteSchedulerExecutionHandler,
 )
-from shell.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
+from shell.scheduling.application.scheduling.scheduler_execution.command_handlers.delete_scheduler_execution_handler import (
     SchedulerExecutionNotFoundError as SchedulerExecutionDeleteNotFoundError,
 )
-from shell.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
+from shell.scheduling.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
     SchedulerExecutionNotFoundError as SchedulerExecutionUpdateNotFoundError,
 )
-from shell.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
+from shell.scheduling.application.scheduling.scheduler_execution.command_handlers.update_scheduler_execution_handler import (
     UpdateSchedulerExecutionHandler,
 )
-from shell.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
+from shell.scheduling.application.scheduling.scheduler_execution.commands.create_scheduler_execution_command import (
     CreateSchedulerExecutionCommand,
 )
-from shell.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
+from shell.scheduling.application.scheduling.scheduler_execution.commands.delete_scheduler_execution_command import (
     DeleteSchedulerExecutionCommand,
 )
-from shell.application.scheduling.scheduler_execution.commands.update_scheduler_execution_command import (
+from shell.scheduling.application.scheduling.scheduler_execution.commands.update_scheduler_execution_command import (
     UpdateSchedulerExecutionCommand,
 )
-from shell.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
+from shell.scheduling.domain.scheduling.aggregates.scheduler_execution.value_objects.scheduler_execution_id import (
     SchedulerExecutionId,
 )
-from shell.infrastructure.scheduling.scheduler_execution.persistence.memory.in_memory_scheduler_execution_repository import (
+from shell.scheduling.infrastructure.scheduling.scheduler_execution.persistence.memory.in_memory_scheduler_execution_repository import (
     InMemorySchedulerExecutionRepository,
 )
 

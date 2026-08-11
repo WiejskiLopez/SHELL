@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.application.execution.task_execution.queries import GetTaskExecutionCurrentQuery
-from shell.application.execution.task_execution.query_handlers.get_task_execution_current_handler import (
+from shell.execution.application.execution.task_execution.queries import (
+    GetTaskExecutionCurrentQuery,
+)
+from shell.execution.application.execution.task_execution.query_handlers.get_task_execution_current_handler import (
     GetTaskExecutionCurrentHandler,
 )
 

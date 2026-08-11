@@ -6,21 +6,21 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.session.session.command_handlers.close_session_handler import (
+from shell.session.application.session.session.command_handlers.close_session_handler import (
     CloseSessionHandler,
 )
-from shell.application.session.session.command_handlers.open_session_handler import (
+from shell.session.application.session.session.command_handlers.open_session_handler import (
     OpenSessionHandler,
 )
-from shell.application.session.session.commands import (
+from shell.session.application.session.session.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.session.session.exceptions.session_not_found import SessionNotFound
-from shell.application.session.session.queries.get_session_history_query import (
+from shell.session.application.session.session.exceptions.session_not_found import SessionNotFound
+from shell.session.application.session.session.queries.get_session_history_query import (
     GetSessionHistoryQuery,
 )
-from shell.application.session.session.query_handlers.get_session_history_handler import (
+from shell.session.application.session.session.query_handlers.get_session_history_handler import (
     GetSessionHistoryHandler,
 )
 

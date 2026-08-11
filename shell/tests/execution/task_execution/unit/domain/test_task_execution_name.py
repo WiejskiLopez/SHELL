@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_name import (
     TaskExecutionName,
 )
 from shell.platform.domain.exceptions.domain_error import DomainError

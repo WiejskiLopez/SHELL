@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.session.aggregates.session import Session
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.session_status import SessionStatus
 from shell.platform.domain.exceptions.domain_error import DomainError
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.session.domain.session.aggregates.session import Session
+from shell.session.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.session.domain.session.value_objects.session_status import SessionStatus
 
 _NOW = CreatedAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
 _LATER_DT = UpdatedAt.from_datetime(datetime(2025, 1, 2, tzinfo=UTC))

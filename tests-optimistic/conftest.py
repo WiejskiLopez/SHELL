@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
-from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
+from shell.execution.infrastructure.execution.workflow.persistence.sql.unit_of_work import (
+    SqlAlchemyWorkflowUnitOfWork,
+)
+from shell.execution.migrations.baseline import run_execution_baseline
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 
 if TYPE_CHECKING:
@@ -21,12 +22,12 @@ async def session_factory(
 ) -> async_sessionmaker:
     db = tmp_path_factory.mktemp("sqlite") / "test.db"
     url = f"sqlite+aiosqlite:///{db}"
-    await bootstrap_database(ShellConfig(database_url=url))
+    await run_execution_baseline(url)
     return build_session_factory(url)
 
 
 @pytest.fixture()
 def sql_uow(
     session_factory: async_sessionmaker,
-) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory)
+) -> SqlAlchemyWorkflowUnitOfWork:
+    return SqlAlchemyWorkflowUnitOfWork(session_factory)

@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from shell.application.execution.workflow.queries.get_workflow_by_id_query import (
+from shell.execution.application.execution.workflow.queries.get_workflow_by_id_query import (
     GetWorkflowByIdQuery,
 )
-from shell.application.execution.workflow.query_handlers.get_workflow_by_id_handler import (
+from shell.execution.application.execution.workflow.query_handlers.get_workflow_by_id_handler import (
     GetWorkflowByIdHandler,
 )
 

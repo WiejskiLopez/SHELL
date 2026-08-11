@@ -1,6 +1,6 @@
 from sqlalchemy import String
 
-from shell.infrastructure.execution.graph_execution.persistence.sql.models import (
+from shell.execution.infrastructure.execution.graph_execution.persistence.sql.models import (
     GraphExecutionModel,
 )
 

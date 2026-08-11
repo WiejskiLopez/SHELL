@@ -18,7 +18,7 @@ Te instrukcje opisują wyłącznie stałe granice repozytorium. Szczegółowe za
 - `shell/process/` — orkiestracja wieloagregatowa, process managery i sagi;
 - `shell/infrastructure/` — implementacje portów, persistence i adaptery techniczne;
 - `shell/framework/` — wejścia HTTP, CLI i adaptery driving-side;
-- `shell/bootstrap/` — composition root i składanie zależności;
+- `shell/<bc>/bootstrap/` — composition root należący do konkretnego BC;
 - `shell/platform/` — współdzielone prymitywy techniczne i kontrakty platformowe;
 - `shell/config/` — konfiguracja środowiskowa;
 - `shell/tests/` — testy jednostkowe, integracyjne, E2E i architektoniczne.
@@ -26,7 +26,7 @@ Te instrukcje opisują wyłącznie stałe granice repozytorium. Szczegółowe za
 Kierunek zależności kontrolowany przez testy architektury:
 
 ```text
-domain <- application <- process <- infrastructure <- framework <- bootstrap
+domain <- application <- process <- infrastructure <- framework <- <bc>/bootstrap
 ```
 
 `platform/` jest współdzieloną warstwą bazową. Granice bounded contexts są izolowane; importy między kontekstami przechodzą przez dozwolone kontrakty platformowe lub integracyjne.

@@ -57,7 +57,7 @@ extend-immutable-calls = [
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = [
-    "shell.infrastructure.persistence.sql.models.Base",
+    "shell.platform.infrastructure.persistence.sql.models.Base",
     "sqlalchemy.orm.DeclarativeBase",
     "pydantic.BaseModel",
     "pydantic_settings.BaseSettings",
@@ -65,7 +65,11 @@ runtime-evaluated-base-classes = [
 
 [tool.ruff.lint.per-file-ignores]
 "shell/application/**/dto/*.py" = ["TCH001", "TCH003"]
+"shell/user/application/**/dto/*.py" = ["TCH001", "TCH003"]
+"shell/*/application/**/dto/*.py" = ["TCH001", "TCH003"]
 "shell/framework/user/user/api/*.py" = ["TCH001"]
+"shell/user/framework/user/user/api/*.py" = ["TCH001"]
+"shell/*/framework/**/api/*.py" = ["TCH001"]
 "shell/framework/project/project/api/*.py" = ["TCH001"]
 "shell/framework/session/session/api/*.py" = ["TCH001"]
 "shell/framework/execution/workflow/api/*.py" = ["TCH001"]
@@ -77,6 +81,23 @@ runtime-evaluated-base-classes = [
 "**/mappers/__init__.py" = ["F401"]
 "**/repositories/__init__.py" = ["F401"]
 
+[tool.importlinter]
+root_package = "shell"
+
+[tool.importlinter.contract.platform_isolation]
+name = "Platform must not import bounded contexts"
+type = "forbidden"
+source_modules = ["shell.platform"]
+forbidden_modules = [
+    "shell.definition",
+    "shell.execution",
+    "shell.session",
+    "shell.user",
+    "shell.project",
+    "shell.scheduling",
+    "shell.messaging",
+]
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
@@ -86,9 +107,6 @@ mypy_path = ["shell/tests/architecture"]
 
 [[tool.mypy.overrides]]
 module = [
-    "shell.infrastructure.*",
-    "shell.framework.*",
-    "shell.bootstrap.*",
     "shell.platform.bootstrap.*",
     "shell.platform.framework.*",
     "shell.tests.*",
@@ -112,32 +130,3 @@ module = [
 ]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-  module = [
-      "shell.application.*",
-      "shell.process.*",
-  ]
-  disable_error_code = ["type-abstract"]
-
-[tool.importlinter]
-root_package = "shell"
-
-[tool.importlinter.contract.layers]
-name = "Clean Architecture Layers"
-type = "layers"
-layers = [
-    "framework",
-    "process",
-    "bootstrap",
-    "infrastructure",
-    "application",
-    "domain",
-]
-
-[tool.importlinter.contract.layers.containers]
-framework = "shell.framework"
-process = "shell.process"
-bootstrap = "shell.bootstrap"
-infrastructure = "shell.infrastructure"
-application = "shell.application"
-domain = "shell.domain"

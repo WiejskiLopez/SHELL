@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.definition.aggregates.graph_definition.graph_definition import GraphDefinition
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+from shell.definition.domain.definition.aggregates.graph_definition.graph_definition import (
+    GraphDefinition,
+)
+from shell.definition.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt

@@ -6,34 +6,34 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
+from shell.scheduling.application.scheduling.scheduler_job.command_handlers.create_scheduler_job_handler import (
     CreateSchedulerJobHandler,
 )
-from shell.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
+from shell.scheduling.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
     DeleteSchedulerJobHandler,
 )
-from shell.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
+from shell.scheduling.application.scheduling.scheduler_job.command_handlers.delete_scheduler_job_handler import (
     SchedulerJobNotFoundError as SchedulerJobDeleteNotFoundError,
 )
-from shell.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
+from shell.scheduling.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
     SchedulerJobNotFoundError as SchedulerJobUpdateNotFoundError,
 )
-from shell.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
+from shell.scheduling.application.scheduling.scheduler_job.command_handlers.update_scheduler_job_handler import (
     UpdateSchedulerJobHandler,
 )
-from shell.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
+from shell.scheduling.application.scheduling.scheduler_job.commands.create_scheduler_job_command import (
     CreateSchedulerJobCommand,
 )
-from shell.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
+from shell.scheduling.application.scheduling.scheduler_job.commands.delete_scheduler_job_command import (
     DeleteSchedulerJobCommand,
 )
-from shell.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
+from shell.scheduling.application.scheduling.scheduler_job.commands.update_scheduler_job_command import (
     UpdateSchedulerJobCommand,
 )
-from shell.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
+from shell.scheduling.domain.scheduling.aggregates.scheduler_job.value_objects.scheduler_job_id import (
     SchedulerJobId,
 )
-from shell.infrastructure.scheduling.scheduler_job.persistence.memory.in_memory_scheduler_job_repository import (
+from shell.scheduling.infrastructure.scheduling.scheduler_job.persistence.memory.in_memory_scheduler_job_repository import (
     InMemorySchedulerJobRepository,
 )
 

@@ -8,9 +8,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.platform.bootstrap.database_config.database_bootstrap import bootstrap_database
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
-from shell.platform.infrastructure.persistence import SqlAlchemyUnitOfWork
 from shell.platform.infrastructure.persistence.memory import (
     FakeClock,
     FakeEventPublisher,
@@ -19,6 +16,10 @@ from shell.platform.infrastructure.persistence.memory import (
     InMemoryUnitOfWork,
 )
 from shell.platform.infrastructure.persistence.sql import build_session_factory
+from shell.session.infrastructure.session.session.persistence.sql.unit_of_work import (
+    SqlAlchemySessionUnitOfWork,
+)
+from shell.session.migrations.baseline import run_session_baseline
 from shell.tests.shared.test_db import build_db_url as test_db_url
 
 if TYPE_CHECKING:
@@ -72,7 +73,7 @@ async def session_factory(
     tmp_path_factory: pytest.TempPathFactory,
 ) -> async_sessionmaker:
     url = test_db_url(tmp_path_factory, subdir="sqlite", db_name="test.db")
-    await bootstrap_database(ShellConfig(database_url=url))
+    await run_session_baseline(url)
     return build_session_factory(url)
 
 
@@ -85,5 +86,5 @@ def events() -> FakeEventPublisher:
 def sql_uow(
     session_factory: async_sessionmaker,
     events: FakeEventPublisher,
-) -> SqlAlchemyUnitOfWork:
-    return SqlAlchemyUnitOfWork(session_factory)
+) -> SqlAlchemySessionUnitOfWork:
+    return SqlAlchemySessionUnitOfWork(session_factory)

@@ -4,10 +4,10 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from shell.domain.execution.aggregates.session_execution.value_objects.session_snapshot import (
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_snapshot import (
     SessionSnapshot,
 )
-from shell.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
+from shell.execution.infrastructure.execution.session_execution.http.session_query_provider_http_adapter import (
     SessionQueryProviderHttpAdapter,
 )
 

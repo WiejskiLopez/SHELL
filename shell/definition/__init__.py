@@ -1,0 +1,1 @@
+"""Definition bounded context package."""

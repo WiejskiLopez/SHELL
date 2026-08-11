@@ -127,7 +127,7 @@ def test_platform_value_objects_not_imported_from_definition() -> None:
     for path in _iter_py_files():
         for imp in _get_imports(path):
             for vo in _PLATFORM_VO_MOVED:
-                wrong = f"shell.domain.definition.value_objects.{vo}"
+                wrong = f"shell.definition.domain.definition.value_objects.{vo}"
                 if imp == wrong or imp.startswith(wrong + "."):
                     rel = path.relative_to(SHELL_SRC).as_posix()
                     violations.append(

@@ -2,19 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+from shell.execution.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
     GraphExecutionStateRepository,
 )
 from shell.platform.domain.value_objects.exists_result import ExistsResult
 
 if TYPE_CHECKING:
-    from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
         GraphExecutionId,
     )
-    from shell.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
+    from shell.execution.domain.execution.aggregates.graph_execution_state.graph_execution_state import (
         GraphExecutionState,
     )
-    from shell.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
+    from shell.execution.domain.execution.aggregates.graph_execution_state.value_objects.graph_execution_state_id import (
         GraphExecutionStateId,
     )
     from shell.platform.domain.value_objects.state_direction import StateDirection

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, cast
+from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from fastapi import Depends
 from fastapi import Request as _Request
@@ -8,7 +8,6 @@ from fastapi import Request as _Request
 if TYPE_CHECKING:
     from shell.platform.application.bus.command_bus import CommandBus
     from shell.platform.application.bus.query_bus import QueryBus
-    from shell.platform.bootstrap.container.core_container import Container
 
 
 class _BusesProtocol(Protocol):
@@ -16,11 +15,18 @@ class _BusesProtocol(Protocol):
     query_bus: QueryBus
 
 
-def get_core_container(request: _Request) -> Container:
-    return cast("Container", request.app.state.core_container)
+class ContainerProtocol(Protocol):
+    """Minimal platform-neutral shape exposed to framework dependencies."""
+
+    app: Any
+    infra: Any
 
 
-def _get_buses(container: Container) -> _BusesProtocol:
+def get_core_container(request: _Request) -> ContainerProtocol:
+    return cast("ContainerProtocol", request.app.state.core_container)
+
+
+def _get_buses(container: ContainerProtocol) -> _BusesProtocol:
     """Zwraca obiekt z .command_bus / .query_bus — działa z monolitowym i per-BC kontenerem."""
     if hasattr(container, "app"):
         return container.app.buses
@@ -28,12 +34,18 @@ def _get_buses(container: Container) -> _BusesProtocol:
 
 
 def get_command_bus(
-    container: Container = Depends(get_core_container),
+    container: ContainerProtocol = Depends(get_core_container),
 ) -> CommandBus:
-    return _get_buses(container).command_bus
+    bus = _get_buses(container).command_bus
+    if not hasattr(bus, "dispatch") and callable(bus):
+        bus = bus()
+    return cast("CommandBus", bus)
 
 
 def get_query_bus(
-    container: Container = Depends(get_core_container),
+    container: ContainerProtocol = Depends(get_core_container),
 ) -> QueryBus:
-    return _get_buses(container).query_bus
+    bus = _get_buses(container).query_bus
+    if not hasattr(bus, "dispatch") and callable(bus):
+        bus = bus()
+    return cast("QueryBus", bus)

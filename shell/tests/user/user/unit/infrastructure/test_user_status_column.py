@@ -1,6 +1,6 @@
 from sqlalchemy import String
 
-from shell.infrastructure.user.user.persistence.sql.models import UserModel
+from shell.user.infrastructure.user.user.persistence.sql.models import UserModel
 
 
 def test_user_status_column_is_limited_to_50_characters() -> None:

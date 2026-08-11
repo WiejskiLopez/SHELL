@@ -15,7 +15,7 @@ _ALLOWED_CROSS_BC = frozenset(
         "shell.platform.domain",
         "shell.platform.application",
         # Source-owned integration events — designed to be consumed cross-BC
-        "shell.application.user.user.integration_events",
+        "shell.user.application.user.user.integration_events",
     }
 )
 
@@ -25,7 +25,13 @@ def _is_cross_bc_import(imp: str, source_bc: str) -> str | None:
     for bc in _BCS:
         if bc == source_bc or bc == "platform":
             continue
-        if imp.startswith(f"shell.domain.{bc}") or imp.startswith(f"shell.application.{bc}"):
+        prefixes = (
+            f"shell.domain.{bc}",
+            f"shell.application.{bc}",
+            f"shell.{bc}.domain.{bc}",
+            f"shell.{bc}.application.{bc}",
+        )
+        if imp.startswith(prefixes):
             return bc
     return None
 
@@ -44,7 +50,11 @@ def test_no_direct_cross_bc_imports() -> None:
     violations: list[str] = []
     for bc in _BCS:
         for layer in ["domain", "application"]:
-            bc_path = BASE / layer / bc
+            bc_path = (
+                BASE / "user" / layer / bc
+                if bc == "user"
+                else BASE / layer / bc
+            )
             if not bc_path.exists():
                 continue
             for path in iter_py_files(bc_path):
@@ -67,7 +77,11 @@ def test_cross_bc_imports_only_in_infrastructure() -> None:
     violations: list[str] = []
     for bc in _BCS:
         for layer in ["domain", "application"]:
-            bc_path = BASE / layer / bc
+            bc_path = (
+                BASE / "user" / layer / bc
+                if bc == "user"
+                else BASE / layer / bc
+            )
             if not bc_path.exists():
                 continue
             for path in iter_py_files(bc_path):
@@ -91,7 +105,7 @@ def test_cross_bc_http_adapters_use_httpx_not_sql() -> None:
     import persistence.sql or domain repositories from other BCs."""
     http_adapter_dirs = [
         BASE / "infrastructure" / "execution" / "http",
-        BASE / "infrastructure" / "user" / "http",
+        BASE / "user" / "infrastructure" / "user" / "http",
         BASE / "infrastructure" / "project" / "http",
     ]
     violations: list[str] = []

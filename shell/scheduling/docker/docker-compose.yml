@@ -1,0 +1,9 @@
+services:
+  shell-scheduling:
+    build:
+      context: ../../..
+      dockerfile: shell/scheduling/docker/Dockerfile
+    ports:
+      - "8006:8006"
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

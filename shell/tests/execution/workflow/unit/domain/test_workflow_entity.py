@@ -2,18 +2,22 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
     ProjectIdRef,
 )
-from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
+from shell.execution.domain.execution.aggregates.workflow import Workflow
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_id import (
+    WorkflowId,
+)
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_status import (
+    WorkflowStatus,
+)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 
 _NOW = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)

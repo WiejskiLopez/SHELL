@@ -3,10 +3,25 @@ from __future__ import annotations
 import os
 import uuid
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.platform.framework.api.app import create_app
+from shell.execution.bootstrap.execution.container.execution_core_container import (
+    ExecutionCoreContainer,
+    configure_execution_container,
+)
+from shell.execution.framework.execution.api.app import create_execution_app
+from shell.execution.migrations.baseline import run_execution_baseline
+from shell.platform.framework.api.principal import Principal, PrincipalKind
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.session.bootstrap.session.container.session_core_container import (
+    SessionCoreContainer,
+    configure_session_container,
+)
+from shell.session.framework.session.api.app import create_session_app
+from shell.session.migrations.baseline import run_session_baseline
+
+if TYPE_CHECKING:
+    from fastapi import Request
 
 TEST_API_KEY = "test-api-key"
 
@@ -38,9 +53,27 @@ async def _make_app(tmp_path):
     test_db_dir = _test_db_dir()
     if test_db_dir:
         db_url = _resolve_db_path("test.db")
-    config = ShellConfig(database_url=db_url, api_key=TEST_API_KEY)
-    core_container = await ApplicationFactory(config).build()
-    return create_app(core_container)
+    await run_execution_baseline(db_url)
+    core_container = ExecutionCoreContainer()
+    core_container.config.db_url.from_value(db_url)
+    configure_execution_container(core_container)
+    return create_execution_app(core_container)
+
+
+async def _make_session_app(tmp_path):
+    db_url = f"sqlite+aiosqlite:///{tmp_path / 'session-test.db'}"
+    await run_session_baseline(db_url)
+    core_container = SessionCoreContainer()
+    core_container.config.db_url.from_value(db_url)
+    configure_session_container(core_container)
+    app = create_session_app(core_container)
+
+    @app.middleware("http")
+    async def add_test_principal(request: Request, call_next):
+        request.state.principal = Principal("test-user", PrincipalKind.USER)
+        return await call_next(request)
+
+    return app
 
 
 def _db_url(tmp_path) -> str:

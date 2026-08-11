@@ -2,21 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
-import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-from alembic import command
-from alembic.config import Config
-from sqlalchemy import make_url, text
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
 )
-
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
@@ -25,8 +17,6 @@ if TYPE_CHECKING:
 __all__ = [
     "build_session_factory",
     "get_session",
-    "run_migrations",
-    "reset_database",
     "seed_base_data",
 ]
 
@@ -45,63 +35,6 @@ def build_session_factory(url: str) -> async_sessionmaker[AsyncSession]:
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
     )
     return async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
-
-_ALEMBIC_INI = str(Path(__file__).resolve().parents[4] / "alembic.ini")
-
-
-async def run_migrations(url: str) -> None:
-    """Run all Alembic migrations up to head (used by tests and bootstrap)."""
-    alembic_cfg = Config(_ALEMBIC_INI)
-    alembic_cfg.set_main_option("sqlalchemy.url", url)
-    script_location = str(
-        Path(_ALEMBIC_INI).parent
-        / "platform"
-        / "infrastructure"
-        / "persistence"
-        / "migrations"
-        / "sql"
-    )
-    alembic_cfg.set_main_option("script_location", script_location)
-    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
-
-
-async def reset_database(url: str) -> None:
-    """Drop all tables and re-create schema from scratch.
-
-    For SQLite: deletes the database file and builds from scratch.
-    For PostgreSQL: drops all user tables and rebuilds via alembic.
-
-    Use with SHELL_RESET_DB=true for a clean development database.
-    """
-    alembic_cfg = Config(_ALEMBIC_INI)
-    alembic_cfg.set_main_option("sqlalchemy.url", url)
-    script_location = str(
-        Path(_ALEMBIC_INI).parent
-        / "platform"
-        / "infrastructure"
-        / "persistence"
-        / "migrations"
-        / "sql"
-    )
-    alembic_cfg.set_main_option("script_location", script_location)
-
-    if "sqlite" in url:
-        # SQLite: just delete the file — cleanest reset
-        parsed = make_url(url)
-        db_path = parsed.database
-        if db_path and os.path.exists(db_path):
-            os.remove(db_path)
-    else:
-        # PostgreSQL / other: drop all user tables via metadata
-        engine = create_async_engine(url, echo=False, future=True)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
-        await engine.dispose()
-
-    # Re-create everything with migrations
-    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
 
 
 async def get_session(

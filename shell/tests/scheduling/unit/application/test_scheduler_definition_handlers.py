@@ -6,34 +6,34 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
+from shell.scheduling.application.scheduling.scheduler_definition.command_handlers.create_scheduler_definition_handler import (
     CreateSchedulerDefinitionHandler,
 )
-from shell.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
+from shell.scheduling.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
     DeleteSchedulerDefinitionHandler,
 )
-from shell.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
+from shell.scheduling.application.scheduling.scheduler_definition.command_handlers.delete_scheduler_definition_handler import (
     SchedulerDefinitionNotFoundError as SchedulerDefinitionDeleteNotFoundError,
 )
-from shell.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
+from shell.scheduling.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
     SchedulerDefinitionNotFoundError as SchedulerDefinitionUpdateNotFoundError,
 )
-from shell.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
+from shell.scheduling.application.scheduling.scheduler_definition.command_handlers.update_scheduler_definition_handler import (
     UpdateSchedulerDefinitionHandler,
 )
-from shell.application.scheduling.scheduler_definition.commands.create_scheduler_definition_command import (
+from shell.scheduling.application.scheduling.scheduler_definition.commands.create_scheduler_definition_command import (
     CreateSchedulerDefinitionCommand,
 )
-from shell.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
+from shell.scheduling.application.scheduling.scheduler_definition.commands.delete_scheduler_definition_command import (
     DeleteSchedulerDefinitionCommand,
 )
-from shell.application.scheduling.scheduler_definition.commands.update_scheduler_definition_command import (
+from shell.scheduling.application.scheduling.scheduler_definition.commands.update_scheduler_definition_command import (
     UpdateSchedulerDefinitionCommand,
 )
-from shell.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
+from shell.scheduling.domain.scheduling.aggregates.scheduler_definition.value_objects.scheduler_definition_id import (
     SchedulerDefinitionId,
 )
-from shell.infrastructure.scheduling.scheduler_definition.persistence.memory.in_memory_scheduler_definition_repository import (
+from shell.scheduling.infrastructure.scheduling.scheduler_definition.persistence.memory.in_memory_scheduler_definition_repository import (
     InMemorySchedulerDefinitionRepository,
 )
 

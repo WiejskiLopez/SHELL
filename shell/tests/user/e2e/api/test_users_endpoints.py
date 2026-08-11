@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from httpx import ASGITransport, AsyncClient
 
-from shell.tests.shared.e2e_helpers import TEST_API_KEY, _make_app
+from shell.tests.user.e2e.conftest import TEST_API_KEY, make_user_app
 
 if TYPE_CHECKING:
     import pathlib
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class TestUserEndpoints:
     async def test_list_users_returns_page(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             await client.post(
@@ -33,7 +33,7 @@ class TestUserEndpoints:
         assert len(body["items"]) == 2
 
     async def test_list_users_pagination(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             for i in range(5):
@@ -57,7 +57,7 @@ class TestUserEndpoints:
         assert p1["items"][0]["created_at"] >= p1["items"][1]["created_at"]
 
     async def test_create_user(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
@@ -70,14 +70,14 @@ class TestUserEndpoints:
         assert "id" in data
 
     async def test_get_user_not_found(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/api/v1/users/nonexistent", headers=headers)
         assert resp.status_code == 404
 
     async def test_get_user_found(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
@@ -95,7 +95,7 @@ class TestUserEndpoints:
         assert data["email"] == "found@example.com"
 
     async def test_create_then_delete_user(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
@@ -110,7 +110,7 @@ class TestUserEndpoints:
         assert delete_resp.status_code == 204
 
     async def test_login_by_email_query(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(
@@ -131,7 +131,7 @@ class TestUserEndpoints:
         assert data["id"] == created_id
 
     async def test_login_by_email_not_found(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get(
                 "/api/v1/users/by-email",
@@ -140,7 +140,7 @@ class TestUserEndpoints:
         assert resp.status_code == 404
 
     async def test_update_user(self, tmp_path: pathlib.Path) -> None:
-        app = await _make_app(tmp_path)
+        app = await make_user_app(tmp_path)
         headers = {"X-API-Key": TEST_API_KEY}
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             create_resp = await client.post(

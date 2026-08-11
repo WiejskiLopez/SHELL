@@ -14,8 +14,15 @@ from typing import Any
 import pytest
 from pydantic import TypeAdapter
 
-import shell.application as app_pkg
-
+_APPLICATION_PACKAGES = (
+    "shell.user.application",
+    "shell.definition.application",
+    "shell.execution.application",
+    "shell.session.application",
+    "shell.project.application",
+    "shell.scheduling.application",
+    "shell.messaging.application",
+)
 _DTO_MODULES: list[str] = []
 
 
@@ -23,12 +30,13 @@ def _collect_dto_modules() -> None:
     """Walk ``shell/application/`` once and collect every ``dto`` sub-package."""
     if _DTO_MODULES:
         return
-    prefix = app_pkg.__name__ + "."
-    for _importer, modname, is_pkg in pkgutil.walk_packages(
-        app_pkg.__path__, prefix=prefix, onerror=lambda _: None
-    ):
-        if modname.endswith(".dto") and is_pkg:
-            _DTO_MODULES.append(modname)
+    for package_name in _APPLICATION_PACKAGES:
+        package = importlib.import_module(package_name)
+        for _importer, modname, is_pkg in pkgutil.walk_packages(
+            package.__path__, prefix=package_name + ".", onerror=lambda _: None
+        ):
+            if modname.endswith(".dto") and is_pkg:
+                _DTO_MODULES.append(modname)
 
 
 def _iter_dto_classes(module_name: str) -> list[type]:

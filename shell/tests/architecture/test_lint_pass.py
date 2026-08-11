@@ -32,14 +32,21 @@ def test_ruff_zero_errors() -> None:
 
 
 def test_mypy_domain_and_application_zero_errors() -> None:
-    """Fail if mypy strict finds any errors in domain/ and application/ layers."""
+    """Fail if mypy strict finds errors in per-BC domain/application layers."""
+    layer_paths = [
+        path
+        for bc_path in SHELL_PKG.iterdir()
+        if bc_path.is_dir()
+        for path in (bc_path / "domain", bc_path / "application")
+        if path.exists()
+    ]
     result = subprocess.run(
         [
             sys.executable,
             "-m",
             "mypy",
-            str(SHELL_PKG / "domain"),
-            str(SHELL_PKG / "application"),
+                "--disable-error-code=type-abstract",
+            *[str(path) for path in layer_paths],
         ],
         capture_output=True,
         text=True,
@@ -48,5 +55,5 @@ def test_mypy_domain_and_application_zero_errors() -> None:
     if result.returncode != 0:
         print(result.stdout)
         print(result.stderr, file=sys.stderr)
-        msg = "mypy strict found errors in domain/application — run `mypy shell/domain shell/application`"
+        msg = "mypy strict found errors in per-BC domain/application layers"
         raise AssertionError(msg)

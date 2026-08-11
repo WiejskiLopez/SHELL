@@ -24,7 +24,6 @@ if TYPE_CHECKING:
 
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-    from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
     from shell.platform.domain.events import DomainEvent
 
 TRepository = TypeVar("TRepository")
@@ -45,7 +44,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
         self._factory = session_factory
         self._mapper = mapper
         self._staged_events: list[DomainEvent] = []
-        self._staged_messages: list[MessageRouter] = []
+        self._staged_messages: list[object] = []
         self._committed = False
         self._session: AsyncSession | None = None
 
@@ -85,7 +84,7 @@ class SqlAlchemyUnitOfWorkBase(UnitOfWork):
     def stage_events(self, events: Sequence[object]) -> None:
         self._staged_events.extend(events)  # type: ignore[arg-type]
 
-    def stage_messages(self, messages: list[MessageRouter]) -> None:
+    def stage_messages(self, messages: list[object]) -> None:
         self._staged_messages.extend(messages)
 
     async def save(self, repo_type: type, aggregate: object) -> None:

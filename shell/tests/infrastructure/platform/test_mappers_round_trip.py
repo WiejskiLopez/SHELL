@@ -1,9 +1,9 @@
 """Round-trip tests for SQL ORM model <-> domain entity mappers.
 
-from shell.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
+from shell.execution.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
             NodeExecutionModel,
         )
-from shell.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
+from shell.execution.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
             GraphExecutionModel,
         )
 Verifies each bidirectional mapper by creating an entity, mapping to a
@@ -18,74 +18,88 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.domain.execution.aggregates.graph_execution import GraphExecution
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_depth import GraphDepth
-from shell.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+from shell.execution.domain.execution.aggregates.graph_execution import GraphExecution
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_depth import (
+    GraphDepth,
+)
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
     GraphExecutionId,
 )
-from shell.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
+from shell.execution.domain.execution.aggregates.graph_execution.value_objects.max_subgraph_depth import (
     MaxSubgraphDepth,
 )
-from shell.domain.execution.aggregates.node_execution.node_execution import (
+from shell.execution.domain.execution.aggregates.node_execution.node_execution import (
     NodeExecution,
 )
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+from shell.execution.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
+from shell.execution.domain.execution.aggregates.node_execution.value_objects.node_execution_status import (
     NodeExecutionStatus,
 )
-from shell.domain.execution.aggregates.node_execution.value_objects.node_order import NodeOrder
-from shell.domain.execution.aggregates.node_execution.value_objects.node_type import NodeType
-from shell.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
+from shell.execution.domain.execution.aggregates.node_execution.value_objects.node_order import (
+    NodeOrder,
+)
+from shell.execution.domain.execution.aggregates.node_execution.value_objects.node_type import (
+    NodeType,
+)
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.project_id_ref import (
     ProjectIdRef,
 )
-from shell.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_id_ref import (
     SessionIdRef,
 )
-from shell.domain.execution.aggregates.task_execution.task_execution import TaskExecution
-from shell.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution.domain.execution.aggregates.task_execution.task_execution import TaskExecution
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.domain.execution.aggregates.task_execution.value_objects.task_name import TaskName
-from shell.domain.execution.aggregates.task_execution.value_objects.work_dir import WorkDir
-from shell.domain.execution.aggregates.workflow import Workflow
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_id import WorkflowId
-from shell.domain.execution.aggregates.workflow.value_objects.workflow_status import WorkflowStatus
-from shell.domain.session.aggregates.session import Session
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.session_status import SessionStatus
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
-from shell.infrastructure.execution.graph_execution.persistence.sql.mappers import (
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_name import (
+    TaskName,
+)
+from shell.execution.domain.execution.aggregates.task_execution.value_objects.work_dir import (
+    WorkDir,
+)
+from shell.execution.domain.execution.aggregates.workflow import Workflow
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_id import (
+    WorkflowId,
+)
+from shell.execution.domain.execution.aggregates.workflow.value_objects.workflow_status import (
+    WorkflowStatus,
+)
+from shell.execution.infrastructure.execution.graph_execution.persistence.sql.mappers import (
     graph_execution_entity_to_model,
     graph_execution_model_to_entity,
 )
-from shell.infrastructure.execution.graph_execution.persistence.sql.models import (
+from shell.execution.infrastructure.execution.graph_execution.persistence.sql.models import (
     GraphExecutionModel,
 )
-from shell.infrastructure.execution.node_execution.persistence.sql.models import (
+from shell.execution.infrastructure.execution.node_execution.persistence.sql.models import (
     NodeExecutionModel,
 )
-from shell.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
+from shell.execution.infrastructure.execution.node_execution.persistence.sql.repositories.sql_node_execution_repository import (
     _node_execution_entity_to_model,
     _node_execution_model_to_entity,
 )
-from shell.infrastructure.execution.task_execution.persistence.sql.mappers import (
+from shell.execution.infrastructure.execution.task_execution.persistence.sql.mappers import (
     task_execution_entity_to_model,
     task_execution_model_to_entity,
 )
-from shell.infrastructure.execution.workflow.persistence.sql.mappers import (
+from shell.execution.infrastructure.execution.workflow.persistence.sql.mappers import (
     workflow_entity_to_model,
     workflow_model_to_entity,
 )
-from shell.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
-from shell.infrastructure.session.session.persistence.sql.mappers import (
-    session_entity_to_model,
-    session_model_to_entity,
-)
+from shell.execution.infrastructure.execution.workflow.persistence.sql.models import WorkflowModel
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.timestamp import Timestamp
 from shell.platform.domain.value_objects.updated_at import UpdatedAt
+from shell.session.domain.session.aggregates.session import Session
+from shell.session.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.session.domain.session.value_objects.session_status import SessionStatus
+from shell.session.domain.session.value_objects.user_id_ref import UserIdRef
+from shell.session.infrastructure.session.session.persistence.sql.mappers import (
+    session_entity_to_model,
+    session_model_to_entity,
+)
 
 _NOW = datetime(2026, 6, 1, 12, 0, 0, tzinfo=UTC)
 

@@ -1,0 +1,9 @@
+services:
+  shell-execution:
+    build:
+      context: ../../..
+      dockerfile: shell/execution/docker/Dockerfile
+    ports:
+      - "8007:8007"
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

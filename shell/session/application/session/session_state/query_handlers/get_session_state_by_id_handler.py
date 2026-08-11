@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.session.application.session.session_state.dto.session_state import SessionStateDto
+    from shell.session.application.session.session_state.ports.session_state_query_service import (
+        SessionStateQueryService,
+    )
+    from shell.session.application.session.session_state.queries.get_session_state_by_id_query import (
+        GetSessionStateByIdQuery,
+    )
+
+
+class GetSessionStateByIdHandler:
+    def __init__(self, queries: SessionStateQueryService) -> None:
+        self._queries = queries
+
+    async def handle(self, query: GetSessionStateByIdQuery) -> SessionStateDto | None:
+        return await self._queries.get_by_id(query.session_state_id)

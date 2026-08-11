@@ -1,19 +1,15 @@
-"""Central message registry for outbox/inbox deserialization.
-
-Auto-generated. Run .opencode/tools/regenerate_registry.py to rebuild.
-"""
+"""Platform helper for building a transport message registry."""
 
 from __future__ import annotations
 
-from shell.domain.messaging.aggregates.message_router.messages.routable_message import (
-    RoutableMessage,
-)
+from typing import TYPE_CHECKING
+
+from shell.platform.infrastructure.serialization.type_registry import build_type_registry
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
-def build_message_registry() -> dict[str, type]:
-    """Build registry mapping class names to message types for deserialization."""
-    messages: list[type] = [
-        RoutableMessage,
-    ]
-
-    return {message.__name__: message for message in messages}
+def build_message_registry(message_types: Iterable[type]) -> dict[str, type]:
+    """Build a registry from message types supplied by the composition root."""
+    return build_type_registry(message_types)

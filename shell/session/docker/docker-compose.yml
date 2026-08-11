@@ -1,0 +1,9 @@
+services:
+  shell-session:
+    build:
+      context: ../../..
+      dockerfile: shell/session/docker/Dockerfile
+    ports:
+      - "8003:8003"
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

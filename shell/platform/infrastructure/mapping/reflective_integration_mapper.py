@@ -1,7 +1,7 @@
 """Single reflective mapper — maps any domain event to its integration event.
 
 Uses naming convention: ``SessionOpenedEvent`` → ``SessionOpenedIntegrationEvent``
-and module path convention: ``shell.domain.…`` → ``shell.application.…``
+and module path conventions for legacy BCs and the extracted ``shell.user`` BC.
 
 No per-aggregate mappers, no isinstance, no try/except, no fallbacks.
 """
@@ -53,6 +53,13 @@ class ReflectiveIntegrationMapper:
             # → shell.application.domain.integration_events.aggregate_deleted_integration_event
             int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
             full_mod = f"shell.application.domain.integration_events.{int_file}"
+        elif len(parts) > 5 and parts[2] == "domain":
+            # shell.<bc>.domain.<bc>.aggregates.<agg>.events.<file>
+            # → shell.<bc>.application.<bc>.<agg>.integration_events.<file>
+            bc = parts[3]
+            agg = parts[5]
+            int_file = re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()
+            full_mod = f"shell.{bc}.application.{bc}.{agg}.integration_events.{int_file}"
         else:
             # shell.domain.<bc>.aggregates.<agg>.events.<file>
             # → shell.application.<bc>.<agg>.integration_events.<file>

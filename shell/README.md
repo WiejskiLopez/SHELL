@@ -82,7 +82,7 @@ $env:shell_DATABASE_URL = "postgresql+asyncpg://user:pass@localhost:5432/shell"
 Wszystkie komendy uruchamiane z **katalogu głównego repo** (`SHELL/`):
 
 ```powershell
-python -m shell.framework.cli.main <subkomenda> [parametry]
+python -m shell.platform.framework.cli.main <subkomenda> [parametry]
 ```
 
 ### 3.1 `import-task` — importuj zadanie z pliku
@@ -90,7 +90,7 @@ python -m shell.framework.cli.main <subkomenda> [parametry]
 Czyta parę plików `<task-name>.md` + `<task-name>.yaml` i zapisuje `Task` do bazy.
 
 ```powershell
-python -m shell.framework.cli.main import-task `
+python -m shell.platform.framework.cli.main import-task `
     --task-name my-task `
     --task-dir ./workplace/example_tasks/
 ```
@@ -109,7 +109,7 @@ Wynik: wypisuje `Imported task 'my-task' with id=<uuid>`.
 Przetwarza oczekujące koperty (`Envelope`) dla danego workflow.
 
 ```powershell
-python -m shell.framework.cli.main route `
+python -m shell.platform.framework.cli.main route `
     --workflow-id <uuid>
 ```
 
@@ -127,7 +127,7 @@ Wynik: `Routed N envelopes.`
 Importuje zadanie (jeśli nie istnieje), uruchamia workflow i wykonuje wszystkie node'y w grafie.
 
 ```powershell
-python -m shell.framework.cli.main run-tasker `
+python -m shell.platform.framework.cli.main run-tasker `
     --task-name my-task `
     --work-dir ./work/
 ```
@@ -146,7 +146,7 @@ Wynik: `Tasker workflow completed: workflow_id=<uuid>`
 Wywołania odpowiadające starym entrypointom (CLI parity):
 
 ```powershell
-python -m shell.framework.cli.main agent `
+python -m shell.platform.framework.cli.main agent `
     --node-dir ./work/agent-01 `
     --workflow-id <uuid> `
     --work-dir ./work/
@@ -184,13 +184,15 @@ Każdy Bounded Context wystawia własną aplikację FastAPI.
 ```powershell
 python -c "
 import asyncio, uvicorn
-from shell.bootstrap.execution.factory.application_factory import ApplicationFactory
-from shell.framework.user.api.app import create_user_app
-from shell.platform.infrastructure.configuration.shell_config import ShellConfig
+from shell.user.bootstrap.user.container.user_core_container import (
+    UserCoreContainer,
+    configure_user_container,
+)
+from shell.user.framework.user.api.app import create_user_app
 
 async def main():
-    config = ShellConfig.from_environment()
-    container = await ApplicationFactory(config).build()
+    container = UserCoreContainer()
+    configure_user_container(container)
     app = create_user_app(container)
     uvicorn_config = uvicorn.Config(app, host='0.0.0.0', port=8000)
     server = uvicorn.Server(uvicorn_config)
@@ -200,7 +202,7 @@ asyncio.run(main())
 "
 ```
 
-Pełny entrypoint (monolit): `python -m shell.platform.framework.api`.
+Każdy BC uruchamia się własnym entrypointem i własną bazą danych.
 
 ### Endpointy per BC
 
@@ -216,26 +218,21 @@ Dokumentacja Swagger dostępna pod: `http://localhost:8000/docs`
 
 ---
 
-## 5. Narzędzia administracyjne (bootstrap/main.py)
+## 5. Narzędzia administracyjne
 
 ```powershell
-python -m shell.platform.bootstrap.main <komenda> [--db-url URL]
+python -m shell.execution.framework.execution.api --port 8000
 ```
 
 | Komenda | Opis |
 |---|---|
-| `smoke` | Import → workflow → route na tymczasowej bazie SQLite. Sprawdza czy cały stos działa. |
-| `relay` | Przetwarza jeden batch oczekujących wpisów w tabeli `outbox_event` i publikuje je downstream. |
+| `execution` | Uruchamia wyłącznie Execution BC. |
+| `session` | Uruchamia wyłącznie Session BC. |
+| `user` | Uruchamia wyłącznie User BC. |
 
 ```powershell
-# Smoke test na domyślnej bazie
-python -m shell.platform.bootstrap.main smoke
-
-# Smoke test na konkretnej bazie
-python -m shell.platform.bootstrap.main smoke --db-url sqlite+aiosqlite:///moja_baza.db
-
-# Przetworz outbox na bazie Postgres
-python -m shell.platform.bootstrap.main relay --db-url "postgresql+asyncpg://user:pass@localhost/shell"
+# Każdy proces uruchamia jeden bounded context
+python -m shell.execution.framework.execution.api --port 8000
 ```
 
 ---
@@ -278,7 +275,7 @@ python -m ruff check shell --fix
 python -m mypy --strict shell/domain shell/application
 
 # MyPy bez strict dla reszty
-python -m mypy shell/infrastructure shell/framework shell/bootstrap
+python -m mypy shell/infrastructure shell/framework
 ```
 
 ### Struktura testów
@@ -587,6 +584,6 @@ Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 `EventOutboxToInboxRelay.run_once()` pobiera niepublikowane wpisy i przekazuje je do `inbox_event`, ustawiając `published_at`.
 
 ```powershell
-# Uruchom relay ręcznie
-python -m shell.platform.bootstrap.main relay --db-url sqlite+aiosqlite:///shell.db
+# Relay uruchamiany jest przez proces właściwego BC
+python -m shell.execution.bootstrap.execution.cli.command.relay_command
 ```

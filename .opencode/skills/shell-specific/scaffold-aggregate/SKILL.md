@@ -557,12 +557,12 @@ Jak w innych per-aggregate app.py — `create_foo_app(container) → FastAPI`.
 
 ### Krok 15: Framework — Rejestracja w monolicie
 
-W `shell/platform/framework/api/app.py` dodać:
+W aplikacji konkretnego BC dodać:
 
 ```python
 from shell.framework.foo.foo.api.router import router as foos_router
 
-# w create_monolith_app():
+# w create_<bc>_app():
 app.include_router(foos_router, prefix="/api/v1")
 ```
 

@@ -2,158 +2,162 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from shell.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
+from shell.definition.domain.definition.aggregates.graph_definition.repositories.graph_definition_repository import (
     GraphDefinitionRepository,
 )
-from shell.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
+from shell.definition.domain.definition.aggregates.graph_definition_embedding.repositories.graph_definition_embedding_repository import (
     GraphDefinitionEmbeddingRepository,
 )
-from shell.domain.definition.aggregates.node_definition.repositories.node_definition_repository import (
+from shell.definition.domain.definition.aggregates.node_definition.repositories.node_definition_repository import (
     NodeDefinitionRepository,
 )
-from shell.domain.definition.aggregates.node_link_definition.repositories.node_link_definition_repository import (
+from shell.definition.domain.definition.aggregates.node_link_definition.repositories.node_link_definition_repository import (
     NodeLinkDefinitionRepository,
 )
-from shell.domain.definition.aggregates.runner_config.repositories.runner_config_repository import (
+from shell.definition.domain.definition.aggregates.runner_config.repositories.runner_config_repository import (
     RunnerConfigRepository,
 )
-from shell.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
-    EdgeExecutionRepository,
-)
-from shell.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
-    EdgeLinkExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
-    GraphExecutionRepository,
-)
-from shell.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
-    GraphExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
-    NodeExecutionRepository,
-)
-from shell.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
-    NodeExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
-    NodeLinkExecutionRepository,
-)
-from shell.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
-    TaskExecutionRepository,
-)
-from shell.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
-    TaskExecutionStateRepository,
-)
-from shell.domain.execution.aggregates.workflow.repositories.workflow_repository import (
-    WorkflowRepository,
-)
-from shell.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
-    WorkflowStateRepository,
-)
-from shell.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
-    MessageRouterRepository,
-)
-from shell.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
-    SchedulerDefinitionRepository,
-)
-from shell.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
-    SchedulerExecutionRepository,
-)
-from shell.domain.scheduling.aggregates.scheduler_job.repositories.scheduler_job_repository import (
-    SchedulerJobRepository,
-)
-from shell.domain.session.aggregates.session.repositories.session_repository import (
-    SessionRepository,
-)
-from shell.infrastructure.definition.graph_definition.persistence.memory.in_memory_graph_definition_repository import (
+from shell.definition.infrastructure.definition.graph_definition.persistence.memory.in_memory_graph_definition_repository import (
     InMemoryGraphDefinitionRepository,
 )
-from shell.infrastructure.definition.graph_definition_embedding.persistence.memory.in_memory_graph_definition_embedding_repository import (
+from shell.definition.infrastructure.definition.graph_definition_embedding.persistence.memory.in_memory_graph_definition_embedding_repository import (
     InMemoryGraphDefinitionEmbeddingRepository,
 )
-from shell.infrastructure.definition.node_definition.persistence.memory.in_memory_node_definition_repository import (
+from shell.definition.infrastructure.definition.node_definition.persistence.memory.in_memory_node_definition_repository import (
     InMemoryNodeDefinitionRepository,
 )
-from shell.infrastructure.definition.node_link_definition.persistence.memory.in_memory_node_link_definition_repository import (
+from shell.definition.infrastructure.definition.node_link_definition.persistence.memory.in_memory_node_link_definition_repository import (
     InMemoryNodeLinkDefinitionRepository,
 )
-from shell.infrastructure.definition.runner_config.persistence.memory.in_memory_runner_config_repository import (
+from shell.definition.infrastructure.definition.runner_config.persistence.memory.in_memory_runner_config_repository import (
     InMemoryRunnerConfigRepository,
 )
-from shell.infrastructure.execution.edge_execution.persistence.memory.in_memory_edge_execution_repository import (
+from shell.execution.domain.execution.aggregates.edge_execution.repositories.edge_execution_repository import (
+    EdgeExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.edge_link_execution.repositories.edge_link_execution_repository import (
+    EdgeLinkExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.graph_execution.repositories.graph_execution_repository import (
+    GraphExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.graph_execution_state.repositories.graph_execution_state_repository import (
+    GraphExecutionStateRepository,
+)
+from shell.execution.domain.execution.aggregates.node_execution.repositories.node_execution_repository import (
+    NodeExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.node_execution_state.repositories.node_execution_state_repository import (
+    NodeExecutionStateRepository,
+)
+from shell.execution.domain.execution.aggregates.node_link_execution.repositories.node_link_execution_repository import (
+    NodeLinkExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.task_execution.repositories.task_execution_repository import (
+    TaskExecutionRepository,
+)
+from shell.execution.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
+from shell.execution.domain.execution.aggregates.workflow.repositories.workflow_repository import (
+    WorkflowRepository,
+)
+from shell.execution.domain.execution.aggregates.workflow_state.repositories.workflow_state_repository import (
+    WorkflowStateRepository,
+)
+from shell.execution.infrastructure.execution.edge_execution.persistence.memory.in_memory_edge_execution_repository import (
     InMemoryEdgeExecutionRepository,
 )
-from shell.infrastructure.execution.edge_link_execution.persistence.memory.in_memory_edge_link_execution_repository import (
+from shell.execution.infrastructure.execution.edge_link_execution.persistence.memory.in_memory_edge_link_execution_repository import (
     InMemoryEdgeLinkExecutionRepository,
 )
-from shell.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
+from shell.execution.infrastructure.execution.graph_execution.persistence.memory.in_memory_graph_execution_repository import (
     InMemoryGraphExecutionRepository,
 )
-from shell.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
+from shell.execution.infrastructure.execution.node_execution.persistence.memory.in_memory_node_execution_repository import (
     InMemoryNodeExecutionRepository,
 )
-from shell.infrastructure.execution.node_execution_state.persistence.memory.in_memory_node_execution_state_repository import (
+from shell.execution.infrastructure.execution.node_execution_state.persistence.memory.in_memory_node_execution_state_repository import (
     InMemoryNodeExecutionStateRepository,
 )
-from shell.infrastructure.execution.node_link_execution.persistence.memory.in_memory_node_link_execution_repository import (
+from shell.execution.infrastructure.execution.node_link_execution.persistence.memory.in_memory_node_link_execution_repository import (
     InMemoryNodeLinkExecutionRepository,
 )
-from shell.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
+from shell.execution.infrastructure.execution.task_execution.persistence.memory.in_memory_task_execution_repository import (
     InMemoryTaskExecutionRepository,
 )
-from shell.infrastructure.execution.task_execution_state.persistence.memory.in_memory_task_execution_state_repository import (
+from shell.execution.infrastructure.execution.task_execution_state.persistence.memory.in_memory_task_execution_state_repository import (
     InMemoryTaskExecutionStateRepository,
 )
-from shell.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
+from shell.execution.infrastructure.execution.workflow.persistence.memory.in_memory_workflow_repository import (
     InMemoryWorkflowRepository,
 )
-from shell.infrastructure.execution.workflow_state.persistence.memory.in_memory_workflow_state_repository import (
+from shell.execution.infrastructure.execution.workflow_state.persistence.memory.in_memory_workflow_state_repository import (
     InMemoryWorkflowStateRepository,
 )
-from shell.infrastructure.messaging.persistence.memory.in_memory_message_router_repository import (
+from shell.messaging.domain.messaging.aggregates.message_router.repositories.message_router_repository import (
+    MessageRouterRepository,
+)
+from shell.messaging.infrastructure.messaging.persistence.memory.in_memory_message_router_repository import (
     InMemoryMessageRouterRepository,
-)
-from shell.infrastructure.scheduling.scheduler_definition.persistence.memory.in_memory_scheduler_definition_repository import (
-    InMemorySchedulerDefinitionRepository,
-)
-from shell.infrastructure.scheduling.scheduler_execution.persistence.memory.in_memory_scheduler_execution_repository import (
-    InMemorySchedulerExecutionRepository,
-)
-from shell.infrastructure.scheduling.scheduler_job.persistence.memory.in_memory_scheduler_job_repository import (
-    InMemorySchedulerJobRepository,
-)
-from shell.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
-    InMemorySessionRepository,
 )
 from shell.platform.application.ports.unit_of_work import UnitOfWork
 from shell.platform.infrastructure.persistence.memory.in_memory_graph_execution_state_input_repository import (
     InMemoryGraphExecutionStateRepository,
 )
+from shell.scheduling.domain.scheduling.aggregates.scheduler_definition.repositories.scheduler_definition_repository import (
+    SchedulerDefinitionRepository,
+)
+from shell.scheduling.domain.scheduling.aggregates.scheduler_execution.repositories.scheduler_execution_repository import (
+    SchedulerExecutionRepository,
+)
+from shell.scheduling.domain.scheduling.aggregates.scheduler_job.repositories.scheduler_job_repository import (
+    SchedulerJobRepository,
+)
+from shell.scheduling.infrastructure.scheduling.scheduler_definition.persistence.memory.in_memory_scheduler_definition_repository import (
+    InMemorySchedulerDefinitionRepository,
+)
+from shell.scheduling.infrastructure.scheduling.scheduler_execution.persistence.memory.in_memory_scheduler_execution_repository import (
+    InMemorySchedulerExecutionRepository,
+)
+from shell.scheduling.infrastructure.scheduling.scheduler_job.persistence.memory.in_memory_scheduler_job_repository import (
+    InMemorySchedulerJobRepository,
+)
+from shell.session.domain.session.aggregates.session.repositories.session_repository import (
+    SessionRepository,
+)
+from shell.session.infrastructure.session.session.persistence.memory.in_memory_session_repository import (
+    InMemorySessionRepository,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
+    from shell.messaging.domain.messaging.aggregates.message_router.message_router import (
+        MessageRouter,
+    )
     from shell.platform.domain.events import DomainEvent
 from datetime import UTC, datetime
 
-from shell.domain.definition.aggregates.graph_definition.graph_definition import (
+from shell.definition.domain.definition.aggregates.graph_definition.graph_definition import (
     GraphDefinition,
 )
-from shell.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
+from shell.definition.domain.definition.aggregates.graph_definition.value_objects.graph_definition_id import (
     GraphDefinitionId,
 )
-from shell.domain.definition.aggregates.node_definition.node_definition import (
+from shell.definition.domain.definition.aggregates.node_definition.node_definition import (
     NodeDefinition,
 )
-from shell.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
+from shell.definition.domain.definition.aggregates.node_definition.value_objects.node_definition_id import (
     NodeDefinitionId,
 )
-from shell.domain.definition.aggregates.node_definition.value_objects.node_type import NodeType
-from shell.domain.definition.aggregates.node_link_definition.node_link_definition import (
+from shell.definition.domain.definition.aggregates.node_definition.value_objects.node_type import (
+    NodeType,
+)
+from shell.definition.domain.definition.aggregates.node_link_definition.node_link_definition import (
     NodeLinkDefinition,
 )
-from shell.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
+from shell.definition.domain.definition.aggregates.node_link_definition.value_objects.node_link_definition_id import (
     NodeLinkDefinitionId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt

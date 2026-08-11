@@ -6,21 +6,18 @@ from datetime import UTC, datetime
 
 import pytest
 
-from shell.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
+from shell.execution.domain.execution.aggregates.node_execution.events.node_execution_created_event import (
     NodeExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+from shell.execution.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
     NodeExecutionId,
 )
-from shell.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
+from shell.execution.domain.execution.aggregates.session_execution.events.session_execution_created_event import (
     SessionExecutionCreatedEvent,
 )
-from shell.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
+from shell.execution.domain.execution.aggregates.session_execution.value_objects.session_execution_id import (
     SessionExecutionId,
 )
-from shell.domain.session.aggregates.session.events.session_opened_event import SessionOpenedEvent
-from shell.domain.session.aggregates.session.value_objects.session_id import SessionId
-from shell.domain.session.value_objects.user_id_ref import UserIdRef
 from shell.platform.application.context.causation_id import get_causation_id
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.application.events import IntegrationEvent
@@ -28,6 +25,11 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.mapping.reflective_integration_mapper import (
     ReflectiveIntegrationMapper,
 )
+from shell.session.domain.session.aggregates.session.events.session_opened_event import (
+    SessionOpenedEvent,
+)
+from shell.session.domain.session.aggregates.session.value_objects.session_id import SessionId
+from shell.session.domain.session.value_objects.user_id_ref import UserIdRef
 
 _NOW = OccurredAt.from_datetime(datetime(2025, 1, 1, tzinfo=UTC))
 

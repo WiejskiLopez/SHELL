@@ -53,9 +53,9 @@ Skrypt importuje aplikację FastAPI i zrzuca specyfikację:
 ```python
 # scripts/generate-openapi.py
 import json
-from shell.platform.framework.api.app import create_monolith_app
+from shell.execution.framework.execution.api.app import create_execution_app
 
-app = create_monolith_app(...)
+app = create_execution_app(...)
 with open("openapi.json", "w") as f:
     json.dump(app.openapi(), f, indent=2)
 ```

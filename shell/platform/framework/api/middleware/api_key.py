@@ -7,9 +7,6 @@ from typing import TYPE_CHECKING, Protocol, cast
 import jwt
 from starlette.responses import JSONResponse
 
-from shell.application.user.auth_session.queries.get_current_auth_session_query import (
-    GetCurrentAuthSessionQuery,
-)
 from shell.platform.application.context.correlation_id import get_correlation_id
 from shell.platform.framework.api.models.problem_detail import ProblemDetail
 from shell.platform.framework.api.principal import (
@@ -19,6 +16,8 @@ from shell.platform.framework.api.principal import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from starlette.types import ASGIApp, Receive, Scope, Send
 
 
@@ -40,10 +39,17 @@ PUBLIC_PREFIX = frozenset({"/docs", "/redoc", "/openapi.json"})
 
 
 class AuthMiddleware:
-    def __init__(self, app: ASGIApp, api_key: str = "", jwt_secret: str = "") -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        api_key: str = "",
+        jwt_secret: str = "",
+        session_query_factory: Callable[[str], object] | None = None,
+    ) -> None:
         self.app = app
         self._api_key = api_key
         self._jwt_secret = jwt_secret
+        self._session_query_factory = session_query_factory
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -84,8 +90,8 @@ class AuthMiddleware:
         session_token = self._session_token(headers)
         if session_token:
             query_bus = self._query_bus(scope)
-            if query_bus is not None:
-                session = await query_bus.dispatch(GetCurrentAuthSessionQuery(token=session_token))
+            if query_bus is not None and self._session_query_factory is not None:
+                session = await query_bus.dispatch(self._session_query_factory(session_token))
                 if session is not None and hasattr(session, "user_id"):
                     return Principal(session.user_id, PrincipalKind.USER)
 
@@ -121,7 +127,12 @@ class AuthMiddleware:
         container = getattr(state, "core_container", None)
         application = getattr(container, "app", None)
         buses = getattr(application, "buses", None)
-        return cast("_QueryBus | None", getattr(buses, "query_bus", None))
+        query_bus = getattr(buses, "query_bus", None)
+        if query_bus is None:
+            query_bus = getattr(container, "query_bus", None)
+        if query_bus is not None and not hasattr(query_bus, "dispatch") and callable(query_bus):
+            query_bus = query_bus()
+        return cast("_QueryBus | None", query_bus)
 
     async def _validate_jwt(self, token: str) -> str | None:
         if not self._jwt_secret:

@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import select
 
-from shell.domain.messaging.aggregates.message_router.messages.routable_message import (
+from shell.messaging.domain.messaging.aggregates.message_router.messages.routable_message import (
     RoutableMessage,
 )
-from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_data import (
+    MessageData,
+)
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
 from shell.platform.infrastructure.messaging.message.message_outbox_to_inbox_relay import (
     MessageOutboxToInboxRelay,

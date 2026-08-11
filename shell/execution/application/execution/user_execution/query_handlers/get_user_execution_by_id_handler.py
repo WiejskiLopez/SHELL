@@ -1,0 +1,22 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from shell.execution.application.execution.user_execution.dto.user_execution import (
+        UserExecutionDto,
+    )
+    from shell.execution.application.execution.user_execution.ports.user_execution_query_service import (
+        UserExecutionQueryService,
+    )
+    from shell.execution.application.execution.user_execution.queries.get_user_execution_by_id_query import (
+        GetUserExecutionByIdQuery,
+    )
+
+
+class GetUserExecutionByIdHandler:
+    def __init__(self, queries: UserExecutionQueryService) -> None:
+        self._queries = queries
+
+    async def handle(self, query: GetUserExecutionByIdQuery) -> UserExecutionDto | None:
+        return await self._queries.get_by_id(query.user_execution_id)

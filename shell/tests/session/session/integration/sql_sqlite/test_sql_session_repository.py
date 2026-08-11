@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
-from shell.infrastructure.session.session.persistence.sql.models.session import SessionModel
-from shell.infrastructure.session.session.persistence.sql.services.session_query_service import (
+from shell.session.infrastructure.session.session.persistence.sql.models.session import SessionModel
+from shell.session.infrastructure.session.session.persistence.sql.services.session_query_service import (
     SessionQueryService,
 )
 
@@ -22,20 +22,20 @@ if TYPE_CHECKING:
     )
 
 
-from shell.application.session.session.command_handlers.close_session_handler import (
+from shell.session.application.session.session.command_handlers.close_session_handler import (
     CloseSessionHandler,
 )
-from shell.application.session.session.command_handlers.open_session_handler import (
+from shell.session.application.session.session.command_handlers.open_session_handler import (
     OpenSessionHandler,
 )
-from shell.application.session.session.commands import (
+from shell.session.application.session.session.commands import (
     CloseSessionCommand,
     OpenSessionCommand,
 )
-from shell.application.session.session.queries.get_session_history_query import (
+from shell.session.application.session.session.queries.get_session_history_query import (
     GetSessionHistoryQuery,
 )
-from shell.application.session.session.query_handlers.get_session_history_handler import (
+from shell.session.application.session.session.query_handlers.get_session_history_handler import (
     GetSessionHistoryHandler,
 )
 

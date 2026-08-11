@@ -4,17 +4,17 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from shell.domain.user.aggregates.auth_session.auth_session import AuthSession
-from shell.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
-    AuthSessionId,
-)
-from shell.domain.user.aggregates.auth_session.value_objects.expires_at import ExpiresAt
-from shell.domain.user.value_objects.user_id import UserId
-from shell.infrastructure.user.auth_session.persistence.memory.in_memory_auth_session_repository import (
-    InMemoryAuthSessionRepository,
-)
 from shell.platform.domain.value_objects.created_at import CreatedAt
 from shell.platform.domain.value_objects.hash import Hash
+from shell.user.domain.user.aggregates.auth_session.auth_session import AuthSession
+from shell.user.domain.user.aggregates.auth_session.value_objects.auth_session_id import (
+    AuthSessionId,
+)
+from shell.user.domain.user.aggregates.auth_session.value_objects.expires_at import ExpiresAt
+from shell.user.domain.user.value_objects.user_id import UserId
+from shell.user.infrastructure.user.auth_session.persistence.memory.in_memory_auth_session_repository import (
+    InMemoryAuthSessionRepository,
+)
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,9 @@
+services:
+  shell-messaging:
+    build:
+      context: ../../..
+      dockerfile: shell/messaging/docker/Dockerfile
+    ports:
+      - "8004:8004"
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

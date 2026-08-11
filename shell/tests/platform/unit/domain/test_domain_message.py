@@ -5,15 +5,17 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from shell.domain.messaging.aggregates.message_router.message_router import MessageRouter
-from shell.domain.messaging.aggregates.message_router.messages.routable_message import (
+from shell.messaging.domain.messaging.aggregates.message_router.message_router import MessageRouter
+from shell.messaging.domain.messaging.aggregates.message_router.messages.routable_message import (
     RoutableMessage,
 )
-from shell.domain.messaging.aggregates.message_router.value_objects.message_context import (
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_context import (
     MessageContext,
 )
-from shell.domain.messaging.aggregates.message_router.value_objects.message_data import MessageData
-from shell.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_data import (
+    MessageData,
+)
+from shell.messaging.domain.messaging.aggregates.message_router.value_objects.message_router_id import (
     MessageRouterId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt
