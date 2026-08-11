@@ -5,10 +5,10 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] requires datet
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.user.infrastructure.user.persistence.sql.models.base import UserSqlAlchemyModelBase
 
 
-class AuthSessionModel(Base):
+class AuthSessionModel(UserSqlAlchemyModelBase):
     __tablename__ = "auth_sessions"
 
     id: Mapped[str] = mapped_column(primary_key=True)

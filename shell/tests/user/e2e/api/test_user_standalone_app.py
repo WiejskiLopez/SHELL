@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from shell.platform.infrastructure.persistence.sql.models.audit_event import (  # noqa: F401 -- register SQLAlchemy model metadata
     AuditEventModel,
 )
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 from shell.user.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
@@ -47,10 +46,7 @@ async def test_user_app_builds_with_user_core_container() -> None:
 
 async def test_user_app_auth_session_flow(tmp_path: pathlib.Path) -> None:
     db_url = f"sqlite+aiosqlite:///{tmp_path / 'user.db'}"
-    engine = create_async_engine(db_url)
-    async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all)
-    await engine.dispose()
+    await run_user_baseline(db_url)
 
     container = UserCoreContainer()
     container.config.db_url.from_value(db_url)

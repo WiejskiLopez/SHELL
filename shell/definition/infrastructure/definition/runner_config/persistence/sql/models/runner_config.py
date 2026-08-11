@@ -5,10 +5,12 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 from sqlalchemy import JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    DefinitionSqlAlchemyModelBase,
+)
 
 
-class RunnerConfigModel(Base):
+class RunnerConfigModel(DefinitionSqlAlchemyModelBase):
     __tablename__ = "runner_config"
 
     id: Mapped[str] = mapped_column(primary_key=True)

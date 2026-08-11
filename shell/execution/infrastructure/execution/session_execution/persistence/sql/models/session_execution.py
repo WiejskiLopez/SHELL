@@ -4,10 +4,12 @@ from datetime import datetime  # noqa: TC003 -- Mapped[datetime] requires dateti
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 
 
-class SessionExecutionModel(Base):
+class SessionExecutionModel(ExecutionSqlAlchemyModelBase):
     __tablename__ = "session_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)

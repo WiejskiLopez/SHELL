@@ -1,2 +1,2 @@
-python -m shell.execution.framework.execution.api --port 8000
+python -m shell.execution.bootstrap.execution.main --port 8000
 

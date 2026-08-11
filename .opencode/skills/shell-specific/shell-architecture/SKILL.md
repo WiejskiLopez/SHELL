@@ -1,4 +1,3 @@
----
 name: shell-architecture
 description: Architektura i konwencje projektowe dla repozytorium SHELL (Python, Clean Architecture + DDD + Hexagonal + CQRS, SQLAlchemy async, FastAPI). Używaj zawsze, gdy modyfikujesz, dodajesz lub review'ujesz kod w katalogu `shell/` — dodawanie nowej funkcjonalności, nowe aggregate/entity/VO, handlery command/query/event, mappery, repozytoria SQL/InMemory, migracje Alembic, rejestracja w DI, refaktoryzacja relacji między agregatami. Używaj także przy analizie błędów logicznych, planowaniu refaktoryzacji warstwowej, albo gdy nie jesteś pewien gdzie powinna trafić nowa klasa.
 ---
@@ -7,20 +6,54 @@ description: Architektura i konwencje projektowe dla repozytorium SHELL (Python,
 
 Projekt SHELL to system execution-orkiestracji oparty na **Clean Architecture + DDD + Hexagonal + CQRS**, napisany w Pythonie z SQLAlchemy 2.0 async i FastAPI. Ten skill podpowiada, jak pisać kod zgodny z konwencjami projektu i jak unikać klas błędów, które już tu wystąpiły.
 
+## Docelowa topologia pakietów i testów
+
+For focused work, load the dedicated concept skill instead of relying on this
+overview alone:
+
+- `package-topology` — package/file ownership;
+- `platform-boundary` — generic platform rules;
+- `bounded-context-boundary` — BC isolation and standalone composition roots;
+- `test-topology` — ownership and placement of tests;
+- `integration-contracts` — HTTP/event communication between BCs.
+
+Nie używamy wspólnych top-level pakietów `shell/domain`, `shell/application`,
+`shell/infrastructure`, `shell/framework`, `shell/process` ani `shell/bootstrap`.
+
+- `shell/platform/` zawiera wyłącznie generyczne, współdzielone prymitywy i kontrakty.
+    Platforma nie importuje żadnego bounded contextu.
+- `shell/<bc>/{domain,application,process,infrastructure,framework,bootstrap}/`
+    zawiera kod i composition root wyłącznie konkretnego BC.
+- Nie istnieje tryb monolityczny ani wspólny composition root dla wielu BC.
+- Komunikacja między BC przebiega przez publiczne kontrakty HTTP lub eventowe.
+
+Testy mają tę samą granicę własności:
+
+- `shell/tests/platform/` — tylko testy `shell.platform`; zero importów BC.
+- `shell/tests/<bc>/` — testy jednego BC; dozwolone są własny BC i platforma.
+- `shell/tests/contracts/` — publiczne kontrakty HTTP/event między BC.
+- `shell/tests/system/` — scenariusze wielu osobnych aplikacji BC, bez wspólnego kontenera.
+- `shell/tests/architecture/` — centralne testy AST/importów i reguł całego repozytorium.
+- `shell/tests/shared/` — wyłącznie helpery generyczne, bez importów BC.
+
+Test umieszczony w `platform`, który importuje BC, należy zgeneryzować na fake
+platformowy albo przenieść do `shell/tests/<bc>`. Test architektury pozostaje w
+`shell/tests/architecture`, nawet jeśli sprawdza regułę dotyczącą platformy.
+
 ## Architektura warstwowa
 
 Kierunek zależności jest jednokierunkowy:
 
 ```
-domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
+shell/<bc>/domain/ ← application/ ← process/ ← infrastructure/ ← framework/ ← bootstrap/
 ```
 
-- `domain/` — czysty Python, reguły biznesowe (Entity, VO, Aggregate Root, Domain Events, Repository porty)
-- `application/` — atomowe handlery przypadków użycia (Command/Query/Event Handlers, Busy, UoW, DTO, Mapper). Jeden handler = jeden agregat = jedna transakcja. Żadnej orkiestracji wieloagregatowej. Query Services grupuje się per agregat w `query_services/<nazwa_agregatu>/`.
-- `process/` — orkiestracja i sagas (stateful saga state machine, Process Manager event handlery, saga-specific commands i porty). Koordynuje wiele agregatów poprzez wysyłanie komend do warstwy aplikacyjnej.
-- `infrastructure/` — implementacje portów (SQLAlchemy, InMemory, outbox, migracje) oraz adaptery cross-aggregate data retrieval w `services/<nazwa_agregatu>/`
-- `framework/` — FastAPI, CLI, entrypointy
-- `bootstrap/` — Composition Root (DI Containery, Factory)
+- `shell/<bc>/domain/` — czysty Python i reguły biznesowe BC.
+- `shell/<bc>/application/` — atomowe handlery przypadków użycia BC.
+- `shell/<bc>/process/` — orkiestracja i sagi BC.
+- `shell/<bc>/infrastructure/` — implementacje portów i adaptery BC.
+- `shell/<bc>/framework/` — FastAPI, CLI i entrypointy BC.
+- `shell/<bc>/bootstrap/` — composition root wyłącznie tego BC.
 
 Reguły importów i zakazy (`domain/` nigdy nie importuje `sqlalchemy`/`pydantic`/`fastapi`) — patrz `references/layers-and-dependencies.md`.
 
@@ -107,11 +140,11 @@ W handlerze po mutacji agregatu wołaj `unit_of_work.stage_events(aggregate.pull
 - Zaczynasz nową funkcjonalność i nie wiesz gdzie co trafia → `references/checklists.md` (sekcja "Dodawanie nowej funkcjonalności")
 - Piszesz nowy aggregate/entity/VO/event/domain service → `references/domain.md`
 - Piszesz handler, mapper, strategię, port aplikacyjny → `references/application.md`
-- Piszesz Query Service → `shell/application/<bc>/query_services/<nazwa_agregatu>/` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
+- Piszesz Query Service → `shell/<bc>/application/<bc>/query_services/<nazwa_agregatu>/` (patrz [query-handler-structure](../../pattern-standards/query-handler-structure/SKILL.md#query-service--lokalizacja-per-agregat))
 - Piszesz handler z zasadami między-domenowymi → `references/application-handlers.md`
 - Piszesz repozytorium SQL/InMemory, model ORM, migrację → `references/infrastructure.md`
-- Implementujesz adapter danych międzyagregatowych → `shell/infrastructure/<bc>/services/<nazwa_agregatu>/` (patrz [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval))
-- Piszesz Event Handler → `shell/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
+- Implementujesz adapter danych międzyagregatowych → `shell/<bc>/infrastructure/<bc>/services/<nazwa_agregatu>/` (patrz [port-adapter-structure](../../pattern-standards/port-adapter-structure/SKILL.md#adaptery-cross-aggregate-data-retrieval))
+- Piszesz Event Handler → `shell/<bc>/application/<bc>/event_handlers/` (patrz [event-handler-structure](../../pattern-standards/event-handler-structure/SKILL.md))
 - Modyfikujesz relacje między agregatami, dodajesz/usuwasz pole, robisz refaktoryzację warstwową → `references/anti-patterns.md` (OBOWIĄZKOWO — to zapobiega ~80% błędów)
 - Rejestrujesz nowy handler w DI → `references/checklists.md` (sekcja "Bootstrap wiring")
 - Nie jesteś pewien struktury pliku → `references/checklists.md` (sekcja "Cross-cutting")

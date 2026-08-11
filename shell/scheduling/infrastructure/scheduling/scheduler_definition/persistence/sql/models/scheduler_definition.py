@@ -5,11 +5,13 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
+from shell.scheduling.infrastructure.scheduling.persistence.sql.models.base import (
+    SchedulingSqlAlchemyModelBase,
+)
 
 
-class SchedulerDefinitionModel(Base, VersionedMixin):
+class SchedulerDefinitionModel(SchedulingSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "scheduler_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)

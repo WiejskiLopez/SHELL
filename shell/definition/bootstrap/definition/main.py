@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+from pathlib import Path
 
 import uvicorn
 
@@ -23,7 +24,7 @@ def main() -> None:
     parser.add_argument("--db-url", default=None)
     args = parser.parse_args()
 
-    config = ShellConfig.from_environment()
+    config = ShellConfig.from_environment(Path(__file__).resolve().parent / "config")
     database_url = args.db_url or config.database_url
     container = DefinitionCoreContainer()
     container.config.db_url.from_value(database_url)

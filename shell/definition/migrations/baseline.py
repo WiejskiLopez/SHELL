@@ -16,11 +16,13 @@ from shell.definition.infrastructure.definition.node_definition.persistence.sql.
 from shell.definition.infrastructure.definition.node_link_definition.persistence.sql.models.node_link_definition import (
     NodeLinkDefinitionModel,
 )
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    DefinitionSqlAlchemyModelBase,
+)
 from shell.definition.infrastructure.definition.runner_config.persistence.sql.models.runner_config import (
     RunnerConfigModel,
 )
 from shell.platform.infrastructure.persistence.sql.models.audit_event import AuditEventModel
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 from shell.platform.infrastructure.persistence.sql.models.event.inbox_event import InboxEventModel
 from shell.platform.infrastructure.persistence.sql.models.event.outbox_event import OutboxEventModel
 
@@ -43,5 +45,5 @@ async def run_definition_baseline(url: str) -> None:
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
     )
     async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all, tables=list(_TABLES))
+        await connection.run_sync(DefinitionSqlAlchemyModelBase.metadata.create_all, tables=list(_TABLES))
     await engine.dispose()

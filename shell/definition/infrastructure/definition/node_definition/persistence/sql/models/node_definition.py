@@ -4,11 +4,13 @@ from datetime import datetime  # noqa: TC003 — SQLAlchemy Mapped[datetime] nee
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    DefinitionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 
-class NodeDefinitionModel(Base, VersionedMixin):
+class NodeDefinitionModel(DefinitionSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "node_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)

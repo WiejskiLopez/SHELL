@@ -6,10 +6,12 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.project.infrastructure.project.persistence.sql.models.base import (
+    ProjectSqlAlchemyModelBase,
+)
 
 
-class ProjectStateModel(Base):
+class ProjectStateModel(ProjectSqlAlchemyModelBase):
     __tablename__ = "project_state"
 
     id: Mapped[str] = mapped_column(primary_key=True)

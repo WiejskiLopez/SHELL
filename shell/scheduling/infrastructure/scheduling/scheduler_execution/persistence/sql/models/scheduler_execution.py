@@ -6,11 +6,13 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
+from shell.scheduling.infrastructure.scheduling.persistence.sql.models.base import (
+    SchedulingSqlAlchemyModelBase,
+)
 
 
-class SchedulerExecutionModel(Base, VersionedMixin):
+class SchedulerExecutionModel(SchedulingSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "scheduler_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)

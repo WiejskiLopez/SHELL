@@ -5,10 +5,12 @@ from datetime import datetime  # noqa: TC003 — Mapped[datetime] wymaga datetim
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 
 
-class NodeExecutionResultModel(Base):
+class NodeExecutionResultModel(ExecutionSqlAlchemyModelBase):
     __tablename__ = "node_execution_result"
 
     id: Mapped[str] = mapped_column(primary_key=True)

@@ -4,10 +4,12 @@ from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 
 
-class AgentConfigExecutionModel(Base):
+class AgentConfigExecutionModel(ExecutionSqlAlchemyModelBase):
     __tablename__ = "agent_config_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)

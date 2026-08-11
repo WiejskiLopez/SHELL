@@ -1,8 +1,24 @@
 # SHELL Architecture — Infrastructure Directory Structure
 
+## Topologia platformy, BC i testów
+
+- `shell/platform/` zawiera wyłącznie generyczne prymitywy i kontrakty; nie importuje BC.
+- Kod konkretnego bounded contextu należy do `shell/<bc>/domain`, `application`,
+  `process`, `infrastructure`, `framework` lub `bootstrap`.
+- Nie ma wspólnego trybu monolitycznego ani wspólnego composition root.
+- `shell/tests/platform/` testuje tylko `shell.platform` i nie importuje BC.
+- `shell/tests/<bc>/` testuje jeden BC i może importować tylko własny BC oraz platformę.
+- `shell/tests/contracts/` testuje publiczne kontrakty HTTP/event między BC.
+- `shell/tests/system/` testuje kilka osobnych aplikacji BC, bez wspólnego kontenera.
+- `shell/tests/architecture/` zawiera centralne testy AST/importów całego repozytorium.
+- `shell/tests/shared/` zawiera tylko helpery generyczne.
+
+Jeśli test platformy importuje BC, zgeneryzuj go na fake platformowy albo przenieś
+do testów właściwego BC. Test architektoniczny pozostaje w `shell/tests/architecture/`.
+
 ## Obowiązująca struktura katalogów
 
-Każdy agregat w `shell/infrastructure/<bounded_context>/<aggregate>/` MUSI stosować:
+Każdy agregat w `shell/<bounded_context>/infrastructure/<bounded_context>/<aggregate>/` MUSI stosować:
 
 ```
 <aggregate>/
@@ -31,12 +47,12 @@ Każdy agregat w `shell/infrastructure/<bounded_context>/<aggregate>/` MUSI stos
 ### Uwagi szczególne
 
 - **`messaging/`** — wyjątek: `persistence/` na poziomie BC zamiast w `message_router/`, ponieważ BC ma tylko jeden agregat, a persistence zawiera modele współdzielone (inbox/outbox).
-- **`scheduler_job/`** — agregat istnieje tylko w domenie (`shell/domain/scheduling/aggregates/scheduler_job/`); brak implementacji w infrastrukturze.
+- **`scheduler_job/`** — agregat istnieje tylko w domenie (`shell/scheduling/domain/scheduling/aggregates/scheduler_job/`); brak implementacji w infrastrukturze.
 
 ### Struktura dla bounded context
 
 ```
-shell/infrastructure/<bounded_context>/
+shell/<bounded_context>/infrastructure/<bounded_context>/
   <aggregate_1>/            ← każdy agregat z własnym persistence/
   <aggregate_2>/
   services/                 (opcjonalnie — serwisy współdzielone na poziomie BC)
@@ -69,10 +85,10 @@ Funkcje prywatne (`_ensure_utc`, `_created_at_value`) też we własnych plikach 
 
 ```python
 # DOBRZE — przez __init__.py (re-export)
-from shell.infrastructure.<bc>.<aggregate>.persistence.sql.mappers import user_model_to_entity
+from shell.<bc>.infrastructure.<bc>.<aggregate>.persistence.sql.mappers import user_model_to_entity
 
 # DOBRZE — bezpośrednio z pliku funkcji
-from shell.infrastructure.<bc>.<aggregate>.persistence.sql.mappers.user_model_to_entity import (
+from shell.<bc>.infrastructure.<bc>.<aggregate>.persistence.sql.mappers.user_model_to_entity import (
     user_model_to_entity,
 )
 

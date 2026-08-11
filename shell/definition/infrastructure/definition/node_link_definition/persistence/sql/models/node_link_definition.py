@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    DefinitionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 if TYPE_CHECKING:
@@ -18,7 +20,7 @@ if TYPE_CHECKING:
     )
 
 
-class NodeLinkDefinitionModel(Base, VersionedMixin):
+class NodeLinkDefinitionModel(DefinitionSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "node_link_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)

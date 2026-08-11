@@ -6,11 +6,13 @@ from datetime import (
 
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+    DefinitionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 
-class GraphDefinitionModel(Base, VersionedMixin):
+class GraphDefinitionModel(DefinitionSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "graph_definition"
 
     id: Mapped[str] = mapped_column(primary_key=True)

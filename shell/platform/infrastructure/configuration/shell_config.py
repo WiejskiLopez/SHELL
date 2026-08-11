@@ -12,7 +12,7 @@ import yaml
 
 
 def _config_dir() -> Path:
-    """Resolve the config directory relative to the shell package."""
+    """Resolve the shared environment config directory."""
     return Path(__file__).resolve().parents[3] / "config"
 
 
@@ -61,15 +61,11 @@ class ShellConfig:
     log_level: str = "INFO"
     seed_dev_data: bool = False
     reset_db: bool = False
-    definition_api_url: str = "http://localhost:8000/api/v1"
-    session_api_url: str = "http://localhost:8000/api/v1"
-    user_api_url: str = "http://localhost:8000/api/v1"
-    project_api_url: str = "http://localhost:8000/api/v1"
     test_db_dir: str | None = None
     events: EventsConfig = field(default_factory=EventsConfig)
 
     @classmethod
-    def from_environment(cls) -> ShellConfig:
+    def from_environment(cls, component_config_dir: Path | None = None) -> ShellConfig:
         """Build config from YAML files and environment variables.
 
         Loading order (last wins):
@@ -93,8 +89,11 @@ class ShellConfig:
         profile_file = config_dir / f"{active_profile}.yaml"
         profile_data = _load_yaml(profile_file)
 
-        # 4. Merge
+        # 4. Merge shared settings with the component profile, when supplied.
         merged = _deep_merge(defaults, profile_data)
+        if component_config_dir is not None:
+            component_file = component_config_dir / "database_dev.yaml"
+            merged = _deep_merge(merged, _load_yaml(component_file))
         merged["profile"] = active_profile
 
         # 5. Environment variable overrides (skipped for dev — YAML is the source of truth)
@@ -122,20 +121,6 @@ class ShellConfig:
         if env_test_db_dir:
             merged["test_db_dir"] = env_test_db_dir
 
-        # Environment variable overrides for cross-BC API URLs
-        env_definition_api_url = os.environ.get("SHELL_DEFINITION_API_URL")
-        if env_definition_api_url:
-            merged["definition_api_url"] = env_definition_api_url
-        env_session_api_url = os.environ.get("SHELL_SESSION_API_URL")
-        if env_session_api_url:
-            merged["session_api_url"] = env_session_api_url
-        env_user_api_url = os.environ.get("SHELL_USER_API_URL")
-        if env_user_api_url:
-            merged["user_api_url"] = env_user_api_url
-        env_project_api_url = os.environ.get("SHELL_PROJECT_API_URL")
-        if env_project_api_url:
-            merged["project_api_url"] = env_project_api_url
-
         # Build config object
         return cls(
             profile=merged.get("profile", "prod"),
@@ -145,10 +130,6 @@ class ShellConfig:
             log_level=merged.get("log_level", "INFO"),
             seed_dev_data=bool(merged.get("seed_dev_data", False)),
             reset_db=reset_db,
-            definition_api_url=merged.get("definition_api_url", "http://localhost:8000/api/v1"),
-            session_api_url=merged.get("session_api_url", "http://localhost:8000/api/v1"),
-            user_api_url=merged.get("user_api_url", "http://localhost:8000/api/v1"),
-            project_api_url=merged.get("project_api_url", "http://localhost:8000/api/v1"),
             test_db_dir=merged.get("test_db_dir"),
             events=EventsConfig(
                 outbox_batch_size=int(merged.get("events", {}).get("outbox_batch_size", 100)),

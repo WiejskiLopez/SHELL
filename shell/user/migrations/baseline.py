@@ -5,12 +5,12 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from shell.platform.infrastructure.persistence.sql.models.audit_event import AuditEventModel
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 from shell.platform.infrastructure.persistence.sql.models.event.inbox_event import InboxEventModel
 from shell.platform.infrastructure.persistence.sql.models.event.outbox_event import OutboxEventModel
 from shell.user.infrastructure.user.auth_session.persistence.sql.models.auth_session import (
     AuthSessionModel,
 )
+from shell.user.infrastructure.user.persistence.sql.models.base import UserSqlAlchemyModelBase
 from shell.user.infrastructure.user.user.persistence.sql.models.user import UserModel
 from shell.user.infrastructure.user.user_skill.persistence.sql.models.user_skill import (
     UserSkillModel,
@@ -42,5 +42,5 @@ async def run_user_baseline(url: str) -> None:
         connect_args={"check_same_thread": False} if "sqlite" in url else {},
     )
     async with engine.begin() as connection:
-        await connection.run_sync(Base.metadata.create_all, tables=list(_USER_TABLES))
+        await connection.run_sync(UserSqlAlchemyModelBase.metadata.create_all, tables=list(_USER_TABLES))
     await engine.dispose()

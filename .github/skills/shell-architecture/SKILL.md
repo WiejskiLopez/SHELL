@@ -9,6 +9,14 @@ This file is an adapter, not a second architecture manual. Read the canonical sk
 
 - [Core SHELL architecture](../../../.opencode/skills/shell-specific/shell-architecture/SKILL.md)
 
+Load the narrowest topology skill for the task:
+
+- [Package topology](../../../.opencode/skills/shell-specific/package-topology/SKILL.md) — file placement and package ownership;
+- [Platform boundary](../../../.opencode/skills/shell-specific/platform-boundary/SKILL.md) — generic platform contracts and primitives;
+- [Bounded-context boundary](../../../.opencode/skills/shell-specific/bounded-context-boundary/SKILL.md) — BC dependencies, composition roots, and standalone services;
+- [Test topology](../../../.opencode/skills/shell-specific/test-topology/SKILL.md) — platform, BC, contract, system, shared, and architecture tests;
+- [Integration contracts](../../../.opencode/skills/shell-specific/integration-contracts/SKILL.md) — HTTP and event boundaries between BCs.
+
 Then load the narrowest additional skill required by the task:
 
 - Domain model, aggregates, entities, value objects, events: `.opencode/skills/domain-layer/`

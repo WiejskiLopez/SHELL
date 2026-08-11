@@ -5,11 +5,13 @@ from datetime import datetime  # noqa: TC003 -- SQLAlchemy model uses datetime f
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models.mixins import VersionedMixin
 
 
-class EdgeExecutionModel(Base, VersionedMixin):
+class EdgeExecutionModel(ExecutionSqlAlchemyModelBase, VersionedMixin):
     __tablename__ = "edge_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)

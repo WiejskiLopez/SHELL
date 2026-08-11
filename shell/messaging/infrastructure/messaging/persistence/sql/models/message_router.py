@@ -4,12 +4,14 @@ from datetime import datetime  # noqa: TC003 -- Mapped[datetime] requires dateti
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from shell.platform.infrastructure.persistence.sql.models.base import Base
+from shell.messaging.infrastructure.messaging.persistence.sql.models.base import (
+    MessagingSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models.json_str_type import JsonStrType
 from shell.platform.types import JsonStr
 
 
-class MessageRouterModel(Base):
+class MessageRouterModel(MessagingSqlAlchemyModelBase):
     __tablename__ = "message_router"
 
     id: Mapped[str] = mapped_column(primary_key=True)

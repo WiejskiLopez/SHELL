@@ -221,7 +221,7 @@ Dokumentacja Swagger dostępna pod: `http://localhost:8000/docs`
 ## 5. Narzędzia administracyjne
 
 ```powershell
-python -m shell.execution.framework.execution.api --port 8000
+python -m shell.execution.bootstrap.execution.main --port 8000
 ```
 
 | Komenda | Opis |
@@ -232,7 +232,7 @@ python -m shell.execution.framework.execution.api --port 8000
 
 ```powershell
 # Każdy proces uruchamia jeden bounded context
-python -m shell.execution.framework.execution.api --port 8000
+python -m shell.execution.bootstrap.execution.main --port 8000
 ```
 
 ---

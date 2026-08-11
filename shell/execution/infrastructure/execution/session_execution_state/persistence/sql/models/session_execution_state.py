@@ -5,11 +5,13 @@ from datetime import datetime  # noqa: TC003 -- Mapped[datetime] requires dateti
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 
-class SessionExecutionStateModel(Base):
+class SessionExecutionStateModel(ExecutionSqlAlchemyModelBase):
     __tablename__ = "session_execution_state"
 
     id: Mapped[str] = mapped_column(primary_key=True)

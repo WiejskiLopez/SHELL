@@ -4,11 +4,13 @@ from datetime import datetime  # noqa: TC003 — runtime dla SQLAlchemy Mapped
 
 from sqlalchemy.orm import Mapped, mapped_column
 
+from shell.execution.infrastructure.execution.persistence.sql.models.base import (
+    ExecutionSqlAlchemyModelBase,
+)
 from shell.platform.infrastructure.persistence.sql.models._compat import JSONB
-from shell.platform.infrastructure.persistence.sql.models.base import Base
 
 
-class AgentSkillExecutionModel(Base):
+class AgentSkillExecutionModel(ExecutionSqlAlchemyModelBase):
     __tablename__ = "agent_skill_execution"
 
     id: Mapped[str] = mapped_column(primary_key=True)
