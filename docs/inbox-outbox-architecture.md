@@ -108,8 +108,8 @@ shell/platform/infrastructure/
         event/
         message/
 
-    shell/definition/infrastructure/definition/persistence/sql/models/base.py
-    shell/execution/infrastructure/execution/persistence/sql/models/base.py
+    shell/definition_service/infrastructure/definition/persistence/sql/models/base.py
+    shell/execution_service/infrastructure/execution/persistence/sql/models/base.py
 ```
 
 Analogiczne bazy BC korzystają z tych samych platformowych factory, ale rejestrują

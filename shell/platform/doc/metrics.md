@@ -55,7 +55,7 @@ Jest używany do czasu podpięcia realnego backendu (Prometheus itd.) — patrz 
 
 ### Wiring w kontenerze
 
-Przykładowe podpięcie (BC Ingestion, `shell/ingestion/bootstrap/ingestion/container/ingestion_core_container.py`):
+Przykładowe podpięcie (BC Ingestion, `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`):
 
 ```python
 inbox_metrics_service = providers.Singleton(
@@ -74,7 +74,7 @@ inbox_metrics_service = providers.Singleton(
 - `shell/platform/infrastructure/messaging/inbox/inbox_metrics_service.py`
 - `shell/platform/infrastructure/metrics/logging_metrics_backend.py`
 - `shell/platform/domain/value_objects/inbox_status.py`
-- `shell/ingestion/bootstrap/ingestion/container/ingestion_core_container.py`
+- `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`
 
 ## Powiązane koncepcje
 

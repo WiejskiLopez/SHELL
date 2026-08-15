@@ -180,8 +180,6 @@ def test_constants_use_upper_case() -> None:
 
 _KNOWN_ABBREVIATION_VIOLATIONS: frozenset[str] = frozenset(
     {
-        "domain/project/aggregates/project/project.py: function repo_url",
-        "project/domain/project/aggregates/project/project.py: function repo_url",
         "platform/framework/api/middleware/error_handler.py: function http_exception_handler",
     }
 )

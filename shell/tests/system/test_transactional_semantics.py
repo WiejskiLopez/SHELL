@@ -24,17 +24,17 @@ from shell.platform.infrastructure.messaging.event.processor.event_inbox_process
 )
 from shell.platform.infrastructure.messaging.transport.envelope_codec import EnvelopeCodec
 from shell.platform.infrastructure.persistence.sql import build_session_factory
-from shell.session.bootstrap.session.container.session_core_container import (
+from shell.session_service.bootstrap.session.container.session_core_container import (
     SessionCoreContainer,
     configure_session_container,
 )
-from shell.session.infrastructure.session.persistence.sql.models.base import (
+from shell.session_service.infrastructure.session.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS as SESSION_DELIVERY_MODELS,
 )
-from shell.session.infrastructure.session.session.persistence.sql.models.session import (
+from shell.session_service.infrastructure.session.session.persistence.sql.models.session import (
     SessionModel,
 )
-from shell.session.migrations.baseline import run_session_baseline
+from shell.session_service.migrations.baseline import run_session_baseline
 
 _OUTBOX_MODEL: Any = SESSION_DELIVERY_MODELS.events.outbox
 

@@ -29,7 +29,7 @@ Write-Host "Project root: $projectRoot" -ForegroundColor Gray
 # spuriously reported as "not installed" after the first incremental build.
 $env:MYPY_NO_INCREMENTAL = "1"
 
-$bcs = @("platform", "definition", "execution", "ingestion", "project", "scheduling", "session", "user")
+$bcs = @("platform", "definition_service", "execution_service", "ingestion_service", "project_service", "scheduling_service", "session_service", "user_service")
 $testRoot = "shell/tests"
 $python = "$projectRoot\.venv\Scripts\python.exe"
 

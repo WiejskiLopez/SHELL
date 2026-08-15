@@ -49,8 +49,8 @@ page_size: int = Query(default=100, ge=1, le=1000, alias="page_size"),
 
 przy `response_model=Page[UserResponse]` / `Page[ProjectResponse]` /
 `Page[SessionResponse]` / `Page[WorkflowResponse]` / `Page[TaskExecutionResponse]`
-(np. `shell/user/framework/user/user/api/router.py`,
-`shell/execution/framework/execution/workflow/api/router.py`).
+(np. `shell/user_service/framework/user/user/api/router.py`,
+`shell/execution_service/framework/execution/workflow/api/router.py`).
 
 ### Przepływ danych
 
@@ -77,10 +77,10 @@ return Page(
 )
 ```
 
-przykład: `shell/user/framework/user/user/api/controller.py` (`list_users`),
-`shell/project/framework/project/project/api/controller.py` (`list_projects`),
-`shell/session/framework/session/session/api/controller.py` (`list_sessions`),
-`shell/execution/framework/execution/workflow/api/controller.py`
+przykład: `shell/user_service/framework/user/user/api/controller.py` (`list_users`),
+`shell/project_service/framework/project/project/api/controller.py` (`list_projects`),
+`shell/session_service/framework/session/session/api/controller.py` (`list_sessions`),
+`shell/execution_service/framework/execution/workflow/api/controller.py`
 (`list_workflows`).
 
 ### Semantyka `has_more`
@@ -94,11 +94,11 @@ weryfikują m.in. `page_size=100` oraz `has_more` przy `page=1`/`page=3` dla
 ## Kluczowe pliki
 
 - `shell/platform/framework/api/models/page.py`
-- `shell/user/framework/user/user/api/controller.py`
-- `shell/user/framework/user/user/api/router.py`
-- `shell/project/framework/project/project/api/controller.py`
-- `shell/session/framework/session/session/api/controller.py`
-- `shell/execution/framework/execution/workflow/api/controller.py`
+- `shell/user_service/framework/user/user/api/controller.py`
+- `shell/user_service/framework/user/user/api/router.py`
+- `shell/project_service/framework/project/project/api/controller.py`
+- `shell/session_service/framework/session/session/api/controller.py`
+- `shell/execution_service/framework/execution/workflow/api/controller.py`
 
 ## Powiązane koncepcje
 

@@ -67,20 +67,11 @@ runtime-evaluated-base-classes = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"shell/application/**/dto/*.py" = ["TCH001", "TCH003"]
-"shell/user/application/**/dto/*.py" = ["TCH001", "TCH003"]
-"shell/*/application/**/dto/*.py" = ["TCH001", "TCH003"]
-"shell/framework/user/user/api/*.py" = ["TCH001"]
-"shell/user/framework/user/user/api/*.py" = ["TCH001"]
+"shell/*_service/application/**/dto/*.py" = ["TCH001", "TCH003"]
+"shell/user_service/application/**/dto/*.py" = ["TCH001", "TCH003"]
+"shell/user_service/framework/user/user/api/*.py" = ["TCH001"]
 "shell/*/framework/**/api/*.py" = ["TCH001"]
-"shell/framework/project/project/api/*.py" = ["TCH001"]
-"shell/framework/session/session/api/*.py" = ["TCH001"]
-"shell/framework/execution/workflow/api/*.py" = ["TCH001"]
-"shell/framework/execution/node_execution/api/*.py" = ["TCH001"]
-"shell/ingestion/framework/ingestion/api/*.py" = ["TCH001"]
-"shell/framework/scheduling/scheduler_definition/api/*.py" = ["TCH001"]
-"shell/framework/scheduling/scheduler_job/api/*.py" = ["TCH001"]
-"shell/framework/scheduling/scheduler_execution/api/*.py" = ["TCH001"]
+"shell/ingestion_service/framework/ingestion/api/*.py" = ["TCH001"]
 "**/mappers/__init__.py" = ["F401"]
 "**/repositories/__init__.py" = ["F401"]
 
@@ -92,13 +83,13 @@ name = "Platform must not import bounded contexts"
 type = "forbidden"
 source_modules = ["shell.platform"]
 forbidden_modules = [
-    "shell.definition",
-    "shell.execution",
-    "shell.session",
-    "shell.user",
-    "shell.project",
-    "shell.scheduling",
-    "shell.ingestion",
+    "shell.definition_service",
+    "shell.execution_service",
+    "shell.session_service",
+    "shell.user_service",
+    "shell.project_service",
+    "shell.scheduling_service",
+    "shell.ingestion_service",
 ]
 
 [tool.mypy]

@@ -5,13 +5,13 @@ from __future__ import annotations
 from _arch_helpers import BASE
 
 _BCS = (
-    "definition",
-    "execution",
-    "ingestion",
-    "project",
-    "scheduling",
-    "session",
-    "user",
+    "definition_service",
+    "execution_service",
+    "ingestion_service",
+    "project_service",
+    "scheduling_service",
+    "session_service",
+    "user_service",
 )
 
 
@@ -19,15 +19,16 @@ def test_each_bc_has_an_independent_service_surface() -> None:
     missing: list[str] = []
 
     for bounded_context in _BCS:
+        layer = bounded_context.removesuffix("_service")
         required_paths = (
-            BASE / bounded_context / "bootstrap" / bounded_context / "main.py",
-            BASE / bounded_context / "bootstrap" / bounded_context / "event_registry.py",
+            BASE / bounded_context / "bootstrap" / layer / "main.py",
+            BASE / bounded_context / "bootstrap" / layer / "event_registry.py",
             BASE
             / bounded_context
             / "bootstrap"
-            / bounded_context
+            / layer
             / "container"
-            / f"{bounded_context}_core_container.py",
+            / f"{layer}_core_container.py",
             BASE / bounded_context / "migrations" / "baseline.py",
             BASE / bounded_context / "docker" / "Dockerfile",
             BASE / bounded_context / "docker" / "docker-compose.yml",

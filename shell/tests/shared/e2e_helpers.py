@@ -5,20 +5,20 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from shell.execution.bootstrap.execution.container.execution_core_container import (
+from shell.execution_service.bootstrap.execution.container.execution_core_container import (
     ExecutionCoreContainer,
     configure_execution_container,
 )
-from shell.execution.framework.execution.api.app import create_execution_app
-from shell.execution.migrations.baseline import run_execution_baseline
+from shell.execution_service.framework.execution.api.app import create_execution_app
+from shell.execution_service.migrations.baseline import run_execution_baseline
 from shell.platform.framework.api.principal import Principal, PrincipalKind
 from shell.platform.infrastructure.configuration.shell_config import ShellConfig
-from shell.session.bootstrap.session.container.session_core_container import (
+from shell.session_service.bootstrap.session.container.session_core_container import (
     SessionCoreContainer,
     configure_session_container,
 )
-from shell.session.framework.session.api.app import create_session_app
-from shell.session.migrations.baseline import run_session_baseline
+from shell.session_service.framework.session.api.app import create_session_app
+from shell.session_service.migrations.baseline import run_session_baseline
 
 if TYPE_CHECKING:
     from fastapi import Request

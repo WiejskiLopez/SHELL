@@ -14,13 +14,13 @@ from typing import TYPE_CHECKING, cast
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
 )
-from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus

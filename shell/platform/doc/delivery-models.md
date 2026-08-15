@@ -108,7 +108,7 @@ Uwaga: `InboxMessageModel` dodatkowo nadpisuje `__table_args__`, dodając `Index
 
 ### Rejestracja tabel w baseline
 
-Każdy BC definiuje własną klasę bazową, np. `shell/ingestion/infrastructure/ingestion/persistence/sql/models/base.py`:
+Każdy BC definiuje własną klasę bazową, np. `shell/ingestion_service/infrastructure/ingestion/persistence/sql/models/base.py`:
 
 ```python
 class IngestionSqlAlchemyModelBase(SqlAlchemyModelBase):
@@ -121,7 +121,7 @@ PERSISTENCE_DELIVERY_MODELS = build_persistence_delivery_models(IngestionSqlAlch
 
 (gdzie `SqlAlchemyModelBase` w `shell/platform/infrastructure/persistence/sql/models/base.py` to `DeclarativeBase`). Tak samo postępują BC: `Session`, `Definition`, `Project`, `User`, `Execution`, `Scheduling`.
 
-Baseline (np. `shell/ingestion/migrations/baseline.py`) zbiera jawne tabele z `__table__` do krotki `_TABLES` i tworzy schemat tylko dla nich:
+Baseline (np. `shell/ingestion_service/migrations/baseline.py`) zbiera jawne tabele z `__table__` do krotki `_TABLES` i tworzy schemat tylko dla nich:
 
 ```python
 async with engine.begin() as connection:
@@ -145,8 +145,8 @@ Dzięki temu `create_all` nie tworzy niechcianych tabel platformowych — tylko 
 - `shell/platform/infrastructure/persistence/sql/models/_compat.py`
 - `shell/platform/infrastructure/persistence/sql/models/base.py`
 - `shell/platform/domain/value_objects/inbox_status.py`
-- `shell/ingestion/infrastructure/ingestion/persistence/sql/models/base.py`
-- `shell/ingestion/migrations/baseline.py`
+- `shell/ingestion_service/infrastructure/ingestion/persistence/sql/models/base.py`
+- `shell/ingestion_service/migrations/baseline.py`
 
 ## Powiązane koncepcje
 

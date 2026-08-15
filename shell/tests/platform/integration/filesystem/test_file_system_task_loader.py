@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pathlib
 
-from shell.execution.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
+from shell.execution_service.infrastructure.execution.task_execution.filesystem.task_execution_loader import (
     FileSystemTaskLoader,
 )
 

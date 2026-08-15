@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
-from shell.execution.framework.execution.api.app import create_execution_app
+from shell.execution_service.framework.execution.api.app import create_execution_app
 
 
 def main() -> None:

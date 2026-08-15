@@ -72,7 +72,7 @@ Zależności FastAPI w `shell/platform/framework/api/principal.py`:
 - `require_system_principal(request)` — `HTTPException(403, "System
   authentication required")` gdy `kind != PrincipalKind.SYSTEM`.
 
-Użycie w routerze, np. `shell/session/framework/session/session/api/router.py`:
+Użycie w routerze, np. `shell/session_service/framework/session/session/api/router.py`:
 
 ```python
 principal: Principal = Depends(get_principal),
@@ -80,14 +80,14 @@ principal: Principal = Depends(get_principal),
 principal: Principal = Depends(require_user_principal),
 ```
 
-a w BC user (systemowe operacje), np. `shell/user/framework/user/user/api/router.py`:
+a w BC user (systemowe operacje), np. `shell/user_service/framework/user/user/api/router.py`:
 
 ```python
 principal: Principal = Depends(require_system_principal),
 ```
 
 Kontrolery wykonują autoryzację na poziomie zasobów na podstawie `Principal`,
-np. `UserController._require_access` (`shell/user/framework/user/user/api/controller.py`):
+np. `UserController._require_access` (`shell/user_service/framework/user/user/api/controller.py`):
 dostęp, gdy `principal.kind == PrincipalKind.SYSTEM` lub
 `principal.subject_id == user_id`; w przeciwnym razie `404`.
 
@@ -107,9 +107,9 @@ dostęp, gdy `principal.kind == PrincipalKind.SYSTEM` lub
 - `shell/platform/framework/api/principal.py`
 - `shell/platform/framework/api/middleware/api_key.py`
 - `shell/platform/framework/api/setup.py`
-- `shell/user/framework/user/user/api/controller.py`
-- `shell/user/framework/user/user/api/router.py`
-- `shell/session/framework/session/session/api/router.py`
+- `shell/user_service/framework/user/user/api/controller.py`
+- `shell/user_service/framework/user/user/api/router.py`
+- `shell/session_service/framework/session/session/api/router.py`
 
 ## Powiązane koncepcje
 

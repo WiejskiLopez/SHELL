@@ -7,13 +7,13 @@ from typing import TYPE_CHECKING
 import pytest
 from sqlalchemy import select
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
 )
-from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt
@@ -21,7 +21,7 @@ from shell.platform.domain.value_objects.occurred_at import OccurredAt
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
-    from shell.definition.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
+    from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (  # noqa: TC002 — używany w sygnaturach fixture'ów pytest
         SqlAlchemyRunnerConfigUnitOfWork,
     )
     from shell.platform.infrastructure.persistence.memory import (

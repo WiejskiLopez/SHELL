@@ -27,9 +27,9 @@ shell/platform/
 Egzekwowane przez `import-linter` (pyproject.toml, kontrakt
 `Platform must not import bounded contexts`):
 
-1. **Platforma nie importuje żadnego bounded context** (`shell.definition`,
-   `shell.execution`, `shell.session`, `shell.user`, `shell.project`,
-   `shell.scheduling`, `shell.ingestion`).
+1. **Platforma nie importuje żadnego bounded context** (`shell.definition_service`,
+   `shell.execution_service`, `shell.session_service`, `shell.user_service`, `shell.project_service`,
+   `shell.scheduling_service`, `shell.ingestion_service`).
 2. Wewnątrz platformy kierunek zależności jest jednokierunkowy:
    `domain` ← `application` ← `infrastructure`/`framework`.
    - `domain` nie importuje niczego poza standardową biblioteką;

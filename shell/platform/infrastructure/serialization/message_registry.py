@@ -32,9 +32,7 @@ def discover_message_types(package_name: str) -> tuple[type, ...]:
             if module_path.name == "__init__.py":
                 continue
             relative_module = module_path.relative_to(root).with_suffix("")
-            module = importlib.import_module(
-                f"{package_name}.{'.'.join(relative_module.parts)}"
-            )
+            module = importlib.import_module(f"{package_name}.{'.'.join(relative_module.parts)}")
             for candidate in vars(module).values():
                 if (
                     inspect.isclass(candidate)

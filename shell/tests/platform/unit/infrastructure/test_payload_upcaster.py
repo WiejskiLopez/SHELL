@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt

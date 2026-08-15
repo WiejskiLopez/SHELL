@@ -27,13 +27,13 @@ from shell.platform.infrastructure.persistence.sql import build_session_factory
 logger = logging.getLogger(__name__)
 
 _BCS = (
-    "definition",
-    "execution",
-    "ingestion",
-    "project",
-    "scheduling",
-    "session",
-    "user",
+    "definition_service",
+    "execution_service",
+    "ingestion_service",
+    "project_service",
+    "scheduling_service",
+    "session_service",
+    "user_service",
 )
 
 
@@ -42,7 +42,8 @@ def _models_for(bc: str) -> Any:
 
     Dynamic import keeps the platform free of static bounded-context imports.
     """
-    module_name = f"shell.{bc}.infrastructure.{bc}.persistence.sql.models.base"
+    layer = bc.removesuffix("_service")
+    module_name = f"shell.{bc}.infrastructure.{layer}.persistence.sql.models.base"
     module = cast("Any", importlib.import_module(module_name))
     return module.PERSISTENCE_DELIVERY_MODELS
 

@@ -5,10 +5,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import cast
 
-from shell.definition.application.definition.graph_definition.integration_events.graph_definition_created_integration_event import (
+from shell.definition_service.application.definition.graph_definition.integration_events.graph_definition_created_integration_event import (
     GraphDefinitionCreatedIntegrationEvent,
 )
-from shell.definition.bootstrap.definition.event_registry import (
+from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
 from shell.platform.infrastructure.serialization.event_deserializer import EventDeserializer

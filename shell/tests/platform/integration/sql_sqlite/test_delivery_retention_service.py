@@ -9,7 +9,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS,
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus
@@ -216,7 +216,7 @@ class TestRetentionCli:
         )
 
         report = await purge_for_bounded_context(
-            "definition",
+            "definition_service",
             url,
             dead_letter_retention_days=90,
             processed_delivery_retention_days=30,

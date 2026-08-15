@@ -71,8 +71,8 @@ Heartbeat to opcjonalny `Callable[[], Awaitable[None]]`. Dostarczany przez `Work
 
 Przykłady użycia:
 
-- `shell/scheduling/bootstrap/scheduling/main.py` — `WorkerHeartbeatRecorder(...)` z `worker_id="scheduling-event-processor"` przekazany jako `heartbeat=heartbeat.beat` do `run_polling_worker(container.event_inbox_processor_factory(), interval_seconds=args.worker_interval, ...)`.
-- `shell/session/bootstrap/session/main.py` — `PollingWorker` instancjonowany bezpośrednio z `PollingWorkerConfig(worker_id="session-event-processor", poll_interval_seconds=config.events.worker_poll_interval)` i `heartbeat=heartbeat.beat`, uruchamiany przez `await processor_worker.run()`.
+- `shell/scheduling_service/bootstrap/scheduling/main.py` — `WorkerHeartbeatRecorder(...)` z `worker_id="scheduling-event-processor"` przekazany jako `heartbeat=heartbeat.beat` do `run_polling_worker(container.event_inbox_processor_factory(), interval_seconds=args.worker_interval, ...)`.
+- `shell/session_service/bootstrap/session/main.py` — `PollingWorker` instancjonowany bezpośrednio z `PollingWorkerConfig(worker_id="session-event-processor", poll_interval_seconds=config.events.worker_poll_interval)` i `heartbeat=heartbeat.beat`, uruchamiany przez `await processor_worker.run()`.
 
 ### Graceful shutdown
 
@@ -83,8 +83,8 @@ Worker nie przyjmuje własnego `stop_event` tylko wtedy, gdy wołający go nie d
 - `shell/platform/infrastructure/messaging/polling_worker.py`
 - `shell/platform/infrastructure/messaging/worker_heartbeat.py`
 - `shell/platform/infrastructure/messaging/inbox/inbox_batch_result.py`
-- `shell/scheduling/bootstrap/scheduling/main.py`
-- `shell/session/bootstrap/session/main.py`
+- `shell/scheduling_service/bootstrap/scheduling/main.py`
+- `shell/session_service/bootstrap/session/main.py`
 - `shell/platform/infrastructure/persistence/sql/models/worker_heartbeat.py`
 
 ## Powiązane koncepcje

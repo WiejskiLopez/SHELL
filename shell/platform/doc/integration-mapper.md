@@ -18,7 +18,7 @@ Eventy domenowe emitowane przez agregaty (np. `SessionOpenedEvent`) muszą być 
 2. **Moduł**: na podstawie `event_cls.__module__` wybierana jest jedna z trzech ścieżek:
 
 - `parts[1] == "platform"`: `shell.platform.domain.events.aggregate_deleted_event` → `shell.application.domain.integration_events.aggregate_deleted_integration_event`;
-- `len(parts) > 5 and parts[2] == "domain"` (wyekstrahowany BC `shell.user`): `shell.<bc>.domain.<bc>.aggregates.<agg>.events.<file>` → `shell.<bc>.application.<bc>.<agg>.integration_events.<file>`;
+- `len(parts) > 5 and parts[2] == "domain"` (wyekstrahowany BC `shell.user_service`): `shell.<bc>.domain.<bc>.aggregates.<agg>.events.<file>` → `shell.<bc>.application.<bc>.<agg>.integration_events.<file>`;
 - ścieżka legacy: `shell.domain.<bc>.aggregates.<agg>.events.<file>` → `shell.application.<bc>.<agg>.integration_events.<file>`.
 
 Nazwa pliku powstaje z nazwy klasy przez `re.sub(r"(?<!^)(?=[A-Z])", "_", int_name).lower()` (PascalCase → snake_case). Moduł jest importowany przez `importlib.import_module`, a klasa pobierana przez `getattr(mod, int_name)`.

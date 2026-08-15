@@ -23,31 +23,31 @@ from sqlalchemy import select
 from shell.platform.infrastructure.identity.uuid_id_generator import UuidIdGenerator
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.platform.infrastructure.time.system_clock import SystemClock
-from shell.session.bootstrap.session.container.session_core_container import (
+from shell.session_service.bootstrap.session.container.session_core_container import (
     SessionCoreContainer,
     configure_session_container,
 )
-from shell.session.infrastructure.session.persistence.sql.models.base import (
+from shell.session_service.infrastructure.session.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS as SESSION_DELIVERY_MODELS,
 )
-from shell.session.migrations.baseline import run_session_baseline
-from shell.user.application.user.auth_session.command_handlers.login_auth_session_handler import (
+from shell.session_service.migrations.baseline import run_session_baseline
+from shell.user_service.application.user.auth_session.command_handlers.login_auth_session_handler import (
     LoginAuthSessionHandler,
 )
-from shell.user.application.user.auth_session.commands.login_auth_session_command import (
+from shell.user_service.application.user.auth_session.commands.login_auth_session_command import (
     LoginAuthSessionCommand,
 )
-from shell.user.bootstrap.user.container.user_core_container import (
+from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
 )
-from shell.user.infrastructure.user.auth_session.services.secure_token_generator import (
+from shell.user_service.infrastructure.user.auth_session.services.secure_token_generator import (
     SecureTokenGenerator,
 )
-from shell.user.infrastructure.user.persistence.sql.models.base import (
+from shell.user_service.infrastructure.user.persistence.sql.models.base import (
     PERSISTENCE_DELIVERY_MODELS as USER_DELIVERY_MODELS,
 )
-from shell.user.migrations.baseline import run_user_baseline
+from shell.user_service.migrations.baseline import run_user_baseline
 
 _USER_OUTBOX_MODEL: Any = USER_DELIVERY_MODELS.events.outbox
 _SESSION_INBOX_MODEL: Any = SESSION_DELIVERY_MODELS.events.inbox
@@ -102,10 +102,12 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     )
 
     # Pre-create a user so login succeeds.
-    from shell.user.application.user.user.command_handlers.create_user_handler import (
+    from shell.user_service.application.user.user.command_handlers.create_user_handler import (
         CreateUserHandler,
     )
-    from shell.user.application.user.user.commands.create_user_command import CreateUserCommand
+    from shell.user_service.application.user.user.commands.create_user_command import (
+        CreateUserCommand,
+    )
 
     await CreateUserHandler(
         user_container.unit_of_work_factory(),
@@ -163,7 +165,7 @@ async def test_user_login_opens_session_in_session_bc(tmp_path) -> None:
     assert opened, "expected SessionOpenedIntegrationEvent in the session outbox"
 
     # The handler opened exactly one OPEN session for the user.
-    from shell.session.infrastructure.session.session.persistence.sql.models.session import (
+    from shell.session_service.infrastructure.session.session.persistence.sql.models.session import (
         SessionModel,
     )
 

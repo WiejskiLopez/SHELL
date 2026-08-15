@@ -11,7 +11,15 @@ if TYPE_CHECKING:
 # Known violations are listed in _CROSS_BC_KNOWN_VIOLATIONS.
 # Fix them one by one — each should eventually be resolved via IdRef or platform VOs.
 _BCS = frozenset(
-    {"execution", "definition", "session", "user", "project", "scheduling", "messaging"}
+    {
+        "execution_service",
+        "definition_service",
+        "session_service",
+        "user_service",
+        "project_service",
+        "scheduling_service",
+        "ingestion_service",
+    }
 )
 
 # Allowed cross-BC import targets (ports, contracts, DTOs)
@@ -20,8 +28,8 @@ _ALLOWED_CROSS_BC = frozenset(
         "shell.platform.domain",
         "shell.platform.application",
         # Source-owned integration events — designed to be consumed cross-BC
-        "shell.user.application.user.user.integration_events",
-        "shell.user.application.user.auth_session.integration_events",
+        "shell.user_service.application.user.user.integration_events",
+        "shell.user_service.application.user.auth_session.integration_events",
     }
 )
 

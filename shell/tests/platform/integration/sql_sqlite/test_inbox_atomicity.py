@@ -18,17 +18,17 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
     PERSISTENCE_DELIVERY_MODELS,
 )
-from shell.definition.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
+from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
     SqlAlchemyRunnerConfigUnitOfWork,
 )
-from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus

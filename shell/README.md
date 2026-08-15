@@ -184,11 +184,11 @@ Każdy Bounded Context wystawia własną aplikację FastAPI.
 ```powershell
 python -c "
 import asyncio, uvicorn
-from shell.user.bootstrap.user.container.user_core_container import (
+from shell.user_service.bootstrap.user.container.user_core_container import (
     UserCoreContainer,
     configure_user_container,
 )
-from shell.user.framework.user.api.app import create_user_app
+from shell.user_service.framework.user.api.app import create_user_app
 
 async def main():
     container = UserCoreContainer()
@@ -221,7 +221,7 @@ Dokumentacja Swagger dostępna pod: `http://localhost:8000/docs`
 ## 5. Narzędzia administracyjne
 
 ```powershell
-python -m shell.execution.bootstrap.execution.main --port 8000
+python -m shell.execution_service.bootstrap.execution.main --port 8000
 ```
 
 | Komenda | Opis |
@@ -232,7 +232,7 @@ python -m shell.execution.bootstrap.execution.main --port 8000
 
 ```powershell
 # Każdy proces uruchamia jeden bounded context
-python -m shell.execution.bootstrap.execution.main --port 8000
+python -m shell.execution_service.bootstrap.execution.main --port 8000
 ```
 
 ---
@@ -473,7 +473,7 @@ w kontenerze konkretnego BC; nie istnieje wspólny bus/container dla wszystkich 
 ### Rejestracja handlerów
 
 Handlery są rejestrowane w konfiguracji kontenera konkretnego BC, na przykład
-w `shell/user/bootstrap/user/container/user_core_container.py`.
+w `shell/user_service/bootstrap/user/container/user_core_container.py`.
 
 ### Wywołanie z kodu
 
@@ -557,5 +557,5 @@ Kolumny: `id`, `event_type`, `occurred_at`, `payload` (JSON).
 
 ```powershell
 # Relay uruchamiany jest przez proces właściwego BC
-python -m shell.execution.bootstrap.execution.cli.command.relay_command
+python -m shell.execution_service.bootstrap.execution.cli.command.relay_command
 ```

@@ -43,7 +43,7 @@ Guardrail — `assert_inbox_ready(session_factory, inbox_model) -> int`:
 - jeśli `count > 0`, podnosi `LegacyReviewBlockedError("LEGACY_REVIEW rows remain: {count}. Run the legacy inbox migration before starting the worker.")`;
 - zwraca liczbę (zero) przy sukcesie.
 
-Użycie w main.py BC (przykład `shell/session/bootstrap/session/main.py`, analogicznie `shell/scheduling/bootstrap/scheduling/main.py`):
+Użycie w main.py BC (przykład `shell/session_service/bootstrap/session/main.py`, analogicznie `shell/scheduling_service/bootstrap/scheduling/main.py`):
 
 - flaga `--run-legacy-migration` (parser.add_argument z `action="store_true"`);
 - w pętli asyncio: `counts = await InboxLegacyMigration(container.session_factory(), inbox_model).classify_legacy_rows()`, następnie `await assert_inbox_ready(...)` i komunikat `inbox legacy migration complete — LEGACY_REVIEW == 0`, po czym program kończy pracę (`return`);
@@ -54,8 +54,8 @@ Użycie w main.py BC (przykład `shell/session/bootstrap/session/main.py`, analo
 - `shell/platform/infrastructure/messaging/inbox/inbox_legacy_migration.py`
 - `shell/platform/infrastructure/messaging/inbox/inbox_claim_service.py` (`InboxStateModel`)
 - `shell/platform/infrastructure/messaging/inbox/__init__.py` (re-export `InboxLegacyMigration`)
-- `shell/session/bootstrap/session/main.py` (`--run-legacy-migration`, `assert_inbox_ready`)
-- `shell/scheduling/bootstrap/scheduling/main.py` (`--run-legacy-migration`, `assert_inbox_ready`)
+- `shell/session_service/bootstrap/session/main.py` (`--run-legacy-migration`, `assert_inbox_ready`)
+- `shell/scheduling_service/bootstrap/scheduling/main.py` (`--run-legacy-migration`, `assert_inbox_ready`)
 
 ## Powiązane koncepcje
 

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, cast
 import pytest
 from sqlalchemy import select
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
 )
 from shell.platform.domain.value_objects.inbox_status import InboxStatus

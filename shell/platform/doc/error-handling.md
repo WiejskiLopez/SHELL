@@ -62,7 +62,7 @@ app.add_exception_handler(Exception, unhandled_exception_handler)
 
 BC mogą rozszerzać mapowanie: `create_execution_app` dodaje własny
 `app.add_exception_handler(DomainError, domain_error_handler)`
-(`shell/execution/framework/execution/api/app.py`). Dodatkowe mapowania
+(`shell/execution_service/framework/execution/api/app.py`). Dodatkowe mapowania
 specyficzne dla BC mają być dodawane per-BC (komentarz w module
 `error_handler.py`).
 

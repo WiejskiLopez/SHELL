@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from shell.definition.infrastructure.definition.persistence.sql.models.base import (
+from shell.definition_service.infrastructure.definition.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
     PERSISTENCE_DELIVERY_MODELS,
 )
-from shell.definition.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
+from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.unit_of_work import (
     SqlAlchemyRunnerConfigUnitOfWork,
 )
-from shell.definition.migrations.baseline import run_definition_baseline
+from shell.definition_service.migrations.baseline import run_definition_baseline
 from shell.platform.infrastructure.persistence.memory import FakeEventPublisher
 from shell.platform.infrastructure.persistence.sql import build_session_factory
 from shell.tests.shared.test_db import build_db_url as test_db_url

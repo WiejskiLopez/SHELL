@@ -65,7 +65,7 @@ Router ma `tags=["Health"]`. Liveness pozostaje w `GET /health` definiowanym prz
 
 `mount_readiness(app: FastAPI, core_container: ContainerProtocol | Any)` (`shell/platform/framework/api/health.py`) odpytuje kontener o atrybut `readiness_probe` przez `getattr` i montuje router tylko, gdy jest zarejestrowany — BC bez workerów delivery zostają liveness-only.
 
-Rejestracja w kontenerze (np. `shell/ingestion/bootstrap/ingestion/container/ingestion_core_container.py`):
+Rejestracja w kontenerze (np. `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`):
 
 ```python
 readiness_probe = providers.Singleton(
@@ -86,7 +86,7 @@ Analogiczne rejestracje istnieją w kontenerach BC: `definition`, `project`, `se
 - `shell/platform/framework/api/readiness.py`
 - `shell/platform/framework/api/health.py`
 - `shell/platform/domain/value_objects/inbox_status.py`
-- `shell/ingestion/bootstrap/ingestion/container/ingestion_core_container.py`
+- `shell/ingestion_service/bootstrap/ingestion/container/ingestion_core_container.py`
 - `shell/tests/platform/integration/sql_sqlite/test_readiness_probe.py`
 
 ## Powiązane koncepcje

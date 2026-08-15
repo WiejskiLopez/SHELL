@@ -23,7 +23,7 @@ cyklem życia (active → deprecated → sunset), aby klienci mieli czas na migr
 ### Tworzenie aplikacji w BC
 
 Każdy BC definiuje fabrykę tworzącą `FastAPI`, np.
-`create_execution_app` w `shell/execution/framework/execution/api/app.py`:
+`create_execution_app` w `shell/execution_service/framework/execution/api/app.py`:
 
 ```python
 app = FastAPI(title="shell — execution", version="0.1.0")
@@ -118,7 +118,7 @@ która po wygenerowaniu schematu przez `get_openapi` dokłada do
 Kontrolery BC używają wzorca:
 `container: ContainerProtocol = Depends(get_core_container)`, a routery
 deklarują fabryki kontrolerów, np. `get_project_controller`
-(`shell/project/framework/project/project/api/router.py`).
+(`shell/project_service/framework/project/project/api/router.py`).
 
 ## Kluczowe pliki
 
@@ -129,7 +129,7 @@ deklarują fabryki kontrolerów, np. `get_project_controller`
 - `shell/platform/framework/api/dependencies.py`
 - `shell/platform/framework/api/health.py`
 - `shell/platform/framework/api/readiness.py`
-- `shell/execution/framework/execution/api/app.py` (przykład fabryki BC)
+- `shell/execution_service/framework/execution/api/app.py` (przykład fabryki BC)
 
 ## Powiązane koncepcje
 

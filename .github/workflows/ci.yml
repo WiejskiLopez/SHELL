@@ -22,7 +22,7 @@ jobs:
       - name: Architecture tests
         run: uv run pytest shell/tests/architecture -v
       - name: Unit tests
-        run: uv run pytest shell/tests/platform/unit shell/tests/session shell/tests/definition shell/tests/execution shell/tests/scheduling shell/tests/user shell/tests/project shell/tests/ingestion -v
+        run: uv run pytest shell/tests/platform/unit shell/tests/session_service shell/tests/definition_service shell/tests/execution_service shell/tests/scheduling_service shell/tests/user_service shell/tests/project_service shell/tests/ingestion_service -v
       - name: Platform delivery SQLite integration + contracts
         run: uv run pytest shell/tests/platform/integration/sql_sqlite shell/tests/contracts -ra
 

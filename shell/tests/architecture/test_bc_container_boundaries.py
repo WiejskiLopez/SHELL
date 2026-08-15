@@ -16,8 +16,8 @@ _BC_CONTAINER_ROOTS = {
 # allowlist as test_bc_isolation — public contracts, not implementation code).
 _ALLOWED_CROSS_BC_CONTRACTS = frozenset(
     {
-        "shell.user.application.user.user.integration_events",
-        "shell.user.application.user.auth_session.integration_events",
+        "shell.user_service.application.user.user.integration_events",
+        "shell.user_service.application.user.auth_session.integration_events",
     }
 )
 
