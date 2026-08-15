@@ -1,0 +1,19 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.definition_service.application.definition.graph_definition.dto.graph_definition import (
+    GraphDefinitionDto,
+)
+
+if TYPE_CHECKING:
+    from shell.definition_service.infrastructure.definition.graph_definition.persistence.sql.models import (
+        GraphDefinitionModel,
+    )
+
+
+def graph_definition_model_to_dto(model: GraphDefinitionModel) -> GraphDefinitionDto:
+    return GraphDefinitionDto(
+        id=model.id,
+        created_at=model.created_at,
+    )

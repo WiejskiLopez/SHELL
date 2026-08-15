@@ -13,7 +13,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "definition",
         lambda: (
             __import__(
-                "shell.definition.bootstrap.definition.container.definition_core_container",
+                "shell.definition_service.bootstrap.definition.container.definition_core_container",
                 fromlist=["DefinitionCoreContainer"],
             ).DefinitionCoreContainer
         ),
@@ -22,7 +22,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "execution",
         lambda: (
             __import__(
-                "shell.execution.bootstrap.execution.container.execution_core_container",
+                "shell.execution_service.bootstrap.execution.container.execution_core_container",
                 fromlist=["ExecutionCoreContainer"],
             ).ExecutionCoreContainer
         ),
@@ -31,7 +31,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "ingestion",
         lambda: (
             __import__(
-                "shell.ingestion.bootstrap.ingestion.container.ingestion_core_container",
+                "shell.ingestion_service.bootstrap.ingestion.container.ingestion_core_container",
                 fromlist=["IngestionCoreContainer"],
             ).IngestionCoreContainer
         ),
@@ -40,7 +40,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "project",
         lambda: (
             __import__(
-                "shell.project.bootstrap.project.container.project_core_container",
+                "shell.project_service.bootstrap.project.container.project_core_container",
                 fromlist=["ProjectCoreContainer"],
             ).ProjectCoreContainer
         ),
@@ -49,7 +49,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "scheduling",
         lambda: (
             __import__(
-                "shell.scheduling.bootstrap.scheduling.container.scheduling_core_container",
+                "shell.scheduling_service.bootstrap.scheduling.container.scheduling_core_container",
                 fromlist=["SchedulingCoreContainer"],
             ).SchedulingCoreContainer
         ),
@@ -58,7 +58,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "session",
         lambda: (
             __import__(
-                "shell.session.bootstrap.session.container.session_core_container",
+                "shell.session_service.bootstrap.session.container.session_core_container",
                 fromlist=["SessionCoreContainer"],
             ).SessionCoreContainer
         ),
@@ -67,7 +67,7 @@ _CONTAINERS: tuple[tuple[str, Callable[[], Callable[[], Any]]], ...] = (
         "user",
         lambda: (
             __import__(
-                "shell.user.bootstrap.user.container.user_core_container",
+                "shell.user_service.bootstrap.user.container.user_core_container",
                 fromlist=["UserCoreContainer"],
             ).UserCoreContainer
         ),

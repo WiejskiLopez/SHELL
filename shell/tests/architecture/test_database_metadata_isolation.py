@@ -10,17 +10,17 @@ if TYPE_CHECKING:
 
 
 _BASES = {
-    "definition": "shell.definition.infrastructure.definition.persistence.sql.models.base.DefinitionSqlAlchemyModelBase",
-    "execution": "shell.execution.infrastructure.execution.persistence.sql.models.base.ExecutionSqlAlchemyModelBase",
-    "ingestion": "shell.ingestion.infrastructure.ingestion.persistence.sql.models.base.IngestionSqlAlchemyModelBase",
-    "project": "shell.project.infrastructure.project.persistence.sql.models.base.ProjectSqlAlchemyModelBase",
-    "scheduling": "shell.scheduling.infrastructure.scheduling.persistence.sql.models.base.SchedulingSqlAlchemyModelBase",
-    "session": "shell.session.infrastructure.session.persistence.sql.models.base.SessionSqlAlchemyModelBase",
-    "user": "shell.user.infrastructure.user.persistence.sql.models.base.UserSqlAlchemyModelBase",
+    "definition": "shell.definition_service.infrastructure.definition.persistence.sql.models.base.DefinitionSqlAlchemyModelBase",
+    "execution": "shell.execution_service.infrastructure.execution.persistence.sql.models.base.ExecutionSqlAlchemyModelBase",
+    "ingestion": "shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base.IngestionSqlAlchemyModelBase",
+    "project": "shell.project_service.infrastructure.project.persistence.sql.models.base.ProjectSqlAlchemyModelBase",
+    "scheduling": "shell.scheduling_service.infrastructure.scheduling.persistence.sql.models.base.SchedulingSqlAlchemyModelBase",
+    "session": "shell.session_service.infrastructure.session.persistence.sql.models.base.SessionSqlAlchemyModelBase",
+    "user": "shell.user_service.infrastructure.user.persistence.sql.models.base.UserSqlAlchemyModelBase",
 }
 
 _BASELINE_MODULES = tuple(
-    f"shell.{bounded_context}.migrations.baseline" for bounded_context in _BASES
+    f"shell.{bounded_context}_service.migrations.baseline" for bounded_context in _BASES
 )
 
 

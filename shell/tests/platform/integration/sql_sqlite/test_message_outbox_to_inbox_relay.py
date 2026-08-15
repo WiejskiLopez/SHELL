@@ -9,13 +9,13 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.ingestion.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
     IngestionPayload,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
-from shell.ingestion.infrastructure.ingestion.persistence.sql.models.base import (
+from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
     MESSAGE_DELIVERY_MODELS,
 )
 from shell.platform.domain.value_objects.occurred_at import OccurredAt

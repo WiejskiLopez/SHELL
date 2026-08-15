@@ -14,42 +14,42 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 _CATALOG_MODULES: dict[str, str] = {
-    "definition": "shell.definition.bootstrap.definition.contract_catalog",
-    "execution": "shell.execution.bootstrap.execution.contract_catalog",
-    "ingestion": "shell.ingestion.bootstrap.ingestion.contract_catalog",
-    "project": "shell.project.bootstrap.project.contract_catalog",
-    "scheduling": "shell.scheduling.bootstrap.scheduling.contract_catalog",
-    "session": "shell.session.bootstrap.session.contract_catalog",
-    "user": "shell.user.bootstrap.user.contract_catalog",
+    "definition": "shell.definition_service.bootstrap.definition.contract_catalog",
+    "execution": "shell.execution_service.bootstrap.execution.contract_catalog",
+    "ingestion": "shell.ingestion_service.bootstrap.ingestion.contract_catalog",
+    "project": "shell.project_service.bootstrap.project.contract_catalog",
+    "scheduling": "shell.scheduling_service.bootstrap.scheduling.contract_catalog",
+    "session": "shell.session_service.bootstrap.session.contract_catalog",
+    "user": "shell.user_service.bootstrap.user.contract_catalog",
 }
 
 _REGISTRY_FACTORIES: dict[str, Callable[[], dict[str, type]]] = {
     "definition": lambda: __import__(
-        "shell.definition.bootstrap.definition.event_registry",
+        "shell.definition_service.bootstrap.definition.event_registry",
         fromlist=["build_definition_event_registry"],
     ).build_definition_event_registry(),
     "execution": lambda: __import__(
-        "shell.execution.bootstrap.execution.event_registry",
+        "shell.execution_service.bootstrap.execution.event_registry",
         fromlist=["build_execution_event_registry"],
     ).build_execution_event_registry(),
     "ingestion": lambda: __import__(
-        "shell.ingestion.bootstrap.ingestion.event_registry",
+        "shell.ingestion_service.bootstrap.ingestion.event_registry",
         fromlist=["build_ingestion_event_registry"],
     ).build_ingestion_event_registry(),
     "project": lambda: __import__(
-        "shell.project.bootstrap.project.event_registry",
+        "shell.project_service.bootstrap.project.event_registry",
         fromlist=["build_project_event_registry"],
     ).build_project_event_registry(),
     "scheduling": lambda: __import__(
-        "shell.scheduling.bootstrap.scheduling.event_registry",
+        "shell.scheduling_service.bootstrap.scheduling.event_registry",
         fromlist=["build_scheduling_event_registry"],
     ).build_scheduling_event_registry(),
     "session": lambda: __import__(
-        "shell.session.bootstrap.session.event_registry",
+        "shell.session_service.bootstrap.session.event_registry",
         fromlist=["build_session_event_registry"],
     ).build_session_event_registry(),
     "user": lambda: __import__(
-        "shell.user.bootstrap.user.event_registry",
+        "shell.user_service.bootstrap.user.event_registry",
         fromlist=["build_user_event_registry"],
     ).build_user_event_registry(),
 }

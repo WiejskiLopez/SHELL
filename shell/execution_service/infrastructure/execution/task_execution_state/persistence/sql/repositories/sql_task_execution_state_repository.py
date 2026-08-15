@@ -1,0 +1,72 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
+
+from sqlalchemy import select
+
+from shell.execution_service.domain.execution.aggregates.task_execution_state.repositories.task_execution_state_repository import (
+    TaskExecutionStateRepository,
+)
+from shell.execution_service.infrastructure.execution.task_execution_state.persistence.sql.mappers import (
+    task_execution_state_entity_to_model,
+    task_execution_state_model_to_entity,
+)
+from shell.platform.domain.value_objects.exists_result import ExistsResult
+
+from ..models import TaskExecutionStateModel
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+        TaskExecutionId,
+    )
+    from shell.execution_service.domain.execution.aggregates.task_execution_state.task_execution_state import (
+        TaskExecutionState,
+    )
+    from shell.platform.domain.value_objects.state_direction import StateDirection
+
+
+class SqlTaskExecutionStateRepository(TaskExecutionStateRepository):
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_latest_by_task_id(
+        self,
+        task_execution_id: TaskExecutionId,
+        direction: StateDirection | None = None,
+    ) -> TaskExecutionState | None:
+        query = select(TaskExecutionStateModel).where(
+            TaskExecutionStateModel.task_execution_id == task_execution_id.value,
+        )
+        if direction is not None:
+            query = query.where(TaskExecutionStateModel.direction == direction.value)
+        query = query.order_by(TaskExecutionStateModel.created_at.desc()).limit(1)
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return task_execution_state_model_to_entity(row) if row else None
+
+    async def save(self, state: TaskExecutionState) -> None:
+        existing = await self.get_latest_by_task_id(
+            state.task_execution_id, direction=state.direction
+        )
+        if existing is not None:
+            old_model = await self._session.get(TaskExecutionStateModel, existing.id.value)
+            if old_model is not None:
+                await self._session.delete(old_model)
+        model = task_execution_state_entity_to_model(state)
+        self._session.add(model)
+
+    async def delete(self, id_: object, now: datetime | None = None) -> None:
+        if now is None:
+            now = datetime.now(tz=UTC)
+        model = await self._session.get(TaskExecutionStateModel, getattr(id_, "value", id_))
+        if model is not None:
+            model.deleted_at = now
+
+    async def exists(self, id_: object) -> ExistsResult:
+        query = select(TaskExecutionStateModel).where(
+            TaskExecutionStateModel.id == getattr(id_, "value", id_)
+        )
+        row = (await self._session.execute(query)).scalar_one_or_none()
+        return ExistsResult(row is not None)

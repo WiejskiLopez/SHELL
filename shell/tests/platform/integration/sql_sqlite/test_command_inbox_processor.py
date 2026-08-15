@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, cast
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from shell.ingestion.infrastructure.ingestion.persistence.sql.models.base import (
+from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
     COMMAND_DELIVERY_MODELS,
 )
 from shell.platform.infrastructure.messaging.command.command_outbox_to_inbox_relay import (

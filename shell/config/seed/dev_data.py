@@ -60,11 +60,11 @@ def _seed_dev_sync(sync_conn: Connection) -> None:
 
 
 def _seed_users(session: Session) -> None:
-    from shell.user.infrastructure.user.user.persistence.sql.models.user import UserModel
-    from shell.user.infrastructure.user.user_skill.persistence.sql.models.user_skill import (
+    from shell.user_service.infrastructure.user.user.persistence.sql.models.user import UserModel
+    from shell.user_service.infrastructure.user.user_skill.persistence.sql.models.user_skill import (
         UserSkillModel,
     )
-    from shell.user.infrastructure.user.user_state.persistence.sql.models.user_state import (
+    from shell.user_service.infrastructure.user.user_state.persistence.sql.models.user_state import (
         UserStateModel,
     )
 
@@ -114,10 +114,10 @@ def _seed_users(session: Session) -> None:
 
 
 def _seed_sessions(session: Session, users_data: list[dict[str, Any]]) -> None:
-    from shell.session.infrastructure.session.session.persistence.sql.models.session import (
+    from shell.session_service.infrastructure.session.session.persistence.sql.models.session import (
         SessionModel,
     )
-    from shell.session.infrastructure.session.session_state.persistence.sql.models.session_state import (
+    from shell.session_service.infrastructure.session.session_state.persistence.sql.models.session_state import (
         SessionStateModel,
     )
 
@@ -186,7 +186,7 @@ def _seed_sessions(session: Session, users_data: list[dict[str, Any]]) -> None:
 
 
 def _seed_runner_configs(session: Session) -> None:
-    from shell.definition.infrastructure.definition.runner_config.persistence.sql.models.runner_config import (
+    from shell.definition_service.infrastructure.definition.runner_config.persistence.sql.models.runner_config import (
         RunnerConfigModel,
     )
 
@@ -231,16 +231,16 @@ def _seed_runner_configs(session: Session) -> None:
 
 
 def _seed_graph_definitions(session: Session) -> None:
-    from shell.definition.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (
+    from shell.definition_service.infrastructure.definition.graph_definition.persistence.sql.models.graph_definition import (
         GraphDefinitionModel,
     )
-    from shell.definition.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
+    from shell.definition_service.infrastructure.definition.graph_definition_embedding.persistence.sql.models.graph_definition_embedding import (
         GraphDefinitionEmbeddingModel,
     )
-    from shell.definition.infrastructure.definition.node_definition.persistence.sql.models.node_definition import (
+    from shell.definition_service.infrastructure.definition.node_definition.persistence.sql.models.node_definition import (
         NodeDefinitionModel,
     )
-    from shell.definition.infrastructure.definition.node_link_definition.persistence.sql.models.node_link_definition import (
+    from shell.definition_service.infrastructure.definition.node_link_definition.persistence.sql.models.node_link_definition import (
         NodeLinkDefinitionModel,
     )
 
@@ -367,10 +367,10 @@ def _seed_graph_definitions(session: Session) -> None:
 
 
 def _seed_task_executions(session: Session) -> None:
-    from shell.execution.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
+    from shell.execution_service.infrastructure.execution.task_execution.persistence.sql.models.task_execution import (
         TaskExecutionModel,
     )
-    from shell.execution.infrastructure.execution.task_execution_state.persistence.sql.models.task_execution_state import (
+    from shell.execution_service.infrastructure.execution.task_execution_state.persistence.sql.models.task_execution_state import (
         TaskExecutionStateModel,
     )
 
@@ -490,52 +490,52 @@ def _seed_task_executions(session: Session) -> None:
 
 
 def _seed_workflow_scenario(session: Session) -> None:
-    from shell.execution.infrastructure.execution.agent_config_execution.persistence.sql.models.agent_config_execution import (
+    from shell.execution_service.infrastructure.execution.agent_config_execution.persistence.sql.models.agent_config_execution import (
         AgentConfigExecutionModel,
     )
-    from shell.execution.infrastructure.execution.agent_execution.persistence.sql.models.agent_execution import (
+    from shell.execution_service.infrastructure.execution.agent_execution.persistence.sql.models.agent_execution import (
         AgentExecutionModel,
     )
-    from shell.execution.infrastructure.execution.agent_skill_execution.persistence.sql.models.agent_skill_execution import (
+    from shell.execution_service.infrastructure.execution.agent_skill_execution.persistence.sql.models.agent_skill_execution import (
         AgentSkillExecutionModel,
     )
-    from shell.execution.infrastructure.execution.edge_execution.persistence.sql.models.edge_execution import (
+    from shell.execution_service.infrastructure.execution.edge_execution.persistence.sql.models.edge_execution import (
         EdgeExecutionModel,
     )
-    from shell.execution.infrastructure.execution.edge_link_execution.persistence.sql.models.edge_link_execution import (
+    from shell.execution_service.infrastructure.execution.edge_link_execution.persistence.sql.models.edge_link_execution import (
         EdgeLinkExecutionModel,
     )
-    from shell.execution.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
+    from shell.execution_service.infrastructure.execution.graph_execution.persistence.sql.models.graph_execution import (
         GraphExecutionModel,
     )
-    from shell.execution.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state import (
+    from shell.execution_service.infrastructure.execution.graph_execution_state.persistence.sql.models.graph_execution_state import (
         GraphExecutionStateModel,
     )
-    from shell.execution.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
+    from shell.execution_service.infrastructure.execution.node_execution.persistence.sql.models.node_execution import (
         NodeExecutionModel,
     )
-    from shell.execution.infrastructure.execution.node_execution.persistence.sql.models.node_execution_result import (
+    from shell.execution_service.infrastructure.execution.node_execution.persistence.sql.models.node_execution_result import (
         NodeExecutionResultModel,
     )
-    from shell.execution.infrastructure.execution.node_execution_state.persistence.sql.models.node_execution_state_aggregate import (
+    from shell.execution_service.infrastructure.execution.node_execution_state.persistence.sql.models.node_execution_state_aggregate import (
         NodeExecutionStateModel,
     )
-    from shell.execution.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
+    from shell.execution_service.infrastructure.execution.node_link_execution.persistence.sql.models.node_link_execution import (
         NodeLinkExecutionModel,
     )
-    from shell.execution.infrastructure.execution.session_execution.persistence.sql.models.session_execution import (
+    from shell.execution_service.infrastructure.execution.session_execution.persistence.sql.models.session_execution import (
         SessionExecutionModel,
     )
-    from shell.execution.infrastructure.execution.session_execution_state.persistence.sql.models.session_execution_state import (
+    from shell.execution_service.infrastructure.execution.session_execution_state.persistence.sql.models.session_execution_state import (
         SessionExecutionStateModel,
     )
-    from shell.execution.infrastructure.execution.user_execution.persistence.sql.models.user_execution import (
+    from shell.execution_service.infrastructure.execution.user_execution.persistence.sql.models.user_execution import (
         UserExecutionModel,
     )
-    from shell.execution.infrastructure.execution.user_execution_state.persistence.sql.models.user_execution_state import (
+    from shell.execution_service.infrastructure.execution.user_execution_state.persistence.sql.models.user_execution_state import (
         UserExecutionStateModel,
     )
-    from shell.execution.infrastructure.execution.workflow.persistence.sql.models.workflow import (
+    from shell.execution_service.infrastructure.execution.workflow.persistence.sql.models.workflow import (
         WorkflowModel,
     )
 
@@ -833,10 +833,10 @@ def _seed_workflow_scenario(session: Session) -> None:
 
 
 def _seed_scheduler(session: Session) -> None:
-    from shell.scheduling.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
+    from shell.scheduling_service.infrastructure.scheduling.scheduler_definition.persistence.sql.models.scheduler_definition import (
         SchedulerDefinitionModel,
     )
-    from shell.scheduling.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
+    from shell.scheduling_service.infrastructure.scheduling.scheduler_execution.persistence.sql.models.scheduler_execution import (
         SchedulerExecutionModel,
     )
 
@@ -932,13 +932,13 @@ def _seed_scheduler(session: Session) -> None:
 
 
 def _seed_projects(session: Session) -> None:
-    from shell.project.infrastructure.project.project.persistence.sql.models.project import (
+    from shell.project_service.infrastructure.project.project.persistence.sql.models.project import (
         ProjectModel,
     )
-    from shell.project.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
+    from shell.project_service.infrastructure.project.project_skill.persistence.sql.models.project_skill import (
         ProjectSkillModel,
     )
-    from shell.project.infrastructure.project.project_state.persistence.sql.models.project_state import (
+    from shell.project_service.infrastructure.project.project_state.persistence.sql.models.project_state import (
         ProjectStateModel,
     )
 
@@ -1008,7 +1008,7 @@ def _seed_projects(session: Session) -> None:
 
 
 def _seed_platform_events(session: Session) -> None:
-    from shell.ingestion.infrastructure.ingestion.persistence.sql.models.base import (
+    from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
         PERSISTENCE_DELIVERY_MODELS,
     )
 

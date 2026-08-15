@@ -1,0 +1,31 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from shell.execution_service.domain.execution.aggregates.graph_execution.value_objects.graph_execution_id import (
+    GraphExecutionId,
+)
+from shell.execution_service.domain.execution.aggregates.node_execution.value_objects.node_execution_id import (
+    NodeExecutionId,
+)
+from shell.execution_service.domain.execution.aggregates.node_link_execution.node_link_execution import (
+    NodeLinkExecution,
+)
+from shell.execution_service.domain.execution.aggregates.node_link_execution.value_objects.node_link_execution_id import (
+    NodeLinkExecutionId,
+)
+from shell.platform.domain.value_objects.created_at import CreatedAt
+
+if TYPE_CHECKING:
+    from shell.execution_service.infrastructure.execution.node_link_execution.persistence.sql.models import (
+        NodeLinkExecutionModel,
+    )
+
+
+def node_link_execution_model_to_entity(model: NodeLinkExecutionModel) -> NodeLinkExecution:
+    return NodeLinkExecution.restore(
+        id=NodeLinkExecutionId(model.id),
+        graph_execution_id=GraphExecutionId(model.graph_execution_id),
+        node_execution_id=NodeExecutionId(model.node_execution_id),
+        created_at=CreatedAt.now(),
+    )

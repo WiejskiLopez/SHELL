@@ -4,21 +4,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from shell.definition.bootstrap.definition.event_registry import (
+from shell.definition_service.bootstrap.definition.event_registry import (
     build_definition_event_registry,
 )
-from shell.execution.bootstrap.execution.event_registry import (
+from shell.execution_service.bootstrap.execution.event_registry import (
     build_execution_event_registry,
 )
-from shell.ingestion.bootstrap.ingestion.event_registry import (
+from shell.ingestion_service.bootstrap.ingestion.event_registry import (
     build_ingestion_event_registry,
 )
-from shell.project.bootstrap.project.event_registry import build_project_event_registry
-from shell.scheduling.bootstrap.scheduling.event_registry import (
+from shell.project_service.bootstrap.project.event_registry import build_project_event_registry
+from shell.scheduling_service.bootstrap.scheduling.event_registry import (
     build_scheduling_event_registry,
 )
-from shell.session.bootstrap.session.event_registry import build_session_event_registry
-from shell.user.bootstrap.user.event_registry import build_user_event_registry
+from shell.session_service.bootstrap.session.event_registry import build_session_event_registry
+from shell.user_service.bootstrap.user.event_registry import build_user_event_registry
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -28,8 +28,8 @@ _ALLOWED_CROSS_BC = frozenset(
     {
         "shell.platform.domain",
         "shell.platform.application",
-        "shell.user.application.user.user.integration_events",
-        "shell.user.application.user.auth_session.integration_events",
+        "shell.user_service.application.user.user.integration_events",
+        "shell.user_service.application.user.auth_session.integration_events",
     }
 )
 
@@ -54,7 +54,7 @@ def test_each_bc_event_registry_contains_only_owned_events() -> None:
             violations.append(f"{bounded_context}: registry is empty")
             continue
 
-        expected_prefix = f"shell.{bounded_context}.application.{bounded_context}."
+        expected_prefix = f"shell.{bounded_context}_service.application.{bounded_context}."
         for event_name, event_type in registry.items():
             if event_name != event_type.__name__:
                 violations.append(

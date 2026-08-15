@@ -5,17 +5,17 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from shell.ingestion.domain.ingestion.aggregates.ingestion.ingestion import Ingestion
-from shell.ingestion.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.ingestion import Ingestion
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
     IngestionPayload,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_context import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_context import (
     IngestionContext,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_id import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_id import (
     IngestionId,
 )
 from shell.platform.domain.value_objects.created_at import CreatedAt

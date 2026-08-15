@@ -15,13 +15,13 @@ import pytest
 from pydantic import TypeAdapter
 
 _APPLICATION_PACKAGES = (
-    "shell.user.application",
-    "shell.definition.application",
-    "shell.execution.application",
-    "shell.session.application",
-    "shell.project.application",
-    "shell.scheduling.application",
-    "shell.ingestion.application",
+    "shell.user_service.application",
+    "shell.definition_service.application",
+    "shell.execution_service.application",
+    "shell.session_service.application",
+    "shell.project_service.application",
+    "shell.scheduling_service.application",
+    "shell.ingestion_service.application",
 )
 _DTO_MODULES: list[str] = []
 

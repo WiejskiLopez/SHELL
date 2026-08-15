@@ -1,0 +1,14 @@
+services:
+  shell-session-service:
+    build:
+      context: ../../..
+      dockerfile: shell/session_service/docker/Dockerfile
+    ports:
+      - "8003:8003"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8003/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ../../../shell_dev:/app/shell_dev

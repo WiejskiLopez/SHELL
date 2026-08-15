@@ -169,13 +169,13 @@ def test_infrastructure_does_not_import_framework() -> None:
 def test_platform_core_does_not_import_bounded_contexts() -> None:
     violations: list[str] = []
     forbidden_prefixes = (
-        "shell.definition",
-        "shell.execution",
-        "shell.session",
-        "shell.user",
-        "shell.project",
-        "shell.scheduling",
-        "shell.ingestion",
+        "shell.definition_service",
+        "shell.execution_service",
+        "shell.session_service",
+        "shell.user_service",
+        "shell.project_service",
+        "shell.scheduling_service",
+        "shell.ingestion_service",
     )
 
     for path in _iter_platform_core_files():
@@ -189,7 +189,12 @@ def test_platform_core_does_not_import_bounded_contexts() -> None:
 
 
 def test_event_transport_receives_registries_from_composition_root() -> None:
-    for path in (BASE / "definition", BASE / "execution", BASE / "session", BASE / "user"):
+    for path in (
+        BASE / "definition_service",
+        BASE / "execution_service",
+        BASE / "session_service",
+        BASE / "user_service",
+    ):
         assert path.exists(), f"Expected standalone BC root is missing: {path}"
 
 
@@ -201,7 +206,7 @@ def test_message_registry_builder_is_platform_owned() -> None:
 
     assert platform_registry.exists(), "Message registry builder must remain in platform"
     assert not bc_registry.exists(), "Message registry must not be duplicated inside Ingestion BC"
-    assert "shell.ingestion" not in "\n".join(_get_imports(platform_registry))
+    assert "shell.ingestion_service" not in "\n".join(_get_imports(platform_registry))
 
 
 def test_event_registry_builder_is_platform_owned() -> None:
@@ -240,13 +245,13 @@ _PLATFORM_KNOWN: frozenset[str] = frozenset({})
 def test_platform_does_not_import_bounded_contexts() -> None:
     violations: list[str] = []
     bounded_contexts = [
-        "shell.definition",
-        "shell.execution",
-        "shell.session",
-        "shell.user",
-        "shell.project",
-        "shell.scheduling",
-        "shell.ingestion",
+        "shell.definition_service",
+        "shell.execution_service",
+        "shell.session_service",
+        "shell.user_service",
+        "shell.project_service",
+        "shell.scheduling_service",
+        "shell.ingestion_service",
     ]
     for path in _iter_platform_core_files():
         for imp in _get_imports(path):

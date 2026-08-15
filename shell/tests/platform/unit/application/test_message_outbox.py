@@ -5,10 +5,10 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from shell.ingestion.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
     IngestionPayload,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
 from shell.platform.application.bus.message_bus import MessageBus

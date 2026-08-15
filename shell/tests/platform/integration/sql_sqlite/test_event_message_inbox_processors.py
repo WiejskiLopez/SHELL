@@ -8,19 +8,19 @@ from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select
 
-from shell.execution.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
+from shell.execution_service.domain.execution.aggregates.task_execution.events.task_execution_created_event import (
     TaskExecutionCreatedEvent,
 )
-from shell.execution.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
+from shell.execution_service.domain.execution.aggregates.task_execution.value_objects.task_execution_id import (
     TaskExecutionId,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.payloads.ingestion_payload import (
     IngestionPayload,
 )
-from shell.ingestion.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
+from shell.ingestion_service.domain.ingestion.aggregates.ingestion.value_objects.ingestion_data import (
     IngestionData,
 )
-from shell.ingestion.infrastructure.ingestion.persistence.sql.models.base import (
+from shell.ingestion_service.infrastructure.ingestion.persistence.sql.models.base import (
     EVENT_DELIVERY_MODELS,
     MESSAGE_DELIVERY_MODELS,
 )

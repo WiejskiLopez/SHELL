@@ -1,0 +1,14 @@
+services:
+  shell-project-service:
+    build:
+      context: ../../..
+      dockerfile: shell/project_service/docker/Dockerfile
+    ports:
+      - "8005:8005"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ../../../shell_dev:/app/shell_dev
